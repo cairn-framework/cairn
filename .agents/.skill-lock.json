@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "skills": {
+    "cflx-run": {
+      "source": "Self",
+      "sourceType": "self",
+      "skillPath": "/Users/george/repos/cairn/.agents/skills/cflx-run",
+      "skillFolderHash": "8225d0e53e131c786485cec4fda1d886f2ca3ca0e63b501ccd2a76c9770ca3ac",
+      "installedAt": "2026-04-14T10:28:58.543435Z",
+      "updatedAt": "2026-04-14T10:28:58.543435Z"
+    },
+    "cflx-workflow": {
+      "source": "Self",
+      "sourceType": "self",
+      "skillPath": "/Users/george/repos/cairn/.agents/skills/cflx-workflow",
+      "skillFolderHash": "c3011c00234c89900ecee70fc9315d3fc6f61090808c54224959cf77a3ddb71c",
+      "installedAt": "2026-04-14T10:28:58.542989Z",
+      "updatedAt": "2026-04-14T10:28:58.542989Z"
+    },
+    "cflx-proposal": {
+      "source": "Self",
+      "sourceType": "self",
+      "skillPath": "/Users/george/repos/cairn/.agents/skills/cflx-proposal",
+      "skillFolderHash": "db35679a4d4a7baacff59df7fcaadf6aed5e0cd8e6cdfc80cc4c83d0a8565879",
+      "installedAt": "2026-04-14T10:28:58.541905Z",
+      "updatedAt": "2026-04-14T10:28:58.541905Z"
+    }
+  }
+}

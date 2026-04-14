@@ -1,0 +1,76 @@
+{
+  // Conflux Configuration
+  // Template: Claude Code
+
+  // Command to analyze dependencies and select next change
+  "analyze_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p {prompt}",
+
+  // Command to apply a change (supports {change_id} and {prompt} placeholders)
+  "apply_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p '/cflx-workflow apply {change_id} {prompt}'",
+
+  // Command to archive a completed change (supports {change_id} and {prompt} placeholders)
+  "archive_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p '/cflx-workflow archive {change_id} {prompt}'",
+
+  // Command to run acceptance tests after apply (supports {change_id} and {prompt} placeholders)
+  "acceptance_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p '/cflx-workflow accept {change_id} {prompt}'",
+
+  // Command to resolve conflicts (supports {prompt} placeholder)
+  "resolve_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p {prompt}",
+
+  // System prompt for apply command (user-customizable, injected into {prompt} placeholder)
+  // Note: A hardcoded system prompt is always appended after this value
+  "apply_prompt": "",
+
+  // System prompt for archive command (injected into {prompt} placeholder)
+  "archive_prompt": "",
+
+  // System prompt for acceptance command (injected into {prompt} placeholder)
+  // Note: A hardcoded acceptance prompt is always prepended before this value
+  "acceptance_prompt": "",
+
+  // Controls how the acceptance `{prompt}` is constructed.
+  // - full: include hardcoded acceptance system prompt + diff/history context
+  // - context_only: only include change metadata + diff/history context
+  // Use context_only when the fixed acceptance instructions live in a separate command template.
+  "acceptance_prompt_mode": "context_only",
+
+  // Maximum iterations for the orchestration loop (default: 50, 0 = no limit)
+  // "max_iterations": 50,
+
+  // Logging configuration for TUI debug output
+  // "logging": {
+  //   "suppress_repetitive_debug": true,
+  //   "summary_interval_secs": 60
+  // },
+
+  // Command to create a worktree for proposals from TUI (+ key)
+  // Supports {workspace_dir} and {repo_root} placeholders
+  // "worktree_command": "codex '/openspec:proposal --worktree {workspace_dir}'",
+
+  // Lifecycle hooks (optional)
+  // Available hooks:
+  //   Run lifecycle: on_start, on_finish, on_error
+  //   Change lifecycle: on_change_start, pre_apply, post_apply, on_change_complete, pre_archive, post_archive, on_change_end, on_merged
+  //   TUI interaction: on_queue_add, on_queue_remove
+  // Available placeholders: {change_id}, {changes_processed}, {total_changes}, {remaining_changes}, {apply_count}, {completed_tasks}, {total_tasks}
+  "hooks": {
+    // Run lifecycle
+    // "on_start": "echo '[on_start] changes_processed={changes_processed} total={total_changes} remaining={remaining_changes}'",
+    // "on_finish": "echo '[on_finish] status={status} processed={changes_processed}/{total_changes}'",
+    // "on_error": "echo '[on_error] change={change_id} error={error}'",
+
+    // Change lifecycle
+    // "on_change_start": "echo '[on_change_start] change={change_id} tasks={completed_tasks}/{total_tasks} progress={changes_processed}/{total_changes}'",
+    // "pre_apply": "echo '[pre_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
+    // "post_apply": "echo '[post_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
+    // "on_change_complete": "echo '[on_change_complete] change={change_id} tasks={total_tasks}/{total_tasks}'",
+    // "pre_archive": "echo '[pre_archive] change={change_id} progress={changes_processed}/{total_changes}'",
+    // "post_archive": "echo '[post_archive] change={change_id} progress={changes_processed}/{total_changes}'",
+    // "on_change_end": "echo '[on_change_end] change={change_id} progress={changes_processed}/{total_changes} remaining={remaining_changes}'",
+    // "on_merged": "echo '[on_merged] change={change_id} tasks={completed_tasks}/{total_tasks} progress={changes_processed}/{total_changes}'",
+
+    // TUI interaction
+    // "on_queue_add": "echo '[on_queue_add] change={change_id} tasks={completed_tasks}/{total_tasks}'",
+    // "on_queue_remove": "echo '[on_queue_remove] change={change_id} tasks={completed_tasks}/{total_tasks}'"
+  }
+}
