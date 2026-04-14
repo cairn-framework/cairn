@@ -1,21 +1,21 @@
 {
   // Conflux Configuration
-  // Template: Claude Code
+  // Template: Codex
 
   // Command to analyze dependencies and select next change
-  "analyze_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p {prompt}",
+  "analyze_command": "codex --json {prompt}",
 
   // Command to apply a change (supports {change_id} and {prompt} placeholders)
-  "apply_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p '/cflx-workflow apply {change_id} {prompt}'",
+  "apply_command": "codex '/openspec:apply {change_id} {prompt}'",
 
   // Command to archive a completed change (supports {change_id} and {prompt} placeholders)
-  "archive_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p '/cflx-workflow archive {change_id} {prompt}'",
+  "archive_command": "codex '/openspec:archive {change_id} {prompt}'",
 
   // Command to run acceptance tests after apply (supports {change_id} and {prompt} placeholders)
-  "acceptance_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p '/cflx-workflow accept {change_id} {prompt}'",
+  "acceptance_command": "codex '/cflx-accept {change_id} {prompt}'",
 
   // Command to resolve conflicts (supports {prompt} placeholder)
-  "resolve_command": "claude --dangerously-skip-permissions --verbose --output-format stream-json -p {prompt}",
+  "resolve_command": "codex {prompt}",
 
   // System prompt for apply command (user-customizable, injected into {prompt} placeholder)
   // Note: A hardcoded system prompt is always appended after this value
@@ -45,7 +45,7 @@
 
   // Command to create a worktree for proposals from TUI (+ key)
   // Supports {workspace_dir} and {repo_root} placeholders
-  // "worktree_command": "codex '/openspec:proposal --worktree {workspace_dir}'",
+  // "worktree_command": "opencode run '/openspec:proposal --worktree {workspace_dir}'",
 
   // Lifecycle hooks (optional)
   // Available hooks:
