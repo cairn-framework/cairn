@@ -13,6 +13,13 @@ The kernel SHALL parse the `docs/spec.md` section 7 DSL grammar into typed Rust 
 - **THEN** it returns an AST preserving node nesting, stable IDs, tags, fields, and edge descriptions
 - **AND** every parsed item carries a source span
 
+#### Scenario: Internal file ownership opt-in parses
+
+- **GIVEN** a valid `cairn.dsl` containing a Container with `path "./apps/api"` and `owns-files: true`
+- **WHEN** the parser runs
+- **THEN** the AST node records the internal ownership opt-in
+- **AND** the source span for the `owns-files` field is preserved
+
 #### Scenario: Malformed DSL reports location
 
 - **GIVEN** a DSL file with an unterminated node declaration
@@ -30,6 +37,21 @@ The kernel SHALL transform the parsed DSL, contract artefacts, and reconciler re
 - **THEN** callers can resolve nodes by ID
 - **AND** callers can resolve nodes by exact name when unambiguous
 - **AND** callers can query parent, children, inbound edges, outbound edges, and claimed paths
+
+#### Scenario: Internal node does not own files by default
+
+- **GIVEN** a Container with `path "./apps/api"` and a child Module with `path "./apps/api/auth"`
+- **AND** a Rust file exists directly under `./apps/api`
+- **WHEN** `cairn lint` runs
+- **THEN** the direct Container file is reported as orphaned because the Container lacks `owns-files: true`
+
+#### Scenario: Internal node owns files by opt-in
+
+- **GIVEN** a Container with `path "./apps/api"` and `owns-files: true`
+- **AND** a Rust file exists directly under `./apps/api`
+- **WHEN** `cairn lint` runs
+- **THEN** the file is claimed by the Container
+- **AND** descendant Module files still resolve by most-specific path
 
 #### Scenario: Structural errors block ontology success
 

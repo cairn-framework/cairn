@@ -52,7 +52,7 @@ Supported declarations:
 - `Module`
 - `Actor`
 
-Every node SHALL include name, description, stable `id`, zero or more tags, optional path, and zero or more artefact pointers. `path` and artefact pointer fields SHALL accept a string or list of strings. Edges SHALL use node IDs and a required description.
+Every node SHALL include name, description, stable `id`, zero or more tags, optional path, optional `owns-files: true`, and zero or more artefact pointers. `path` and artefact pointer fields SHALL accept a string or list of strings. Edges SHALL use node IDs and a required description.
 
 The parser SHALL produce typed AST structures and source spans. Parser errors SHALL include file, line, column, expected token, and encountered token.
 
@@ -64,9 +64,11 @@ Ontology construction SHALL transform the AST into:
 - Name map for name-or-ID CLI resolution.
 - Parent and child indexes from nesting.
 - Inbound and outbound edge indexes.
-- Claimed path index with most-specific ownership resolution.
+- Claimed path index with most-specific ownership resolution, leaf-default ownership, and internal-node ownership opt-in.
 - Attached contract pointer metadata.
 - Node states: `synced`, `ghost`, and `orphaned`.
+
+Only leaf nodes SHALL own files by default. An internal node with a path SHALL own files only when it declares `owns-files: true`; otherwise it acts as a grouping boundary for descendant ownership and orphan detection. Ownership SHALL resolve by most-specific matching path among eligible owning nodes. Ties between eligible owners are structural errors.
 
 Integrity validation SHALL reject duplicate IDs, invalid ID format, missing required fields, path ties, invalid edge endpoints, broken contract pointers, and dependency cycles used by `order`.
 
@@ -81,7 +83,7 @@ pub trait Reconciler {
 }
 ```
 
-`ReconcileReport` SHALL contain claimed files, extracted symbols, an interface fingerprint, and findings. The Phase 1 code reconciler SHALL target Rust using Tree-sitter. It SHALL identify files under claimed module paths, compute deterministic interface fingerprints for public Rust items, and report orphaned Rust source files under claimed containers that no leaf module owns.
+`ReconcileReport` SHALL contain claimed files, extracted symbols, an interface fingerprint, and findings. The Phase 1 code reconciler SHALL target Rust using Tree-sitter. It SHALL identify files under claimed eligible owner paths, compute deterministic interface fingerprints for public Rust items, and report orphaned Rust source files under claimed containers that no leaf module or `owns-files: true` internal node owns.
 
 ## Contract Artefact
 
@@ -126,4 +128,4 @@ Use typed error enums with `Result<T, E>`. CLI commands SHALL exit `1` for parse
 
 ## Testing
 
-Tests SHALL cover lexer tokens, parser productions, malformed DSL, ontology indexes, integrity failures, contract loading, reconciler reports for Rust fixtures, scan output generation, and CLI snapshots for both human and JSON output.
+Tests SHALL cover lexer tokens, parser productions, malformed DSL, `owns-files: true` parsing, leaf-default ownership, internal-node ownership opt-in, ontology indexes, integrity failures, contract loading, reconciler reports for Rust fixtures, scan output generation, and CLI snapshots for both human and JSON output.

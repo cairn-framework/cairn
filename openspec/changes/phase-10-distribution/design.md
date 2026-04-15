@@ -44,7 +44,7 @@ Release validation SHALL cover:
 - LSP binary.
 - Shell completions where supported.
 - Manpage or markdown command reference.
-- Example project exercising DSL, artefacts, changes, MCP, and LSP diagnostics.
+- Example project exercising DSL parse, contracts, todos, decisions, reviews, research, sources, change directories, archive/rename documentation, hooks, MCP queries, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and fixture non-code reconciler observations.
 
 ## Testing
 

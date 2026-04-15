@@ -3,17 +3,17 @@
 ## 1. DSL Parser
 
 - [ ] 1.1 Implement tokenization with source spans for DSL keywords, identifiers, tags, strings, arrows, braces, comments, and lists.
-- [ ] 1.2 Implement AST types for systems, containers, modules, actors, fields, tags, paths, artefact pointers, and edges.
+- [ ] 1.2 Implement AST types for systems, containers, modules, actors, fields, tags, paths, `owns-files`, artefact pointers, and edges.
 - [ ] 1.3 Implement recursive descent parsing for nested node declarations and top-level edges.
 - [ ] 1.4 Implement source-positioned parser errors for malformed fixtures.
 - [ ] 1.5 Add unit tests for every grammar production and negative tests for malformed input.
 
 ## 2. Ontology and Integrity
 
-- [ ] 2.1 Build node, name, parent, child, inbound edge, outbound edge, and path ownership indexes.
+- [ ] 2.1 Build node, name, parent, child, inbound edge, outbound edge, and path ownership indexes with leaf-default ownership and internal-node `owns-files: true` opt-in.
 - [ ] 2.2 Implement ID validation, duplicate ID detection, required field validation, path tie detection, invalid edge endpoint validation, and cycle detection.
 - [ ] 2.3 Implement name-or-ID node resolution with deterministic closest-match suggestions on failure.
-- [ ] 2.4 Add graph and integrity tests using `test/fixtures/cairn.dsl` and purpose-built malformed fixtures.
+- [ ] 2.4 Add graph and integrity tests using `test/fixtures/cairn.dsl` and purpose-built malformed fixtures, including internal-node files that are orphaned by default and claimed when `owns-files: true` is present.
 
 ## 3. Contract Artefacts
 

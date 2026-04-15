@@ -6,6 +6,16 @@
 
 Cairn SHALL provide an LSP server over the same parser, ontology, and query APIs as CLI and MCP.
 
+#### Scenario: LSP binary root is strict
+
+- **GIVEN** Phase 10 has been implemented
+- **WHEN** a headless agent opens the `cairn-lsp` binary root
+- **THEN** the file begins with `#![deny(warnings)]`
+- **AND** the file contains `#![deny(clippy::all)]`
+- **AND** the file contains `#![deny(clippy::pedantic)]`
+- **AND** the file contains `#![deny(clippy::nursery)]`
+- **AND** the file contains `#![forbid(unsafe_code)]`
+
 #### Scenario: Diagnostics match lint
 
 - **GIVEN** a project with parser, structural, interface, and tension findings
@@ -35,6 +45,12 @@ Cairn SHALL document and package agent-facing integrations around existing CLI a
 - **THEN** it explains how to run `cairn`
 - **AND** how to start `cairn-mcp`
 - **AND** how agents consume project context and rules
+
+#### Scenario: Example project exercises major capabilities
+
+- **GIVEN** the packaged example project
+- **WHEN** release validation runs against it
+- **THEN** it exercises DSL parse, artefacts, changes, hooks, MCP queries, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and fixture non-code reconciler observations
 
 ### Requirement: Expose reconciler extension points
 

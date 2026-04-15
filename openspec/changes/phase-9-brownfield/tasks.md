@@ -5,11 +5,12 @@
 - [ ] 1.1 Extract source roots and module-like directories from reconciler output.
 - [ ] 1.2 Cluster files by path ownership and observed dependency density.
 - [ ] 1.3 Produce candidate nodes, paths, edges, confidence scores, and evidence paths.
-- [ ] 1.4 Add fixture tests for simple, nested, and mixed-language repositories.
+- [ ] 1.4 Implement deterministic fallback heuristics for minimum file counts, max depth, coupling score bands, observed edge thresholds, and sample byte limits.
+- [ ] 1.5 Add fixture tests for simple, nested, mixed-language, low-confidence, and high-coupling repositories.
 
 ## 2. Summariser Integration
 
-- [ ] 2.1 Build bounded summariser inputs from candidates and code samples.
+- [ ] 2.1 Build bounded summariser inputs from candidates and code samples with at most five files per candidate and 4,000 bytes per file.
 - [ ] 2.2 Generate names, descriptions, tags, and stub contract prose.
 - [ ] 2.3 Implement disabled-mode fallback using mechanical path-derived names.
 - [ ] 2.4 Add deterministic fake-backend tests.
@@ -33,7 +34,8 @@
 
 - [ ] 5.1 Document human review workflow for generated brownfield changes.
 - [ ] 5.2 Document confidence scores and evidence paths.
-- [ ] 5.3 Document limitations of architecture inference.
+- [ ] 5.3 Register `init --from-code` and `refine` in the shared MCP query tool registry as mutating tools.
+- [ ] 5.4 Document limitations of architecture inference.
 
 ## 6. Required Verification
 

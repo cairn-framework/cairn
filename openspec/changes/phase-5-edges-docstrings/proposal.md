@@ -1,5 +1,10 @@
 # Proposal: Phase 5 Edge Validation and Docstrings
 
+## Dependencies
+
+- Requires: `phase-4-hooks`.
+- Execution: MUST run after Phase 4 and before Phases 6-10.
+
 ## Problem/Context
 
 The Phase 1 code reconciler records files and interface fingerprints, but it does not validate whether declared DSL edges match observed source dependencies or whether authored docstrings drift from ontology facts.

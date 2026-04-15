@@ -1,5 +1,9 @@
 # Parser capability spec
 
+## Purpose
+
+Define the canonical parser behavior for the Cairn v0.6 DSL grammar.
+
 ## Requirements
 
 ### Requirement: Parse the v0.6 DSL grammar

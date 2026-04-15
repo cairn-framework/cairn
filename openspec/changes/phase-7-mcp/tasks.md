@@ -10,8 +10,10 @@
 
 - [ ] 2.1 Add `cairn-mcp` binary target.
 - [ ] 2.2 Implement stdio transport.
-- [ ] 2.3 Register read-only tools for core, artefact, status, and change queries.
-- [ ] 2.4 Add gated mutating tool exposure for archive and rename.
+- [ ] 2.3 Implement the shared query tool registry with MCP name, schemas, and safety class metadata.
+- [ ] 2.4 Register read-only tools for core, docstring, artefact, status, and change queries.
+- [ ] 2.5 Add gated mutating tool exposure for mutation-capable tools including archive and rename.
+- [ ] 2.6 Ensure the `cairn-mcp` binary root uses the Phase 0 strict crate attributes.
 
 ## 3. Context and Rules
 

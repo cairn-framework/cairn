@@ -13,6 +13,7 @@
 - [ ] 2.3 Implement Python reconciler.
 - [ ] 2.4 Implement Go reconciler.
 - [ ] 2.5 Dispatch all supported languages through the shared `Reconciler` trait.
+- [ ] 2.6 Implement canonical public interface extraction and sorting rules for Rust, TypeScript, Python, and Go.
 
 ## 3. State and Divergence
 
@@ -20,7 +21,8 @@
 - [ ] 3.2 Migrate existing single-hash state into target-hash state.
 - [ ] 3.3 Detect target interface divergence.
 - [ ] 3.4 Implement and document intentional asymmetry markers.
-- [ ] 3.5 Add tests for contradiction and tension cases.
+- [ ] 3.5 Add tests proving private symbols, comments, formatting, and source order do not change interface hashes.
+- [ ] 3.6 Add tests for contradiction and tension cases.
 
 ## 4. CLI and Output
 

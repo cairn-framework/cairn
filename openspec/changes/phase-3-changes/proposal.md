@@ -1,5 +1,10 @@
 # Proposal: Phase 3 Changes
 
+## Dependencies
+
+- Requires: `phase-2-artefacts`.
+- Execution: MUST run after Phase 2 and before Phases 4-10.
+
 ## Problem/Context
 
 Phases 1 and 2 make Cairn capable of reading current architectural truth. Cairn now needs a safe way to propose modifications without mutating the main tree directly.

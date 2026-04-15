@@ -3,7 +3,7 @@
   // Template: Codex
 
   // Command to analyze dependencies and select next change
-  "analyze_command": "codex --json {prompt}",
+  "analyze_command": "python3 scripts/cflx-analyze-cairn-phases.py",
 
   // Command to apply a change (supports {change_id} and {prompt} placeholders)
   "apply_command": "codex exec '/openspec:apply {change_id} {prompt}'",

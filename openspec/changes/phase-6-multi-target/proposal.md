@@ -1,5 +1,10 @@
 # Proposal: Phase 6 Multi-Target and Languages
 
+## Dependencies
+
+- Requires: `phase-5-edges-docstrings`.
+- Execution: MUST run after Phase 5 and before Phases 7-10.
+
 ## Problem/Context
 
 Earlier phases parse path lists but reconcile primarily against Rust source. Cairn v0.6 requires modules with multiple paths to reconcile every target independently, compare per-target interface hashes, and support additional languages.

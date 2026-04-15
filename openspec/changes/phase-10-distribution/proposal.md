@@ -1,5 +1,10 @@
 # Proposal: Phase 10 Distribution
 
+## Dependencies
+
+- Requires: `phase-9-brownfield`.
+- Execution: MUST run after Phase 9.
+
 ## Problem/Context
 
 Phases 1-9 complete the core Cairn framework. The final campaign phase makes Cairn usable from editors, agent environments, and additional domains without changing the ontology semantics.

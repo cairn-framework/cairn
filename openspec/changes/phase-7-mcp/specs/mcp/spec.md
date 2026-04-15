@@ -17,8 +17,29 @@ Cairn SHALL provide an MCP server that wraps the existing query layer.
 
 - **GIVEN** the MCP server starts in default mode
 - **WHEN** an MCP client lists tools
-- **THEN** read-only core, artefact, status, rationale, and change-display tools are listed
+- **THEN** read-only core, artefact, docstring, status, rationale, and change-display tools are listed
 - **AND** archive and rename mutation tools are not listed
+
+#### Scenario: Tool registration is registry-backed
+
+- **GIVEN** a query command is registered in the shared query tool registry with MCP metadata
+- **WHEN** the MCP server starts
+- **THEN** the server exposes the command according to its registered safety class
+- **AND** no server-local static tool list is required for that command
+
+### Requirement: Enforce strict crate attributes for the MCP binary
+
+The `cairn-mcp` binary root SHALL use the same strict crate attributes as the Phase 0 crate roots.
+
+#### Scenario: MCP binary root is strict
+
+- **GIVEN** Phase 7 has been implemented
+- **WHEN** a headless agent opens the `cairn-mcp` binary root
+- **THEN** the file begins with `#![deny(warnings)]`
+- **AND** the file contains `#![deny(clippy::all)]`
+- **AND** the file contains `#![deny(clippy::pedantic)]`
+- **AND** the file contains `#![deny(clippy::nursery)]`
+- **AND** the file contains `#![forbid(unsafe_code)]`
 
 ### Requirement: Compose project context and rules into responses
 

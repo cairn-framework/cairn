@@ -16,10 +16,10 @@
 
 ## 3. Docstring Drift
 
-- [ ] 3.1 Extract module-level docstrings from Rust source files.
-- [ ] 3.2 Parse supported Cairn fact lines for dependencies, tags, and contract references.
+- [ ] 3.1 Extract module-level docstrings from Rust `//!` comments in `lib.rs`, `main.rs`, and `mod.rs`, plus `///` comments attached to `mod` declarations.
+- [ ] 3.2 Parse exact, case-sensitive Cairn fact lines for ID, name, dependencies, tags, and contract references.
 - [ ] 3.3 Compare extracted facts to ontology facts.
-- [ ] 3.4 Report contradictions as rationale tensions.
+- [ ] 3.4 Report contradictions and unknown IDs as rationale tensions, and unknown fact keys as informational findings.
 
 ## 4. Docstring Command
 

@@ -1,5 +1,9 @@
 # CLI capability spec
 
+## Purpose
+
+Define the canonical command-line query surface for the current Cairn kernel specs.
+
 ## Requirements
 
 ### Requirement: Expose the query layer as a command-line tool

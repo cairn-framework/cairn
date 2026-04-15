@@ -4,16 +4,17 @@
 
 - [ ] 1.1 Add summariser configuration with disabled default.
 - [ ] 1.2 Define backend trait, request type, draft type, and error type.
-- [ ] 1.3 Implement local command backend.
-- [ ] 1.4 Implement hosted API adapter boundary without committing secrets.
-- [ ] 1.5 Add deterministic fake backend for tests.
+- [ ] 1.3 Define provider-neutral `SummariserRequest` and `SummariserResponse` JSON schemas.
+- [ ] 1.4 Implement local command backend using stdin/stdout JSON, timeout, non-zero exit handling, and invalid response handling.
+- [ ] 1.5 Implement hosted API adapter boundary without committing secrets.
+- [ ] 1.6 Add deterministic fake backend for tests.
 
 ## 2. Prompt Inputs and Draft Storage
 
-- [ ] 2.1 Build prompt inputs from ontology facts, contracts, interface changes, docstring findings, context, and rules.
+- [ ] 2.1 Build prompt inputs from ontology facts, contracts, interface changes, docstring findings, context, rules, and bounded code samples.
 - [ ] 2.2 Persist drafts under `.cairn/state/summariser/`.
 - [ ] 2.3 Track draft status transitions.
-- [ ] 2.4 Add tests for prompt inputs and persisted metadata.
+- [ ] 2.4 Add tests for prompt input byte limits, sample truncation, and persisted metadata.
 
 ## 3. Resolution Actions
 
@@ -27,7 +28,8 @@
 
 - [ ] 4.1 Implement `summarise`, `drafts`, `draft show`, `draft accept`, `draft edit`, and `draft discard`.
 - [ ] 4.2 Add JSON schemas and output snapshots.
-- [ ] 4.3 Document backend configuration, safety model, and resolution actions.
+- [ ] 4.3 Register summariser and draft commands in the shared MCP query tool registry with correct read-only versus mutating safety classes.
+- [ ] 4.4 Document backend configuration, safety model, MCP exposure, and resolution actions.
 
 ## 5. Required Verification
 

@@ -1,5 +1,10 @@
 # Proposal: Phase 7 MCP
 
+## Dependencies
+
+- Requires: `phase-6-multi-target`.
+- Execution: MUST run after Phase 6 and before Phases 8-10.
+
 ## Problem/Context
 
 Phases 1-6 expose Cairn through CLI commands and JSON output. Agents need direct structured access to the ontology without shelling out and parsing CLI text.

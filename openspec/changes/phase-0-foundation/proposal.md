@@ -1,5 +1,10 @@
 # Proposal: Phase 0 Foundation
 
+## Dependencies
+
+- Requires: none.
+- Execution: MUST run before every later phase.
+
 ## Problem/Context
 
 Cairn v0.6 defines a phased Rust implementation plan, but the repository currently contains only specification material, fixtures, and an archived historical change. Before the kernel or any domain logic can be implemented, the project needs a reproducible Rust foundation that every later phase can rely on.

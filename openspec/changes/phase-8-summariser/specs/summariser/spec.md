@@ -21,6 +21,21 @@ Cairn SHALL support a configurable summariser that is disabled by default.
 - **THEN** Cairn builds grounded prompt inputs
 - **AND** stores a pending draft under `.cairn/state/summariser/`
 
+#### Scenario: Local command protocol is stable
+
+- **GIVEN** summariser mode is `local_command`
+- **WHEN** the user runs `cairn summarise <node>`
+- **THEN** Cairn sends one `SummariserRequest` JSON object to the configured command stdin
+- **AND** reads one `SummariserResponse` JSON object from stdout
+- **AND** stores only `draft_text` as generated prose
+
+#### Scenario: Backend failure does not create draft
+
+- **GIVEN** the configured local command exits non-zero or exceeds `timeout_ms`
+- **WHEN** the user runs `cairn summarise <node>`
+- **THEN** Cairn reports a backend failure
+- **AND** does not create or modify a draft
+
 ### Requirement: Require explicit draft resolution
 
 Cairn SHALL require accept, edit, or discard before generated text affects contracts.
@@ -44,3 +59,20 @@ Cairn SHALL require accept, edit, or discard before generated text affects contr
 - **GIVEN** a backend returns generated text
 - **WHEN** draft generation completes
 - **THEN** no contract file is modified until a resolution command runs
+
+### Requirement: Expose summariser commands through MCP
+
+Summariser commands SHALL register with the shared MCP query tool registry.
+
+#### Scenario: Draft query tools are read-only MCP tools
+
+- **GIVEN** the MCP server starts in default mode after Phase 8
+- **WHEN** an MCP client lists tools
+- **THEN** `cairn_drafts` is listed
+- **AND** `cairn_draft_show` is listed
+
+#### Scenario: Draft mutation tools require mutating MCP mode
+
+- **GIVEN** the MCP server starts in default mode after Phase 8
+- **WHEN** an MCP client lists tools
+- **THEN** `cairn_summarise`, `cairn_draft_accept`, `cairn_draft_edit`, and `cairn_draft_discard` are not listed

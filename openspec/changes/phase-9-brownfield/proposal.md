@@ -1,5 +1,10 @@
 # Proposal: Phase 9 Brownfield Extraction
 
+## Dependencies
+
+- Requires: `phase-8-summariser`.
+- Execution: MUST run after Phase 8 and before Phase 10.
+
 ## Problem/Context
 
 Cairn now has a mature DSL, reconcilers, artefacts, change system, hooks, MCP access, and summariser. Existing projects still need a path to adopt Cairn without manually authoring the initial ontology from nothing.

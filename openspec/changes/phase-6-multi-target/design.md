@@ -37,6 +37,19 @@ Each language SHALL implement the existing `Reconciler` trait. The shared scanne
 
 `.cairn/state/interface-hashes.json` SHALL store hashes by node ID and target path. Historical single-hash state from Phase 1 SHALL migrate to the new shape on first scan.
 
+## Public Interface Extraction
+
+Each language reconciler SHALL normalize public interface shapes into a sorted list of records containing `language`, `kind`, `name`, `signature`, and optional `members`. Hashes SHALL be computed from the canonical JSON encoding of this normalized list with deterministic key ordering and no source spans.
+
+Language-specific extraction rules:
+
+- Rust SHALL preserve Phase 1 semantics: public `pub` items exported from the target crate or module, including public functions, structs, enums, traits, type aliases, constants, and public fields or trait methods.
+- TypeScript SHALL include exported declarations, re-exports, default exports using the canonical name `default`, exported class public members, exported interfaces, exported types, exported functions, exported constants, and exported enums. Non-exported declarations SHALL be excluded.
+- Python SHALL use `__all__` when present. If `__all__` is absent, it SHALL include top-level functions, classes, constants, and variables whose names do not start with `_`; class methods whose names do not start with `_` SHALL be included as members.
+- Go SHALL include package-level exported identifiers, exported functions, exported types, exported interfaces, exported struct fields, exported methods, constants, and variables according to Go's uppercase export convention.
+
+All reconcilers SHALL sort records by `kind`, then `name`, then `signature`. Formatting-only changes, comments, private symbols, and source order SHALL NOT affect the interface hash.
+
 ## Divergence Rules
 
 When multiple targets claim the same contract role:
@@ -45,7 +58,20 @@ When multiple targets claim the same contract role:
 - Different interface shapes produce an interface contradiction unless an artefact or config marks the asymmetry intentional.
 - Intentional asymmetry produces a rationale tension so humans can revisit it.
 
-The implementation SHALL document the intentional-asymmetry marker it supports.
+Intentional asymmetry SHALL be marked in `cairn.config.yaml` under `multi_target.intentional_asymmetry`:
+
+```yaml
+multi_target:
+  intentional_asymmetry:
+    - node: saas.api.auth
+      contract_role: public_api
+      targets:
+        - crates/auth/src/lib.rs
+        - packages/auth-client/src/index.ts
+      reason: "The client intentionally exposes a narrowed interface."
+```
+
+Each entry SHALL include `node`, `contract_role`, at least two target paths, and a non-empty `reason`. A matching entry SHALL suppress the interface contradiction only for those listed targets and SHALL emit the rationale tension.
 
 ## CLI Changes
 
@@ -53,4 +79,4 @@ The implementation SHALL document the intentional-asymmetry marker it supports.
 
 ## Testing
 
-Tests SHALL cover single-target backwards compatibility, path-list dispatch, language detection, per-target hash persistence, migration from old state shape, divergence contradictions, intentional asymmetry tensions, and target-level output.
+Tests SHALL cover single-target backwards compatibility, path-list dispatch, language detection, per-language public interface extraction rules, canonical hash normalization, per-target hash persistence, migration from old state shape, divergence contradictions, intentional asymmetry tensions, and target-level output.

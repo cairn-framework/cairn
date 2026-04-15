@@ -3,11 +3,12 @@
 ## 1. LSP Server
 
 - [ ] 1.1 Add `cairn-lsp` binary target.
-- [ ] 1.2 Implement diagnostics from parser, lint, hook, and scan findings.
-- [ ] 1.3 Implement completion for node IDs, artefact IDs, tag names, and delta operation markers.
-- [ ] 1.4 Implement hover for node metadata and artefact summaries.
-- [ ] 1.5 Implement go-to-definition for node IDs and artefact references.
-- [ ] 1.6 Implement document symbols for DSL declarations and edges.
+- [ ] 1.2 Ensure the `cairn-lsp` binary root uses the Phase 0 strict crate attributes.
+- [ ] 1.3 Implement diagnostics from parser, lint, hook, and scan findings.
+- [ ] 1.4 Implement completion for node IDs, artefact IDs, tag names, and delta operation markers.
+- [ ] 1.5 Implement hover for node metadata and artefact summaries.
+- [ ] 1.6 Implement go-to-definition for node IDs and artefact references.
+- [ ] 1.7 Implement document symbols for DSL declarations and edges.
 
 ## 2. Plugin and Agent Packaging
 
@@ -25,7 +26,7 @@
 
 - [ ] 4.1 Add release checks for CLI, MCP, and LSP binaries.
 - [ ] 4.2 Generate command reference documentation.
-- [ ] 4.3 Add an example project exercising all major capabilities.
+- [ ] 4.3 Add an example project exercising DSL parse, artefacts, changes, hooks, MCP, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and non-code reconciler fixture observations.
 - [ ] 4.4 Add tests for packaging metadata and documented commands.
 
 ## 5. Required Verification

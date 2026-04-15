@@ -1,5 +1,9 @@
 # Query capability spec
 
+## Purpose
+
+Define the canonical ontology query semantics shared by CLI and later wrappers.
+
 ## Requirements
 
 ### Requirement: Answer get, neighbourhood, dependents, depends, and order queries against the ontology

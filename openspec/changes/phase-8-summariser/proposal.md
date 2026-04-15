@@ -1,5 +1,10 @@
 # Proposal: Phase 8 Summariser
 
+## Dependencies
+
+- Requires: `phase-7-mcp`.
+- Execution: MUST run after Phase 7 and before Phases 9-10.
+
 ## Problem/Context
 
 Earlier phases detect interface contradictions and docstring drift but require humans or agents to write all corrective prose manually. Cairn needs an optional summariser that drafts contract and docstring updates while keeping humans in control.

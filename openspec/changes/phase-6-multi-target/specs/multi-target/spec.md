@@ -25,6 +25,13 @@ Cairn SHALL treat each path in a node path list as an independent target.
 
 Cairn SHALL persist interface hashes by node and target.
 
+#### Scenario: Interface hash is canonical
+
+- **GIVEN** two TypeScript targets with the same exported declarations in different source order
+- **WHEN** interface hashes are computed
+- **THEN** the hashes are equal
+- **AND** private non-exported declarations do not contribute to the hash
+
 #### Scenario: Target hashes are written
 
 - **GIVEN** a multi-target module

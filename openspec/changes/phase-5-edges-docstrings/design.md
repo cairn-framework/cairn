@@ -38,6 +38,19 @@ The reconciler SHALL extract authored module-level docstrings and parse lightwei
 
 Fact parsing SHALL be deliberately narrow. Free-form prose SHALL remain free-form and SHALL NOT be linted for semantic truth.
 
+Supported fact lines SHALL be case-sensitive and SHALL use these exact keys after doc-comment marker stripping:
+
+```text
+Cairn-ID: saas.api.auth
+Cairn-Name: JWT authentication
+Cairn-Depends: saas.db
+Cairn-Depends: saas.crypto
+Cairn-Tags: auth, api
+Cairn-Contract: ./meta/contracts/api/auth.md#Public interface
+```
+
+The Rust extractor SHALL inspect module-level inner doc comments (`//!`) in `lib.rs`, `main.rs`, and `mod.rs`, plus outer doc comments (`///`) immediately attached to `mod` declarations. Multiple `Cairn-Depends` lines SHALL be allowed and combined. `Cairn-Tags` SHALL parse comma-separated tag names after trimming ASCII whitespace. Unknown Cairn fact keys SHALL produce informational findings. Unknown node IDs in `Cairn-ID` or `Cairn-Depends` SHALL produce docstring drift rationale tensions with source spans.
+
 ## Docstring Command
 
 `cairn docstring <node> [--language <lang>]` SHALL emit a template grounded in:
@@ -51,4 +64,4 @@ Supported output languages SHALL be Rust, Python, TypeScript, and Go. Unknown la
 
 ## Testing
 
-Tests SHALL cover observed dependency extraction, declared-edge missing observations, observed-edge missing declarations, ambiguous observations, docstring template output for all supported languages, and docstring drift findings.
+Tests SHALL cover observed dependency extraction, declared-edge missing observations, observed-edge missing declarations, ambiguous observations, exact fact-line parsing, module-level Rust doc discovery, multiple dependency lines, case sensitivity, unknown IDs, docstring template output for all supported languages, and docstring drift findings.

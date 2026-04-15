@@ -25,12 +25,25 @@ Cairn SHALL compare DSL edges with source-level dependency observations and surf
 
 Cairn SHALL compare supported authored docstring facts with ontology facts.
 
+#### Scenario: Rust module fact lines are parsed
+
+- **GIVEN** a Rust `lib.rs` file with module-level `//!` comments containing `Cairn-ID: saas.api.auth`, two `Cairn-Depends:` lines, `Cairn-Tags: auth, api`, and `Cairn-Contract: ./meta/contracts/api/auth.md#Public interface`
+- **WHEN** docstring drift detection runs
+- **THEN** Cairn parses the exact case-sensitive fact keys
+- **AND** combines multiple dependency lines into one dependency fact set
+
 #### Scenario: Docstring dependency contradicts graph
 
 - **GIVEN** a module docstring declares dependency `saas.db`
 - **AND** the ontology has no edge from the module to `saas.db`
 - **WHEN** `cairn scan` runs
 - **THEN** Cairn reports docstring drift as a rationale tension
+
+#### Scenario: Unknown docstring ID is advisory
+
+- **GIVEN** a module docstring declares `Cairn-Depends: missing.node`
+- **WHEN** docstring drift detection runs
+- **THEN** Cairn reports a rationale tension with the source span
 
 #### Scenario: Free-form prose is ignored
 

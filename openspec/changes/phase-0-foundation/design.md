@@ -96,4 +96,4 @@ The final implementation evidence for this phase SHALL include:
 
 ## Dependency Boundary
 
-Later phases MAY add dependencies for parsing, CLI argument handling, serialization, Tree-sitter, or testing when their scope requires them. Phase 0 SHOULD avoid those dependencies so the baseline remains easy to audit.
+Later phases SHALL add dependencies for parsing, CLI argument handling, serialization, Tree-sitter, or testing only when their phase scope requires them. Phase 0 SHALL avoid nonessential dependencies so the baseline remains easy to audit.

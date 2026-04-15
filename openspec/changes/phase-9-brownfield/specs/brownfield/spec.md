@@ -6,6 +6,13 @@
 
 Cairn SHALL create a reviewable change directory for first-time adoption of an existing codebase.
 
+#### Scenario: Candidate heuristics are deterministic
+
+- **GIVEN** a repository directory with three supported source files and mostly internal imports
+- **WHEN** `cairn init --from-code` extracts candidates
+- **THEN** the directory becomes a candidate node
+- **AND** confidence is computed from the documented coupling score bands
+
 #### Scenario: Init creates brownfield change
 
 - **GIVEN** a repository without `cairn.dsl`
@@ -52,3 +59,21 @@ Brownfield output SHALL remain proposed until archived.
 - **WHEN** the human deletes that node from the generated change before archive
 - **THEN** archive applies only the remaining proposed operations
 - **AND** Cairn does not regenerate the deleted candidate during archive
+
+### Requirement: Expose brownfield commands through MCP
+
+Brownfield commands SHALL register with the shared MCP query tool registry as mutation-capable tools.
+
+#### Scenario: Brownfield MCP tools require mutating mode
+
+- **GIVEN** the MCP server starts in default mode after Phase 9
+- **WHEN** an MCP client lists tools
+- **THEN** `cairn_init_from_code` is not listed
+- **AND** `cairn_refine` is not listed
+
+#### Scenario: Brownfield MCP tools appear in mutating mode
+
+- **GIVEN** the MCP server starts with mutating tools enabled after Phase 9
+- **WHEN** an MCP client lists tools
+- **THEN** `cairn_init_from_code` is listed
+- **AND** `cairn_refine` is listed

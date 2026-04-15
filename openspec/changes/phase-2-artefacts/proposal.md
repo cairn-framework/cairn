@@ -1,5 +1,10 @@
 # Proposal: Phase 2 Artefacts
 
+## Dependencies
+
+- Requires: `phase-1-kernel`.
+- Execution: MUST run after Phase 1 and before Phases 3-10.
+
 ## Problem/Context
 
 Phase 1 builds the kernel and contract-only ontology. Cairn v0.6 requires a complete project metadata layer where authority artefacts and provenance artefacts attach to stable DSL nodes and feed agent-facing queries.

@@ -1,5 +1,10 @@
 # Proposal: Phase 4 Hooks
 
+## Dependencies
+
+- Requires: `phase-3-changes`.
+- Execution: MUST run after Phase 3 and before Phases 5-10.
+
 ## Problem/Context
 
 Phases 1-3 provide ontology reconciliation and safe change isolation, but enforcement still depends on humans manually running commands. Cairn needs hook entrypoints that make structural and interface integrity part of task and commit boundaries.
