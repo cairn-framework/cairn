@@ -1,0 +1,11 @@
+{
+  "name": "vitest",
+  "version": "0.0.0-cairn-shim",
+  "type": "module",
+  "bin": {
+    "vitest": "./bin/vitest.js"
+  },
+  "exports": {
+    ".": "./index.js"
+  }
+}
