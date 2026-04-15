@@ -1,0 +1,54 @@
+# Tasks: Phase 1 Kernel
+
+## 1. DSL Parser
+
+- [ ] 1.1 Implement tokenization with source spans for DSL keywords, identifiers, tags, strings, arrows, braces, comments, and lists.
+- [ ] 1.2 Implement AST types for systems, containers, modules, actors, fields, tags, paths, artefact pointers, and edges.
+- [ ] 1.3 Implement recursive descent parsing for nested node declarations and top-level edges.
+- [ ] 1.4 Implement source-positioned parser errors for malformed fixtures.
+- [ ] 1.5 Add unit tests for every grammar production and negative tests for malformed input.
+
+## 2. Ontology and Integrity
+
+- [ ] 2.1 Build node, name, parent, child, inbound edge, outbound edge, and path ownership indexes.
+- [ ] 2.2 Implement ID validation, duplicate ID detection, required field validation, path tie detection, invalid edge endpoint validation, and cycle detection.
+- [ ] 2.3 Implement name-or-ID node resolution with deterministic closest-match suggestions on failure.
+- [ ] 2.4 Add graph and integrity tests using `test/fixtures/cairn.dsl` and purpose-built malformed fixtures.
+
+## 3. Contract Artefacts
+
+- [ ] 3.1 Implement Markdown frontmatter parsing for contract files with `node: <id>`.
+- [ ] 3.2 Validate contract pointers and referenced node IDs.
+- [ ] 3.3 Implement `cairn contract <node>` over parsed contract data.
+- [ ] 3.4 Add contract loading, missing pointer, broken pointer, and wrong-node tests.
+
+## 4. Reconciler and Scanner
+
+- [ ] 4.1 Define the `Reconciler` trait, request type, report type, finding type, and interface fingerprint type.
+- [ ] 4.2 Implement the Rust code reconciler using Tree-sitter for Rust source discovery and public interface fingerprints.
+- [ ] 4.3 Implement synced, ghost, and orphaned node state assignment.
+- [ ] 4.4 Implement `cairn scan` orchestration and `.cairn/state/interface-hashes.json` persistence.
+- [ ] 4.5 Generate `index.md` and append `.cairn/log.md` scan events.
+- [ ] 4.6 Add scanner integration tests using temporary directories and Rust source fixtures.
+
+## 5. CLI Queries
+
+- [ ] 5.1 Implement `get`, `neighbourhood`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan`.
+- [ ] 5.2 Add `--file` and `--json` support to every command.
+- [ ] 5.3 Implement stable JSON schemas and labelled human-readable output.
+- [ ] 5.4 Add CLI integration tests for success and failure paths.
+
+## 6. Documentation
+
+- [ ] 6.1 Update README with Phase 1 command examples.
+- [ ] 6.2 Document contract-only artefact support and Phase 2 artefact exclusions.
+- [ ] 6.3 Document scan output files and their generated status.
+
+## 7. Required Verification
+
+- [ ] 7.1 `cargo build` passes with zero warnings.
+- [ ] 7.2 `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery` passes.
+- [ ] 7.3 `cargo fmt --check` passes.
+- [ ] 7.4 `cargo test` passes.
+- [ ] 7.5 `cargo test --locked` passes.
+- [ ] 7.6 `python3 /Users/george/repos/cairn/.agents/skills/cflx-proposal/scripts/cflx.py validate phase-1-kernel --strict` passes.
