@@ -1,37 +1,14 @@
-# Cairn Kernel MVP
+# Cairn
 
-Cairn reads a human-authored architecture DSL and answers structural graph queries over it. This MVP implements the phase 1 kernel: parser, in-memory ontology, query layer, and CLI.
+Cairn is a structural graph query layer over a human-authored architecture DSL. It produces an ontology for a project: a map of what exists (modules, dependencies, contracts, decisions, research, sources) and how the pieces relate. Agents and humans query the ontology instead of scanning the repo.
 
-## Install
+## Status
 
-```bash
-pnpm install
-pnpm build
-```
+Specification complete (v0.6). Implementation in progress — see `docs/spec.md` for the full specification and `openspec/changes/` for active work.
 
-The CLI entry point is `bin/cairn.js` after build.
+## Reference
 
-## Commands
-
-Use `--file` to point at a DSL file. If omitted, Cairn reads `./cairn.dsl`.
-
-```bash
-node bin/cairn.js get cairn.kernel.parser --file test/fixtures/cairn.dsl
-node bin/cairn.js neighbourhood cairn.kernel.reconciliation --file test/fixtures/cairn.dsl
-node bin/cairn.js order --scope cairn.kernel. --file test/fixtures/cairn.dsl
-```
-
-Every command supports `--json` for a stable machine-readable shape:
-
-```bash
-node bin/cairn.js dependents cairn.kernel.reconciler --file test/fixtures/cairn.dsl --json
-```
-
-## Development
-
-```bash
-pnpm test
-pnpm lint
-```
-
-The package has no runtime dependencies. CLI parsing is hand-rolled for the MVP, and development tools are local file dependencies so `pnpm install --offline --frozen-lockfile`, `pnpm build`, `pnpm lint`, and `pnpm test` work from a clean checkout without registry access.
+- `docs/spec.md` — Cairn v0.6 specification
+- `docs/dsl.md` — DSL grammar reference
+- `test/fixtures/cairn.dsl` — example DSL file
+- `meta/campaigns/rust-full-spec.md` — implementation roadmap

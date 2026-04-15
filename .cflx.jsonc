@@ -19,7 +19,7 @@
 
   // System prompt for apply command (user-customizable, injected into {prompt} placeholder)
   // Note: A hardcoded system prompt is always appended after this value
-  "apply_prompt": "",
+  "apply_prompt": "Target language is Rust. All code must pass `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery`, `cargo fmt --check`, and `cargo test` before any task can be marked complete. Use idiomatic Rust: Result<T,E> for errors, impl Trait for interfaces, #[derive] for data types. No unsafe code unless explicitly justified.",
 
   // System prompt for archive command (injected into {prompt} placeholder)
   "archive_prompt": "",
@@ -64,7 +64,7 @@
     // "pre_apply": "echo '[pre_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
     // "post_apply": "echo '[post_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
     // "on_change_complete": "echo '[on_change_complete] change={change_id} tasks={total_tasks}/{total_tasks}'",
-    // "pre_archive": "echo '[pre_archive] change={change_id} progress={changes_processed}/{total_changes}'",
+    "pre_archive": "cargo fmt --check && cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery && cargo test",
     // "post_archive": "echo '[post_archive] change={change_id} progress={changes_processed}/{total_changes}'",
     // "on_change_end": "echo '[on_change_end] change={change_id} progress={changes_processed}/{total_changes} remaining={remaining_changes}'",
     // "on_merged": "echo '[on_merged] change={change_id} tasks={completed_tasks}/{total_tasks} progress={changes_processed}/{total_changes}'",
