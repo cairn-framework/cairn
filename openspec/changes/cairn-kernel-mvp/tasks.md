@@ -87,3 +87,7 @@
 ## Acceptance #1 Failure Follow-up
 
 - [x] Fix project setup reproducibility: task 1.1 claims a pnpm TypeScript project, but no `pnpm-lock.yaml` is present; `pnpm install --offline --frozen-lockfile` fails with `ERR_PNPM_NO_LOCKFILE`, and `npm run build` fails because `tsc` is not available from `node_modules/.bin`. Add the lockfile/installable dependency state needed for `pnpm build`, `pnpm lint`, and `pnpm test` to run from a clean checkout.
+
+## Acceptance #2 Failure Follow-up
+
+- [x] Fix README dependency documentation: the follow-up changed `package.json` to remove `commander` and changed task 1.2 to say CLI parsing is hand-rolled with no runtime parser dependency, but `README.md` still says the package declares `commander` and `vitest`. Update the development note so README matches the actual package and task claim.

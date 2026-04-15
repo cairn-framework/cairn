@@ -34,4 +34,4 @@ pnpm test
 pnpm lint
 ```
 
-The package declares `commander` and `vitest` as requested by the MVP tasks. The CLI parser is intentionally tiny for the MVP, so the runtime path remains straightforward while the public command shape stabilizes.
+The package has no runtime dependencies. CLI parsing is hand-rolled for the MVP, and development tools are local file dependencies so `pnpm install --offline --frozen-lockfile`, `pnpm build`, `pnpm lint`, and `pnpm test` work from a clean checkout without registry access.
