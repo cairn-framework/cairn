@@ -15,7 +15,7 @@ The server SHALL not parse CLI text. Shared query request and response structs S
 
 The MCP server SHALL use a library-owned query tool registry. Each query command added by any phase SHALL register its MCP name, request schema, response schema, and safety class as either `read_only` or `mutating`. The MCP server SHALL derive tool registration from this registry rather than from a hand-maintained server-local list.
 
-At Phase 7 completion, the MCP server SHALL expose tools for:
+At Phase 7 completion, the MCP server SHALL expose read-only tools for:
 
 - `cairn_get`
 - `cairn_neighbourhood`
@@ -26,7 +26,6 @@ At Phase 7 completion, the MCP server SHALL expose tools for:
 - `cairn_depends`
 - `cairn_order`
 - `cairn_lint`
-- `cairn_scan`
 - `cairn_status`
 - `cairn_rationale`
 - `cairn_todos`
@@ -36,7 +35,7 @@ At Phase 7 completion, the MCP server SHALL expose tools for:
 - `cairn_changes`
 - `cairn_show_change`
 
-Mutation-capable tools, including archive and rename tools, SHALL require an explicit mutating flag in the request and SHALL be omitted from default read-only tool listings unless the server starts with a mutating-tools configuration flag.
+Mutation-capable tools, including `cairn_scan`, archive tools, and rename tools, SHALL require an explicit mutating flag in the request and SHALL be omitted from default read-only tool listings unless the server starts with a mutating-tools configuration flag.
 
 ## Context and Rules Composition
 

@@ -37,10 +37,11 @@ The archive engine SHALL reject artefact operations that lack required fields or
 1. Snapshot all files it will mutate.
 2. Validate the change directory and all referenced IDs against current truth.
 3. Apply `RENAMED`, `REMOVED`, `MODIFIED`, then `ADDED`.
-4. Run `cairn scan`.
-5. Abort and restore the snapshot if scan reports structural errors or unresolved interface contradictions.
+4. Run a validation scan against the mutated main tree while explicitly excluding the archiving change from active-change discovery.
+5. Abort and restore the snapshot if the validation scan reports structural errors or unresolved interface contradictions.
 6. Move the change to `meta/changes/archive/YYYY-MM-DD-<change-id>/`.
-7. Append an archive event to `.cairn/log.md`.
+7. Run a final output scan after the move so generated `index.md`, `status`, and `.cairn/log.md` no longer list the archived change as active.
+8. Append an archive event to `.cairn/log.md`.
 
 The implementation SHALL use temp files and atomic rename operations for file writes.
 
@@ -58,4 +59,4 @@ Default queries SHALL read current truth only. `--include-changes` SHALL add pro
 
 ## Testing
 
-Tests SHALL cover delta parsing, artefact operation parsing, archive success, rollback on failure, dated archive path creation, log append, rename generation, default-query isolation, and `--include-changes`.
+Tests SHALL cover delta parsing, artefact operation parsing, archive success, rollback on validation-scan failure, exclusion of the archiving change from active-change output, dated archive path creation, log append, rename generation, default-query isolation, and `--include-changes`.

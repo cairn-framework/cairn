@@ -26,6 +26,31 @@ The kernel SHALL parse the `docs/spec.md` section 7 DSL grammar into typed Rust 
 - **WHEN** the parser runs
 - **THEN** it returns a parse error containing file, line, column, expected token, and encountered token
 
+### Requirement: Load Phase 1 configuration and ignore rules
+
+The kernel SHALL load `cairn.config.yaml` when present while remaining forward-compatible with later config sections.
+
+#### Scenario: Missing config uses defaults
+
+- **GIVEN** a project without `cairn.config.yaml`
+- **WHEN** `cairn scan` runs
+- **THEN** the kernel uses built-in ignore defaults
+- **AND** context and rules are empty
+
+#### Scenario: Config ignore entries are applied
+
+- **GIVEN** `cairn.config.yaml` contains `reconcilers[].config.ignore` entries
+- **WHEN** the code reconciler scans files
+- **THEN** those ignore entries are composed with built-in defaults, `.gitignore`, and `.cairnignore`
+- **AND** protected Cairn paths are never ignored
+
+#### Scenario: Later config sections are forward-compatible
+
+- **GIVEN** `cairn.config.yaml` contains unknown top-level sections
+- **WHEN** Phase 1 loads config
+- **THEN** unknown sections do not fail validation
+- **AND** known Phase 1 fields remain available to scanner and later query layers
+
 ### Requirement: Build a queryable ontology graph
 
 The kernel SHALL transform the parsed DSL, contract artefacts, and reconciler reports into an ontology graph.
@@ -55,10 +80,17 @@ The kernel SHALL transform the parsed DSL, contract artefacts, and reconciler re
 
 #### Scenario: Structural errors block ontology success
 
-- **GIVEN** a project with duplicate IDs, path ties, invalid edge endpoints, broken contract pointers, or dependency cycles
+- **GIVEN** a project with duplicate IDs, path ties, invalid edge endpoints, or broken contract pointers
 - **WHEN** ontology construction or linting runs
 - **THEN** the kernel reports structural errors with stable error codes
 - **AND** CLI commands that require a valid ontology exit with code `1`
+
+#### Scenario: Dependency cycle does not block basic queries
+
+- **GIVEN** a project whose DSL edges contain a dependency cycle
+- **WHEN** the user runs `cairn get <node>` or `cairn neighbourhood <node>`
+- **THEN** the command can return data from the otherwise valid ontology
+- **AND** the cycle remains available as a finding for `lint`, `order`, and later hook reuse
 
 ### Requirement: Reconcile Rust code reality through a trait interface
 
@@ -108,12 +140,33 @@ Phase 1 SHALL implement contract artefact loading while excluding all other arte
 
 The CLI SHALL expose the Phase 1 kernel query surface with human and JSON output.
 
+#### Scenario: CLI uses shared query services
+
+- **GIVEN** a Phase 1 CLI command
+- **WHEN** the command executes
+- **THEN** it calls the shared library query or service API
+- **AND** does not implement query semantics only inside CLI rendering code
+
+#### Scenario: Command registry records safety class
+
+- **GIVEN** Phase 1 command metadata is registered
+- **WHEN** the registry is inspected
+- **THEN** `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, `order`, and `lint` are marked `read_only`
+- **AND** `scan` is marked `mutating`
+
 #### Scenario: Query commands succeed
 
 - **GIVEN** a valid reconciled ontology
 - **WHEN** the user runs `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, or `order`
 - **THEN** the command returns the requested data
 - **AND** `--json` returns a stable machine-readable schema
+
+#### Scenario: Order reports cycles
+
+- **GIVEN** a reconciled ontology whose dependency edges contain a cycle
+- **WHEN** the user runs `cairn order`
+- **THEN** the command exits with code `1`
+- **AND** reports the cycle participants with a stable error code
 
 #### Scenario: Scan writes generated outputs
 

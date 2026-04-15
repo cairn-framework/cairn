@@ -9,7 +9,12 @@
 
 ## Candidate Extraction
 
-The reconciler SHALL scan the codebase and produce structural candidates:
+Brownfield extraction SHALL use a repository-wide discovery mode that does not
+require an existing `cairn.dsl` or claimed node paths. This mode SHALL reuse
+the language scanners and ignore rules from reconcilers, but it SHALL produce
+candidate structures rather than normal ontology reconciliation reports.
+
+The discovery mode SHALL scan the codebase and produce structural candidates:
 
 - Top-level source roots.
 - Major subdirectories with cohesive files.

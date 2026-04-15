@@ -6,6 +6,13 @@
 
 Cairn SHALL create a reviewable change directory for first-time adoption of an existing codebase.
 
+#### Scenario: Discovery does not require existing DSL
+
+- **GIVEN** a repository without `cairn.dsl`
+- **WHEN** `cairn init --from-code` runs
+- **THEN** Cairn scans supported source files using repository-wide discovery
+- **AND** does not require claimed node paths from an existing ontology
+
 #### Scenario: Candidate heuristics are deterministic
 
 - **GIVEN** a repository directory with three supported source files and mostly internal imports

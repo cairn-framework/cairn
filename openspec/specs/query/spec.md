@@ -2,80 +2,72 @@
 
 ## Purpose
 
-Define the canonical ontology query semantics shared by CLI and later wrappers.
+Define ontology query semantics shared by the Rust CLI, MCP server, LSP server,
+and future integrations. Query behaviour is defined over Cairn's reconciled
+ontology, not over implementation-specific command output.
 
 ## Requirements
 
-### Requirement: Answer get, neighbourhood, dependents, depends, and order queries against the ontology
+### Requirement: Answer structural ontology queries
 
-The query layer SHALL expose five typed queries over the in-memory ontology built from a parsed DSL file.
+The query layer SHALL expose typed queries over the in-memory ontology.
 
-#### Scenario: get by ID
+#### Scenario: Get by ID
 
-- **GIVEN** an ontology built from a valid DSL file containing a Module with ID `saas.api.auth`
+- **GIVEN** an ontology containing a node with ID `saas.api.auth`
 - **WHEN** `get` is called with `saas.api.auth`
-- **THEN** it returns an object with the node's ID, name, description, tags, path (which may be string or array), and artefact pointers
-- **AND** the return shape is stable across invocations (safe for agent consumption)
+- **THEN** it returns the node ID, name, description, tags, paths, state, and attached artefact metadata
+- **AND** the return shape is stable across invocations
 
-#### Scenario: get by name fallback
+#### Scenario: Get by name fallback
 
-- **GIVEN** an ontology containing a Module named "Auth" with ID `saas.api.auth`
-- **WHEN** `get` is called with `"Auth"` (no ID prefix)
-- **THEN** the query layer resolves the name to the ID and returns the same result as `get saas.api.auth`
+- **GIVEN** an ontology containing one node named `Auth`
+- **WHEN** `get` is called with `Auth`
+- **THEN** the query layer resolves the unambiguous name to its stable ID
+- **AND** returns the same node data as an ID lookup
 
-#### Scenario: neighbourhood returns connected nodes
+#### Scenario: Neighbourhood returns connected nodes
 
-- **GIVEN** an ontology where `saas.api.auth` has one outbound edge to `saas.db` and one inbound edge from `saas.api.billing`
-- **WHEN** `neighbourhood saas.api.auth` is called
-- **THEN** the result contains the central node, plus an `outbound` array with one entry (target: `saas.db`, description from the edge) and an `inbound` array with one entry (source: `saas.api.billing`, description from the edge)
-- **AND** each connected node's metadata is included inline, not just the ID
+- **GIVEN** a node with inbound and outbound edges
+- **WHEN** `neighbourhood` is called for that node
+- **THEN** the result includes the central node
+- **AND** includes inbound and outbound edge entries with connected node metadata
 
-#### Scenario: dependents returns inbound edges
+#### Scenario: Dependency queries follow edge direction
 
-- **GIVEN** an ontology where `saas.db` is edged-into by `saas.api.auth` and `saas.api.billing`
-- **WHEN** `dependents saas.db` is called
-- **THEN** the result is a list containing both depending nodes with their metadata
+- **GIVEN** an ontology with declared dependency edges
+- **WHEN** `dependents` or `depends` is called
+- **THEN** `dependents` returns nodes that edge into the target
+- **AND** `depends` returns nodes the target edges to
 
-#### Scenario: dependents transitive
+#### Scenario: Order returns dependency tiers
 
-- **GIVEN** an ontology where `saas.db` is depended on by `saas.api.auth`, which is itself depended on by `saas.api.admin`
-- **WHEN** `dependents saas.db --transitive` is called
-- **THEN** the result contains both `saas.api.auth` (direct) and `saas.api.admin` (transitive)
-- **AND** the output distinguishes direct from transitive dependents
-
-#### Scenario: depends returns outbound edges
-
-- **GIVEN** an ontology where `saas.api.auth` edges to `saas.db` and `saas.crypto`
-- **WHEN** `depends saas.api.auth` is called
-- **THEN** the result is a list containing both target nodes with their metadata
-
-#### Scenario: order returns dependency-tier groups
-
-- **GIVEN** an ontology with a node graph that has three layers: Tier 0 with no outbound edges, Tier 1 depending only on Tier 0, Tier 2 depending on Tier 1
+- **GIVEN** an acyclic ontology graph
 - **WHEN** `order` is called
-- **THEN** the result is a list of tiers, tier 0 first, each tier a list of nodes whose outbound targets are all in prior tiers
+- **THEN** it returns dependency-tier groups with tier `0` containing nodes with no outbound dependencies in scope
 
-#### Scenario: order detects cycles
+#### Scenario: Order detects cycles without poisoning basic queries
 
-- **GIVEN** an ontology with a cycle: A → B → C → A
+- **GIVEN** an ontology graph containing a dependency cycle
 - **WHEN** `order` is called
-- **THEN** the query fails with a structural error naming all three nodes as cycle participants
-- **AND** exits with code 1
+- **THEN** the query fails with a structural error naming cycle participants
+- **AND** basic node and neighbourhood queries can still read the otherwise valid ontology
 
-#### Scenario: order with scope
+### Requirement: Preserve machine-readable schemas
 
-- **GIVEN** an ontology containing nodes with IDs `saas.api.auth`, `saas.api.billing`, `infra.db`, `infra.cache`
-- **WHEN** `order --scope saas.` is called
-- **THEN** the result contains only nodes whose ID starts with `saas.`
-- **AND** edges to out-of-scope nodes are ignored for tier computation
+Queries exposed through CLI JSON, MCP, and LSP-backed APIs SHALL use stable
+structured response models.
 
-### Requirement: Support both human-readable and JSON output
+#### Scenario: JSON-compatible query result is versioned
 
-Every query SHALL support a `--json` flag that produces a machine-readable representation with a stable schema.
+- **GIVEN** any successful query result
+- **WHEN** the result is serialized for an agent-facing interface
+- **THEN** it includes a schema version
+- **AND** no human formatting artefacts are included in the structured data
 
-#### Scenario: JSON output is a stable object
+#### Scenario: Query structs are protocol-neutral
 
-- **GIVEN** any query result
-- **WHEN** `--json` is passed
-- **THEN** stdout contains exactly one JSON object, no pretty-printing artefacts, no terminal colour codes, and no extra logging
-- **AND** the schema is versioned (top-level `schema_version` field) for future compatibility
+- **GIVEN** a query response is produced by the library
+- **WHEN** it is rendered by the CLI or returned by a later protocol wrapper
+- **THEN** both surfaces use the same typed response model
+- **AND** no surface parses another surface's human-readable output

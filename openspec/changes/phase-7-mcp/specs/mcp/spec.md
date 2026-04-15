@@ -18,7 +18,7 @@ Cairn SHALL provide an MCP server that wraps the existing query layer.
 - **GIVEN** the MCP server starts in default mode
 - **WHEN** an MCP client lists tools
 - **THEN** read-only core, artefact, docstring, status, rationale, and change-display tools are listed
-- **AND** archive and rename mutation tools are not listed
+- **AND** scan, archive, and rename mutation tools are not listed
 
 #### Scenario: Tool registration is registry-backed
 

@@ -65,7 +65,8 @@ Generated contract text SHALL be staged as draft state until a resolution action
 ## Resolution Actions
 
 - `accept`: replace the target contract with generated text and record the current interface hash.
-- `edit`: write editable draft content to a temp or state file, accept the edited content on explicit command, and record the current interface hash.
+- `edit`: create or update an editable draft file under `.cairn/state/summariser/editable/<draft-id>.md` and leave the contract unchanged.
+- `accept --edited`: replace the target contract with the editable draft file content and record the current interface hash.
 - `discard`: mark the draft discarded and leave the underlying contradiction unresolved.
 
 The summariser SHALL never apply output during generation.
@@ -78,6 +79,7 @@ Commands:
 - `cairn drafts`
 - `cairn draft show <draft-id>`
 - `cairn draft accept <draft-id>`
+- `cairn draft accept <draft-id> --edited`
 - `cairn draft edit <draft-id>`
 - `cairn draft discard <draft-id>`
 
@@ -89,4 +91,4 @@ Phase 8 SHALL register summariser commands in the shared query tool registry so 
 
 ## Testing
 
-Tests SHALL use deterministic fake backends. Coverage SHALL include disabled mode, config parsing, local command stdin/stdout JSON protocol, timeout, non-zero exit, invalid response handling, prompt input construction and truncation, draft persistence, accept, edit, discard, interface hash recording, and MCP registry exposure for read-only and mutating draft tools.
+Tests SHALL use deterministic fake backends. Coverage SHALL include disabled mode, config parsing, local command stdin/stdout JSON protocol, timeout, non-zero exit, invalid response handling, prompt input construction and truncation, draft persistence, accept, edit-file creation, edited accept, discard, interface hash recording, and MCP registry exposure for read-only and mutating draft tools.

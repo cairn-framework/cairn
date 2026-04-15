@@ -31,9 +31,9 @@ Packaging SHALL not require a hosted service.
 
 ## Reconciler Extensions
 
-The reconciler trait SHALL be documented as an extension API. A fixture non-code reconciler SHALL demonstrate how to register a reconciler that produces nodes or reality observations for a domain outside source code.
+The reconciler trait SHALL be documented as an extension API for reality observations attached to existing Cairn nodes. A fixture non-code reconciler SHALL demonstrate how to register a reconciler that contributes observations for a domain outside source code.
 
-The fixture reconciler SHALL be test-only or example-only and SHALL NOT claim to implement a production org, BOM, or research reconciler.
+The fixture reconciler SHALL be test-only or example-only and SHALL NOT claim to implement a production org, BOM, or research reconciler. New-node proposal remains the responsibility of Phase 9 brownfield discovery and the Phase 3 change workflow, not the normal reconciler extension trait.
 
 ## Release Checks
 

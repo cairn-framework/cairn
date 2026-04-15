@@ -21,6 +21,18 @@ Cairn SHALL treat each path in a node path list as an independent target.
 - **THEN** Cairn creates one target record
 - **AND** existing single-path query behavior remains valid
 
+#### Scenario: Contract role defaults
+
+- **GIVEN** a target has no explicit target metadata
+- **WHEN** target records are created
+- **THEN** the target uses contract role `public_api`
+
+#### Scenario: Explicit contract role is configured
+
+- **GIVEN** `cairn.config.yaml` declares target metadata with `node`, `path`, and `contract_role`
+- **WHEN** target records are created
+- **THEN** the matching target uses the configured contract role
+
 ### Requirement: Store per-target interface hashes
 
 Cairn SHALL persist interface hashes by node and target.

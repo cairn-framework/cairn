@@ -28,8 +28,9 @@ The archive command SHALL apply DSL and artefact deltas atomically or leave the 
 - **GIVEN** a valid change directory
 - **WHEN** the user runs `cairn archive <change>`
 - **THEN** Cairn applies renamed, removed, modified, and added operations in that order
-- **AND** runs scan successfully
+- **AND** runs a validation scan with the archiving change excluded from active-change discovery
 - **AND** moves the change to `meta/changes/archive/YYYY-MM-DD-<change>/`
+- **AND** refreshes generated outputs so the archived change is no longer listed as active
 - **AND** appends an archive event to `.cairn/log.md`
 
 #### Scenario: Archive rolls back on scan failure
@@ -39,6 +40,13 @@ The archive command SHALL apply DSL and artefact deltas atomically or leave the 
 - **THEN** Cairn restores all mutated files
 - **AND** leaves the active change directory in place
 - **AND** exits with code `1`
+
+#### Scenario: Archive output excludes merged change
+
+- **GIVEN** a valid change directory
+- **WHEN** `cairn archive <change>` succeeds
+- **THEN** subsequent `cairn changes` output does not list the archived change as active
+- **AND** generated status output reflects current truth after the archive move
 
 ### Requirement: Rename propagates references through a reviewable change
 

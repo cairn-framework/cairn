@@ -27,7 +27,7 @@ Implement the change system:
 - Active changes never affect default current-truth queries.
 - `cairn changes` lists active change directories with summaries and operation counts.
 - `cairn show <change>` displays DSL and artefact deltas.
-- `cairn archive <change>` applies deltas atomically, rescans, rolls back on failure, moves the change to dated archive, and appends `.cairn/log.md`.
+- `cairn archive <change>` applies deltas atomically, validation-scans with the archiving change excluded from active-change discovery, rolls back on failure, moves the change to dated archive, final-scans generated outputs, and appends `.cairn/log.md`.
 - `cairn rename <old-id> <new-id>` creates a reviewable change directory that propagates references through DSL edges and artefact frontmatter.
 - Change-aware neighbourhood output is opt-in.
 - All strict Rust gates pass.

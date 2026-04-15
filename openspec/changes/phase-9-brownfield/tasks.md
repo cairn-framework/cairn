@@ -2,7 +2,7 @@
 
 ## 1. Candidate Extraction
 
-- [ ] 1.1 Extract source roots and module-like directories from reconciler output.
+- [ ] 1.1 Add repository-wide discovery mode that extracts source roots and module-like directories without requiring an existing `cairn.dsl`.
 - [ ] 1.2 Cluster files by path ownership and observed dependency density.
 - [ ] 1.3 Produce candidate nodes, paths, edges, confidence scores, and evidence paths.
 - [ ] 1.4 Implement deterministic fallback heuristics for minimum file counts, max depth, coupling score bands, observed edge thresholds, and sample byte limits.

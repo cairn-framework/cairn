@@ -20,13 +20,14 @@
 
 - [ ] 3.1 Implement draft generation without applying output.
 - [ ] 3.2 Implement accept action and interface hash recording.
-- [ ] 3.3 Implement edit action and explicit edited-content acceptance.
-- [ ] 3.4 Implement discard action that preserves unresolved contradictions.
-- [ ] 3.5 Add tests for every action.
+- [ ] 3.3 Implement edit action that writes an editable draft file without applying output.
+- [ ] 3.4 Implement `draft accept <draft-id> --edited` to apply edited draft-file content.
+- [ ] 3.5 Implement discard action that preserves unresolved contradictions.
+- [ ] 3.6 Add tests for every action.
 
 ## 4. CLI and Documentation
 
-- [ ] 4.1 Implement `summarise`, `drafts`, `draft show`, `draft accept`, `draft edit`, and `draft discard`.
+- [ ] 4.1 Implement `summarise`, `drafts`, `draft show`, `draft accept`, `draft accept --edited`, `draft edit`, and `draft discard`.
 - [ ] 4.2 Add JSON schemas and output snapshots.
 - [ ] 4.3 Register summariser and draft commands in the shared MCP query tool registry with correct read-only versus mutating safety classes.
 - [ ] 4.4 Document backend configuration, safety model, MCP exposure, and resolution actions.

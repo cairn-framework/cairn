@@ -547,9 +547,10 @@ The archive command:
 
 1. Validates the change directory (every delta file parses, every referenced ID resolves, no orphans introduced).
 2. Applies deltas to the main tree in the order above.
-3. Runs the scanner; if any structural error or interface contradiction results, aborts with full rollback.
+3. Runs a validation scan with the archiving change excluded from active-change discovery; if any structural error or interface contradiction results, aborts with full rollback.
 4. Moves the change directory to `./meta/changes/archive/YYYY-MM-DD-<name>/`.
-5. Appends an entry to `.cairn/log.md`.
+5. Runs a final output scan so generated status no longer lists the archived change as active.
+6. Appends an entry to `.cairn/log.md`.
 
 Archiving is atomic: either the change lands cleanly or nothing moves.
 
@@ -706,7 +707,7 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn files <node>` — reality-layer elements claimed by a module. (For the code reconciler, files with extracted symbols.)
 - `cairn dependents <node> [--transitive]` — nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
 - `cairn depends <node> [--transitive]` — nodes this one edges into. Inverse of `dependents`. What does this node rely on?
-- `cairn order [--from <node>] [--scope <id-prefix>]` — returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles cause a structural error naming the cycle participants. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
+- `cairn order [--from <node>] [--scope <id-prefix>]` — returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic ontology queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
 - `cairn changes` — list active change directories.
 - `cairn show <change>` — show what a change proposes.
 - `cairn archive <change>` — merge a change into the main tree.
@@ -733,7 +734,7 @@ Pluggable callout invoked when an interface contradiction is detected. Proposes 
 **Resolution actions.** When the summariser produces a draft, the human or agent has three first-class actions:
 
 1. **Accept** — the draft replaces the existing contract; the interface hash is re-recorded.
-2. **Edit** — the draft is opened for editing; on save, the edited version replaces the contract.
+2. **Edit** — the draft is written to an editable draft file under `.cairn/state/summariser/editable/`; a later explicit edited accept command replaces the contract with that edited content and re-records the interface hash.
 3. **Discard** — the draft is thrown away; the contradiction remains unresolved until the human or agent takes another action (typically editing the contract directly or reverting the reality-layer change).
 
 The discard path is first-class to prevent the summariser from subtly degrading into an auto-applier. The human remains the ultimate authority over contract content.
@@ -853,7 +854,7 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 - Added ID-depth advisory to section 7: three levels scan cleanly, four or more are usually a smell.
 - Added three optional frontmatter fields to the Decision artefact type: `supersedes`, `refines`, `related` — all arrays of ADR IDs. Formalises the ADR-to-ADR linking that the bootstrap needed but v0.5 did not define. `supersedes` has integrity semantics (target ADR must have `status: superseded`); the other two are informational.
 - Expanded the Source artefact type with a `verification` field taking one of three values: `verified` (local file with matching sha256), `external` (URL-referenced, no checksum possible), `unverified` (transitional state, surfaces as a rationale tension).
-- Added `cairn order` query for dependency-tier ordering. Returns nodes grouped by topological tier, detecting cycles as structural errors. Supports `--from` and `--scope` for restricted queries. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) without re-implementing graph traversal.
+- Added `cairn order` query for dependency-tier ordering. Returns nodes grouped by topological tier, detecting cycles as `order`-specific structural errors. Supports `--from` and `--scope` for restricted queries. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) without re-implementing graph traversal.
 - Added `cairn depends <node>` as the inverse of `dependents`. Returns what a node relies on. Both now support `--transitive` explicitly.
 - Resolved open question 10 (source deduplication). Stable IDs already handle this; no framework logic needed.
 - Added open question about agent dissent and cross-model peer review as potential first-class artefact types (may collapse to one type with two subtypes).

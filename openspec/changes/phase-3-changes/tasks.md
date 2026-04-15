@@ -19,10 +19,11 @@
 
 - [ ] 3.1 Implement atomic archive with snapshot and rollback.
 - [ ] 3.2 Apply operations in renamed, removed, modified, added order.
-- [ ] 3.3 Run scan after applying deltas and roll back on structural errors or unresolved interface contradictions.
+- [ ] 3.3 Run a validation scan after applying deltas with the archiving change excluded from active-change discovery and roll back on structural errors or unresolved interface contradictions.
 - [ ] 3.4 Move successful changes to `meta/changes/archive/YYYY-MM-DD-<change-id>/`.
-- [ ] 3.5 Append archive events to `.cairn/log.md`.
-- [ ] 3.6 Add integration tests for success and rollback.
+- [ ] 3.5 Run a final output scan after the move so generated status no longer lists the archived change as active.
+- [ ] 3.6 Append archive events to `.cairn/log.md`.
+- [ ] 3.7 Add integration tests for success, rollback, and active-change output after archive.
 
 ## 4. Rename
 

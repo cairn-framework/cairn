@@ -18,7 +18,7 @@ Add a pluggable summariser subsystem with:
 - Configurable backends: disabled, local command, or hosted API adapter.
 - Prompt inputs grounded in ontology facts, contract content, interface changes, docstring facts, and project context/rules.
 - Draft records stored under `.cairn/state/summariser/`.
-- Three resolution actions: accept, edit, discard.
+- Three resolution actions: accept, edit through an explicit editable draft file, and discard.
 - CLI commands to list, show, accept, edit, and discard drafts.
 - No automatic application of summariser output.
 
@@ -28,8 +28,8 @@ Add a pluggable summariser subsystem with:
 - Interface contradictions can trigger a draft contract update when a backend is configured.
 - Drafts are persisted with provenance, prompt inputs, backend metadata, and target node.
 - Accept replaces the target contract and records the interface hash.
-- Edit opens a controlled editable draft path and applies the edited result.
-- Discard removes the draft and leaves the contradiction unresolved.
+- Edit writes a controlled editable draft path; `draft accept <draft-id> --edited` applies that edited result.
+- Discard marks the draft discarded and leaves the contradiction unresolved.
 - All strict Rust gates pass.
 
 ## Out of Scope

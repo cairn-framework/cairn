@@ -20,7 +20,18 @@ pub struct Target {
 }
 ```
 
-Single-path nodes SHALL have one target. Path-list nodes SHALL have one target per path.
+Single-path nodes SHALL have one target. Path-list nodes SHALL have one target per path. `ContractRole` SHALL be a normalized string identifying which contract obligation a target satisfies. Phase 6 SHALL default every target to `public_api` unless explicit target metadata is added in `cairn.config.yaml`.
+
+Explicit target metadata SHALL use this shape:
+
+```yaml
+targets:
+  - node: saas.api.auth
+    path: crates/auth/src/lib.rs
+    contract_role: public_api
+```
+
+Each entry SHALL include `node`, `path`, and `contract_role`. Unknown node/path pairs SHALL be configuration errors.
 
 ## Language Detection and Dispatch
 
@@ -35,7 +46,7 @@ Each language SHALL implement the existing `Reconciler` trait. The shared scanne
 
 ## Interface Hash State
 
-`.cairn/state/interface-hashes.json` SHALL store hashes by node ID and target path. Historical single-hash state from Phase 1 SHALL migrate to the new shape on first scan.
+`.cairn/state/interface-hashes.json` SHALL store hashes by node ID and target path. Existing single-hash state from Phase 1 SHALL migrate to the new shape on first scan.
 
 ## Public Interface Extraction
 

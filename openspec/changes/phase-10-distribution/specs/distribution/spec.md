@@ -62,3 +62,4 @@ Cairn SHALL document and test non-code reconciler registration.
 - **WHEN** `cairn scan` runs
 - **THEN** its observations enter the ontology through the shared reconciler interface
 - **AND** query and diagnostic output can include those observations
+- **AND** it does not create new DSL nodes outside the brownfield change workflow

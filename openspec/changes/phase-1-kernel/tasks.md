@@ -1,19 +1,22 @@
 # Tasks: Phase 1 Kernel
 
-## 1. DSL Parser
+## 1. Configuration and DSL Parser
 
-- [ ] 1.1 Implement tokenization with source spans for DSL keywords, identifiers, tags, strings, arrows, braces, comments, and lists.
-- [ ] 1.2 Implement AST types for systems, containers, modules, actors, fields, tags, paths, `owns-files`, artefact pointers, and edges.
-- [ ] 1.3 Implement recursive descent parsing for nested node declarations and top-level edges.
-- [ ] 1.4 Implement source-positioned parser errors for malformed fixtures.
-- [ ] 1.5 Add unit tests for every grammar production and negative tests for malformed input.
+- [ ] 1.1 Implement `cairn.config.yaml` loading with defaults for missing config, known Phase 1 fields, and forward-compatible unknown sections.
+- [ ] 1.2 Implement layered ignore handling from built-in defaults, `.gitignore`, `.cairnignore`, and config while protecting Cairn-owned paths.
+- [ ] 1.3 Implement tokenization with source spans for DSL keywords, identifiers, tags, strings, arrows, braces, comments, and lists.
+- [ ] 1.4 Implement AST types for systems, containers, modules, actors, fields, tags, paths, `owns-files`, artefact pointers, and edges.
+- [ ] 1.5 Implement recursive descent parsing for nested node declarations and top-level edges.
+- [ ] 1.6 Implement source-positioned parser errors for malformed fixtures.
+- [ ] 1.7 Add unit tests for config loading, ignore precedence, every grammar production, and negative tests for malformed input.
 
 ## 2. Ontology and Integrity
 
 - [ ] 2.1 Build node, name, parent, child, inbound edge, outbound edge, and path ownership indexes with leaf-default ownership and internal-node `owns-files: true` opt-in.
-- [ ] 2.2 Implement ID validation, duplicate ID detection, required field validation, path tie detection, invalid edge endpoint validation, and cycle detection.
-- [ ] 2.3 Implement name-or-ID node resolution with deterministic closest-match suggestions on failure.
-- [ ] 2.4 Add graph and integrity tests using `test/fixtures/cairn.dsl` and purpose-built malformed fixtures, including internal-node files that are orphaned by default and claimed when `owns-files: true` is present.
+- [ ] 2.2 Implement ID validation, duplicate ID detection, required field validation, path tie detection, and invalid edge endpoint validation.
+- [ ] 2.3 Implement dependency cycle detection for `order` and `lint` findings without blocking basic ontology queries, keeping the finding reusable by Phase 4 hooks.
+- [ ] 2.4 Implement name-or-ID node resolution with deterministic closest-match suggestions on failure.
+- [ ] 2.5 Add graph and integrity tests using `test/fixtures/cairn.dsl` and purpose-built malformed fixtures, including internal-node files that are orphaned by default and claimed when `owns-files: true` is present.
 
 ## 3. Contract Artefacts
 
@@ -27,16 +30,19 @@
 - [ ] 4.1 Define the `Reconciler` trait, request type, report type, finding type, and interface fingerprint type.
 - [ ] 4.2 Implement the Rust code reconciler using Tree-sitter for Rust source discovery and public interface fingerprints.
 - [ ] 4.3 Implement synced, ghost, and orphaned node state assignment.
-- [ ] 4.4 Implement `cairn scan` orchestration and `.cairn/state/interface-hashes.json` persistence.
-- [ ] 4.5 Generate `index.md` and append `.cairn/log.md` scan events.
-- [ ] 4.6 Add scanner integration tests using temporary directories and Rust source fixtures.
+- [ ] 4.4 Implement staged `cairn scan` orchestration: config, DSL parse, preliminary node index, contract load, reconciliation, final ontology, state-aware contract severity, output persistence.
+- [ ] 4.5 Implement `.cairn/state/interface-hashes.json` persistence.
+- [ ] 4.6 Generate `index.md` and append `.cairn/log.md` scan events.
+- [ ] 4.7 Add scanner integration tests using temporary directories and Rust source fixtures.
 
 ## 5. CLI Queries
 
-- [ ] 5.1 Implement `get`, `neighbourhood`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan`.
-- [ ] 5.2 Add `--file` and `--json` support to every command.
-- [ ] 5.3 Implement stable JSON schemas and labelled human-readable output.
-- [ ] 5.4 Add CLI integration tests for success and failure paths.
+- [ ] 5.1 Implement shared typed query/service request and response structs in the library.
+- [ ] 5.2 Implement a command registry with command name, request/response type identity, and `read_only` or `mutating` safety class.
+- [ ] 5.3 Implement `get`, `neighbourhood`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan` as CLI wrappers over the shared library services.
+- [ ] 5.4 Add `--file` and `--json` support to every command.
+- [ ] 5.5 Render JSON from the shared response structs and human-readable output from those same structs.
+- [ ] 5.6 Add CLI integration tests for success and failure paths, plus tests proving `scan` is registered as `mutating` and Phase 1 query commands are registered as `read_only`.
 
 ## 6. Documentation
 

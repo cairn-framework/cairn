@@ -47,6 +47,20 @@ Cairn SHALL require accept, edit, or discard before generated text affects contr
 - **THEN** Cairn replaces the target contract with draft text
 - **AND** records the current interface hash
 
+#### Scenario: Edit creates editable draft without applying
+
+- **GIVEN** a pending contract draft
+- **WHEN** the user runs `cairn draft edit <draft-id>`
+- **THEN** Cairn writes editable draft content under `.cairn/state/summariser/editable/`
+- **AND** leaves the target contract unchanged
+
+#### Scenario: Edited accept applies editable content
+
+- **GIVEN** a pending contract draft with an editable draft file
+- **WHEN** the user runs `cairn draft accept <draft-id> --edited`
+- **THEN** Cairn replaces the target contract with the editable draft file content
+- **AND** records the current interface hash
+
 #### Scenario: Discard leaves contradiction unresolved
 
 - **GIVEN** a pending contract draft
