@@ -3,9 +3,9 @@
 ## 1. Project setup
 
 - [x] 1.1 Initialise TypeScript project with pnpm, strict tsconfig
-- [x] 1.2 Add dependencies: `commander`, `vitest`
+- [x] 1.2 Add dependencies: `vitest`; CLI parsing is hand-rolled, so no runtime parser dependency is required
 - [x] 1.3 Set up `bin/cairn.js` entry point
-- [x] 1.4 Configure build (tsc) and dev (tsx) scripts
+- [x] 1.4 Configure build (tsc), lint, and test scripts
 
 ## 2. Lexer
 
@@ -83,3 +83,7 @@
 - 10.1 Write up findings: what worked, what didn't, what the spec got wrong
 - 10.2 If continuing: draft the phase 2 change proposal (scanner + contract artefact type)
 - 10.3 If abandoning: publish the Cairn spec and findings as a ReavesHQ content piece anyway
+
+## Acceptance #1 Failure Follow-up
+
+- [x] Fix project setup reproducibility: task 1.1 claims a pnpm TypeScript project, but no `pnpm-lock.yaml` is present; `pnpm install --offline --frozen-lockfile` fails with `ERR_PNPM_NO_LOCKFILE`, and `npm run build` fails because `tsc` is not available from `node_modules/.bin`. Add the lockfile/installable dependency state needed for `pnpm build`, `pnpm lint`, and `pnpm test` to run from a clean checkout.

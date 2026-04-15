@@ -3,23 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.29.2",
   "bin": {
     "cairn": "./bin/cairn.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx src/cli/index.ts",
-    "test": "vitest run",
+    "test": "pnpm build && vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {
-    "commander": "^12.1.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "file:vendor/typescript",
+    "vitest": "file:vendor/vitest"
   },
   "engines": {
     "node": ">=22"
