@@ -21,9 +21,9 @@ Supported backend modes:
 
 - `disabled`.
 - `local_command`.
-- `hosted_api`.
+- `hosted_api` configuration boundary.
 
-Hosted adapters SHALL receive credentials through environment variables or external config references, never through committed files.
+Hosted adapter configuration SHALL receive credentials through environment variables or external config references, never through committed files. Phase 8 SHALL parse and validate the provider-neutral hosted API configuration boundary, but it SHALL NOT require a production hosted provider implementation. Hosted execution MAY return an unsupported-backend error until a concrete provider adapter is added later.
 
 `cairn.config.yaml` SHALL configure the summariser with this provider-neutral shape:
 
@@ -69,6 +69,13 @@ Generated contract text SHALL be staged as draft state until a resolution action
 - `accept --edited`: replace the target contract with the editable draft file content and record the current interface hash.
 - `discard`: mark the draft discarded and leave the underlying contradiction unresolved.
 
+Accepting generated or edited contract text SHALL validate the candidate contract
+before replacing the target file. Validation SHALL include Markdown frontmatter
+parsing, target node match, and the same contract integrity checks used by scan.
+Replacement SHALL use a snapshot plus atomic write. If validation or the
+post-write scan fails, Cairn SHALL restore the original contract, leave the draft
+pending, and exit with code `1`.
+
 The summariser SHALL never apply output during generation.
 
 ## CLI
@@ -91,4 +98,9 @@ Phase 8 SHALL register summariser commands in the shared query tool registry so 
 
 ## Testing
 
-Tests SHALL use deterministic fake backends. Coverage SHALL include disabled mode, config parsing, local command stdin/stdout JSON protocol, timeout, non-zero exit, invalid response handling, prompt input construction and truncation, draft persistence, accept, edit-file creation, edited accept, discard, interface hash recording, and MCP registry exposure for read-only and mutating draft tools.
+Tests SHALL use deterministic fake backends. Coverage SHALL include disabled
+mode, config parsing, local command stdin/stdout JSON protocol, timeout,
+non-zero exit, invalid response handling, prompt input construction and
+truncation, draft persistence, accept, edit-file creation, edited accept,
+rollback on invalid generated or edited contract text, discard, interface hash
+recording, and MCP registry exposure for read-only and mutating draft tools.

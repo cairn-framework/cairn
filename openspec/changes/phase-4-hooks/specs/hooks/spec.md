@@ -44,3 +44,11 @@ Cairn SHALL detect conflicts between active change directories before archive ti
 - **WHEN** the structural hook runs
 - **THEN** it reports the artefact path collision
 - **AND** identifies both change IDs
+
+#### Scenario: Archive cannot bypass active change conflicts
+
+- **GIVEN** two active changes that conflict with each other
+- **WHEN** the user runs `cairn archive <change>` directly
+- **THEN** Cairn runs the active-change conflict detector before mutating files
+- **AND** exits with code `1`
+- **AND** leaves all active change directories and current-truth files unchanged

@@ -8,7 +8,7 @@
 
 ## 2. Reconcilers
 
-- [ ] 2.1 Add language detection through config and file extensions.
+- [ ] 2.1 Add language detection through optional explicit target config and file extensions, with config taking precedence.
 - [ ] 2.2 Implement TypeScript reconciler.
 - [ ] 2.3 Implement Python reconciler.
 - [ ] 2.4 Implement Go reconciler.
@@ -33,7 +33,7 @@
 ## 5. Documentation
 
 - [ ] 5.1 Document path-list reconciliation.
-- [ ] 5.2 Document supported languages and detection order.
+- [ ] 5.2 Document supported languages, explicit config override, and detection order.
 - [ ] 5.3 Document interface hash state format and migration behavior.
 
 ## 6. Required Verification

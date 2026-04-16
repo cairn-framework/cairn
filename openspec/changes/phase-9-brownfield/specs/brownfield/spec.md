@@ -37,6 +37,13 @@ Cairn SHALL create a reviewable change directory for first-time adoption of an e
 - **THEN** Cairn exits with code `1`
 - **AND** does not overwrite the existing change
 
+#### Scenario: Force replaces generated change
+
+- **GIVEN** `meta/changes/brownfield-init/` already exists
+- **WHEN** the user runs `cairn init --from-code --force`
+- **THEN** Cairn replaces the existing generated brownfield change directory atomically
+- **AND** does not modify main `cairn.dsl` or main `meta/` artefacts
+
 ### Requirement: Refine existing Cairn state from code changes
 
 Cairn SHALL propose deltas against an existing DSL.

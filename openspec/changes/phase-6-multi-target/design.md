@@ -28,10 +28,15 @@ Explicit target metadata SHALL use this shape:
 targets:
   - node: saas.api.auth
     path: crates/auth/src/lib.rs
+    language: rust
     contract_role: public_api
 ```
 
-Each entry SHALL include `node`, `path`, and `contract_role`. Unknown node/path pairs SHALL be configuration errors.
+Each entry SHALL include `node`, `path`, and `contract_role`, and MAY include
+`language`. When present, `language` SHALL be one of `rust`, `typescript`,
+`python`, or `go` and SHALL take precedence over file-extension detection.
+Unknown node/path pairs and unsupported language values SHALL be configuration
+errors.
 
 ## Language Detection and Dispatch
 
@@ -66,10 +71,10 @@ All reconcilers SHALL sort records by `kind`, then `name`, then `signature`. For
 When multiple targets claim the same contract role:
 
 - Equal interface shapes produce no finding.
-- Different interface shapes produce an interface contradiction unless an artefact or config marks the asymmetry intentional.
+- Different interface shapes produce an interface contradiction unless config marks the asymmetry intentional.
 - Intentional asymmetry produces a rationale tension so humans can revisit it.
 
-Intentional asymmetry SHALL be marked in `cairn.config.yaml` under `multi_target.intentional_asymmetry`:
+Intentional asymmetry SHALL be marked only in `cairn.config.yaml` under `multi_target.intentional_asymmetry`:
 
 ```yaml
 multi_target:
@@ -90,4 +95,9 @@ Each entry SHALL include `node`, `contract_role`, at least two target paths, and
 
 ## Testing
 
-Tests SHALL cover single-target backwards compatibility, path-list dispatch, language detection, per-language public interface extraction rules, canonical hash normalization, per-target hash persistence, migration from old state shape, divergence contradictions, intentional asymmetry tensions, and target-level output.
+Tests SHALL cover single-target backwards compatibility, path-list dispatch,
+language detection, explicit language override precedence, unsupported language
+configuration errors, per-language public interface extraction rules, canonical
+hash normalization, per-target hash persistence, migration from old state shape,
+divergence contradictions, intentional asymmetry tensions, and target-level
+output.

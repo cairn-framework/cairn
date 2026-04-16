@@ -29,7 +29,7 @@ Implement the Rust kernel with:
 
 - Valid DSL fixtures parse into deterministic AST and ontology structures.
 - Malformed DSL produces source-positioned errors.
-- Duplicate IDs, path ties, invalid edge endpoints, missing required fields, and broken contract pointers surface as structural errors.
+- Duplicate IDs, path ties, invalid edge endpoints, missing required fields, and broken contract pointers for synced leaf nodes surface as structural errors; missing contracts for ghost nodes surface as warnings.
 - Dependency cycles are reported by `order` and `lint` without blocking basic node, file, contract, or neighbourhood queries; Phase 4 hook commands later reuse those findings.
 - Config and ignore rules load from `cairn.config.yaml`, `.gitignore`, `.cairnignore`, and built-in defaults while preserving forward compatibility for later config sections.
 - Internal nodes do not own files by default, and `owns-files: true` allows an internal node to claim files under its path intentionally.

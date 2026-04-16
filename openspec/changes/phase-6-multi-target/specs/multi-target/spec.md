@@ -33,6 +33,19 @@ Cairn SHALL treat each path in a node path list as an independent target.
 - **WHEN** target records are created
 - **THEN** the matching target uses the configured contract role
 
+#### Scenario: Explicit language overrides extension detection
+
+- **GIVEN** `cairn.config.yaml` declares target metadata with `node`, `path`, `language: typescript`, and `contract_role`
+- **WHEN** target records are created
+- **THEN** the matching target uses the configured TypeScript language
+- **AND** file-extension language detection is not used for that target
+
+#### Scenario: Unsupported explicit language fails
+
+- **GIVEN** `cairn.config.yaml` declares target metadata with `language: elixir`
+- **WHEN** target records are created
+- **THEN** Cairn reports a configuration error listing Rust, TypeScript, Python, and Go as supported languages
+
 ### Requirement: Store per-target interface hashes
 
 Cairn SHALL persist interface hashes by node and target.

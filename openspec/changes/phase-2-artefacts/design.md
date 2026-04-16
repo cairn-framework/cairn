@@ -32,7 +32,7 @@ The implementation SHALL support:
 
 - `Todo`: `node`, `status`, `created`, optional `satisfies`.
 - `Decision`: `id`, `nodes`, `status`, `date`, `revisited`, `revisit_triggers`, `informed_by`, `supersedes`, `refines`, `related`, optional `orphaned`, optional `orphan_reason`.
-- `Review`: `node`, `review_type`, `date`, `reviewer`, optional `related_change`.
+- `Review`: `node`, optional `review_type` defaulting to `human`, `date`, `reviewer`, optional `related_change`.
 - `Research`: `id`, `nodes`, `date`, `sources`, optional `tags`.
 - `Source`: `id`, `file`, optional `sha256`, `verification`, `type`, `date`, optional `tags`, `description`.
 
@@ -45,7 +45,7 @@ The scanner SHALL enforce these rules:
 - Todo references exactly one valid node ID; orphan todos are warnings.
 - Decision references at least one node ID. Decisions whose nodes are all deleted require reassignment, archive, or explicit orphan marking with `orphaned: true` and a non-empty `orphan_reason`; orphan marking SHALL NOT introduce a new decision status outside `proposed`, `accepted`, `deprecated`, or `superseded`.
 - Decision `supersedes` targets exist and have `superseded` status.
-- Review references one valid node ID and uses a valid subtype.
+- Review references one valid node ID and uses a valid subtype when `review_type` is present; missing `review_type` defaults to `human`.
 - Research references at least one valid node ID and at least one valid source ID.
 - Source is referenced by at least one research artefact or decision, otherwise it is a warning.
 - `verified` source files have a non-empty SHA-256 that matches the local file.

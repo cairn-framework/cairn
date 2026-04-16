@@ -19,6 +19,7 @@
 - [ ] 3.2 Detect artefact path operation collisions.
 - [ ] 3.3 Detect incompatible rename chains.
 - [ ] 3.4 Surface conflicts as structural hook failures.
+- [ ] 3.5 Reuse the same conflict detector inside `cairn archive <change>` before any snapshot or mutation, and add a direct-archive bypass regression test.
 
 ## 4. Entrypoints and Documentation
 

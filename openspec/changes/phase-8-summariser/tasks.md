@@ -6,7 +6,7 @@
 - [ ] 1.2 Define backend trait, request type, draft type, and error type.
 - [ ] 1.3 Define provider-neutral `SummariserRequest` and `SummariserResponse` JSON schemas.
 - [ ] 1.4 Implement local command backend using stdin/stdout JSON, timeout, non-zero exit handling, and invalid response handling.
-- [ ] 1.5 Implement hosted API adapter boundary without committing secrets.
+- [ ] 1.5 Implement hosted API configuration parsing and validation as an adapter boundary without committing secrets; a concrete hosted provider may return an unsupported-backend error until a later adapter exists.
 - [ ] 1.6 Add deterministic fake backend for tests.
 
 ## 2. Prompt Inputs and Draft Storage
@@ -19,9 +19,9 @@
 ## 3. Resolution Actions
 
 - [ ] 3.1 Implement draft generation without applying output.
-- [ ] 3.2 Implement accept action and interface hash recording.
+- [ ] 3.2 Implement accept action with contract validation, atomic replacement, rollback on failure, and interface hash recording.
 - [ ] 3.3 Implement edit action that writes an editable draft file without applying output.
-- [ ] 3.4 Implement `draft accept <draft-id> --edited` to apply edited draft-file content.
+- [ ] 3.4 Implement `draft accept <draft-id> --edited` with the same validation, atomic replacement, and rollback guarantees as generated draft accept.
 - [ ] 3.5 Implement discard action that preserves unresolved contradictions.
 - [ ] 3.6 Add tests for every action.
 

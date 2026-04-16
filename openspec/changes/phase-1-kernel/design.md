@@ -90,7 +90,7 @@ Ontology construction SHALL transform the AST into:
 
 Only leaf nodes SHALL own files by default. An internal node with a path SHALL own files only when it declares `owns-files: true`; otherwise it acts as a grouping boundary for descendant ownership and orphan detection. Ownership SHALL resolve by most-specific matching path among eligible owning nodes. Ties between eligible owners are structural errors.
 
-Integrity validation SHALL reject duplicate IDs, invalid ID format, missing required fields, path ties, invalid edge endpoints, and broken contract pointers. Dependency cycles SHALL be detected when computing `order` and reported by `lint`, but SHALL NOT prevent basic node, file, contract, or neighbourhood queries from using the otherwise valid ontology. Phase 4 hook commands SHALL reuse the same cycle finding after hooks exist.
+Integrity validation SHALL reject duplicate IDs, invalid ID format, missing required fields, path ties, invalid edge endpoints, and broken contract pointers for synced leaf nodes. Missing contract pointers for ghost nodes SHALL be warnings, not structural errors. Dependency cycles SHALL be detected when computing `order` and reported by `lint`, but SHALL NOT prevent basic node, file, contract, or neighbourhood queries from using the otherwise valid ontology. Phase 4 hook commands SHALL reuse the same cycle finding after hooks exist.
 
 ## Reconciler Interface
 

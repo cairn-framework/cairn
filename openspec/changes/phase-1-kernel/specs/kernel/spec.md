@@ -80,10 +80,17 @@ The kernel SHALL transform the parsed DSL, contract artefacts, and reconciler re
 
 #### Scenario: Structural errors block ontology success
 
-- **GIVEN** a project with duplicate IDs, path ties, invalid edge endpoints, or broken contract pointers
+- **GIVEN** a project with duplicate IDs, path ties, invalid edge endpoints, or broken contract pointers for synced leaf nodes
 - **WHEN** ontology construction or linting runs
 - **THEN** the kernel reports structural errors with stable error codes
 - **AND** CLI commands that require a valid ontology exit with code `1`
+
+#### Scenario: Ghost-node missing contract is advisory
+
+- **GIVEN** a ghost leaf node that declares a contract path whose file is missing
+- **WHEN** ontology construction or linting runs
+- **THEN** the kernel reports a warning with a stable code
+- **AND** does not fail ontology construction solely because the ghost node contract is missing
 
 #### Scenario: Dependency cycle does not block basic queries
 

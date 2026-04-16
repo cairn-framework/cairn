@@ -44,7 +44,8 @@ Cairn SHALL require accept, edit, or discard before generated text affects contr
 
 - **GIVEN** a pending contract draft
 - **WHEN** the user runs `cairn draft accept <draft-id>`
-- **THEN** Cairn replaces the target contract with draft text
+- **THEN** Cairn validates that the draft is a valid contract for the target node
+- **AND** replaces the target contract with draft text
 - **AND** records the current interface hash
 
 #### Scenario: Edit creates editable draft without applying
@@ -58,8 +59,17 @@ Cairn SHALL require accept, edit, or discard before generated text affects contr
 
 - **GIVEN** a pending contract draft with an editable draft file
 - **WHEN** the user runs `cairn draft accept <draft-id> --edited`
-- **THEN** Cairn replaces the target contract with the editable draft file content
+- **THEN** Cairn validates that the editable draft file is a valid contract for the target node
+- **AND** replaces the target contract with the editable draft file content
 - **AND** records the current interface hash
+
+#### Scenario: Invalid accepted draft rolls back
+
+- **GIVEN** a pending contract draft whose text has invalid frontmatter or references a different node
+- **WHEN** the user runs `cairn draft accept <draft-id>`
+- **THEN** Cairn exits with code `1`
+- **AND** restores the original contract file
+- **AND** leaves the draft pending
 
 #### Scenario: Discard leaves contradiction unresolved
 

@@ -37,6 +37,10 @@ The engine SHALL compare active change directories and detect:
 - Rename chains that target the same old or new ID.
 
 Conflicts SHALL be structural hook failures because archive safety is compromised.
+`cairn archive <change>` SHALL invoke this same conflict detector before it
+snapshots or mutates files. Archive SHALL abort with exit code `1` if any active
+change conflict is present, including conflicts that do not involve the selected
+change, so direct archive invocation cannot bypass hook enforcement.
 
 ## Entrypoints
 
@@ -53,4 +57,6 @@ Repository scripts SHALL include a committed hook runner suitable for Git pre-co
 
 ## Testing
 
-Tests SHALL cover exit codes, finding classification, JSON output, human output, conflict classes, script invocation, and non-blocking tension behavior.
+Tests SHALL cover exit codes, finding classification, JSON output, human output,
+conflict classes, archive blocking on active-change conflicts, script invocation,
+and non-blocking tension behavior.
