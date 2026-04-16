@@ -3,404 +3,978 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAIRN / THE HUMAN-AI MAP V8</title>
+    <title>CAIRN - The Map Between Plans and Code</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=Work+Sans:wght@300;400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #08080a;
-            --ink: #f0f0f0;
-            --accent: #ff4d00;
-            --layer-1: #38bdf8; /* Intent */
-            --layer-2: #818cf8; /* Artifacts */
-            --layer-3: #f472b6; /* Reality */
-            --font-mono: 'Space Mono', monospace;
-            --font-body: 'Work Sans', sans-serif;
+            --bg: #0f1219;
+            --surface: #1b2138;
+            --surface-2: #252e48;
+            --border: #445070;
+            --border-2: #5a6888;
+            --text: #e2e4ed;
+            --text-2: #8b90a5;
+            --text-3: #555971;
+            --blue: #4f8fff;
+            --orange: #f97316;
+            --green: #22c55e;
+            --purple: #a78bfa;
+            --pink: #ec4899;
+            --red: #ef4444;
+            --font: 'Inter', -apple-system, sans-serif;
+            --mono: 'JetBrains Mono', monospace;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: var(--bg);
-            color: var(--ink);
-            font-family: var(--font-body);
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            perspective: 2000px;
+        body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+
+        /* ── Tag / Label ── */
+        .tag {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--blue);
+            margin-bottom: 0.75rem;
         }
 
-        /* Perspective Grid */
-        .world-grid {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 100px 100px;
-            transform: rotateX(70deg) translateZ(-500px);
-            z-index: -1;
-            mask-image: linear-gradient(to top, black, transparent);
+        /* ── HERO ── */
+        .hero {
+            padding: 8rem 0 6rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 0.95;
+            margin-bottom: 1rem;
+        }
+        .hero-subtitle {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: var(--text-2);
+            margin-bottom: 1.5rem;
+        }
+        .hero-desc {
+            font-size: 1.05rem;
+            color: var(--text-3);
+            max-width: 560px;
+            line-height: 1.7;
         }
 
-        .stage {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform-style: preserve-3d;
+        /* ── SECTION ── */
+        .section {
+            padding: 5rem 0;
+            border-bottom: 1px solid var(--border);
         }
-
-        .map-container {
-            position: relative;
-            width: 1100px;
-            height: 700px;
-            transform-style: preserve-3d;
-            transition: transform 0.1s linear;
-        }
-
-        /* SVG Flow Layer */
-        .flow-svg {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .flow-line { stroke: rgba(255,255,255,0.08); stroke-width: 1.5; fill: none; }
-        .flow-line.active { stroke: var(--accent); stroke-width: 2.5; stroke-opacity: 0.8; }
-
-        /* The Node */
-        .node {
-            position: absolute;
-            width: 160px;
-            height: 160px;
-            transform-style: preserve-3d;
-        }
-
-        /* CRITICAL: Flat Hitbox for stable interaction */
-        .hitbox {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1000;
-            cursor: pointer;
-            background: transparent;
-        }
-
-        .visual-core {
-            width: 100%; height: 100%;
-            background: rgba(15, 15, 18, 0.95);
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(15px);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            transform: translateZ(0);
-        }
-
-        .icon { width: 44px; height: 44px; stroke: #444; fill: none; stroke-width: 1.5; transition: stroke 0.3s; }
-        .label { font-family: var(--font-mono); font-size: 0.65rem; color: #555; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.15em; }
-
-        .hitbox:hover + .visual-core, .node.active .visual-core { border-color: var(--accent); background: rgba(255, 77, 0, 0.05); }
-        .hitbox:hover + .visual-core .icon, .node.active .icon { stroke: var(--accent); }
-
-        /* Quick Explanation Tooltip */
-        .tooltip {
-            position: absolute;
-            top: -50px; left: 50%;
-            transform: translateX(-50%) translateY(10px);
-            background: var(--accent);
-            color: white;
-            padding: 0.6rem 1.2rem;
-            font-size: 0.8rem;
+        .section h2 {
+            font-size: 2rem;
             font-weight: 700;
-            white-space: nowrap;
-            opacity: 0;
-            transition: all 0.3s ease;
-            pointer-events: none;
-            z-index: 1100;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
         }
-        .hitbox:hover ~ .tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-        /* The Dimensional Info Deck */
-        .deck {
-            position: absolute;
-            top: -20px; left: 180px;
-            width: 320px;
-            height: 200px;
-            transform-style: preserve-3d;
-            pointer-events: none; /* Scrolling and clicking handled by script on hitbox */
-            opacity: 0;
-            transition: opacity 0.4s ease;
+        .section-desc {
+            font-size: 1.05rem;
+            color: var(--text-2);
+            max-width: 640px;
+            line-height: 1.7;
+            margin-bottom: 3rem;
         }
-        .node.active .deck { opacity: 1; }
 
-        .plate {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #111;
-            border-left: 4px solid transparent;
-            padding: 1.5rem;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        /* ── TWO CHAINS ── */
+        .chain-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+        }
+        .chain-label {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .chain-label.prov { color: var(--orange); }
+        .chain-label.auth { color: var(--blue); }
+
+        .chain-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .chain-step {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            opacity: 0;
-            transform: translateZ(-50px) scale(0.9);
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            min-width: 120px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+        .chain-step.prov { border-top: 4px solid var(--orange); }
+        .chain-step.auth { border-top: 4px solid var(--blue); }
+        .chain-step.hinge {
+            border-top: 4px solid var(--green);
+            background: var(--surface-2);
+            transform: scale(1.08);
+            z-index: 1;
+            box-shadow: 0 4px 24px rgba(34, 197, 94, 0.08);
+        }
+        .chain-step-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+        .chain-step-role {
+            font-size: 0.8rem;
+            color: var(--text-3);
+        }
+        .chain-arrow {
+            color: var(--text-3);
+            font-size: 1.2rem;
+            padding: 0 0.5rem;
+            flex-shrink: 0;
         }
 
-        .plate.visible { opacity: 1; transform: translateZ(0) scale(1); z-index: 10; }
-        .plate.hidden-top { opacity: 0; transform: translateY(-40px) translateZ(50px); }
-        .plate.hidden-bottom { opacity: 0; transform: translateY(40px) translateZ(-50px); }
+        .chain-explain {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2.5rem;
+        }
+        .chain-explain-box {
+            padding: 1.5rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+        }
+        .chain-explain-box h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .chain-explain-box h3.prov { color: var(--orange); }
+        .chain-explain-box h3.auth { color: var(--blue); }
+        .chain-explain-box p {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            line-height: 1.6;
+        }
 
-        .plate-cat { font-family: var(--font-mono); font-size: 0.6rem; text-transform: uppercase; margin-bottom: 0.75rem; color: #888; letter-spacing: 0.2em; }
-        .plate-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-        .plate-why { font-size: 0.9rem; line-height: 1.4; color: #aaa; }
+        /* ── GRAPH SECTION ── */
+        .explore-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 2rem;
+            align-items: start;
+        }
+        @media (max-width: 1000px) {
+            .explore-layout { grid-template-columns: 1fr; }
+        }
 
-        /* UI Overlays */
-        .sidebar { position: fixed; top: 3.5rem; left: 3.5rem; width: 340px; z-index: 1000; pointer-events: none; }
-        .title { font-weight: 900; font-size: 3rem; line-height: 0.85; letter-spacing: -0.05em; margin-bottom: 1.5rem; }
-        .desc { font-size: 0.95rem; color: #777; line-height: 1.6; }
+        .graph-wrap {
+            position: relative;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            overflow: visible;
+        }
+        .graph-area {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 900 / 420;
+        }
+        .graph-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
 
-        .status { position: fixed; bottom: 3.5rem; right: 3.5rem; text-align: right; font-family: var(--font-mono); }
-        .instr { font-size: 0.75rem; color: var(--accent); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; }
-        .ver { font-size: 0.6rem; color: #333; }
+        .graph-node {
+            position: absolute;
+            background: var(--surface-2);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            user-select: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+        .graph-node:hover {
+            border-color: var(--border-2);
+            background: #1f2233;
+        }
+        .graph-node.selected {
+            border-color: var(--blue);
+            box-shadow: 0 0 24px rgba(79, 143, 255, 0.12);
+            background: #151b2e;
+        }
+        .graph-node .type-badge {
+            font-family: var(--mono);
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            margin-bottom: 0.35rem;
+        }
+        .graph-node[data-type="system"] .type-badge { background: rgba(249,115,22,0.15); color: var(--orange); }
+        .graph-node[data-type="container"] .type-badge { background: rgba(79,143,255,0.12); color: var(--blue); }
+        .graph-node[data-type="module"] .type-badge { background: rgba(167,139,250,0.12); color: var(--purple); }
+        .graph-node .node-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            line-height: 1.2;
+        }
+        .graph-node .node-id {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--text-3);
+            margin-top: 0.2rem;
+        }
 
-        /* Layout (DSL-derived) */
-        #parser { top: 15%; left: 45%; }
-        #recon  { top: 50%; left: 45%; }
-        #changes { top: 80%; left: 25%; }
-        #hooks   { top: 80%; left: 65%; }
-        #cli     { top: 50%; left: 15%; }
-        #artefacts { top: 50%; left: 75%; }
+        .graph-legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+            color: var(--text-3);
+            font-family: var(--mono);
+        }
+        .legend-line {
+            width: 24px;
+            height: 2px;
+        }
+        .legend-line.hier { background: var(--border-2); }
+        .legend-line.dep { background: var(--blue); border-top: 2px dashed var(--blue); height: 0; }
 
+        /* ── DETAIL PANEL ── */
+        .detail-panel {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            min-height: 400px;
+            overflow: hidden;
+        }
+        .detail-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            padding: 2rem;
+            text-align: center;
+        }
+        .detail-empty p {
+            font-size: 0.95rem;
+            color: var(--text-3);
+            line-height: 1.6;
+        }
+        .detail-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-type {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--blue);
+            margin-bottom: 0.3rem;
+        }
+        .detail-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.15rem;
+        }
+        .detail-id {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--text-3);
+            margin-bottom: 0.5rem;
+        }
+        .detail-desc {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            line-height: 1.5;
+        }
+
+        .layer-accordion { padding: 0.5rem 0; }
+
+        .layer-item {
+            border-bottom: 1px solid var(--border);
+        }
+        .layer-item:last-child { border-bottom: none; }
+
+        .layer-head {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1.5rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            user-select: none;
+        }
+        .layer-head:hover { background: var(--surface-2); }
+
+        .layer-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .layer-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex: 1;
+        }
+        .layer-chevron {
+            font-size: 0.7rem;
+            color: var(--text-3);
+            transition: transform 0.2s;
+        }
+        .layer-item.expanded .layer-chevron {
+            transform: rotate(90deg);
+        }
+
+        .layer-body {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease;
+        }
+        .layer-item.expanded .layer-body {
+            grid-template-rows: 1fr;
+        }
+        .layer-body-inner {
+            overflow: hidden;
+        }
+        .layer-content {
+            padding: 0 1.5rem 1rem 2.75rem;
+        }
+        .layer-subtitle {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-3);
+            margin-bottom: 0.5rem;
+        }
+        .layer-text {
+            font-size: 0.88rem;
+            color: var(--text-2);
+            line-height: 1.6;
+        }
+
+        .detail-nav {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        .nav-btn {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--blue);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0.5rem 0;
+            transition: color 0.15s;
+        }
+        .nav-btn:hover { color: var(--text); }
+        .nav-btn:disabled { color: var(--text-3); cursor: default; }
+
+        /* ── TEMPORAL SECTION ── */
+        .temporal-flow {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        @media (max-width: 768px) {
+            .temporal-flow { grid-template-columns: repeat(2, 1fr); }
+        }
+        .temporal-step {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+        }
+        .temporal-num {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--purple);
+            margin-bottom: 0.75rem;
+        }
+        .temporal-step h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .temporal-step p {
+            font-size: 0.88rem;
+            color: var(--text-2);
+            line-height: 1.5;
+        }
+
+        /* ── FOOTER ── */
+        .footer {
+            padding: 3rem 0;
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        /* ── SVG EDGES ── */
+        .edge-hier {
+            stroke: var(--border-2);
+            stroke-width: 1.5;
+            fill: none;
+            transition: stroke 0.3s;
+        }
+        .edge-dep {
+            stroke: var(--blue);
+            stroke-width: 1.5;
+            stroke-dasharray: 6 4;
+            fill: none;
+            opacity: 0.4;
+            transition: opacity 0.3s, stroke 0.3s;
+        }
+        .edge-hier.highlighted { stroke: var(--text-3); }
+        .edge-dep.highlighted { opacity: 1; stroke-width: 2; }
+        .edge-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            fill: var(--text-3);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .edge-label.visible { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div class="world-grid"></div>
-
-    <div class="sidebar">
-        <h1 class="title">CAIRN<br>ONTOLOGY</h1>
-        <p class="desc">A shared map for Human-AI Engineering. It connects what you want (The Plan) to what you have (The Code) through a permanent team memory.</p>
+<!-- ════════════════ HERO ════════════════ -->
+<section class="hero">
+    <div class="container">
+        <p class="tag">Architectural Ontology</p>
+        <h1>CAIRN</h1>
+        <p class="hero-subtitle">The Map Between Plans and Code</p>
+        <p class="hero-desc">
+            A shared architectural memory that both humans and AI read from
+            and write to. It connects your intentions to your implementation
+            through a permanent, structured map of your entire project.
+        </p>
     </div>
+</section>
 
-    <div class="status">
-        <div class="instr">CLICK NODE TO OPEN // SCROLL TO CYCLE LAYERS</div>
-        <div class="ver">CAIRN_ONTOLOGY_V0.6 // RECON_ACTIVE</div>
-    </div>
+<!-- ════════════════ TWO CHAINS ════════════════ -->
+<section class="section">
+    <div class="container">
+        <p class="tag">Core Concept</p>
+        <h2>Two Chains, One Hinge</h2>
+        <p class="section-desc">
+            Every piece of knowledge flows through two linked chains.
+            Evidence flows up through the Provenance Chain. Rules flow down
+            through the Authority Chain. They meet at Decisions, the only
+            artefact with obligations in both directions.
+        </p>
 
-    <div class="stage">
-        <div class="map-container" id="map">
-            
-            <svg class="flow-svg" id="edges">
-                <!-- Edges injected by JS -->
-            </svg>
+        <div class="chain-labels">
+            <span class="chain-label prov">Provenance Chain</span>
+            <span class="chain-label auth">Authority Chain</span>
+        </div>
 
-            <!-- Parser -->
-            <div class="node" id="parser">
-                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
-                <div class="visual-core">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM9 9h6v6H9zM12 3v6M12 15v6"/></svg>
-                    <span class="label">The Parser</span>
-                </div>
-                <div class="tooltip">Turns your plans into a map.</div>
-                <div class="deck">
-                    <div class="plate visible" style="border-color: var(--layer-1)">
-                        <span class="plate-cat">Step 1: The Plan</span>
-                        <h3 class="plate-title">The Blueprint</h3>
-                        <p class="plate-why">This tool reads your architecture plans and draws a digital map so the AI knows exactly where every module belongs.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
-                        <span class="plate-cat">Step 2: The Memory</span>
-                        <h3 class="plate-title">Design Wisdom</h3>
-                        <p class="plate-why">We store the rules for your project's grammar here, ensuring every module is named and organized consistently.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
-                        <span class="plate-cat">Step 3: The Reality</span>
-                        <h3 class="plate-title">Reading Code</h3>
-                        <p class="plate-why">The actual software that scans your project files and updates the map in real-time.</p>
-                    </div>
-                </div>
+        <div class="chain-flow">
+            <div class="chain-step prov">
+                <span class="chain-step-name">Source</span>
+                <span class="chain-step-role">Raw evidence</span>
             </div>
-
-            <!-- Recon -->
-            <div class="node" id="recon">
-                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
-                <div class="visual-core">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM12 8v8M8 12h8"/></svg>
-                    <span class="label">The Engine</span>
-                </div>
-                <div class="tooltip">Syncs your plan with your code.</div>
-                <div class="deck">
-                    <div class="plate visible" style="border-color: var(--layer-1)">
-                        <span class="plate-cat">Step 1: The Plan</span>
-                        <h3 class="plate-title">Live Sync</h3>
-                        <p class="plate-why">The Engine's job is to make sure your 'Source of Truth' and your real code are always telling the same story.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
-                        <span class="plate-cat">Step 2: The Memory</span>
-                        <h3 class="plate-title">The Master Map</h3>
-                        <p class="plate-why">Cairn holds a complete model of every connection in your project, so you can see the 'Ripple Effect' before you change anything.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
-                        <span class="plate-cat">Step 3: The Reality</span>
-                        <h3 class="plate-title">The Graph Engine</h3>
-                        <p class="plate-why">The high-performance code that builds the project's digital twin every time you save a file.</p>
-                    </div>
-                </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step prov">
+                <span class="chain-step-name">Research</span>
+                <span class="chain-step-role">Analysis</span>
             </div>
-
-            <!-- CLI -->
-            <div class="node" id="cli">
-                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
-                <div class="visual-core">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
-                    <span class="label">The Interface</span>
-                </div>
-                <div class="tooltip">Ask the project questions.</div>
-                <div class="deck">
-                    <div class="plate visible" style="border-color: var(--layer-1)">
-                        <span class="plate-cat">Step 1: The Plan</span>
-                        <h3 class="plate-title">Natural Search</h3>
-                        <p class="plate-why">Allows you or your AI to ask simple questions like: 'Who depends on this module?' and get an instant, correct answer.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
-                        <span class="plate-cat">Step 2: The Memory</span>
-                        <h3 class="plate-title">Command Help</h3>
-                        <p class="plate-why">The system explains how to use each tool in context, so you never have to hunt through documentation.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
-                        <span class="plate-cat">Step 3: The Reality</span>
-                        <h3 class="plate-title">CLI Tool</h3>
-                        <p class="plate-why">The actual terminal application that you use to interact with the project ontology.</p>
-                    </div>
-                </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step hinge">
+                <span class="chain-step-name">Decision</span>
+                <span class="chain-step-role">The hinge</span>
             </div>
-
-            <!-- Artefacts -->
-            <div class="node" id="artefacts">
-                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
-                <div class="visual-core">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    <span class="label">The Archive</span>
-                </div>
-                <div class="tooltip">Stores project wisdom.</div>
-                <div class="deck">
-                    <div class="plate visible" style="border-color: var(--layer-1)">
-                        <span class="plate-cat">Step 1: The Plan</span>
-                        <h3 class="plate-title">The Library</h3>
-                        <p class="plate-why">A structured place for all project facts—Decisions, Tasks, and Research—linked directly to your code.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
-                        <span class="plate-cat">Step 2: The Memory</span>
-                        <h3 class="plate-title">Decision History</h3>
-                        <p class="plate-why">The 'Why' behind every piece of code. If a new developer joins, they can see the exact reasoning for every architectural choice.</p>
-                    </div>
-                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
-                        <span class="plate-cat">Step 3: The Reality</span>
-                        <h3 class="plate-title">Markdown Files</h3>
-                        <p class="plate-why">Human-readable files that live in your repository. They are the 'Permanent Records' of the project.</p>
-                    </div>
-                </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step auth">
+                <span class="chain-step-name">DSL</span>
+                <span class="chain-step-role">Current truth</span>
             </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step auth">
+                <span class="chain-step-name">Contract</span>
+                <span class="chain-step-role">Promises</span>
+            </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step auth">
+                <span class="chain-step-name">Code</span>
+                <span class="chain-step-role">Reality</span>
+            </div>
+        </div>
 
+        <div class="chain-explain">
+            <div class="chain-explain-box">
+                <h3 class="prov">Provenance Chain -- traces reasoning</h3>
+                <p>
+                    Where did this decision come from? Sources are raw materials
+                    (documents, transcripts, links). Research synthesises those
+                    sources into findings. Decisions cite that research as
+                    justification. If the trail breaks, CAIRN surfaces it as a
+                    warning -- not a blocker, because human judgement is needed here.
+                </p>
+            </div>
+            <div class="chain-explain-box">
+                <h3 class="auth">Authority Chain -- enforces structure</h3>
+                <p>
+                    Is the code following the plan? Decisions declare which parts
+                    of the DSL map they constrain. The DSL is the current
+                    architectural truth. Contracts spell out what each module
+                    promises. Code is what actually exists. Each link is
+                    mechanically checked -- violations block commits.
+                </p>
+            </div>
         </div>
     </div>
+</section>
 
-    <script>
-        const map = document.getElementById('map');
-        const edges = document.getElementById('edges');
-        let currentSelection = null;
-        let rotX = 15;
-        let rotY = 0;
+<!-- ════════════════ EXPLORE THE MAP ════════════════ -->
+<section class="section">
+    <div class="container">
+        <p class="tag">The Structural Graph</p>
+        <h2>Explore the Map</h2>
+        <p class="section-desc">
+            This is a sample project mapped in CAIRN. Systems contain Containers,
+            Containers contain Modules. Solid lines show ownership. Dashed lines
+            show dependencies. Click any node to drill into its layers.
+        </p>
 
-        // Stage Rotation (3D Perspective)
-        window.addEventListener('mousemove', (e) => {
-            const xPct = (e.clientX / window.innerWidth - 0.5) * 2;
-            const yPct = (e.clientY / window.innerHeight - 0.5) * 2;
-            rotY = xPct * 12;
-            rotX = -yPct * 12 + 15;
-            map.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-        });
+        <div class="explore-layout">
+            <div class="graph-wrap">
+                <div class="graph-area" id="graph-area">
+                    <svg class="graph-svg" viewBox="0 0 900 420" preserveAspectRatio="xMidYMid meet" id="graph-svg">
+                        <defs>
+                            <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                                <polygon points="0 0, 8 3, 0 6" fill="var(--blue)" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="graph-legend">
+                    <div class="legend-item"><div class="legend-line hier"></div> Ownership</div>
+                    <div class="legend-item"><div class="legend-line dep"></div> Dependency</div>
+                </div>
+            </div>
 
-        // Node Selection
-        function selectNode(el, e) {
-            const node = el.closest('.node');
-            if (currentSelection && currentSelection !== node) {
-                currentSelection.classList.remove('active');
-                resetDeck(currentSelection);
-            }
-            
-            node.classList.toggle('active');
-            currentSelection = node.classList.contains('active') ? node : null;
-            highlightEdges(node.id);
-        }
+            <div class="detail-panel" id="detail-panel">
+                <div class="detail-empty" id="detail-empty">
+                    <p>Click any node on the map<br>to explore its architectural layers</p>
+                </div>
+                <div id="detail-content" style="display:none"></div>
+            </div>
+        </div>
+    </div>
+</section>
 
-        // Focused Stack Reveal (Scroll to cycle layers)
-        function handleWheel(el, e) {
-            const node = el.closest('.node');
-            if (!node.classList.contains('active')) return;
+<!-- ════════════════ TEMPORAL ════════════════ -->
+<section class="section">
+    <div class="container">
+        <p class="tag">The Fourth Dimension</p>
+        <h2>Changes Over Time</h2>
+        <p class="section-desc">
+            Changes are never applied directly to the main tree. They are
+            proposed, worked on in isolation, and archived atomically --
+            creating a full audit trail of how the project evolved and why.
+        </p>
 
-            const plates = node.querySelectorAll('.plate');
-            let visibleIdx = Array.from(plates).findIndex(p => p.classList.contains('visible'));
+        <div class="temporal-flow">
+            <div class="temporal-step">
+                <div class="temporal-num">01</div>
+                <h3>Propose</h3>
+                <p>Describe what you want to change. Each change gets its own isolated directory with delta files that mark what will be added, modified, removed, or renamed.</p>
+            </div>
+            <div class="temporal-step">
+                <div class="temporal-num">02</div>
+                <h3>Isolate</h3>
+                <p>Work inside the change directory without touching the main tree. Multiple changes can be in flight at once. The main map stays clean and stable.</p>
+            </div>
+            <div class="temporal-step">
+                <div class="temporal-num">03</div>
+                <h3>Archive</h3>
+                <p>Merge the change atomically into the main tree. CAIRN processes deltas in strict order -- renamed, removed, modified, added -- to guarantee consistency.</p>
+            </div>
+            <div class="temporal-step">
+                <div class="temporal-num">04</div>
+                <h3>Record</h3>
+                <p>Every reconciliation event is appended to an immutable log. The full history of the project's structural evolution is preserved and queryable.</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-            if (e.deltaY > 0 && visibleIdx < plates.length - 1) {
-                // Scroll Down: Next Layer
-                plates[visibleIdx].classList.replace('visible', 'hidden-top');
-                plates[visibleIdx + 1].classList.replace('hidden-bottom', 'visible');
-            } else if (e.deltaY < 0 && visibleIdx > 0) {
-                // Scroll Up: Previous Layer
-                plates[visibleIdx].classList.replace('visible', 'hidden-bottom');
-                plates[visibleIdx - 1].classList.replace('hidden-top', 'visible');
-            }
+<footer class="footer">
+    <div class="container">CAIRN Ontology v0.6 -- The Map of Intent</div>
+</footer>
 
-            e.preventDefault();
-            e.stopPropagation();
-        }
+<script>
+// ── DATA ──
+const LAYER_COLORS = {
+    contract: 'var(--blue)', decisions: 'var(--green)', todos: 'var(--purple)',
+    research: 'var(--orange)', sources: 'var(--red)', reviews: 'var(--pink)',
+};
 
-        function resetDeck(node) {
-            const plates = node.querySelectorAll('.plate');
-            plates.forEach((p, i) => {
-                p.className = 'plate ' + (i === 0 ? 'visible' : 'hidden-bottom');
-            });
-        }
+const NODES = {
+    'saas': {
+        name: 'SaaS Platform', type: 'system', id: 'saas',
+        desc: 'The top-level system boundary that contains all containers.',
+        x: 360, y: 16, w: 180, h: 56,
+        layers: [
+            { type: 'contract', title: 'Contract', subtitle: 'What this system promises',
+              text: 'Defines the platform boundary: a multi-tenant SaaS product with an API backend, persistent storage, and a web interface. All containers must stay within this scope.' },
+            { type: 'decisions', title: 'Decisions', subtitle: 'Why it is structured this way',
+              text: 'ADR-001: Chose a container-based split (API / DB / Web) for independent scaling and team ownership. This decision constrains all three containers and cites the team\'s capacity research.' },
+            { type: 'research', title: 'Research', subtitle: 'What was explored',
+              text: 'Compared monolith vs microservices vs modular monolith. Weighed team size, deployment complexity, and scaling needs. The research informed the container-split decision.' },
+        ]
+    },
+    'saas.api': {
+        name: 'API Backend', type: 'container', id: 'saas.api',
+        desc: 'The Go backend that serves the REST API.',
+        x: 80, y: 165, w: 160, h: 52,
+        layers: [
+            { type: 'contract', title: 'Contract', subtitle: 'What this container promises',
+              text: 'Exposes a versioned REST API. Handles authentication, billing, and user management. Must not directly serve HTML or manage database connections outside the pool.' },
+            { type: 'decisions', title: 'Decisions', subtitle: 'Why Go, why REST',
+              text: 'ADR-002: Chose Go for the backend (performance + team expertise). ADR-003: REST over GraphQL for simplicity. Both decisions constrain this container.' },
+            { type: 'todos', title: 'Todos', subtitle: 'Open work items',
+              text: 'Open: Add API versioning headers. In Progress: Migrate to structured logging. These are tracked against this container so any agent working here sees them.' },
+        ]
+    },
+    'saas.db': {
+        name: 'Database', type: 'container', id: 'saas.db',
+        desc: 'PostgreSQL persistent storage layer.',
+        x: 370, y: 165, w: 160, h: 52,
+        layers: [
+            { type: 'contract', title: 'Contract', subtitle: 'What this container promises',
+              text: 'Provides persistent relational storage via PostgreSQL. Owns all migration files. Other containers connect only through the API, never directly to the database.' },
+            { type: 'decisions', title: 'Decisions', subtitle: 'Why PostgreSQL',
+              text: 'ADR-007: Chose PostgreSQL over DynamoDB for complex query support and team familiarity. This decision constrains the Database container and cites the storage research.' },
+        ]
+    },
+    'saas.web': {
+        name: 'Web App', type: 'container', id: 'saas.web',
+        desc: 'The React frontend application.',
+        x: 660, y: 165, w: 160, h: 52,
+        layers: [
+            { type: 'contract', title: 'Contract', subtitle: 'What this container promises',
+              text: 'A single-page React application that communicates exclusively through the API Backend. Must not contain business logic or direct database access.' },
+            { type: 'decisions', title: 'Decisions', subtitle: 'Why React SPA',
+              text: 'ADR-008: React SPA over server-rendered pages for rich interactivity. ADR-009: TanStack Query for server state management. Both constrain this container.' },
+        ]
+    },
+    'saas.api.auth': {
+        name: 'Auth', type: 'module', id: 'saas.api.auth',
+        desc: 'JWT authentication and role-based access control.',
+        x: 20, y: 320, w: 140, h: 48,
+        layers: [
+            { type: 'contract', title: 'Contract', subtitle: 'What this module promises',
+              text: 'Provides JWT token issuance, token refresh, role-based access control, and session invalidation. Any code change that alters this interface triggers an automatic contract check.' },
+            { type: 'decisions', title: 'Decisions', subtitle: 'Why JWT',
+              text: 'ADR-004: Chose JWT over server-side sessions for stateless horizontal scaling. This decision cites the security research below and constrains the Auth module specifically.' },
+            { type: 'todos', title: 'Todos', subtitle: 'Open work items',
+              text: 'Open: Add rate limiting to token endpoint. In Progress: Migrate from RS256 to Ed25519 keys. Done: Implement refresh token rotation.' },
+            { type: 'research', title: 'Research', subtitle: 'What was explored',
+              text: 'Compared JWT vs server-side sessions vs OAuth2-only. Evaluated token expiry strategies and key rotation approaches. This research informed the JWT decision above.' },
+            { type: 'sources', title: 'Sources', subtitle: 'Where the evidence came from',
+              text: 'OWASP JWT Best Practices (verified, checksummed). Team security audit transcript from March 2025 (verified). These form the evidence trail for the auth research.' },
+            { type: 'reviews', title: 'Reviews', subtitle: 'What was checked',
+              text: 'Agent cross-model review flagged a token expiry edge case. Human security review confirmed the rate-limiting gap. Both are linked directly to this module.' },
+        ]
+    },
+    'saas.api.billing': {
+        name: 'Billing', type: 'module', id: 'saas.api.billing',
+        desc: 'Subscription management and payment processing.',
+        x: 200, y: 320, w: 140, h: 48,
+        layers: [
+            { type: 'contract', title: 'Contract', subtitle: 'What this module promises',
+              text: 'Handles subscription lifecycle, payment processing via Stripe, and usage-based billing calculations. Must never store raw card numbers.' },
+            { type: 'decisions', title: 'Decisions', subtitle: 'Why Stripe',
+              text: 'ADR-005: Chose Stripe for payment processing to delegate PCI compliance. ADR-006: Usage metering is eventual-consistent by design.' },
+            { type: 'reviews', title: 'Reviews', subtitle: 'What was checked',
+              text: 'Human compliance review verified PCI scope boundaries. Agent review confirmed Stripe webhook idempotency handling is correct.' },
+        ]
+    },
+    'saas.web.dashboard': {
+        name: 'Dashboard', type: 'module', id: 'saas.web.dashboard',
+        desc: 'The main dashboard view with analytics and controls.',
+        x: 680, y: 320, w: 140, h: 48,
+        layers: [
+            { type: 'contract', title: 'Contract', subtitle: 'What this module promises',
+              text: 'Renders the primary dashboard view: usage charts, billing summary, and team management controls. All data is fetched through the API container.' },
+            { type: 'todos', title: 'Todos', subtitle: 'Open work items',
+              text: 'Open: Add real-time usage chart updates. Open: Implement team invitation flow. In Progress: Responsive layout for mobile viewports.' },
+        ]
+    },
+};
 
-        // Edge Drawing
-        function drawEdge(fromId, toId) {
-            const from = document.getElementById(fromId);
-            const to = document.getElementById(toId);
+const EDGES = [
+    // Hierarchy (ownership)
+    { from: 'saas', to: 'saas.api', type: 'hier' },
+    { from: 'saas', to: 'saas.db', type: 'hier' },
+    { from: 'saas', to: 'saas.web', type: 'hier' },
+    { from: 'saas.api', to: 'saas.api.auth', type: 'hier' },
+    { from: 'saas.api', to: 'saas.api.billing', type: 'hier' },
+    { from: 'saas.web', to: 'saas.web.dashboard', type: 'hier' },
+    // Dependencies
+    { from: 'saas.api.auth', to: 'saas.db', type: 'dep', label: 'reads user records' },
+    { from: 'saas.api.billing', to: 'saas.db', type: 'dep', label: 'reads billing data' },
+    { from: 'saas.web.dashboard', to: 'saas.api', type: 'dep', label: 'calls API' },
+];
+
+// ── STATE ──
+let selectedNode = null;
+let expandedLayer = 0;
+
+// ── RENDER GRAPH ──
+function center(n) { return { x: n.x + n.w / 2, y: n.y + n.h / 2 }; }
+function bottom(n) { return { x: n.x + n.w / 2, y: n.y + n.h }; }
+function nodeTop(n) { return { x: n.x + n.w / 2, y: n.y }; }
+
+function renderGraph() {
+    const area = document.getElementById('graph-area');
+    const svg  = document.getElementById('graph-svg');
+
+    // Render nodes
+    Object.entries(NODES).forEach(([id, n]) => {
+        const el = document.createElement('div');
+        el.className = 'graph-node';
+        el.dataset.id = id;
+        el.dataset.type = n.type;
+        // Convert viewBox coordinates to percentages
+        el.style.left   = (n.x / 900 * 100) + '%';
+        el.style.top    = (n.y / 420 * 100) + '%';
+        el.style.width  = (n.w / 900 * 100) + '%';
+        el.innerHTML = `
+            <span class="type-badge">${n.type}</span>
+            <span class="node-name">${n.name}</span>
+            <span class="node-id">${n.id}</span>
+        `;
+        el.addEventListener('click', () => selectNode(id));
+        area.appendChild(el);
+    });
+
+    // Render edges
+    EDGES.forEach((e, i) => {
+        const from = NODES[e.from], to = NODES[e.to];
+        const p1 = bottom(from), p2 = nodeTop(to);
+
+        if (e.type === 'hier') {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
+            line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y);
+            line.classList.add('edge-hier');
+            line.dataset.from = e.from;
+            line.dataset.to = e.to;
+            svg.appendChild(line);
+        } else {
+            // Dependency: use a curved path
+            const c1 = center(from), c2 = center(to);
+            const mx = (c1.x + c2.x) / 2;
+            const my = Math.min(c1.y, c2.y) - 20;
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            
-            const x1 = from.offsetLeft + 80;
-            const y1 = from.offsetTop + 80;
-            const x2 = to.offsetLeft + 80;
-            const y2 = to.offsetTop + 80;
+            path.setAttribute('d', `M ${c1.x} ${c1.y} Q ${mx} ${my} ${c2.x} ${c2.y}`);
+            path.classList.add('edge-dep');
+            path.setAttribute('marker-end', 'url(#arrow)');
+            path.dataset.from = e.from;
+            path.dataset.to = e.to;
+            svg.appendChild(path);
 
-            const cx = (x1 + x2) / 2;
-            const cy = (y1 + y2) / 2;
-            const d = `M ${x1} ${y1} Q ${cx} ${y1} ${x2} ${y2}`;
-
-            path.setAttribute('d', d);
-            path.setAttribute('class', 'flow-line');
-            path.setAttribute('data-from', fromId);
-            path.setAttribute('data-to', toId);
-            edges.appendChild(path);
+            // Label
+            if (e.label) {
+                const lx = (c1.x + mx) / 2 + 10;
+                const ly = (c1.y + my) / 2 + 4;
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', lx);
+                text.setAttribute('y', ly);
+                text.classList.add('edge-label');
+                text.dataset.from = e.from;
+                text.dataset.to = e.to;
+                text.textContent = e.label;
+                svg.appendChild(text);
+            }
         }
+    });
+}
 
-        function highlightEdges(nodeId) {
-            document.querySelectorAll('.flow-line').forEach(e => {
-                e.classList.remove('active');
-                if (e.getAttribute('data-from') === nodeId || e.getAttribute('data-to') === nodeId) {
-                    e.classList.add('active');
-                }
-            });
-        }
+// ── NODE SELECTION ──
+function selectNode(id) {
+    if (selectedNode === id) {
+        deselectNode();
+        return;
+    }
+    selectedNode = id;
+    expandedLayer = 0;
 
-        drawEdge('parser', 'recon');
-        drawEdge('cli', 'recon');
-        drawEdge('recon', 'artefacts');
-    </script>
+    // Update node visuals
+    cachedNodeEls.forEach(el => {
+        el.classList.toggle('selected', el.dataset.id === id);
+    });
+
+    // Highlight connected edges
+    cachedEdgeEls.forEach(el => {
+        const connected = el.dataset.from === id || el.dataset.to === id;
+        el.classList.toggle('highlighted', connected);
+    });
+    cachedLabelEls.forEach(el => {
+        const connected = el.dataset.from === id || el.dataset.to === id;
+        el.classList.toggle('visible', connected);
+    });
+
+    renderDetail(id);
+}
+
+function deselectNode() {
+    selectedNode = null;
+    cachedNodeEls.forEach(el => el.classList.remove('selected'));
+    cachedEdgeEls.forEach(el => el.classList.remove('highlighted'));
+    cachedLabelEls.forEach(el => el.classList.remove('visible'));
+
+    document.getElementById('detail-empty').style.display = 'flex';
+    document.getElementById('detail-content').style.display = 'none';
+}
+
+// ── DETAIL PANEL ──
+function renderDetail(id) {
+    const node = NODES[id];
+    const emptyEl = document.getElementById('detail-empty');
+    const contentEl = document.getElementById('detail-content');
+
+    emptyEl.style.display = 'none';
+    contentEl.style.display = 'block';
+
+    let layersHTML = node.layers.map((l, i) => `
+        <div class="layer-item${i === 0 ? ' expanded' : ''}" data-index="${i}">
+            <div class="layer-head" onclick="toggleLayer(${i})">
+                <div class="layer-dot" style="background:${LAYER_COLORS[l.type] || 'var(--text-3)'}"></div>
+                <span class="layer-title">${l.title}</span>
+                <span class="layer-chevron">&#9656;</span>
+            </div>
+            <div class="layer-body">
+                <div class="layer-body-inner">
+                    <div class="layer-content">
+                        <div class="layer-subtitle">${l.subtitle}</div>
+                        <p class="layer-text">${l.text}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    contentEl.innerHTML = `
+        <div class="detail-header">
+            <div class="detail-type">${node.type}</div>
+            <div class="detail-name">${node.name}</div>
+            <div class="detail-id">${node.id}</div>
+            <p class="detail-desc">${node.desc}</p>
+        </div>
+        <div class="layer-accordion">${layersHTML}</div>
+        <div class="detail-nav">
+            <button class="nav-btn" id="btn-prev" onclick="navLayer(-1)" disabled>&larr; Back</button>
+            <span style="font-family:var(--mono);font-size:0.65rem;color:var(--text-3)" id="layer-counter">1 / ${node.layers.length}</span>
+            <button class="nav-btn" id="btn-next" onclick="navLayer(1)" ${node.layers.length <= 1 ? 'disabled' : ''}>Next &rarr;</button>
+        </div>
+    `;
+}
+
+function toggleLayer(idx) {
+    const items = document.querySelectorAll('.layer-item');
+    const target = items[idx];
+    if (!target) return;
+
+    const wasExpanded = target.classList.contains('expanded');
+
+    // Collapse all
+    items.forEach(it => it.classList.remove('expanded'));
+
+    // If wasn't expanded, expand it
+    if (!wasExpanded) {
+        target.classList.add('expanded');
+        expandedLayer = idx;
+    } else {
+        expandedLayer = -1;
+    }
+    updateNav();
+}
+
+function navLayer(dir) {
+    const node = NODES[selectedNode];
+    if (!node) return;
+    let next = expandedLayer + dir;
+    if (next < 0 || next >= node.layers.length) return;
+    toggleLayer(next);
+}
+
+function updateNav() {
+    const node = NODES[selectedNode];
+    if (!node) return;
+    const prev = document.getElementById('btn-prev');
+    const next = document.getElementById('btn-next');
+    const counter = document.getElementById('layer-counter');
+    if (prev) prev.disabled = expandedLayer <= 0;
+    if (next) next.disabled = expandedLayer >= node.layers.length - 1;
+    if (counter) counter.textContent = `${expandedLayer + 1} / ${node.layers.length}`;
+}
+
+// ── INIT ──
+renderGraph();
+
+// Cache DOM queries after graph is built
+const cachedNodeEls = document.querySelectorAll('.graph-node');
+const cachedEdgeEls = document.querySelectorAll('.edge-hier, .edge-dep');
+const cachedLabelEls = document.querySelectorAll('.edge-label');
+
+// Escape key to deselect
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && selectedNode) deselectNode();
+});
+</script>
 </body>
 </html>

@@ -2,8 +2,8 @@
 
 ## Dependencies
 
-- Requires: `phase-2-artefacts`.
-- Execution: MUST run after Phase 2 and before Phases 4-10.
+- Requires: `phase-2.5-graph-explorer`.
+- Execution: MUST run after Phase 2.5 and before Phases 4-10.
 
 ## Problem/Context
 

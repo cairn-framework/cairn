@@ -67,7 +67,8 @@ Derived from docs/spec.md section 14. Each phase is one OpenSpec change.
 | `phase-0-foundation` | 0: Rust project setup | N/A | None |
 | `phase-1-kernel` | 1: Kernel | 6, 7, 10 (partial), 12 (partial) | phase-0 |
 | `phase-2-artefacts` | 2: Full artefact types | 8 | phase-1 |
-| `phase-3-changes` | 3: Change system | 9 | phase-2 |
+| `phase-2.5-graph-explorer` | 2.5: Graph explorer UI | 12 (query consumption) | phase-2 |
+| `phase-3-changes` | 3: Change system | 9 | phase-2.5 |
 | `phase-4-hooks` | 4: Hooks | 11 | phase-3 |
 | `phase-5-edges-docstrings` | 5: Edge validation & docstrings | 12 (full) | phase-4 |
 | `phase-6-multi-target` | 6: Multi-target & languages | 7 (list paths) | phase-5 |
