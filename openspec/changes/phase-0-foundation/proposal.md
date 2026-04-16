@@ -28,7 +28,7 @@ Create the Rust project skeleton and tooling required for subsequent OpenSpec ch
 
 - `cargo build` succeeds with zero warnings.
 - `cargo fmt --check` succeeds.
-- `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery` succeeds.
+- `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` succeeds.
 - `cargo test` succeeds.
 - Running `scripts/install-pre-commit-hook.sh` creates an executable `.git/hooks/pre-commit` hook that blocks on any failed Rust gate.
 - Running `scripts/pre-archive-rust-gates.sh` enforces the same Rust gates that Conflux MUST wire into `pre_archive`.

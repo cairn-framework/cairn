@@ -9,12 +9,10 @@ Cairn SHALL provide an LSP server over the same parser, ontology, and query APIs
 #### Scenario: LSP binary root is strict
 
 - **GIVEN** Phase 10 has been implemented
-- **WHEN** a headless agent opens the `cairn-lsp` binary root
-- **THEN** the file begins with `#![deny(warnings)]`
-- **AND** the file contains `#![deny(clippy::all)]`
-- **AND** the file contains `#![deny(clippy::pedantic)]`
-- **AND** the file contains `#![deny(clippy::nursery)]`
-- **AND** the file contains `#![forbid(unsafe_code)]`
+- **WHEN** a headless agent inspects the `cairn-lsp` package configuration
+- **THEN** the package is a member of the Cargo workspace
+- **AND** its `[lints]` section contains `workspace = true`
+- **AND** the `cairn-lsp` binary root contains no crate-level lint attributes
 
 #### Scenario: Diagnostics match lint
 

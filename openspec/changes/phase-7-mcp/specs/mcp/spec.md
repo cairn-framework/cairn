@@ -34,12 +34,10 @@ The `cairn-mcp` binary root SHALL use the same strict crate attributes as the Ph
 #### Scenario: MCP binary root is strict
 
 - **GIVEN** Phase 7 has been implemented
-- **WHEN** a headless agent opens the `cairn-mcp` binary root
-- **THEN** the file begins with `#![deny(warnings)]`
-- **AND** the file contains `#![deny(clippy::all)]`
-- **AND** the file contains `#![deny(clippy::pedantic)]`
-- **AND** the file contains `#![deny(clippy::nursery)]`
-- **AND** the file contains `#![forbid(unsafe_code)]`
+- **WHEN** a headless agent inspects the `cairn-mcp` package configuration
+- **THEN** the package is a member of the Cargo workspace
+- **AND** its `[lints]` section contains `workspace = true`
+- **AND** the `cairn-mcp` binary root contains no crate-level lint attributes
 
 ### Requirement: Compose project context and rules into responses
 

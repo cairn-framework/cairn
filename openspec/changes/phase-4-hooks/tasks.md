@@ -30,8 +30,8 @@
 ## 5. Required Verification
 
 - [ ] 5.1 `cargo build` passes with zero warnings.
-- [ ] 5.2 `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery` passes.
+- [ ] 5.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
 - [ ] 5.3 `cargo fmt --check` passes.
 - [ ] 5.4 `cargo test` passes.
 - [ ] 5.5 `cargo test --locked` passes.
-- [ ] 5.6 `python3 /Users/george/repos/cairn/.agents/skills/cflx-proposal/scripts/cflx.py validate phase-4-hooks --strict` passes.
+- [ ] 5.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-4-hooks --strict` passes.

@@ -3,7 +3,7 @@
 ## 1. LSP Server
 
 - [ ] 1.1 Add `cairn-lsp` binary target.
-- [ ] 1.2 Ensure the `cairn-lsp` binary root uses the Phase 0 strict crate attributes.
+- [ ] 1.2 Ensure the `cairn-lsp` package is a workspace member with `[lints] workspace = true`.
 - [ ] 1.3 Implement diagnostics from parser, lint, hook, and scan findings.
 - [ ] 1.4 Implement completion for node IDs, artefact IDs, tag names, and delta operation markers.
 - [ ] 1.5 Implement hover for node metadata and artefact summaries.
@@ -32,8 +32,8 @@
 ## 5. Required Verification
 
 - [ ] 5.1 `cargo build` passes with zero warnings.
-- [ ] 5.2 `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery` passes.
+- [ ] 5.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
 - [ ] 5.3 `cargo fmt --check` passes.
 - [ ] 5.4 `cargo test` passes.
 - [ ] 5.5 `cargo test --locked` passes.
-- [ ] 5.6 `python3 /Users/george/repos/cairn/.agents/skills/cflx-proposal/scripts/cflx.py validate phase-10-distribution --strict` passes.
+- [ ] 5.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-10-distribution --strict` passes.

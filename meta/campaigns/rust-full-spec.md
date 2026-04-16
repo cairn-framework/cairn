@@ -8,32 +8,38 @@ This is a full product specification, not a prototype. Every phase produces prod
 
 ## Language Target: Rust (Strictest Mode)
 
-### Crate-level attributes (required in every lib.rs / main.rs)
+### Workspace lint configuration (Cargo.toml — single source of truth)
 
-```rust
-#![deny(warnings)]
-#![deny(clippy::all)]
-#![deny(clippy::pedantic)]
-#![deny(clippy::nursery)]
-#![forbid(unsafe_code)] // unless explicitly justified per-function with a safety comment
+```toml
+[workspace.lints.rust]
+missing_docs = "deny"
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny" }
+pedantic = { level = "deny" }
+cargo = { level = "deny" }
+dbg_macro = { level = "deny" }
+todo = { level = "deny" }
 ```
 
-### Git pre-commit hooks (Phase 0 sets these up)
+Crate roots SHALL NOT contain lint attributes. Every workspace member opts in with `[lints] workspace = true`.
+
+### Git pre-commit hook (fast — Phase 0 sets this up)
 
 ```bash
 #!/bin/sh
-# .git/hooks/pre-commit
 set -e
 cargo fmt --check
-cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery
-cargo test
 ```
+
+Full lint and test enforcement runs in the quality suite and archive gate, not the pre-commit hook.
 
 ### Every phase's tasks.md must include verification steps
 
 ```markdown
 - [ ] N.X `cargo build` passes with zero warnings
-- [ ] N.X `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery` passes
+- [ ] N.X `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes
 - [ ] N.X `cargo fmt --check` passes
 - [ ] N.X `cargo test` — all tests pass
 ```

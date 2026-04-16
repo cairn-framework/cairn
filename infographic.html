@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAIRN / THE HUMAN-AI MAP V8</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=Work+Sans:wght@300;400;600;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08080a;
+            --ink: #f0f0f0;
+            --accent: #ff4d00;
+            --layer-1: #38bdf8; /* Intent */
+            --layer-2: #818cf8; /* Artifacts */
+            --layer-3: #f472b6; /* Reality */
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Work Sans', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-body);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            perspective: 2000px;
+        }
+
+        /* Perspective Grid */
+        .world-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 100px 100px;
+            transform: rotateX(70deg) translateZ(-500px);
+            z-index: -1;
+            mask-image: linear-gradient(to top, black, transparent);
+        }
+
+        .stage {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+        }
+
+        .map-container {
+            position: relative;
+            width: 1100px;
+            height: 700px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear;
+        }
+
+        /* SVG Flow Layer */
+        .flow-svg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .flow-line { stroke: rgba(255,255,255,0.08); stroke-width: 1.5; fill: none; }
+        .flow-line.active { stroke: var(--accent); stroke-width: 2.5; stroke-opacity: 0.8; }
+
+        /* The Node */
+        .node {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            transform-style: preserve-3d;
+        }
+
+        /* CRITICAL: Flat Hitbox for stable interaction */
+        .hitbox {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .visual-core {
+            width: 100%; height: 100%;
+            background: rgba(15, 15, 18, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateZ(0);
+        }
+
+        .icon { width: 44px; height: 44px; stroke: #444; fill: none; stroke-width: 1.5; transition: stroke 0.3s; }
+        .label { font-family: var(--font-mono); font-size: 0.65rem; color: #555; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.15em; }
+
+        .hitbox:hover + .visual-core, .node.active .visual-core { border-color: var(--accent); background: rgba(255, 77, 0, 0.05); }
+        .hitbox:hover + .visual-core .icon, .node.active .icon { stroke: var(--accent); }
+
+        /* Quick Explanation Tooltip */
+        .tooltip {
+            position: absolute;
+            top: -50px; left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--accent);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 1100;
+        }
+        .hitbox:hover ~ .tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* The Dimensional Info Deck */
+        .deck {
+            position: absolute;
+            top: -20px; left: 180px;
+            width: 320px;
+            height: 200px;
+            transform-style: preserve-3d;
+            pointer-events: none; /* Scrolling and clicking handled by script on hitbox */
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .node.active .deck { opacity: 1; }
+
+        .plate {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #111;
+            border-left: 4px solid transparent;
+            padding: 1.5rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+            transform: translateZ(-50px) scale(0.9);
+        }
+
+        .plate.visible { opacity: 1; transform: translateZ(0) scale(1); z-index: 10; }
+        .plate.hidden-top { opacity: 0; transform: translateY(-40px) translateZ(50px); }
+        .plate.hidden-bottom { opacity: 0; transform: translateY(40px) translateZ(-50px); }
+
+        .plate-cat { font-family: var(--font-mono); font-size: 0.6rem; text-transform: uppercase; margin-bottom: 0.75rem; color: #888; letter-spacing: 0.2em; }
+        .plate-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .plate-why { font-size: 0.9rem; line-height: 1.4; color: #aaa; }
+
+        /* UI Overlays */
+        .sidebar { position: fixed; top: 3.5rem; left: 3.5rem; width: 340px; z-index: 1000; pointer-events: none; }
+        .title { font-weight: 900; font-size: 3rem; line-height: 0.85; letter-spacing: -0.05em; margin-bottom: 1.5rem; }
+        .desc { font-size: 0.95rem; color: #777; line-height: 1.6; }
+
+        .status { position: fixed; bottom: 3.5rem; right: 3.5rem; text-align: right; font-family: var(--font-mono); }
+        .instr { font-size: 0.75rem; color: var(--accent); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; }
+        .ver { font-size: 0.6rem; color: #333; }
+
+        /* Layout (DSL-derived) */
+        #parser { top: 15%; left: 45%; }
+        #recon  { top: 50%; left: 45%; }
+        #changes { top: 80%; left: 25%; }
+        #hooks   { top: 80%; left: 65%; }
+        #cli     { top: 50%; left: 15%; }
+        #artefacts { top: 50%; left: 75%; }
+
+    </style>
+</head>
+<body>
+
+    <div class="world-grid"></div>
+
+    <div class="sidebar">
+        <h1 class="title">CAIRN<br>ONTOLOGY</h1>
+        <p class="desc">A shared map for Human-AI Engineering. It connects what you want (The Plan) to what you have (The Code) through a permanent team memory.</p>
+    </div>
+
+    <div class="status">
+        <div class="instr">CLICK NODE TO OPEN // SCROLL TO CYCLE LAYERS</div>
+        <div class="ver">CAIRN_ONTOLOGY_V0.6 // RECON_ACTIVE</div>
+    </div>
+
+    <div class="stage">
+        <div class="map-container" id="map">
+            
+            <svg class="flow-svg" id="edges">
+                <!-- Edges injected by JS -->
+            </svg>
+
+            <!-- Parser -->
+            <div class="node" id="parser">
+                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
+                <div class="visual-core">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM9 9h6v6H9zM12 3v6M12 15v6"/></svg>
+                    <span class="label">The Parser</span>
+                </div>
+                <div class="tooltip">Turns your plans into a map.</div>
+                <div class="deck">
+                    <div class="plate visible" style="border-color: var(--layer-1)">
+                        <span class="plate-cat">Step 1: The Plan</span>
+                        <h3 class="plate-title">The Blueprint</h3>
+                        <p class="plate-why">This tool reads your architecture plans and draws a digital map so the AI knows exactly where every module belongs.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
+                        <span class="plate-cat">Step 2: The Memory</span>
+                        <h3 class="plate-title">Design Wisdom</h3>
+                        <p class="plate-why">We store the rules for your project's grammar here, ensuring every module is named and organized consistently.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
+                        <span class="plate-cat">Step 3: The Reality</span>
+                        <h3 class="plate-title">Reading Code</h3>
+                        <p class="plate-why">The actual software that scans your project files and updates the map in real-time.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recon -->
+            <div class="node" id="recon">
+                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
+                <div class="visual-core">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM12 8v8M8 12h8"/></svg>
+                    <span class="label">The Engine</span>
+                </div>
+                <div class="tooltip">Syncs your plan with your code.</div>
+                <div class="deck">
+                    <div class="plate visible" style="border-color: var(--layer-1)">
+                        <span class="plate-cat">Step 1: The Plan</span>
+                        <h3 class="plate-title">Live Sync</h3>
+                        <p class="plate-why">The Engine's job is to make sure your 'Source of Truth' and your real code are always telling the same story.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
+                        <span class="plate-cat">Step 2: The Memory</span>
+                        <h3 class="plate-title">The Master Map</h3>
+                        <p class="plate-why">Cairn holds a complete model of every connection in your project, so you can see the 'Ripple Effect' before you change anything.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
+                        <span class="plate-cat">Step 3: The Reality</span>
+                        <h3 class="plate-title">The Graph Engine</h3>
+                        <p class="plate-why">The high-performance code that builds the project's digital twin every time you save a file.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CLI -->
+            <div class="node" id="cli">
+                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
+                <div class="visual-core">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+                    <span class="label">The Interface</span>
+                </div>
+                <div class="tooltip">Ask the project questions.</div>
+                <div class="deck">
+                    <div class="plate visible" style="border-color: var(--layer-1)">
+                        <span class="plate-cat">Step 1: The Plan</span>
+                        <h3 class="plate-title">Natural Search</h3>
+                        <p class="plate-why">Allows you or your AI to ask simple questions like: 'Who depends on this module?' and get an instant, correct answer.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
+                        <span class="plate-cat">Step 2: The Memory</span>
+                        <h3 class="plate-title">Command Help</h3>
+                        <p class="plate-why">The system explains how to use each tool in context, so you never have to hunt through documentation.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
+                        <span class="plate-cat">Step 3: The Reality</span>
+                        <h3 class="plate-title">CLI Tool</h3>
+                        <p class="plate-why">The actual terminal application that you use to interact with the project ontology.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Artefacts -->
+            <div class="node" id="artefacts">
+                <div class="hitbox" onclick="selectNode(this, event)" onwheel="handleWheel(this, event)"></div>
+                <div class="visual-core">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    <span class="label">The Archive</span>
+                </div>
+                <div class="tooltip">Stores project wisdom.</div>
+                <div class="deck">
+                    <div class="plate visible" style="border-color: var(--layer-1)">
+                        <span class="plate-cat">Step 1: The Plan</span>
+                        <h3 class="plate-title">The Library</h3>
+                        <p class="plate-why">A structured place for all project facts—Decisions, Tasks, and Research—linked directly to your code.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-2)">
+                        <span class="plate-cat">Step 2: The Memory</span>
+                        <h3 class="plate-title">Decision History</h3>
+                        <p class="plate-why">The 'Why' behind every piece of code. If a new developer joins, they can see the exact reasoning for every architectural choice.</p>
+                    </div>
+                    <div class="plate hidden-bottom" style="border-color: var(--layer-3)">
+                        <span class="plate-cat">Step 3: The Reality</span>
+                        <h3 class="plate-title">Markdown Files</h3>
+                        <p class="plate-why">Human-readable files that live in your repository. They are the 'Permanent Records' of the project.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const map = document.getElementById('map');
+        const edges = document.getElementById('edges');
+        let currentSelection = null;
+        let rotX = 15;
+        let rotY = 0;
+
+        // Stage Rotation (3D Perspective)
+        window.addEventListener('mousemove', (e) => {
+            const xPct = (e.clientX / window.innerWidth - 0.5) * 2;
+            const yPct = (e.clientY / window.innerHeight - 0.5) * 2;
+            rotY = xPct * 12;
+            rotX = -yPct * 12 + 15;
+            map.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        });
+
+        // Node Selection
+        function selectNode(el, e) {
+            const node = el.closest('.node');
+            if (currentSelection && currentSelection !== node) {
+                currentSelection.classList.remove('active');
+                resetDeck(currentSelection);
+            }
+            
+            node.classList.toggle('active');
+            currentSelection = node.classList.contains('active') ? node : null;
+            highlightEdges(node.id);
+        }
+
+        // Focused Stack Reveal (Scroll to cycle layers)
+        function handleWheel(el, e) {
+            const node = el.closest('.node');
+            if (!node.classList.contains('active')) return;
+
+            const plates = node.querySelectorAll('.plate');
+            let visibleIdx = Array.from(plates).findIndex(p => p.classList.contains('visible'));
+
+            if (e.deltaY > 0 && visibleIdx < plates.length - 1) {
+                // Scroll Down: Next Layer
+                plates[visibleIdx].classList.replace('visible', 'hidden-top');
+                plates[visibleIdx + 1].classList.replace('hidden-bottom', 'visible');
+            } else if (e.deltaY < 0 && visibleIdx > 0) {
+                // Scroll Up: Previous Layer
+                plates[visibleIdx].classList.replace('visible', 'hidden-bottom');
+                plates[visibleIdx - 1].classList.replace('hidden-top', 'visible');
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function resetDeck(node) {
+            const plates = node.querySelectorAll('.plate');
+            plates.forEach((p, i) => {
+                p.className = 'plate ' + (i === 0 ? 'visible' : 'hidden-bottom');
+            });
+        }
+
+        // Edge Drawing
+        function drawEdge(fromId, toId) {
+            const from = document.getElementById(fromId);
+            const to = document.getElementById(toId);
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            
+            const x1 = from.offsetLeft + 80;
+            const y1 = from.offsetTop + 80;
+            const x2 = to.offsetLeft + 80;
+            const y2 = to.offsetTop + 80;
+
+            const cx = (x1 + x2) / 2;
+            const cy = (y1 + y2) / 2;
+            const d = `M ${x1} ${y1} Q ${cx} ${y1} ${x2} ${y2}`;
+
+            path.setAttribute('d', d);
+            path.setAttribute('class', 'flow-line');
+            path.setAttribute('data-from', fromId);
+            path.setAttribute('data-to', toId);
+            edges.appendChild(path);
+        }
+
+        function highlightEdges(nodeId) {
+            document.querySelectorAll('.flow-line').forEach(e => {
+                e.classList.remove('active');
+                if (e.getAttribute('data-from') === nodeId || e.getAttribute('data-to') === nodeId) {
+                    e.classList.add('active');
+                }
+            });
+        }
+
+        drawEdge('parser', 'recon');
+        drawEdge('cli', 'recon');
+        drawEdge('recon', 'artefacts');
+    </script>
+</body>
+</html>

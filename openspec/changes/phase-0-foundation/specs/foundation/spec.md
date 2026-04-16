@@ -16,15 +16,15 @@ The repository SHALL define a reproducible Rust workspace containing a `cairn` l
 - **AND** `src/lib.rs` exists
 - **AND** `src/main.rs` exists
 
-#### Scenario: Strict crate attributes are enforced
+#### Scenario: Workspace lint configuration is enforced
 
-- **GIVEN** the Rust crate roots created by this phase
-- **WHEN** a headless agent opens `src/lib.rs` and `src/main.rs`
-- **THEN** each file begins with `#![deny(warnings)]`
-- **AND** each file contains `#![deny(clippy::all)]`
-- **AND** each file contains `#![deny(clippy::pedantic)]`
-- **AND** each file contains `#![deny(clippy::nursery)]`
-- **AND** each file contains `#![forbid(unsafe_code)]`
+- **GIVEN** the Cargo workspace created by this phase
+- **WHEN** a headless agent inspects `Cargo.toml`
+- **THEN** `[workspace.lints.rust]` sets `unsafe_code = "forbid"` and `missing_docs = "deny"`
+- **AND** `[workspace.lints.clippy]` sets `all`, `pedantic`, and `cargo` to deny level
+- **AND** `[workspace.lints.clippy]` sets `dbg_macro` and `todo` to deny level
+- **AND** each workspace member's `[lints]` section contains `workspace = true`
+- **AND** `src/lib.rs` and `src/main.rs` contain no crate-level lint attributes
 
 #### Scenario: Domain logic is absent
 
@@ -37,14 +37,12 @@ The repository SHALL define a reproducible Rust workspace containing a `cairn` l
 
 The repository SHALL provide local quality gates that fail on formatting drift, Clippy warnings, lint regressions, or failing tests.
 
-#### Scenario: Git pre-commit hook runs strict gates
+#### Scenario: Git pre-commit hook runs fast format check
 
 - **GIVEN** the Phase 0 hook installer has been run
 - **WHEN** `.git/hooks/pre-commit` executes from the repository root
 - **THEN** it runs `cargo fmt --check`
-- **AND** it runs `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery`
-- **AND** it runs `cargo test`
-- **AND** it exits non-zero if any command fails
+- **AND** it exits non-zero if formatting is wrong
 
 #### Scenario: Hook can be recreated in a new clone
 
@@ -59,9 +57,43 @@ The repository SHALL provide local quality gates that fail on formatting drift, 
 - **GIVEN** a Conflux archive operation is about to finalize a change
 - **WHEN** `scripts/pre-archive-rust-gates.sh` runs from the repository root
 - **THEN** it runs `cargo fmt --check`
-- **AND** it runs `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery`
+- **AND** it runs `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features`
 - **AND** it runs `cargo test`
 - **AND** it exits non-zero if any command fails
+
+### Requirement: Quality infrastructure rejects bad code
+
+The quality suite, pre-commit hook, and archive gate SHALL catch formatting violations, lint warnings, and test failures before code enters the repository.
+
+#### Scenario: Pre-commit hook rejects unformatted code
+
+- **GIVEN** the Phase 0 hook installer has been run
+- **AND** a Rust source file contains formatting that violates `rustfmt.toml`
+- **WHEN** the developer attempts to commit
+- **THEN** the pre-commit hook runs `cargo fmt --check`
+- **AND** the hook exits non-zero with a message identifying the formatting violation
+- **AND** the commit is blocked
+
+#### Scenario: Quality suite rejects Clippy warnings
+
+- **GIVEN** a Rust source file triggers a Clippy warning
+- **WHEN** the local quality suite (`just check` or equivalent) runs
+- **THEN** it runs `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features`
+- **AND** the suite exits non-zero with a message identifying the Clippy violation
+
+#### Scenario: Quality suite rejects failing tests
+
+- **GIVEN** a Rust test in the workspace fails
+- **WHEN** the local quality suite (`just check` or equivalent) runs
+- **THEN** it runs `cargo test`
+- **AND** the suite exits non-zero with a message identifying the test failure
+
+#### Scenario: Crate compiles cleanly under strict lint policy
+
+- **GIVEN** a clean checkout of the repository after Phase 0 implementation
+- **WHEN** `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` runs
+- **THEN** the command exits zero with no warnings or errors
+- **AND** `Cargo.toml` contains `[workspace.lints]` with the required lint configuration
 
 ### Requirement: Verify checked-in fixtures without parsing them
 
@@ -93,7 +125,7 @@ The Phase 0 task list SHALL require command-level evidence for every Rust gate a
 - **WHEN** it reads `openspec/changes/phase-0-foundation/tasks.md`
 - **THEN** the task list includes `cargo build`
 - **AND** includes `cargo fmt --check`
-- **AND** includes `cargo clippy -- -D warnings -D clippy::pedantic -D clippy::nursery`
+- **AND** includes `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features`
 - **AND** includes `cargo test`
 - **AND** includes `cargo test --locked`
 - **AND** includes strict OpenSpec validation for `phase-0-foundation`
