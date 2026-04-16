@@ -1,33 +1,29 @@
-# Session Handoff — 2026-04-15
+# Session Handoff — 2026-04-16
 
 ## What Was Done
-- Ran first cflx/openspec cycle: cairn-kernel-mvp (TypeScript) — apply, accept (2 failure rounds), archive
-- Fixed codex headless mode: bare `codex` -> `codex exec` in .cflx.jsonc
-- Resolved cflx merge issues caused by jj/git state mismatch and dirty working tree
-- Decided to rewrite entire project in Rust (TS proved the thesis, Rust for production)
-- Deleted all TypeScript code (src/, bin/, vendor/, package.json, tsconfig, vitest)
-- Preserved: docs/spec.md, test fixtures (DSL files), openspec archive
-- Created campaign document: meta/campaigns/rust-full-spec.md
-- Updated .cflx.jsonc with Rust-specific apply_prompt and pre_archive hook (cargo fmt + clippy + test)
-- Updated README
-- Saved 4 memory entries (Rust rewrite decision, no-MVP language, codex headless, cflx clean tree)
+- Rebuilt CAIRN infographic from scratch (infographic.html) — previous agent's version had broken 3D CSS, unreliable hover targeting, invisible card stacking, only 3/6 nodes
+- New infographic: 4 sections (Hero, Two Chains, Interactive Graph, Temporal), 7 graph nodes with 9 edges, accordion detail panel with artefact layer drill-down, clean 2D layout
+- Ran Palantir Debate on UI phasing strategy (Option A: amend all phases vs Option B: living surface with query API contract)
+- Outcome: Option B wins with refinement — UI Maintenance Contract added
+- Created Phase 2.5 Graph Explorer OpenSpec change (proposal.md, design.md, spec.md with 18 scenarios, tasks.md with 42 tasks)
+- Updated campaign phase map and Phase 3 dependency chain
+- Ran /simplify — fixed navLayer redundancy, extracted LAYER_COLORS lookup, cached DOM queries, added Escape handler, fixed design.md Canvas-vs-DOM and force-directed-vs-hierarchical inconsistencies, added missing spec scenarios
 
 ## What Remains
-- Write OpenSpec changes for all 11 phases (0-10) following the campaign protocol
-- Each phase: write -> /reforge -> /debate (file-based) -> iterate -> finalize
-- All specs target Rust with strictest compiler settings
+- All 11 phase specs (0-10) are written and committed
+- Phase 2.5 spec is written and committed
+- No phases have been implemented yet — ready for cflx execution
+- Infographic is a static explainer, not the real Phase 2.5 graph explorer
 
 ## Current State
-- Branch: dev (jj bookmark)
+- Branch: dev
 - Working copy: clean
 - No open PRs
-- No pending openspec/changes/ (archive only)
+- HTTP server may still be running on port 8765 (python3 -m http.server) — will die with terminal
 
 ## Next Steps
 1. Read meta/campaigns/rust-full-spec.md for the full protocol
-2. Start with Phase 0 (Rust project foundation + git hooks)
-3. Write the OpenSpec change, /reforge it, /debate it (file-based to meta/debates/)
-4. Proceed through all phases sequentially
-5. When all phases committed, ready for `cflx tui` execution
-6. Use `codex exec` for implementation (user prefers codex, conserving Claude tokens)
-7. Ensure git working tree is clean before any cflx run
+2. Start cflx execution with Phase 0 (Rust project foundation)
+3. Proceed through phases sequentially: 0 -> 1 -> 2 -> 2.5 -> 3 -> ... -> 10
+4. Use `codex exec` for implementation (user prefers codex over claude)
+5. Ensure git working tree is clean before any cflx run
