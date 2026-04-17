@@ -17,6 +17,18 @@ use super::{
     fingerprint::InterfaceFingerprint,
 };
 
+const PUBLIC_ITEM_KINDS: &[&str] = &[
+    "const_item",
+    "enum_item",
+    "function_item",
+    "mod_item",
+    "static_item",
+    "struct_item",
+    "trait_item",
+    "type_item",
+    "union_item",
+];
+
 /// Rust source reconciler.
 pub struct RustCodeReconciler<'a> {
     ast: &'a Ast,
@@ -139,17 +151,66 @@ fn public_symbols(path: &Path) -> Result<Vec<String>, ReconcileError> {
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
         message: format!("failed to read `{}`: {error}", path.display()),
     })?;
-    Ok(source
-        .lines()
-        .filter_map(|line| {
-            let trimmed = line.trim();
-            if trimmed.starts_with("pub ") || trimmed.starts_with("pub(") {
-                Some(trimmed.to_owned())
-            } else {
-                None
-            }
-        })
-        .collect())
+    let mut parser = tree_sitter::Parser::new();
+    parser
+        .set_language(&tree_sitter_rust::LANGUAGE.into())
+        .map_err(|error| ReconcileError {
+            code: "CAIRN_RECONCILE_RUST_LANGUAGE".to_owned(),
+            message: error.to_string(),
+        })?;
+    let tree = parser.parse(&source, None).ok_or_else(|| ReconcileError {
+        code: "CAIRN_RECONCILE_PARSE_RUST".to_owned(),
+        message: format!("failed to parse `{}`", path.display()),
+    })?;
+    let mut symbols = Vec::new();
+    collect_public_symbols(tree.root_node(), source.as_bytes(), &mut symbols)?;
+    symbols.sort();
+    Ok(symbols)
+}
+
+fn collect_public_symbols(
+    node: tree_sitter::Node<'_>,
+    source: &[u8],
+    symbols: &mut Vec<String>,
+) -> Result<(), ReconcileError> {
+    if is_public_item(node) {
+        symbols.push(interface_symbol(node, source)?);
+    }
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        collect_public_symbols(child, source, symbols)?;
+    }
+    Ok(())
+}
+
+fn is_public_item(node: tree_sitter::Node<'_>) -> bool {
+    if !PUBLIC_ITEM_KINDS.contains(&node.kind()) {
+        return false;
+    }
+    let mut cursor = node.walk();
+    node.children(&mut cursor)
+        .any(|child| child.kind() == "visibility_modifier")
+}
+
+fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> Result<String, ReconcileError> {
+    let signature = node
+        .child_by_field_name("body")
+        .and_then(|body| source.get(node.start_byte()..body.start_byte()))
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .map(str::trim)
+        .map(ToOwned::to_owned);
+    if let Some(signature) = signature {
+        return Ok(normalize_symbol(&signature));
+    }
+    let text = node.utf8_text(source).map_err(|error| ReconcileError {
+        code: "CAIRN_RECONCILE_SYMBOL_TEXT".to_owned(),
+        message: error.to_string(),
+    })?;
+    Ok(normalize_symbol(text))
+}
+
+fn normalize_symbol(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn trim_dot(path: &str) -> String {

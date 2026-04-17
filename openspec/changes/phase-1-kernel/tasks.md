@@ -28,7 +28,7 @@
 ## 4. Reconciler and Scanner
 
 - [x] 4.1 Define the `Reconciler` trait, request type, report type, finding type, and interface fingerprint type.
-- [ ] 4.2 Implement the Rust code reconciler using Tree-sitter for Rust source discovery and public interface fingerprints.
+- [x] 4.2 Implement the Rust code reconciler using Tree-sitter for Rust source discovery and public interface fingerprints.
 - [x] 4.3 Implement synced, ghost, and orphaned node state assignment.
 - [x] 4.4 Implement staged `cairn scan` orchestration: config, DSL parse, preliminary node index, contract load, reconciliation, final ontology, state-aware contract severity, output persistence.
 - [x] 4.5 Implement `.cairn/state/interface-hashes.json` persistence.

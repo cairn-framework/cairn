@@ -12,6 +12,7 @@ use cairn::{
     artefacts::contract,
     dsl::{lexer, parser},
     ontology::{build_graph, query},
+    reconcile::{ReconcileRequest, Reconciler, code::RustCodeReconciler},
     scanner,
 };
 
@@ -249,6 +250,78 @@ fn test_internal_node_ownership_opt_in_controls_direct_files()
     assert_eq!(
         opt_in_result.graph.resolve("app.api.auth")?.files,
         vec!["src/auth/lib.rs"]
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_rust_reconciler_extracts_public_symbols_with_tree_sitter()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("tree-sitter")?;
+    fs::create_dir_all(root.join("src"))?;
+    fs::write(
+        root.join("src/lib.rs"),
+        r"
+const PRIVATE: u8 = 1;
+pub const EXPORTED: u8 = 2;
+
+fn hidden() {}
+
+pub fn exported(
+    value: u8,
+) -> u8 {
+    value + EXPORTED
+}
+
+pub(crate) struct Visible {
+    pub field: u8,
+}
+
+macro_rules! generated {
+    () => {
+        pub fn generated_by_macro() {}
+    };
+}
+",
+    )?;
+    let ast = parser::parse_str(
+        "fixture",
+        r#"System App "desc" id "app" {
+    Module Lib "lib" id "app.lib" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+    let report = RustCodeReconciler::new(&ast).reconcile(ReconcileRequest {
+        root: &root,
+        ignores: &[],
+    })?;
+
+    assert!(
+        report
+            .symbols
+            .iter()
+            .any(|symbol| { symbol == "pub fn exported( value: u8, ) -> u8" })
+    );
+    assert!(
+        report
+            .symbols
+            .iter()
+            .any(|symbol| { symbol.starts_with("pub(crate) struct Visible") })
+    );
+    assert!(
+        !report
+            .symbols
+            .iter()
+            .any(|symbol| symbol.contains("hidden"))
+    );
+    assert!(
+        !report
+            .symbols
+            .iter()
+            .any(|symbol| symbol.contains("generated_by_macro"))
     );
 
     Ok(())
