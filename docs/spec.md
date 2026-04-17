@@ -747,6 +747,8 @@ The summariser can optionally draft other artefact types (e.g. research from a c
 
 Each phase produces something usable on its own. Phases determine implementation order, not scope: every capability listed in section 5 is part of v1 regardless of which phase implements it.
 
+**Phase 0: Rust project foundation.** Cargo workspace, CI pipeline (`cargo fmt --check`, `cargo clippy`, `cargo test`), project skeleton, and development infrastructure. Output: a buildable, testable Rust project with lint enforcement from day one.
+
 **Phase 1: kernel.** DSL grammar with stable IDs. The reconciler *interface* as an abstract contract. The code reconciler as its first implementation (Tree-sitter-based, minimal). Reconciliation logic for the contract artefact type only. CLI exposing `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan`. Generate `index.md` and `.cairn/log.md` on scan. Output: a working CLI that answers structural queries against a reconciled ontology with contracts as the only artefact type. Validates the kernel architecture end-to-end.
 
 **Phase 2: full artefact type system.** Add todos, decisions, reviews (with subtypes), research, and sources with integrity rules. Add the corresponding CLI commands (`rationale`, `sources`, `research`, `decisions`, `todos`, `status`). Output: the ontology carries full project metadata with provenance from source to reality.
@@ -754,6 +756,8 @@ Each phase produces something usable on its own. Phases determine implementation
 **Phase 3: change system.** Add change directories, delta semantics, archive command, rename command, and change-aware queries (`changes`, `show`, `archive`, `rename`). Output: safe change isolation; proposed modifications never corrupt current truth; restructures propagate atomically.
 
 **Phase 4: hooks.** Add the structural, interface, and tension hooks. Make them runnable as pre-commit or agent-task-end gates. Detect conflicts between concurrent active changes at authoring time, not only at archive time.
+
+**Phase 2.5: graph explorer.** Interactive terminal UI for navigating the ontology graph. Visualises nodes, edges, and artefact summaries in a TUI. Output: a `cairn explore` command that lets humans and agents browse the graph interactively.
 
 **Phase 5: edge validation and docstring generation.** The code reconciler grows semantic capability — either via deeper Tree-sitter analysis or by integrating LSP where available — to verify declared edges against observed imports and to check docstrings against ontology facts. Add `cairn docstring <node>` command. Both edge divergence and docstring drift surface as rationale tensions.
 
@@ -803,7 +807,7 @@ Many v0.5.1 open questions were resolved in v0.6 through the scope correction. W
 
 **Resolved in v0.6** (all via the scope correction that separated capability from phasing):
 
-- *Tree-sitter vs LSP.* Both. Tree-sitter for phase 1's basic reconciler; LSP added in phase 5 when edge validation requires semantic depth.
+- *Tree-sitter vs LSP.* Both. Tree-sitter for phase 1's basic reconciler; LSP added in phase 10 (distribution) when editor integration requires semantic depth.
 - *Docstring binding format.* Rejected as originally framed. Replaced with `cairn docstring` command and scanner-level drift detection (section 12, phase 5).
 - *Ignore-list default.* Specified in section 6.1: built-in defaults + `.gitignore` respected + `.cairnignore` overrides + `cairn.config.yaml` ad-hoc rules + hardcoded allowlist for Cairn's own files.
 - *Edge validation.* Capability confirmed in v1 scope. Implementation in phase 5. Surfaces as rationale tension, not structural error.
@@ -817,7 +821,7 @@ Many v0.5.1 open questions were resolved in v0.6 through the scope correction. W
 
 ## 17. What this spec deliberately does not commit to
 
-- A specific implementation language for the toolchain.
+- ~~A specific implementation language for the toolchain.~~ **Resolved:** Rust has been selected as the implementation language.
 - A specific Tree-sitter setup or LSP integration strategy.
 - A specific MCP framework or transport.
 - A specific summariser model or provider.

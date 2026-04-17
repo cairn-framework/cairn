@@ -40,6 +40,7 @@
 - [ ] 5.1 Implement shared typed query/service request and response structs in the library.
 - [ ] 5.2 Implement a command registry with command name, request/response type identity, and `read_only` or `mutating` safety class.
 - [ ] 5.3 Implement `get`, `neighbourhood`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan` as CLI wrappers over the shared library services.
+- [ ] 5.3a Implement `cairn init` for greenfield project scaffolding: create a starter `cairn.dsl` skeleton, `cairn.config.yaml` with sensible defaults, `meta/` directory structure, and `.cairn/` machine-state directory.
 - [ ] 5.4 Add `--file` and `--json` support to every command.
 - [ ] 5.5 Render JSON from the shared response structs and human-readable output from those same structs.
 - [ ] 5.6 Add CLI integration tests for success and failure paths, plus tests proving `scan` is registered as `mutating` and Phase 1 query commands are registered as `read_only`.

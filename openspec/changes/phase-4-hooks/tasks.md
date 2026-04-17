@@ -25,6 +25,7 @@
 
 - [ ] 4.1 Add CLI commands for all hook kinds.
 - [ ] 4.2 Add a committed script that invokes `cairn hook all` for Git and agent-task-end integration.
+- [ ] 4.2a Update the Phase 0 pre-commit hook from `cargo fmt --check` only to also enforce `cairn hook all`, so structural and interface integrity are gated on every commit.
 - [ ] 4.3 Document hook exit semantics and integration commands.
 
 ## 5. Required Verification

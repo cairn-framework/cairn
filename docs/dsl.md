@@ -37,7 +37,7 @@ path "./apps/core"
 path ["./apps/core-rust", "./apps/core-ts"]
 ```
 
-Leaf paths must be unique. Internal container paths are allowed, but only leaves claim paths for duplicate checking in this MVP.
+Leaf paths must be unique. Internal container paths are allowed, but only leaves claim paths for duplicate checking in the kernel.
 
 ## Artefact Pointers
 
