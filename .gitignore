@@ -3,3 +3,10 @@
 node_modules/
 dist/
 *.tsbuildinfo
+target/
+*.rs.bk
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
