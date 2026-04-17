@@ -1,0 +1,63 @@
+//! Reconciler trait and report types.
+
+pub mod code;
+pub mod fingerprint;
+
+use std::{error::Error, fmt, path::Path};
+
+use crate::ontology::graph::Finding;
+
+/// Reconciler identifier.
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct ReconcilerId(pub String);
+
+/// Reconcile request.
+pub struct ReconcileRequest<'a> {
+    /// Project root.
+    pub root: &'a Path,
+    /// Ignore patterns.
+    pub ignores: &'a [String],
+}
+
+/// Reconcile report.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReconcileReport {
+    /// Files claimed by node ID.
+    pub claimed_files: std::collections::BTreeMap<String, Vec<String>>,
+    /// Public symbols.
+    pub symbols: Vec<String>,
+    /// Interface fingerprint.
+    pub fingerprint: fingerprint::InterfaceFingerprint,
+    /// Reconciliation findings.
+    pub findings: Vec<Finding>,
+}
+
+/// Reconciler error.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReconcileError {
+    /// Stable code.
+    pub code: String,
+    /// Message.
+    pub message: String,
+}
+
+impl fmt::Display for ReconcileError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{}: {}", self.code, self.message)
+    }
+}
+
+impl Error for ReconcileError {}
+
+/// Domain-agnostic reconciler interface.
+pub trait Reconciler {
+    /// Reconciler ID.
+    fn id(&self) -> ReconcilerId;
+
+    /// Reconciles project reality.
+    ///
+    /// # Errors
+    ///
+    /// Returns a reconciler error when source discovery or analysis fails.
+    fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError>;
+}

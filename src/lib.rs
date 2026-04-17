@@ -1,27 +1,35 @@
-//! Foundation metadata for the Cairn crate.
+//! Cairn kernel library.
 //!
-//! Phase 0 intentionally exposes only package metadata. Domain modules for the
-//! DSL, ontology, scanner, and archive flows are introduced by later phases.
+//! The library exposes the typed parser, ontology, scanner, and query services
+//! used by the CLI. Command wrappers render these responses but do not own the
+//! query semantics.
+
+/// Contract artefact loading.
+pub mod artefacts;
+/// CLI command registry and renderer helpers.
+pub mod cli;
+/// Cairn DSL parsing.
+pub mod dsl;
+/// Ontology graph construction and queries.
+pub mod ontology;
+/// Code reconciliation interfaces.
+pub mod reconcile;
+/// Project scanner orchestration and generated outputs.
+pub mod scanner;
 
 /// Returns the Cargo package name compiled into this crate.
-///
-/// The value is static package metadata and cannot fail.
 #[must_use]
 pub const fn package_name() -> &'static str {
     env!("CARGO_PKG_NAME")
 }
 
 /// Returns the Cargo package version compiled into this crate.
-///
-/// The value is static package metadata and cannot fail.
 #[must_use]
 pub const fn package_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-/// Returns the deterministic version label printed by the foundation CLI.
-///
-/// The label is built from Cargo package metadata and cannot fail.
+/// Returns the deterministic version label printed by the CLI.
 #[must_use]
 pub fn version_label() -> String {
     format!("{} {}", package_name(), package_version())
@@ -29,7 +37,7 @@ pub fn version_label() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{package_name, package_version, version_label};
+    use super::{cli, package_name, package_version, version_label};
 
     #[test]
     fn test_package_name_returns_cairn() {
@@ -46,6 +54,23 @@ mod tests {
         assert_eq!(
             version_label(),
             format!("{} {}", package_name(), package_version())
+        );
+    }
+
+    #[test]
+    fn test_phase_one_registry_safety_classes() {
+        assert_eq!(
+            cli::registry()
+                .iter()
+                .find(|command| command.name == "scan")
+                .map(|command| command.safety),
+            Some(cli::SafetyClass::Mutating)
+        );
+        assert!(
+            cli::registry()
+                .iter()
+                .filter(|command| command.name != "scan" && command.name != "init")
+                .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );
     }
 }
