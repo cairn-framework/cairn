@@ -64,7 +64,7 @@
     // "pre_apply": "echo '[pre_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
     // "post_apply": "echo '[post_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
     // "on_change_complete": "echo '[on_change_complete] change={change_id} tasks={total_tasks}/{total_tasks}'",
-    "pre_archive": "cargo fmt --check && RUSTFLAGS=\"-D warnings\" cargo clippy --all-targets --all-features && cargo test",
+    "pre_archive": "scripts/pre-archive-rust-gates.sh",
     // "post_archive": "echo '[post_archive] change={change_id} progress={changes_processed}/{total_changes}'",
     // "on_change_end": "echo '[on_change_end] change={change_id} progress={changes_processed}/{total_changes} remaining={remaining_changes}'",
     // "on_merged": "echo '[on_merged] change={change_id} tasks={completed_tasks}/{total_tasks} progress={changes_processed}/{total_changes}'",
