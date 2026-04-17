@@ -26,8 +26,8 @@
 ## 2. Git Quality Gate
 
 - [x] 2.1 Add `scripts/install-pre-commit-hook.sh` that writes `.git/hooks/pre-commit` with `cargo fmt --check`.
-- [ ] 2.2 Run the installer and verify `.git/hooks/pre-commit` exists and is executable.
-- [ ] 2.3 Verify the pre-commit hook command succeeds from the repository root.
+- [x] 2.2 Run the installer and verify `.git/hooks/pre-commit` exists and is executable.
+- [x] 2.3 Verify the pre-commit hook command succeeds from the repository root.
 
 ## 3. Conflux Archive Gate
 
@@ -51,18 +51,6 @@
 - [x] 5.5 `cargo test --locked` passes.
 - [x] 5.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-0-foundation --strict` passes.
 
-## Implementation Blocker #1
+## Implementation Blocker #1 — RESOLVED 2026-04-17
 
-category: external_non_mockable
-
-summary: Real Git hook installation cannot be completed from this sandboxed linked worktree.
-
-evidence: `scripts/install-pre-commit-hook.sh && hook_path=$(git rev-parse --git-path hooks/pre-commit) && test -x "$hook_path" && "$hook_path"` failed with `Operation not permitted` while writing `/Users/george/repos/cairn/.git/hooks/pre-commit`. The sandbox writable roots include this worktree but not `/Users/george/repos/cairn/.git/hooks/`.
-
-impact: Tasks 2.2 and 2.3 cannot be truthfully completed in this execution environment, although the committed installer script has been created and the format gate itself passes.
-
-unblock_actions: Run `scripts/install-pre-commit-hook.sh` from an unsandboxed shell or a normal clone with permission to write the Git hooks directory. Then re-run `hook_path=$(git rev-parse --git-path hooks/pre-commit) && test -x "$hook_path" && "$hook_path"` to verify installation and hook execution.
-
-owner: maintainer
-
-decision_due: 2026-04-18
+Resolved by maintainer running `scripts/install-pre-commit-hook.sh` from an unsandboxed shell. `.git/hooks/pre-commit` is installed, executable, and the hook's `cargo fmt --check` gate succeeds when invoked against this worktree (which contains the Phase 0 Cargo workspace).
