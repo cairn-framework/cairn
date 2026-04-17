@@ -22,7 +22,7 @@ use crate::{
     dsl::NodeKind,
     ontology::{
         graph::{Finding, FindingSeverity, Graph, NodeRecord},
-        query,
+        query::{self, GraphEdgeKind, GraphResponse},
     },
     scanner,
 };
@@ -284,7 +284,7 @@ impl Server {
             return json(200, &status_json(&project));
         }
         if path == "/api/graph" {
-            return json(200, &graph_json(graph));
+            return json(200, &graph_json(&query::graph(graph)));
         }
         if path == "/api/lint" {
             return json(200, &lint_json(graph));
@@ -416,33 +416,27 @@ fn meta_json() -> String {
     format!("{{\"schema_version\":{SCHEMA_VERSION},\"available_commands\":[{commands}]}}")
 }
 
-fn graph_json(graph: &Graph) -> String {
+fn graph_json(graph: &GraphResponse) -> String {
     let nodes = graph
         .nodes
-        .values()
+        .iter()
         .map(node_json)
         .collect::<Vec<_>>()
         .join(",");
-    let ownership = graph
-        .nodes
-        .values()
-        .filter_map(|node| node.parent.as_ref().map(|parent| (parent, &node.id)))
-        .map(|(from, to)| {
+    let edges = graph
+        .edges
+        .iter()
+        .map(|edge| {
             format!(
-                "{{\"from\":\"{}\",\"to\":\"{}\",\"kind\":\"ownership\",\"description\":\"owns\"}}",
-                esc(from),
-                esc(to)
+                "{{\"from\":\"{}\",\"to\":\"{}\",\"kind\":\"{}\",\"description\":\"{}\"}}",
+                esc(&edge.from),
+                esc(&edge.to),
+                graph_edge_kind_name(edge.kind),
+                esc(&edge.description)
             )
-        });
-    let dependencies = graph.outbound.values().flatten().map(|edge| {
-        format!(
-            "{{\"from\":\"{}\",\"to\":\"{}\",\"kind\":\"dependency\",\"description\":\"{}\"}}",
-            esc(&edge.from),
-            esc(&edge.to),
-            esc(&edge.description)
-        )
-    });
-    let edges = ownership.chain(dependencies).collect::<Vec<_>>().join(",");
+        })
+        .collect::<Vec<_>>()
+        .join(",");
     format!("{{\"nodes\":[{nodes}],\"edges\":[{edges}]}}")
 }
 
@@ -665,6 +659,13 @@ const fn kind_name(kind: NodeKind) -> &'static str {
         NodeKind::Container => "container",
         NodeKind::Module => "module",
         NodeKind::Actor => "actor",
+    }
+}
+
+const fn graph_edge_kind_name(kind: GraphEdgeKind) -> &'static str {
+    match kind {
+        GraphEdgeKind::Ownership => "ownership",
+        GraphEdgeKind::Dependency => "dependency",
     }
 }
 

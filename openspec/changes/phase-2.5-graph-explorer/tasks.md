@@ -11,7 +11,7 @@
 
 ## 2. Query Bridge API
 
-- [x] 2.1 Implement `GET /api/graph` — delegates to `neighbourhood(root, transitive=true)`.
+- [x] 2.1 Implement `GET /api/graph` — delegates to typed library `graph()`.
 - [x] 2.2 Implement `GET /api/node/:id` — delegates to `get(id)`.
 - [x] 2.3 Implement `GET /api/node/:id/contract` — delegates to `contract(id)`.
 - [x] 2.4 Implement `GET /api/node/:id/decisions` — delegates to `decisions(id)`.
@@ -23,7 +23,7 @@
 - [x] 2.10 Implement `GET /api/lint` — delegates to `lint()`.
 - [x] 2.11 Implement `GET /api/status` — delegates to `status()`.
 - [x] 2.12 Implement `GET /api/meta` — returns `schema_version` and available command list.
-- [x] 2.13 All endpoints return the same typed JSON structs as `cairn --format json`.
+- [x] 2.13 Endpoints with matching CLI commands return the same typed JSON structs as `cairn --format json`; `/api/graph` returns the typed explorer `GraphResponse`.
 
 ## 3. Graph View (Browser)
 
@@ -79,3 +79,8 @@
 ## Implementation Blocker #1
 
 RESOLVED 2026-04-17 (env-gated acceptance): Playwright Chromium cannot launch in the codex macOS sandbox (Mach port permission denied). Task 7.7 reclassified as env-gated and deferred to operator's browser-based UI review. Coverage rationale: API layer + static asset serving are verified by Rust integration tests 7.6 (`cairn ui --port 0` boot), 7.8 (200-node scale), 7.9 (lint overlay), 7.10 (forward-compat). The end-to-end interaction loop (click node → detail panel → artefact navigation) is the human UI review deliverable the campaign plan already scheduled at this checkpoint, so marking this task complete does not defer any unique verification — it documents the handoff.
+
+## Acceptance #1 Failure Follow-up
+
+- [x] Fix `/api/graph` so the query bridge delegates to the same library query function(s) that back the CLI and does not assemble graph data from `Graph` internals directly.
+- [x] Align `/api/graph` and related bridge responses with the typed CLI JSON response contract, or update the spec/tasks to explicitly define and test a separate typed graph-explorer response shape.
