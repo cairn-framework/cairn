@@ -16,6 +16,8 @@ pub mod ontology;
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
+/// Embedded graph explorer server and query bridge.
+pub mod ui;
 
 /// Returns the Cargo package name compiled into this crate.
 #[must_use]
@@ -69,7 +71,9 @@ mod tests {
         assert!(
             cli::registry()
                 .iter()
-                .filter(|command| command.name != "scan" && command.name != "init")
+                .filter(|command| {
+                    command.name != "scan" && command.name != "init" && command.name != "ui"
+                })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );
     }

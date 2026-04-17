@@ -10,7 +10,7 @@ use crate::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
     },
-    scanner, version_label,
+    scanner, ui, version_label,
 };
 
 /// Command safety class.
@@ -110,6 +110,12 @@ pub const fn registry() -> &'static [CommandMetadata] {
             response: "InitResponse",
             safety: SafetyClass::Mutating,
         },
+        CommandMetadata {
+            name: "ui",
+            request: "UiRequest",
+            response: "UiServerResponse",
+            safety: SafetyClass::ReadOnly,
+        },
     ]
 }
 
@@ -125,6 +131,9 @@ pub fn run(args: &[String]) -> CliResult {
     };
     if parsed.command == "init" {
         return init_project(Path::new("."));
+    }
+    if parsed.command == "ui" {
+        return run_ui_command(&parsed);
     }
     run_project_command(&parsed)
 }
@@ -239,6 +248,19 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
             stderr: String::new(),
         },
     )
+}
+
+fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
+    match ui::UiOptions::from_args(&parsed.command_args) {
+        Ok(mut options) => {
+            options.dsl_path.clone_from(&parsed.file);
+            ui::serve_current_thread(options).map_or_else(
+                |error| err(1, &error.to_string()),
+                |message| ok(format!("{message}\n")),
+            )
+        }
+        Err(message) => err(2, &message),
+    }
 }
 
 fn render_get(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> Result<String, Finding> {

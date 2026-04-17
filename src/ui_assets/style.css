@@ -1,0 +1,274 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f7f8fa;
+  color: #17202a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button {
+  border: 1px solid #9aa8b7;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17202a;
+  min-height: 36px;
+  padding: 0 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: #4c6f91;
+}
+
+.topbar {
+  min-height: 88px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #d8dee6;
+  background: #ffffff;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #486177;
+}
+
+.toolbar,
+.layer-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.shell {
+  min-height: calc(100vh - 88px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+}
+
+.graph-region {
+  position: relative;
+  overflow: hidden;
+}
+
+.warning {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 5;
+  padding: 12px;
+  border: 1px solid #b98000;
+  border-radius: 6px;
+  background: #fff5d6;
+}
+
+.graph {
+  position: relative;
+  min-height: calc(100vh - 88px);
+  overflow: hidden;
+  background:
+    linear-gradient(#dde4ec 1px, transparent 1px),
+    linear-gradient(90deg, #dde4ec 1px, transparent 1px),
+    #f7f8fa;
+  background-size: 32px 32px;
+}
+
+.edge-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.edge {
+  stroke: #8493a3;
+  stroke-width: 2;
+  fill: none;
+}
+
+marker polygon {
+  fill: #8493a3;
+}
+
+.edge.dependency {
+  stroke-dasharray: 6 5;
+}
+
+.edge.active {
+  stroke: #1c6e8c;
+  stroke-width: 3;
+}
+
+.edge-label {
+  font-size: 12px;
+  fill: #17202a;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 4px;
+  display: none;
+}
+
+.edge-label.active {
+  display: block;
+}
+
+.node {
+  position: absolute;
+  width: 180px;
+  min-height: 82px;
+  border: 2px solid #6f7f8e;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+  box-shadow: 0 8px 22px rgb(23 32 42 / 10%);
+  cursor: pointer;
+}
+
+.node.active {
+  border-color: #1c6e8c;
+  box-shadow: 0 0 0 3px rgb(28 110 140 / 20%);
+}
+
+.node.hidden {
+  display: none;
+}
+
+.badge-row {
+  min-height: 22px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.type-badge,
+.finding-badge,
+.child-badge {
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.type-badge {
+  background: #e6edf3;
+}
+
+.finding-badge.error {
+  background: #ffddd8;
+  color: #942417;
+}
+
+.finding-badge.warning {
+  background: #fff0c2;
+  color: #735200;
+}
+
+.finding-badge.advisory {
+  background: #e8ecef;
+  color: #52606b;
+}
+
+.child-badge {
+  background: #d9f0e4;
+}
+
+.node-title {
+  margin-top: 8px;
+  font-weight: 800;
+}
+
+.node-id {
+  margin-top: 4px;
+  color: #52606b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.detail-panel {
+  border-left: 1px solid #d8dee6;
+  background: #ffffff;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.close {
+  float: right;
+}
+
+#node-id,
+#node-description {
+  margin-top: 8px;
+  color: #52606b;
+  overflow-wrap: anywhere;
+}
+
+.layer-nav {
+  margin: 18px 0 12px;
+}
+
+.accordion {
+  border-top: 1px solid #d8dee6;
+}
+
+.accordion button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  justify-content: space-between;
+  border: 0;
+  border-bottom: 1px solid #d8dee6;
+  border-radius: 0;
+}
+
+.artefact-body {
+  padding: 12px 0 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.frontmatter {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #f0f3f6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .topbar,
+  .shell {
+    display: block;
+  }
+
+  .toolbar {
+    margin-top: 12px;
+  }
+
+  .detail-panel {
+    border-left: 0;
+    border-top: 1px solid #d8dee6;
+  }
+}
