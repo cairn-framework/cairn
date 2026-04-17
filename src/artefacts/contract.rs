@@ -18,6 +18,8 @@ use super::frontmatter;
 pub struct Contract {
     /// Contract file path as declared.
     pub path: String,
+    /// Node ID that declared the contract pointer.
+    pub declared_by: String,
     /// Referenced node ID.
     pub node: String,
     /// Markdown body.
@@ -64,10 +66,22 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                         path: Some(pointer.clone()),
                     });
                 }
+                if contract_node != node_id {
+                    set.findings.push(Finding {
+                        code: "CAIRN_CONTRACT_WRONG_NODE".to_owned(),
+                        severity: FindingSeverity::Error,
+                        message: format!(
+                            "contract `{pointer}` declared by `{node_id}` references `{contract_node}`"
+                        ),
+                        node: Some(node_id.clone()),
+                        path: Some(pointer.clone()),
+                    });
+                }
                 set.contracts.insert(
                     pointer.clone(),
                     Contract {
                         path: pointer,
+                        declared_by: node_id,
                         node: contract_node,
                         body: parsed.body,
                     },

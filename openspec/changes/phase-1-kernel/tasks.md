@@ -63,3 +63,8 @@
 ## Implementation Blocker #1
 
 RESOLVED 2026-04-17: codex sandbox `network_access = true` enabled in `~/.codex/config.toml [sandbox_workspace_write]`. `cargo add tree-sitter tree-sitter-rust` now works inside the worktree. Re-queue phase-1 to complete task 4.2 with real Tree-sitter integration.
+
+## Acceptance #1 Failure Follow-up
+
+- [x] Fix structural-error query handling: CLI commands that require a valid ontology must exit `1` when graph construction records structural error findings such as `CAIRN_INTEGRITY_PATH_TIE`, while preserving the explicit cycle exception for basic queries.
+- [x] Fix contract wrong-node validation: when node `A` declares a contract path whose frontmatter says `node: B`, lint/ontology construction must report a structural contract error instead of attaching that contract body to `A`.

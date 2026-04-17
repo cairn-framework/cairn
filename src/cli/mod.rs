@@ -179,6 +179,9 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         Ok(result) => result,
         Err(error) => return error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error),
     };
+    if requires_valid_ontology(parsed.command.as_str()) && scan_result.graph.has_errors() {
+        return findings_output(parsed.json, &scan_result.graph.findings);
+    }
     match parsed.command.as_str() {
         "get" => render_get(parsed, &scan_result),
         "neighbourhood" => render_neighbourhood(parsed, &scan_result),
@@ -190,6 +193,7 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
                 .contracts
                 .iter()
                 .find_map(|path| scan_result.contracts.contracts.get(path))
+                .filter(|contract| contract.node == node.id)
                 .map(|contract| contract.body.clone())
                 .unwrap_or_default();
             Ok(if parsed.json {
@@ -306,6 +310,13 @@ fn render_dependencies(
             format!("{}:\n{}\n", response.node, lines(&response.nodes))
         })
     })
+}
+
+fn requires_valid_ontology(command: &str) -> bool {
+    matches!(
+        command,
+        "get" | "neighbourhood" | "files" | "dependents" | "depends" | "contract" | "order"
+    )
 }
 
 fn init_project(root: &Path) -> CliResult {

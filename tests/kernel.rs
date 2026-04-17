@@ -370,6 +370,78 @@ fn test_contract_wrong_node_and_missing_ghost_pointer_severity()
     Ok(())
 }
 
+#[test]
+fn test_cli_blocks_queries_on_structural_errors() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("structural-cli")?;
+    fs::create_dir_all(root.join("src"))?;
+    fs::write(root.join("src/lib.rs"), "pub fn lib() {}\n")?;
+    fs::write(
+        root.join("cairn.dsl"),
+        r#"System App "desc" id "app" {
+    Module One "one" id "app.one" {
+        path "./src"
+    }
+    Module Two "two" id "app.two" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["get", "app.one"])
+        .output()?;
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8(output.stdout)?.contains("CAIRN_INTEGRITY_PATH_TIE"));
+
+    Ok(())
+}
+
+#[test]
+fn test_contract_frontmatter_must_match_declaring_node() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("contract-wrong-existing")?;
+    fs::create_dir_all(root.join("src/a"))?;
+    fs::create_dir_all(root.join("src/b"))?;
+    fs::create_dir_all(root.join("meta/contracts"))?;
+    fs::write(root.join("src/a/lib.rs"), "pub fn a() {}\n")?;
+    fs::write(root.join("src/b/lib.rs"), "pub fn b() {}\n")?;
+    fs::write(
+        root.join("cairn.dsl"),
+        r#"System App "desc" id "app" {
+    Module A "a" id "app.a" {
+        path "./src/a"
+        contract "./meta/contracts/a.md"
+    }
+    Module B "b" id "app.b" {
+        path "./src/b"
+    }
+}
+"#,
+    )?;
+    fs::write(
+        root.join("meta/contracts/a.md"),
+        "---\nnode: app.b\n---\n# Wrong Contract\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    assert!(result.graph.findings.iter().any(|finding| {
+        finding.code == "CAIRN_CONTRACT_WRONG_NODE"
+            && finding.node.as_deref() == Some("app.a")
+            && finding.severity == cairn::ontology::FindingSeverity::Error
+    }));
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["contract", "app.a"])
+        .output()?;
+    assert!(!output.status.success());
+    assert!(String::from_utf8(output.stdout)?.contains("CAIRN_CONTRACT_WRONG_NODE"));
+
+    Ok(())
+}
+
 fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
     let root = std::env::temp_dir().join(format!("cairn-{name}-{suffix}"));
