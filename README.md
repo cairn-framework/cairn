@@ -31,12 +31,43 @@ The Conflux archive gate for this repository is
 `scripts/pre-archive-rust-gates.sh`. It enforces formatting, strict Clippy, and
 tests before a change is archived.
 
-## Phase 0 Scope
+## Phase 1 Kernel
 
-Phase 0 intentionally provides only the Rust workspace, lint policy, hook
-scripts, and smoke tests. It does not implement the DSL parser, ontology graph,
-query commands, scanner, artefact handling, reconciler behavior, or future Cairn
-domain modules.
+The Phase 1 kernel parses `cairn.dsl`, builds a queryable ontology graph, loads
+contract Markdown artefacts, reconciles Rust source files against declared
+module paths, and exposes the first CLI query surface.
+
+Common commands:
+
+```sh
+cairn init
+cairn scan
+cairn get <node-id> --json
+cairn neighbourhood <node-id>
+cairn files <node-id>
+cairn contract <node-id>
+cairn depends <node-id> --transitive
+cairn dependents <node-id>
+cairn order
+cairn lint --json
+```
+
+Every Phase 1 command accepts `--file <path>` to select a DSL file and `--json`
+to render the same typed response structs as stable machine-readable JSON.
+
+Phase 1 implements only contract artefacts. A contract is a Markdown file with
+frontmatter containing `node: <id>`, and `cairn contract <node-id>` returns the
+parsed body. Other artefact pointers such as todos, decisions, research,
+reviews, and sources are retained as raw DSL metadata but are not interpreted
+until Phase 2.
+
+`cairn scan` regenerates:
+
+- `index.md` with generated frontmatter, synced nodes, ghost nodes, active
+  changes, and findings.
+- `.cairn/log.md` with an appended scan event.
+- `.cairn/state/interface-hashes.json` with deterministic Rust interface hash
+  state.
 
 ## Reference
 
