@@ -1,11 +1,16 @@
 //! CLI registry, command execution, and renderers.
 
 use std::{
+    collections::BTreeSet,
     fs,
     path::{Path, PathBuf},
 };
 
 use crate::{
+    artefacts::registry::{
+        Decision, DecisionStatus, Research, Review, ReviewType, Source, SourceVerification, Todo,
+        TodoStatus,
+    },
     ontology::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
@@ -66,6 +71,42 @@ pub const fn registry() -> &'static [CommandMetadata] {
             name: "contract",
             request: "NodeRequest",
             response: "ContractResponse",
+            safety: SafetyClass::ReadOnly,
+        },
+        CommandMetadata {
+            name: "todos",
+            request: "ArtefactNodeRequest",
+            response: "TodosResponse",
+            safety: SafetyClass::ReadOnly,
+        },
+        CommandMetadata {
+            name: "decisions",
+            request: "ArtefactNodeRequest",
+            response: "DecisionsResponse",
+            safety: SafetyClass::ReadOnly,
+        },
+        CommandMetadata {
+            name: "research",
+            request: "NodeRequest",
+            response: "ResearchResponse",
+            safety: SafetyClass::ReadOnly,
+        },
+        CommandMetadata {
+            name: "sources",
+            request: "NodeRequest",
+            response: "SourcesResponse",
+            safety: SafetyClass::ReadOnly,
+        },
+        CommandMetadata {
+            name: "rationale",
+            request: "NodeRequest",
+            response: "RationaleResponse",
+            safety: SafetyClass::ReadOnly,
+        },
+        CommandMetadata {
+            name: "status",
+            request: "StatusRequest",
+            response: "StatusResponse",
             safety: SafetyClass::ReadOnly,
         },
         CommandMetadata {
@@ -195,6 +236,12 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         "get" => render_get(parsed, &scan_result),
         "neighbourhood" => render_neighbourhood(parsed, &scan_result),
         "files" => render_files(parsed, &scan_result),
+        "todos" => render_todos(parsed, &scan_result),
+        "decisions" => render_decisions(parsed, &scan_result),
+        "research" => render_research(parsed, &scan_result),
+        "sources" => render_sources(parsed, &scan_result),
+        "rationale" => render_rationale(parsed, &scan_result),
+        "status" => Ok(render_status(parsed, &scan_result, root)),
         "dependents" | "depends" => render_dependencies(parsed, &scan_result),
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
             let node = scan_result.graph.resolve(node)?;
@@ -276,19 +323,94 @@ fn render_neighbourhood(
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
         query::neighbourhood(&scan_result.graph, node).map(|response| {
+            let include_todos = parsed.command_args.iter().any(|arg| arg == "--include-todos");
+            let include_research = parsed
+                .command_args
+                .iter()
+                .any(|arg| arg == "--include-research");
+            let include_reviews = parsed
+                .command_args
+                .iter()
+                .any(|arg| arg == "--include-reviews");
+            let include_deprecated = parsed
+                .command_args
+                .iter()
+                .any(|arg| arg == "--include-deprecated-decisions");
+            let include_changes = parsed
+                .command_args
+                .iter()
+                .any(|arg| arg == "--include-changes");
+            let node_ids = neighbourhood_ids(&scan_result.graph, &response.node.id);
+            let decisions = scan_result
+                .artefacts
+                .decisions
+                .iter()
+                .filter(|decision| {
+                    decision.nodes.iter().any(|node| node_ids.contains(node))
+                        && (decision.status == DecisionStatus::Accepted || include_deprecated)
+                })
+                .cloned()
+                .collect::<Vec<_>>();
+            let todos = if include_todos {
+                scan_result
+                    .artefacts
+                    .todos
+                    .iter()
+                    .filter(|todo| node_ids.contains(&todo.node))
+                    .cloned()
+                    .collect::<Vec<_>>()
+            } else {
+                Vec::new()
+            };
+            let research = if include_research {
+                research_for_nodes(scan_result, &node_ids)
+            } else {
+                Vec::new()
+            };
+            let reviews = if include_reviews {
+                scan_result
+                    .artefacts
+                    .reviews
+                    .iter()
+                    .filter(|review| node_ids.contains(&review.node))
+                    .cloned()
+                    .collect::<Vec<_>>()
+            } else {
+                Vec::new()
+            };
             if parsed.json {
+                let active_changes = if include_changes {
+                    ",\"active_changes\":[]"
+                } else {
+                    ""
+                };
                 format!(
-                    "{{\"node\":{},\"inbound\":{},\"outbound\":{}}}\n",
+                    "{{\"node\":{},\"inbound\":{},\"outbound\":{},\"contracts\":{},\"decisions\":{},\"todos\":{},\"research\":{},\"reviews\":{}{active_changes}}}\n",
                     node_json(&response.node),
                     string_array_json(&response.inbound),
-                    string_array_json(&response.outbound)
+                    string_array_json(&response.outbound),
+                    string_array_json(&response.node.contracts),
+                    decisions_json(&decisions),
+                    todos_json(&todos),
+                    research_json(&research),
+                    reviews_json(&reviews)
                 )
             } else {
+                let active_changes = if include_changes {
+                    "\nActive changes:\nNone"
+                } else {
+                    ""
+                };
                 format!(
-                    "Node: {}\nInbound:\n{}\nOutbound:\n{}\n",
+                    "Node: {}\nInbound:\n{}\nOutbound:\n{}\nContracts:\n{}\nAccepted decisions:\n{}\nTodos:\n{}\nResearch:\n{}\nReviews:\n{}{active_changes}\n",
                     response.node.id,
                     lines(&response.inbound),
-                    lines(&response.outbound)
+                    lines(&response.outbound),
+                    lines(&response.node.contracts),
+                    lines(&decisions.iter().map(decision_line).collect::<Vec<_>>()),
+                    lines(&todos.iter().map(todo_line).collect::<Vec<_>>()),
+                    lines(&research.iter().map(research_line).collect::<Vec<_>>()),
+                    lines(&reviews.iter().map(review_line).collect::<Vec<_>>())
                 )
             }
         })
@@ -309,6 +431,217 @@ fn render_files(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> Resul
             }
         })
     })
+}
+
+fn render_todos(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> Result<String, Finding> {
+    let status = flag_value(&parsed.command_args, "--status").and_then(parse_todo_status_filter);
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node = scan_result.graph.resolve(node)?;
+        let todos = scan_result
+            .artefacts
+            .todos
+            .iter()
+            .filter(|todo| {
+                todo.node == node.id && status.is_none_or(|filter| todo.status == filter)
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        Ok(if parsed.json {
+            format!(
+                "{{\"node\":\"{}\",\"todos\":{}}}\n",
+                esc(&node.id),
+                todos_json(&todos)
+            )
+        } else {
+            format!(
+                "Todos for {}:\n{}\n",
+                node.id,
+                lines(&todos.iter().map(todo_line).collect::<Vec<_>>())
+            )
+        })
+    })
+}
+
+fn render_decisions(
+    parsed: &ParsedArgs,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    let status =
+        flag_value(&parsed.command_args, "--status").and_then(parse_decision_status_filter);
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node = scan_result.graph.resolve(node)?;
+        let decisions = scan_result
+            .artefacts
+            .decisions
+            .iter()
+            .filter(|decision| {
+                decision.nodes.contains(&node.id)
+                    && status.is_none_or(|filter| decision.status == filter)
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        Ok(if parsed.json {
+            format!(
+                "{{\"node\":\"{}\",\"decisions\":{}}}\n",
+                esc(&node.id),
+                decisions_json(&decisions)
+            )
+        } else {
+            format!(
+                "Decisions for {}:\n{}\n",
+                node.id,
+                lines(&decisions.iter().map(decision_line).collect::<Vec<_>>())
+            )
+        })
+    })
+}
+
+fn render_research(
+    parsed: &ParsedArgs,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node = scan_result.graph.resolve(node)?;
+        let research = research_for_nodes(scan_result, &BTreeSet::from([node.id.clone()]));
+        Ok(if parsed.json {
+            format!(
+                "{{\"node\":\"{}\",\"research\":{}}}\n",
+                esc(&node.id),
+                research_json(&research)
+            )
+        } else {
+            format!(
+                "Research for {}:\n{}\n",
+                node.id,
+                lines(&research.iter().map(research_line).collect::<Vec<_>>())
+            )
+        })
+    })
+}
+
+fn render_sources(
+    parsed: &ParsedArgs,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node = scan_result.graph.resolve(node)?;
+        let sources = sources_for_nodes(scan_result, &BTreeSet::from([node.id.clone()]));
+        Ok(if parsed.json {
+            format!(
+                "{{\"node\":\"{}\",\"sources\":{}}}\n",
+                esc(&node.id),
+                sources_json(&sources)
+            )
+        } else {
+            format!(
+                "Sources for {}:\n{}\n",
+                node.id,
+                lines(&sources.iter().map(source_line).collect::<Vec<_>>())
+            )
+        })
+    })
+}
+
+fn render_rationale(
+    parsed: &ParsedArgs,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node = scan_result.graph.resolve(node)?;
+        let node_ids = neighbourhood_ids(&scan_result.graph, &node.id);
+        let decisions = scan_result
+            .artefacts
+            .decisions
+            .iter()
+            .filter(|decision| {
+                decision.status == DecisionStatus::Accepted
+                    && decision.nodes.iter().any(|node| node_ids.contains(node))
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        let research_ids = decisions
+            .iter()
+            .flat_map(|decision| decision.informed_by.iter())
+            .cloned()
+            .collect::<BTreeSet<_>>();
+        let source_ids = decisions
+            .iter()
+            .flat_map(|decision| decision.informed_by.iter())
+            .cloned()
+            .chain(
+                scan_result
+                    .artefacts
+                    .research
+                    .iter()
+                    .filter(|research| research_ids.contains(&research.id))
+                    .flat_map(|research| research.sources.iter().cloned()),
+            )
+            .collect::<BTreeSet<_>>();
+        let research = scan_result
+            .artefacts
+            .research
+            .iter()
+            .filter(|research| research_ids.contains(&research.id))
+            .cloned()
+            .collect::<Vec<_>>();
+        let sources = scan_result
+            .artefacts
+            .sources
+            .iter()
+            .filter(|source| source_ids.contains(&source.id))
+            .cloned()
+            .collect::<Vec<_>>();
+        Ok(if parsed.json {
+            format!(
+                "{{\"node\":\"{}\",\"decisions\":{},\"research\":{},\"sources\":{}}}\n",
+                esc(&node.id),
+                decisions_json(&decisions),
+                research_json(&research),
+                sources_json(&sources)
+            )
+        } else {
+            format!(
+                "Rationale for {}:\nDecisions:\n{}\nResearch:\n{}\nSources:\n{}\n",
+                node.id,
+                lines(&decisions.iter().map(decision_line).collect::<Vec<_>>()),
+                lines(&research.iter().map(research_line).collect::<Vec<_>>()),
+                lines(&sources.iter().map(source_line).collect::<Vec<_>>())
+            )
+        })
+    })
+}
+
+fn render_status(parsed: &ParsedArgs, scan_result: &scanner::ScanResult, root: &Path) -> String {
+    let open = scan_result
+        .artefacts
+        .todos
+        .iter()
+        .filter(|todo| todo.status == TodoStatus::Open || todo.status == TodoStatus::InProgress)
+        .cloned()
+        .collect::<Vec<_>>();
+    let log_entries = fs::read_to_string(root.join(".cairn/log.md"))
+        .map(|content| {
+            content
+                .lines()
+                .rev()
+                .take(5)
+                .map(ToOwned::to_owned)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    if parsed.json {
+        format!(
+            "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{}}}\n",
+            todos_json(&open),
+            string_array_json(&log_entries)
+        )
+    } else {
+        format!(
+            "Status:\nActive changes:\nNone\nOpen todos:\n{}\nRecent log entries:\n{}\n",
+            lines(&open.iter().map(todo_line).collect::<Vec<_>>()),
+            lines(&log_entries)
+        )
+    }
 }
 
 fn render_dependencies(
@@ -337,7 +670,19 @@ fn render_dependencies(
 fn requires_valid_ontology(command: &str) -> bool {
     matches!(
         command,
-        "get" | "neighbourhood" | "files" | "dependents" | "depends" | "contract" | "order"
+        "get"
+            | "neighbourhood"
+            | "files"
+            | "dependents"
+            | "depends"
+            | "contract"
+            | "order"
+            | "todos"
+            | "decisions"
+            | "research"
+            | "sources"
+            | "rationale"
+            | "status"
     )
 }
 
@@ -438,6 +783,250 @@ fn finding_json(finding: &Finding) -> String {
         finding.severity,
         esc(&finding.message)
     )
+}
+
+fn todos_json(todos: &[Todo]) -> String {
+    format!(
+        "[{}]",
+        todos
+            .iter()
+            .map(|todo| {
+                format!(
+                    "{{\"path\":\"{}\",\"node\":\"{}\",\"status\":\"{}\",\"created\":\"{}\",\"satisfies\":\"{}\"}}",
+                    esc(&todo.path),
+                    esc(&todo.node),
+                    todo_status(todo.status),
+                    esc(&todo.created),
+                    esc(todo.satisfies.as_deref().unwrap_or(""))
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+}
+
+fn decisions_json(decisions: &[Decision]) -> String {
+    format!(
+        "[{}]",
+        decisions
+            .iter()
+            .map(|decision| {
+                format!(
+                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"related\":{}}}",
+                    esc(&decision.id),
+                    decision_status(decision.status),
+                    string_array_json(&decision.nodes),
+                    string_array_json(&decision.informed_by),
+                    string_array_json(&decision.supersedes),
+                    string_array_json(&decision.refines),
+                    string_array_json(&decision.related)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+}
+
+fn research_json(research: &[Research]) -> String {
+    format!(
+        "[{}]",
+        research
+            .iter()
+            .map(|item| {
+                format!(
+                    "{{\"id\":\"{}\",\"nodes\":{},\"sources\":{},\"date\":\"{}\"}}",
+                    esc(&item.id),
+                    string_array_json(&item.nodes),
+                    string_array_json(&item.sources),
+                    esc(&item.date)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+}
+
+fn reviews_json(reviews: &[Review]) -> String {
+    format!(
+        "[{}]",
+        reviews
+            .iter()
+            .map(|review| {
+                format!(
+                    "{{\"path\":\"{}\",\"node\":\"{}\",\"review_type\":\"{}\",\"date\":\"{}\",\"reviewer\":\"{}\"}}",
+                    esc(&review.path),
+                    esc(&review.node),
+                    review_type(review.review_type),
+                    esc(&review.date),
+                    esc(&review.reviewer)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+}
+
+fn sources_json(sources: &[Source]) -> String {
+    format!(
+        "[{}]",
+        sources
+            .iter()
+            .map(|source| {
+                format!(
+                    "{{\"id\":\"{}\",\"file\":\"{}\",\"verification\":\"{}\",\"type\":\"{}\",\"date\":\"{}\"}}",
+                    esc(&source.id),
+                    esc(&source.file),
+                    source_verification(source.verification),
+                    esc(&source.source_type),
+                    esc(&source.date)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+}
+
+fn neighbourhood_ids(graph: &crate::ontology::Graph, node: &str) -> BTreeSet<String> {
+    let mut ids = BTreeSet::from([node.to_owned()]);
+    if let Some(edges) = graph.inbound.get(node) {
+        ids.extend(edges.iter().map(|edge| edge.from.clone()));
+    }
+    if let Some(edges) = graph.outbound.get(node) {
+        ids.extend(edges.iter().map(|edge| edge.to.clone()));
+    }
+    ids
+}
+
+fn research_for_nodes(
+    scan_result: &scanner::ScanResult,
+    nodes: &BTreeSet<String>,
+) -> Vec<Research> {
+    scan_result
+        .artefacts
+        .research
+        .iter()
+        .filter(|research| research.nodes.iter().any(|node| nodes.contains(node)))
+        .cloned()
+        .collect()
+}
+
+fn sources_for_nodes(scan_result: &scanner::ScanResult, nodes: &BTreeSet<String>) -> Vec<Source> {
+    let source_ids = scan_result
+        .artefacts
+        .research
+        .iter()
+        .filter(|research| research.nodes.iter().any(|node| nodes.contains(node)))
+        .flat_map(|research| research.sources.iter().cloned())
+        .chain(
+            scan_result
+                .artefacts
+                .decisions
+                .iter()
+                .filter(|decision| decision.nodes.iter().any(|node| nodes.contains(node)))
+                .flat_map(|decision| decision.informed_by.iter().cloned()),
+        )
+        .collect::<BTreeSet<_>>();
+    scan_result
+        .artefacts
+        .sources
+        .iter()
+        .filter(|source| source_ids.contains(&source.id))
+        .cloned()
+        .collect()
+}
+
+fn flag_value<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
+    args.windows(2)
+        .find_map(|pair| (pair[0] == flag).then_some(pair[1].as_str()))
+}
+
+fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
+    match value {
+        "open" => Some(TodoStatus::Open),
+        "in_progress" => Some(TodoStatus::InProgress),
+        "done" => Some(TodoStatus::Done),
+        "blocked" => Some(TodoStatus::Blocked),
+        _ => None,
+    }
+}
+
+fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus> {
+    match value {
+        "proposed" => Some(DecisionStatus::Proposed),
+        "accepted" => Some(DecisionStatus::Accepted),
+        "deprecated" => Some(DecisionStatus::Deprecated),
+        "superseded" => Some(DecisionStatus::Superseded),
+        _ => None,
+    }
+}
+
+fn todo_line(todo: &Todo) -> String {
+    format!("{} [{}] {}", todo.node, todo_status(todo.status), todo.path)
+}
+
+fn decision_line(decision: &Decision) -> String {
+    format!(
+        "{} [{}] {}",
+        decision.id,
+        decision_status(decision.status),
+        decision.nodes.join(", ")
+    )
+}
+
+fn research_line(research: &Research) -> String {
+    format!("{} sources: {}", research.id, research.sources.join(", "))
+}
+
+fn review_line(review: &Review) -> String {
+    format!(
+        "{} [{}] {}",
+        review.node,
+        review_type(review.review_type),
+        review.path
+    )
+}
+
+fn source_line(source: &Source) -> String {
+    format!(
+        "{} [{}] {}",
+        source.id,
+        source_verification(source.verification),
+        source.file
+    )
+}
+
+const fn todo_status(status: TodoStatus) -> &'static str {
+    match status {
+        TodoStatus::Open => "open",
+        TodoStatus::InProgress => "in_progress",
+        TodoStatus::Done => "done",
+        TodoStatus::Blocked => "blocked",
+    }
+}
+
+const fn decision_status(status: DecisionStatus) -> &'static str {
+    match status {
+        DecisionStatus::Proposed => "proposed",
+        DecisionStatus::Accepted => "accepted",
+        DecisionStatus::Deprecated => "deprecated",
+        DecisionStatus::Superseded => "superseded",
+    }
+}
+
+const fn review_type(review_type: ReviewType) -> &'static str {
+    match review_type {
+        ReviewType::Human => "human",
+        ReviewType::AgentIntrospective => "agent_introspective",
+        ReviewType::AgentCrossModel => "agent_cross_model",
+    }
+}
+
+const fn source_verification(verification: SourceVerification) -> &'static str {
+    match verification {
+        SourceVerification::Verified => "verified",
+        SourceVerification::External => "external",
+        SourceVerification::Unverified => "unverified",
+    }
 }
 
 fn findings_output(json: bool, findings: &[Finding]) -> CliResult {
