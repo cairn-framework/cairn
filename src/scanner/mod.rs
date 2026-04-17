@@ -7,7 +7,10 @@ pub mod state;
 use std::path::Path;
 
 use crate::{
-    artefacts::contract::{ContractSet, load_contracts},
+    artefacts::{
+        contract::{ContractSet, load_contracts},
+        registry::{ArtefactSet, load_artefacts},
+    },
     dsl,
     ontology::{Graph, build_graph},
     reconcile::{ReconcileRequest, Reconciler, code::RustCodeReconciler},
@@ -18,6 +21,8 @@ use crate::{
 pub struct ScanResult {
     /// Built graph.
     pub graph: Graph,
+    /// Loaded typed artefacts.
+    pub artefacts: ArtefactSet,
     /// Loaded contracts.
     pub contracts: ContractSet,
     /// Interface hash.
@@ -34,6 +39,7 @@ pub fn load_project(root: &Path, dsl_path: &Path) -> Result<ScanResult, String> 
     let config = config::load(root).map_err(|error| error.message)?;
     let ast = dsl::parse_file(dsl_path).map_err(|error| error.to_string())?;
     let contracts = load_contracts(root, &ast);
+    let artefacts = load_artefacts(root, &ast, contracts.clone());
     let reconciler = RustCodeReconciler::new(&ast);
     let report = reconciler
         .reconcile(ReconcileRequest {
@@ -42,10 +48,12 @@ pub fn load_project(root: &Path, dsl_path: &Path) -> Result<ScanResult, String> 
         })
         .map_err(|error| error.to_string())?;
     let mut findings = contracts.findings.clone();
+    findings.extend(artefacts.findings.clone());
     findings.extend(report.findings);
     let graph = build_graph(&ast, root, &contracts, &report.claimed_files, findings);
     Ok(ScanResult {
         graph,
+        artefacts,
         contracts,
         interface_hash: report.fingerprint.hash,
     })
