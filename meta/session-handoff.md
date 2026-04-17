@@ -1,28 +1,32 @@
-# Session Handoff — 2026-04-16
+# Session Handoff — 2026-04-17
 
 ## What Was Done
-- Rebuilt CAIRN infographic from scratch (infographic.html) — previous agent's version had broken 3D CSS, unreliable hover targeting, invisible card stacking, only 3/6 nodes
-- New infographic: 4 sections (Hero, Two Chains, Interactive Graph, Temporal), 7 graph nodes with 9 edges, accordion detail panel with artefact layer drill-down, clean 2D layout
-- Ran Palantir Debate on UI phasing strategy (Option A: amend all phases vs Option B: living surface with query API contract)
-- Outcome: Option B wins with refinement — UI Maintenance Contract added
-- Created Phase 2.5 Graph Explorer OpenSpec change (proposal.md, design.md, spec.md with 18 scenarios, tasks.md with 42 tasks)
-- Updated campaign phase map and Phase 3 dependency chain
-- Ran /simplify — fixed navLayer redundancy, extracted LAYER_COLORS lookup, cached DOM queries, added Escape handler, fixed design.md Canvas-vs-DOM and force-directed-vs-hierarchical inconsistencies, added missing spec scenarios
+- Ran morning report — confirmed all 12 phase specs committed, clean tree, no open PRs
+- Ran Palantir Debate on phase plan and doc hygiene (Sauron attacks, Saruman defends)
+- Doc staleness audit: identified 3 stale/partially-stale docs
+- Resolved all 7 doc debt items from debate:
+  - Deleted stale `docs/phase-2-deferrals.md` (all items covered by named phases)
+  - Removed banned "MVP" language from `docs/dsl.md`
+  - Updated `docs/spec.md` §14: added Phase 0 and Phase 2.5 to phase map
+  - Updated `docs/spec.md` §17: committed to Rust as implementation language
+  - Fixed LSP placement in `docs/spec.md` §16: Phase 10, not Phase 5
+  - Added `cairn init` greenfield scaffolding task to Phase 1 (task 5.3a)
+  - Added pre-commit hook update task to Phase 4 (task 4.2a)
+- Debate strongholds written: sauron critique, saruman defense, staleness audit
 
 ## What Remains
-- All 11 phase specs (0-10) are written and committed
-- Phase 2.5 spec is written and committed
+- All 12 phase specs (0, 1, 2, 2.5, 3-10) are written, committed, and doc-clean
 - No phases have been implemented yet — ready for cflx execution
-- Infographic is a static explainer, not the real Phase 2.5 graph explorer
+- No git remote configured
 
 ## Current State
 - Branch: dev
 - Working copy: clean
-- No open PRs
-- HTTP server may still be running on port 8765 (python3 -m http.server) — will die with terminal
+- No open PRs (no remote)
+- Debate strongholds: `docs/strongholds/palantir-sauron-phase-critique.md`, `palantir-saruman-phase-defense.md`, `docs-staleness-audit.md`
 
 ## Next Steps
-1. Read meta/campaigns/rust-full-spec.md for the full protocol
+1. Read `meta/campaigns/rust-full-spec.md` for the full protocol
 2. Start cflx execution with Phase 0 (Rust project foundation)
 3. Proceed through phases sequentially: 0 -> 1 -> 2 -> 2.5 -> 3 -> ... -> 10
 4. Use `codex exec` for implementation (user prefers codex over claude)
