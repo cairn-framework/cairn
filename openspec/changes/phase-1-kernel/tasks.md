@@ -61,16 +61,5 @@
 - [x] 7.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-1-kernel --strict` passes.
 
 ## Implementation Blocker #1
-category: external_non_mockable
 
-summary: Exact Tree-sitter Rust reconciler implementation cannot be completed because the sandbox has no network access and no cached Tree-sitter crate or CLI.
-
-evidence: `cargo search serde --limit 1` failed with `Could not resolve host: crates.io`, proving registry access is unavailable for adding `tree-sitter` dependencies. `command -v tree-sitter` returned no executable. `rg "tree-sitter" Cargo.lock Cargo.toml ~/.cargo/registry/src -g 'Cargo.toml'` returned no cached crate references.
-
-impact: Task 4.2 remains unchecked for the exact Tree-sitter requirement. A std-only Rust source reconciler fallback exists in `src/reconcile/code.rs` and passes all required gates, but it is not Tree-sitter-backed.
-
-unblock_actions: Provide network access or vendor/cache `tree-sitter` and `tree-sitter-rust` crates. Replace the fallback public-item scanner with Tree-sitter parser integration and rerun the required gates.
-
-owner: implementation
-
-decision_due: 2026-04-17
+RESOLVED 2026-04-17: codex sandbox `network_access = true` enabled in `~/.codex/config.toml [sandbox_workspace_write]`. `cargo add tree-sitter tree-sitter-rust` now works inside the worktree. Re-queue phase-1 to complete task 4.2 with real Tree-sitter integration.
