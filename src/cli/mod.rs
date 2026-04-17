@@ -15,7 +15,7 @@ use crate::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
     },
-    scanner, version_label,
+    scanner, ui, version_label,
 };
 
 /// Command safety class.
@@ -51,107 +51,115 @@ pub struct CliResult {
     pub stderr: String,
 }
 
+const COMMAND_REGISTRY: [CommandMetadata; 17] = [
+    CommandMetadata {
+        name: "get",
+        request: "NodeRequest",
+        response: "NodeResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "neighbourhood",
+        request: "NodeRequest",
+        response: "NeighbourhoodResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "contract",
+        request: "NodeRequest",
+        response: "ContractResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "todos",
+        request: "ArtefactNodeRequest",
+        response: "TodosResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "decisions",
+        request: "ArtefactNodeRequest",
+        response: "DecisionsResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "research",
+        request: "NodeRequest",
+        response: "ResearchResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "sources",
+        request: "NodeRequest",
+        response: "SourcesResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "rationale",
+        request: "NodeRequest",
+        response: "RationaleResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "status",
+        request: "StatusRequest",
+        response: "StatusResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "files",
+        request: "NodeRequest",
+        response: "FilesResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "dependents",
+        request: "DependencyRequest",
+        response: "DependencyResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "depends",
+        request: "DependencyRequest",
+        response: "DependencyResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "order",
+        request: "OrderRequest",
+        response: "OrderResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "lint",
+        request: "LintRequest",
+        response: "LintResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "scan",
+        request: "ScanRequest",
+        response: "ScanResponse",
+        safety: SafetyClass::Mutating,
+    },
+    CommandMetadata {
+        name: "init",
+        request: "InitRequest",
+        response: "InitResponse",
+        safety: SafetyClass::Mutating,
+    },
+    CommandMetadata {
+        name: "ui",
+        request: "UiRequest",
+        response: "UiServerResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+];
+
 /// Returns Phase 1 command registry.
 #[must_use]
 pub const fn registry() -> &'static [CommandMetadata] {
-    &[
-        CommandMetadata {
-            name: "get",
-            request: "NodeRequest",
-            response: "NodeResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "neighbourhood",
-            request: "NodeRequest",
-            response: "NeighbourhoodResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "contract",
-            request: "NodeRequest",
-            response: "ContractResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "todos",
-            request: "ArtefactNodeRequest",
-            response: "TodosResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "decisions",
-            request: "ArtefactNodeRequest",
-            response: "DecisionsResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "research",
-            request: "NodeRequest",
-            response: "ResearchResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "sources",
-            request: "NodeRequest",
-            response: "SourcesResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "rationale",
-            request: "NodeRequest",
-            response: "RationaleResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "status",
-            request: "StatusRequest",
-            response: "StatusResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "files",
-            request: "NodeRequest",
-            response: "FilesResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "dependents",
-            request: "DependencyRequest",
-            response: "DependencyResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "depends",
-            request: "DependencyRequest",
-            response: "DependencyResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "order",
-            request: "OrderRequest",
-            response: "OrderResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "lint",
-            request: "LintRequest",
-            response: "LintResponse",
-            safety: SafetyClass::ReadOnly,
-        },
-        CommandMetadata {
-            name: "scan",
-            request: "ScanRequest",
-            response: "ScanResponse",
-            safety: SafetyClass::Mutating,
-        },
-        CommandMetadata {
-            name: "init",
-            request: "InitRequest",
-            response: "InitResponse",
-            safety: SafetyClass::Mutating,
-        },
-    ]
+    &COMMAND_REGISTRY
 }
 
 /// Executes CLI arguments.
@@ -166,6 +174,9 @@ pub fn run(args: &[String]) -> CliResult {
     };
     if parsed.command == "init" {
         return init_project(Path::new("."));
+    }
+    if parsed.command == "ui" {
+        return run_ui_command(&parsed);
     }
     run_project_command(&parsed)
 }
@@ -286,6 +297,19 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
             stderr: String::new(),
         },
     )
+}
+
+fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
+    match ui::UiOptions::from_args(&parsed.command_args) {
+        Ok(mut options) => {
+            options.dsl_path.clone_from(&parsed.file);
+            ui::serve_current_thread(options).map_or_else(
+                |error| err(1, &error.to_string()),
+                |message| ok(format!("{message}\n")),
+            )
+        }
+        Err(message) => err(2, &message),
+    }
 }
 
 fn render_get(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> Result<String, Finding> {

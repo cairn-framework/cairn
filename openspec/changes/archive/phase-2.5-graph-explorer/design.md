@@ -44,7 +44,7 @@ The server exposes a JSON API that delegates to the cairn library's query functi
 A thin HTTP handler layer that maps REST-like routes to cairn query functions:
 
 ```
-GET /api/graph              → neighbourhood(root, transitive=true)
+GET /api/graph              → graph()
 GET /api/node/:id           → get(id)
 GET /api/node/:id/contract  → contract(id)
 GET /api/node/:id/decisions → decisions(id)
@@ -59,7 +59,10 @@ GET /api/status             → status()
 GET /api/meta               → schema_version, available_commands
 ```
 
-All responses use the same typed JSON structs as the CLI's `--format json` output.
+Bridge responses use the same typed JSON structs as the CLI JSON output where a
+matching CLI command exists. `/api/graph` uses the explorer-specific typed
+`GraphResponse` because it combines hierarchy ownership edges with dependency
+edges for the browser canvas, a shape not exposed by a single CLI command.
 
 ### Graph Layout Engine
 

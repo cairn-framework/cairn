@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cairn Graph Explorer</title>
+    <link rel="stylesheet" href="/assets/style.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Cairn</p>
+        <h1>Graph Explorer</h1>
+      </div>
+      <div class="toolbar">
+        <button id="zoom-out" type="button">Zoom out</button>
+        <button id="zoom-in" type="button">Zoom in</button>
+        <button id="reset-view" type="button">Reset</button>
+      </div>
+    </header>
+    <main class="shell">
+      <section class="graph-region" aria-label="Architecture graph">
+        <div id="warning" class="warning" hidden></div>
+        <div id="graph" class="graph" tabindex="0"></div>
+      </section>
+      <aside id="detail-panel" class="detail-panel" aria-live="polite" hidden>
+        <button id="close-panel" class="close" type="button">Close</button>
+        <p id="node-kind" class="eyebrow"></p>
+        <h2 id="node-name">Select a node</h2>
+        <p id="node-id"></p>
+        <p id="node-description"></p>
+        <div id="finding-detail"></div>
+        <div class="layer-nav">
+          <button id="prev-layer" type="button">Back</button>
+          <span id="layer-count">0 / 0</span>
+          <button id="next-layer" type="button">Next</button>
+        </div>
+        <div id="artefacts"></div>
+      </aside>
+    </main>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

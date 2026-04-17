@@ -126,6 +126,22 @@ app.api.auth -> app.api "cycle"
         query::neighbourhood(&graph, "Auth")?.inbound,
         vec!["app.api".to_owned()]
     );
+    let explorer_graph = query::graph(&graph);
+    assert!(
+        explorer_graph
+            .nodes
+            .iter()
+            .any(|node| node.id == "app.api.auth")
+    );
+    assert!(explorer_graph.edges.iter().any(|edge| {
+        edge.from == "app" && edge.to == "app.api" && edge.kind == query::GraphEdgeKind::Ownership
+    }));
+    assert!(explorer_graph.edges.iter().any(|edge| {
+        edge.from == "app.api"
+            && edge.to == "app.api.auth"
+            && edge.kind == query::GraphEdgeKind::Dependency
+            && edge.description == "contains"
+    }));
     assert!(query::order(&graph).is_err());
 
     Ok(())

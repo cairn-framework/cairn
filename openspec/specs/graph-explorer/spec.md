@@ -1,6 +1,6 @@
 # Graph Explorer Capability Spec
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Serve the graph explorer via cairn ui
 
@@ -125,6 +125,15 @@ The UI SHALL consume cairn query output exclusively with no separate data path.
 - **WHEN** any data is displayed (nodes, edges, artefacts, findings)
 - **THEN** that data was obtained via the query bridge API (`/api/*`)
 - **AND** the query bridge delegates to the same library functions that back the CLI
+
+#### Scenario: Graph endpoint uses explorer graph response
+
+- **GIVEN** the graph explorer loads its canvas data
+- **WHEN** it requests `GET /api/graph`
+- **THEN** the bridge delegates to the library `graph()` query response
+- **AND** the response contains typed `nodes` and `edges`
+- **AND** each edge declares whether it is an `ownership` or `dependency` edge
+- **AND** this explorer-specific response shape is versioned through `GET /api/meta`
 
 #### Scenario: Forward-compatible artefact rendering
 

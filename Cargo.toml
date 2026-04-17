@@ -35,5 +35,6 @@ path = "src/main.rs"
 workspace = true
 
 [dependencies]
+ctrlc = "3.4.7"
 tree-sitter = "0.26.8"
 tree-sitter-rust = "0.24.2"

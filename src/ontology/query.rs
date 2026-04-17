@@ -41,6 +41,37 @@ pub struct DependencyResponse {
     pub nodes: Vec<String>,
 }
 
+/// Graph explorer edge kind.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum GraphEdgeKind {
+    /// Parent-to-child ownership edge.
+    Ownership,
+    /// Declared dependency edge.
+    Dependency,
+}
+
+/// Graph explorer edge response.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GraphEdgeResponse {
+    /// Source node ID.
+    pub from: String,
+    /// Target node ID.
+    pub to: String,
+    /// Edge kind.
+    pub kind: GraphEdgeKind,
+    /// Human-readable edge description.
+    pub description: String,
+}
+
+/// Graph explorer response.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GraphResponse {
+    /// All ontology nodes.
+    pub nodes: Vec<NodeRecord>,
+    /// Ownership and dependency edges.
+    pub edges: Vec<GraphEdgeResponse>,
+}
+
 /// Order response.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OrderResponse {
@@ -131,6 +162,47 @@ pub fn dependents(
     })
 }
 
+/// Returns the graph explorer structural graph.
+#[must_use]
+pub fn graph(graph: &Graph) -> GraphResponse {
+    let nodes = graph.nodes.values().cloned().collect::<Vec<_>>();
+    let ownership = nodes
+        .iter()
+        .filter_map(|node| node.parent.as_ref().map(|parent| (parent, &node.id)))
+        .map(|(from, to)| GraphEdgeResponse {
+            from: from.clone(),
+            to: to.clone(),
+            kind: GraphEdgeKind::Ownership,
+            description: "owns".to_owned(),
+        });
+    let dependencies = graph
+        .outbound
+        .values()
+        .flatten()
+        .map(|edge| GraphEdgeResponse {
+            from: edge.from.clone(),
+            to: edge.to.clone(),
+            kind: GraphEdgeKind::Dependency,
+            description: edge.description.clone(),
+        });
+    let mut edges = ownership.chain(dependencies).collect::<Vec<_>>();
+    edges.sort_by(|left, right| {
+        (
+            &left.from,
+            &left.to,
+            edge_kind_name(left.kind),
+            &left.description,
+        )
+            .cmp(&(
+                &right.from,
+                &right.to,
+                edge_kind_name(right.kind),
+                &right.description,
+            ))
+    });
+    GraphResponse { nodes, edges }
+}
+
 /// Returns dependency order or cycle findings.
 ///
 /// # Errors
@@ -146,6 +218,13 @@ pub fn lint(graph: &Graph) -> LintResponse {
     let mut findings = graph.findings.clone();
     findings.extend(integrity::cycle_findings(graph));
     LintResponse { findings }
+}
+
+const fn edge_kind_name(kind: GraphEdgeKind) -> &'static str {
+    match kind {
+        GraphEdgeKind::Ownership => "ownership",
+        GraphEdgeKind::Dependency => "dependency",
+    }
 }
 
 fn collect(graph: &Graph, id: &str, transitive: bool, outbound: bool) -> Vec<String> {
