@@ -230,7 +230,11 @@ impl Server {
     fn serve(self, stop: &Arc<AtomicBool>) -> Result<(), UiError> {
         while !stop.load(Ordering::SeqCst) {
             match self.listener.accept() {
-                Ok((mut stream, _peer)) => self.handle_stream(&mut stream)?,
+                Ok((mut stream, _peer)) => {
+                    stream.set_nonblocking(false)?;
+                    stream.set_read_timeout(Some(Duration::from_secs(5)))?;
+                    self.handle_stream(&mut stream)?;
+                }
                 Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
                     thread::sleep(Duration::from_millis(25));
                 }
