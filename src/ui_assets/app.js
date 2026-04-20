@@ -412,7 +412,10 @@ function fitToViewport(opts = {}) {
   // 1.0 clamp: don't upscale tiny graphs; keep native type size.
   const fit = Math.min(scaleW, scaleH, 1.0);
   const prevFit = state.fitScale || fit;
-  const prevUserRatio = opts.preserveUserScale && prevFit > 0
+  // Only preserve user zoom when we have a valid prior fit AND the user was
+  // actually zoomed in above fit. At fit (ratio == 1) a fresh reset-to-fit is
+  // the same outcome but avoids carrying tiny float drift across reflows.
+  const prevUserRatio = opts.preserveUserScale && state.fitScale > 0 && state.scale > state.fitScale + 1e-6
     ? (state.scale / prevFit)
     : null;
   state.fitScale = fit;
@@ -465,9 +468,16 @@ function clampPan() {
 }
 
 function resetView() {
-  // Ensure the 160ms linear transform transition runs, then snap to fit.
+  // Ensure the 160ms linear transform transition runs, then snap to fit
+  // against the CURRENT canvas width — never a cached value. Force a layout
+  // read first so any pending grid-column reflow (e.g. from a close event
+  // moments earlier) has committed before we measure.
   graph.classList.remove("no-transition");
-  fitToViewport();
+  // Invalidate cached fitScale so fit recomputes from rect + content bounds
+  // rather than any prior preserveUserScale ratio.
+  state.fitScale = 0;
+  viewport.getBoundingClientRect(); // flush layout
+  requestAnimationFrame(() => fitToViewport());
 }
 
 function clamp(v, min, max) {
@@ -763,6 +773,7 @@ function closePanel() {
   state.selected = null;
   state.currentNode = null;
   state.artefacts = [];
+  state.artefactIndex = 0;
   state.artefactExpanded = new Set();
   panel.hidden = true;
   artefactsMount.innerHTML = "";
@@ -773,16 +784,23 @@ function closePanel() {
   shell.classList.add("panel-closed");
   closeBtn.classList.remove("just-opened");
   closeBtn.style.outline = ""; // clear any lingering inline ring
+  // Invalidate the cached fitScale so the next fitToViewport recomputes
+  // against the post-reflow rectangle rather than comparing to a stale
+  // pre-close fit when preserveUserScale is applied elsewhere.
+  state.fitScale = 0;
   renderGraph();
   // After the grid collapses, we must re-fit against the NEW wider viewport.
   // One RAF isn't enough: the grid-template-columns toggle + layout pass has
   // to commit before `viewport.getBoundingClientRect()` reflects the wider
-  // column. Force a synchronous layout read and then re-fit on the next
-  // frame to guarantee we measure the post-reflow rectangle.
-  // eslint-disable-next-line no-unused-expressions
+  // column. Triple-rAF + forced layout read guarantees we measure the
+  // post-reflow rectangle. Plain fit (no preserveUserScale) because close
+  // is a "go back to composed frame" gesture — Reset idempotence requires
+  // both paths to compute the same scale against the same viewport width.
   viewport.getBoundingClientRect(); // flush pending layout
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => fitToViewport({ preserveUserScale: true }));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => fitToViewport());
+    });
   });
 }
 
