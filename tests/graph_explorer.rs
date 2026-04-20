@@ -51,14 +51,25 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
 
     let html = get(server.address(), "/")?;
     let js = get(server.address(), "/assets/app.js")?;
+    let preact = get(server.address(), "/vendor/preact.min.js")?;
+    let htm = get(server.address(), "/vendor/htm.min.js")?;
 
     server.stop();
 
-    assert!(html.contains("Graph Explorer"));
-    assert!(html.contains("detail-panel"));
-    assert!(js.contains("loadArtefacts"));
-    assert!(js.contains("renderArtefacts"));
-    assert!(js.contains("just now"));
+    // Shell markers from the v2 app frame.
+    assert!(html.contains("id=\"root\""));
+    assert!(html.contains("class=\"app\""));
+    assert!(html.contains("/vendor/preact.min.js"));
+    assert!(html.contains("/assets/app.js"));
+
+    // App entry points: component factory + live-data fetch helpers.
+    assert!(js.contains("ModuleInspector"));
+    assert!(js.contains("fetchGraph"));
+    assert!(js.contains("renderPath"));
+
+    // Vendored runtime delivered alongside static assets.
+    assert!(preact.contains("self.preact"));
+    assert!(htm.contains("self.htm"));
 
     Ok(())
 }
