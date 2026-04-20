@@ -3,12 +3,12 @@
 # IDs use dotted notation. Top-level is "cairn" (not "cairn.system") — the
 # System node's ID is the namespace root, not a label within it.
 
-System Cairn "Ontology framework with pluggable reconcilers" id "cairn" @framework {
+System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
 
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
         path "./src/kernel"
 
-        Module Parser "Parses .dsl files into a node graph" id "cairn.kernel.parser" {
+        Module Parser "Parses .blueprint files into a node graph" id "cairn.kernel.parser" {
             path "./src/kernel/parser"
             contract  "./meta/contracts/kernel/parser.md"
             decisions "./meta/decisions/kernel/parser/"

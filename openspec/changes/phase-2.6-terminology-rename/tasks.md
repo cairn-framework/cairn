@@ -72,3 +72,7 @@ Each sweep task runs `rg -i '\b(dsl|ontology)\b' <path>` (plus `rg 'index\.md' <
 - [x] 8.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-2.6-terminology-rename --strict` passes.
 - [x] 8.7 Integration test: `cairn scan` against a `.blueprint` fixture produces `map.md` with expected content.
 - [x] 8.8 Spec version header in `docs/spec.md` reads `v0.7`.
+
+## Acceptance #1 Failure Follow-up
+
+- [x] Fix remaining legacy terminology in active blueprint fixtures: `test/fixtures/cairn.blueprint` and `test/fixtures/cairn-bootstrap/cairn.blueprint` still describe Cairn as an "Ontology framework" and the parser as parsing `.dsl` files; update these example fixture descriptions to `map`/`.blueprint` vocabulary or explicitly justify any historical exception in `ALLOWLIST.md`.
