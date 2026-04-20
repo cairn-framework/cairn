@@ -77,7 +77,7 @@ pub fn run(
     let started = Instant::now();
     let lint_findings = query::lint(&scan_result.graph).findings;
     let structural = structural_findings(&lint_findings);
-    let interface = interface_findings(root, &scan_result.interface_hash);
+    let interface = interface_findings(root, &scan_result.target_hashes);
     let tensions = tension_findings(&lint_findings);
     let conflict_findings = detect_active_change_conflicts(changes_dir);
     let findings = match kind {
@@ -175,15 +175,12 @@ fn tension_findings(findings: &[Finding]) -> Vec<Finding> {
         .collect()
 }
 
-fn interface_findings(root: &Path, current_hash: &str) -> Vec<Finding> {
+fn interface_findings(root: &Path, current: &scanner::state::TargetHashes) -> Vec<Finding> {
     let state_path = root.join(".cairn/state/interface-hashes.json");
-    let Ok(state) = fs::read_to_string(&state_path) else {
+    let Ok(recorded) = scanner::state::read_interface_hash(root) else {
         return Vec::new();
     };
-    let Some(recorded_hash) = extract_json_string(&state, "rust-code") else {
-        return Vec::new();
-    };
-    if recorded_hash == current_hash {
+    if recorded.is_empty() || &recorded == current {
         Vec::new()
     } else {
         vec![Finding {
@@ -194,15 +191,6 @@ fn interface_findings(root: &Path, current_hash: &str) -> Vec<Finding> {
             path: Some(path_string(&state_path)),
         }]
     }
-}
-
-fn extract_json_string(source: &str, key: &str) -> Option<String> {
-    let needle = format!("\"{key}\"");
-    let start = source.find(&needle)? + needle.len();
-    let after_colon = source[start..].find(':')? + start + 1;
-    let value_start = source[after_colon..].find('"')? + after_colon + 1;
-    let value_end = source[value_start..].find('"')? + value_start;
-    Some(source[value_start..value_end].to_owned())
 }
 
 #[derive(Clone, Debug)]

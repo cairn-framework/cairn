@@ -718,6 +718,170 @@ fn test_hook_interface_blocks_changed_interface_hash() -> Result<(), Box<dyn std
     Ok(())
 }
 
+#[allow(clippy::needless_raw_string_hashes)]
+#[test]
+fn test_hash_stable_across_comments_and_formatting() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hash-stable-comments")?;
+    fs::create_dir_all(root.join("src"))?;
+    let source1 = r#"
+// This is a comment
+pub fn foo() {}
+pub struct Bar;
+"#;
+    let source2 = r#"
+/* Block comment */ pub   fn   foo(){}
+/**
+ * Multi-line
+ * comment
+ */
+pub struct Bar/*trailing*/;
+"#;
+    fs::write(root.join("src/lib.rs"), source1)?;
+    let ast1 = parser::parse_str(
+        "fixture",
+        r#"System App "desc" id "app" {
+    Module Lib "lib" id "app.lib" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+    let report1 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
+        root: &root,
+        ignores: &[],
+    })?;
+    let hash1 = report1.fingerprint.hash.clone();
+
+    fs::write(root.join("src/lib.rs"), source2)?;
+    let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
+        root: &root,
+        ignores: &[],
+    })?;
+    let hash2 = report2.fingerprint.hash.clone();
+
+    assert_eq!(
+        hash1, hash2,
+        "hash should be stable across comments and formatting"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_hash_stable_across_private_symbols() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hash-stable-private")?;
+    fs::create_dir_all(root.join("src"))?;
+    let source1 = "
+pub fn public_api() {}
+fn private_helper() {}
+struct PrivateStruct {}
+";
+    let source2 = "
+pub fn public_api() {}
+fn different_private() {}
+struct another_private {}
+const PRIVATE_CONST: u8 = 1;
+";
+    fs::write(root.join("src/lib.rs"), source1)?;
+    let ast1 = parser::parse_str(
+        "fixture",
+        r#"System App "desc" id "app" {
+    Module Lib "lib" id "app.lib" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+    let report1 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
+        root: &root,
+        ignores: &[],
+    })?;
+    let hash1 = report1.fingerprint.hash.clone();
+
+    fs::write(root.join("src/lib.rs"), source2)?;
+    let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
+        root: &root,
+        ignores: &[],
+    })?;
+    let hash2 = report2.fingerprint.hash.clone();
+
+    assert_eq!(hash1, hash2, "hash should be stable across private symbols");
+    Ok(())
+}
+
+#[test]
+fn test_hash_stable_across_source_order() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hash-stable-order")?;
+    fs::create_dir_all(root.join("src"))?;
+    let source1 = "
+pub fn first() {}
+pub struct Second;
+pub enum Third { A, B }
+";
+    let source2 = "
+pub enum Third { A, B }
+pub struct Second;
+pub fn first() {}
+";
+    fs::write(root.join("src/lib.rs"), source1)?;
+    let ast1 = parser::parse_str(
+        "fixture",
+        r#"System App "desc" id "app" {
+    Module Lib "lib" id "app.lib" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+    let report1 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
+        root: &root,
+        ignores: &[],
+    })?;
+    let hash1 = report1.fingerprint.hash.clone();
+
+    fs::write(root.join("src/lib.rs"), source2)?;
+    let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
+        root: &root,
+        ignores: &[],
+    })?;
+    let hash2 = report2.fingerprint.hash.clone();
+
+    assert_eq!(hash1, hash2, "hash should be stable across source order");
+    Ok(())
+}
+
+#[test]
+fn test_divergence_contradiction_ct001() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("divergence-contradiction")?;
+    fs::create_dir_all(root.join("src/rust"))?;
+    fs::create_dir_all(root.join("src/ts"))?;
+    fs::write(root.join("src/rust/lib.rs"), "pub fn api() {}\n")?;
+    fs::write(root.join("src/ts/index.ts"), "export function api() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Multi "multi" id "app.multi" {
+        path ["./src/rust/lib.rs", "./src/ts/index.ts"]
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    let ct001 = result.graph.findings.iter().find(|f| f.code == "CT001");
+    assert!(
+        ct001.is_some(),
+        "Expected CT001 divergence contradiction finding, got: {:?}",
+        result.graph.findings
+    );
+    assert!(
+        ct001.unwrap().severity == cairn::map::FindingSeverity::Error,
+        "CT001 should be an Error severity"
+    );
+
+    Ok(())
+}
+
 #[test]
 fn test_hook_all_reports_active_change_conflicts() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("hook-conflicts")?;
@@ -838,6 +1002,64 @@ fn test_committed_hook_runner_invokes_hook_all() -> Result<(), Box<dyn std::erro
 
     assert!(output.status.success());
     assert!(String::from_utf8(output.stdout)?.contains("Hook: all"));
+
+    Ok(())
+}
+
+#[test]
+fn test_divergence_intentional_asymmetry_ct002() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("divergence-asymmetry")?;
+    fs::create_dir_all(root.join("src/rust"))?;
+    fs::create_dir_all(root.join("src/ts"))?;
+    fs::write(root.join("src/rust/lib.rs"), "pub fn api() {}\n")?;
+    fs::write(root.join("src/ts/index.ts"), "export function api() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Multi "multi" id "app.multi" {
+        path ["./src/rust/lib.rs", "./src/ts/index.ts"]
+    }
+}
+"#,
+    )?;
+    fs::write(
+        root.join("cairn.config.yaml"),
+        r#"context: ""
+rules: {}
+multi_target:
+  intentional_asymmetry:
+    - node: app.multi
+      contract_role: public_api
+      targets:
+        - src/rust/lib.rs
+        - src/ts/index.ts
+      reason: "The client intentionally exposes a narrowed interface."
+"#,
+    )?;
+
+    let _config = scanner::config::load(&root)?;
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    let ct002 = result.graph.findings.iter().find(|f| f.code == "CT002");
+    assert!(
+        ct002.is_some(),
+        "Expected CT002 rationale tension finding, got: {:?}",
+        result.graph.findings
+    );
+    assert!(
+        ct002.unwrap().severity == cairn::map::FindingSeverity::Warning,
+        "CT002 should be a Warning severity"
+    );
+    assert!(
+        ct002.unwrap().message.contains("intentionally exposes"),
+        "CT002 message should contain the reason"
+    );
+
+    let ct001 = result.graph.findings.iter().find(|f| f.code == "CT001");
+    assert!(
+        ct001.is_none(),
+        "Should NOT have CT001 when asymmetry is intentional"
+    );
 
     Ok(())
 }

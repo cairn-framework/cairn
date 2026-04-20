@@ -2,6 +2,10 @@
 
 pub mod code;
 pub mod fingerprint;
+pub mod go;
+pub mod python;
+pub mod target;
+pub mod typescript;
 
 use std::{error::Error, fmt, path::Path};
 
