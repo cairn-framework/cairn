@@ -12,9 +12,7 @@ use crate::{
         TodoStatus,
     },
     changes,
-    cli::hooks::{
-        ExitDecision, HookKind, HookReport, errors_from_findings, warnings_from_findings,
-    },
+    cli::hooks::{HookKind, HookReport, errors_from_findings, warnings_from_findings},
     map::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
