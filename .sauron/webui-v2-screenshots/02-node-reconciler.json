@@ -1,0 +1,1 @@
+{"id":"cairn.kernel.reconciler","kind":"module","name":"ReconcilerInterface","description":"Abstract contract for reconcilers","tags":[],"parent":"cairn.kernel","children":[],"paths":["./src/kernel/reconciler"],"contracts":["./meta/contracts/kernel/reconciler.md"],"state":"ghost","files":[]}

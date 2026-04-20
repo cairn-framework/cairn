@@ -1,0 +1,346 @@
+{
+    "nodes": [
+        {
+            "id": "cairn",
+            "kind": "system",
+            "name": "Cairn",
+            "description": "Map framework with pluggable reconcilers",
+            "tags": [
+                "framework"
+            ],
+            "parent": null,
+            "children": [
+                "cairn.kernel",
+                "cairn.code-reconciler",
+                "cairn.summariser"
+            ],
+            "paths": [],
+            "contracts": [],
+            "state": "synced",
+            "files": []
+        },
+        {
+            "id": "cairn.code-reconciler",
+            "kind": "module",
+            "name": "CodeReconciler",
+            "description": "Tree-sitter-based reconciler for source code",
+            "tags": [
+                "reconciler",
+                "code"
+            ],
+            "parent": "cairn",
+            "children": [],
+            "paths": [
+                "./src/reconcilers/code"
+            ],
+            "contracts": [
+                "./meta/contracts/reconcilers/code.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel",
+            "kind": "container",
+            "name": "Kernel",
+            "description": "Domain-agnostic core",
+            "tags": [
+                "kernel"
+            ],
+            "parent": "cairn",
+            "children": [
+                "cairn.kernel.parser",
+                "cairn.kernel.artefacts",
+                "cairn.kernel.reconciler",
+                "cairn.kernel.reconciliation",
+                "cairn.kernel.changes",
+                "cairn.kernel.hooks",
+                "cairn.kernel.query",
+                "cairn.kernel.cli"
+            ],
+            "paths": [
+                "./src/kernel"
+            ],
+            "contracts": [],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.artefacts",
+            "kind": "module",
+            "name": "Artefacts",
+            "description": "Pluggable artefact type registry",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/artefacts"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/artefacts.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.changes",
+            "kind": "module",
+            "name": "Changes",
+            "description": "Change directories, delta semantics, archive",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/changes"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/changes.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.cli",
+            "kind": "module",
+            "name": "CLI",
+            "description": "Primary user surface",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/cli"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/cli.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.hooks",
+            "kind": "module",
+            "name": "Hooks",
+            "description": "Commit and task-boundary enforcement",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/hooks"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/hooks.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.parser",
+            "kind": "module",
+            "name": "Parser",
+            "description": "Parses .blueprint files into a node graph",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/parser"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/parser.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.query",
+            "kind": "module",
+            "name": "Query",
+            "description": "Typed queries over the map",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/query"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/query.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.reconciler",
+            "kind": "module",
+            "name": "ReconcilerInterface",
+            "description": "Abstract contract for reconcilers",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/reconciler"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/reconciler.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.kernel.reconciliation",
+            "kind": "module",
+            "name": "Reconciliation",
+            "description": "Joins blueprint, artefacts, and reconciler output into map",
+            "tags": [],
+            "parent": "cairn.kernel",
+            "children": [],
+            "paths": [
+                "./src/kernel/reconciliation"
+            ],
+            "contracts": [
+                "./meta/contracts/kernel/reconciliation.md"
+            ],
+            "state": "ghost",
+            "files": []
+        },
+        {
+            "id": "cairn.summariser",
+            "kind": "module",
+            "name": "Summariser",
+            "description": "Optional LLM callout for interface contradictions",
+            "tags": [
+                "optional"
+            ],
+            "parent": "cairn",
+            "children": [],
+            "paths": [
+                "./src/summariser"
+            ],
+            "contracts": [
+                "./meta/contracts/summariser.md"
+            ],
+            "state": "ghost",
+            "files": []
+        }
+    ],
+    "edges": [
+        {
+            "from": "cairn",
+            "to": "cairn.code-reconciler",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn",
+            "to": "cairn.kernel",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn",
+            "to": "cairn.summariser",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.code-reconciler",
+            "to": "cairn.kernel.reconciler",
+            "kind": "dependency",
+            "description": "Implements"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.artefacts",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.changes",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.cli",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.hooks",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.parser",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.query",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.reconciler",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel",
+            "to": "cairn.kernel.reconciliation",
+            "kind": "ownership",
+            "description": "owns"
+        },
+        {
+            "from": "cairn.kernel.changes",
+            "to": "cairn.kernel.reconciliation",
+            "kind": "dependency",
+            "description": "Validates before archive"
+        },
+        {
+            "from": "cairn.kernel.cli",
+            "to": "cairn.kernel.query",
+            "kind": "dependency",
+            "description": "Exposes queries as commands"
+        },
+        {
+            "from": "cairn.kernel.hooks",
+            "to": "cairn.kernel.reconciliation",
+            "kind": "dependency",
+            "description": "Gates on integrity"
+        },
+        {
+            "from": "cairn.kernel.query",
+            "to": "cairn.kernel.reconciliation",
+            "kind": "dependency",
+            "description": "Reads map"
+        },
+        {
+            "from": "cairn.kernel.reconciliation",
+            "to": "cairn.kernel.artefacts",
+            "kind": "dependency",
+            "description": "Validates artefacts"
+        },
+        {
+            "from": "cairn.kernel.reconciliation",
+            "to": "cairn.kernel.parser",
+            "kind": "dependency",
+            "description": "Consumes parsed blueprint"
+        },
+        {
+            "from": "cairn.kernel.reconciliation",
+            "to": "cairn.kernel.reconciler",
+            "kind": "dependency",
+            "description": "Invokes registered reconcilers"
+        },
+        {
+            "from": "cairn.summariser",
+            "to": "cairn.kernel.reconciliation",
+            "kind": "dependency",
+            "description": "Proposes contract updates on contradictions"
+        }
+    ]
+}
