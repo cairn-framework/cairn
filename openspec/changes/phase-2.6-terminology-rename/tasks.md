@@ -75,4 +75,8 @@ Each sweep task runs `rg -i '\b(dsl|ontology)\b' <path>` (plus `rg 'index\.md' <
 
 ## Acceptance #1 Failure Follow-up
 
-- [x] Fix remaining legacy terminology in active blueprint fixtures: `test/fixtures/cairn.blueprint` and `test/fixtures/cairn-bootstrap/cairn.blueprint` still describe Cairn as an "Ontology framework" and the parser as parsing `.dsl` files; update these example fixture descriptions to `map`/`.blueprint` vocabulary or explicitly justify any historical exception in `ALLOWLIST.md`.
+- [x] Fix remaining pre-rename wording in active blueprint fixtures: `test/fixtures/cairn.blueprint` and `test/fixtures/cairn-bootstrap/cairn.blueprint` still used old framework and parser descriptions; update these example fixture descriptions to current vocabulary or explicitly justify any historical exception in `ALLOWLIST.md`.
+
+## Acceptance #2 Failure Follow-up
+
+- [x] Resolve unallowlisted pre-rename wording introduced by the Acceptance #1 follow-up text in `tasks.md`; either rewrite the follow-up description to avoid source terms or update `ALLOWLIST.md` with a concrete line-specific justification so task 7.3 remains truthful.
