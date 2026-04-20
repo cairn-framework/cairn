@@ -82,6 +82,13 @@ button:focus-visible {
   line-height: 1;
 }
 
+.topbar-center-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
 .topbar-meta {
   display: inline-flex;
   align-items: baseline;
@@ -212,9 +219,11 @@ button:focus-visible {
   overflow: hidden;
   cursor: grab;
   background-image:
-    radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
-  background-size: 24px 24px;
-  background-position: 0 0;
+    radial-gradient(circle, var(--grid-dot) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px);
+  background-size: 32px 32px, 128px 128px, 128px 128px;
+  background-position: 0 0, 0 0, 0 0;
 }
 
 .graph-viewport:active {
@@ -288,7 +297,7 @@ marker.arrow-active polygon {
   width: max-content;
   min-width: 180px;
   max-width: 260px;
-  padding: 10px 12px;
+  padding: var(--s-2) var(--s-3);
   background: linear-gradient(180deg,
     rgba(255, 245, 220, 0.025) 0%, transparent 40%),
     var(--stone-3);
@@ -379,6 +388,20 @@ marker.arrow-active polygon {
 
 .node.kind-container.active {
   outline-color: var(--stroke-2);
+}
+
+.node.drift {
+  border-color: var(--drift);
+  animation: breathe var(--dur-breathe) ease-in-out infinite;
+}
+
+.node.drift::before { background: var(--drift); }
+
+.node.drift .node-kind { color: var(--drift); }
+
+@keyframes breathe {
+  0%, 100% { box-shadow: var(--lift-2), var(--inset-sky), 0 0 0 0 transparent; }
+  50%      { box-shadow: var(--lift-2), var(--inset-sky), 0 0 0 3px var(--drift-wash); }
 }
 
 .node.hidden {
@@ -526,6 +549,8 @@ marker.arrow-active polygon {
   align-items: center;
   justify-content: space-between;
   margin-bottom: calc(-1 * var(--s-5) + var(--s-3));
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--stroke-1);
 }
 
 .eyebrow {
@@ -627,10 +652,11 @@ marker.arrow-active polygon {
 }
 
 .section-label {
-  font-family: var(--font-mono);
-  font-size: var(--t-micro);
+  font-family: var(--font-serif);
+  font-size: var(--t-small);
+  font-weight: 500;
   color: var(--ink-faded);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -783,9 +809,10 @@ marker.arrow-active polygon {
   gap: var(--s-2);
   padding-bottom: var(--s-2);
   border-bottom: 1px solid var(--stroke-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: var(--t-micro);
-  color: var(--prov-2);
+  font-weight: 500;
+  color: var(--ink-faded);
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }

@@ -13,3 +13,11 @@ target/
 
 # Chrome headless scratch from screenshot capture
 .cache/
+
+# Claude Code session-local references (design bundles, scratch assets)
+.claude/references/
+.claude/stronghold/
+
+# Local preview scaffolding for src/ui_assets/ (mimics Rust include_str routes)
+src/ui_assets/api/
+src/ui_assets/assets/
