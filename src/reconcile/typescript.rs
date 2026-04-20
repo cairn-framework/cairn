@@ -1,4 +1,4 @@
-//! Phase 1 Rust code reconciler.
+//! TypeScript code reconciler.
 
 use std::{
     collections::BTreeMap,
@@ -17,43 +17,41 @@ use super::{
     fingerprint::InterfaceFingerprint,
 };
 
-const PUBLIC_ITEM_KINDS: &[&str] = &[
-    "const_item",
-    "enum_item",
-    "function_item",
-    "mod_item",
-    "static_item",
-    "struct_item",
-    "trait_item",
-    "type_item",
-    "union_item",
+const EXPORTABLE_KINDS: &[&str] = &[
+    "export_statement",
+    "class_declaration",
+    "function_declaration",
+    "interface_declaration",
+    "type_alias_declaration",
+    "enum_declaration",
+    "variable_declaration",
 ];
 
-/// Rust source reconciler.
-pub struct RustCodeReconciler<'a> {
+/// TypeScript source reconciler.
+pub struct TypeScriptReconciler<'a> {
     ast: &'a Ast,
 }
 
-impl<'a> RustCodeReconciler<'a> {
-    /// Creates a Rust source reconciler.
+impl<'a> TypeScriptReconciler<'a> {
+    /// Creates a new TypeScript reconciler.
     #[must_use]
     pub const fn new(ast: &'a Ast) -> Self {
         Self { ast }
     }
 }
 
-impl Reconciler for RustCodeReconciler<'_> {
+impl Reconciler for TypeScriptReconciler<'_> {
     fn id(&self) -> ReconcilerId {
-        ReconcilerId("rust-code".to_owned())
+        ReconcilerId("typescript-code".to_owned())
     }
 
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
-        let rust_files = discover_rust_files(request.root, request.ignores)?;
+        let ts_files = discover_ts_files(request.root, request.ignores)?;
         let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
         let mut findings = Vec::new();
         let mut symbols = Vec::new();
-        for file in rust_files {
+        for file in ts_files {
             let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
             if let Some(owner) = most_specific_owner(&owners, &rel) {
                 claimed_files
@@ -65,7 +63,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                 findings.push(Finding {
                     code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
                     severity: FindingSeverity::Error,
-                    message: format!("Rust file `{rel}` is not owned by any eligible node"),
+                    message: format!("TypeScript file `{rel}` is not owned by any eligible node"),
                     node: None,
                     path: Some(rel),
                 });
@@ -111,7 +109,7 @@ fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String
         .map(|(id, _)| id.clone())
 }
 
-fn discover_rust_files(root: &Path, ignores: &[String]) -> Result<Vec<PathBuf>, ReconcileError> {
+fn discover_ts_files(root: &Path, ignores: &[String]) -> Result<Vec<PathBuf>, ReconcileError> {
     let mut files = Vec::new();
     walk(root, root, ignores, &mut files)?;
     files.sort();
@@ -139,7 +137,9 @@ fn walk(
         }
         if path.is_dir() {
             walk(root, &path, ignores, files)?;
-        } else if path.extension().is_some_and(|ext| ext == "rs") {
+        } else if let Some(ext) = path.extension().and_then(|e| e.to_str())
+            && (ext == "ts" || ext == "tsx")
+        {
             files.push(path);
         }
     }
@@ -153,13 +153,13 @@ fn public_symbols(path: &Path) -> Result<Vec<String>, ReconcileError> {
     })?;
     let mut parser = tree_sitter::Parser::new();
     parser
-        .set_language(&tree_sitter_rust::LANGUAGE.into())
+        .set_language(&tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into())
         .map_err(|error| ReconcileError {
-            code: "CAIRN_RECONCILE_RUST_LANGUAGE".to_owned(),
+            code: "CAIRN_RECONCILE_TS_LANGUAGE".to_owned(),
             message: error.to_string(),
         })?;
     let tree = parser.parse(&source, None).ok_or_else(|| ReconcileError {
-        code: "CAIRN_RECONCILE_PARSE_RUST".to_owned(),
+        code: "CAIRN_RECONCILE_PARSE_TS".to_owned(),
         message: format!("failed to parse `{}`", path.display()),
     })?;
     let mut symbols = Vec::new();
@@ -173,7 +173,7 @@ fn collect_public_symbols(
     source: &[u8],
     symbols: &mut Vec<String>,
 ) -> Result<(), ReconcileError> {
-    if is_public_item(node) {
+    if is_exportable(node, source) {
         symbols.push(interface_symbol(node, source));
     }
     let mut cursor = node.walk();
@@ -183,52 +183,39 @@ fn collect_public_symbols(
     Ok(())
 }
 
-fn is_public_item(node: tree_sitter::Node<'_>) -> bool {
-    if !PUBLIC_ITEM_KINDS.contains(&node.kind()) {
+fn is_exportable(node: tree_sitter::Node<'_>, _source: &[u8]) -> bool {
+    if !EXPORTABLE_KINDS.contains(&node.kind()) {
         return false;
+    }
+    if node.kind() == "export_statement" {
+        return true;
     }
     let mut cursor = node.walk();
     node.children(&mut cursor)
-        .any(|child| child.kind() == "visibility_modifier")
+        .any(|child| child.kind() == "visibility_modifier" || child.kind() == "export")
 }
 
+#[must_use]
 fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
-    let signature = node
-        .child_by_field_name("body")
-        .and_then(|body| source.get(node.start_byte()..body.start_byte()))
-        .and_then(|bytes| std::str::from_utf8(bytes).ok())
-        .map(str::trim)
-        .map(ToOwned::to_owned);
-    if let Some(signature) = signature {
-        return normalize_symbol(&signature);
-    }
-    let mut parts = Vec::new();
-    let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
-        let kind = child.kind();
-        if matches!(
-            kind,
-            "visibility_modifier"
-                | "struct_kw"
-                | "enum_kw"
-                | "trait_kw"
-                | "fn_kw"
-                | "mod_kw"
-                | "use_kw"
-                | "type_kw"
-                | "const_kw"
-                | "static_kw"
-                | "name"
-                | "identifier"
-                | "primitive_type"
-                | "field_identifier"
-                | "type_identifier"
-        ) && let Ok(text) = child.utf8_text(source)
-        {
-            parts.push(text.trim());
-        }
-    }
-    normalize_symbol(&parts.join(" "))
+    let kind = node.kind();
+    let name = node
+        .child_by_field_name("name")
+        .or_else(|| {
+            if kind == "export_statement" {
+                node.children(&mut node.walk())
+                    .find(|c| c.kind() == "identifier" || c.kind() == "string_literal")
+            } else {
+                None
+            }
+        })
+        .and_then(|n| n.utf8_text(source).ok())
+        .map_or_else(
+            || node.utf8_text(source).unwrap_or("").to_owned(),
+            str::to_owned,
+        );
+
+    let signature = format!("{kind}:{name}");
+    normalize_symbol(&signature)
 }
 
 fn normalize_symbol(text: &str) -> String {

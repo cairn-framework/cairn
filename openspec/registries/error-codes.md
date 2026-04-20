@@ -61,7 +61,8 @@ _No codes allocated yet._
 
 ## CT -- Targets
 
-_No codes allocated yet._
+CT001 -- interface contradiction: multiple targets claim same contract role with divergent interfaces -- phase-6
+CT002 -- rationale tension: intentional asymmetry flagged for human review -- phase-6
 
 ## CM -- MCP
 

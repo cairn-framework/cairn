@@ -440,17 +440,79 @@ fn render_neighbourhood(
 
 fn render_files(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
-        query::files(&scan_result.graph, node).map(|response| {
-            if parsed.json {
-                format!(
-                    "{{\"node\":\"{}\",\"files\":{}}}\n",
-                    esc(&response.node),
-                    string_array_json(&response.files)
-                )
+        let node_record = scan_result.graph.resolve(node)?;
+        let target_reports_for_node: Vec<_> = scan_result
+            .target_reports
+            .iter()
+            .filter(|r| r.target_id.node_id == node_record.id)
+            .collect();
+        let has_multi_target = target_reports_for_node.len() > 1;
+        if parsed.json {
+            let targets_json = if target_reports_for_node.is_empty() {
+                "[]".to_string()
             } else {
-                format!("Files for {}:\n{}\n", response.node, lines(&response.files))
+                let items: Vec<String> = target_reports_for_node
+                    .iter()
+                    .map(|r| {
+                        format!(
+                            "{{\"path\":\"{}\",\"language\":\"{}\",\"reconciler_id\":\"{}\",\"files\":{},\"hash\":\"{}\"}}",
+                            esc(&r.target_id.path.to_string_lossy()),
+                            r.language.as_str(),
+                            r.reconciler_id.0,
+                            string_array_json(&r.claimed_files),
+                            esc(&r.hash)
+                        )
+                    })
+                    .collect();
+                    format!("[{}]", items.join(","))
+            };
+            if has_multi_target {
+                Ok(format!(
+                    "{{\"node\":\"{}\",\"targets\":{}}}\n",
+                    esc(&node_record.id),
+                    targets_json
+                ))
+            } else {
+                Ok(format!(
+                    "{{\"node\":\"{}\",\"files\":{},\"targets\":{}}}\n",
+                    esc(&node_record.id),
+                    string_array_json(&node_record.files),
+                    targets_json
+                ))
             }
-        })
+        } else {
+            let mut output = format!("Files for {}:\n", node_record.id);
+            if has_multi_target {
+                for r in &target_reports_for_node {
+                    use std::fmt::Write;
+                    writeln!(
+                        output,
+                        "  {} ({}): {}",
+                        r.target_id.path.display(),
+                        r.language.as_str(),
+                        r.claimed_files.join(", ")
+                    ).unwrap();
+                    writeln!(output, "    reconciler: {}", r.reconciler_id.0).unwrap();
+                    writeln!(output, "    hash: {}", r.hash).unwrap();
+                }
+            } else if let Some(r) = target_reports_for_node.first() {
+                use std::fmt::Write;
+                writeln!(
+                    output,
+                    "  {}: {}",
+                    r.target_id.path.display(),
+                    r.claimed_files.join(", ")
+                ).unwrap();
+                writeln!(output, "  language: {}", r.language.as_str()).unwrap();
+                writeln!(output, "  reconciler: {}", r.reconciler_id.0).unwrap();
+                writeln!(output, "  hash: {}", r.hash).unwrap();
+            } else {
+                use std::fmt::Write;
+                writeln!(output, "  {}", lines(&node_record.files)).unwrap();
+            }
+            output.push('\n');
+            Ok(output)
+        }
     })
 }
 
