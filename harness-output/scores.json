@@ -1,0 +1,344 @@
+{
+  "iterations": [
+    {
+      "n": 0,
+      "label": "baseline (pre-design)",
+      "scores": {
+        "design": 4,
+        "originality": 3,
+        "craft": 4,
+        "functionality": 3,
+        "weighted_avg": 3.5
+      },
+      "weighting": "(2*design + 2*originality + 1*craft + 1*functionality) / 6",
+      "decision": "REFINE",
+      "ship_thresholds": {
+        "design_min": 7.0,
+        "originality_min": 7.0,
+        "craft_min": 7.0,
+        "functionality_min": 8.0,
+        "weighted_avg_min": 7.2
+      },
+      "threshold_gap": {
+        "design": -3.0,
+        "originality": -4.0,
+        "craft": -3.0,
+        "functionality": -5.0,
+        "weighted_avg": -3.7
+      },
+      "zones": {
+        "topbar": {
+          "design": 4,
+          "originality": 3,
+          "craft": 5,
+          "functionality": 4,
+          "notes": "Generic SaaS header; zoom buttons are non-functional no-ops; no project meta surfaced."
+        },
+        "graph_canvas": {
+          "design": 5,
+          "originality": 5,
+          "craft": 4,
+          "functionality": 3,
+          "notes": "Dot-grid is a tasteful base. Nodes are rounded soft cards (spec antipattern). 3 of 9 modules are rendered off-screen with no pan/scroll to reach them. All leaf modules look identical."
+        },
+        "detail_panel": {
+          "design": 4,
+          "originality": 3,
+          "craft": 4,
+          "functionality": 5,
+          "notes": "Opens on node-click and shows kind/name/id/description. Layer-nav Back/Next are rendered but do nothing (stuck at 0/0). No findings surfaced. No artefact sections. ~95% empty white space."
+        },
+        "artefact_panels": {
+          "design": 0,
+          "originality": 0,
+          "craft": 0,
+          "functionality": 0,
+          "notes": "Entirely missing from DOM. Zero decisions/todos/research/reviews/changes sections. Zero filter toggles. Spec \u00a75 unimplemented."
+        },
+        "meta_footer": {
+          "design": 0,
+          "originality": 0,
+          "craft": 0,
+          "functionality": 0,
+          "notes": "No footer exists. Project name, schema version, generated_at from /api/meta are never rendered. Spec \u00a77 unimplemented."
+        }
+      },
+      "adversarial": {
+        "console_errors": [],
+        "console_warnings": [],
+        "mobile_overflow": false,
+        "mobile_tested": "simulated via body max-width clamp; true mobile viewport resize was blocked by OS window minimum",
+        "clipping": [
+          "graph-region clips 3 rightmost module nodes (~1021px of content) at default 1440 viewport",
+          "'Parser' node label is visibly cut mid-word on the right edge of the canvas",
+          "no pan affordance, no horizontal scroll inside #graph, no fade indicator"
+        ],
+        "non_functional_controls": [
+          "Zoom out button (no transform change)",
+          "Zoom in button (no transform change)",
+          "Reset button (does not restore collapsed nodes; does not change transform)",
+          "Layer-nav Back button (stuck at 0/0)",
+          "Layer-nav Next button (stuck at 0/0)"
+        ],
+        "missing_features": [
+          "artefact filter toggles (--include-todos/research/reviews/decisions/changes)",
+          "decisions section",
+          "todos section",
+          "research section",
+          "reviews section",
+          "changes section",
+          "meta/schema footer with project name, schema_version, generated_at",
+          "lint findings inside the detail panel",
+          "paths list / contracts list / files list / tags / dependents / depends-on on node detail",
+          "monospace typography for IDs, paths, file references, contract names",
+          "graph pan-by-drag",
+          "graph fit-to-viewport initial layout"
+        ],
+        "spec_violations": [
+          "Typography: node IDs rendered in Inter sans-serif instead of monospace (spec \u00a7Aesthetic direction)",
+          "Anti-pattern: rounded cards with subtle shadows on node UI (spec \u00a7Anti-patterns)",
+          "Anti-pattern: generic pill badge styling for CAIRN_CONTRACT_MISSING (spec wants restrained severity treatment)",
+          "Feature gap: \u226565% of spec feature surface area not implemented (artefact panels, filters, footer, layer nav, zoom)"
+        ]
+      },
+      "keyIssues": [
+        "Graph clips 3 of 9 module nodes off-screen with no way to reach them",
+        "All three toolbar buttons (Zoom out / Zoom in / Reset) are non-functional",
+        "Layer-nav Back / Next are rendered but do nothing (permanent 0 / 0 counter)",
+        "Artefact panels, filter toggles, and schema footer are entirely absent from the DOM",
+        "Detail panel shows 4 short lines then ~800px of empty whitespace",
+        "Lint findings render on node cards but are never surfaced inside the detail panel",
+        "Node IDs set in proportional sans-serif instead of monospace",
+        "Topbar reads as generic SaaS dashboard chrome with no project context"
+      ],
+      "biggest_opportunity": "The data plumbing works end-to-end. Refining is a build-out task (fill in the missing 60-75% of the spec) rather than a rescue task (nothing is fundamentally broken). A single coordinated pass that (a) adds the artefact + footer + findings surfaces, (b) switches IDs to mono, (c) redesigns nodes away from rounded-card-with-shadow aesthetic, and (d) wires the existing non-functional controls would move the score materially."
+    },
+    {
+      "n": 1,
+      "label": "iter-1 (first design-implement pass)",
+      "scores": {
+        "design": 7,
+        "originality": 7,
+        "craft": 6,
+        "functionality": 5,
+        "weighted_avg": 6.5
+      },
+      "weighting": "(2*design + 2*originality + 1*craft + 1*functionality) / 6",
+      "decision": "REFINE",
+      "delta_from_iter_0": {
+        "design": 3.0,
+        "originality": 4.0,
+        "craft": 2.0,
+        "functionality": 2.0,
+        "weighted_avg": 3.0
+      },
+      "threshold_gap": {
+        "design": 0.0,
+        "originality": 0.0,
+        "craft": -1.0,
+        "functionality": -3.0,
+        "weighted_avg": -0.7
+      },
+      "zones": {
+        "topbar": {
+          "design": 7,
+          "originality": 7,
+          "craft": 6,
+          "functionality": 5,
+          "notes": "Masthead with mark + hairline + sub-mark + mono meta strip (project / schema / generated) + connected zoom strip landed. Reset is a no-op (hard-caps Func at 5); zoom in/out and drag-pan work; glyphs mono; zero radius; zero shadow."
+        },
+        "graph_canvas": {
+          "design": 6,
+          "originality": 6,
+          "craft": 6,
+          "functionality": 7,
+          "notes": "All 9 modules present in DOM; typographic square nodes with mono IDs, kind-eyebrow, warm substrate fills; finding indicator is 16x16 corner tab with ! glyph; edges unlabeled; selected-node stroke is 2px inset ochre. Fit-to-viewport fits the full SVG viewBox rather than the content bbox so nodes cluster bottom-left and ~68% of canvas reads as dead dot-grid (hard-caps Craft at 6)."
+        },
+        "detail_panel": {
+          "design": 7,
+          "originality": 7,
+          "craft": 6,
+          "functionality": 6,
+          "notes": "Panel now renders header (MODULE eyebrow / name / mono ID) + description + FINDINGS with severity margin mark + PATHS / CONTRACTS / DEPENDENTS / STATE, hiding empty blocks. Layer-nav 'BACK 0/0 NEXT' renders on every node (violates design \u00a75.3 item 4 which says hide when layers=0 - hard-caps Func at 6). Close button works but shell grid doesn't reflow; 380px empty column remains. Esc does not close."
+        },
+        "meta_footer": {
+          "design": 8,
+          "originality": 8,
+          "craft": 8,
+          "functionality": 9,
+          "notes": "Correctly merged into topbar per design \u00a76. Project name / schema version / generated ISO all mono, middle-dot separators, faint-ink labels. Removes the iter-0 'missing' defect by relocation not invention."
+        },
+        "artefact_panels": {
+          "design": 5,
+          "originality": 5,
+          "craft": 5,
+          "functionality": 5,
+          "notes": "Sprint contract moved these out of scope this iteration. Detail panel does render per-kind labeled blocks (paths, contracts, dependents, state) which partially cover the intent. Full expandable-artefact-card design (\u00a75.3 item 5) not exercisable against current fixture - no fixture node has decisions/todos/research rows."
+        }
+      },
+      "adversarial": {
+        "console_errors": [],
+        "console_warnings": [],
+        "page_horizontal_overflow_1440": false,
+        "dark_mode_block_present": true,
+        "mobile_bottom_sheet_css_present": true,
+        "mobile_viewport_verified_live": false,
+        "mobile_tested_note": "Chrome OS window-min-width clamp prevented shrinking to 390px; @media (max-width: 480px) block in CSS defines position:fixed bottom:0 height:70vh, 180ms linear slide-up, 32x3px square drag handle - structurally compliant, visual verification blocked.",
+        "non_functional_controls": [
+          "Reset view button (no-op; transform does not revert to fit-scale after zoom-in)",
+          "Esc key does not close panel (nice-to-have, not blocker)"
+        ],
+        "partial_functional_controls": [
+          "Layer-nav Back/Next click handlers exist but no fixture node has >0 artefacts so real advancement could not be verified",
+          "Close-panel: hides correctly but shell grid doesn't reflow; 380px dead column persists"
+        ],
+        "spec_violations": [
+          "Fit-to-viewport fits SVG viewBox (3200x2000) not the content bounding box; nodes cluster bottom-left",
+          "Layer-nav renders '\u2190 BACK 0 / 0 NEXT \u2192' for every node (design \u00a75.3 says hide when layers=0)",
+          "Reset view is a no-op (design \u00a74.1 says 'snap back to fit-scale with a 160ms linear transition')",
+          "System/container nodes show a 'collapse' text label inside the node body (design \u00a74.2 says only kind+name+ID)"
+        ],
+        "close_panel_flow": {
+          "panel_hides_correctly": true,
+          "grid_reflows_on_close": false,
+          "double_close_error": false,
+          "reopen_different_node_no_state_leak": true,
+          "esc_closes": false,
+          "console_errors_during_flow": 0
+        }
+      },
+      "keyIssues": [
+        "Reset view button is a no-op",
+        "Layer-nav shows '0 / 0' on every node (spec says hide when 0 layers)",
+        "Fit-to-viewport fits the SVG viewBox not the content bbox; graph appears bottom-left-weighted with ~68% dead dot-grid",
+        "Shell grid does not reflow on panel close; 380px empty column persists",
+        "Esc key does not close the panel",
+        "System/container nodes render 'collapse' text inside node body (not in design spec)",
+        "Artefact expandable cards not exercisable against current fixture - coverage gap for \u00a75.3 item 5"
+      ],
+      "biggest_opportunity": "Iter-1 nailed the visual identity (typography, color discipline, square zero-radius nodes, masthead, mono IDs, finding tabs, token system). The remaining gap is all functional polish: 4 shallow code fixes (Reset, layer-nav hide, fit-to-content-bbox, grid reflow) should push Craft and Functionality over 7.0/8.0 respectively. No re-architecture needed.",
+      "recommendation_for_iter_2_evaluator": "Mandatory full interaction sweep: every zoom button (including repeated clicks to verify stacking), drag-pan in two directions, click system + container + leaf-module node, collapse-expand a container, close-and-reopen rotation (node A -> close -> node B -> close -> node C with stale-state check), layer-nav against a node with >0 artefacts (probe /api/node/X to find one), mobile bottom sheet via DevTools emulation since OS clamp blocks true 390px resize, light-mode emulation via DevTools since OS prefers-dark forced dark here, Tab-focus ring verification. No SHIP decision without that sweep passing."
+    },
+    {
+      "n": 2,
+      "label": "iter-2 (refine after iter-1)",
+      "scores": {
+        "design": 6,
+        "originality": 7,
+        "craft": 4,
+        "functionality": 4,
+        "weighted_avg": 5.2
+      },
+      "weighting": "(0.3*design + 0.2*originality + 0.25*craft + 0.25*functionality)",
+      "decision": "REFINE",
+      "delta_from_iter_1": {
+        "design": -1.0,
+        "originality": 0.0,
+        "craft": -2.0,
+        "functionality": -1.0,
+        "weighted_avg": -1.3
+      },
+      "threshold_gap": {
+        "design": -1.0,
+        "originality": 0.0,
+        "craft": -3.0,
+        "functionality": -4.0,
+        "weighted_avg": -2.0
+      },
+      "delta_checklist": {
+        "1_fit_to_content_bbox_on_load": "FAIL - fit never engages at initial load; .graph style.transform is 'translate(0px, 0px) scale(1)' after fresh navigation; natural 2105x385 content overflows 1477-wide viewport; ReconcilerInterface clipped mid-word, Reconciliation and CodeReconciler off-canvas",
+        "2_reset_view_with_transition": "FAIL (partial) - DOM-dispatched click DOES fire reset, transition is 0.16s linear per spec, but post-close Reset occasionally lands on scale(0.467) vs expected ~0.655",
+        "3_layer_nav_hidden": "FAIL - hidden attribute set but CSS .layer-nav { display: grid } overrides [hidden] default; BACK 0/0 NEXT renders on every node in fixture",
+        "4_close_panel_grid_reflow": "PARTIAL - shell grid correctly reflows 1097px 380px -> 1477px on close (PASS); but the re-fit computes wrong scale (0.467 vs 0.655) so graph visibly shrinks when canvas grows",
+        "5_esc_close_and_focus_ring": "PASS - Escape keydown closes panel; .panel-close outline rgb(228 153 88) on open, fades within ~500ms",
+        "6_chevron_replaces_collapse_text": "PASS - literal 'collapse' word absent from node bodies; .node-chevron-tab rendered on SYSTEM Cairn and CONTAINER Kernel only with title='Collapse' tooltip; leaf modules have no chevron; chevron click hides container children",
+        "7_sweep_polish": "PARTIAL - orphan FINDINGS section header renders on Cairn despite 0 findings; no fixture exercise for artefact empty state"
+      },
+      "sweep": {
+        "zoom_in_stack_3x": "PASS - 0.645 -> 0.741 -> 0.853 -> 0.981 (x1.15^3)",
+        "zoom_out_floor": "PASS - floors at fitScale 0.645 after 3 zoom-outs",
+        "reset_from_zoomed": "PASS - 160ms linear transition back to fit when clicked from a zoomed state",
+        "drag_pan_two_directions": "PASS - translate shifts (-203,315) -> (-433,86) on diagonal drag at scale 0.853",
+        "pan_at_fitscale_clamp": "PASS - translate unchanged at fitScale per spec",
+        "node_rotation_cairn_kernel_parser_artefacts": "PASS - panel content refreshes cleanly on each click; no stale state; CAIRN_CONTRACT_MISSING finding renders on Artefacts",
+        "close_rotation": "PASS - shell grid reflows each cycle; no console errors",
+        "esc_canvas_close_button_all_close": "PASS - all three paths work; no double-fire",
+        "layer_nav_with_multi_artefact_node": "NOT REACHABLE - no fixture node has any artefacts; probed /api/node/X for first 11 nodes, all return 0 decisions/todos/research/reviews/changes",
+        "mobile_390x844_bottom_sheet": "NOT LIVE VERIFIABLE - OS clamps window to ~1477px minimum; CSS @media (max-width: 480px) structurally compliant with fixed inset 30vh 0 0 0, translateY(100%) slide, 36x4px sheet handle",
+        "dark_tokens": "PASS - --cairn-paper hsl(32 8% 11%), --cairn-ink hsl(38 20% 92%), --cairn-accent hsl(28 72% 62%) all resolve; warm-graphite palette in effect",
+        "console_clean": "PASS - zero error|warn|Uncaught across full flow"
+      },
+      "zones": {
+        "topbar": {
+          "design": 7,
+          "originality": 7,
+          "craft": 6,
+          "functionality": 6,
+          "notes": "Masthead unchanged structurally. Mono meta strip landed. Zoom buttons work when invoked via DOM click; Reset sometimes produces wrong fit scale after a panel-close perturbation."
+        },
+        "graph_canvas": {
+          "design": 5,
+          "originality": 6,
+          "craft": 4,
+          "functionality": 4,
+          "notes": "Typographic vocabulary still strong (chevron tab is a clean addition). Fit-to-content-bbox does NOT engage at load; initial frame shows ReconcilerInterface clipped and Reconciliation, CodeReconciler off-canvas. Post-close re-fit lands on wrong scale. Hard caps Craft at 4 and Functionality at 4."
+        },
+        "detail_panel": {
+          "design": 7,
+          "originality": 7,
+          "craft": 5,
+          "functionality": 5,
+          "notes": "Header + description + findings + metadata tail all right. BUT layer-nav '0/0' renders on every node despite hidden attribute (CSS specificity bug). Orphan FINDINGS header renders when findings array is empty. Panel-open focus ring on close X landed cleanly."
+        },
+        "meta_strip": {
+          "design": 7,
+          "originality": 7,
+          "craft": 7,
+          "functionality": 8,
+          "notes": "Unchanged from iter-1. Cairn / schema v1 / generated ISO mono."
+        },
+        "mobile_bottom_sheet": {
+          "design": 6,
+          "originality": 6,
+          "craft": 6,
+          "functionality": 6,
+          "notes": "Not live verifiable due to OS window clamp. CSS structurally compliant with bottom sheet rule, sheet handle, overscroll-contain. Scores held at 6 pending live verification."
+        }
+      },
+      "adversarial": {
+        "console_errors": [],
+        "console_warnings": [],
+        "initial_load_transform_bug": true,
+        "initial_load_transform_value": "translate(0px, 0px) scale(1)",
+        "horizontal_overflow_at_1477": false,
+        "visible_node_clipping_at_1477_initial_load": true,
+        "clipped_nodes": ["ReconcilerInterface (partial)", "Reconciliation (off-canvas)", "CodeReconciler (off-canvas)"],
+        "layer_nav_hide_broken_by_css_specificity": true,
+        "post_close_refit_wrong_scale": {
+          "observed": 0.467,
+          "expected": 0.655
+        },
+        "orphan_findings_header_when_empty": true,
+        "dark_tokens_resolve": true,
+        "light_mode_not_verified": "OS prefers-color-scheme: dark forced; DevTools emulation not applied this iteration",
+        "mobile_not_live_verified": "OS window clamp prevents true 390px resize",
+        "spec_violations": [
+          "Fit-to-viewport does not run at initial load (delta 1)",
+          "Layer-nav renders '0 / 0' on every node (delta 3)",
+          "Post-close re-fit produces wrong scale (delta 4 composition side)",
+          "FINDINGS section header renders with zero findings (delta 7)"
+        ]
+      },
+      "keyIssues": [
+        "Initial-load fit never runs; 3 of 11 nodes clipped off-screen on first paint",
+        "Layer-nav still renders BACK 0/0 NEXT on every node despite hidden attribute (CSS specificity bug)",
+        "Post-close re-fit lands on wrong scale (0.467 vs expected 0.655); graph shrinks when canvas grows",
+        "Orphan FINDINGS section header renders when findings array is empty",
+        "Regression vs iter-1 on Design Quality, Craft, and Functionality",
+        "Mobile and light-mode still not live verifiable this iteration"
+      ],
+      "decision_reasoning": "REFINE not PIVOT. Originality held at 7 and chevron tab + focus ring are genuine positive deltas. The regressions are all same-class bugs in the fit-transform pipeline and CSS specificity. The aesthetic direction is right; the implementation needs one more tight pass to nail the fit-on-load, the layer-nav hide, the post-close re-fit math, and the empty FINDINGS suppression.",
+      "biggest_opportunity": "Four shallow fixes (1. run fit on DOMContentLoaded + rAF + load + resize, 2. one-line CSS .layer-nav[hidden] { display: none !important } or cascade fix, 3. re-fit pipeline reads fresh viewport after grid reflow, 4. suppress FINDINGS header when empty) take iter-3 from 5.20 to the 7.2+ ship bar in a single pass, without touching the aesthetic. No re-architecture."
+    }
+  ]
+}
