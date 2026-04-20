@@ -252,6 +252,11 @@ nav.site .cta:hover { background: var(--stone-3); color: var(--ink-char); }
   gap: var(--s-9);
   align-items: center;
 }
+/* Hero sits directly under the nav: no section border, reduced top padding. */
+.hero.no-top {
+  border-top: 0;
+  padding-top: var(--s-8);
+}
 @media (max-width: 960px) {
   .hero { grid-template-columns: 1fr; gap: var(--s-7); padding: var(--s-7) 0 var(--s-8); }
 }
@@ -669,7 +674,7 @@ h2.section strong { color: var(--auth-1); font-weight: 400; }
 
 .domains {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--s-4);
   margin-top: var(--s-6);
 }
@@ -857,28 +862,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes drawLine {
-  from { stroke-dashoffset: 400; }
-  to   { stroke-dashoffset: 0; }
-}
-@keyframes pulseNode {
-  0%, 100% { opacity: 0.85; }
-  50%      { opacity: 1; }
-}
-@keyframes softPulse {
-  0%, 100% { opacity: 0.6; }
-  50%      { opacity: 1; }
-}
-@keyframes emberPulse {
-  0%, 100% { opacity: 0.65; }
-  50%      { opacity: 1; }
-}
-@keyframes emberHalo {
-  0%, 100% { opacity: 0.18; transform: scale(0.92); }
-  50%      { opacity: 0.55; transform: scale(1.08); }
-}
-
-/* Hero visual is now a product screenshot; no SVG draw animations. */
+/* Hero visual is a product screenshot; SVG draw/pulse animations removed. */
 
 /* Reveal on scroll */
 .reveal { opacity: 0; transform: translateY(10px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
@@ -925,7 +909,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   </nav>
 
   <!-- ================ HERO ================ -->
-  <section class="hero" style="border-top:0; padding-top:var(--s-8)">
+  <section class="hero no-top">
     <div class="hero-text">
       <div class="eyebrow">For people who refuse to let their system drift · first reality layer: code</div>
 
