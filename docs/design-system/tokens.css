@@ -114,6 +114,21 @@
   --settled-wash: rgba(130, 168, 147, 0.10);
 
   /* ============================================================
+   * Reconciliation state colors (distinct from finding severity)
+   * --synced    declared path exists and has claimed files (mossy-green)
+   * --ghost     declared path or contract target is absent (warm-red clay)
+   * --orphaned  source reality exists but no eligible node owns it (weathered)
+   * These alias the signal colors conceptually but keep distinct names so
+   * UI code can distinguish reconciliation state from finding severity.
+   * ============================================================ */
+  --synced: #82a893;
+  --synced-wash: rgba(130, 168, 147, 0.10);
+  --ghost: #d47854;
+  --ghost-wash: rgba(212, 120, 84, 0.10);
+  --orphaned: #b6ac96;
+  --orphan-wash: rgba(182, 172, 150, 0.08);
+
+  /* ============================================================
    * Typography families
    * Serif  for sentences (hero, titles, bodies read as prose).
    * Sans   for UI labels, metadata, descriptions.
@@ -258,6 +273,13 @@
   --block: #8a2e18;
   --settled: #3d6b4e;
   --settled-wash: rgba(61, 107, 78, 0.12);
+
+  --synced: #3d6b4e;
+  --synced-wash: rgba(61, 107, 78, 0.12);
+  --ghost: #a8461e;
+  --ghost-wash: rgba(168, 70, 30, 0.12);
+  --orphaned: #7a6f55;
+  --orphan-wash: rgba(122, 111, 85, 0.08);
 
   --lift-1: 0 1px 0 rgba(90, 70, 30, 0.08);
   --lift-2: 0 2px 4px rgba(90, 70, 30, 0.12), 0 1px 0 rgba(90, 70, 30, 0.1);
