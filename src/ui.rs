@@ -464,9 +464,9 @@ fn meta_json() -> String {
         .map(|command| {
             format!(
                 "{{\"name\":\"{}\",\"request\":\"{}\",\"response\":\"{}\",\"safety\":\"{:?}\"}}",
-                esc(command.name),
-                esc(command.request),
-                esc(command.response),
+                esc(command.cli_name),
+                esc(command.request_schema),
+                esc(command.response_schema),
                 command.safety
             )
         })

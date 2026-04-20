@@ -16,6 +16,10 @@ pub mod cli;
 pub mod hooks;
 /// Map graph construction and queries.
 pub mod map;
+/// MCP stdio transport.
+pub mod mcp;
+/// Shared structured query API and MCP tool registry.
+pub mod query_api;
 /// Code reconciliation interfaces.
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
@@ -68,7 +72,7 @@ mod tests {
         assert_eq!(
             cli::registry()
                 .iter()
-                .find(|command| command.name == "scan")
+                .find(|command| command.cli_name == "scan")
                 .map(|command| command.safety),
             Some(cli::SafetyClass::Mutating)
         );
@@ -76,10 +80,10 @@ mod tests {
             cli::registry()
                 .iter()
                 .filter(|command| {
-                    command.name != "scan"
-                        && command.name != "init"
-                        && command.name != "ui"
-                        && command.name != "archive"
+                    command.cli_name != "scan"
+                        && command.cli_name != "init"
+                        && command.cli_name != "archive"
+                        && command.cli_name != "rename"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );

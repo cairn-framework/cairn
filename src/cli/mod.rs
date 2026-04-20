@@ -19,27 +19,10 @@ use crate::{
     scanner, ui, version_label,
 };
 
-/// Command safety class.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum SafetyClass {
-    /// Read-only command.
-    ReadOnly,
-    /// Mutating command.
-    Mutating,
-}
+pub use crate::query_api::SafetyClass;
 
 /// Command metadata.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct CommandMetadata {
-    /// Command name.
-    pub name: &'static str,
-    /// Request type identity.
-    pub request: &'static str,
-    /// Response type identity.
-    pub response: &'static str,
-    /// Safety class.
-    pub safety: SafetyClass,
-}
+pub type CommandMetadata = crate::query_api::ToolMetadata;
 
 /// CLI execution result.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -52,127 +35,10 @@ pub struct CliResult {
     pub stderr: String,
 }
 
-const COMMAND_REGISTRY: [CommandMetadata; 19] = [
-    CommandMetadata {
-        name: "get",
-        request: "NodeRequest",
-        response: "NodeResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "neighbourhood",
-        request: "NodeRequest",
-        response: "NeighbourhoodResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "contract",
-        request: "NodeRequest",
-        response: "ContractResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "todos",
-        request: "ArtefactNodeRequest",
-        response: "TodosResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "decisions",
-        request: "ArtefactNodeRequest",
-        response: "DecisionsResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "research",
-        request: "NodeRequest",
-        response: "ResearchResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "sources",
-        request: "NodeRequest",
-        response: "SourcesResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "rationale",
-        request: "NodeRequest",
-        response: "RationaleResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "status",
-        request: "StatusRequest",
-        response: "StatusResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "files",
-        request: "NodeRequest",
-        response: "FilesResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "dependents",
-        request: "DependencyRequest",
-        response: "DependencyResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "depends",
-        request: "DependencyRequest",
-        response: "DependencyResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "order",
-        request: "OrderRequest",
-        response: "OrderResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "lint",
-        request: "LintRequest",
-        response: "LintResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "scan",
-        request: "ScanRequest",
-        response: "ScanResponse",
-        safety: SafetyClass::Mutating,
-    },
-    CommandMetadata {
-        name: "init",
-        request: "InitRequest",
-        response: "InitResponse",
-        safety: SafetyClass::Mutating,
-    },
-    CommandMetadata {
-        name: "ui",
-        request: "UiRequest",
-        response: "UiServerResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "hook",
-        request: "HookRequest",
-        response: "HookReport",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "archive",
-        request: "ArchiveRequest",
-        response: "ArchiveResponse",
-        safety: SafetyClass::Mutating,
-    },
-];
-
 /// Returns Phase 1 command registry.
 #[must_use]
 pub const fn registry() -> &'static [CommandMetadata] {
-    &COMMAND_REGISTRY
+    crate::query_api::registry()
 }
 
 /// Executes CLI arguments.
@@ -258,6 +124,9 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     if parsed.command == "archive" {
         return run_archive_command(parsed, root, legacy_warning);
     }
+    if parsed.json && uses_shared_json(parsed.command.as_str()) {
+        return run_shared_json_command(parsed, root, legacy_warning);
+    }
     let scan_result = if parsed.command == "scan" {
         scanner::scan(root, &parsed.file)
     } else {
@@ -270,18 +139,30 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     if requires_valid_map(parsed.command.as_str()) && scan_result.graph.has_errors() {
         return findings_output(parsed.json, &scan_result.graph.findings);
     }
+    render_loaded_project_command(parsed, root, &scan_result, legacy_warning)
+}
+
+fn render_loaded_project_command(
+    parsed: &ParsedArgs,
+    root: &Path,
+    scan_result: &scanner::ScanResult,
+    legacy_warning: String,
+) -> CliResult {
     match parsed.command.as_str() {
-        "get" => render_get(parsed, &scan_result),
-        "neighbourhood" => render_neighbourhood(parsed, &scan_result),
-        "files" => render_files(parsed, &scan_result),
-        "todos" => render_todos(parsed, &scan_result),
-        "decisions" => render_decisions(parsed, &scan_result),
-        "research" => render_research(parsed, &scan_result),
-        "sources" => render_sources(parsed, &scan_result),
-        "rationale" => render_rationale(parsed, &scan_result),
-        "status" => Ok(render_status(parsed, &scan_result, root)),
-        "hook" => return run_hook_command(parsed, root, &scan_result, legacy_warning),
-        "dependents" | "depends" => render_dependencies(parsed, &scan_result),
+        "get" => render_get(parsed, scan_result),
+        "neighbourhood" => render_neighbourhood(parsed, scan_result),
+        "files" => render_files(parsed, scan_result),
+        "todos" => render_todos(parsed, scan_result),
+        "decisions" => render_decisions(parsed, scan_result),
+        "research" => render_research(parsed, scan_result),
+        "sources" => render_sources(parsed, scan_result),
+        "rationale" => render_rationale(parsed, scan_result),
+        "status" => Ok(render_status(parsed, scan_result, root)),
+        "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
+        "changes" | "show" | "docstring" | "rename" => {
+            return err(2, "this command currently requires --json");
+        }
+        "dependents" | "depends" => render_dependencies(parsed, scan_result),
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
             let node = scan_result.graph.resolve(node)?;
             let body = node
@@ -333,6 +214,118 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
             stdout,
             stderr: legacy_warning,
         },
+    )
+}
+
+fn uses_shared_json(command: &str) -> bool {
+    matches!(
+        command,
+        "get"
+            | "neighbourhood"
+            | "contract"
+            | "docstring"
+            | "files"
+            | "dependents"
+            | "depends"
+            | "order"
+            | "lint"
+            | "scan"
+            | "status"
+            | "rationale"
+            | "todos"
+            | "decisions"
+            | "research"
+            | "sources"
+            | "changes"
+            | "show"
+            | "hook"
+            | "rename"
+    )
+}
+
+fn run_shared_json_command(parsed: &ParsedArgs, root: &Path, legacy_warning: String) -> CliResult {
+    let request = shared_request(parsed);
+    let changes_dir = root.join(&parsed.changes_dir);
+    match crate::query_api::execute(root, &parsed.file, &changes_dir, &request) {
+        Ok(response) => CliResult {
+            code: shared_exit_code(parsed.command.as_str(), &response.data),
+            stdout: format!("{}\n", response.data),
+            stderr: legacy_warning,
+        },
+        Err(error) => CliResult {
+            code: 1,
+            stdout: format!("{{\"error\":{}}}\n", crate::query_api::error_json(&error)),
+            stderr: legacy_warning,
+        },
+    }
+}
+
+fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequest {
+    let arg = |index: usize| parsed.command_args.get(index).cloned();
+    crate::query_api::QueryRequest {
+        tool: parsed.command.clone(),
+        node: arg(1),
+        change: arg(1),
+        old_id: arg(1),
+        new_id: arg(2),
+        status: flag_value(&parsed.command_args, "--status")
+            .or_else(|| {
+                parsed
+                    .command_args
+                    .get(1)
+                    .map(String::as_str)
+                    .filter(|_| parsed.command == "hook")
+            })
+            .map(ToOwned::to_owned),
+        language: flag_value(&parsed.command_args, "--language").map(ToOwned::to_owned),
+        flags: shared_flags(&parsed.command_args),
+        mutating: matches!(parsed.command.as_str(), "scan" | "rename"),
+    }
+}
+
+fn shared_flags(args: &[String]) -> BTreeSet<crate::query_api::QueryFlag> {
+    let mut flags = BTreeSet::new();
+    let pairs = [
+        ("--transitive", crate::query_api::QueryFlag::Transitive),
+        ("--include-todos", crate::query_api::QueryFlag::IncludeTodos),
+        (
+            "--include-research",
+            crate::query_api::QueryFlag::IncludeResearch,
+        ),
+        (
+            "--include-reviews",
+            crate::query_api::QueryFlag::IncludeReviews,
+        ),
+        (
+            "--include-deprecated-decisions",
+            crate::query_api::QueryFlag::IncludeDeprecatedDecisions,
+        ),
+        (
+            "--include-changes",
+            crate::query_api::QueryFlag::IncludeChanges,
+        ),
+    ];
+    for (argument, flag) in pairs {
+        if args.iter().any(|value| value == argument) {
+            flags.insert(flag);
+        }
+    }
+    flags
+}
+
+fn shared_exit_code(command: &str, data: &serde_json::Value) -> u8 {
+    if !matches!(command, "lint" | "scan" | "hook") {
+        return 0;
+    }
+    let findings = data
+        .get("findings")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten();
+    u8::from(
+        findings
+            .filter_map(|finding| finding.get("severity"))
+            .any(|severity| severity.as_str().is_some_and(|value| value == "Error")),
     )
 }
 

@@ -31,6 +31,10 @@ path = "src/lib.rs"
 name = "cairn"
 path = "src/main.rs"
 
+[[bin]]
+name = "cairn-mcp"
+path = "src/bin/cairn-mcp.rs"
+
 [lints]
 workspace = true
 
