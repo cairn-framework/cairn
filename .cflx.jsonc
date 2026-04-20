@@ -1,38 +1,37 @@
 {
   // Conflux Configuration
-  // Template: Codex
+  // Template: OpenCode
 
   // Command to analyze dependencies and select next change
-  "analyze_command": "python3 scripts/cflx-analyze-cairn-phases.py",
+  "analyze_command": "opencode run --format json {prompt}",
 
   // Command to apply a change (supports {change_id} and {prompt} placeholders)
-  "apply_command": "codex exec '/openspec:apply {change_id} {prompt}'",
+  "apply_command": "opencode run '{prompt}'",
 
   // Command to archive a completed change (supports {change_id} and {prompt} placeholders)
-  "archive_command": "codex exec '/openspec:archive {change_id} {prompt}'",
+  "archive_command": "opencode run '{prompt}'",
 
   // Command to run acceptance tests after apply (supports {change_id} and {prompt} placeholders)
-  "acceptance_command": "codex exec '/cflx-accept {change_id} {prompt}'",
+  "acceptance_command": "opencode run '{prompt}'",
 
   // Command to resolve conflicts (supports {prompt} placeholder)
-  "resolve_command": "codex exec {prompt}",
+  "resolve_command": "opencode run {prompt}",
 
   // System prompt for apply command (user-customizable, injected into {prompt} placeholder)
   // Note: A hardcoded system prompt is always appended after this value
-  "apply_prompt": "Target language is Rust. Lint policy is in Cargo.toml [workspace.lints] — do not add lint attributes to crate roots. All code must pass `RUSTFLAGS=\"-D warnings\" cargo clippy --all-targets --all-features`, `cargo fmt --check`, and `cargo test` before any task can be marked complete. Use idiomatic Rust: Result<T,E> for errors, impl Trait for interfaces, #[derive] for data types. No unsafe code unless explicitly justified.",
+  //"apply_prompt": "",
 
   // System prompt for archive command (injected into {prompt} placeholder)
-  "archive_prompt": "",
+  //"archive_prompt": "",
 
   // System prompt for acceptance command (injected into {prompt} placeholder)
   // Note: A hardcoded acceptance prompt is always prepended before this value
-  "acceptance_prompt": "",
+  //"acceptance_prompt": "",
 
-  // Controls how the acceptance `{prompt}` is constructed.
-  // - full: include hardcoded acceptance system prompt + diff/history context
-  // - context_only: only include change metadata + diff/history context
-  // Use context_only when the fixed acceptance instructions live in a separate command template.
-  "acceptance_prompt_mode": "context_only",
+  // Worktree command for TUI (+ key)
+  // Supports {workspace_dir} and {repo_root} placeholders
+  "worktree_command": "tmux new-window -n wt ",
+  // "worktree_command": "claude run '/openspec:proposal --worktree {workspace_dir}'",
 
   // Maximum iterations for the orchestration loop (default: 50, 0 = no limit)
   // "max_iterations": 50,
@@ -42,10 +41,6 @@
   //   "suppress_repetitive_debug": true,
   //   "summary_interval_secs": 60
   // },
-
-  // Command to create a worktree for proposals from TUI (+ key)
-  // Supports {workspace_dir} and {repo_root} placeholders
-  // "worktree_command": "opencode run '/openspec:proposal --worktree {workspace_dir}'",
 
   // Lifecycle hooks (optional)
   // Available hooks:
@@ -64,7 +59,7 @@
     // "pre_apply": "echo '[pre_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
     // "post_apply": "echo '[post_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
     // "on_change_complete": "echo '[on_change_complete] change={change_id} tasks={total_tasks}/{total_tasks}'",
-    "pre_archive": "scripts/pre-archive-rust-gates.sh",
+    // "pre_archive": "echo '[pre_archive] change={change_id} progress={changes_processed}/{total_changes}'",
     // "post_archive": "echo '[post_archive] change={change_id} progress={changes_processed}/{total_changes}'",
     // "on_change_end": "echo '[on_change_end] change={change_id} progress={changes_processed}/{total_changes} remaining={remaining_changes}'",
     // "on_merged": "echo '[on_merged] change={change_id} tasks={completed_tasks}/{total_tasks} progress={changes_processed}/{total_changes}'",
