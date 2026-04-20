@@ -7,7 +7,7 @@
 
 ## Problem/Context
 
-Phases 1-6 expose Cairn through CLI commands and JSON output. Agents need direct structured access to the ontology without shelling out and parsing CLI text.
+Phases 1-6 expose Cairn through CLI commands and JSON output. Agents need direct structured access to the map without shelling out and parsing CLI text.
 
 Phase 7 implements the MCP wrapper described in `docs/spec.md` sections 12 and 14. The wrapper SHALL expose the existing query layer and compose project context and rules into responses.
 

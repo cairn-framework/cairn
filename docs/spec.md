@@ -1,4 +1,4 @@
-# Cairn — Spec v0.6
+# Cairn — Spec v0.7
 
 > Working draft. The name *Cairn* is a placeholder; the spec will stand if it changes. v0.6 is a scope revision following a frame correction: capability scope and implementation phasing are now separate concerns. Several items previously labelled "v2" or "deferred" were genuinely in-scope capabilities whose implementation happens later in the build order; labelling them as out-of-scope was mistakenly conflating "not yet built" with "not part of the product." v0.6 brings those back in: brownfield extraction, multi-target paths, edge validation, docstring generation, a rename operation, and cross-model peer review as a review subtype. The kernel architecture from v0.5 stands unchanged.
 
@@ -7,13 +7,13 @@
 Used consistently throughout this spec:
 
 - **The framework (Cairn)** — the toolchain. Parser, scanner, reconciler interface, artefact type system, hooks, CLI, query interface. What you install and run.
-- **The DSL** — the grammar, and by extension the `.dsl` file a project authors. The intent layer.
+- **The blueprint** — the grammar, and by extension the `.blueprint` file a project authors. The intent layer.
 - **The artefacts** — typed markdown files attached to nodes (contracts, todos, decisions, reviews, research, sources).
-- **The ontology** — the runtime graph produced by reconciling the DSL, the artefacts, and the scanned reality layer. The unified queryable layer.
+- **The map** — the runtime graph produced by reconciling the blueprint, the artefacts, and the scanned reality layer. The unified queryable layer.
 - **The reality layer** — whatever the framework reconciles against. For v1 this is source code; the reconciler interface allows others (org structure, product BOMs, research programmes) as later additions.
 - **A change** — a proposed modification to the current state, isolated in its own directory until merged. Changes never touch the main tree directly.
 
-The framework is the tool. The DSL is what you write. The ontology is what the tool produces. Changes are how you modify it safely.
+The framework is the tool. The blueprint is what you write. The map is what the tool produces. Changes are how you modify it safely.
 
 ## 0.1 Spec maturity levels
 
@@ -36,15 +36,15 @@ Good AI-assisted projects today follow a pattern: write a spec, have an agent im
 3. Cross-cutting changes are unsafe. Touching one module silently breaks distant assumptions, because nothing in the toolchain knows what depends on what.
 4. Project metadata fragments across tools. Specs in one place, todos in another, architecture decisions in a wiki, research in browser tabs. No single artefact gives an agent (or a human) the full picture of "what is this module, what work is outstanding on it, why was it built this way, what evidence supports that, what changed recently."
 
-Cairn addresses all four by making the architectural map the spine of a unified ontology, with every other type of project metadata attached to nodes as typed artefacts. The reality layer is reconciled against the map continuously. Agents query the ontology instead of scanning the repo or hunting through tools.
+Cairn addresses all four by making the architectural map the spine of a unified map, with every other type of project metadata attached to nodes as typed artefacts. The reality layer is reconciled against the map continuously. Agents query the map instead of scanning the repo or hunting through tools.
 
-## 2. Framing: ontology, not procedure
+## 2. Framing: map, not procedure
 
-Cairn produces an *ontology* for a project: a map of what exists (modules, dependencies, contracts, decisions, research, sources) and how the pieces relate. It is not a procedure manual for how to build the project.
+Cairn produces an *map* for a project: a map of what exists (modules, dependencies, contracts, decisions, research, sources) and how the pieces relate. It is not a procedure manual for how to build the project.
 
-This distinction dictates what belongs in the ontology and what does not. Anything that describes *what the project is* — a module, its interface, its dependencies, its invariants, its open work items, the decisions that shaped it, the research that informed those decisions — goes in the graph. Anything that describes *how to operate on the project* — run the tests, format the code, deploy to staging — does not.
+This distinction dictates what belongs in the map and what does not. Anything that describes *what the project is* — a module, its interface, its dependencies, its invariants, its open work items, the decisions that shaped it, the research that informed those decisions — goes in the graph. Anything that describes *how to operate on the project* — run the tests, format the code, deploy to staging — does not.
 
-The practical consequence is a hard ceiling on the DSL's complexity. If a feature being proposed is "how to do X," it belongs in an agent prompt, a skill, or a script. If it is "what X is and how it relates to Y," it belongs in the ontology.
+The practical consequence is a hard ceiling on the blueprint's complexity. If a feature being proposed is "how to do X," it belongs in an agent prompt, a skill, or a script. If it is "what X is and how it relates to Y," it belongs in the map.
 
 ## 3. The two chains: provenance and authority
 
@@ -64,12 +64,12 @@ Issues in the provenance chain surface as **rationale tensions** (see section 10
 
 ### 3.2 The authority chain
 
-**decision → DSL → contract → code**
+**decision → blueprint → contract → code**
 
-This chain is about enforcement. Decisions constrain what the DSL should look like. The DSL constrains what contracts can prescribe. Contracts constrain what code can do. Every link is mechanically checkable:
+This chain is about enforcement. Decisions constrain what the blueprint should look like. The blueprint constrains what contracts can prescribe. Contracts constrain what code can do. Every link is mechanically checkable:
 
-- Decisions can declare the DSL nodes they apply to; the framework can then flag when a change to those nodes appears to violate the decision (v2 capability, deferred).
-- The DSL declares nodes, edges, and paths; the scanner verifies every declared path exists and every declared edge is realizable.
+- Decisions can declare the blueprint nodes they apply to; the framework can then flag when a change to those nodes appears to violate the decision (v2 capability, deferred).
+- The blueprint declares nodes, edges, and paths; the scanner verifies every declared path exists and every declared edge is realizable.
 - Contracts prescribe module interfaces and invariants; the scanner computes interface hashes from real code and raises a contradiction when they drift.
 - Code is reconciled against contracts by the reconciler registered for its domain.
 
@@ -79,21 +79,21 @@ Issues in the authority chain surface as **structural errors** or **interface co
 
 The decision layer belongs to both chains. It is the output of provenance (what the evidence justifies) and the input to authority (what the system must satisfy). This is the translation point from "why we think this" to "what must be true."
 
-Treating decisions as the hinge has a concrete consequence: decisions are the one artefact type that has obligations in both directions. Upward (provenance) they must cite their justification. Downward (authority) they declare which DSL nodes they constrain. This is why the ADR schema carries both `informed_by` and `nodes` fields.
+Treating decisions as the hinge has a concrete consequence: decisions are the one artefact type that has obligations in both directions. Upward (provenance) they must cite their justification. Downward (authority) they declare which blueprint nodes they constrain. This is why the ADR schema carries both `informed_by` and `nodes` fields.
 
 ### 3.4 Current-state authority
 
-The DSL is the current architectural truth. Decisions are rationale plus commitments.
+The blueprint is the current architectural truth. Decisions are rationale plus commitments.
 
-When an accepted decision has not yet been reflected in the DSL, the current architecture is still what the DSL says. The decision represents an obligation to change the DSL, not a change that has already happened. An agent asking "what does the system look like today?" reads the DSL; an agent asking "what are we committed to changing?" reads the active change directories (see section 9).
+When an accepted decision has not yet been reflected in the blueprint, the current architecture is still what the blueprint says. The decision represents an obligation to change the blueprint, not a change that has already happened. An agent asking "what does the system look like today?" reads the blueprint; an agent asking "what are we committed to changing?" reads the active change directories (see section 9).
 
-This is the simpler operational model and matches how software projects actually work. It also eliminates the ambiguity of v0.4, which implicitly placed decisions above the DSL without specifying what that meant in practice.
+This is the simpler operational model and matches how software projects actually work. It also eliminates the ambiguity of v0.4, which implicitly placed decisions above the blueprint without specifying what that meant in practice.
 
 The framework is a fence around the authority chain and a navigator for the provenance chain. It tells you when the fence has been crossed; it helps you trace why the fence was placed where it was. It does not decide which side is right.
 
 ## 4. Related work
 
-**Structurizr DSL** is the closest prior art for the architectural layer. It models C4 systems as a declarative DSL with strict model/view separation. Cairn borrows the C4 hierarchy and the declarative style but drops the view layer (rendering is downstream), simplifies the grammar, and adds artefact pointers, path ownership, stable IDs, and reconciliation.
+**Structurizr blueprint** is the closest prior art for the architectural layer. It models C4 systems as a declarative blueprint with strict model/view separation. Cairn borrows the C4 hierarchy and the declarative style but drops the view layer (rendering is downstream), simplifies the grammar, and adds artefact pointers, path ownership, stable IDs, and reconciliation.
 
 **Karpathy's LLM Wiki pattern** (April 2026) describes a persistent, LLM-maintained markdown wiki sitting between raw sources and an agent. The substrate is the same (markdown files in a git repo), but the direction is opposite: Karpathy's wiki is *descriptive* — the LLM compiles it from sources, inventing schema as it goes. Cairn is *prescriptive* — the human authors architectural intent upfront, and the framework reconciles reality against it. Cairn borrows Karpathy's three-layer framing (raw sources → compiled layer → code) and generalizes it into the two-chain model in section 3.
 
@@ -107,7 +107,7 @@ The framework is a fence around the authority chain and a navigator for the prov
 
 **ADR tooling** (adr-tools, log4brains) established the Architecture Decision Record format. Cairn adopts the format for the decision artefact type, extended with four frontmatter fields: `nodes` (which nodes the decision applies to), `revisited` (last review date), `revisit_triggers` (what would make this worth reconsidering), and `informed_by` (provenance).
 
-**Ontology-first / context-engineering patterns** (as articulated by the dltHub team and others) frame LLM skills as intent + skill + ontology, where the gap is almost always the ontology. Cairn produces an ontology for a software project. The framing sharpens why the grammar refuses to absorb procedural detail: the framework gives the agent a map, not a recipe.
+**Map-first / context-engineering patterns** (as articulated by the dltHub team and others) frame LLM skills as intent + skill + map, where the gap is almost always the map. Cairn produces a map for a software project. The framing sharpens why the grammar refuses to absorb procedural detail: the framework gives the agent a map, not a recipe.
 
 ## 5. Goals and non-goals
 
@@ -119,21 +119,21 @@ The framework is a fence around the authority chain and a navigator for the prov
 - Advisory surfacing of rationale tensions in the provenance chain.
 - Lean context delivery to agents via typed neighbourhood queries.
 - A graph substrate that is agnostic to what reconciler populates the reality layer.
-- An ontology small enough for a human to read in one sitting.
+- An map small enough for a human to read in one sitting.
 - Full provenance from a line of reality to the source material that justified it.
 - Safe change isolation: proposed modifications do not affect current truth until explicitly merged.
-- Brownfield extraction: generating an initial DSL and contracts from an existing codebase, refined by a human. (Declared — see section 17.)
+- Brownfield extraction: generating an initial blueprint and contracts from an existing codebase, refined by a human. (Declared — see section 17.)
 - Multi-target modules: a single module with implementations across multiple languages or reconcilers.
-- Docstring generation and drift detection: the framework emits docstring templates grounded in ontology facts, and surfaces drift when authored docstrings diverge from the ontology.
+- Docstring generation and drift detection: the framework emits docstring templates grounded in map facts, and surfaces drift when authored docstrings diverge from the map.
 - Edge validation: the reconciler verifies declared edges are realised in the reality layer and surfaces discrepancies.
-- Rename propagation: restructuring the DSL produces a single atomic change that updates all references across artefacts.
+- Rename propagation: restructuring the blueprint produces a single atomic change that updates all references across artefacts.
 
 **Non-goals**
 
-- A visual dashboard. Rendering the ontology as an interactive visual graph is a distribution concern for a downstream tool that consumes Cairn's JSON output, not a kernel capability.
+- A visual dashboard. Rendering the map as an interactive visual graph is a distribution concern for a downstream tool that consumes Cairn's JSON output, not a kernel capability.
 - Multi-agent orchestration. The framework serves agents; it does not run them. Workflow tools like OpenSpec and cavekit occupy this space and are complementary consumers of Cairn.
-- Function-level mapping in the DSL itself. The DSL is for module-level intent. Below-module data lives in reconciler output and is accessible via `cairn files <node>`.
-- Procedural workflows. The DSL is a map, not a recipe. Workflow systems are complementary, not absorbed.
+- Function-level mapping in the blueprint itself. The blueprint is for module-level intent. Below-module data lives in reconciler output and is accessible via `cairn files <node>`.
+- Procedural workflows. The blueprint is a map, not a recipe. Workflow systems are complementary, not absorbed.
 - Project management features. Todos are tied to architectural work; general project admin lives elsewhere.
 
 **Deliberate non-features**
@@ -145,13 +145,13 @@ The framework is a fence around the authority chain and a navigator for the prov
 
 Eight components. The kernel is generic; the reconcilers and artefact types it supports are configured separately.
 
-1. **The DSL.** Declares modules and above. Names, stable IDs, tags, edges, paths, artefact pointers. Roughly a dozen keywords.
+1. **The blueprint.** Declares modules and above. Names, stable IDs, tags, edges, paths, artefact pointers. Roughly a dozen keywords.
 2. **The artefact type system.** Pluggable. v1 ships with six types. The kernel does not hardcode them; they are declared in project config.
 3. **The reconciler interface.** A domain-agnostic contract for "given a node, produce a fingerprint of its current state and a list of claimed sub-elements." v1 ships with one reference implementation: the code reconciler.
-4. **The reconciliation engine.** Joins the parsed DSL, the validated artefacts, and the output of registered reconcilers into the ontology. Runs integrity rules.
+4. **The reconciliation engine.** Joins the parsed blueprint, the validated artefacts, and the output of registered reconcilers into the map. Runs integrity rules.
 5. **The hooks.** Enforce reconciliation at task or commit boundaries.
 6. **The CLI.** Primary interface. Exposes every kernel capability as a command.
-7. **The query interface.** A typed query layer over the ontology. Initially CLI-only. Later wrapped by MCP, then LSP.
+7. **The query interface.** A typed query layer over the map. Initially CLI-only. Later wrapped by MCP, then LSP.
 8. **The change system.** Change directories, delta semantics, archive operation. Keeps proposed modifications isolated from current truth.
 
 A **summariser** is a pluggable ninth component, invoked by hooks when interface contradictions are detected. Optional.
@@ -159,7 +159,7 @@ A **summariser** is a pluggable ninth component, invoked by hooks when interface
 **Project state layout**
 
 ```
-./cairn.dsl                    # Authored DSL
+./cairn.blueprint                    # Authored blueprint
 ./meta/                        # Authored artefacts
     contracts/
     decisions/
@@ -175,7 +175,7 @@ A **summariser** is a pluggable ninth component, invoked by hooks when interface
         interface-hashes.json
         scan-cache.json
     log.md
-./index.md                     # Generated: ontology snapshot
+./map.md                     # Generated: map snapshot
 ```
 
 **Project config**
@@ -206,7 +206,7 @@ rules:
     require review from two humans before accepting.
 ```
 
-The `context` block is prepended to every instruction emitted by the query interface. The `rules` section is composed with artefact-specific templates. This is the dynamic-instruction pattern borrowed from OpenSpec; it keeps project conventions out of the DSL while making them discoverable by agents at query time.
+The `context` block is prepended to every instruction emitted by the query interface. The `rules` section is composed with artefact-specific templates. This is the dynamic-instruction pattern borrowed from OpenSpec; it keeps project conventions out of the blueprint while making them discoverable by agents at query time.
 
 ### 6.1 Ignore list semantics
 
@@ -217,11 +217,11 @@ The code reconciler determines which files to include via a layered list:
 3. **`.cairnignore`** at the project root overrides, for cases where the project wants Cairn to ignore something git tracks (e.g., generated code committed to the repo but not really source).
 4. **`cairn.config.yaml`** ignore entries add or remove from the combined list.
 
-**Hardcoded protected paths.** The following are never ignored, regardless of user configuration: `./cairn.dsl`, `./cairn.config.yaml`, `./meta/`, `./.cairn/`. These are Cairn's own state and must always be readable.
+**Hardcoded protected paths.** The following are never ignored, regardless of user configuration: `./cairn.blueprint`, `./cairn.config.yaml`, `./meta/`, `./.cairn/`. These are Cairn's own state and must always be readable.
 
 **Init-time assistance.** `cairn init` scans the project and proposes an initial ignore list based on what it finds. If it sees a `package.json`, it suggests `node_modules`. If it sees a monorepo structure with multiple `dist/` directories, it suggests those. The human confirms before the list is written. This matches OpenSpec's interactive init and removes the "400 warnings on first run" failure mode.
 
-## 7. The DSL grammar (concrete syntax)
+## 7. The blueprint grammar (concrete syntax)
 
 Top-level declarations are `System`, `Container`, and `Module`. `Actor` is optional in v1. Nesting expresses ownership. Tags express domain. Arrows express dependency. Paths bind the node to the reality layer. Artefact pointers bind the node to its typed metadata. Every node carries a stable ID.
 
@@ -471,7 +471,7 @@ Optional free-form notes about the source: provenance, context, why it matters.
 
 ## 9. Changes and deltas
 
-Proposed modifications to the ontology never touch the main tree directly. They live in isolated change directories until merged. Pattern borrowed from OpenSpec.
+Proposed modifications to the map never touch the main tree directly. They live in isolated change directories until merged. Pattern borrowed from OpenSpec.
 
 ### 9.1 Change directory structure
 
@@ -479,7 +479,7 @@ Proposed modifications to the ontology never touch the main tree directly. They 
 ./meta/changes/add-notifications-module/
     proposal.md              # Intent, scope, rationale
     design.md                # Optional: technical detail
-    dsl.delta                # DSL operations, if any
+    blueprint.delta                # blueprint operations, if any
     contracts/
         api/
             notifications.md  # ADDED contract
@@ -506,7 +506,7 @@ renamed_from: saas.api.auth_v1  # only for renamed
 ---
 ```
 
-For DSL changes, `dsl.delta` uses section markers following OpenSpec's pattern:
+For blueprint changes, `blueprint.delta` uses section markers following OpenSpec's pattern:
 
 ```
 ## ADDED Nodes
@@ -570,12 +570,12 @@ Agents reasoning about "what is the system today" read the main tree. Agents rea
 cairn rename <old-id> <new-id>
 ```
 
-Renaming a node's ID is a structural change that must propagate through every reference. Manual rename is error-prone: the DSL references the old ID in edges, artefacts reference it in frontmatter (`nodes`, `informed_by`, `supersedes`, and so on), and state files reference it in `.cairn/state/`.
+Renaming a node's ID is a structural change that must propagate through every reference. Manual rename is error-prone: the blueprint references the old ID in edges, artefacts reference it in frontmatter (`nodes`, `informed_by`, `supersedes`, and so on), and state files reference it in `.cairn/state/`.
 
 `cairn rename` packages all of this as a single atomic change. The command:
 
 1. Creates a change directory `./meta/changes/rename-<old-id>-to-<new-id>/`.
-2. Generates a `dsl.delta` with a `RENAMED` operation and any edge updates.
+2. Generates a `blueprint.delta` with a `RENAMED` operation and any edge updates.
 3. Walks every artefact file that references `<old-id>` and produces a modified copy in the change directory with the new ID in frontmatter.
 4. Opens the change directory for human review.
 5. The human runs `cairn archive` to merge, same as any other change.
@@ -588,21 +588,21 @@ This resolves the ID stability question. IDs remain readable (reflecting structu
 
 The scanner runs on demand or on filesystem change. It does nine things:
 
-1. Parses the DSL file into a graph of declared nodes (with stable IDs).
+1. Parses the blueprint file into a graph of declared nodes (with stable IDs).
 2. For every registered reconciler, invokes it against its claimed nodes. The code reconciler walks the filesystem, parses source via Tree-sitter (and optionally LSP for richer semantics), and extracts symbols, signatures, and intra-module references.
 3. For every declared artefact pointer, parses the artefact files and validates them against their type's frontmatter schema.
-4. Joins all of this into the ontology, resolving ID references.
+4. Joins all of this into the map, resolving ID references.
 5. **Validates declared edges against reality-layer dependencies.** The reconciler compares declared edges to observed dependencies and surfaces divergence as rationale tension. (Declared — see section 17.)
-6. **Checks docstrings against ontology facts.** For modules with authored docstrings, the reconciler compares the facts claimed in the docstring (module name, dependencies, tags) to the ontology. Divergence surfaces as rationale tension. (Declared — see section 17.)
+6. **Checks docstrings against map facts.** For modules with authored docstrings, the reconciler compares the facts claimed in the docstring (module name, dependencies, tags) to the map. Divergence surfaces as rationale tension. (Declared — see section 17.)
 7. Runs every artefact type's integrity rules and the global integrity rules.
-8. Regenerates `index.md` at the project root and appends events to `.cairn/log.md`.
+8. Regenerates `map.md` at the project root and appends events to `.cairn/log.md`.
 9. Writes updated state (interface hashes, scan cache) to `.cairn/state/`.
 
 ### 10.1 Node states
 
-- **synced** — declared in DSL, path exists, reconciler found expected content.
-- **ghost** — declared in DSL, path does not yet exist (planned but unimplemented).
-- **orphaned** — reality content exists but no DSL node claims it (via the all-files-claimed rule for the code reconciler).
+- **synced** — declared in blueprint, path exists, reconciler found expected content.
+- **ghost** — declared in blueprint, path does not yet exist (planned but unimplemented).
+- **orphaned** — reality content exists but no blueprint node claims it (via the all-files-claimed rule for the code reconciler).
 
 ### 10.2 Contradiction classes
 
@@ -624,15 +624,15 @@ The word "contradiction" from v0.4 is split into three classes with different en
 - Research not linked from any decision.
 - Source not cited by any research or decision (orphan source).
 - ADR `revisit_triggers` appear relevant based on recent changes.
-- **Edge divergence.** A declared edge in the DSL is not reflected in the reality layer (the reconciler finds no import, call, or reference from source to target). Or conversely, the reality layer contains a dependency the DSL does not declare. Advisory rather than blocking because architectural edges can legitimately exist at coarser granularity than mechanical dependencies.
-- **Docstring drift.** An authored docstring on a module claims facts that disagree with the ontology (wrong dependencies listed, wrong module name, contradictory description). Surfaces as tension so the human or agent can reconcile.
+- **Edge divergence.** A declared edge in the blueprint is not reflected in the reality layer (the reconciler finds no import, call, or reference from source to target). Or conversely, the reality layer contains a dependency the blueprint does not declare. Advisory rather than blocking because architectural edges can legitimately exist at coarser granularity than mechanical dependencies.
+- **Docstring drift.** An authored docstring on a module claims facts that disagree with the map (wrong dependencies listed, wrong module name, contradictory description). Surfaces as tension so the human or agent can reconcile.
 - **Multi-target interface divergence.** A module with multiple paths has different interface shapes across targets. Structural error if targets claim to implement the same contract but diverge; tension if intentional asymmetry is documented.
 
 Only the first two classes are "contradictions" in the strong sense. The third is a tension — the framework is drawing attention, not making a claim about correctness.
 
-### 10.3 index.md
+### 10.3 map.md
 
-Auto-generated catalogue of every node in the ontology.
+Auto-generated catalogue of every node in the map.
 
 ```markdown
 ---
@@ -684,7 +684,7 @@ Three kinds in v1.
 
 **The interface hook.** Runs at the same boundaries. Computes current interface hashes, compares to recorded. Blocks if any differ without resolution.
 
-**The tension hook.** Runs at scan time and surfaces findings. Never blocks. Output goes to `cairn lint` and is visible in `index.md`.
+**The tension hook.** Runs at scan time and surfaces findings. Never blocks. Output goes to `cairn lint` and is visible in `map.md`.
 
 The optional summariser plugs into the interface hook: when an interface contradiction is detected, the summariser can propose an updated contract draft. The proposal is never auto-applied.
 
@@ -707,21 +707,21 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn files <node>` — reality-layer elements claimed by a module. (For the code reconciler, files with extracted symbols.)
 - `cairn dependents <node> [--transitive]` — nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
 - `cairn depends <node> [--transitive]` — nodes this one edges into. Inverse of `dependents`. What does this node rely on?
-- `cairn order [--from <node>] [--scope <id-prefix>]` — returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic ontology queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
+- `cairn order [--from <node>] [--scope <id-prefix>]` — returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic map queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
 - `cairn changes` — list active change directories.
 - `cairn show <change>` — show what a change proposes.
 - `cairn archive <change>` — merge a change into the main tree.
 - `cairn rename <old-id> <new-id>` — create a rename change that propagates to all references. See section 9.6.
 - `cairn status` — composed view of "what's in flight": active change directories, open todos across nodes, and recent entries from `.cairn/log.md`. Answers "where is this project right now" without requiring the caller to compose three separate queries. Replaces the need for a dedicated session-state artefact.
-- `cairn docstring <node> [--language <lang>]` — emits a docstring template for the module, grounded in ontology facts (name, description, declared dependencies, tags, contract sections). Language-aware: knows how to format for Rust, Python, TypeScript, Go. The human or agent fills in prose; the structural facts are guaranteed accurate because they came from the graph. (Declared — see section 17.)
-- `cairn init --from-code` — generates an initial DSL and contract set from an existing codebase. The reconciler extracts structural candidates; the summariser proposes names, descriptions, and tags; the human refines. See section 16. (Declared — see section 17.)
-- `cairn refine` — re-runs brownfield extraction against the current codebase, proposing a delta against the existing DSL rather than a fresh draft. (Declared — see section 17.)
+- `cairn docstring <node> [--language <lang>]` — emits a docstring template for the module, grounded in map facts (name, description, declared dependencies, tags, contract sections). Language-aware: knows how to format for Rust, Python, TypeScript, Go. The human or agent fills in prose; the structural facts are guaranteed accurate because they came from the graph. (Declared — see section 17.)
+- `cairn init --from-code` — generates an initial blueprint and contract set from an existing codebase. The reconciler extracts structural candidates; the summariser proposes names, descriptions, and tags; the human refines. See section 16. (Declared — see section 17.)
+- `cairn refine` — re-runs brownfield extraction against the current codebase, proposing a delta against the existing blueprint rather than a fresh draft. (Declared — see section 17.)
 - `cairn lint` — runs every integrity rule. Groups findings by class (structural, interface, tension).
-- `cairn scan` — rescans, regenerates the ontology, `index.md`, and `.cairn/state/`.
+- `cairn scan` — rescans, regenerates the map, `map.md`, and `.cairn/state/`.
 
 **Design principle.** Small composable queries. Default responses are tight. Anything heavy is opt-in. The agent pulls what it needs.
 
-Responses are assembled with project-level `context` prepended and artefact-type `rules` composed in. This matches OpenSpec's dynamic-instruction pattern: project conventions reach the agent at query time without being baked into the DSL.
+Responses are assembled with project-level `context` prepended and artefact-type `rules` composed in. This matches OpenSpec's dynamic-instruction pattern: project conventions reach the agent at query time without being baked into the blueprint.
 
 **Why accepted decisions are in the default neighbourhood response.** Decisions are sparse by design (low payload cost) and are the canonical "why" layer of the authority chain. An agent proposing a change needs to see the rationale that constrains the change before committing. Making this opt-in would mean most agents wouldn't opt in; making it default means safe changes by construction.
 
@@ -749,25 +749,25 @@ Each phase produces something usable on its own. Phases determine implementation
 
 **Phase 0: Rust project foundation.** Cargo workspace, CI pipeline (`cargo fmt --check`, `cargo clippy`, `cargo test`), project skeleton, and development infrastructure. Output: a buildable, testable Rust project with lint enforcement from day one.
 
-**Phase 1: kernel.** DSL grammar with stable IDs. The reconciler *interface* as an abstract contract. The code reconciler as its first implementation (Tree-sitter-based, minimal). Reconciliation logic for the contract artefact type only. CLI exposing `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan`. Generate `index.md` and `.cairn/log.md` on scan. Output: a working CLI that answers structural queries against a reconciled ontology with contracts as the only artefact type. Validates the kernel architecture end-to-end.
+**Phase 1: kernel.** blueprint grammar with stable IDs. The reconciler *interface* as an abstract contract. The code reconciler as its first implementation (Tree-sitter-based, minimal). Reconciliation logic for the contract artefact type only. CLI exposing `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan`. Generate `map.md` and `.cairn/log.md` on scan. Output: a working CLI that answers structural queries against a reconciled map with contracts as the only artefact type. Validates the kernel architecture end-to-end.
 
-**Phase 2: full artefact type system.** Add todos, decisions, reviews (with subtypes), research, and sources with integrity rules. Add the corresponding CLI commands (`rationale`, `sources`, `research`, `decisions`, `todos`, `status`). Output: the ontology carries full project metadata with provenance from source to reality.
+**Phase 2: full artefact type system.** Add todos, decisions, reviews (with subtypes), research, and sources with integrity rules. Add the corresponding CLI commands (`rationale`, `sources`, `research`, `decisions`, `todos`, `status`). Output: the map carries full project metadata with provenance from source to reality.
 
 **Phase 3: change system.** Add change directories, delta semantics, archive command, rename command, and change-aware queries (`changes`, `show`, `archive`, `rename`). Output: safe change isolation; proposed modifications never corrupt current truth; restructures propagate atomically.
 
 **Phase 4: hooks.** Add the structural, interface, and tension hooks. Make them runnable as pre-commit or agent-task-end gates. Detect conflicts between concurrent active changes at authoring time, not only at archive time.
 
-**Phase 2.5: graph explorer.** Interactive terminal UI for navigating the ontology graph. Visualises nodes, edges, and artefact summaries in a TUI. Output: a `cairn explore` command that lets humans and agents browse the graph interactively.
+**Phase 2.5: graph explorer.** Interactive terminal UI for navigating the map graph. Visualises nodes, edges, and artefact summaries in a TUI. Output: a `cairn explore` command that lets humans and agents browse the graph interactively.
 
-**Phase 5: edge validation and docstring generation.** The code reconciler grows semantic capability — either via deeper Tree-sitter analysis or by integrating LSP where available — to verify declared edges against observed imports and to check docstrings against ontology facts. Add `cairn docstring <node>` command. Both edge divergence and docstring drift surface as rationale tensions.
+**Phase 5: edge validation and docstring generation.** The code reconciler grows semantic capability — either via deeper Tree-sitter analysis or by integrating LSP where available — to verify declared edges against observed imports and to check docstrings against map facts. Add `cairn docstring <node>` command. Both edge divergence and docstring drift surface as rationale tensions.
 
 **Phase 6: multi-target and additional language support.** Modules with multiple paths are reconciled across all targets. Per-target interface hashes. The code reconciler grows beyond its initial language (likely Rust or TypeScript) to cover the primary languages of the project's real use cases.
 
-**Phase 7: MCP wrapper.** Wrap CLI queries as an MCP server. Compose project `context` and `rules` into query responses. Makes the ontology directly queryable by agents in Claude Code, Cursor, and similar tools.
+**Phase 7: MCP wrapper.** Wrap CLI queries as an MCP server. Compose project `context` and `rules` into query responses. Makes the map directly queryable by agents in Claude Code, Cursor, and similar tools.
 
 **Phase 8: summariser.** Add the optional summariser with pluggable backends and the three-action resolution (accept / edit / discard). Summariser also drives brownfield extraction (phase 9) and docstring generation (phase 5, where it proposes prose to fill templates).
 
-**Phase 9: brownfield extraction.** `cairn init --from-code` and `cairn refine`. The reconciler extracts structural candidates from an existing codebase; the summariser names and describes; the human refines. This phase lands last because it benefits from every earlier capability: the DSL is battle-tested, the reconciler is mature, docstring generation exists, and the summariser is working. Building brownfield earlier would require Cairn to reverse-engineer DSL from code before knowing what good DSL looks like.
+**Phase 9: brownfield extraction.** `cairn init --from-code` and `cairn refine`. The reconciler extracts structural candidates from an existing codebase; the summariser names and describes; the human refines. This phase lands last because it benefits from every earlier capability: the blueprint is battle-tested, the reconciler is mature, docstring generation exists, and the summariser is working. Building brownfield earlier would require Cairn to reverse-engineer blueprint from code before knowing what good blueprint looks like.
 
 **Phase 10 onward (distribution).** LSP server for editor UX (autocomplete on IDs, hover for node metadata, jump-to-definition on edges). Claude Code plugin packaging. Additional reconcilers for non-code domains (org structure, product BOMs, research programmes).
 
@@ -783,9 +783,9 @@ This section is at Declared maturity: the approach is decided, the command surfa
 
 1. The reconciler walks the codebase and extracts structural candidates: top-level directories, major subdirectories that look like modules, file clusters with strong internal coupling.
 2. The summariser receives the structural candidates plus a sample of the code in each, and proposes node names, descriptions, tags, and obvious edges.
-3. The output is a draft `cairn.dsl` in a special change directory `./meta/changes/brownfield-init/`, along with stub contracts for each proposed node.
+3. The output is a draft `cairn.blueprint` in a special change directory `./meta/changes/brownfield-init/`, along with stub contracts for each proposed node.
 4. The human reviews, renames, regroups, adds missing edges, deletes spurious nodes, and runs `cairn archive brownfield-init`.
-5. On subsequent runs, `cairn refine` detects what's changed in the code since the last DSL update and proposes a delta rather than a full redraft.
+5. On subsequent runs, `cairn refine` detects what's changed in the code since the last blueprint update and proposes a delta rather than a full redraft.
 
 **What makes this robust.** The summariser is not asked to understand the codebase's architecture from scratch. It names and describes structure that the reconciler has already extracted. This avoids the typical "LLM hallucinates a plausible-sounding architecture that doesn't match the real code" failure mode.
 
@@ -842,7 +842,7 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 - Added section 0.1: spec maturity levels (Declared, Designed, Implemented). Sections can exist at Declared level without blocking adjacent work.
 - Moved brownfield extraction from non-goals to a declared v1 capability. Introduced `cairn init --from-code` and `cairn refine`. Brownfield is the final implementation phase because it benefits from every earlier capability being mature. Section 15 specifies the approach at Declared level.
 - Made multi-target modules a v1 capability. Path accepts a single path or a list; the reconciler dispatches per-target. Enables polyglot modules and future non-code reconcilers within a single project.
-- Added docstring generation and drift detection as a v1 capability. `cairn docstring <node>` emits a template grounded in ontology facts. Scanner checks authored docstrings for drift against the ontology. Resolves the original "optional `@cairn-id` tag" question by rejecting the tag and replacing it with a graph-grounded generation approach.
+- Added docstring generation and drift detection as a v1 capability. `cairn docstring <node>` emits a template grounded in map facts. Scanner checks authored docstrings for drift against the map. Resolves the original "optional `@cairn-id` tag" question by rejecting the tag and replacing it with a graph-grounded generation approach.
 - Added edge validation as a v1 capability. The code reconciler compares declared edges against observed dependencies and surfaces divergence as rationale tension. Phase 5 implementation.
 - Added `cairn rename <old-id> <new-id>` in section 9.6. Resolves ID stability by making restructures atomic and propagating through all references via the change system.
 - Extended the Review artefact type with subtypes: `human` (default), `agent_introspective`, `agent_cross_model`. The last two are specified at Declared level; initial schema ships but refinements are expected from real use. Resolves the agent dissent open question without pre-committing to perfect design.
@@ -854,7 +854,7 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 
 **v0.5.1**
 
-- Made `Container` optional in the DSL grammar. A `System` may contain `Module` nodes directly. Previously all Modules had to nest under a Container, which added ceremony for small projects.
+- Made `Container` optional in the blueprint grammar. A `System` may contain `Module` nodes directly. Previously all Modules had to nest under a Container, which added ceremony for small projects.
 - Added ID-depth advisory to section 7: three levels scan cleanly, four or more are usually a smell.
 - Added three optional frontmatter fields to the Decision artefact type: `supersedes`, `refines`, `related` — all arrays of ADR IDs. Formalises the ADR-to-ADR linking that the bootstrap needed but v0.5 did not define. `supersedes` has integrity semantics (target ADR must have `status: superseded`); the other two are informational.
 - Expanded the Source artefact type with a `verification` field taking one of three values: `verified` (local file with matching sha256), `external` (URL-referenced, no checksum possible), `unverified` (transitional state, surfaces as a rationale tension).
@@ -863,17 +863,17 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 - Resolved open question 10 (source deduplication). Stable IDs already handle this; no framework logic needed.
 - Added open question about agent dissent and cross-model peer review as potential first-class artefact types (may collapse to one type with two subtypes).
 - Added open question about meta/ directory layout (by type vs by node).
-- Added open question about ID stability across DSL restructuring. Surfaced when bootstrapping Cairn on itself.
+- Added open question about ID stability across blueprint restructuring. Surfaced when bootstrapping Cairn on itself.
 - No structural changes to the kernel. v0.5 architecture stands.
 
 **v0.5**
 
-- Split the six-layer authority hierarchy into two linked chains: provenance (source → research → decision) and authority (decision → DSL → contract → code). Decision is the hinge.
-- Made the DSL the current-state architectural truth. Decisions are rationale and commitments, not a higher authority than the DSL.
+- Split the six-layer authority hierarchy into two linked chains: provenance (source → research → decision) and authority (decision → blueprint → contract → code). Decision is the hinge.
+- Made the blueprint the current-state architectural truth. Decisions are rationale and commitments, not a higher authority than the blueprint.
 - Introduced stable IDs as first-class node and artefact identifiers. All references in artefact frontmatter use IDs, not names or paths.
 - Defined file ownership precisely: only leaf nodes own files by default; most-specific-path wins; ties are illegal; internal nodes can opt into ownership.
 - Added explicit ignore-list handling in project config.
-- Separated authored artefacts from machine state. All machine-maintained files move to `.cairn/state/`. `log.md` moves into `.cairn/` and is gitignored by default. `index.md` remains at project root and is versioned, with a `generated_by` frontmatter stamp.
+- Separated authored artefacts from machine state. All machine-maintained files move to `.cairn/state/`. `log.md` moves into `.cairn/` and is gitignored by default. `map.md` remains at project root and is versioned, with a `generated_by` frontmatter stamp.
 - Removed `last_interface_hash` from the contract file.
 - Replaced the overloaded "contradiction" with three classes: structural errors (block), interface contradictions (block), rationale tensions (advisory).
 - Added SHA-256 checksums to source sidecars; source immutability is now mechanical, not conventional.
@@ -897,8 +897,8 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 
 **v0.3**
 
-- Added ontology-first framing and related work sections.
-- Added `index.md` and `log.md` scanner outputs.
+- Added map-first framing and related work sections.
+- Added `map.md` and `log.md` scanner outputs.
 - Renamed interface-change hook to contradiction hook.
 - Added `cairn lint` and `cairn scan` commands.
 

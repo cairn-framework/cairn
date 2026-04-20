@@ -11,8 +11,8 @@ use crate::{
         contract::{ContractSet, load_contracts},
         registry::{ArtefactSet, load_artefacts},
     },
-    dsl,
-    ontology::{Graph, build_graph},
+    blueprint,
+    map::{Graph, build_graph},
     reconcile::{ReconcileRequest, Reconciler, code::RustCodeReconciler},
 };
 
@@ -33,11 +33,11 @@ pub struct ScanResult {
 ///
 /// # Errors
 ///
-/// Returns an error string when config loading, DSL parsing, or reconciliation
+/// Returns an error string when config loading, blueprint parsing, or reconciliation
 /// fails.
-pub fn load_project(root: &Path, dsl_path: &Path) -> Result<ScanResult, String> {
+pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     let config = config::load(root).map_err(|error| error.message)?;
-    let ast = dsl::parse_file(dsl_path).map_err(|error| error.to_string())?;
+    let ast = blueprint::parse_file(blueprint_path).map_err(|error| error.to_string())?;
     let contracts = load_contracts(root, &ast);
     let artefacts = load_artefacts(root, &ast, contracts.clone());
     let reconciler = RustCodeReconciler::new(&ast);
@@ -65,10 +65,10 @@ pub fn load_project(root: &Path, dsl_path: &Path) -> Result<ScanResult, String> 
 ///
 /// Returns an error string when project loading succeeds but generated output
 /// persistence fails, or when project loading itself fails.
-pub fn scan(root: &Path, dsl_path: &Path) -> Result<ScanResult, String> {
-    let result = load_project(root, dsl_path)?;
+pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
+    let result = load_project(root, blueprint_path)?;
     state::write_interface_hash(root, &result.interface_hash).map_err(|error| error.to_string())?;
-    outputs::write_index(root, &result.graph).map_err(|error| error.to_string())?;
+    outputs::write_map(root, &result.graph).map_err(|error| error.to_string())?;
     outputs::append_log(root, &result.graph).map_err(|error| error.to_string())?;
     Ok(result)
 }

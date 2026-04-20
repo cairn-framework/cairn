@@ -8,7 +8,7 @@
 
 ## LSP Server
 
-The project SHALL add a `cairn-lsp` binary. The server SHALL reuse the same parser, ontology, query, and finding APIs as CLI and MCP.
+The project SHALL add a `cairn-lsp` binary. The server SHALL reuse the same parser, map, query, and finding APIs as CLI and MCP.
 
 Supported LSP features:
 
@@ -44,7 +44,7 @@ Release validation SHALL cover:
 - LSP binary.
 - Shell completions where supported.
 - Manpage or markdown command reference.
-- Example project exercising DSL parse, contracts, todos, decisions, reviews, research, sources, change directories, archive/rename documentation, hooks, MCP queries, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and fixture non-code reconciler observations.
+- Example project exercising blueprint parse, contracts, todos, decisions, reviews, research, sources, change directories, archive/rename documentation, hooks, MCP queries, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and fixture non-code reconciler observations.
 
 ## Testing
 

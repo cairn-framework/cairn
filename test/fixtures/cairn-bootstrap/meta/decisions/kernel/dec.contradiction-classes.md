@@ -26,7 +26,7 @@ Three classes:
 
 - **Structural errors.** Unambiguous mechanical violations (duplicate IDs, path ties, broken pointers, invalid ID references, source checksum mismatch, orphaned files under claimed containers). Block commits unconditionally.
 - **Interface contradictions.** Mechanical but resolvable (module interface hash differs from recorded hash). Block commits until explicitly resolved by updating the contract or reverting the change.
-- **Rationale tensions.** Advisory findings in the provenance chain (orphan research, decision citing deleted research, revisit trigger matched by recent changes). Surface in `cairn lint` and `index.md`, but never block.
+- **Rationale tensions.** Advisory findings in the provenance chain (orphan research, decision citing deleted research, revisit trigger matched by recent changes). Surface in `cairn lint` and `map.md`, but never block.
 
 Only the first two are called "contradictions." The third is a "tension" — the framework draws attention without making a correctness claim.
 

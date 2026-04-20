@@ -8,7 +8,7 @@
 - [ ] 1.4 Implement completion for node IDs, artefact IDs, tag names, and delta operation markers.
 - [ ] 1.5 Implement hover for node metadata and artefact summaries.
 - [ ] 1.6 Implement go-to-definition for node IDs and artefact references.
-- [ ] 1.7 Implement document symbols for DSL declarations and edges.
+- [ ] 1.7 Implement document symbols for blueprint declarations and edges.
 
 ## 2. Plugin and Agent Packaging
 
@@ -20,13 +20,13 @@
 
 - [ ] 3.1 Document the reconciler extension trait and registration flow.
 - [ ] 3.2 Add a fixture non-code reconciler.
-- [ ] 3.3 Add tests proving fixture reconciler reports flow through ontology, queries, and diagnostics.
+- [ ] 3.3 Add tests proving fixture reconciler reports flow through map, queries, and diagnostics.
 
 ## 4. Release Packaging
 
 - [ ] 4.1 Add release checks for CLI, MCP, and LSP binaries.
 - [ ] 4.2 Generate command reference documentation.
-- [ ] 4.3 Add an example project exercising DSL parse, artefacts, changes, hooks, MCP, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and non-code reconciler fixture observations.
+- [ ] 4.3 Add an example project exercising blueprint parse, artefacts, changes, hooks, MCP, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and non-code reconciler fixture observations.
 - [ ] 4.4 Add tests for packaging metadata and documented commands.
 
 ## 5. Required Verification

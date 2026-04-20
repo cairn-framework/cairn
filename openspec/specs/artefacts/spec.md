@@ -4,7 +4,7 @@
 
 ### Requirement: Load all v1 artefact types
 
-The scanner SHALL load contracts, todos, decisions, reviews, research, and sources into the ontology.
+The scanner SHALL load contracts, todos, decisions, reviews, research, and sources into the map.
 
 #### Scenario: Artefact registry loads configured pointers
 

@@ -43,7 +43,7 @@ summariser:
 
 The local command backend SHALL send one JSON `SummariserRequest` to stdin and read one JSON `SummariserResponse` from stdout. Stderr SHALL be captured as diagnostic text only. Non-zero exit, timeout, invalid JSON, or response validation failure SHALL produce a backend failure without creating or modifying a draft.
 
-`SummariserRequest` JSON SHALL include `schema_version`, `request_id`, `draft_type`, `target_node`, `ontology_facts`, `contract_excerpt`, `interface_findings`, `docstring_findings`, `project_context`, `rules`, and `code_samples`. `code_samples` SHALL obey `max_sample_bytes_per_file`; the full serialized request SHALL obey `max_prompt_bytes` after truncation.
+`SummariserRequest` JSON SHALL include `schema_version`, `request_id`, `draft_type`, `target_node`, `map_facts`, `contract_excerpt`, `interface_findings`, `docstring_findings`, `project_context`, `rules`, and `code_samples`. `code_samples` SHALL obey `max_sample_bytes_per_file`; the full serialized request SHALL obey `max_prompt_bytes` after truncation.
 
 `SummariserResponse` JSON SHALL include `schema_version`, `draft_text`, optional `summary`, and optional `metadata`. `draft_text` SHALL be the only field that can become contract or docstring prose; metadata SHALL be stored with the draft for audit only.
 

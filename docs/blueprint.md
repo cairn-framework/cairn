@@ -1,6 +1,6 @@
-# Cairn DSL
+# Cairn blueprint
 
-The DSL declares an architecture graph. Nodes describe systems, containers, modules, or actors. Edges describe dependencies between node IDs.
+The blueprint declares an architecture graph. Nodes describe systems, containers, modules, or actors. Edges describe dependencies between node IDs.
 
 ## Node Declarations
 

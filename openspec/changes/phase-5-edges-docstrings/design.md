@@ -19,7 +19,7 @@ The reconciler SHALL map observed dependencies to Cairn node IDs by file ownersh
 
 ## Edge Divergence
 
-The scanner SHALL compare declared DSL edges with observed dependencies:
+The scanner SHALL compare declared blueprint edges with observed dependencies:
 
 - Declared edge missing from observed dependencies: rationale tension.
 - Observed dependency missing from declared edges: rationale tension.

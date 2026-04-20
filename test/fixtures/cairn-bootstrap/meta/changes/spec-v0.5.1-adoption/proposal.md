@@ -5,7 +5,7 @@
 The Cairn spec moved from v0.5 to v0.5.1 with three schema-level changes that
 affect existing bootstrap artefacts:
 
-1. Container is now optional in the DSL grammar.
+1. Container is now optional in the blueprint grammar.
 2. ADR frontmatter gained three optional fields (supersedes, refines, related).
 3. Source frontmatter gained a required `verification` field with three states.
 
@@ -84,7 +84,7 @@ more bootstrap experience accumulates.
 
 Outcome: deferred. Bootstrap stays as-is.
 
-### Pending: ID stability across DSL restructuring
+### Pending: ID stability across blueprint restructuring
 
 Status: surfaced during this change, captured as v0.5.1 open question 13.
 
@@ -102,7 +102,7 @@ v1.0 ships. Not blocking this adoption change.
 
 1. ~~Investigate cavekit; record findings in this proposal.~~ Done.
 2. ~~Update sources with `verification` field.~~ Done (9 sources).
-3. ~~Demote Summariser in cairn.dsl.~~ Done. Also demoted Reconcilers container (held one module); renamed CodeReconciler ID to match flatter structure.
+3. ~~Demote Summariser in cairn.blueprint.~~ Done. Also demoted Reconcilers container (held one module); renamed CodeReconciler ID to match flatter structure.
 4. ~~Verify the bootstrap still parses cleanly against v0.5.1.~~ Done. All edges resolve; no stale references in artefacts.
 5. Archive this change.
 

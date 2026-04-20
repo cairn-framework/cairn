@@ -1,4 +1,4 @@
-//! Hand-written Cairn DSL lexer.
+//! Hand-written Cairn blueprint lexer.
 
 use super::{
     ast::Span,
@@ -41,7 +41,7 @@ pub struct Token {
     pub span: Span,
 }
 
-/// Tokenizes DSL source.
+/// Tokenizes blueprint source.
 ///
 /// # Errors
 ///

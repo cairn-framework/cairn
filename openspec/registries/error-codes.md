@@ -14,8 +14,8 @@ All codes follow the pattern **`CXNNN`**:
 
 | Letter | Subsystem        |
 |--------|------------------|
-| P      | Parser (DSL)     |
-| K      | Kernel/Ontology  |
+| P      | Parser (blueprint)     |
+| K      | Kernel/Map  |
 | A      | Artefacts        |
 | C      | Changes          |
 | H      | Hooks            |
@@ -39,7 +39,7 @@ All codes follow the pattern **`CXNNN`**:
 
 _No codes allocated yet._
 
-## CK -- Kernel/Ontology
+## CK -- Kernel/Map
 
 _No codes allocated yet._
 

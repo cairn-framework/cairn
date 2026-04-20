@@ -11,7 +11,7 @@
 
 ## 2. Prompt Inputs and Draft Storage
 
-- [ ] 2.1 Build prompt inputs from ontology facts, contracts, interface changes, docstring findings, context, rules, and bounded code samples.
+- [ ] 2.1 Build prompt inputs from map facts, contracts, interface changes, docstring findings, context, rules, and bounded code samples.
 - [ ] 2.2 Persist drafts under `.cairn/state/summariser/`.
 - [ ] 2.3 Track draft status transitions.
 - [ ] 2.4 Add tests for prompt input byte limits, sample truncation, and persisted metadata.

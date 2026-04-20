@@ -1,17 +1,17 @@
 //! Cairn kernel library.
 //!
-//! The library exposes the typed parser, ontology, scanner, and query services
+//! The library exposes the typed parser, map, scanner, and query services
 //! used by the CLI. Command wrappers render these responses but do not own the
 //! query semantics.
 
 /// Contract artefact loading.
 pub mod artefacts;
+/// Cairn blueprint parsing.
+pub mod blueprint;
 /// CLI command registry and renderer helpers.
 pub mod cli;
-/// Cairn DSL parsing.
-pub mod dsl;
-/// Ontology graph construction and queries.
-pub mod ontology;
+/// Map graph construction and queries.
+pub mod map;
 /// Code reconciliation interfaces.
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.

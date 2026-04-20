@@ -27,7 +27,7 @@ The phase dependency chain is strictly linear: 0 → 1 → 2 → 2.5 → 3 → 4
 
 **Phase 2.5 → 3 (Graph Explorer → Changes):** Changes depend on artefacts being fully loaded (you cannot write delta operations for artefact types that do not exist). The graph explorer depends on queries being fully formed. Changes do NOT depend on the graph explorer, but placing 2.5 before 3 is justified by the validation-harness argument above.
 
-**Phase 3 → 4 (Changes → Hooks):** Hooks enforce findings at commit/task boundaries. The hook engine needs the change system to exist so it can detect conflicts between concurrent active changes. Phase 4's design explicitly tests "Multiple changes modifying the same DSL node or edge" — this requires Phase 3's change discovery.
+**Phase 3 → 4 (Changes → Hooks):** Hooks enforce findings at commit/task boundaries. The hook engine needs the change system to exist so it can detect conflicts between concurrent active changes. Phase 4's design explicitly tests "Multiple changes modifying the same blueprint node or edge" — this requires Phase 3's change discovery.
 
 **Phase 4 → 5 (Hooks → Edge Validation):** Edge validation and docstring drift add new *finding types* (rationale tensions). These findings flow through the hook system established in Phase 4. If edge validation came before hooks, the tensions would have no enforcement surface.
 
@@ -35,9 +35,9 @@ The phase dependency chain is strictly linear: 0 → 1 → 2 → 2.5 → 3 → 4
 
 **Phase 6 → 7 (Multi-Target → MCP):** The MCP server wraps the *complete* query surface. Building it after multi-target means the MCP tools expose target-level state from day one. Phase 7's design uses a "library-owned query tool registry" — each query command registers its MCP name and schema, so the MCP server derives its tool set from the registry rather than a hand-maintained list. This is forward-looking design that pays off in Phases 8-9 when summariser and brownfield commands auto-register.
 
-**Phase 7 → 8 (MCP → Summariser):** The summariser is optional and pluggable. It needs the full query surface (including MCP) because it composes ontology facts, contract content, and project context into prompts. Phase 8's design registers summariser commands in the MCP registry — the auto-registration pattern from Phase 7 pays off immediately.
+**Phase 7 → 8 (MCP → Summariser):** The summariser is optional and pluggable. It needs the full query surface (including MCP) because it composes map facts, contract content, and project context into prompts. Phase 8's design registers summariser commands in the MCP registry — the auto-registration pattern from Phase 7 pays off immediately.
 
-**Phase 8 → 9 (Summariser → Brownfield):** Brownfield extraction is the *capstone* capability. The spec explicitly justifies this ordering: "This phase lands last because it benefits from every earlier capability: the DSL is battle-tested, the reconciler is mature, docstring generation exists, and the summariser is working. Building brownfield earlier would require Cairn to reverse-engineer DSL from code before knowing what good DSL looks like." This is not deferralism — this is engineering wisdom. You do not build the reverse-compiler before the compiler.
+**Phase 8 → 9 (Summariser → Brownfield):** Brownfield extraction is the *capstone* capability. The spec explicitly justifies this ordering: "This phase lands last because it benefits from every earlier capability: the blueprint is battle-tested, the reconciler is mature, docstring generation exists, and the summariser is working. Building brownfield earlier would require Cairn to reverse-engineer blueprint from code before knowing what good blueprint looks like." This is not deferralism — this is engineering wisdom. You do not build the reverse-compiler before the compiler.
 
 **Phase 9 → 10 (Brownfield → Distribution):** Distribution (LSP, plugin packaging, extension APIs) is packaging, not capability. It wraps everything that already works. Correct final position.
 
@@ -107,9 +107,9 @@ Phase 1 establishes three finding classes: structural errors (block), interface 
 
 The cross-cutting specs (`openspec/specs/parser/spec.md`, `openspec/specs/query/spec.md`, `openspec/specs/cli/spec.md`) and per-phase specs use GIVEN/WHEN/THEN scenarios with *specific* inputs and *verifiable* outputs. Examples:
 
-- Parser spec: "GIVEN a `.dsl` file containing a top-level declaration `Service Foo` / WHEN the parser runs / THEN it raises a parse error naming the unknown keyword AND lists valid declaration keywords"
-- Query spec: "GIVEN an ontology graph containing a dependency cycle / WHEN `order` is called / THEN the query fails with a structural error naming cycle participants / AND basic node and neighbourhood queries can still read the otherwise valid ontology"
-- Phase 1 kernel spec: "GIVEN a ghost leaf node that declares a contract path whose file is missing / WHEN ontology construction or linting runs / THEN the kernel reports a warning with a stable code / AND does not fail ontology construction solely because the ghost node contract is missing"
+- Parser spec: "GIVEN a `.blueprint` file containing a top-level declaration `Service Foo` / WHEN the parser runs / THEN it raises a parse error naming the unknown keyword AND lists valid declaration keywords"
+- Query spec: "GIVEN a map graph containing a dependency cycle / WHEN `order` is called / THEN the query fails with a structural error naming cycle participants / AND basic node and neighbourhood queries can still read the otherwise valid map"
+- Phase 1 kernel spec: "GIVEN a ghost leaf node that declares a contract path whose file is missing / WHEN map construction or linting runs / THEN the kernel reports a warning with a stable code / AND does not fail map construction solely because the ghost node contract is missing"
 
 These are not vague "the system should handle errors" statements. They are implementable specifications.
 
@@ -135,7 +135,7 @@ This is sophisticated spec management. Brownfield extraction (section 15) is Dec
 
 ### The Two-Chain Model Is Architecturally Sound
 
-The provenance chain (source → research → decision) and authority chain (decision → DSL → contract → code) meet at the decision hinge. This is not academic taxonomy — it has *enforcement consequences*:
+The provenance chain (source → research → decision) and authority chain (decision → blueprint → contract → code) meet at the decision hinge. This is not academic taxonomy — it has *enforcement consequences*:
 
 - Provenance chain issues → rationale tensions (advisory, never block)
 - Authority chain issues → structural errors or interface contradictions (block commits)
@@ -184,7 +184,7 @@ The campaign forbids "MVP" language because it causes sloppy LLM output. It requ
 I will not waste the Dark Lord's time defending what is genuinely stale:
 
 - `docs/phase-2-deferrals.md` is stale and should be deleted. Conceded.
-- `docs/dsl.md` needs updates for multi-path syntax and removal of "MVP" language. Conceded.
+- `docs/blueprint.md` needs updates for multi-path syntax and removal of "MVP" language. Conceded.
 - `docs/spec.md` sections 14 and 17 need minor updates to reflect the Phase 2.5 addition and the campaign's Rust commitment. Conceded.
 
 These are documentation housekeeping items. They do not affect the phase plan, the spec quality, or the campaign's readiness for execution.

@@ -47,7 +47,7 @@ The scanner SHALL detect target language through explicit config first, then fil
 - Python.
 - Go.
 
-Each language SHALL implement the existing `Reconciler` trait. The shared scanner SHALL dispatch by target language and merge reports into the ontology.
+Each language SHALL implement the existing `Reconciler` trait. The shared scanner SHALL dispatch by target language and merge reports into the map.
 
 ## Interface Hash State
 

@@ -2,26 +2,26 @@
 
 ## Purpose
 
-Define ontology query semantics shared by the Rust CLI, MCP server, LSP server,
+Define map query semantics shared by the Rust CLI, MCP server, LSP server,
 and future integrations. Query behaviour is defined over Cairn's reconciled
-ontology, not over implementation-specific command output.
+map, not over implementation-specific command output.
 
 ## Requirements
 
-### Requirement: Answer structural ontology queries
+### Requirement: Answer structural map queries
 
-The query layer SHALL expose typed queries over the in-memory ontology.
+The query layer SHALL expose typed queries over the in-memory map.
 
 #### Scenario: Get by ID
 
-- **GIVEN** an ontology containing a node with ID `saas.api.auth`
+- **GIVEN** a map containing a node with ID `saas.api.auth`
 - **WHEN** `get` is called with `saas.api.auth`
 - **THEN** it returns the node ID, name, description, tags, paths, state, and attached artefact metadata
 - **AND** the return shape is stable across invocations
 
 #### Scenario: Get by name fallback
 
-- **GIVEN** an ontology containing one node named `Auth`
+- **GIVEN** a map containing one node named `Auth`
 - **WHEN** `get` is called with `Auth`
 - **THEN** the query layer resolves the unambiguous name to its stable ID
 - **AND** returns the same node data as an ID lookup
@@ -35,23 +35,23 @@ The query layer SHALL expose typed queries over the in-memory ontology.
 
 #### Scenario: Dependency queries follow edge direction
 
-- **GIVEN** an ontology with declared dependency edges
+- **GIVEN** a map with declared dependency edges
 - **WHEN** `dependents` or `depends` is called
 - **THEN** `dependents` returns nodes that edge into the target
 - **AND** `depends` returns nodes the target edges to
 
 #### Scenario: Order returns dependency tiers
 
-- **GIVEN** an acyclic ontology graph
+- **GIVEN** an acyclic map graph
 - **WHEN** `order` is called
 - **THEN** it returns dependency-tier groups with tier `0` containing nodes with no outbound dependencies in scope
 
 #### Scenario: Order detects cycles without poisoning basic queries
 
-- **GIVEN** an ontology graph containing a dependency cycle
+- **GIVEN** a map graph containing a dependency cycle
 - **WHEN** `order` is called
 - **THEN** the query fails with a structural error naming cycle participants
-- **AND** basic node and neighbourhood queries can still read the otherwise valid ontology
+- **AND** basic node and neighbourhood queries can still read the otherwise valid map
 
 ### Requirement: Preserve machine-readable schemas
 

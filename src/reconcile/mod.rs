@@ -5,7 +5,7 @@ pub mod fingerprint;
 
 use std::{error::Error, fmt, path::Path};
 
-use crate::ontology::graph::Finding;
+use crate::map::graph::Finding;
 
 /// Reconciler identifier.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]

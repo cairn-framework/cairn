@@ -21,7 +21,7 @@ informed_by:
 
 ## Context
 
-v0.4 left the "accepted but not yet realized" state ambiguous. A decision marked accepted implied the system should change, but the DSL and contracts might not yet reflect it. An agent reading the ontology could not cleanly answer "what does the system look like today?" because the answer depended on whether you read the DSL (current) or the ADR queue (intended).
+v0.4 left the "accepted but not yet realized" state ambiguous. A decision marked accepted implied the system should change, but the blueprint and contracts might not yet reflect it. An agent reading the map could not cleanly answer "what does the system look like today?" because the answer depended on whether you read the blueprint (current) or the ADR queue (intended).
 
 Earlier drafts considered solving this with ADR status lifecycles (`accepted → realized`). That moved the problem into frontmatter without solving it.
 
@@ -29,16 +29,16 @@ OpenSpec demonstrates a cleaner answer: isolate proposed modifications in their 
 
 ## Decision
 
-Proposed modifications live in `./meta/changes/<change-name>/`. The directory mirrors the main `./meta/` tree and contains only the artefacts the change touches. Each artefact declares its operation (added, modified, removed, renamed) in frontmatter. DSL changes use a `dsl.delta` file with section markers.
+Proposed modifications live in `./meta/changes/<change-name>/`. The directory mirrors the main `./meta/` tree and contains only the artefacts the change touches. Each artefact declares its operation (added, modified, removed, renamed) in frontmatter. blueprint changes use a `blueprint.delta` file with section markers.
 
 At archive time, the archiver applies deltas in the order RENAMED → REMOVED → MODIFIED → ADDED, then runs the scanner. If any structural error or interface contradiction results, the archive aborts with full rollback.
 
-The DSL in the main tree is current-state truth. Decisions in the main tree are active. Anything in a change directory is proposed but not yet in effect.
+The blueprint in the main tree is current-state truth. Decisions in the main tree are active. Anything in a change directory is proposed but not yet in effect.
 
 ## Consequences
 
 - The ADR status lifecycle simplifies. There is no "accepted but unrealized" state because a decision that is not yet in effect lives in a change directory. Once merged, it is active.
-- The scanner ignores change directories when building the ontology. Queries default to current truth; change-aware queries are opt-in.
+- The scanner ignores change directories when building the map. Queries default to current truth; change-aware queries are opt-in.
 - Cross-cutting changes that touch many artefacts are expressible as a single coherent proposal rather than scattered edits.
 - Cairn adopts OpenSpec's delta semantics directly. If OpenSpec's model evolves, Cairn must decide whether to track it or diverge.
 - Cairn and OpenSpec can coexist. Projects can use OpenSpec for change workflow and Cairn for structural reconciliation, sharing the change directory pattern.

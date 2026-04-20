@@ -9,14 +9,14 @@
 
 Phases 1 and 2 make Cairn capable of reading current architectural truth. Cairn now needs a safe way to propose modifications without mutating the main tree directly.
 
-Phase 3 implements `docs/spec.md` section 9 and the change commands from section 12. Proposed ontology modifications SHALL live in isolated change directories until archive applies them atomically.
+Phase 3 implements `docs/spec.md` section 9 and the change commands from section 12. Proposed map modifications SHALL live in isolated change directories until archive applies them atomically.
 
 ## Proposed Solution
 
 Implement the change system:
 
 - `meta/changes/<change-id>/` discovery and validation.
-- `dsl.delta` parsing for added, modified, removed, and renamed nodes and edges.
+- `blueprint.delta` parsing for added, modified, removed, and renamed nodes and edges.
 - Artefact operation frontmatter: `added`, `modified`, `removed`, and `renamed`.
 - Archive ordering: renamed, removed, modified, added.
 - Atomic archive with rollback on validation, scan, structural error, or interface contradiction failure.
@@ -26,9 +26,9 @@ Implement the change system:
 
 - Active changes never affect default current-truth queries.
 - `cairn changes` lists active change directories with summaries and operation counts.
-- `cairn show <change>` displays DSL and artefact deltas.
+- `cairn show <change>` displays blueprint and artefact deltas.
 - `cairn archive <change>` applies deltas atomically, validation-scans with the archiving change excluded from active-change discovery, rolls back on failure, moves the change to dated archive, final-scans generated outputs, and appends `.cairn/log.md`.
-- `cairn rename <old-id> <new-id>` creates a reviewable change directory that propagates references through DSL edges and artefact frontmatter.
+- `cairn rename <old-id> <new-id>` creates a reviewable change directory that propagates references through blueprint edges and artefact frontmatter.
 - Change-aware neighbourhood output is opt-in.
 - All strict Rust gates pass.
 

@@ -1,6 +1,6 @@
 # Cairn Artefacts
 
-Cairn loads six v1 artefact types from Markdown frontmatter: contracts, todos, decisions, reviews, research, and sources. A DSL node attaches directories or files with pointer fields such as `contract`, `todos`, `decisions`, `reviews`, `research`, and `sources`.
+Cairn loads six v1 artefact types from Markdown frontmatter: contracts, todos, decisions, reviews, research, and sources. A blueprint node attaches directories or files with pointer fields such as `contract`, `todos`, `decisions`, `reviews`, `research`, and `sources`.
 
 ## Contract
 
@@ -109,7 +109,7 @@ description: Notes used for auth design.
 
 ## Finding Classes
 
-Structural errors block ontology queries. Examples include missing required frontmatter, invalid review subtypes, unknown review nodes, missing research sources, invalid external URLs, and verified source checksum mismatches.
+Structural errors block map queries. Examples include missing required frontmatter, invalid review subtypes, unknown review nodes, missing research sources, invalid external URLs, and verified source checksum mismatches.
 
 Rationale tensions are warnings. Examples include orphan todos, source records that are not cited, unverified sources, unknown decision provenance, and decision cross-reference status mismatches.
 

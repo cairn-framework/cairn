@@ -20,12 +20,12 @@ System Cairn "Ontology framework with pluggable reconcilers" id "cairn" @framewo
             contract "./meta/contracts/kernel/reconciler.md"
         }
 
-        Module Reconciliation "Joins DSL, artefacts, and reconciler output into ontology" id "cairn.kernel.reconciliation" {
+        Module Reconciliation "Joins blueprint, artefacts, and reconciler output into map" id "cairn.kernel.reconciliation" {
             path "./src/kernel/reconciliation"
             contract "./meta/contracts/kernel/reconciliation.md"
         }
 
-        Module Query "Typed queries over the ontology" id "cairn.kernel.query" {
+        Module Query "Typed queries over the map" id "cairn.kernel.query" {
             path "./src/kernel/query"
             contract "./meta/contracts/kernel/query.md"
         }
@@ -53,8 +53,8 @@ System Cairn "Ontology framework with pluggable reconcilers" id "cairn" @framewo
 }
 
 cairn.kernel.cli -> cairn.kernel.query "Exposes queries as commands"
-cairn.kernel.query -> cairn.kernel.reconciliation "Reads ontology"
-cairn.kernel.reconciliation -> cairn.kernel.parser "Consumes parsed DSL"
+cairn.kernel.query -> cairn.kernel.reconciliation "Reads map"
+cairn.kernel.reconciliation -> cairn.kernel.parser "Consumes parsed blueprint"
 cairn.kernel.reconciliation -> cairn.kernel.artefacts "Validates artefacts"
 cairn.kernel.changes -> cairn.kernel.reconciliation "Validates before archive"
 cairn.kernel.hooks -> cairn.kernel.reconciliation "Gates on integrity"

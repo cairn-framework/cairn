@@ -11,4 +11,4 @@ description: Adversarial review of Cairn spec v0.4 by an external reviewer. Iden
 
 # Adversarial review of Cairn v0.4
 
-Seven structural recommendations, all adopted in v0.5: split authority hierarchy into provenance + authority chains, add stable IDs, define ownership resolution precisely, separate machine state from authored files, classify contradiction severity, add source checksums, decide DSL-vs-ADR current-state authority.
+Seven structural recommendations, all adopted in v0.5: split authority hierarchy into provenance + authority chains, add stable IDs, define ownership resolution precisely, separate machine state from authored files, classify contradiction severity, add source checksums, decide blueprint-vs-ADR current-state authority.

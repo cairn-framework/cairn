@@ -30,7 +30,7 @@ The repository SHALL define a reproducible Rust workspace containing a `cairn` l
 
 - **GIVEN** Phase 0 has been implemented
 - **WHEN** a headless agent reviews the Rust modules and CLI behavior
-- **THEN** the code does not implement a DSL parser, ontology graph, structural query command, scanner, reconciler, artefact reader, or hook semantics
+- **THEN** the code does not implement a blueprint parser, map graph, structural query command, scanner, reconciler, artefact reader, or hook semantics
 - **AND** the binary exposes `cairn --version` as deterministic foundation-level smoke behavior
 
 ### Requirement: Enforce Rust quality gates locally
@@ -97,11 +97,11 @@ The quality suite, pre-commit hook, and archive gate SHALL catch formatting viol
 
 ### Requirement: Verify checked-in fixtures without parsing them
 
-The foundation tests SHALL prove that existing Cairn DSL fixtures are available to Rust tests while avoiding parser or ontology behavior reserved for later phases.
+The foundation tests SHALL prove that existing Cairn blueprint fixtures are available to Rust tests while avoiding parser or map behavior reserved for later phases.
 
 #### Scenario: Root fixture is readable
 
-- **GIVEN** `test/fixtures/cairn.dsl` exists in the repository
+- **GIVEN** `test/fixtures/cairn.blueprint` exists in the repository
 - **WHEN** `cargo test` runs
 - **THEN** a Rust test reads the file from disk
 - **AND** asserts that the file is non-empty
@@ -109,7 +109,7 @@ The foundation tests SHALL prove that existing Cairn DSL fixtures are available 
 
 #### Scenario: Bootstrap fixture is readable
 
-- **GIVEN** `test/fixtures/cairn-bootstrap/cairn.dsl` exists in the repository
+- **GIVEN** `test/fixtures/cairn-bootstrap/cairn.blueprint` exists in the repository
 - **WHEN** `cargo test` runs
 - **THEN** a Rust test reads the file from disk
 - **AND** asserts that the file is non-empty

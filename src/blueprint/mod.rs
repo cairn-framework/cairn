@@ -1,4 +1,4 @@
-//! Cairn DSL lexer, parser, AST, and parse errors.
+//! Cairn blueprint lexer, parser, AST, and parse errors.
 
 pub mod ast;
 pub mod error;

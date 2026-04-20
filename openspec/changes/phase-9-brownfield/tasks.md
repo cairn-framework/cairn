@@ -2,7 +2,7 @@
 
 ## 1. Candidate Extraction
 
-- [ ] 1.1 Add repository-wide discovery mode that extracts source roots and module-like directories without requiring an existing `cairn.dsl`.
+- [ ] 1.1 Add repository-wide discovery mode that extracts source roots and module-like directories without requiring an existing `cairn.blueprint`.
 - [ ] 1.2 Cluster files by path ownership and observed dependency density.
 - [ ] 1.3 Produce candidate nodes, paths, edges, confidence scores, and evidence paths.
 - [ ] 1.4 Implement deterministic fallback heuristics for minimum file counts, max depth, coupling score bands, observed edge thresholds, and sample byte limits.
@@ -19,14 +19,14 @@
 
 - [ ] 3.1 Implement `cairn init --from-code`.
 - [ ] 3.2 Generate `meta/changes/brownfield-init/proposal.md`.
-- [ ] 3.3 Generate `dsl.delta` with added nodes and edges.
+- [ ] 3.3 Generate `blueprint.delta` with added nodes and edges.
 - [ ] 3.4 Generate stub contracts in the change directory.
 - [ ] 3.5 Fail safely when the target change exists unless `--force` is provided.
 
 ## 4. Refine
 
-- [ ] 4.1 Implement `cairn refine` against an existing DSL.
-- [ ] 4.2 Generate delta operations instead of a full DSL replacement.
+- [ ] 4.1 Implement `cairn refine` against an existing blueprint.
+- [ ] 4.2 Generate delta operations instead of a full blueprint replacement.
 - [ ] 4.3 Detect likely renames from path and similarity evidence.
 - [ ] 4.4 Add tests for additions, removals, modifications, and renames.
 

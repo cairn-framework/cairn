@@ -18,7 +18,7 @@ fn test_ui_port_zero_starts_and_serves_graph_api() -> Result<(), Box<dyn std::er
     let server = ui::start_background(UiOptions {
         port: 0,
         no_open: true,
-        dsl_path: root.join("cairn.dsl"),
+        blueprint_path: root.join("cairn.blueprint"),
     })?;
 
     let graph = get(server.address(), "/api/graph")?;
@@ -45,7 +45,7 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     let server = ui::start_background(UiOptions {
         port: 0,
         no_open: true,
-        dsl_path: root.join("cairn.dsl"),
+        blueprint_path: root.join("cairn.blueprint"),
     })?;
 
     let html = get(server.address(), "/")?;
@@ -57,7 +57,7 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     assert!(html.contains("detail-panel"));
     assert!(js.contains("loadArtefacts"));
     assert!(js.contains("renderArtefacts"));
-    assert!(js.contains("unknown"));
+    assert!(js.contains("just now"));
 
     Ok(())
 }
@@ -69,7 +69,7 @@ fn test_ui_query_bridge_serves_artefact_layers() -> Result<(), Box<dyn std::erro
     let server = ui::start_background(UiOptions {
         port: 0,
         no_open: true,
-        dsl_path: root.join("cairn.dsl"),
+        blueprint_path: root.join("cairn.blueprint"),
     })?;
 
     let contract = get(server.address(), "/api/node/app.api/contract")?;
@@ -89,13 +89,13 @@ fn test_ui_query_bridge_serves_artefact_layers() -> Result<(), Box<dyn std::erro
 fn test_ui_lint_endpoint_reports_structural_badge_data() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("ui-lint")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         "System App \"desc\" id \"app\" {\n    Module A \"a\" id \"app.a\" {}\n    Module B \"b\" id \"app.a\" {}\n}\n",
     )?;
     let server = ui::start_background(UiOptions {
         port: 0,
         no_open: true,
-        dsl_path: root.join("cairn.dsl"),
+        blueprint_path: root.join("cairn.blueprint"),
     })?;
 
     let lint = get(server.address(), "/api/lint")?;
@@ -111,26 +111,26 @@ fn test_ui_lint_endpoint_reports_structural_badge_data() -> Result<(), Box<dyn s
 #[test]
 fn test_ui_large_graph_api_serves_two_hundred_nodes() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("ui-large")?;
-    let mut dsl = String::from("System App \"desc\" id \"app\" {\n");
+    let mut blueprint = String::from("System App \"desc\" id \"app\" {\n");
     for container in 0..10 {
         writeln!(
-            dsl,
+            blueprint,
             "    Container C{container} \"container\" id \"app.c{container}\" {{"
         )?;
         for module in 0..20 {
             writeln!(
-                dsl,
+                blueprint,
                 "        Module M{container}_{module} \"module\" id \"app.c{container}.m{module}\" {{}}"
             )?;
         }
-        dsl.push_str("    }\n");
+        blueprint.push_str("    }\n");
     }
-    dsl.push_str("}\n");
-    fs::write(root.join("cairn.dsl"), dsl)?;
+    blueprint.push_str("}\n");
+    fs::write(root.join("cairn.blueprint"), blueprint)?;
     let server = ui::start_background(UiOptions {
         port: 0,
         no_open: true,
-        dsl_path: root.join("cairn.dsl"),
+        blueprint_path: root.join("cairn.blueprint"),
     })?;
 
     let started = std::time::Instant::now();
@@ -151,7 +151,7 @@ fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(root.join("meta/decisions/kernel"))?;
     fs::write(root.join("src/api/lib.rs"), "pub fn serve() {}\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" @product {
     Container Api "api" id "app.api" @backend {
         path "./src/api"

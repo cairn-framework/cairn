@@ -26,7 +26,7 @@ The CLI accepts either names or IDs for human convenience; internal representati
 
 ## Consequences
 
-- Renames are safe. Reorganizing the DSL does not break artefact references.
+- Renames are safe. Reorganizing the blueprint does not break artefact references.
 - Duplicate display names become legal as long as IDs differ.
 - One more field to author per node. The grammar gets slightly heavier; the ID convention needs documentation.
 - Research and decision linking unifies around typed ID references, eliminating the v0.4 inconsistency where research used `sources: [path]` and decisions used `informed_by: [typed objects]`.

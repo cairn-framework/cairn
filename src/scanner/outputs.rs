@@ -6,14 +6,14 @@ use std::{
     path::Path,
 };
 
-use crate::ontology::graph::{FindingSeverity, Graph, NodeState};
+use crate::map::graph::{FindingSeverity, Graph, NodeState};
 
-/// Writes generated `index.md`.
+/// Writes generated `map.md`.
 ///
 /// # Errors
 ///
 /// Returns an I/O error when the file cannot be written.
-pub fn write_index(root: &Path, graph: &Graph) -> io::Result<()> {
+pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
     let mut synced = Vec::new();
     let mut ghost = Vec::new();
     for node in graph.nodes.values() {
@@ -35,9 +35,9 @@ pub fn write_index(root: &Path, graph: &Graph) -> io::Result<()> {
         .collect::<Vec<_>>()
         .join("\n");
     fs::write(
-        root.join("index.md"),
+        root.join("map.md"),
         format!(
-            "---\ngenerated: true\n---\n\n# Cairn Index\n\n## Synced\n{}\n\n## Ghost\n{}\n\n## Active changes\n\nNone in Phase 1.\n\n## Findings\n{}\n",
+            "---\ngenerated: true\n---\n\n# Cairn Map\n\n## Synced\n{}\n\n## Ghost\n{}\n\n## Active changes\n\nNone in Phase 1.\n\n## Findings\n{}\n",
             bullet_list(&synced),
             bullet_list(&ghost),
             if findings.is_empty() {

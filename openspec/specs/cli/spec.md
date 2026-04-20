@@ -4,30 +4,30 @@
 
 Define the command-line interface for the active Rust implementation. The CLI is
 the primary user and agent entrypoint for querying, scanning, validating, and
-operating on Cairn ontology state.
+operating on Cairn map state.
 
 ## Requirements
 
 ### Requirement: Expose kernel queries as command-line commands
 
-The CLI SHALL expose the active Rust kernel query surface over a DSL file loaded
+The CLI SHALL expose the active Rust kernel query surface over a blueprint file loaded
 from disk.
 
 #### Scenario: Default file resolution
 
-- **GIVEN** a working directory containing `cairn.dsl`
+- **GIVEN** a working directory containing `cairn.blueprint`
 - **WHEN** the user runs `cairn get some.node`
-- **THEN** the CLI loads `./cairn.dsl` by default
+- **THEN** the CLI loads `./cairn.blueprint` by default
 
 #### Scenario: Custom file via flag
 
-- **GIVEN** the user passes `--file ./other.dsl`
+- **GIVEN** the user passes `--file ./other.blueprint`
 - **WHEN** any query command runs
 - **THEN** the CLI loads the provided path instead of the default
 
 #### Scenario: Node-not-found exits cleanly
 
-- **GIVEN** a valid DSL file without a node matching the query argument
+- **GIVEN** a valid blueprint file without a node matching the query argument
 - **WHEN** the user runs `cairn get nonexistent`
 - **THEN** the CLI reports the missing node with deterministic closest-match suggestions
 - **AND** exits with code `1`
