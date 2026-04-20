@@ -302,6 +302,88 @@ fn parse_config(source: &str, config: &mut Config) {
             config.intentional_asymmetries.push(asym);
         }
     }
+    parse_context_rules_blocks(source, config);
+}
+
+fn parse_context_rules_blocks(source: &str, config: &mut Config) {
+    let lines = source.lines().collect::<Vec<_>>();
+    let mut index = 0;
+    while index < lines.len() {
+        let line = lines[index];
+        let trimmed = line.trim();
+        if trimmed.starts_with("context:") {
+            let indent = indentation(line);
+            let value = value_after_colon(trimmed);
+            if matches!(value.as_str(), "|" | ">") {
+                let (block, next) = collect_block(&lines, index + 1, indent);
+                config.context = block;
+                index = next;
+                continue;
+            }
+            config.context = value;
+        } else if trimmed == "rules:" {
+            let (rules, next) = collect_rules(&lines, index + 1, indentation(line));
+            if !rules.is_empty() {
+                config.rules = rules;
+            }
+            index = next;
+            continue;
+        }
+        index += 1;
+    }
+}
+
+fn collect_rules(
+    lines: &[&str],
+    start: usize,
+    base_indent: usize,
+) -> (BTreeMap<String, String>, usize) {
+    let mut rules = BTreeMap::new();
+    let mut index = start;
+    while index < lines.len() {
+        let line = lines[index];
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            index += 1;
+            continue;
+        }
+        let indent = indentation(line);
+        if indent <= base_indent {
+            break;
+        }
+        if let Some((key, raw_value)) = trimmed.split_once(':') {
+            let value = raw_value.trim().trim_matches('"').to_owned();
+            if matches!(value.as_str(), "|" | ">") {
+                let (block, next) = collect_block(lines, index + 1, indent);
+                rules.insert(key.trim().to_owned(), block);
+                index = next;
+                continue;
+            }
+            rules.insert(key.trim().to_owned(), value);
+        }
+        index += 1;
+    }
+    (rules, index)
+}
+
+fn collect_block(lines: &[&str], start: usize, base_indent: usize) -> (String, usize) {
+    let mut block = Vec::new();
+    let mut index = start;
+    while index < lines.len() {
+        let line = lines[index];
+        if !line.trim().is_empty() && indentation(line) <= base_indent {
+            break;
+        }
+        block.push(line.trim_start().to_owned());
+        index += 1;
+    }
+    (block.join("\n").trim_end().to_owned(), index)
+}
+
+fn indentation(line: &str) -> usize {
+    line.chars()
+        .take_while(|character| *character == ' ')
+        .count()
 }
 
 fn value_after_colon(line: &str) -> String {
