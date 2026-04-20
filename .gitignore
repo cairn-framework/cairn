@@ -21,3 +21,4 @@ target/
 # Local preview scaffolding for src/ui_assets/ (mimics Rust include_str routes)
 src/ui_assets/api/
 src/ui_assets/assets/
+.worktrees
