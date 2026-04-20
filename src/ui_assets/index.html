@@ -4,12 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cairn Graph Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,300;1,8..60,400;1,8..60,500;1,8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="/assets/style.css">
   </head>
   <body>
     <header class="topbar" role="banner">
       <div class="topbar-mark">
-        <span class="mark-name">Cairn</span>
+        <span class="mark-name serif">Cairn</span>
         <span class="mark-rule" aria-hidden="true"></span>
         <span class="mark-sub">Graph Explorer</span>
       </div>
@@ -33,26 +36,26 @@
           <div id="graph" class="graph" tabindex="0"></div>
         </div>
       </section>
-      <aside id="detail-panel" class="detail-panel" aria-live="polite" hidden>
-        <div class="panel-inner">
+      <aside id="detail-panel" class="detail-panel inspector-wrap" aria-live="polite" hidden>
+        <div class="panel-inner inspector">
           <div class="panel-header">
             <p id="node-kind" class="eyebrow mono">&mdash;</p>
             <button id="close-panel" class="close mono" type="button" title="Close panel" aria-label="Close panel">&times;</button>
           </div>
-          <h2 id="node-name" class="panel-name">Select a node</h2>
+          <h2 id="node-name" class="panel-name serif">Select a node</h2>
           <p id="node-id" class="panel-id mono"></p>
           <p id="node-description" class="panel-description"></p>
           <section id="findings-section" class="panel-section" hidden>
             <header class="section-header">
-              <span class="section-label mono">FINDINGS</span>
+              <span class="section-label mono">Findings</span>
               <span class="section-count mono" id="findings-count"></span>
             </header>
             <div id="finding-detail" class="finding-list"></div>
           </section>
           <nav id="layer-nav" class="layer-nav" aria-label="Artefact navigation" hidden>
-            <button id="prev-layer" class="layer-button mono" type="button">&larr;&nbsp;BACK</button>
+            <button id="prev-layer" class="layer-button mono" type="button">&larr;&nbsp;Back</button>
             <span id="layer-count" class="layer-count mono">0&nbsp;/&nbsp;0</span>
-            <button id="next-layer" class="layer-button mono" type="button">NEXT&nbsp;&rarr;</button>
+            <button id="next-layer" class="layer-button mono" type="button">Next&nbsp;&rarr;</button>
           </nav>
           <div id="artefacts" class="artefacts"></div>
           <div id="metadata-blocks" class="metadata-blocks"></div>

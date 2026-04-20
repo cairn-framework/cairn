@@ -1,0 +1,1515 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-anim="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cairn: Your agents stop re-reading your repo. They ask the map.</title>
+<meta name="description" content="You write a blueprint of your system. Cairn reconciles it against the code you actually shipped and produces a map your agents can query. Contradictions stop merges. Your architecture stops rotting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================
+   CAIRN landing page. Tokens lifted from the design system.
+   Geological. Warm stone. Quiet.
+   =================================================================== */
+
+:root {
+  /* Stone (dark) */
+  --stone-0:  #0d0c0a;
+  --stone-1:  #141310;
+  --stone-2:  #1b1915;
+  --stone-3:  #22201b;
+  --stone-4:  #2a2721;
+  --stone-5:  #342f27;
+
+  /* Seams */
+  --seam-faint: #2a2620;
+  --seam-thin:  #38332b;
+  --seam-clear: #4a4338;
+  --seam-carved: #5a5244;
+
+  /* Ink */
+  --ink-char:   #f2ece0;
+  --ink-aged:   #c9c0ae;
+  --ink-faded:  #908673;
+  --ink-mist:   #5f5849;
+  --ink-ghost:  #3d382f;
+
+  /* Chains */
+  --prov-1:    #f4b36a;
+  --prov-2:    #c4864a;
+  --prov-3:    #7d5530;
+  --prov-wash: rgba(196, 134, 74, 0.10);
+
+  --auth-1:    #88c4b4;
+  --auth-2:    #5a9687;
+  --auth-3:    #2f5448;
+  --auth-wash: rgba(90, 150, 135, 0.10);
+
+  --hinge-1:   #e8e1d2;
+  --hinge-2:   #b6ac96;
+  --hinge-wash: rgba(232, 225, 210, 0.06);
+
+  /* Signal */
+  --drift:      #d47854;
+  --drift-wash: rgba(212, 120, 84, 0.10);
+  --block:      #b84c38;
+  --settled:    #82a893;
+
+  /* Type */
+  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-sans:  "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Type scale */
+  --t-micro:   11px;
+  --t-small:   12px;
+  --t-body:    15px;
+  --t-lede:    17px;
+  --t-title:   22px;
+  --t-h3:      28px;
+  --t-h2:      40px;
+  --t-h1:      64px;
+
+  /* Spacing */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+  --s-9: 96px; --s-10: 128px;
+
+  /* Radii */
+  --r-edge: 2px;
+  --r-stone: 6px;
+  --r-round: 10px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --fast: 180ms;
+  --med:  320ms;
+  --slow: 560ms;
+}
+
+[data-theme="light"] {
+  --stone-0:  #e8e2d3;
+  --stone-1:  #ede7d8;
+  --stone-2:  #f3ecdd;
+  --stone-3:  #f7f0e1;
+  --stone-4:  #fbf5e8;
+  --stone-5:  #ffffff;
+
+  --seam-faint: #d8d0bd;
+  --seam-thin:  #c8bea8;
+  --seam-clear: #b3a78d;
+  --seam-carved: #96875e;
+
+  --ink-char:   #1f1a12;
+  --ink-aged:   #43392a;
+  --ink-faded:  #6b5f48;
+  --ink-mist:   #8f8369;
+  --ink-ghost:  #b8ad90;
+
+  --prov-1:    #8e4e18;
+  --prov-2:    #a7652a;
+  --prov-3:    #c88e58;
+  --prov-wash: rgba(167, 101, 42, 0.08);
+
+  --auth-1:    #245d4e;
+  --auth-2:    #3a7a69;
+  --auth-3:    #66a090;
+  --auth-wash: rgba(58, 122, 105, 0.08);
+
+  --hinge-1:   #2a2418;
+  --hinge-2:   #5a5040;
+  --hinge-wash: rgba(42, 36, 24, 0.05);
+
+  --drift:      #a8461e;
+  --drift-wash: rgba(168, 70, 30, 0.10);
+  --block:      #8a2e18;
+  --settled:    #3d6b4e;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--stone-1);
+  color: var(--ink-char);
+  font-family: var(--font-serif);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Paper grain, very faint. Feels like a page. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.015) 1px, transparent 0);
+  background-size: 3px 3px;
+  z-index: 1;
+}
+[data-theme="light"] body::before {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.025) 1px, transparent 0);
+}
+
+a { color: var(--auth-1); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color var(--fast) var(--ease); }
+a:hover { border-bottom-color: var(--auth-2); }
+
+/* Accessibility: visible focus on interactive elements. */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--prov-1);
+  outline-offset: 3px;
+  border-radius: var(--r-edge);
+}
+
+code, .mono { font-family: var(--font-mono); font-size: 0.92em; }
+
+/* Layout */
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--s-7);
+  position: relative;
+  z-index: 2;
+}
+
+/* Nav */
+
+nav.site {
+  padding: var(--s-5) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  letter-spacing: 0.03em;
+}
+nav.site .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  color: var(--ink-char);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+nav.site .brand svg { display: block; }
+nav.site .links {
+  margin-left: auto;
+  display: flex;
+  gap: var(--s-6);
+}
+nav.site .links a {
+  color: var(--ink-aged);
+  text-transform: lowercase;
+  border: 0;
+  transition: color var(--fast) var(--ease);
+}
+nav.site .links a:hover { color: var(--ink-char); }
+nav.site .version {
+  color: var(--ink-mist);
+  border: 1px solid var(--seam-thin);
+  padding: 2px var(--s-2);
+  border-radius: var(--r-edge);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.05em;
+}
+nav.site .cta {
+  color: var(--ink-char);
+  border: 1px solid var(--seam-clear);
+  padding: 4px var(--s-3);
+  border-radius: var(--r-edge);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+nav.site .cta:hover { background: var(--stone-3); color: var(--ink-char); }
+
+/* Hero */
+
+.hero {
+  padding: var(--s-9) 0 var(--s-10);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: var(--s-9);
+  align-items: center;
+}
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; gap: var(--s-7); padding: var(--s-7) 0 var(--s-8); }
+}
+
+.hero .eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-5);
+}
+.hero h1 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(42px, 6.5vw, var(--t-h1));
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--s-6);
+  color: var(--ink-char);
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.hero h1 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--prov-1);
+}
+.hero h1 strong {
+  font-weight: 500;
+  font-style: normal;
+  color: var(--auth-1);
+}
+.hero .lede {
+  font-size: var(--t-lede);
+  line-height: 1.55;
+  color: var(--ink-aged);
+  max-width: 48ch;
+  margin: 0 0 var(--s-6);
+  text-wrap: pretty;
+}
+.hero .lede strong { color: var(--ink-char); font-weight: 500; }
+.hero .ctas {
+  display: flex;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+  flex-wrap: wrap;
+}
+.btn {
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  padding: var(--s-3) var(--s-5);
+  border-radius: var(--r-stone);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--fast) var(--ease);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  letter-spacing: 0.005em;
+}
+.btn.primary {
+  background: var(--ink-char);
+  color: var(--stone-1);
+  border-color: var(--ink-char);
+}
+.btn.primary:hover {
+  background: var(--hinge-1);
+  border-color: var(--hinge-1);
+  transform: translateY(-1px);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--ink-aged);
+  border-color: var(--seam-clear);
+}
+.btn.ghost:hover {
+  color: var(--ink-char);
+  border-color: var(--ink-faded);
+  background: var(--stone-3);
+}
+
+/* Hero visual: the blueprint sheet. */
+
+.hero-visual {
+  position: relative;
+  aspect-ratio: 1 / 1.05;
+  max-width: 520px;
+  margin-left: auto;
+  width: 100%;
+}
+.hero-visual svg { width: 100%; height: 100%; display: block; }
+
+.hero-visual svg.hviz { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms ease; pointer-events: none; }
+.hero-visual[data-hviz="blueprint"] svg[data-for="blueprint"] { opacity: 1; position: relative; }
+
+/* Section primitives */
+
+section {
+  padding: var(--s-10) 0;
+  border-top: 1px solid var(--seam-faint);
+  position: relative;
+}
+section.tight { padding: var(--s-8) 0; }
+
+.kicker {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.kicker::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--ink-mist);
+}
+
+h2.section {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(30px, 4.2vw, var(--t-h2));
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--s-5);
+  max-width: 24ch;
+  color: var(--ink-char);
+  text-wrap: balance;
+}
+h2.section em { color: var(--prov-1); font-style: italic; }
+h2.section strong { color: var(--auth-1); font-weight: 400; }
+
+.section-lede {
+  font-size: var(--t-lede);
+  color: var(--ink-aged);
+  max-width: 64ch;
+  line-height: 1.6;
+  margin: 0;
+  text-wrap: pretty;
+}
+.section-lede em { color: var(--prov-1); font-style: italic; }
+.section-lede strong { color: var(--auth-1); font-weight: 400; }
+
+/* What Cairn Is */
+
+.what {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--s-8);
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .what { grid-template-columns: 1fr; gap: var(--s-5); }
+}
+.what p {
+  font-size: var(--t-lede);
+  line-height: 1.65;
+  color: var(--ink-aged);
+  margin: 0 0 var(--s-5);
+  max-width: 64ch;
+  text-wrap: pretty;
+}
+.what p:last-child { margin-bottom: 0; }
+.what p strong { color: var(--ink-char); font-weight: 500; }
+.what .three-nouns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  margin-top: var(--s-6);
+}
+.noun {
+  padding: 4px var(--s-3);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  color: var(--ink-aged);
+  background: var(--stone-2);
+}
+.noun.prov { color: var(--prov-1); border-color: var(--prov-3); background: var(--prov-wash); }
+.noun.auth { color: var(--auth-1); border-color: var(--auth-3); background: var(--auth-wash); }
+.noun.hinge { color: var(--hinge-1); border-color: var(--seam-clear); background: var(--hinge-wash); }
+.arr { color: var(--ink-mist); font-family: var(--font-serif); font-size: 14px; }
+
+/* Two-chain diagram */
+
+.two-chain {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--s-8);
+  margin-top: var(--s-7);
+  align-items: start;
+}
+@media (max-width: 900px) { .two-chain { grid-template-columns: 1fr; } }
+
+.chain-prose .chain-head {
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin: var(--s-6) 0 var(--s-2);
+}
+.chain-prose .chain-head.prov { color: var(--prov-1); }
+.chain-prose .chain-head.auth { color: var(--auth-1); }
+.chain-prose .chain-head.hinge { color: var(--hinge-1); }
+.chain-prose .chain-head:first-child { margin-top: 0; }
+.chain-prose p {
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--ink-aged);
+  margin: 0 0 var(--s-4);
+  text-wrap: pretty;
+  max-width: 54ch;
+}
+.chain-prose p em { color: var(--prov-1); font-style: italic; }
+.chain-viz {
+  aspect-ratio: 1 / 0.82;
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  position: relative;
+  overflow: hidden;
+  padding: var(--s-3);
+}
+.chain-viz svg { width: 100%; height: 100%; display: block; }
+
+/* Blueprint to map panel */
+
+.bp-map {
+  margin-top: var(--s-7);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-5);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  overflow: hidden;
+  background: var(--stone-2);
+}
+@media (max-width: 900px) { .bp-map { grid-template-columns: 1fr; } }
+
+.bp-map .panel {
+  padding: var(--s-6);
+  position: relative;
+}
+.bp-map .panel + .panel {
+  border-left: 1px solid var(--seam-faint);
+}
+@media (max-width: 900px) {
+  .bp-map .panel + .panel { border-left: 0; border-top: 1px solid var(--seam-faint); }
+}
+.bp-map .panel-label {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.bp-map .panel-label .fname {
+  color: var(--ink-aged);
+  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+}
+.bp-map pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-aged);
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  padding: 0;
+}
+.bp-map .tok-kw { color: var(--auth-1); }
+.bp-map .tok-id { color: var(--ink-char); }
+.bp-map .tok-str { color: var(--prov-1); }
+.bp-map .tok-cmt { color: var(--ink-mist); font-style: italic; }
+.bp-map .tok-at { color: var(--hinge-2); }
+
+/* Map side */
+.map-stack { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-3); }
+.map-row {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3) var(--s-3);
+  background: var(--stone-3);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-edge);
+}
+.map-row .glyph {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.map-row.system .glyph { background: var(--hinge-1); color: var(--stone-0); }
+.map-row.container .glyph { background: var(--auth-2); color: var(--stone-0); border-radius: 3px; }
+.map-row.module .glyph {
+  background: var(--stone-5); color: var(--ink-aged);
+  border: 1px solid var(--seam-clear); border-radius: 2px;
+}
+.map-row.indent-1 { margin-left: var(--s-5); }
+.map-row.indent-2 { margin-left: var(--s-7); }
+.map-row .name { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-char); }
+.map-row .meta { font-family: var(--font-sans); font-size: var(--t-micro); color: var(--ink-faded); letter-spacing: 0.05em; }
+.map-row .status {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: var(--r-edge);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.status.synced { background: var(--auth-wash); color: var(--auth-1); }
+.status.ghost { background: var(--stone-2); color: var(--ink-faded); border: 1px dashed var(--seam-clear); }
+.status.drift { background: var(--drift-wash); color: var(--drift); }
+
+/* Finding classes */
+
+.findings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+  margin-top: var(--s-7);
+}
+@media (max-width: 900px) { .findings { grid-template-columns: 1fr; } }
+
+.finding {
+  padding: var(--s-6);
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  position: relative;
+  overflow: hidden;
+}
+.finding::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.finding.structural::before { background: var(--block); }
+.finding.contradiction::before { background: var(--drift); }
+.finding.tension::before { background: var(--prov-2); }
+.finding .severity {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: var(--s-3);
+}
+.finding.structural .severity { color: var(--block); }
+.finding.contradiction .severity { color: var(--drift); }
+.finding.tension .severity { color: var(--prov-2); }
+.finding h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--t-title);
+  margin: 0 0 var(--s-3);
+  color: var(--ink-char);
+  letter-spacing: -0.01em;
+}
+.finding p {
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--ink-aged);
+  margin: 0 0 var(--s-4);
+  text-wrap: pretty;
+}
+.finding .block-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  padding: 3px var(--s-3);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  display: inline-block;
+}
+.finding.structural .block-label { color: var(--block); border-color: rgba(184, 76, 56, 0.4); }
+.finding.contradiction .block-label { color: var(--drift); border-color: rgba(212, 120, 84, 0.4); }
+.finding.tension .block-label { color: var(--prov-2); border-color: var(--prov-3); }
+
+/* Non-code domains */
+
+.domains {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+@media (max-width: 900px) { .domains { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .domains { grid-template-columns: 1fr; } }
+.domain {
+  padding: var(--s-5);
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  transition: transform var(--fast) var(--ease), border-color var(--fast) var(--ease), background var(--fast) var(--ease);
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+}
+.domain.first { border-color: var(--auth-3); background: linear-gradient(180deg, var(--auth-wash), var(--stone-2)); }
+.domain:hover { transform: translateY(-2px); border-color: var(--seam-clear); background: var(--stone-3); }
+.domain.first:hover { background: linear-gradient(180deg, var(--auth-wash), var(--stone-3)); }
+.domain .arrow {
+  position: absolute;
+  top: var(--s-5);
+  right: var(--s-5);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-mist);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+.domain:hover .arrow { opacity: 1; transform: translateX(0); color: var(--ink-faded); }
+.domain .dkicker {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-3);
+}
+.domain.first .dkicker { color: var(--auth-1); }
+.domain h4 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--t-lede);
+  margin: 0 0 var(--s-2);
+  color: var(--ink-char);
+}
+.domain p {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--ink-faded);
+  margin: 0;
+}
+
+/* Install */
+
+.install-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-5);
+  margin-top: var(--s-7);
+}
+@media (max-width: 760px) { .install-grid { grid-template-columns: 1fr; } }
+
+.code-card {
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  overflow: hidden;
+}
+.code-card .card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--seam-faint);
+  background: var(--stone-3);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.code-card .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink-mist);
+}
+.code-card pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  margin: 0;
+  padding: var(--s-5);
+  color: var(--ink-aged);
+  white-space: pre;
+  overflow-x: auto;
+}
+.code-card .prompt { color: var(--ink-mist); user-select: none; }
+.code-card .cmd { color: var(--ink-char); }
+.code-card .flag { color: var(--auth-1); }
+.code-card .arg { color: var(--prov-1); }
+.code-card .comment { color: var(--ink-mist); font-style: italic; }
+
+/* Footer */
+
+footer.site {
+  border-top: 1px solid var(--seam-faint);
+  padding: var(--s-7) 0 var(--s-8);
+  margin-top: var(--s-8);
+}
+footer.site .inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+footer.site .brand {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--ink-aged);
+  font-size: var(--t-body);
+}
+footer.site .sig {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-mist);
+  letter-spacing: 0.08em;
+}
+footer.site .fnav {
+  display: flex;
+  gap: var(--s-5);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+}
+footer.site .fnav a { color: var(--ink-aged); border: 0; }
+footer.site .fnav a:hover { color: var(--ink-char); }
+
+/* Tweaks panel */
+
+.tweaks {
+  position: fixed;
+  right: var(--s-5);
+  bottom: var(--s-5);
+  z-index: 100;
+  width: 280px;
+  background: var(--stone-3);
+  border: 1px solid var(--seam-clear);
+  border-radius: var(--r-round);
+  padding: var(--s-4);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.03) inset;
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-aged);
+  display: none;
+}
+.tweaks.on { display: block; }
+.tweaks h5 {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  font-weight: 500;
+}
+.tweaks .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--seam-faint);
+}
+.tweaks .row:first-of-type { border-top: 0; }
+.tweaks label { color: var(--ink-aged); }
+.tweaks .seg {
+  display: flex;
+  border: 1px solid var(--seam-clear);
+  border-radius: var(--r-edge);
+  overflow: hidden;
+}
+.tweaks .seg button {
+  background: transparent;
+  border: 0;
+  color: var(--ink-faded);
+  padding: 4px var(--s-3);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.tweaks .seg button.on {
+  background: var(--stone-5);
+  color: var(--ink-char);
+}
+.tweaks .seg button + button { border-left: 1px solid var(--seam-faint); }
+
+/* Animations */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes drawLine {
+  from { stroke-dashoffset: 400; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pulseNode {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+@keyframes softPulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+@keyframes emberPulse {
+  0%, 100% { opacity: 0.65; }
+  50%      { opacity: 1; }
+}
+@keyframes emberHalo {
+  0%, 100% { opacity: 0.18; transform: scale(0.92); }
+  50%      { opacity: 0.55; transform: scale(1.08); }
+}
+
+.hero-visual .ln {
+  stroke-dasharray: 400;
+  animation: drawLine 1.6s var(--ease) forwards;
+}
+.hero-visual .node.active { animation: pulseNode 2.4s ease-in-out infinite; }
+.hero-visual .reconcile-pulse { animation: softPulse 3s ease-in-out infinite; }
+
+[data-anim="off"] .hero-visual .ln { animation: none; stroke-dashoffset: 0; }
+[data-anim="off"] .hero-visual .node.active { animation: none; }
+[data-anim="off"] .hero-visual .reconcile-pulse { animation: none; opacity: 0.8; }
+
+/* Reveal on scroll */
+.reveal { opacity: 0; transform: translateY(10px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* Hero variant crossfade */
+.hero-text [data-variant] { display: none; }
+.hero-text [data-variant].on { display: block; animation: fadeInUp 0.5s var(--ease) both; }
+
+/* Reduced-motion override: disable every motion effect and pre-reveal. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .hero-visual .ln { stroke-dashoffset: 0 !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="site">
+    <div class="brand">
+      <!-- Cairn mark: four stacked stones -->
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+        <ellipse cx="11" cy="17.5" rx="8" ry="2.2" fill="currentColor" opacity="0.85"/>
+        <ellipse cx="11" cy="12" rx="6.2" ry="2" fill="currentColor" opacity="0.7"/>
+        <ellipse cx="11" cy="7" rx="4.4" ry="1.8" fill="currentColor" opacity="0.55"/>
+        <ellipse cx="11" cy="3" rx="2.6" ry="1.3" fill="currentColor" opacity="0.4"/>
+      </svg>
+      Cairn
+    </div>
+    <div class="links">
+      <a href="#what">what</a>
+      <a href="#chains">model</a>
+      <a href="#blueprint">blueprint</a>
+      <a href="#install">install</a>
+      <a href="https://github.com/George-RD/cairn" target="_blank" rel="noopener">github</a>
+      <a class="cta" href="../spec.md">Read the spec</a>
+    </div>
+    <span class="version">a map of what you built</span>
+  </nav>
+
+  <!-- ================ HERO ================ -->
+  <section class="hero" style="border-top:0; padding-top:var(--s-8)">
+    <div class="hero-text">
+      <div class="eyebrow">For people who refuse to let their system drift · first reality layer: code</div>
+
+      <div data-variant="v1" class="on">
+        <h1>Your agent gets lost in your repo <em>every session</em>.<br>Give it the <strong>map</strong>.</h1>
+        <p class="lede">You wrote the ADR. Nobody reads it. Six months later you're the only one who remembers why <code>auth.tokens</code> can't call the cache directly, and your AI agent keeps confidently proposing that it should. Cairn turns an afternoon's worth of <strong>blueprint</strong> into a living <strong>map</strong>: reconciled against the code you actually shipped, queryable by every agent you hand the repo to.</p>
+      </div>
+
+      <div data-variant="v2">
+        <h1>Ship code that <strong>respects</strong> the architecture you meant.</h1>
+        <p class="lede">Claude Code. Cursor. Copilot. They all work best when the structure is explicit, not inferred from file names at 2am. You declare the shape of your system once. Cairn reconciles it against reality, blocks the merge when the two disagree, and hands your agents a graph they can actually use.</p>
+      </div>
+
+      <div data-variant="v3">
+        <h1>Two chains, <em>hinged</em> at every decision you commit to.</h1>
+        <p class="lede">Provenance is why you decided. Authority is what must stay true. They meet at a decision, and the decision is the moment your system tells the truth about itself. Cairn keeps both chains visible long after the Slack thread is gone.</p>
+      </div>
+
+      <div class="ctas">
+        <a class="btn primary" href="../spec.md">Read the spec →</a>
+        <a class="btn ghost" href="https://github.com/George-RD/cairn" target="_blank" rel="noopener">github.com/George-RD/cairn</a>
+      </div>
+    </div>
+
+    <!-- Hero visual: an architectural blueprint sheet -->
+    <div class="hero-visual" data-hviz="blueprint">
+
+      <!-- HERO: blueprint sheet, a drafted elevation of a system -->
+      <svg class="hviz" data-for="blueprint" viewBox="0 0 560 580" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <pattern id="bp-grid-fine" width="14" height="14" patternUnits="userSpaceOnUse">
+            <path d="M 14 0 L 0 0 0 14" fill="none" stroke="#2a2620" stroke-width="0.5" opacity="0.8"/>
+          </pattern>
+          <pattern id="bp-grid-major" width="70" height="70" patternUnits="userSpaceOnUse">
+            <path d="M 70 0 L 0 0 0 70" fill="none" stroke="#38332b" stroke-width="0.8"/>
+          </pattern>
+          <radialGradient id="bp-vignette" cx="50%" cy="45%">
+            <stop offset="0%" stop-color="#1b1915" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#0d0c0a" stop-opacity="0.55"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Sheet -->
+        <rect x="20" y="20" width="520" height="540" fill="#141310" stroke="#4a4338" stroke-width="0.8"/>
+        <rect x="20" y="20" width="520" height="540" fill="url(#bp-grid-fine)"/>
+        <rect x="20" y="20" width="520" height="540" fill="url(#bp-grid-major)"/>
+        <rect x="20" y="20" width="520" height="540" fill="url(#bp-vignette)"/>
+
+        <!-- Sheet margin rules -->
+        <rect x="34" y="34" width="492" height="512" fill="none" stroke="#5a5244" stroke-width="0.6" opacity="0.6"/>
+
+        <!-- Title block corner (top-right) -->
+        <g font-family="IBM Plex Mono" letter-spacing="0.18em">
+          <text x="526" y="54" text-anchor="end" fill="#c9c0ae" font-size="10" font-weight="600">SHEET · 01</text>
+          <text x="526" y="68" text-anchor="end" fill="#5f5849" font-size="9">AUTH · NEIGHBOURHOOD</text>
+        </g>
+
+        <!-- North arrow (top-left) -->
+        <g transform="translate(60 62)">
+          <circle r="14" fill="none" stroke="#5a5244" stroke-width="0.8"/>
+          <path d="M 0 -10 L 4 6 L 0 3 L -4 6 Z" fill="#c9c0ae"/>
+          <text y="26" text-anchor="middle" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.15em">N</text>
+        </g>
+
+        <!-- The system drawn as a plan -->
+        <!-- Outer system boundary: dash-dot -->
+        <rect x="100" y="130" width="360" height="300" fill="none" stroke="#6a5d42" stroke-width="1" stroke-dasharray="8,4,1,4" opacity="0.85"/>
+        <text x="105" y="124" fill="#88c4b4" font-family="IBM Plex Mono" font-size="10" letter-spacing="0.2em" font-weight="500">AUTH</text>
+        <text x="460" y="124" text-anchor="end" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.15em">SYSTEM BOUNDARY</text>
+
+        <!-- Module: auth.api (primary structure) -->
+        <g>
+          <rect x="140" y="170" width="140" height="70" fill="#1b1915" stroke="#c9c0ae" stroke-width="1.1"/>
+          <rect x="144" y="174" width="132" height="62" fill="none" stroke="#5a5244" stroke-width="0.6"/>
+          <text x="152" y="194" fill="#e8e1d2" font-family="IBM Plex Mono" font-size="12" font-weight="500" letter-spacing="0.08em">auth.api</text>
+          <text x="152" y="210" fill="#908673" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">#a4e1 · MODULE</text>
+          <text x="152" y="226" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">session · tokens · login</text>
+        </g>
+
+        <!-- Module: auth.session -->
+        <g>
+          <rect x="310" y="170" width="130" height="70" fill="#1b1915" stroke="#c9c0ae" stroke-width="1.1"/>
+          <rect x="314" y="174" width="122" height="62" fill="none" stroke="#5a5244" stroke-width="0.6"/>
+          <text x="322" y="194" fill="#e8e1d2" font-family="IBM Plex Mono" font-size="12" font-weight="500" letter-spacing="0.08em">auth.session</text>
+          <text x="322" y="210" fill="#908673" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">#7c2f · MODULE</text>
+          <text x="322" y="226" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">issue · verify · rotate</text>
+        </g>
+
+        <!-- Module: auth.tokens (drifted, amber outline) -->
+        <g>
+          <rect x="140" y="320" width="140" height="70" fill="#1b1915" stroke="#c4864a" stroke-width="1.2"/>
+          <rect x="144" y="324" width="132" height="62" fill="none" stroke="#7d5530" stroke-width="0.6" stroke-dasharray="3,2"/>
+          <text x="152" y="344" fill="#f4b36a" font-family="IBM Plex Mono" font-size="12" font-weight="500" letter-spacing="0.08em">auth.tokens</text>
+          <text x="152" y="360" fill="#c4864a" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">#9b40 · DRIFT</text>
+          <text x="152" y="376" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">declared: rotate · is: reissue</text>
+        </g>
+
+        <!-- Module: auth.policy (ghost, not declared) -->
+        <g>
+          <rect x="310" y="320" width="130" height="70" fill="none" stroke="#5a5244" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="322" y="344" fill="#908673" font-family="IBM Plex Mono" font-size="12" letter-spacing="0.08em">auth.policy</text>
+          <text x="322" y="360" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">no hash · GHOST</text>
+          <text x="322" y="376" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">in code · not in blueprint</text>
+        </g>
+
+        <!-- Contract edges (solid = declared, dashed amber = drift, faint dashed = ghost) -->
+        <g fill="none">
+          <line x1="280" y1="205" x2="310" y2="205" stroke="#c9c0ae" stroke-width="1.2"/>
+          <path d="M 210 240 L 210 320" stroke="#c4864a" stroke-width="1.2" stroke-dasharray="5,3"/>
+          <path d="M 375 240 L 375 320" stroke="#5a5244" stroke-width="1" stroke-dasharray="3,3"/>
+          <path d="M 280 355 L 310 355" stroke="#5a5244" stroke-width="1" stroke-dasharray="3,3"/>
+        </g>
+
+        <!-- Edge labels -->
+        <g font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">
+          <text x="295" y="200" text-anchor="middle" fill="#908673">↔ contract</text>
+          <text x="218" y="284" fill="#c4864a" font-weight="600">DRIFT</text>
+        </g>
+
+        <!-- Dimension lines (top: width callout) -->
+        <g stroke="#5a5244" stroke-width="0.6">
+          <line x1="100" y1="150" x2="460" y2="150"/>
+          <line x1="100" y1="145" x2="100" y2="155"/>
+          <line x1="460" y1="145" x2="460" y2="155"/>
+        </g>
+        <text x="280" y="146" text-anchor="middle" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.2em">3 MODULES · 1 GHOST</text>
+
+        <!-- Left side dimension (height callout) -->
+        <g stroke="#5a5244" stroke-width="0.6">
+          <line x1="78" y1="170" x2="78" y2="390"/>
+          <line x1="73" y1="170" x2="83" y2="170"/>
+          <line x1="73" y1="390" x2="83" y2="390"/>
+        </g>
+        <text transform="translate(70, 280) rotate(-90)" text-anchor="middle" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.2em">2 SEAMS</text>
+
+        <!-- Survey benchmark (drift finding marker) -->
+        <g transform="translate(220 280)">
+          <circle r="7" fill="#141310" stroke="#f4b36a" stroke-width="1.1"/>
+          <circle r="2" fill="#f4b36a"/>
+        </g>
+
+        <!-- Scale bar -->
+        <g transform="translate(100 470)">
+          <line x1="0" y1="0" x2="120" y2="0" stroke="#908673" stroke-width="1"/>
+          <line x1="0" y1="-4" x2="0" y2="4" stroke="#908673" stroke-width="1"/>
+          <line x1="40" y1="-3" x2="40" y2="3" stroke="#908673" stroke-width="1"/>
+          <line x1="80" y1="-3" x2="80" y2="3" stroke="#908673" stroke-width="1"/>
+          <line x1="120" y1="-4" x2="120" y2="4" stroke="#908673" stroke-width="1"/>
+          <text x="0" y="18" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">0</text>
+          <text x="120" y="18" text-anchor="end" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">1 NEIGHBOURHOOD</text>
+        </g>
+
+        <!-- Legend strip -->
+        <g transform="translate(280 460)" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.12em">
+          <line x1="0" y1="-3" x2="20" y2="-3" stroke="#c9c0ae" stroke-width="1.1"/>
+          <text x="26" y="0" fill="#c9c0ae">DECLARED</text>
+          <line x1="0" y1="12" x2="20" y2="12" stroke="#c4864a" stroke-width="1.2" stroke-dasharray="5,3"/>
+          <text x="26" y="15" fill="#c4864a">DRIFT</text>
+          <line x1="0" y1="27" x2="20" y2="27" stroke="#5a5244" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="26" y="30" fill="#908673">GHOST</text>
+        </g>
+
+        <!-- Title block (bottom-right corner) -->
+        <g>
+          <rect x="360" y="488" width="166" height="58" fill="#0d0c0a" stroke="#5a5244" stroke-width="0.8"/>
+          <line x1="360" y1="506" x2="526" y2="506" stroke="#5a5244" stroke-width="0.6"/>
+          <line x1="360" y1="524" x2="526" y2="524" stroke="#5a5244" stroke-width="0.6"/>
+          <line x1="442" y1="488" x2="442" y2="546" stroke="#5a5244" stroke-width="0.6"/>
+          <g font-family="IBM Plex Mono" letter-spacing="0.14em">
+            <text x="366" y="501" fill="#5f5849" font-size="8">PROJECT</text>
+            <text x="446" y="501" fill="#5f5849" font-size="8">SCAN</text>
+            <text x="366" y="519" fill="#c9c0ae" font-size="10" font-weight="500">CAIRN</text>
+            <text x="446" y="519" fill="#c9c0ae" font-size="10" font-weight="500">#a4e1</text>
+            <text x="366" y="537" fill="#5f5849" font-size="8">SHEET</text>
+            <text x="446" y="537" fill="#5f5849" font-size="8">REV · 04</text>
+            <text x="396" y="537" fill="#c9c0ae" font-size="10" font-weight="500">01 / 12</text>
+          </g>
+        </g>
+
+        <!-- Footer caption -->
+        <text x="40" y="540" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="12">a plan · 1:1 with reality</text>
+      </svg>
+
+    </div>
+  </section>
+
+  <!-- ================ WHAT CAIRN IS ================ -->
+  <section id="what">
+    <div class="kicker">What it is</div>
+    <h2 class="section">For people who take their architecture <em>seriously</em> enough to write it down.</h2>
+
+    <div class="what" style="margin-top:var(--s-7)">
+      <div></div>
+      <div>
+        <p>You already know the shape of your system. It lives in your head, in a half-updated ADR folder, in the Slack thread from March. You write a <strong>blueprint</strong> instead: a short declarative file that names your systems, containers, modules, the contracts between them, and the decisions that shaped them. Not prose that rots. A file your toolchain reads.</p>
+        <p>Cairn reconciles that blueprint against reality. The code on disk today. The contracts in <code>contracts/</code>. The decision records someone actually wrote. What comes back is a <strong>map</strong>: a graph of what exists, what's declared, what's drifted, and exactly where the two stopped agreeing.</p>
+        <p>When your agent needs to change <code>auth.session</code>, it stops re-reading <code>src/auth</code> from scratch. It asks the map: what's this module's contract, which decisions constrain it, what's its neighbourhood. It gets a typed answer and ships code that fits.</p>
+
+        <div class="three-nouns">
+          <span class="noun prov">blueprint</span>
+          <span class="arr">→</span>
+          <span class="noun auth">reconcile</span>
+          <span class="arr">→</span>
+          <span class="noun hinge">map</span>
+          <span class="arr">+</span>
+          <span class="noun">findings</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ TWO-CHAIN MODEL ================ -->
+  <section id="chains">
+    <div class="kicker">The two-chain model</div>
+    <h2 class="section">Every system has a chain of <em>why you decided</em> and a chain of <strong>what must stay true</strong>. Cairn keeps them honest with each other.</h2>
+    <p class="section-lede">This is the spine. The <em>provenance chain</em> runs upward from sources and research: the evidence that earned your decision the right to exist. The <strong>authority chain</strong> runs downward through blueprint, contract, and code: the rules that nobody gets to break silently. They meet at the moment you commit. That moment is a decision, and it is the one place your system gets to be honest about itself.</p>
+
+    <div class="two-chain">
+      <div class="chain-viz">
+        <svg viewBox="0 0 640 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <defs>
+            <pattern id="grid-dot-2" width="24" height="24" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="0.7" fill="#2a2620" opacity="0.55"/>
+            </pattern>
+          </defs>
+          <rect width="640" height="520" fill="url(#grid-dot-2)"/>
+
+          <!-- Rail labels at top -->
+          <text x="80" y="44" fill="#f4b36a" font-family="IBM Plex Mono" font-size="13" font-weight="500" letter-spacing="0.2em">PROVENANCE</text>
+          <text x="560" y="44" text-anchor="end" fill="#88c4b4" font-family="IBM Plex Mono" font-size="13" font-weight="500" letter-spacing="0.2em">AUTHORITY</text>
+          <text x="80" y="62" fill="#908673" font-family="Source Serif 4" font-style="italic" font-size="12">chain of why</text>
+          <text x="560" y="62" text-anchor="end" fill="#908673" font-family="Source Serif 4" font-style="italic" font-size="12">chain of what</text>
+
+          <!-- Provenance spine (left) -->
+          <g font-family="IBM Plex Mono" font-size="14" fill="#e8e1d2">
+            <circle cx="90" cy="120" r="7" fill="#f4b36a"/>
+            <text x="110" y="125">source</text>
+            <line x1="90" y1="128" x2="90" y2="182" stroke="#7d5530" stroke-width="1.2"/>
+            <circle cx="90" cy="190" r="7" fill="#f4b36a"/>
+            <text x="110" y="195">research</text>
+            <line x1="90" y1="198" x2="90" y2="252" stroke="#7d5530" stroke-width="1.2"/>
+            <circle cx="90" cy="260" r="7" fill="#f4b36a"/>
+            <text x="110" y="265">synthesis</text>
+          </g>
+
+          <!-- Authority spine (right) -->
+          <g font-family="IBM Plex Mono" font-size="14" fill="#e8e1d2">
+            <circle cx="550" cy="120" r="7" fill="#88c4b4"/>
+            <text x="530" y="125" text-anchor="end">blueprint</text>
+            <line x1="550" y1="128" x2="550" y2="182" stroke="#2f5448" stroke-width="1.2"/>
+            <circle cx="550" cy="190" r="7" fill="#88c4b4"/>
+            <text x="530" y="195" text-anchor="end">contract</text>
+            <line x1="550" y1="198" x2="550" y2="252" stroke="#2f5448" stroke-width="1.2"/>
+            <circle cx="550" cy="260" r="7" fill="#88c4b4"/>
+            <text x="530" y="265" text-anchor="end">code</text>
+          </g>
+
+          <!-- Arcs from prov spine to hinge -->
+          <path d="M 97 260 Q 180 260, 280 260" fill="none" stroke="#c4864a" stroke-width="1.6" opacity="0.85"/>
+          <path d="M 97 190 Q 200 220, 275 250" fill="none" stroke="#c4864a" stroke-width="1.1" opacity="0.5"/>
+
+          <!-- Arcs from hinge to auth spine -->
+          <path d="M 360 260 Q 460 260, 543 260" fill="none" stroke="#5a9687" stroke-width="1.6" opacity="0.85"/>
+          <path d="M 360 260 Q 460 220, 543 190" fill="none" stroke="#5a9687" stroke-width="1.1" opacity="0.5"/>
+
+          <!-- Hinge (center) -->
+          <g transform="translate(320, 260)">
+            <text text-anchor="middle" y="-72" font-family="Source Serif 4" font-style="italic" font-size="18" fill="#908673">the hinge</text>
+            <circle r="52" fill="#22201b" stroke="#e8e1d2" stroke-width="1.5"/>
+            <circle r="36" fill="#f2ece0"/>
+            <text text-anchor="middle" y="5" font-family="IBM Plex Mono" font-weight="600" font-size="13" fill="#141310" letter-spacing="0.04em">DECISION</text>
+          </g>
+
+          <!-- Bottom: downstream outcomes -->
+          <g font-family="IBM Plex Mono" font-size="12" fill="#c9c0ae">
+            <line x1="90" y1="320" x2="90" y2="388" stroke="#38332b" stroke-width="1.2"/>
+            <circle cx="90" cy="395" r="5" fill="#7d5530"/>
+            <text x="110" y="400">todo · review</text>
+
+            <line x1="550" y1="320" x2="550" y2="388" stroke="#38332b" stroke-width="1.2"/>
+            <circle cx="550" cy="395" r="5" fill="#2f5448"/>
+            <text x="530" y="400" text-anchor="end">tests · runtime</text>
+          </g>
+
+          <!-- Caption -->
+          <text x="320" y="480" text-anchor="middle" font-family="Source Serif 4" font-style="italic" font-size="15" fill="#b6ac96">two chains · one honest system</text>
+        </svg>
+      </div>
+
+      <div class="chain-prose">
+        <div class="chain-head prov">Provenance: why you decided</div>
+        <p>Sources are the raw evidence. Research is how you made sense of them. Neither gets to decide anything on its own. They accumulate until a decision reads them and says <em>this is what we're going with</em>. When future-you asks <em>why is it this way</em>, the provenance chain is the answer that survives.</p>
+
+        <div class="chain-head hinge">The hinge: the decision you commit</div>
+        <p>A decision reads provenance and writes authority. It is the one place in the whole system where deliberation becomes obligation. Every authoritative statement in Cairn, every contract, every blueprint node, traces back to a decision. Every decision traces back to the evidence that earned it. Nothing in your architecture is allowed to just appear.</p>
+
+        <div class="chain-head auth">Authority: what must stay true</div>
+        <p>The blueprint declares how the system is shaped. Contracts formalise the interfaces between modules. Code has to realise them. Cairn reconciles the three and tells you precisely where they disagree: as a <em>structural error</em>, an <em>interface contradiction</em>, or a <em>rationale tension</em>. The fence around the authority chain is the part that watches your back.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ BLUEPRINT TO MAP ================ -->
+  <section id="blueprint">
+    <div class="kicker">Blueprint → Map</div>
+    <h2 class="section">An afternoon's worth of declaration. A living map for the rest of the project.</h2>
+    <p class="section-lede">The <code>cairn.blueprint</code> file is declarative and human-readable. You can draft the first pass over one afternoon and a second coffee. What Cairn gives back is <code>map.md</code>: every node labelled <code>synced</code>, <code>ghost</code>, or <code>orphaned</code>, plus a ranked list of findings sitting right where agents and teammates can find them.</p>
+
+    <div class="bp-map">
+      <div class="panel">
+        <div class="panel-label">Authored · <span class="fname">cairn.blueprint</span></div>
+<pre><span class="tok-cmt"># auth platform. declared structure.</span>
+<span class="tok-kw">system</span> <span class="tok-id">auth</span> <span class="tok-str">"Authentication &amp; session"</span> {
+  <span class="tok-kw">owner</span> platform-team
+
+  <span class="tok-kw">container</span> <span class="tok-id">api</span> <span class="tok-str">"Edge gateway"</span> {
+    <span class="tok-kw">module</span> <span class="tok-id">session</span> {
+      <span class="tok-kw">path</span>     src/session/
+      <span class="tok-kw">contract</span> contracts/session.md
+      <span class="tok-at">@decides</span> dec.session-lifecycle
+    }
+
+    <span class="tok-kw">module</span> <span class="tok-id">tokens</span> {
+      <span class="tok-kw">path</span>     src/tokens/
+      <span class="tok-kw">contract</span> contracts/tokens.md
+      <span class="tok-at">@depends</span> session
+    }
+  }
+}</pre>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">Reconciled · <span class="fname">map.md</span></div>
+        <div class="map-stack">
+          <div class="map-row system">
+            <span class="glyph">S</span>
+            <span class="name">auth</span>
+            <span class="status synced">synced</span>
+          </div>
+          <div class="map-row container indent-1">
+            <span class="glyph">C</span>
+            <span class="name">auth.api</span>
+            <span class="status synced">synced</span>
+          </div>
+          <div class="map-row module indent-2">
+            <span class="glyph">m</span>
+            <span class="name">auth.api.session</span>
+            <span class="status synced">synced</span>
+          </div>
+          <div class="map-row module indent-2">
+            <span class="glyph">m</span>
+            <span class="name">auth.api.tokens</span>
+            <span class="status drift">drift</span>
+          </div>
+          <div class="map-row module indent-2" style="opacity:0.65">
+            <span class="glyph">m</span>
+            <span class="name">auth.api.rate_limit</span>
+            <span class="status ghost">ghost</span>
+          </div>
+        </div>
+        <div style="margin-top:var(--s-5); padding-top:var(--s-4); border-top:1px dashed var(--seam-thin); font-family:var(--font-mono); font-size:12px; color:var(--ink-faded); line-height:1.7">
+          <div>3 synced · 1 drift · 1 ghost</div>
+          <div>2 findings · <span style="color:var(--drift)">1 contradiction</span> · <span style="color:var(--prov-2)">1 tension</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ FINDING CLASSES ================ -->
+  <section id="findings">
+    <div class="kicker">Findings · the system watching your back</div>
+    <h2 class="section">A <em>contradiction</em> stops the merge. A <em>tension</em> taps you on the shoulder.</h2>
+    <p class="section-lede">Three kinds of wrong, kept distinct on purpose. Cairn is not a linter that nags. It is the thing that tells you when the code and the declaration have started lying to each other, and which of the two classes of lie it is. Flattening both to "warnings" is how architectural intent quietly rots.</p>
+
+    <div class="findings">
+      <div class="finding structural">
+        <div class="severity">Blocking</div>
+        <h3>Structural error</h3>
+        <p>A node in the blueprint has no counterpart on disk. A contract points at a module ID that doesn't exist. The graph is malformed, and nothing downstream is trustworthy until it is fixed. The scan refuses to continue.</p>
+        <span class="block-label">halts the scan</span>
+      </div>
+
+      <div class="finding contradiction">
+        <div class="severity">Blocking</div>
+        <h3>Interface contradiction</h3>
+        <p>The contract says one signature. The code ships another. The <code>interface hash</code> moved and nobody told the contract. This is drift caught in the act, and it is the merge-blocker you want firing before your agent confidently ships the version that breaks everything upstream.</p>
+        <span class="block-label">halts the merge</span>
+      </div>
+
+      <div class="finding tension">
+        <div class="severity">Advisory</div>
+        <h3>Rationale tension</h3>
+        <p>Two decisions are arguing with each other. Or a decision's provenance no longer holds up. The code still compiles, but the story has drifted. Cairn flags it for review instead of blocking, so you can resolve it the next time you're already thinking about that module.</p>
+        <span class="block-label">flags for review</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ BEYOND CODE / DOMAINS ================ -->
+  <section id="domains">
+    <div class="kicker">Beyond code</div>
+    <h2 class="section">Code is the first reality layer. Your research, your org, your product BOM are next.</h2>
+    <p class="section-lede">A <em>reconciler</em> is a plugin interface. It answers one question: given a node in the blueprint, what's actually there? Code is the reconciler that ships today. The kernel doesn't care. Anywhere "what we said" has to stay honest with "what is," the same machinery applies.</p>
+
+    <div class="domains">
+      <a class="domain first" href="../spec.md">
+        <div class="dkicker">reality layer · code</div>
+        <h4>Source code</h4>
+        <p>Module paths, interface hashes, contract markdown. Reconcile the repo against what the blueprint said it would be, before your agent ships something it shouldn't.</p>
+        <span class="arrow">→</span>
+      </a>
+      <a class="domain" href="../spec.md">
+        <div class="dkicker">reality layer · research</div>
+        <h4>Research programmes</h4>
+        <p>Experiments, hypotheses, protocols as typed artefacts. Reconcile the claims in the paper draft against the evidence chain that is supposed to justify them.</p>
+        <span class="arrow">→</span>
+      </a>
+      <a class="domain" href="../spec.md">
+        <div class="dkicker">reality layer · org</div>
+        <h4>Organisational design</h4>
+        <p>Teams, charters, ownership. Reconcile the org chart you drew against who is actually responsible for what this quarter.</p>
+        <span class="arrow">→</span>
+      </a>
+      <a class="domain" href="../spec.md">
+        <div class="dkicker">reality layer · product</div>
+        <h4>Product BOMs</h4>
+        <p>Parts, suppliers, regulatory certifications. Reconcile the bill of materials against the physical audit, and catch the divergence before the regulator does.</p>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ================ INSTALL ================ -->
+  <section id="install">
+    <div class="kicker">Get started</div>
+    <h2 class="section">You can be scanning your repo in under a minute.</h2>
+    <p class="section-lede">One CLI. One file to author. One command to scan. Your first <code>map.md</code> lands on disk the first time you run it, and your agents can query it the next prompt.</p>
+
+    <div class="install-grid">
+      <div class="code-card">
+        <div class="card-head"><span class="dot"></span> install</div>
+<pre><span class="prompt">$</span> <span class="cmd">brew install</span> <span class="arg">cairn</span>
+<span class="prompt">$</span> <span class="cmd">cairn init</span>                 <span class="comment"># scaffolds cairn.blueprint</span>
+<span class="prompt">$</span> <span class="cmd">cairn scan</span>                 <span class="comment"># reconcile, emit map.md</span></pre>
+      </div>
+
+      <div class="code-card">
+        <div class="card-head"><span class="dot"></span> a session</div>
+<pre><span class="prompt">$</span> <span class="cmd">cairn get</span> <span class="arg">auth.api.session</span> <span class="flag">--json</span>
+<span class="prompt">$</span> <span class="cmd">cairn neighbourhood</span> <span class="arg">auth.api.session</span>
+<span class="prompt">$</span> <span class="cmd">cairn contract</span> <span class="arg">auth.api.tokens</span>
+<span class="prompt">$</span> <span class="cmd">cairn depends</span> <span class="arg">auth.api.tokens</span> <span class="flag">--transitive</span>
+<span class="prompt">$</span> <span class="cmd">cairn lint</span> <span class="flag">--json</span>              <span class="comment"># all findings</span>
+<span class="prompt">$</span> <span class="cmd">cairn hooks install</span>            <span class="comment"># pre-commit, pre-merge</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="inner">
+      <div class="brand">Cairn. One stone stacked against forgetting what you built and why.</div>
+      <div class="fnav">
+        <a href="../spec.md">spec</a>
+        <a href="https://github.com/George-RD/cairn" target="_blank" rel="noopener">github</a>
+        <a href="../spec.md">design system</a>
+        <a href="../../src/ui_assets/index.html">prototype</a>
+      </div>
+      <div class="sig">a stone stacked against forgetting</div>
+    </div>
+  </footer>
+</div>
+
+<!-- ================ TWEAKS PANEL ================ -->
+<div class="tweaks" id="tweaks" aria-hidden="true">
+  <h5>Tweaks</h5>
+  <div class="row">
+    <label>Theme</label>
+    <div class="seg" data-group="theme">
+      <button data-val="dark" class="on">dark</button>
+      <button data-val="light">light</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>Hero variant</label>
+    <div class="seg" data-group="hero">
+      <button data-val="v1" class="on">blueprint→map</button>
+      <button data-val="v2">agents</button>
+      <button data-val="v3">chains</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>Animation</label>
+    <div class="seg" data-group="anim">
+      <button data-val="on" class="on">on</button>
+      <button data-val="off">off</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Default tweak values, persisted via edit mode.
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "dark",
+  "hero": "v1",
+  "anim": "on"
+}/*EDITMODE-END*/;
+
+const state = { ...TWEAK_DEFAULTS };
+
+function applyState() {
+  document.documentElement.setAttribute("data-theme", state.theme);
+  document.documentElement.setAttribute("data-anim", state.anim);
+  // Hero variant swap
+  document.querySelectorAll('.hero-text [data-variant]').forEach(el => {
+    el.classList.toggle('on', el.dataset.variant === state.hero);
+  });
+  // Tweaks UI
+  document.querySelectorAll('.tweaks .seg').forEach(seg => {
+    const key = seg.dataset.group;
+    seg.querySelectorAll('button').forEach(btn => {
+      btn.classList.toggle('on', btn.dataset.val === state[key]);
+    });
+  });
+}
+
+function setKey(key, val) {
+  state[key] = val;
+  applyState();
+  try {
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: val } }, '*');
+  } catch (e) { /* standalone page: no parent */ }
+}
+
+document.querySelectorAll('.tweaks .seg button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.closest('.seg').dataset.group;
+    setKey(group, btn.dataset.val);
+  });
+});
+
+// Edit-mode protocol
+window.addEventListener('message', (e) => {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === '__activate_edit_mode') {
+    const t = document.getElementById('tweaks');
+    t.classList.add('on');
+    t.setAttribute('aria-hidden', 'false');
+  } else if (e.data.type === '__deactivate_edit_mode') {
+    const t = document.getElementById('tweaks');
+    t.classList.remove('on');
+    t.setAttribute('aria-hidden', 'true');
+  }
+});
+try {
+  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+} catch (e) {}
+
+// Reveal on scroll, guarded for reduced-motion preference.
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const revealTargets = document.querySelectorAll('section, .finding, .domain, .code-card');
+
+if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+  revealTargets.forEach(el => el.classList.add('in'));
+} else {
+  revealTargets.forEach(el => el.classList.add('reveal'));
+  const io = new IntersectionObserver((entries) => {
+    for (const ent of entries) {
+      if (ent.isIntersecting) {
+        ent.target.classList.add('in');
+        io.unobserve(ent.target);
+      }
+    }
+  }, { threshold: 0.12 });
+  revealTargets.forEach(el => io.observe(el));
+}
+
+applyState();
+</script>
+
+</body>
+</html>

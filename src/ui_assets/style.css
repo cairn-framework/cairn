@@ -1,179 +1,68 @@
 /* ==========================================================================
-   Cairn Graph Explorer — stylesheet
-   Layer order: tokens -> reset -> base -> layout -> components -> responsive -> dark
-   All colors, sizes, spacings, radii, and rule weights are tokenized via
-   `--cairn-*` custom properties. Consumer rules read tokens only.
-   Shadow policy: there are no box-shadows anywhere.
+   Cairn Graph Explorer, graph-region overrides.
+
+   This file rides on top of docs/design-system/tokens.css and
+   docs/design-system/components.css. Tokens are the single source of truth;
+   never hardcode hex values here, always reference --stone-*, --ink-*,
+   --prov-*, --auth-*, --hinge-*, --drift, --settled, --seam-*, --stroke-*,
+   --font-*, --t-*, --s-*, --r-*, --dur-*, --ease-*.
+
+   Dark-stone is the default palette; light (paper) is available via
+   [data-theme="light"] on <html>.
+
+   Reduced motion is honored globally via tokens.css zeroing --dur-*.
+   The explicit media query below is a belt-and-braces guard for custom
+   keyframes that do not read a duration token.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. Tokens (light, default)
+   1. Shell, topbar, layout frame
    -------------------------------------------------------------------------- */
-:root {
-  color-scheme: light;
-
-  /* Color — paper + ink + ochre */
-  --cairn-paper: hsl(40 25% 97%);
-  --cairn-paper-sunk: hsl(38 18% 95%);
-  --cairn-ink: hsl(30 12% 12%);
-  --cairn-ink-muted: hsl(30 8% 36%);
-  --cairn-ink-faint: hsl(30 6% 54%);
-  --cairn-rule: hsl(35 12% 82%);
-  --cairn-rule-strong: hsl(33 14% 68%);
-  --cairn-accent: hsl(24 62% 42%);
-  --cairn-accent-ink: hsl(22 48% 28%);
-
-  --cairn-severity-note: hsl(200 22% 40%);
-  --cairn-severity-warn: hsl(38 48% 38%);
-  --cairn-severity-err: hsl(8 54% 40%);
-
-  --cairn-node-system: hsl(45 30% 92%);
-  --cairn-node-container: hsl(80 15% 92%);
-  --cairn-node-module: hsl(40 25% 97%);
-  --cairn-node-reconciler: hsl(12 20% 94%);
-
-  --cairn-selection-ink: var(--cairn-accent);
-  --cairn-focus-ring: var(--cairn-accent);
-
-  /* Type families */
-  --cairn-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --cairn-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
-
-  /* Type scale */
-  --cairn-size-caption: 0.6875rem; /* 11px */
-  --cairn-size-meta: 0.75rem;      /* 12px */
-  --cairn-size-body: 0.875rem;     /* 14px */
-  --cairn-size-body-lg: 1rem;      /* 16px */
-  --cairn-size-h3: 1.125rem;       /* 18px */
-  --cairn-size-h2: 1.375rem;       /* 22px */
-  --cairn-size-h1: 1.75rem;        /* 28px */
-
-  /* Line heights */
-  --cairn-lh-prose: 1.5;
-  --cairn-lh-meta: 1.35;
-  --cairn-lh-mono: 1.4;
-
-  /* Weights */
-  --cairn-weight-prose: 400;
-  --cairn-weight-ui: 500;
-  --cairn-weight-mark: 600;
-
-  /* Spacing — 4px base */
-  --cairn-space-0: 0;
-  --cairn-space-1: 0.25rem; /* 4 */
-  --cairn-space-2: 0.5rem;  /* 8 */
-  --cairn-space-3: 0.75rem; /* 12 */
-  --cairn-space-4: 1rem;    /* 16 */
-  --cairn-space-5: 1.5rem;  /* 24 */
-  --cairn-space-6: 2rem;    /* 32 */
-  --cairn-space-7: 3rem;    /* 48 */
-  --cairn-space-8: 4rem;    /* 64 */
-
-  /* Radii */
-  --cairn-radius-0: 0;
-  --cairn-radius-1: 2px;
-
-  /* Border weights */
-  --cairn-border-hair: 1px;
-  --cairn-border-rule: 1.5px;
-  --cairn-border-strong: 2px;
-
-  /* Layout */
-  --cairn-topbar-height: 64px;
-  --cairn-panel-width: 380px;
-  --cairn-canvas-inset: 32px;
-  --cairn-prose-measure: 58ch;
-
-  /* Motion */
-  --cairn-dur-hover: 120ms;
-  --cairn-dur-expand: 140ms;
-  --cairn-dur-reset: 160ms;
-  --cairn-dur-sheet: 180ms;
-  --cairn-ease: linear;
-}
-
-/* --------------------------------------------------------------------------
-   2. Reset
-   -------------------------------------------------------------------------- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
 body {
-  margin: 0;
-  padding: 0;
-}
-
-body {
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  background: var(--stone-1);
+  color: var(--ink-char);
   min-height: 100vh;
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-body);
-  line-height: var(--cairn-lh-prose);
-  background: var(--cairn-paper);
-  color: var(--cairn-ink);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
-h1,
-h2,
-h3,
-p {
+h1, h2, h3, p {
   margin: 0;
-  font-weight: var(--cairn-weight-prose);
-}
-
-button {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  border-radius: var(--cairn-radius-0);
+  font-weight: 400;
 }
 
 button:focus-visible {
-  outline: var(--cairn-border-strong) solid var(--cairn-focus-ring);
+  outline: 2px solid var(--prov-2);
   outline-offset: 2px;
+  border-radius: var(--r-edge);
 }
 
-.mono {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  line-height: var(--cairn-lh-mono);
-}
-
-/* --------------------------------------------------------------------------
-   3. Layout — topbar + shell
-   -------------------------------------------------------------------------- */
 .topbar {
   position: relative;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: var(--cairn-space-5);
-  height: var(--cairn-topbar-height);
-  padding: 0 var(--cairn-space-5);
-  background: var(--cairn-paper);
-  border-bottom: var(--cairn-border-rule) solid var(--cairn-rule-strong);
+  gap: var(--s-5);
+  height: 56px;
+  padding: 0 var(--s-5);
+  background: var(--stone-1);
+  border-bottom: 1px solid var(--stroke-1);
 }
 
 .topbar-mark {
   display: inline-flex;
   align-items: baseline;
-  gap: var(--cairn-space-3);
+  gap: var(--s-3);
   white-space: nowrap;
 }
 
 .mark-name {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-h1);
-  font-weight: var(--cairn-weight-mark);
-  color: var(--cairn-ink);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink-char);
   line-height: 1;
 }
 
@@ -181,15 +70,15 @@ button:focus-visible {
   display: inline-block;
   width: 1px;
   height: 0.7em;
-  background: var(--cairn-rule-strong);
+  background: var(--seam-clear);
   align-self: center;
 }
 
 .mark-sub {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-body);
-  font-weight: var(--cairn-weight-ui);
-  color: var(--cairn-ink-muted);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--ink-aged);
   line-height: 1;
 }
 
@@ -198,10 +87,11 @@ button:focus-visible {
   align-items: baseline;
   justify-content: center;
   flex-wrap: wrap;
-  gap: var(--cairn-space-2);
-  font-size: var(--cairn-size-meta);
-  line-height: var(--cairn-lh-meta);
-  color: var(--cairn-ink-muted);
+  gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  line-height: 1.4;
+  color: var(--ink-faded);
   max-width: 60vw;
   overflow: hidden;
 }
@@ -223,94 +113,97 @@ button:focus-visible {
 }
 
 .meta-label {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-mist);
 }
 
 .meta-value {
-  color: var(--cairn-ink-muted);
+  color: var(--ink-aged);
 }
 
 #meta-project {
-  color: var(--cairn-ink);
+  color: var(--ink-char);
 }
 
 .meta-dot {
-  color: var(--cairn-ink-faint);
+  color: var(--ink-ghost);
   user-select: none;
 }
 
 .zoom-strip {
   display: inline-flex;
   align-items: stretch;
-  border: var(--cairn-border-hair) solid var(--cairn-rule);
-  border-radius: var(--cairn-radius-0);
-  overflow: hidden;
+  background: var(--stone-2);
+  border: 1px solid var(--stroke-2);
+  border-radius: var(--r-stone);
+  padding: 2px;
+  gap: 2px;
 }
 
 .zoom-button {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--cairn-size-body-lg);
-  color: var(--cairn-ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--t-body);
+  color: var(--ink-aged);
   background: transparent;
-  border-right: var(--cairn-border-hair) solid var(--cairn-rule);
-  transition: background-color var(--cairn-dur-hover) var(--cairn-ease), color var(--cairn-dur-hover) var(--cairn-ease);
-}
-
-.zoom-button:last-child {
-  border-right: 0;
+  border: 0;
+  border-radius: var(--r-edge);
+  transition: background var(--dur-quick) var(--ease-stack),
+              color var(--dur-quick) var(--ease-stack);
 }
 
 .zoom-button:hover {
-  background: color-mix(in srgb, var(--cairn-rule) 40%, transparent);
-  color: var(--cairn-ink);
+  background: var(--stone-3);
+  color: var(--ink-char);
 }
 
 .zoom-button:active {
-  background: color-mix(in srgb, var(--cairn-accent-ink) 15%, transparent);
-  color: var(--cairn-ink);
+  background: var(--stone-4);
+  color: var(--ink-char);
 }
 
-/* Shell split */
+/* Shell split, graph-region + detail-panel */
 .shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--cairn-panel-width);
-  min-height: calc(100vh - var(--cairn-topbar-height) - var(--cairn-border-rule));
+  grid-template-columns: minmax(0, 1fr) 380px;
+  min-height: calc(100vh - 56px - 1px);
+  background: var(--stone-1);
 }
 
-/* When panel is hidden (detail-panel[hidden]), grid reclaims the column instantly. */
+/* When the inspector is closed, the graph region reclaims the column. */
 .shell.panel-closed {
   grid-template-columns: minmax(0, 1fr);
 }
 
 /* --------------------------------------------------------------------------
-   4. Graph canvas
+   2. Graph canvas
    -------------------------------------------------------------------------- */
 .graph-region {
   position: relative;
   overflow: hidden;
-  background: var(--cairn-paper-sunk);
-  border-right: var(--cairn-border-rule) solid var(--cairn-rule-strong);
+  background: var(--stone-0);
+  border-right: 1px solid var(--stroke-1);
 }
 
 .warning {
   position: absolute;
-  top: var(--cairn-space-4);
-  left: var(--cairn-space-4);
-  right: var(--cairn-space-4);
+  top: var(--s-4);
+  left: var(--s-4);
+  right: var(--s-4);
   z-index: 5;
-  padding: var(--cairn-space-3);
-  border: var(--cairn-border-hair) solid var(--cairn-severity-warn);
-  border-radius: var(--cairn-radius-0);
-  background: var(--cairn-paper);
-  color: var(--cairn-severity-warn);
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
+  padding: var(--s-3) var(--s-4);
+  background: var(--drift-wash);
+  border: 1px solid var(--drift);
+  border-radius: var(--r-stone);
+  color: var(--drift);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.02em;
 }
 
 .graph-viewport {
@@ -319,7 +212,7 @@ button:focus-visible {
   overflow: hidden;
   cursor: grab;
   background-image:
-    radial-gradient(circle, color-mix(in srgb, var(--cairn-rule) 40%, transparent) 1px, transparent 1px);
+    radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
   background-size: 24px 24px;
   background-position: 0 0;
 }
@@ -340,7 +233,7 @@ button:focus-visible {
   width: 3200px;
   height: 2000px;
   transform-origin: 0 0;
-  transition: transform var(--cairn-dur-reset) var(--cairn-ease);
+  transition: transform var(--dur-settle) var(--ease-settle);
 }
 
 .graph.no-transition {
@@ -356,10 +249,11 @@ button:focus-visible {
 }
 
 .edge {
-  stroke: var(--cairn-ink-muted);
+  stroke: var(--seam-carved);
   stroke-width: 1;
   fill: none;
-  transition: stroke var(--cairn-dur-hover) var(--cairn-ease), stroke-width var(--cairn-dur-hover) var(--cairn-ease);
+  transition: stroke var(--dur-tick) var(--ease),
+              stroke-width var(--dur-tick) var(--ease);
 }
 
 .edge.dependency {
@@ -367,71 +261,100 @@ button:focus-visible {
 }
 
 .edge.faded {
-  stroke: var(--cairn-rule);
+  stroke: var(--seam-thin);
 }
 
 .edge.active {
-  stroke: var(--cairn-accent);
+  stroke: var(--prov-1);
   stroke-width: 1.5;
 }
 
 marker polygon {
-  fill: var(--cairn-ink-muted);
+  fill: var(--seam-carved);
 }
 
 marker.arrow-active polygon {
-  fill: var(--cairn-accent);
+  fill: var(--prov-1);
 }
 
 /* --------------------------------------------------------------------------
-   5. Node card
+   3. Node card (stone-node primitive, adapted to graph-map scale)
    -------------------------------------------------------------------------- */
 .node {
   position: absolute;
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-1);
+  gap: var(--s-1);
   width: max-content;
   min-width: 180px;
   max-width: 260px;
   padding: 10px 12px;
-  background: var(--cairn-node-module);
-  border: var(--cairn-border-hair) solid var(--cairn-rule-strong);
-  border-radius: var(--cairn-radius-0);
-  color: var(--cairn-ink);
+  background: linear-gradient(180deg,
+    rgba(255, 245, 220, 0.025) 0%, transparent 40%),
+    var(--stone-3);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-stone);
+  color: var(--ink-char);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
-  transition: border-color var(--cairn-dur-hover) var(--cairn-ease);
+  box-shadow: var(--lift-1), var(--inset-sky);
+  transition: border-color var(--dur-tick) var(--ease),
+              box-shadow var(--dur-settle) var(--ease-settle),
+              transform var(--dur-settle) var(--ease-settle);
 }
 
+.node::before,
+.node::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.node::before { left: 0; background: var(--prov-2); }
+.node::after  { right: 0; background: var(--auth-2); }
+
 .node.kind-system {
-  background: var(--cairn-node-system);
+  background: linear-gradient(180deg,
+    rgba(255, 245, 220, 0.04) 0%, transparent 40%),
+    var(--stone-4);
 }
 
 .node.kind-container {
-  background: var(--cairn-node-container);
-  outline: var(--cairn-border-hair) solid var(--cairn-rule);
+  background: linear-gradient(180deg,
+    rgba(255, 245, 220, 0.03) 0%, transparent 40%),
+    var(--stone-3);
+  outline: 1px solid var(--stroke-1);
   outline-offset: -4px;
 }
 
 .node.kind-module {
-  background: var(--cairn-node-module);
+  background: linear-gradient(180deg,
+    rgba(255, 245, 220, 0.025) 0%, transparent 40%),
+    var(--stone-3);
 }
 
-.node.kind-reconciler {
-  background: var(--cairn-node-reconciler);
+.node.kind-reconciler,
+.node.kind-actor {
+  background: linear-gradient(180deg,
+    rgba(255, 245, 220, 0.025) 0%, transparent 40%),
+    var(--stone-2);
 }
 
 .node:hover {
-  border-color: var(--cairn-ink-faint);
-  cursor: pointer;
+  border-color: var(--seam-clear);
+  transform: translateY(-1px);
+  box-shadow: var(--lift-2), var(--inset-sky);
 }
 
 .node-body {
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-1);
+  gap: var(--s-1);
   width: 100%;
   text-align: left;
   color: inherit;
@@ -444,17 +367,18 @@ marker.arrow-active polygon {
 }
 
 .node-body:focus-visible {
-  outline: var(--cairn-border-strong) solid var(--cairn-focus-ring);
+  outline: 2px solid var(--prov-1);
   outline-offset: 2px;
+  border-radius: var(--r-edge);
 }
 
 .node.active {
-  border: var(--cairn-border-strong) solid var(--cairn-accent);
-  padding: calc(10px - (var(--cairn-border-strong) - var(--cairn-border-hair))) calc(12px - (var(--cairn-border-strong) - var(--cairn-border-hair)));
+  border-color: var(--prov-1);
+  box-shadow: var(--lift-2), var(--inset-sky), 0 0 0 1px var(--prov-1);
 }
 
 .node.kind-container.active {
-  outline-color: var(--cairn-rule);
+  outline-color: var(--stroke-2);
 }
 
 .node.hidden {
@@ -462,42 +386,45 @@ marker.arrow-active polygon {
 }
 
 .node-kind {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-meta);
-  font-weight: var(--cairn-weight-ui);
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--cairn-ink-faint);
-  line-height: var(--cairn-lh-meta);
+  color: var(--auth-2);
+  line-height: 1.3;
 }
 
 .node-name {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-body-lg);
-  font-weight: var(--cairn-weight-mark);
-  color: var(--cairn-ink);
-  line-height: var(--cairn-lh-meta);
+  font-family: var(--font-serif);
+  font-size: var(--t-lede);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink-char);
+  line-height: 1.3;
   word-break: break-word;
 }
 
 .node-id {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-muted);
-  line-height: var(--cairn-lh-mono);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-mist);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .node-child-hint {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-caption);
-  color: var(--cairn-ink-faint);
-  margin-top: var(--cairn-space-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-mist);
+  letter-spacing: 0.04em;
+  margin-top: var(--s-1);
 }
 
-/* Finding margin-mark tab on node top-right */
+/* Finding corner-tab, severity tier maps to --drift / --block / ink-aged */
 .node-finding-tab {
   position: absolute;
   top: -1px;
@@ -507,26 +434,27 @@ marker.arrow-active polygon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--cairn-font-mono);
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: var(--cairn-weight-prose);
-  color: var(--cairn-paper);
-  background: var(--cairn-severity-warn);
-  border: var(--cairn-border-hair) solid var(--cairn-rule-strong);
-  border-radius: var(--cairn-radius-0);
+  font-weight: 500;
+  color: var(--stone-0);
+  background: var(--drift);
+  border: 1px solid var(--seam-thin);
+  border-radius: 0 var(--r-stone) 0 var(--r-edge);
   pointer-events: none;
 }
 
 .node-finding-tab.severity-err {
-  background: var(--cairn-severity-err);
+  background: var(--block);
+  color: var(--paper-0);
 }
 
 .node-finding-tab.severity-note {
-  background: var(--cairn-severity-note);
+  background: var(--hinge-2);
+  color: var(--stone-0);
 }
 
-/* Container chevron tab — top-right neutral corner affordance.
-   Mirrors finding-tab grammar but lives on parent/container nodes only. */
+/* Container chevron tab, neutral corner affordance */
 .node-chevron-tab {
   position: absolute;
   top: -1px;
@@ -536,60 +464,57 @@ marker.arrow-active polygon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--cairn-font-mono);
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: var(--cairn-weight-prose);
-  color: var(--cairn-ink-muted);
+  font-weight: 400;
+  color: var(--ink-mist);
   background: transparent;
   border: 0;
-  border-left: var(--cairn-border-hair) solid var(--cairn-rule-strong);
-  border-bottom: var(--cairn-border-hair) solid var(--cairn-rule-strong);
-  border-radius: var(--cairn-radius-0);
+  border-left: 1px solid var(--seam-thin);
+  border-bottom: 1px solid var(--seam-thin);
+  border-radius: 0 var(--r-stone) 0 var(--r-edge);
   cursor: pointer;
   z-index: 2;
   line-height: 1;
-  transition: color var(--cairn-dur-hover) var(--cairn-ease);
+  transition: color var(--dur-tick) var(--ease);
 }
 
 .node-chevron-tab:hover {
-  color: var(--cairn-ink);
+  color: var(--ink-char);
 }
 
 .node-chevron-tab .chevron-glyph {
   display: inline-block;
-  transition: transform var(--cairn-dur-hover) var(--cairn-ease);
+  transition: transform var(--dur-tick) var(--ease);
 }
 
 .node-chevron-tab[data-expanded="true"] .chevron-glyph {
   transform: rotate(90deg);
 }
 
-/* When a node also has a finding tab, the chevron sits to the left of it. */
-.node-finding-tab + .node-chevron-tab,
-.node-chevron-tab + .node-finding-tab {
-  /* no-op grouping selector, kept for future */
-}
-
+/* When a finding-tab is present, the chevron sits to its left. */
 .node.has-finding .node-chevron-tab {
   right: 16px;
-  border-right: var(--cairn-border-hair) solid var(--cairn-rule-strong);
+  border-right: 1px solid var(--seam-thin);
 }
 
 /* --------------------------------------------------------------------------
-   6. Detail panel
+   4. Detail panel (inspector, 380px column)
+   Class kept as .detail-panel per app.js / test contract.
    -------------------------------------------------------------------------- */
 .detail-panel {
   position: relative;
-  background: var(--cairn-paper);
+  background: var(--stone-1);
+  border-left: 1px solid var(--stroke-1);
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .panel-inner {
-  padding: var(--cairn-space-6) var(--cairn-space-6) var(--cairn-space-7);
+  padding: var(--s-5) var(--s-5) var(--s-8);
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-5);
+  gap: var(--s-5);
 }
 
 .sheet-handle {
@@ -600,77 +525,82 @@ marker.arrow-active polygon {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: calc(-1 * var(--cairn-space-5) + var(--cairn-space-3));
+  margin-bottom: calc(-1 * var(--s-5) + var(--s-3));
 }
 
 .eyebrow {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--prov-2);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  line-height: var(--cairn-lh-meta);
+  line-height: 1.3;
 }
 
 .close {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-h3);
-  color: var(--cairn-ink-muted);
-  width: 24px;
-  height: 24px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ink-faded);
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  transition: color var(--cairn-dur-hover) var(--cairn-ease);
+  border-radius: var(--r-edge);
+  transition: background var(--dur-tick) var(--ease),
+              color var(--dur-tick) var(--ease);
 }
 
 .close:hover {
-  color: var(--cairn-ink);
+  background: var(--stone-3);
+  color: var(--ink-char);
 }
 
 .close:active {
-  background: color-mix(in srgb, var(--cairn-accent-ink) 15%, transparent);
+  background: var(--stone-4);
 }
 
-/* Brief focus ring on panel open — telegraphs Esc-to-close.
-   JS adds .just-opened for 400ms after a panel opens via pointer selection. */
+/* Brief focus ring on panel open, telegraphs Esc-to-close. */
 .close.just-opened {
-  outline: var(--cairn-border-strong) solid var(--cairn-accent);
+  outline: 2px solid var(--prov-1);
   outline-offset: 2px;
-  animation: cairn-close-ring-fade 600ms linear forwards;
+  animation: cairn-close-ring-fade var(--dur-reveal) var(--ease) forwards;
 }
 
 @keyframes cairn-close-ring-fade {
-  0% { outline-color: var(--cairn-accent); }
-  66% { outline-color: var(--cairn-accent); }
+  0%   { outline-color: var(--prov-1); }
+  66%  { outline-color: var(--prov-1); }
   100% { outline-color: transparent; }
 }
 
 .panel-name {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-h2);
-  font-weight: var(--cairn-weight-mark);
-  color: var(--cairn-ink);
-  line-height: var(--cairn-lh-meta);
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--ink-char);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
   word-break: break-word;
+  margin: var(--s-1) 0 var(--s-2);
 }
 
 .panel-id {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-body);
-  color: var(--cairn-ink-muted);
-  line-height: var(--cairn-lh-mono);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  line-height: 1.45;
   word-break: break-all;
-  margin-top: calc(-1 * var(--cairn-space-5) + var(--cairn-space-1));
+  margin-top: calc(-1 * var(--s-5) + var(--s-1));
+  letter-spacing: 0.02em;
 }
 
 .panel-description {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-body-lg);
-  color: var(--cairn-ink);
-  line-height: var(--cairn-lh-prose);
-  max-width: var(--cairn-prose-measure);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-aged);
+  line-height: 1.55;
+  max-width: 44ch;
 }
 
 .panel-description:empty {
@@ -680,10 +610,9 @@ marker.arrow-active polygon {
 .panel-section {
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-3);
+  gap: var(--s-3);
 }
 
-/* [hidden] must win over the display rules above regardless of source order. */
 .panel-section[hidden] {
   display: none !important;
 }
@@ -692,85 +621,90 @@ marker.arrow-active polygon {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--cairn-space-2);
-  padding-bottom: var(--cairn-space-2);
-  border-bottom: var(--cairn-border-hair) solid var(--cairn-rule);
+  gap: var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--stroke-1);
 }
 
 .section-label {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .section-count {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-aged);
+  background: var(--stone-3);
+  padding: 1px 6px;
+  border-radius: var(--r-edge);
+  letter-spacing: 0.04em;
 }
 
 /* Findings */
 .finding-list {
   display: flex;
   flex-direction: column;
+  gap: var(--s-2);
 }
 
 .finding-row {
   display: grid;
-  grid-template-columns: var(--cairn-border-strong) 1fr;
-  column-gap: var(--cairn-space-3);
-  padding: var(--cairn-space-3) 0;
-  border-bottom: var(--cairn-border-hair) solid var(--cairn-rule);
-}
-
-.finding-row:last-child {
-  border-bottom: 0;
+  grid-template-columns: 2px 1fr;
+  column-gap: var(--s-3);
+  padding: var(--s-3) var(--s-3);
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
 }
 
 .finding-mark {
   align-self: stretch;
-  width: var(--cairn-border-strong);
-  background: var(--cairn-severity-warn);
+  width: 2px;
+  background: var(--drift);
+  border-radius: var(--r-edge);
 }
 
 .finding-mark.severity-err {
-  background: var(--cairn-severity-err);
+  background: var(--block);
 }
 
 .finding-mark.severity-note {
-  background: var(--cairn-severity-note);
+  background: var(--hinge-2);
 }
 
 .finding-body {
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-1);
+  gap: var(--s-1);
   min-width: 0;
 }
 
 .finding-code {
-  font-family: var(--cairn-font-mono);
-  font-size: 13px;
-  color: var(--cairn-ink);
-  line-height: var(--cairn-lh-mono);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-char);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
   word-break: break-all;
 }
 
 .finding-message {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-body);
-  color: var(--cairn-ink-muted);
-  line-height: var(--cairn-lh-prose);
-  max-width: var(--cairn-prose-measure);
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  color: var(--ink-aged);
+  line-height: 1.55;
+  max-width: 44ch;
 }
 
 .finding-path {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
-  line-height: var(--cairn-lh-mono);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  line-height: 1.4;
   word-break: break-all;
 }
 
@@ -779,19 +713,14 @@ marker.arrow-active polygon {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding-bottom: var(--cairn-space-3);
-  border-bottom: var(--cairn-border-hair) solid var(--cairn-rule);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--stroke-1);
 }
 
-/* Specificity fix: .layer-nav's `display: grid` outranks browser default
-   [hidden] { display: none } so we must win explicitly when hidden. */
 .layer-nav[hidden] {
   display: none !important;
 }
 
-/* Belt-and-braces: same specificity bug could hit any of these blocks.
-   metadata-blocks / artefacts use :empty so they're safe, but future
-   additions should never need to think about this again. */
 .artefacts[hidden],
 .metadata-blocks[hidden],
 .metadata-block[hidden] {
@@ -799,11 +728,12 @@ marker.arrow-active polygon {
 }
 
 .layer-button {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-muted);
-  letter-spacing: 0.05em;
-  transition: color var(--cairn-dur-hover) var(--cairn-ease);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color var(--dur-tick) var(--ease);
   text-align: left;
 }
 
@@ -812,26 +742,29 @@ marker.arrow-active polygon {
 }
 
 .layer-button:hover:not(:disabled) {
-  color: var(--cairn-accent-ink);
+  color: var(--prov-1);
 }
 
 .layer-button:disabled {
-  color: var(--cairn-ink-faint);
+  color: var(--ink-ghost);
   cursor: default;
 }
 
 .layer-count {
-  font-family: var(--cairn-font-mono);
-  font-size: 13px;
-  color: var(--cairn-ink);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-char);
   text-align: center;
+  letter-spacing: 0.04em;
 }
 
-/* Artefact cards */
+/* --------------------------------------------------------------------------
+   5. Artefact accordion (rides on .artefact-row grammar from components.css)
+   -------------------------------------------------------------------------- */
 .artefacts {
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-5);
+  gap: var(--s-5);
 }
 
 .artefacts:empty {
@@ -841,71 +774,80 @@ marker.arrow-active polygon {
 .artefact-group {
   display: flex;
   flex-direction: column;
+  gap: var(--s-2);
 }
 
 .artefact-group-header {
   display: flex;
   align-items: baseline;
-  gap: var(--cairn-space-2);
-  padding-bottom: var(--cairn-space-2);
-  border-bottom: var(--cairn-border-hair) solid var(--cairn-rule);
-  margin-bottom: var(--cairn-space-2);
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
-  letter-spacing: 0.05em;
+  gap: var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--stroke-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--prov-2);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
 .artefact-group-count {
-  color: var(--cairn-ink-muted);
+  color: var(--ink-faded);
   text-transform: none;
-  letter-spacing: 0;
+  letter-spacing: 0.04em;
 }
 
 .artefact-card {
   display: flex;
   flex-direction: column;
-  padding: var(--cairn-space-3) 0;
-  border-bottom: var(--cairn-border-hair) solid var(--cairn-rule);
+  padding: var(--s-3);
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-left: 2px solid var(--hinge-2);
+  border-radius: var(--r-stone);
+  transition: background var(--dur-quick) var(--ease-stack);
 }
 
-.artefact-card:last-child {
-  border-bottom: 0;
+.artefact-card:hover {
+  background: var(--stone-3);
 }
 
 .artefact-head {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: baseline;
-  gap: var(--cairn-space-3);
+  gap: var(--s-3);
   text-align: left;
   width: 100%;
-  color: var(--cairn-ink);
+  color: var(--ink-char);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
 }
 
 .artefact-id {
-  font-family: var(--cairn-font-mono);
-  font-size: 13px;
-  color: var(--cairn-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-aged);
+  letter-spacing: 0.02em;
 }
 
 .artefact-title {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-body);
-  font-weight: var(--cairn-weight-ui);
-  color: var(--cairn-ink);
+  font-family: var(--font-serif);
+  font-size: var(--t-body);
+  font-weight: 500;
+  color: var(--ink-char);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .artefact-chevron {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-body);
-  color: var(--cairn-ink-faint);
+  font-family: var(--font-mono);
+  font-size: var(--t-body);
+  color: var(--ink-mist);
   display: inline-block;
-  transition: transform var(--cairn-dur-hover) var(--cairn-ease);
+  transition: transform var(--dur-tick) var(--ease);
 }
 
 .artefact-card.is-open .artefact-chevron {
@@ -913,17 +855,18 @@ marker.arrow-active polygon {
 }
 
 .artefact-meta {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-muted);
-  margin-top: var(--cairn-space-1);
-  line-height: var(--cairn-lh-meta);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-mist);
+  margin-top: var(--s-1);
+  line-height: 1.5;
+  letter-spacing: 0.04em;
 }
 
 .artefact-body {
   overflow: hidden;
   max-height: 0;
-  transition: max-height var(--cairn-dur-expand) var(--cairn-ease);
+  transition: max-height var(--dur-settle) var(--ease-settle);
 }
 
 .artefact-card.is-open .artefact-body {
@@ -931,47 +874,57 @@ marker.arrow-active polygon {
 }
 
 .artefact-body-inner {
-  padding-top: var(--cairn-space-3);
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-body);
-  color: var(--cairn-ink);
-  line-height: var(--cairn-lh-prose);
+  padding-top: var(--s-3);
+  margin-top: var(--s-3);
+  border-top: 1px dashed var(--seam-thin);
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  color: var(--ink-aged);
+  line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
-  max-width: var(--cairn-prose-measure);
+  max-width: 44ch;
 }
 
 .artefact-body-inner code,
 .artefact-body-inner .mono {
-  font-family: var(--cairn-font-mono);
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-char);
+  background: var(--stone-3);
+  padding: 1px 5px;
+  border-radius: var(--r-edge);
+  border: 1px solid var(--seam-faint);
 }
 
 .artefact-files {
-  margin-top: var(--cairn-space-3);
+  margin-top: var(--s-3);
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-1);
+  gap: var(--s-1);
 }
 
 .artefact-files-label {
-  font-family: var(--cairn-font-sans);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .artefact-files-item {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-aged);
   word-break: break-all;
+  letter-spacing: 0.02em;
 }
 
 /* Metadata blocks (tags, files, paths, contracts, dependents, depends-on) */
 .metadata-blocks {
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-5);
+  gap: var(--s-5);
 }
 
 .metadata-blocks:empty {
@@ -981,64 +934,73 @@ marker.arrow-active polygon {
 .metadata-block {
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-2);
+  gap: var(--s-2);
 }
 
 .metadata-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: var(--cairn-space-2);
-  border-bottom: var(--cairn-border-hair) solid var(--cairn-rule);
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
-  letter-spacing: 0.05em;
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--stroke-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--auth-2);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
 .metadata-list {
   display: flex;
   flex-direction: column;
-  gap: var(--cairn-space-1);
-  font-family: var(--cairn-font-mono);
-  font-size: 13px;
-  color: var(--cairn-ink-muted);
-  line-height: var(--cairn-lh-mono);
+  gap: var(--s-1);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-aged);
+  line-height: 1.45;
+  letter-spacing: 0.02em;
   word-break: break-all;
 }
 
 .metadata-list.inline {
   flex-direction: row;
   flex-wrap: wrap;
-  gap: var(--cairn-space-2);
+  gap: var(--s-2);
 }
 
 .metadata-list button {
-  color: var(--cairn-ink-muted);
+  color: var(--ink-aged);
   text-align: left;
   word-break: break-all;
-  font-family: var(--cairn-font-mono);
-  font-size: 13px;
-  transition: color var(--cairn-dur-hover) var(--cairn-ease);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  transition: color var(--dur-tick) var(--ease);
+  padding: 1px 6px;
+  border-radius: var(--r-edge);
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
 }
 
 .metadata-list button:hover {
-  color: var(--cairn-accent-ink);
+  color: var(--prov-1);
+  border-color: var(--prov-3);
+  background: var(--stone-3);
 }
 
 .panel-tail {
-  height: var(--cairn-space-5);
+  height: var(--s-5);
 }
 
 .loading-row {
-  font-family: var(--cairn-font-mono);
-  font-size: var(--cairn-size-meta);
-  color: var(--cairn-ink-faint);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  letter-spacing: 0.04em;
 }
 
 /* --------------------------------------------------------------------------
-   7. Responsive — tablet (391–860) and mobile (≤390) bottom-sheet
+   6. Responsive, tablet (<=860) and mobile (<=480) bottom-sheet
    -------------------------------------------------------------------------- */
 @media (max-width: 860px) {
   .shell {
@@ -1049,7 +1011,7 @@ marker.arrow-active polygon {
   .graph-region {
     min-height: 480px;
     border-right: 0;
-    border-bottom: var(--cairn-border-rule) solid var(--cairn-rule-strong);
+    border-bottom: 1px solid var(--stroke-1);
   }
 
   .detail-panel {
@@ -1058,20 +1020,16 @@ marker.arrow-active polygon {
 }
 
 @media (max-width: 480px) {
-  :root {
-    --cairn-topbar-height: auto;
-  }
-
   .topbar {
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
-    grid-row-gap: var(--cairn-space-2);
-    padding: var(--cairn-space-3) var(--cairn-space-4);
+    grid-row-gap: var(--s-2);
+    padding: var(--s-3) var(--s-4);
     height: auto;
   }
 
   .mark-name {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .mark-rule,
@@ -1091,8 +1049,8 @@ marker.arrow-active polygon {
   }
 
   .zoom-button {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 26px;
   }
 
   .graph-region {
@@ -1100,16 +1058,18 @@ marker.arrow-active polygon {
     border-bottom: 0;
   }
 
-  /* Detail panel becomes a bottom-sheet */
+  /* Inspector becomes a bottom-sheet */
   .detail-panel {
     position: fixed;
     inset: 30vh 0 0 0;
     z-index: 20;
-    border-top: var(--cairn-border-rule) solid var(--cairn-rule-strong);
+    border-top: 1px solid var(--stroke-2);
+    border-left: 0;
     transform: translateY(100%);
-    transition: transform var(--cairn-dur-sheet) var(--cairn-ease);
+    transition: transform var(--dur-reveal) var(--ease-paper);
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    box-shadow: var(--lift-3);
   }
 
   .detail-panel:not([hidden]) {
@@ -1117,7 +1077,7 @@ marker.arrow-active polygon {
   }
 
   .panel-inner {
-    padding: var(--cairn-space-6) var(--cairn-space-4) var(--cairn-space-6);
+    padding: var(--s-6) var(--s-4) var(--s-6);
     overscroll-behavior: contain;
   }
 
@@ -1129,8 +1089,8 @@ marker.arrow-active polygon {
     width: 36px;
     height: 4px;
     margin-left: -18px;
-    background: var(--cairn-rule-strong);
-    border-radius: var(--cairn-radius-0);
+    background: var(--seam-carved);
+    border-radius: var(--r-full);
   }
 
   /* Mobile: when panel open, block pointer on the canvas behind the sheet. */
@@ -1140,33 +1100,16 @@ marker.arrow-active polygon {
 }
 
 /* --------------------------------------------------------------------------
-   8. Dark mode — same tokens, different values
+   7. Motion belt-and-braces for reduced-motion.
+   tokens.css already zeroes --dur-*, this guards custom animations that
+   do not read a duration token.
    -------------------------------------------------------------------------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-
-    --cairn-paper: hsl(32 8% 11%);
-    --cairn-paper-sunk: hsl(30 9% 8%);
-    --cairn-ink: hsl(38 20% 92%);
-    --cairn-ink-muted: hsl(36 12% 72%);
-    --cairn-ink-faint: hsl(34 8% 54%);
-    --cairn-rule: hsl(32 8% 22%);
-    --cairn-rule-strong: hsl(32 8% 34%);
-    --cairn-accent: hsl(28 72% 62%);
-    --cairn-accent-ink: hsl(28 54% 78%);
-
-    --cairn-severity-note: hsl(200 28% 66%);
-    --cairn-severity-warn: hsl(38 44% 62%);
-    --cairn-severity-err: hsl(10 50% 64%);
-
-    --cairn-node-system: hsl(45 10% 16%);
-    --cairn-node-container: hsl(80 8% 15%);
-    --cairn-node-module: hsl(32 8% 13%);
-    --cairn-node-reconciler: hsl(12 10% 16%);
-  }
-
-  .node-finding-tab {
-    color: var(--cairn-paper);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
     sync::{
-        Arc,
+        Arc, LazyLock,
         atomic::{AtomicBool, Ordering},
     },
     thread,
@@ -28,8 +28,36 @@ use crate::{
 };
 
 const INDEX_HTML: &str = include_str!("ui_assets/index.html");
-const STYLE_CSS: &str = include_str!("ui_assets/style.css");
 const APP_JS: &str = include_str!("ui_assets/app.js");
+
+/// Canonical design-system tokens; single source of truth.
+const DESIGN_TOKENS_CSS: &str = include_str!("../docs/design-system/tokens.css");
+/// Canonical design-system component primitives.
+const DESIGN_COMPONENTS_CSS: &str = include_str!("../docs/design-system/components.css");
+/// Graph-explorer-specific layout and overrides.
+const UI_STYLE_CSS: &str = include_str!("ui_assets/style.css");
+
+/// Concatenated stylesheet served as `/assets/style.css`: tokens, then canonical
+/// components, then the graph-explorer-specific layer. Consumers read tokens
+/// via `var(--...)` so the three layers compose in definition order.
+static STYLE_CSS: LazyLock<String> = LazyLock::new(|| {
+    let mut combined = String::with_capacity(
+        DESIGN_TOKENS_CSS.len() + DESIGN_COMPONENTS_CSS.len() + UI_STYLE_CSS.len() + 128,
+    );
+    combined.push_str("/* Cairn Graph Explorer stylesheet.\n");
+    combined.push_str(
+        "   Concatenated: design-system tokens, design-system components, ui overrides.\n",
+    );
+    combined
+        .push_str("   Single source of truth for tokens is docs/design-system/tokens.css. */\n");
+    combined.push_str(DESIGN_TOKENS_CSS);
+    combined.push_str("\n/* ---- design-system components ---- */\n");
+    combined.push_str(DESIGN_COMPONENTS_CSS);
+    combined.push_str("\n/* ---- graph-explorer overrides ---- */\n");
+    combined.push_str(UI_STYLE_CSS);
+    combined
+});
+
 const SCHEMA_VERSION: u32 = 1;
 
 /// Runtime options for the graph explorer server.
@@ -268,7 +296,7 @@ impl Server {
     fn route(&self, path: &str) -> Response {
         match path {
             "/" | "/index.html" => html(INDEX_HTML),
-            "/assets/style.css" => asset("text/css; charset=utf-8", STYLE_CSS),
+            "/assets/style.css" => asset("text/css; charset=utf-8", STYLE_CSS.as_str()),
             "/assets/app.js" => asset("application/javascript; charset=utf-8", APP_JS),
             _ if path.starts_with("/api/") => self.api(path),
             _ => text(404, "not found"),

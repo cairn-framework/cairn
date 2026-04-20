@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cairn Design System</title>
+  <meta name="description" content="Canonical design system for Cairn. Tokens, components, type scale, motion, and vocabulary." />
+  <link rel="stylesheet" href="fonts.css" />
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="components.css" />
+  <style>
+    /* Showcase-only layout; everything color-related still flows through tokens. */
+    body { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    aside.toc {
+      position: sticky; top: 0; align-self: start;
+      height: 100vh; overflow-y: auto;
+      padding: var(--s-6) var(--s-5);
+      background: var(--stone-1);
+      border-right: 1px solid var(--seam-thin);
+    }
+    aside.toc .brand-row { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-5); }
+    aside.toc .brand-row .brand-text { font-family: var(--font-serif); font-size: 18px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink-char); }
+    aside.toc ol { list-style: none; padding: 0; margin: 0; }
+    aside.toc li { margin: 0 0 var(--s-1); }
+    aside.toc a {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: var(--t-small);
+      letter-spacing: 0.04em;
+      color: var(--ink-faded);
+      padding: 4px 0;
+      border-left: 2px solid transparent;
+      padding-left: var(--s-2);
+      transition: color var(--dur-quick) var(--ease-stack), border-color var(--dur-quick) var(--ease-stack);
+    }
+    aside.toc a:hover { color: var(--ink-char); border-left-color: var(--prov-2); }
+    aside.toc .toc-kicker { font-family: var(--font-mono); font-size: var(--t-micro); letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-mist); margin: var(--s-5) 0 var(--s-2); }
+
+    main.showcase { padding: var(--s-7) var(--s-8); max-width: 1280px; }
+    section.block { padding: var(--s-8) 0; border-bottom: 1px solid var(--seam-faint); }
+    section.block:last-child { border-bottom: none; }
+    .section-kicker { font-family: var(--font-mono); font-size: var(--t-micro); letter-spacing: 0.15em; text-transform: uppercase; color: var(--prov-2); }
+    .section-title  { font-family: var(--font-serif); font-size: var(--t-h1); font-weight: 300; letter-spacing: -0.03em; line-height: 1.05; margin: var(--s-2) 0 var(--s-4); color: var(--ink-char); }
+    .section-lede   { font-family: var(--font-serif); font-size: var(--t-lede); font-style: italic; color: var(--ink-aged); max-width: 62ch; margin: 0 0 var(--s-6); }
+    .sub-title      { font-family: var(--font-serif); font-size: var(--t-h3); font-weight: 500; margin: var(--s-6) 0 var(--s-4); color: var(--ink-char); }
+
+    .demo-row { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--s-5); align-items: start; margin-bottom: var(--s-4); padding: var(--s-4) 0; border-top: 1px dashed var(--seam-faint); }
+    .demo-row:first-of-type { border-top: none; padding-top: 0; }
+    .demo-label { font-family: var(--font-mono); font-size: var(--t-micro); letter-spacing: 0.08em; color: var(--ink-mist); }
+    .demo-label .code { display: block; color: var(--ink-aged); margin-top: 4px; background: var(--stone-2); border: 1px solid var(--seam-faint); padding: 6px 8px; border-radius: var(--r-edge); }
+    .demo-stage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
+
+    .type-sample { padding: var(--s-4) 0; border-top: 1px dashed var(--seam-faint); display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--s-5); align-items: baseline; }
+    .type-sample:first-child { border-top: none; }
+    .type-sample .meta { font-family: var(--font-mono); font-size: var(--t-micro); color: var(--ink-mist); letter-spacing: 0.08em; }
+
+    .glossary-list { display: grid; grid-template-columns: 220px 1fr; gap: var(--s-3) var(--s-5); align-items: baseline; }
+    .glossary-list dt { font-family: var(--font-serif); font-size: var(--t-lede); font-weight: 500; color: var(--ink-char); }
+    .glossary-list dt .alt { font-family: var(--font-mono); font-size: var(--t-micro); color: var(--ink-mist); letter-spacing: 0.06em; display: block; }
+    .glossary-list dd { font-family: var(--font-sans); font-size: var(--t-body); color: var(--ink-aged); margin: 0; line-height: 1.55; }
+
+    .theme-toggle {
+      position: fixed; top: var(--s-3); right: var(--s-4);
+      z-index: 50;
+      font-family: var(--font-mono);
+      font-size: var(--t-micro);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px var(--s-3);
+      background: var(--stone-2);
+      border: 1px solid var(--seam-clear);
+      border-radius: var(--r-edge);
+      color: var(--ink-aged);
+      cursor: pointer;
+      box-shadow: var(--lift-1);
+      transition: background var(--dur-quick) var(--ease-stack), color var(--dur-quick) var(--ease-stack);
+    }
+    .theme-toggle:hover { background: var(--stone-3); color: var(--ink-char); }
+
+    .skip { position: absolute; left: -9999px; }
+
+    @media (max-width: 900px) {
+      body { grid-template-columns: 1fr; }
+      aside.toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--seam-thin); }
+      main.showcase { padding: var(--s-5); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <aside class="toc">
+    <div class="brand-row">
+      <a class="mark" href="#top" aria-label="Cairn">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true">
+          <ellipse class="stone stone-base" cx="14" cy="23" rx="11" ry="3.5" fill="var(--stone-5)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+          <path class="stone stone-mid" d="M5.5 18 C 5.5 14.5, 9 13, 14 13 C 19 13, 22.5 14.5, 22.5 18 C 22.5 20, 20 20.5, 14 20.5 C 8 20.5, 5.5 20, 5.5 18 Z" fill="var(--stone-4)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+          <path class="stone stone-top" d="M8 10 C 8 7, 10 5, 14 5 C 18 5, 20 7, 20 10 C 20 12, 17.5 13, 14 13 C 10.5 13, 8 12, 8 10 Z" fill="var(--stone-3)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+          <ellipse cx="13.5" cy="6" rx="3" ry="0.8" fill="var(--prov-1)" opacity="0.35"/>
+        </svg>
+      </a>
+      <span class="brand-text">Cairn</span>
+    </div>
+
+    <div class="toc-kicker">Design system</div>
+    <ol>
+      <li><a href="#overview">00. Overview</a></li>
+      <li><a href="#colors">01. Color</a></li>
+      <li><a href="#typography">02. Typography</a></li>
+      <li><a href="#spacing">03. Spacing and radius</a></li>
+      <li><a href="#motion">04. Motion</a></li>
+      <li><a href="#buttons">05. Buttons</a></li>
+      <li><a href="#pills">06. Pills and badges</a></li>
+      <li><a href="#inputs">07. Inputs and keys</a></li>
+      <li><a href="#code">08. Code blocks</a></li>
+      <li><a href="#artefacts">09. Artefact row</a></li>
+      <li><a href="#chain">10. Chain diagram</a></li>
+      <li><a href="#stones">11. Stone node</a></li>
+      <li><a href="#principles">12. Principles</a></li>
+      <li><a href="#tones">13. Tone cards</a></li>
+      <li><a href="#stats">14. Stat grid</a></li>
+      <li><a href="#panel">15. Panel</a></li>
+      <li><a href="#topbar">16. Topbar</a></li>
+      <li><a href="#inspector">17. Inspector</a></li>
+      <li><a href="#palette">18. Command palette</a></li>
+      <li><a href="#drawer">19. Changes drawer</a></li>
+      <li><a href="#logo">20. Logo mark</a></li>
+      <li><a href="#glossary">21. Glossary</a></li>
+    </ol>
+  </aside>
+
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">Theme: dark</button>
+
+  <main class="showcase" id="main">
+    <a id="top"></a>
+
+    <!-- ======================================================== -->
+    <section class="block" id="overview">
+      <div class="section-kicker">00 . Overview</div>
+      <h1 class="section-title">Cairn Design System</h1>
+      <p class="section-lede">
+        Stone and paper. Weight you can read. The connective tissue between past decisions, present code, and future intent, made visible.
+      </p>
+
+      <p class="t-body-s" style="max-width: 62ch; color: var(--ink-aged);">
+        This page is the canonical reference for Cairn's UI. Three files carry everything: <code>fonts.css</code> loads the type, <code>tokens.css</code> defines every color, size, and duration, <code>components.css</code> styles the surfaces. Every component here reads from tokens. No hardcoded hex values downstream.
+      </p>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="colors">
+      <div class="section-kicker">01 . Color</div>
+      <h2 class="section-title">Color</h2>
+      <p class="section-lede">Warm stone, quiet ink, chain accents tuned to role (not brand). Every value is a token.</p>
+
+      <div class="sub-title">Stone surfaces</div>
+      <div class="palette">
+        <div class="swatch"><div class="chip" style="background: var(--stone-0)"></div><div class="swatch-name">Bedrock</div><div class="swatch-token">--stone-0</div><div class="swatch-hex">#0d0c0a</div><div class="swatch-role">Beneath all</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--stone-1)"></div><div class="swatch-name">Base</div><div class="swatch-token">--stone-1</div><div class="swatch-hex">#141310</div><div class="swatch-role">Page bg</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--stone-2)"></div><div class="swatch-name">Primary</div><div class="swatch-token">--stone-2</div><div class="swatch-hex">#1b1915</div><div class="swatch-role">Content surface</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--stone-3)"></div><div class="swatch-name">Raised</div><div class="swatch-token">--stone-3</div><div class="swatch-hex">#22201b</div><div class="swatch-role">Cards, wells</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--stone-4)"></div><div class="swatch-name">Elevated</div><div class="swatch-token">--stone-4</div><div class="swatch-hex">#2a2721</div><div class="swatch-role">Panels</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--stone-5)"></div><div class="swatch-name">Peak</div><div class="swatch-token">--stone-5</div><div class="swatch-hex">#342f27</div><div class="swatch-role">Popovers, hover</div></div>
+      </div>
+
+      <div class="sub-title">Paper tones</div>
+      <div class="palette chain">
+        <div class="swatch"><div class="chip" style="background: var(--paper-0)"></div><div class="swatch-name">Paper 0</div><div class="swatch-token">--paper-0</div><div class="swatch-hex">#f3ecdd</div><div class="swatch-role">Warm paper</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--paper-1)"></div><div class="swatch-name">Paper 1</div><div class="swatch-token">--paper-1</div><div class="swatch-hex">#eae0cb</div><div class="swatch-role">Aged paper</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--paper-2)"></div><div class="swatch-name">Paper 2</div><div class="swatch-token">--paper-2</div><div class="swatch-hex">#ddd0b6</div><div class="swatch-role">Deeper paper</div></div>
+      </div>
+
+      <div class="sub-title">Seams</div>
+      <div class="palette cols-4">
+        <div class="swatch"><div class="chip" style="background: var(--seam-faint)"></div><div class="swatch-name">Faint</div><div class="swatch-token">--seam-faint</div><div class="swatch-hex">#2a2620</div><div class="swatch-role">Subtle rule</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--seam-thin)"></div><div class="swatch-name">Thin</div><div class="swatch-token">--seam-thin</div><div class="swatch-hex">#38332b</div><div class="swatch-role">Default seam</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--seam-clear)"></div><div class="swatch-name">Clear</div><div class="swatch-token">--seam-clear</div><div class="swatch-hex">#4a4338</div><div class="swatch-role">Readable</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--seam-carved)"></div><div class="swatch-name">Carved</div><div class="swatch-token">--seam-carved</div><div class="swatch-hex">#5a5244</div><div class="swatch-role">Must be legible</div></div>
+      </div>
+
+      <div class="sub-title">Ink</div>
+      <div class="palette">
+        <div class="swatch"><div class="chip" style="background: var(--ink-char)"></div><div class="swatch-name">Char</div><div class="swatch-token">--ink-char</div><div class="swatch-hex">#f2ece0</div><div class="swatch-role">Primary</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--ink-aged)"></div><div class="swatch-name">Aged</div><div class="swatch-token">--ink-aged</div><div class="swatch-hex">#c9c0ae</div><div class="swatch-role">Secondary</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--ink-faded)"></div><div class="swatch-name">Faded</div><div class="swatch-token">--ink-faded</div><div class="swatch-hex">#908673</div><div class="swatch-role">Tertiary</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--ink-mist)"></div><div class="swatch-name">Mist</div><div class="swatch-token">--ink-mist</div><div class="swatch-hex">#5f5849</div><div class="swatch-role">Caption</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--ink-ghost)"></div><div class="swatch-name">Ghost</div><div class="swatch-token">--ink-ghost</div><div class="swatch-hex">#3d382f</div><div class="swatch-role">Placeholder</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--stone-0); border: 1px solid var(--seam-carved)"></div><div class="swatch-name">&#8594; Numeric aliases</div><div class="swatch-token">--ink-1 .. --ink-4</div><div class="swatch-hex">(aliases)</div><div class="swatch-role">Legacy shell</div></div>
+      </div>
+
+      <div class="sub-title">Provenance chain (evidence flowing in)</div>
+      <div class="palette chain">
+        <div class="swatch"><div class="chip" style="background: var(--prov-1)"></div><div class="swatch-name">Ember</div><div class="swatch-token">--prov-1</div><div class="swatch-hex">#f4b36a</div><div class="swatch-role">Active</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--prov-2)"></div><div class="swatch-name">Brass</div><div class="swatch-token">--prov-2</div><div class="swatch-hex">#c4864a</div><div class="swatch-role">Default</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--prov-3)"></div><div class="swatch-name">Tarnished</div><div class="swatch-token">--prov-3</div><div class="swatch-hex">#7d5530</div><div class="swatch-role">Dim trace</div></div>
+      </div>
+      <div class="palette chain" style="margin-top: var(--s-3)">
+        <div class="swatch"><div class="chip" style="background: var(--prov-wash)"></div><div class="swatch-name">Wash</div><div class="swatch-token">--prov-wash</div><div class="swatch-hex">rgba(196,134,74,.10)</div><div class="swatch-role">Surface tint</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--prov-1); opacity: 0.4"></div><div class="swatch-name">(preview)</div><div class="swatch-token">ember @ 40%</div><div class="swatch-hex">&#8212;</div><div class="swatch-role">Ghost trace</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--prov-2); opacity: 0.2"></div><div class="swatch-name">(preview)</div><div class="swatch-token">brass @ 20%</div><div class="swatch-hex">&#8212;</div><div class="swatch-role">Dim trace</div></div>
+      </div>
+
+      <div class="sub-title">Authority chain (rules flowing out)</div>
+      <div class="palette chain">
+        <div class="swatch"><div class="chip" style="background: var(--auth-1)"></div><div class="swatch-name">Verdigris light</div><div class="swatch-token">--auth-1</div><div class="swatch-hex">#88c4b4</div><div class="swatch-role">Active</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--auth-2)"></div><div class="swatch-name">Verdigris</div><div class="swatch-token">--auth-2</div><div class="swatch-hex">#5a9687</div><div class="swatch-role">Default</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--auth-3)"></div><div class="swatch-name">Oxidised deep</div><div class="swatch-token">--auth-3</div><div class="swatch-hex">#2f5448</div><div class="swatch-role">Dim trace</div></div>
+      </div>
+
+      <div class="sub-title">Hinge (the decision)</div>
+      <div class="palette chain">
+        <div class="swatch"><div class="chip" style="background: var(--hinge-1)"></div><div class="swatch-name">Bone-white</div><div class="swatch-token">--hinge-1</div><div class="swatch-hex">#e8e1d2</div><div class="swatch-role">Active</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--hinge-2)"></div><div class="swatch-name">Weathered</div><div class="swatch-token">--hinge-2</div><div class="swatch-hex">#b6ac96</div><div class="swatch-role">Default</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--hinge-wash)"></div><div class="swatch-name">Wash</div><div class="swatch-token">--hinge-wash</div><div class="swatch-hex">rgba(232,225,210,.06)</div><div class="swatch-role">Surface tint</div></div>
+      </div>
+
+      <div class="sub-title">Signal</div>
+      <div class="palette cols-4">
+        <div class="swatch"><div class="chip" style="background: var(--drift)"></div><div class="swatch-name">Drift</div><div class="swatch-token">--drift</div><div class="swatch-hex">#d47854</div><div class="swatch-role">Advisory tension</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--block)"></div><div class="swatch-name">Block</div><div class="swatch-token">--block</div><div class="swatch-hex">#b84c38</div><div class="swatch-role">Blocking contradiction</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--settled)"></div><div class="swatch-name">Settled</div><div class="swatch-token">--settled</div><div class="swatch-hex">#82a893</div><div class="swatch-role">Reconciled</div></div>
+        <div class="swatch"><div class="chip" style="background: var(--settled-wash)"></div><div class="swatch-name">Settled wash</div><div class="swatch-token">--settled-wash</div><div class="swatch-hex">rgba(130,168,147,.10)</div><div class="swatch-role">Surface tint</div></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="typography">
+      <div class="section-kicker">02 . Typography</div>
+      <h2 class="section-title">Typography</h2>
+      <p class="section-lede">Source Serif 4 for sentences. IBM Plex Sans for UI. IBM Plex Mono for anything exact.</p>
+
+      <div class="type-sample">
+        <div class="t-display-s">Stone and paper.</div>
+        <div class="meta">.t-display-s &middot; 88 / 300 / opsz 60</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-h1-s">Section headline</div>
+        <div class="meta">.t-h1-s &middot; 56 / 300</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-h2-s">Sub-section heading</div>
+        <div class="meta">.t-h2-s &middot; 36 / 400</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-h3-s">Panel title</div>
+        <div class="meta">.t-h3-s &middot; 26 / 500</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-title-s">Card title, node name</div>
+        <div class="meta">.t-title-s &middot; 20 / 500</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-lede-s">A lede, set in italic for pulled concepts.</div>
+        <div class="meta">.t-lede-s &middot; 16 / 300 italic</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-body-s">Body copy, the default voice of the UI. Enough line-height to read quietly.</div>
+        <div class="meta">.t-body-s &middot; 14 / 400</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-small-s">Small descriptions and meta.</div>
+        <div class="meta">.t-small-s &middot; 12 / 400</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-mono-s">cairn.blueprint &middot; ./meta/decisions/two-chain.md</div>
+        <div class="meta">.t-mono-s &middot; 12 / 400 / 0.04em</div>
+      </div>
+      <div class="type-sample">
+        <div class="t-label-s">Kicker label</div>
+        <div class="meta">.t-label-s &middot; 11 / 0.15em caps</div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="spacing">
+      <div class="section-kicker">03 . Spacing and radius</div>
+      <h2 class="section-title">Spacing and radius</h2>
+      <p class="section-lede">Spacing steps in a readable rhythm. Radii stay low: stone is eroded, not milled.</p>
+
+      <div class="sub-title">Spacing scale (<code>--s-1</code> to <code>--s-10</code>)</div>
+      <div style="display: flex; flex-direction: column; gap: var(--s-2);">
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-1); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-1 &middot; 4px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-2); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-2 &middot; 8px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-3); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-3 &middot; 12px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-4); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-4 &middot; 16px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-5); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-5 &middot; 24px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-6); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-6 &middot; 32px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-7); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-7 &middot; 48px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-8); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-8 &middot; 64px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-9); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-9 &middot; 96px</span></div>
+        <div style="display: flex; align-items: center; gap: var(--s-3);"><div style="width: var(--s-10); height: 16px; background: var(--prov-2);"></div><span class="mono t-small-s">--s-10 &middot; 128px</span></div>
+      </div>
+
+      <div class="sub-title">Radius scale</div>
+      <div style="display: flex; gap: var(--s-4); flex-wrap: wrap;">
+        <div style="width: 72px; height: 72px; background: var(--stone-3); border: 1px solid var(--seam-thin); border-radius: var(--r-edge); display: flex; align-items: end; justify-content: center; padding: 4px;"><span class="mono t-small-s">--r-edge</span></div>
+        <div style="width: 72px; height: 72px; background: var(--stone-3); border: 1px solid var(--seam-thin); border-radius: var(--r-stone); display: flex; align-items: end; justify-content: center; padding: 4px;"><span class="mono t-small-s">--r-stone</span></div>
+        <div style="width: 72px; height: 72px; background: var(--stone-3); border: 1px solid var(--seam-thin); border-radius: var(--r-round); display: flex; align-items: end; justify-content: center; padding: 4px;"><span class="mono t-small-s">--r-round</span></div>
+        <div style="width: 72px; height: 72px; background: var(--stone-3); border: 1px solid var(--seam-thin); border-radius: var(--r-large); display: flex; align-items: end; justify-content: center; padding: 4px;"><span class="mono t-small-s">--r-large</span></div>
+        <div style="width: 72px; height: 72px; background: var(--stone-3); border: 1px solid var(--seam-thin); border-radius: var(--r-full); display: flex; align-items: end; justify-content: center; padding: 4px;"><span class="mono t-small-s">--r-full</span></div>
+      </div>
+
+      <div class="sub-title">Shadows</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4);">
+        <div style="padding: var(--s-5); background: var(--stone-2); border-radius: var(--r-stone); box-shadow: var(--lift-1);"><span class="mono t-small-s">--lift-1</span></div>
+        <div style="padding: var(--s-5); background: var(--stone-2); border-radius: var(--r-stone); box-shadow: var(--lift-2);"><span class="mono t-small-s">--lift-2</span></div>
+        <div style="padding: var(--s-5); background: var(--stone-2); border-radius: var(--r-stone); box-shadow: var(--lift-3);"><span class="mono t-small-s">--lift-3</span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="motion">
+      <div class="section-kicker">04 . Motion</div>
+      <h2 class="section-title">Motion</h2>
+      <p class="section-lede">Stones settle. They do not bounce. Six durations, four easings, one idle animation (drift).</p>
+
+      <div class="sub-title">Durations</div>
+      <pre><code>--dur-tick    120ms   near-instant response
+--dur-quick   200ms   snappy state change
+--dur-settle  320ms   default, stone finding its place
+--dur-reveal  520ms   progressive disclosure
+--dur-breathe 2400ms  drift node idle (only idle animation)
+--dur-build   1800ms  map building sequence</code></pre>
+
+      <div class="sub-title">Easings</div>
+      <pre><code>--ease        cubic-bezier(0.2, 0.7, 0.2, 1)    generic
+--ease-settle cubic-bezier(0.2, 0.85, 0.3, 1)   default, damped
+--ease-stack  cubic-bezier(0.4, 0, 0.2, 1)      hover, focus, color
+--ease-lift   cubic-bezier(0.3, 0, 0.1, 1)      pulling up
+--ease-paper  cubic-bezier(0.25, 0.8, 0.25, 1)  map inertia, reveal</code></pre>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="buttons">
+      <div class="section-kicker">05 . Buttons</div>
+      <h2 class="section-title">Buttons</h2>
+      <p class="section-lede">Three tiers. One primary per view. Secondary as support. Ghost for navigation.</p>
+
+      <div class="demo-row">
+        <div class="demo-stage">
+          <button class="btn primary">Archive change</button>
+          <button class="btn secondary">Propose</button>
+          <button class="btn ghost">Dismiss</button>
+        </div>
+        <div class="demo-label">Classes<span class="code">.btn.primary, .btn.secondary, .btn.ghost</span></div>
+      </div>
+
+      <div class="demo-row">
+        <div class="demo-stage">
+          <button class="btn-ghost">OPEN FULL</button>
+          <button class="btn-ghost">&larr; BACK</button>
+        </div>
+        <div class="demo-label">Class<span class="code">.btn-ghost</span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="pills">
+      <div class="section-kicker">06 . Pills and badges</div>
+      <h2 class="section-title">Pills and badges</h2>
+      <p class="section-lede">Chain membership and state markers. Never decorative; every pill carries a load-bearing term.</p>
+
+      <div class="demo-row">
+        <div class="demo-stage">
+          <span class="pill p"><span class="dot"></span>provenance</span>
+          <span class="pill h"><span class="dot"></span>decision</span>
+          <span class="pill a"><span class="dot"></span>authority</span>
+          <span class="pill drift"><span class="dot"></span>drift</span>
+          <span class="pill settled"><span class="dot"></span>settled</span>
+        </div>
+        <div class="demo-label">Classes<span class="code">.pill.p / .pill.h / .pill.a / .pill.drift / .pill.settled</span></div>
+      </div>
+
+      <div class="demo-row">
+        <div class="demo-stage">
+          <span class="badge kind-module">module</span>
+          <span class="badge kind-decision">decision</span>
+          <span class="badge kind-contract">contract</span>
+          <span class="badge kind-source">source</span>
+          <span class="badge kind-research">research</span>
+          <span class="badge kind-todo">todo</span>
+          <span class="badge kind-review">review</span>
+        </div>
+        <div class="demo-label">Classes<span class="code">.badge.kind-*</span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="inputs">
+      <div class="section-kicker">07 . Inputs and keys</div>
+      <h2 class="section-title">Inputs and keys</h2>
+      <p class="section-lede">Cairn is queried, not searched. Inputs read in mono by default.</p>
+
+      <div class="demo-row">
+        <div class="demo-stage"><input class="input" placeholder="neighbourhood saas.api.auth" /></div>
+        <div class="demo-label">Class<span class="code">.input</span></div>
+      </div>
+      <div class="demo-row">
+        <div class="demo-stage"><input class="input input-sans" placeholder="Name your blueprint" /></div>
+        <div class="demo-label">Class<span class="code">.input.input-sans</span></div>
+      </div>
+      <div class="demo-row">
+        <div class="demo-stage"><kbd>&#8984;</kbd><kbd>K</kbd> &nbsp; <kbd>Esc</kbd> &nbsp; <kbd>&#8593;</kbd><kbd>&#8595;</kbd></div>
+        <div class="demo-label">Tag<span class="code">kbd</span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="code">
+      <div class="section-kicker">08 . Code blocks</div>
+      <h2 class="section-title">Code blocks</h2>
+      <p class="section-lede">Monospace as evidence. Paths, IDs, blueprints, contracts.</p>
+
+      <p class="t-body-s">Inline <code>cairn.blueprint</code> or <code>neighbourhood saas.api.auth</code> stays flush with surrounding text.</p>
+
+      <pre><code># cairn.blueprint fragment
+module saas.api.auth {
+  contracts: [auth.contract]
+  decisions: [dec.two-chain-authority]
+  tags: [@auth, @api]
+}</code></pre>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="artefacts">
+      <div class="section-kicker">09 . Artefact row</div>
+      <h2 class="section-title">Artefact row</h2>
+      <p class="section-lede">One list item for all six artefact types: contract, decision, research, source, todo, review.</p>
+
+      <div style="display: grid; gap: var(--s-2); max-width: 640px;">
+        <button class="artefact-row">
+          <div class="artefact-glyph contract">CT</div>
+          <div class="artefact-meta">
+            <div class="artefact-title">Auth module contract</div>
+            <div class="artefact-sub">./meta/contracts/api/auth.md &middot; 2.3kb</div>
+          </div>
+          <span class="badge kind-contract">contract</span>
+        </button>
+        <button class="artefact-row">
+          <div class="artefact-glyph decision">DC</div>
+          <div class="artefact-meta">
+            <div class="artefact-title">Two-chain authority model</div>
+            <div class="artefact-sub">./meta/decisions/two-chain.md &middot; 5.1kb</div>
+          </div>
+          <span class="badge kind-decision">decision</span>
+        </button>
+        <button class="artefact-row">
+          <div class="artefact-glyph research">RS</div>
+          <div class="artefact-meta">
+            <div class="artefact-title">User research on drift fatigue</div>
+            <div class="artefact-sub">./meta/research/drift-fatigue.md &middot; 8.2kb</div>
+          </div>
+          <span class="badge kind-research">research</span>
+        </button>
+        <button class="artefact-row">
+          <div class="artefact-glyph source">SR</div>
+          <div class="artefact-meta">
+            <div class="artefact-title">Spec v0.7 &middot; provenance chain</div>
+            <div class="artefact-sub">./docs/spec.md &middot; 67.2kb</div>
+          </div>
+          <span class="badge kind-source">source</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="chain">
+      <div class="section-kicker">10 . Chain diagram</div>
+      <h2 class="section-title">Chain diagram</h2>
+      <p class="section-lede">Provenance meets authority at the hinge (the decision). Six stones, two directions.</p>
+
+      <div class="chain-diagram">
+        <div class="chain-row">
+          <div class="chain-stone p"><div class="role">01 &middot; source</div><div class="label">Source</div><div class="gloss">Raw evidence</div></div>
+          <div class="chain-stone p"><div class="role">02 &middot; research</div><div class="label">Research</div><div class="gloss">Synthesised</div></div>
+          <div class="chain-stone h"><div class="role">03 &middot; hinge</div><div class="label">Decision</div><div class="gloss">Both directions</div></div>
+          <div class="chain-stone a"><div class="role">04 &middot; blueprint</div><div class="label">Blueprint</div><div class="gloss">Declared</div></div>
+          <div class="chain-stone a"><div class="role">05 &middot; contract</div><div class="label">Contract</div><div class="gloss">Specified</div></div>
+          <div class="chain-stone a"><div class="role">06 &middot; code</div><div class="label">Code</div><div class="gloss">Enforced</div></div>
+        </div>
+        <div class="chain-spine">
+          <p class="note p">Evidence informs. Never binds.</p>
+          <p class="note a">Rules bind. Checked at every gate.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="stones">
+      <div class="section-kicker">11 . Stone node</div>
+      <h2 class="section-title">Stone node</h2>
+      <p class="section-lede">Every node on the map. Four states: synced, ghost, drift, settled.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-4);">
+
+        <article class="stone-node synced">
+          <div class="kicker"><span class="kind">Module &middot; synced</span><span class="id">saas.api.auth</span></div>
+          <div class="name">Auth</div>
+          <div class="tag-row"><span class="stone-tag">@auth</span><span class="stone-tag">@api</span></div>
+          <p class="desc">Session issuance, OAuth providers, and token revocation.</p>
+          <div class="balance">
+            <div class="balance-bar prov"><div class="fill" style="width: 65%"></div></div>
+            <div class="balance-hinge"></div>
+            <div class="balance-bar auth"><div class="fill" style="width: 75%"></div></div>
+          </div>
+          <div class="counts">
+            <span class="count prov"><span class="dot"></span>2 research</span>
+            <span class="count"><span class="dot"></span>3 decisions</span>
+            <span class="count auth"><span class="dot"></span>1 contract</span>
+          </div>
+        </article>
+
+        <article class="stone-node ghost">
+          <div class="kicker"><span class="kind">Module &middot; ghost</span><span class="id">saas.api.notifications</span></div>
+          <div class="name">Notifications</div>
+          <div class="tag-row"><span class="stone-tag">@notify</span></div>
+          <p class="desc">Declared in the blueprint but not yet reconciled to code.</p>
+          <div class="balance">
+            <div class="balance-bar prov"><div class="fill" style="width: 20%"></div></div>
+            <div class="balance-hinge"></div>
+            <div class="balance-bar auth"><div class="fill" style="width: 0%"></div></div>
+          </div>
+          <div class="counts"><span class="count"><span class="dot"></span>0 contracts</span></div>
+        </article>
+
+        <article class="stone-node drift">
+          <div class="kicker"><span class="kind">Module &middot; drift</span><span class="id">saas.api.billing</span></div>
+          <div class="name">Billing</div>
+          <div class="tag-row"><span class="stone-tag">@billing</span><span class="stone-tag">@api</span></div>
+          <p class="desc">Code diverged from the contract. Something is off.</p>
+          <div class="balance">
+            <div class="balance-bar prov"><div class="fill" style="width: 45%"></div></div>
+            <div class="balance-hinge"></div>
+            <div class="balance-bar auth"><div class="fill" style="width: 30%"></div></div>
+          </div>
+          <div class="counts"><span class="count prov"><span class="dot"></span>1 tension</span></div>
+        </article>
+
+        <article class="stone-node settled">
+          <div class="kicker"><span class="kind">Module &middot; settled</span><span class="id">saas.api.audit</span></div>
+          <div class="name">Audit</div>
+          <div class="tag-row"><span class="stone-tag">@audit</span></div>
+          <p class="desc">Just reconciled. The map matches the code.</p>
+          <div class="balance">
+            <div class="balance-bar prov"><div class="fill" style="width: 85%"></div></div>
+            <div class="balance-hinge"></div>
+            <div class="balance-bar auth"><div class="fill" style="width: 90%"></div></div>
+          </div>
+          <div class="counts"><span class="count auth"><span class="dot"></span>2 contracts</span></div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="principles">
+      <div class="section-kicker">12 . Principles</div>
+      <h2 class="section-title">Principle cards</h2>
+      <p class="section-lede">Six principles, each earned. Watermark numerals in ghost ink.</p>
+
+      <div class="principles">
+        <article class="principle">
+          <div class="principle-num">I</div>
+          <div class="principle-kicker">Weight</div>
+          <h3 class="principle-title">Gravity is <em>earned</em>, not applied.</h3>
+          <p class="principle-body">Elements look heavy only when they carry real authority. Shadow, size, and contrast follow from structural weight.</p>
+        </article>
+        <article class="principle">
+          <div class="principle-num">II</div>
+          <div class="principle-kicker">Silence</div>
+          <h3 class="principle-title">The idle state is the <em>baseline</em>.</h3>
+          <p class="principle-body">Only drift breathes. Everything else rests until you ask it to move.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="tones">
+      <div class="section-kicker">13 . Tone cards</div>
+      <h2 class="section-title">Emotional registers</h2>
+      <p class="section-lede">Every interaction targets one register: arrival, clarity, reassurance, unease.</p>
+
+      <div class="tone-map">
+        <div class="tone arrival">
+          <div class="tone-kicker">Amber</div>
+          <h3 class="tone-title">Arrival</h3>
+          <p class="tone-body">Map load. Archive complete. First view of a neighbourhood.</p>
+          <div class="tone-moments">MAP LOAD &middot; ARCHIVE &middot; FIRST VIEW</div>
+        </div>
+        <div class="tone clarity">
+          <div class="tone-kicker">Verdigris</div>
+          <h3 class="tone-title">Clarity</h3>
+          <p class="tone-body">Chain trace. Query result. Contract open.</p>
+          <div class="tone-moments">CHAIN TRACE &middot; QUERY &middot; CONTRACT</div>
+        </div>
+        <div class="tone reassure">
+          <div class="tone-kicker">Moss</div>
+          <h3 class="tone-title">Reassurance</h3>
+          <p class="tone-body">Lint clean. Drift resolved. Scan settles.</p>
+          <div class="tone-moments">LINT CLEAN &middot; DRIFT RESOLVE &middot; SCAN SETTLE</div>
+        </div>
+        <div class="tone unease">
+          <div class="tone-kicker">Clay</div>
+          <h3 class="tone-title">Unease</h3>
+          <p class="tone-body">Drift breathe. Orphan surface. Cycle detected.</p>
+          <div class="tone-moments">DRIFT BREATHE &middot; ORPHAN &middot; CYCLE</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="stats">
+      <div class="section-kicker">14 . Stat grid</div>
+      <h2 class="section-title">Stat grid</h2>
+      <p class="section-lede">Tabular figures in serif; labels in mono caps.</p>
+
+      <div class="stat-grid" style="max-width: 640px;">
+        <div class="stat-cell"><span class="caps">Modules</span><div class="stat-n tabular">12</div></div>
+        <div class="stat-cell"><span class="caps">Decisions</span><div class="stat-n tabular">28</div></div>
+        <div class="stat-cell"><span class="caps">Drift</span><div class="stat-n tabular" style="color: var(--drift);">3</div></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="panel">
+      <div class="section-kicker">15 . Panel</div>
+      <h2 class="section-title">Panel</h2>
+      <p class="section-lede">Generic container; the base for principle cards, inspectors, and wells.</p>
+
+      <div class="panel" style="max-width: 640px;">
+        <h3 class="panel-title">Neighbourhood</h3>
+        <p class="t-body-s" style="color: var(--ink-aged); margin: 0;">Three modules within two hops of <code>saas.api.auth</code>, traced along the authority chain.</p>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="topbar">
+      <div class="section-kicker">16 . Topbar</div>
+      <h2 class="section-title">Topbar</h2>
+      <p class="section-lede">Application chrome: brand, breadcrumb, command search, chain toggles.</p>
+
+      <div class="topbar" style="border: 1px solid var(--seam-thin); border-radius: var(--r-stone); overflow: hidden;">
+        <div class="topbar-left">
+          <div class="brand">
+            <a class="mark" href="#" aria-label="Cairn">
+              <svg viewBox="0 0 28 28" width="22" height="22" fill="none" aria-hidden="true">
+                <ellipse class="stone stone-base" cx="14" cy="23" rx="11" ry="3.5" fill="var(--stone-5)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+                <path class="stone stone-mid" d="M5.5 18 C 5.5 14.5, 9 13, 14 13 C 19 13, 22.5 14.5, 22.5 18 C 22.5 20, 20 20.5, 14 20.5 C 8 20.5, 5.5 20, 5.5 18 Z" fill="var(--stone-4)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+                <path class="stone stone-top" d="M8 10 C 8 7, 10 5, 14 5 C 18 5, 20 7, 20 10 C 20 12, 17.5 13, 14 13 C 10.5 13, 8 12, 8 10 Z" fill="var(--stone-3)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+                <ellipse cx="13.5" cy="6" rx="3" ry="0.8" fill="var(--prov-1)" opacity="0.35"/>
+              </svg>
+            </a>
+            <span class="brand-text">Cairn</span>
+            <span class="brand-sep">&middot;</span>
+          </div>
+          <div class="breadcrumb">
+            <span class="crumb">project</span>
+            <span class="crumb-sep">/</span>
+            <span class="crumb active">map</span>
+          </div>
+        </div>
+        <div class="topbar-center">
+          <div class="cmd-trigger">
+            <span class="cmd-placeholder">Search or run a command...</span>
+            <span class="cmd-kbd"><kbd>&#8984;</kbd><kbd>K</kbd></span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="tool-group">
+            <button class="tool-btn active"><span class="dot prov-dot"></span>Provenance</button>
+            <button class="tool-btn"><span class="dot auth-dot"></span>Authority</button>
+          </div>
+          <div class="avatar">GR</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="inspector">
+      <div class="section-kicker">17 . Inspector</div>
+      <h2 class="section-title">Inspector panel</h2>
+      <p class="section-lede">Right-side detail surface. 380px wide. Holds decisions, changes, and chain balance.</p>
+
+      <div class="inspector-wrap" style="border-radius: var(--r-stone); border: 1px solid var(--seam-thin); height: 520px;">
+        <div class="inspector">
+          <div class="inspector-head">
+            <span class="caps">Module &middot; synced</span>
+            <h2>Auth</h2>
+            <p class="ins-desc">Session issuance, OAuth providers, and token revocation. Traces up to two research threads and binds one contract downward.</p>
+          </div>
+          <div class="chain-bars">
+            <div class="chain-bar">
+              <span class="caps">Provenance</span>
+              <div class="bar-track"><div class="bar-fill prov" style="width: 65%"></div></div>
+            </div>
+            <div class="chain-bar">
+              <span class="caps">Authority</span>
+              <div class="bar-track"><div class="bar-fill auth" style="width: 75%"></div></div>
+            </div>
+          </div>
+
+          <div class="ins-section">
+            <button class="ins-section-head" type="button">
+              <span class="ins-section-label">Decisions</span>
+              <span class="ins-section-count">3</span>
+            </button>
+            <div class="ins-section-body">
+              <button class="decision-row" type="button">
+                <span class="decision-status binding">binding</span>
+                <div class="decision-row-title">Two-chain authority model</div>
+                <div class="decision-row-meta">accepted &middot; 2026-04-13</div>
+              </button>
+              <button class="decision-row" type="button">
+                <span class="decision-status proposed">proposed</span>
+                <div class="decision-row-title">OAuth provider fallback order</div>
+                <div class="decision-row-meta">open &middot; 2026-04-18</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="inspector-nav">
+            <span class="caps">1 of 6 modules</span>
+            <button class="btn-ghost">OPEN FULL</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="palette">
+      <div class="section-kicker">18 . Command palette</div>
+      <h2 class="section-title">Command palette</h2>
+      <p class="section-lede">Full-screen modal for querying. Cairn is queried, not browsed.</p>
+
+      <div style="position: relative; height: 360px; background: var(--stone-1); border: 1px solid var(--seam-thin); border-radius: var(--r-stone); overflow: hidden;">
+        <div class="palette-scrim" style="position: absolute; padding-top: var(--s-6);">
+          <div class="cmd-palette">
+            <div class="palette-head">
+              <span class="mono t-small-s" style="color: var(--ink-faded);">&#x2315;</span>
+              <input placeholder="neighbourhood saas.api.auth" />
+              <kbd>Esc</kbd>
+            </div>
+            <div class="palette-syntax">
+              <span class="caps">Syntax</span>
+              <div class="syntax-grid">
+                <span>neighbourhood</span><span>show N-hop graph around a node</span>
+                <span>path</span><span>trace shortest path between two nodes</span>
+                <span>drift</span><span>list modules where code diverged from blueprint</span>
+              </div>
+            </div>
+            <div class="palette-results">
+              <div class="result-group"><span class="caps">Modules</span></div>
+              <button class="result-row" type="button">
+                <div class="result-title">Auth</div>
+                <span class="badge kind-module">module</span>
+              </button>
+              <button class="result-row" type="button">
+                <div class="result-title">Billing</div>
+                <span class="badge kind-module">module</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="drawer">
+      <div class="section-kicker">19 . Changes drawer</div>
+      <h2 class="section-title">Changes drawer</h2>
+      <p class="section-lede">Bottom-docked. In-flight / review / archived as horizontally scrolling cards.</p>
+
+      <div class="changes-drawer" style="border: 1px solid var(--seam-thin); border-radius: var(--r-stone); overflow: hidden;">
+        <button class="drawer-handle" type="button">
+          <span class="caps" style="color: var(--ink-char);">Changes</span>
+          <span class="count-chip">3</span>
+          <span style="margin-left: auto; font-family: var(--font-mono); color: var(--ink-faded);">&#9650;</span>
+        </button>
+        <div class="drawer-body">
+          <button class="change-card" type="button">
+            <div class="change-card-head"><span class="change-state in-flight">in-flight</span></div>
+            <div class="change-card-title">Add notifications module</div>
+            <div class="change-card-meta">opened 3 days ago</div>
+            <div class="change-card-foot">2 artefacts ADDED</div>
+          </button>
+          <button class="change-card review" type="button">
+            <div class="change-card-head"><span class="change-state review">review</span></div>
+            <div class="change-card-title">Rename audit decisions</div>
+            <div class="change-card-meta">ready for review</div>
+            <div class="change-card-foot">5 artefacts RENAMED</div>
+          </button>
+          <button class="change-card archived" type="button">
+            <div class="change-card-head"><span class="change-state archived">archived</span></div>
+            <div class="change-card-title">Split billing contracts</div>
+            <div class="change-card-meta">archived 2026-04-12</div>
+            <div class="change-card-foot">3 artefacts MODIFIED</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="logo">
+      <div class="section-kicker">20 . Logo mark</div>
+      <h2 class="section-title">Logo mark</h2>
+      <p class="section-lede">Three stacked stones. Hovering tilts the top two. The cairn is the thing.</p>
+
+      <div style="display: flex; align-items: center; gap: var(--s-6);">
+        <a class="mark mark-large" href="#top" aria-label="Cairn">
+          <svg viewBox="0 0 28 28" width="72" height="72" fill="none" aria-hidden="true">
+            <ellipse class="stone stone-base" cx="14" cy="23" rx="11" ry="3.5" fill="var(--stone-5)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+            <path class="stone stone-mid" d="M5.5 18 C 5.5 14.5, 9 13, 14 13 C 19 13, 22.5 14.5, 22.5 18 C 22.5 20, 20 20.5, 14 20.5 C 8 20.5, 5.5 20, 5.5 18 Z" fill="var(--stone-4)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+            <path class="stone stone-top" d="M8 10 C 8 7, 10 5, 14 5 C 18 5, 20 7, 20 10 C 20 12, 17.5 13, 14 13 C 10.5 13, 8 12, 8 10 Z" fill="var(--stone-3)" stroke="var(--seam-carved)" stroke-width="0.6"/>
+            <ellipse cx="13.5" cy="6" rx="3" ry="0.8" fill="var(--prov-1)" opacity="0.35"/>
+          </svg>
+        </a>
+        <div>
+          <div class="t-title-s">Cairn</div>
+          <div class="t-mono-s">.mark &middot; .mark-large (72px)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="glossary">
+      <div class="section-kicker">21 . Glossary</div>
+      <h2 class="section-title">Glossary</h2>
+      <p class="section-lede">Load-bearing vocabulary. Never paraphrase these in UI.</p>
+
+      <dl class="glossary-list">
+        <dt>blueprint<span class="alt">.blueprint</span></dt>
+        <dd>The declarative file describing what your system should be. Authored by hand; the single source of intent.</dd>
+
+        <dt>map<span class="alt">map.md</span></dt>
+        <dd>The reconciled view of your system. Cairn produces it by comparing the blueprint to actual code and surfacing findings.</dd>
+
+        <dt>provenance chain<span class="alt">advisory</span></dt>
+        <dd>Evidence flowing in: source &rarr; research &rarr; decision. Informs; never binds.</dd>
+
+        <dt>authority chain<span class="alt">enforced</span></dt>
+        <dd>Rules flowing out: decision &rarr; blueprint &rarr; contract &rarr; code. Binds at every gate.</dd>
+
+        <dt>hinge<span class="alt">spec &sect;3.4</span></dt>
+        <dd>The decision. Obligations in both directions; where provenance meets authority.</dd>
+
+        <dt>interface hash<span class="alt">identity</span></dt>
+        <dd>A stable fingerprint of a contract's shape. When it moves, the map moves with it.</dd>
+
+        <dt>rationale tension<span class="alt">advisory</span></dt>
+        <dd>A non-blocking finding. Something the provenance chain wants to flag. Never fails a gate.</dd>
+
+        <dt>interface contradiction<span class="alt">blocking</span></dt>
+        <dd>A blocking finding. The authority chain disagrees with itself; commits are gated until resolved.</dd>
+
+        <dt>ghost<span class="alt">state</span></dt>
+        <dd>Declared in the blueprint but not yet reconciled to code. Drawn dashed, with hatched fill.</dd>
+
+        <dt>synced<span class="alt">state</span></dt>
+        <dd>Declared and reconciled. The default, quiet state.</dd>
+
+        <dt>orphaned<span class="alt">state</span></dt>
+        <dd>Present in code but not in the blueprint. A module without a declaration.</dd>
+
+        <dt>drift<span class="alt">state, advisory</span></dt>
+        <dd>Code diverged from its declaration. The only node that breathes.</dd>
+
+        <dt>neighbourhood<span class="alt">query primitive</span></dt>
+        <dd>The N-hop graph around a node. "Show neighbourhood" never becomes "show nearby".</dd>
+
+        <dt>reconciler<span class="alt">interface</span></dt>
+        <dd>The pluggable thing that compares a blueprint against a reality layer. Code is the first reconciler; others follow.</dd>
+
+        <dt>artefact<span class="alt">kernel primitive</span></dt>
+        <dd>A typed schema object: contract, decision, todo, research, review, source. Umbrella kept; direct types are the six.</dd>
+      </dl>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var btn = document.getElementById('themeToggle');
+      var KEY = 'cairn-ds-theme';
+
+      function setTheme(theme) {
+        if (theme === 'light') {
+          root.setAttribute('data-theme', 'light');
+          btn.textContent = 'Theme: light';
+        } else {
+          root.removeAttribute('data-theme');
+          btn.textContent = 'Theme: dark';
+        }
+      }
+
+      try {
+        var stored = localStorage.getItem(KEY);
+        if (stored === 'light' || stored === 'dark') setTheme(stored);
+      } catch (e) { /* ignore */ }
+
+      btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        setTheme(next);
+        try { localStorage.setItem(KEY, next); } catch (e) { /* ignore */ }
+      });
+    })();
+  </script>
+</body>
+</html>

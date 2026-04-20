@@ -10,3 +10,6 @@ target/
 *~
 .idea/
 .vscode/
+
+# Chrome headless scratch from screenshot capture
+.cache/

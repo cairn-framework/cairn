@@ -1,0 +1,292 @@
+/* Cairn Design System, Tokens
+ *
+ * Canonical token surface. Every color, size, shadow, duration, and easing
+ * the UI grounds on. Components reference these by name. Never hardcode
+ * hex values downstream.
+ *
+ * Theme model:
+ *   :root                     default dark stone (geological, warm)
+ *   [data-theme="light"]      paper theme (inverted, warm paper tones)
+ *
+ * Prefix map:
+ *   --stone-*   layered surfaces (bedrock to peak)
+ *   --paper-*   inverted paper tones for callouts
+ *   --seam-*    solid strata lines between stones
+ *   --stroke-*  alpha strokes over any surface
+ *   --ink-*     text colors (char, aged, faded, mist, ghost)
+ *   --prov-*    provenance chain accent (evidence flowing in)
+ *   --auth-*    authority chain accent (rules flowing out)
+ *   --hinge-*   the decision hinge where chains meet
+ *   --drift     advisory drift signal
+ *   --block     blocking contradiction signal
+ *   --settled   reconciled signal
+ *   --t-*       type scale
+ *   --s-*       spacing scale (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 / 128)
+ *   --r-*       radius scale (2 / 6 / 10 / 14 / 9999)
+ *   --lift-*    drop shadows (resting, lifted, floating)
+ *   --inset-*   inner highlights and wells
+ *   --dur-*     motion durations
+ *   --ease-*    motion easings
+ */
+
+:root {
+  /* ============================================================
+   * Stone surfaces (sedimentary strata, dark default)
+   * ============================================================ */
+  --stone-0: #0d0c0a;   /* bedrock, beneath all */
+  --stone-1: #141310;   /* base, page background */
+  --stone-2: #1b1915;   /* primary surface, where most content lives */
+  --stone-3: #22201b;   /* raised, cards and wells */
+  --stone-4: #2a2721;   /* elevated, panels over panels */
+  --stone-5: #342f27;   /* peak, popovers and hover */
+
+  /* Paper tones for inverted callout contexts */
+  --paper-0: #f3ecdd;
+  --paper-1: #eae0cb;
+  --paper-2: #ddd0b6;
+
+  /* ============================================================
+   * Seams (solid strata lines) and strokes (alpha over any bg)
+   * ============================================================ */
+  --seam-faint:  #2a2620;   /* subtle rule between strata */
+  --seam-thin:   #38332b;   /* default seam */
+  --seam-clear:  #4a4338;   /* readable seam */
+  --seam-carved: #5a5244;   /* only where a line must be legible */
+
+  --stroke-1:      rgba(255, 255, 255, 0.06);
+  --stroke-2:      rgba(255, 255, 255, 0.10);
+  --stroke-3:      rgba(255, 255, 255, 0.16);
+  --stroke-strong: rgba(255, 255, 255, 0.28);
+
+  --grid-dot:   rgba(255, 255, 255, 0.05);
+  --grid-major: rgba(255, 255, 255, 0.08);
+
+  /* ============================================================
+   * Ink (text colors)
+   * --ink-char   primary, charcoal reversed
+   * --ink-aged   secondary, old-paper ink
+   * --ink-faded  tertiary, sun-bleached
+   * --ink-mist   quaternary, caption
+   * --ink-ghost  placeholder, barely a trace
+   * Numeric aliases --ink-1..4 for legacy shell code.
+   * ============================================================ */
+  --ink-char:  #f2ece0;
+  --ink-aged:  #c9c0ae;
+  --ink-faded: #908673;
+  --ink-mist:  #5f5849;
+  --ink-ghost: #3d382f;
+
+  --ink-1: var(--ink-char);
+  --ink-2: var(--ink-aged);
+  --ink-3: var(--ink-faded);
+  --ink-4: var(--ink-mist);
+
+  /* ============================================================
+   * Chain accents
+   * Provenance (amber, lamp-light on parchment): evidence flowing in.
+   * Authority  (verdigris, oxidised copper):     rules flowing out.
+   * Hinge      (bone-white, ceremonial):          where chains meet.
+   * ============================================================ */
+  --prov-1: #f4b36a;   /* ember, active highlight */
+  --prov-2: #c4864a;   /* brass, default accent */
+  --prov-3: #7d5530;   /* tarnished, dim trace */
+  --prov-wash: rgba(196, 134, 74, 0.10);
+
+  --auth-1: #88c4b4;   /* verdigris-light, active */
+  --auth-2: #5a9687;   /* verdigris, default */
+  --auth-3: #2f5448;   /* oxidised deep, dim trace */
+  --auth-wash: rgba(90, 150, 135, 0.10);
+
+  --hinge-1: #e8e1d2;  /* bone-white, active ceremonial */
+  --hinge-2: #b6ac96;  /* weathered, default */
+  --hinge-wash: rgba(232, 225, 210, 0.06);
+
+  /* ============================================================
+   * Signal colors (finding-class severity)
+   * --drift   advisory tension, warm-red clay
+   * --block   blocking contradiction, deep clay
+   * --settled reconciled, mossy-green
+   * ============================================================ */
+  --drift: #d47854;
+  --drift-wash: rgba(212, 120, 84, 0.10);
+  --block: #b84c38;
+  --settled: #82a893;
+  --settled-wash: rgba(130, 168, 147, 0.10);
+
+  /* ============================================================
+   * Typography families
+   * Serif  for sentences (hero, titles, bodies read as prose).
+   * Sans   for UI labels, metadata, descriptions.
+   * Mono   for IDs, paths, code, kickers, anything exact.
+   * ============================================================ */
+  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-sans:  "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* ============================================================
+   * Type scale
+   * ============================================================ */
+  --t-micro:   11px;   /* kickers, labels, captions */
+  --t-small:   12px;   /* descriptions, nav-link */
+  --t-body:    14px;   /* default UI text */
+  --t-lede:    16px;   /* introductions, pull-quotes */
+  --t-title:   20px;   /* card titles, node names */
+  --t-h3:      26px;   /* panel titles */
+  --t-h2:      36px;   /* sub-section headings */
+  --t-h1:      56px;   /* section titles */
+  --t-display: 88px;   /* hero only, principle watermark */
+
+  /* ============================================================
+   * Spacing scale (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 / 128)
+   * ============================================================ */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+  --s-9:  96px;
+  --s-10: 128px;
+
+  /* ============================================================
+   * Radius scale (eroded stone, not milled)
+   * ============================================================ */
+  --r-edge:  2px;      /* chipped edge, badges */
+  --r-stone: 6px;      /* default, weathered river stone */
+  --r-round: 10px;     /* rounder stone */
+  --r-large: 14px;     /* wells, large surfaces */
+  --r-full:  9999px;   /* pills, balance-bar fills */
+
+  /* ============================================================
+   * Shadows
+   * --lift-*   drop shadows, stones resting or lifted
+   * --inset-*  inner highlights, top-sky and well
+   * ============================================================ */
+  --lift-1: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --lift-2: 0 2px 4px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(0, 0, 0, 0.4);
+  --lift-3: 0 8px 20px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  --inset-sky:   inset 0 1px 0 rgba(255, 245, 220, 0.05);
+  --inset-well:  inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  --inset-carve: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+
+  /* ============================================================
+   * Motion durations
+   * --fast / --med / --slow keep the older shell alias chain alive.
+   * --dur-* is the named scale that components prefer.
+   * ============================================================ */
+  --fast: 200ms;
+  --med:  320ms;
+  --slow: 560ms;
+
+  --dur-tick:    120ms;
+  --dur-quick:   200ms;
+  --dur-settle:  320ms;
+  --dur-reveal:  520ms;
+  --dur-breathe: 2400ms;
+  --dur-build:   1800ms;
+
+  /* ============================================================
+   * Easings
+   * Default ease is the generic settling curve; named easings
+   * tune to physical intent: stack, lift, paper (map inertia).
+   * ============================================================ */
+  --ease:         cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-settle:  cubic-bezier(0.2, 0.85, 0.3, 1);
+  --ease-stack:   cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-lift:    cubic-bezier(0.3, 0, 0.1, 1);
+  --ease-paper:   cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* ============================================================
+   * Texture (paper grain applied via body::before)
+   * ============================================================ */
+  --grain-opacity: 0.035;
+}
+
+/* ==============================================================
+ * Light theme (paper). Warm paper tones, dark ink, softer shadows.
+ * ============================================================== */
+[data-theme="light"] {
+  --stone-0: #e8ddc4;
+  --stone-1: #ede4ce;
+  --stone-2: #f0e9d5;
+  --stone-3: #f4eedd;
+  --stone-4: #f8f3e5;
+  --stone-5: #fcf8ed;
+
+  --paper-0: #2a2416;
+  --paper-1: #463c28;
+  --paper-2: #6b5e43;
+
+  --seam-faint:  #d8cdb3;
+  --seam-thin:   #c9bd9f;
+  --seam-clear:  #b6a884;
+  --seam-carved: #96875e;
+
+  --stroke-1:      rgba(0, 0, 0, 0.06);
+  --stroke-2:      rgba(0, 0, 0, 0.10);
+  --stroke-3:      rgba(0, 0, 0, 0.18);
+  --stroke-strong: rgba(0, 0, 0, 0.32);
+
+  --grid-dot:   rgba(0, 0, 0, 0.06);
+  --grid-major: rgba(0, 0, 0, 0.09);
+
+  --ink-char:  #2a2416;
+  --ink-aged:  #463c28;
+  --ink-faded: #6b5e43;
+  --ink-mist:  #8d8268;
+  --ink-ghost: #b8ad90;
+
+  --prov-1: #a86820;
+  --prov-2: #8f551a;
+  --prov-3: #6b3f12;
+  --prov-wash: rgba(143, 85, 26, 0.12);
+
+  --auth-1: #3d7865;
+  --auth-2: #2e5c4e;
+  --auth-3: #1e3e34;
+  --auth-wash: rgba(46, 92, 78, 0.12);
+
+  --hinge-1: #3a3220;
+  --hinge-2: #5a4f35;
+  --hinge-wash: rgba(58, 50, 32, 0.06);
+
+  --drift: #a8461e;
+  --drift-wash: rgba(168, 70, 30, 0.12);
+  --block: #8a2e18;
+  --settled: #3d6b4e;
+  --settled-wash: rgba(61, 107, 78, 0.12);
+
+  --lift-1: 0 1px 0 rgba(90, 70, 30, 0.08);
+  --lift-2: 0 2px 4px rgba(90, 70, 30, 0.12), 0 1px 0 rgba(90, 70, 30, 0.1);
+  --lift-3: 0 8px 20px rgba(90, 70, 30, 0.15), 0 2px 4px rgba(90, 70, 30, 0.1);
+
+  --inset-sky:   inset 0 1px 0 rgba(255, 255, 240, 0.6);
+  --inset-well:  inset 0 1px 2px rgba(90, 70, 30, 0.12);
+  --inset-carve: inset 0 0 0 1px rgba(90, 70, 30, 0.08);
+
+  --grain-opacity: 0.06;
+}
+
+/* ==============================================================
+ * Reduced motion. Zeroes every duration token to near-instant.
+ * Components read --dur-* and --fast/--med/--slow via var(), so
+ * overriding the tokens is enough; no need for !important sweeps.
+ * ============================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  [data-theme="light"] {
+    --fast: 0.001ms;
+    --med:  0.001ms;
+    --slow: 0.001ms;
+
+    --dur-tick:    0.001ms;
+    --dur-quick:   0.001ms;
+    --dur-settle:  0.001ms;
+    --dur-reveal:  0.001ms;
+    --dur-breathe: 0.001ms;
+    --dur-build:   0.001ms;
+  }
+}

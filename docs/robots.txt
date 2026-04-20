@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://george-rd.github.io/cairn/sitemap.xml
