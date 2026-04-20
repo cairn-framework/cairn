@@ -535,7 +535,7 @@ fn test_phase_2_loads_artefacts_and_query_commands() -> Result<(), Box<dyn std::
 
     let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
 
-    assert!(result.graph.findings.is_empty());
+    assert!(!result.graph.has_errors());
     assert_eq!(result.artefacts.todos.len(), 1);
     assert_eq!(result.artefacts.decisions.len(), 2);
     assert_eq!(result.artefacts.reviews[0].reviewer, "george");
@@ -630,11 +630,301 @@ fn test_phase_2_integrity_findings() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_edge_divergence_reports_missing_extra_and_ambiguous_dependencies()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("edge-divergence")?;
+    write_edge_fixture(&root)?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    assert!(result.graph.findings.iter().any(|finding| {
+        finding.code == "CE001"
+            && finding.message.contains("app.auth")
+            && finding.message.contains("app.db")
+    }));
+    assert!(result.graph.findings.iter().any(|finding| {
+        finding.code == "CE002"
+            && finding.message.contains("app.auth")
+            && finding.message.contains("app.billing")
+    }));
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| { finding.code == "CE003" && finding.message.contains("shared") })
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .arg("lint")
+        .output()?;
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(stdout.contains("CE001"));
+    assert!(stdout.contains("CE002"));
+
+    let hook = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["hook", "tension"])
+        .output()?;
+    assert!(hook.status.success());
+    assert!(String::from_utf8(hook.stdout)?.contains("CE002"));
+
+    Ok(())
+}
+
+#[test]
+fn test_scan_map_includes_edge_divergence_findings() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("edge-map")?;
+    write_edge_fixture(&root)?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .arg("scan")
+        .output()?;
+
+    assert!(output.status.success());
+    let map = fs::read_to_string(root.join("map.md"))?;
+    assert!(map.contains("CE001"));
+    assert!(map.contains("CE002"));
+
+    Ok(())
+}
+
+#[test]
+fn test_docstring_drift_parses_exact_rust_fact_lines() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("docstring-drift")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::create_dir_all(root.join("src/db"))?;
+    fs::create_dir_all(root.join("meta/contracts"))?;
+    fs::write(
+        root.join("src/auth/lib.rs"),
+        r"//! Cairn-ID: app.auth
+//! Cairn-Name: Auth Module
+//! Cairn-Depends: app.db
+//! Cairn-Depends: missing.node
+//! Cairn-Tags: auth, api
+//! Cairn-Contract: ./meta/contracts/wrong.md
+//! cairn-name: ignored because keys are case-sensitive
+//! Cairn-Unknown: value
+
+pub fn login() {}
+",
+    )?;
+    fs::write(root.join("src/db/lib.rs"), "pub fn save() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "JWT authentication" id "app.auth" @auth {
+        path "./src/auth"
+        contract "./meta/contracts/auth.md"
+    }
+    Module Db "db" id "app.db" {
+        path "./src/db"
+    }
+}
+"#,
+    )?;
+    fs::write(
+        root.join("meta/contracts/auth.md"),
+        "---\nnode: app.auth\n---\n# Auth Contract\n## Public interface\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| { finding.code == "CE004" && finding.message.contains("missing.node") })
+    );
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| finding.code == "CE005")
+    );
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| finding.code == "CE006")
+    );
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| finding.code == "CE007")
+    );
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| finding.code == "CE008")
+    );
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| finding.code == "CE009")
+    );
+    assert!(
+        !result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| finding.message.contains("cairn-name"))
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_docstring_command_outputs_language_templates() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("docstring-command")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::create_dir_all(root.join("src/db"))?;
+    fs::create_dir_all(root.join("meta/contracts"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(root.join("src/db/lib.rs"), "pub fn save() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "JWT authentication" id "app.auth" @auth @api {
+        path "./src/auth"
+        contract "./meta/contracts/auth.md"
+    }
+    Module Db "db" id "app.db" {
+        path "./src/db"
+    }
+}
+app.auth -> app.db "persists"
+"#,
+    )?;
+    fs::write(
+        root.join("meta/contracts/auth.md"),
+        "---\nnode: app.auth\n---\n# Auth Contract\n## Public interface\n",
+    )?;
+
+    for (language, expected) in [
+        ("rust", docstring_snapshot("//!")),
+        ("python", docstring_snapshot("#")),
+        ("typescript", docstring_snapshot("//")),
+        ("go", docstring_snapshot("//")),
+    ] {
+        let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+            .current_dir(&root)
+            .args(["docstring", "app.auth", "--language", language])
+            .output()?;
+        assert!(output.status.success());
+        let stdout = String::from_utf8(output.stdout)?;
+        assert_eq!(stdout, expected);
+    }
+
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "docstring", "app.auth", "--language", "rust"])
+        .output()?;
+    assert!(json.status.success());
+    let stdout = String::from_utf8(json.stdout)?;
+    assert!(stdout.contains("\"dependencies\":[\"app.db\"]"));
+    assert!(stdout.contains("\"text\""));
+
+    let unsupported = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["docstring", "app.auth", "--language", "elixir"])
+        .output()?;
+    assert!(!unsupported.status.success());
+    let stdout = String::from_utf8(unsupported.stdout)?;
+    assert!(stdout.contains("CE010"));
+    assert!(stdout.contains("Rust, Python, TypeScript, Go"));
+
+    Ok(())
+}
+
+fn docstring_snapshot(prefix: &str) -> String {
+    [
+        "Cairn-ID: app.auth",
+        "Cairn-Name: Auth",
+        "Description: JWT authentication",
+        "Cairn-Depends: app.db",
+        "Cairn-Tags: auth, api",
+        "Cairn-Contract: ./meta/contracts/auth.md",
+        "Contract-Heading: Auth Contract",
+        "Contract-Heading: Public interface",
+        "",
+        "Purpose: Complete this prose with the module responsibility.",
+    ]
+    .iter()
+    .map(|line| format!("{prefix} {line}"))
+    .collect::<Vec<_>>()
+    .join("\n")
+        + "\n"
+}
+
 fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
     let root = std::env::temp_dir().join(format!("cairn-{name}-{suffix}"));
     fs::create_dir_all(&root)?;
     Ok(root)
+}
+
+fn write_edge_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::create_dir_all(root.join("src/db"))?;
+    fs::create_dir_all(root.join("src/billing"))?;
+    fs::create_dir_all(root.join("src/platform/shared"))?;
+    fs::create_dir_all(root.join("src/product/shared"))?;
+    fs::write(
+        root.join("src/auth/lib.rs"),
+        "use crate::billing::charge;\nuse crate::shared::Thing;\npub fn login() { charge(); }\n",
+    )?;
+    fs::write(root.join("src/db/lib.rs"), "pub fn save() {}\n")?;
+    fs::write(root.join("src/billing/lib.rs"), "pub fn charge() {}\n")?;
+    fs::write(
+        root.join("src/platform/shared/lib.rs"),
+        "pub struct Thing;\n",
+    )?;
+    fs::write(
+        root.join("src/product/shared/lib.rs"),
+        "pub struct Thing;\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+    }
+    Module Db "db" id "app.db" {
+        path "./src/db"
+    }
+    Module Billing "billing" id "app.billing" {
+        path "./src/billing"
+    }
+    Container Platform "platform" id "app.platform" {
+        Module Shared "shared" id "app.platform.shared" {
+            path "./src/platform/shared"
+        }
+    }
+    Container Product "product" id "app.product" {
+        Module Shared "shared" id "app.product.shared" {
+            path "./src/product/shared"
+        }
+    }
+}
+app.auth -> app.db "persists"
+"#,
+    )?;
+    Ok(())
 }
 
 fn write_phase_2_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> {

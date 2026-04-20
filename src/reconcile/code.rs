@@ -15,6 +15,7 @@ use crate::{
 use super::{
     ReconcileError, ReconcileReport, ReconcileRequest, Reconciler, ReconcilerId,
     fingerprint::InterfaceFingerprint,
+    rust_semantics::{OwnerIndex, dependency_observations, docstring_facts},
 };
 
 const PUBLIC_ITEM_KINDS: &[&str] = &[
@@ -52,7 +53,7 @@ impl Reconciler for RustCodeReconciler<'_> {
         let rust_files = discover_rust_files(request.root, request.ignores)?;
         let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
         let mut findings = Vec::new();
-        let mut symbols = Vec::new();
+        let mut owned_files = Vec::new();
         for file in rust_files {
             let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
             if let Some(owner) = most_specific_owner(&owners, &rel) {
@@ -60,7 +61,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                     .entry(owner.clone())
                     .or_default()
                     .push(rel.clone());
-                symbols.extend(public_symbols(&file)?);
+                owned_files.push((file, rel, owner));
             } else {
                 findings.push(Finding {
                     code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
@@ -74,10 +75,30 @@ impl Reconciler for RustCodeReconciler<'_> {
         for files in claimed_files.values_mut() {
             files.sort();
         }
+        let owner_index = OwnerIndex::new(owners, &claimed_files);
+        let mut symbols = Vec::new();
+        let mut dependencies = Vec::new();
+        let mut docstrings = Vec::new();
+        for (file, rel, owner) in owned_files {
+            let analysis = analyze_rust_file(&file)?;
+            symbols.extend(analysis.symbols);
+            dependencies.extend(dependency_observations(
+                &analysis.tree,
+                &analysis.source,
+                &rel,
+                &owner,
+                &owner_index,
+            )?);
+            if let Some(facts) = docstring_facts(&analysis.source, &rel, &owner) {
+                docstrings.push(facts);
+            }
+        }
         Ok(ReconcileReport {
             fingerprint: InterfaceFingerprint::from_symbols(&symbols),
             claimed_files,
             symbols,
+            dependencies,
+            docstrings,
             findings,
         })
     }
@@ -92,15 +113,7 @@ fn eligible_owners(ast: &Ast) -> Vec<(String, String)> {
 }
 
 fn collect_owner(node: &Node, owners: &mut Vec<(String, String)>) {
-    let is_internal = !node.children.is_empty();
-    if !is_internal || node.owns_files {
-        for path in &node.paths {
-            owners.push((node.id.clone(), trim_dot(path)));
-        }
-    }
-    for child in &node.children {
-        collect_owner(child, owners);
-    }
+    super::rust_semantics::collect_owner(node, owners);
 }
 
 fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String> {
@@ -146,7 +159,13 @@ fn walk(
     Ok(())
 }
 
-fn public_symbols(path: &Path) -> Result<Vec<String>, ReconcileError> {
+struct RustFileAnalysis {
+    source: String,
+    tree: tree_sitter::Tree,
+    symbols: Vec<String>,
+}
+
+fn analyze_rust_file(path: &Path) -> Result<RustFileAnalysis, ReconcileError> {
     let source = fs::read_to_string(path).map_err(|error| ReconcileError {
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
         message: format!("failed to read `{}`: {error}", path.display()),
@@ -165,7 +184,11 @@ fn public_symbols(path: &Path) -> Result<Vec<String>, ReconcileError> {
     let mut symbols = Vec::new();
     collect_public_symbols(tree.root_node(), source.as_bytes(), &mut symbols)?;
     symbols.sort();
-    Ok(symbols)
+    Ok(RustFileAnalysis {
+        source,
+        tree,
+        symbols,
+    })
 }
 
 fn collect_public_symbols(
@@ -211,10 +234,6 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> Result<String
 
 fn normalize_symbol(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ")
-}
-
-fn trim_dot(path: &str) -> String {
-    path.trim_start_matches("./").to_owned()
 }
 
 fn normalize(path: &Path) -> String {

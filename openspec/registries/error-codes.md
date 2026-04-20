@@ -57,7 +57,16 @@ _No codes allocated yet._
 
 ## CE -- Edges
 
-_No codes allocated yet._
+- CE001 -- Declared blueprint edge has no observed source dependency -- Phase 5
+- CE002 -- Observed source dependency has no declared blueprint edge -- Phase 5
+- CE003 -- Observed source dependency is ambiguous between multiple node owners -- Phase 5
+- CE004 -- Docstring fact references an unknown Cairn node ID -- Phase 5
+- CE005 -- Docstring node name contradicts the map -- Phase 5
+- CE006 -- Docstring dependency contradicts declared graph edges -- Phase 5
+- CE007 -- Docstring tags contradict the map -- Phase 5
+- CE008 -- Docstring contains an unknown Cairn fact key -- Phase 5
+- CE009 -- Docstring contract pointer contradicts the map -- Phase 5
+- CE010 -- Requested docstring language is unsupported -- Phase 5
 
 ## CT -- Targets
 

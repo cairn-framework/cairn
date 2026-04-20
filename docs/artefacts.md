@@ -113,6 +113,8 @@ Structural errors block map queries. Examples include missing required frontmatt
 
 Rationale tensions are warnings. Examples include orphan todos, source records that are not cited, unverified sources, unknown decision provenance, and decision cross-reference status mismatches.
 
+Edge divergence and docstring drift are also rationale tensions. A declared blueprint edge can drift from observed Rust imports or module declarations, and authored docstring facts can drift from node names, dependencies, tags, or contract pointers in the map. These findings are advisory by default and are rendered anywhere findings are rendered, including `lint`, `scan`, JSON responses, generated `map.md`, and hook reports that consume map findings.
+
 ## Neighbourhood Defaults
 
 `cairn neighbourhood <node>` includes contracts and accepted decisions by default. Todos, research, reviews, deprecated decisions, and active changes are opt-in with `--include-todos`, `--include-research`, `--include-reviews`, `--include-deprecated-decisions`, and `--include-changes`. Active changes remain empty until the change directory phase lands.

@@ -51,7 +51,7 @@ pub struct CliResult {
     pub stderr: String,
 }
 
-const COMMAND_REGISTRY: [CommandMetadata; 17] = [
+const COMMAND_REGISTRY: [CommandMetadata; 19] = [
     CommandMetadata {
         name: "get",
         request: "NodeRequest",
@@ -154,6 +154,18 @@ const COMMAND_REGISTRY: [CommandMetadata; 17] = [
         response: "UiServerResponse",
         safety: SafetyClass::ReadOnly,
     },
+    CommandMetadata {
+        name: "docstring",
+        request: "DocstringRequest",
+        response: "DocstringResponse",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "hook",
+        request: "HookRequest",
+        response: "HookReport",
+        safety: SafetyClass::ReadOnly,
+    },
 ];
 
 /// Returns Phase 1 command registry.
@@ -254,7 +266,9 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         "research" => render_research(parsed, &scan_result),
         "sources" => render_sources(parsed, &scan_result),
         "rationale" => render_rationale(parsed, &scan_result),
+        "docstring" => render_docstring(parsed, &scan_result),
         "status" => Ok(render_status(parsed, &scan_result, root)),
+        "hook" => return render_hook(parsed, &scan_result),
         "dependents" | "depends" => render_dependencies(parsed, &scan_result),
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
             let node = scan_result.graph.resolve(node)?;
@@ -632,6 +646,202 @@ fn render_rationale(
     })
 }
 
+fn render_hook(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> CliResult {
+    let kind = parsed.command_args.get(1).map_or("all", String::as_str);
+    if !matches!(kind, "structural" | "interface" | "tension" | "all") {
+        return err(2, "usage: cairn hook <structural|interface|tension|all>");
+    }
+    let errors = scan_result
+        .graph
+        .findings
+        .iter()
+        .filter(|finding| finding.severity == FindingSeverity::Error)
+        .cloned()
+        .collect::<Vec<_>>();
+    let warnings = scan_result
+        .graph
+        .findings
+        .iter()
+        .filter(|finding| finding.severity == FindingSeverity::Warning)
+        .cloned()
+        .collect::<Vec<_>>();
+    let findings = match kind {
+        "structural" | "interface" => errors.clone(),
+        "tension" => warnings,
+        _ => scan_result.graph.findings.clone(),
+    };
+    let blocks = kind != "tension" && !errors.is_empty();
+    let stdout = if parsed.json {
+        format!(
+            "{{\"hook\":\"{}\",\"blocks\":{},\"findings\":[{}]}}\n",
+            kind,
+            blocks,
+            findings
+                .iter()
+                .map(finding_json)
+                .collect::<Vec<_>>()
+                .join(",")
+        )
+    } else {
+        format!(
+            "Hook: {kind}\nBlocks: {blocks}\n{}",
+            render_findings(&findings, false)
+        )
+    };
+    CliResult {
+        code: u8::from(blocks),
+        stdout,
+        stderr: String::new(),
+    }
+}
+
+fn render_docstring(
+    parsed: &ParsedArgs,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    let language = flag_value(&parsed.command_args, "--language").unwrap_or("rust");
+    let language = DocLanguage::parse(language)?;
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node = scan_result.graph.resolve(node)?;
+        let dependencies = scan_result
+            .graph
+            .outbound
+            .get(&node.id)
+            .into_iter()
+            .flatten()
+            .map(|edge| edge.to.clone())
+            .collect::<Vec<_>>();
+        let contract_headings = contract_headings(scan_result, node);
+        let text = render_docstring_text(language, node, &dependencies, &contract_headings);
+        Ok(if parsed.json {
+            format!(
+                "{{\"node\":\"{}\",\"language\":\"{}\",\"facts\":{{\"id\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"dependencies\":{},\"tags\":{},\"contracts\":{},\"contract_headings\":{}}},\"text\":\"{}\"}}\n",
+                esc(&node.id),
+                language.as_str(),
+                esc(&node.id),
+                esc(&node.name),
+                esc(&node.description),
+                string_array_json(&dependencies),
+                string_array_json(&node.tags),
+                string_array_json(&node.contracts),
+                string_array_json(&contract_headings),
+                esc(&text)
+            )
+        } else {
+            format!("{text}\n")
+        })
+    })
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum DocLanguage {
+    Rust,
+    Python,
+    TypeScript,
+    Go,
+}
+
+impl DocLanguage {
+    fn parse(value: &str) -> Result<Self, Finding> {
+        match value {
+            "rust" => Ok(Self::Rust),
+            "python" => Ok(Self::Python),
+            "typescript" => Ok(Self::TypeScript),
+            "go" => Ok(Self::Go),
+            _ => Err(Finding {
+                code: "CE010".to_owned(),
+                severity: FindingSeverity::Error,
+                message: format!(
+                    "unsupported docstring language `{value}`; supported languages: Rust, Python, TypeScript, Go"
+                ),
+                node: None,
+                path: None,
+            }),
+        }
+    }
+
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::Rust => "rust",
+            Self::Python => "python",
+            Self::TypeScript => "typescript",
+            Self::Go => "go",
+        }
+    }
+}
+
+fn render_docstring_text(
+    language: DocLanguage,
+    node: &NodeRecord,
+    dependencies: &[String],
+    contract_headings: &[String],
+) -> String {
+    let lines = docstring_fact_lines(node, dependencies, contract_headings);
+    let prefix = match language {
+        DocLanguage::Rust => "//! ",
+        DocLanguage::Python => "# ",
+        DocLanguage::TypeScript | DocLanguage::Go => "// ",
+    };
+    lines
+        .iter()
+        .map(|line| format!("{prefix}{line}"))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn docstring_fact_lines(
+    node: &NodeRecord,
+    dependencies: &[String],
+    contract_headings: &[String],
+) -> Vec<String> {
+    let mut lines = vec![
+        format!("Cairn-ID: {}", node.id),
+        format!("Cairn-Name: {}", node.name),
+        format!("Description: {}", node.description),
+    ];
+    lines.extend(
+        dependencies
+            .iter()
+            .map(|dependency| format!("Cairn-Depends: {dependency}")),
+    );
+    if !node.tags.is_empty() {
+        lines.push(format!("Cairn-Tags: {}", node.tags.join(", ")));
+    }
+    lines.extend(
+        node.contracts
+            .iter()
+            .map(|contract| format!("Cairn-Contract: {contract}")),
+    );
+    lines.extend(
+        contract_headings
+            .iter()
+            .map(|heading| format!("Contract-Heading: {heading}")),
+    );
+    lines.push(String::new());
+    lines.push("Purpose: Complete this prose with the module responsibility.".to_owned());
+    lines
+}
+
+fn contract_headings(scan_result: &scanner::ScanResult, node: &NodeRecord) -> Vec<String> {
+    node.contracts
+        .iter()
+        .filter_map(|path| scan_result.contracts.contracts.get(path))
+        .filter(|contract| contract.node == node.id)
+        .flat_map(|contract| {
+            contract
+                .body
+                .lines()
+                .filter_map(|line| {
+                    line.strip_prefix('#')
+                        .map(|heading| heading.trim_start_matches('#').trim())
+                })
+                .filter(|line| !line.is_empty())
+                .map(ToOwned::to_owned)
+                .collect::<Vec<_>>()
+        })
+        .collect()
+}
+
 fn render_status(parsed: &ParsedArgs, scan_result: &scanner::ScanResult, root: &Path) -> String {
     let open = scan_result
         .artefacts
@@ -703,6 +913,7 @@ fn requires_valid_map(command: &str) -> bool {
             | "research"
             | "sources"
             | "rationale"
+            | "docstring"
             | "status"
     )
 }

@@ -22,6 +22,8 @@ Claude Code, Cursor, Copilot. They all work best when the structure is explicit,
 
 - Parses a human-authored `cairn.blueprint` into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
 - Reconciles declared nodes against real files on disk and flags `synced`, `ghost`, and `orphaned` state.
+- Compares declared edges to observed Rust dependencies and reports drift as advisory rationale tensions.
+- Generates language-aware docstring templates grounded in graph facts.
 - Produces `map.md` with generated frontmatter, active changes, and ranked findings agents can consume.
 - Computes deterministic Rust interface hashes and detects contract drift between revisions.
 - Surfaces `interface contradictions` (blocking) and `rationale tensions` (advisory) so commits that break the authority chain never land silently.
@@ -107,6 +109,7 @@ cairn get <node-id> --json
 cairn neighbourhood <node-id>
 cairn files <node-id>
 cairn contract <node-id>
+cairn docstring <node-id> --language rust
 cairn depends <node-id> --transitive
 cairn dependents <node-id>
 cairn order
@@ -122,6 +125,10 @@ Phase 1 implements only contract artefacts. A contract is a Markdown file with f
 - `map.md` with generated frontmatter, synced nodes, ghost nodes, active changes, and findings.
 - `.cairn/log.md` with an appended scan event.
 - `.cairn/state/interface-hashes.json` with deterministic Rust interface hash state.
+
+Edge divergence and docstring drift are rationale tensions. They appear in `lint`, `scan`, JSON output, and generated `map.md`, but they do not block queries unless a separate structural error is present.
+
+`cairn docstring <node-id> [--language <lang>]` emits a template for Rust, Python, TypeScript, or Go. The template includes stable Cairn fact lines from the graph plus a prose placeholder. The human or agent completing the template must still write the module explanation.
 
 ## Design system
 
