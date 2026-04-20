@@ -856,7 +856,9 @@ fn parse_decision_status(
 ) -> Option<DecisionStatus> {
     match value {
         "proposed" => Some(DecisionStatus::Proposed),
-        "accepted" => Some(DecisionStatus::Accepted),
+        // `binding` is a legacy alias for `accepted`; deserialize-only, on-disk
+        // fixtures that still carry it keep parsing.
+        "accepted" | "binding" => Some(DecisionStatus::Accepted),
         "deprecated" => Some(DecisionStatus::Deprecated),
         "superseded" => Some(DecisionStatus::Superseded),
         _ => {

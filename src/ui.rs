@@ -37,6 +37,13 @@ const DESIGN_COMPONENTS_CSS: &str = include_str!("../docs/design-system/componen
 /// Graph-explorer-specific layout and overrides.
 const UI_STYLE_CSS: &str = include_str!("ui_assets/style.css");
 
+/// Vendored Preact runtime (UMD).
+const VENDOR_PREACT_JS: &str = include_str!("ui_assets/vendor/preact.min.js");
+/// Vendored Preact hooks (UMD, depends on Preact global).
+const VENDOR_PREACT_HOOKS_JS: &str = include_str!("ui_assets/vendor/preact-hooks.min.js");
+/// Vendored htm tagged-template helper (UMD).
+const VENDOR_HTM_JS: &str = include_str!("ui_assets/vendor/htm.min.js");
+
 /// Concatenated stylesheet served as `/assets/style.css`: tokens, then canonical
 /// components, then the graph-explorer-specific layer. Consumers read tokens
 /// via `var(--...)` so the three layers compose in definition order.
@@ -309,6 +316,14 @@ impl Server {
             "/" | "/index.html" => html(INDEX_HTML),
             "/assets/style.css" => asset("text/css; charset=utf-8", STYLE_CSS.as_str()),
             "/assets/app.js" => asset("application/javascript; charset=utf-8", APP_JS),
+            "/vendor/preact.min.js" => {
+                asset("application/javascript; charset=utf-8", VENDOR_PREACT_JS)
+            }
+            "/vendor/preact-hooks.min.js" => asset(
+                "application/javascript; charset=utf-8",
+                VENDOR_PREACT_HOOKS_JS,
+            ),
+            "/vendor/htm.min.js" => asset("application/javascript; charset=utf-8", VENDOR_HTM_JS),
             _ if path.starts_with("/api/") => self.api(path),
             _ => text(404, "not found"),
         }
@@ -341,7 +356,33 @@ impl Server {
         if let Some(node) = path.strip_prefix("/api/depends/") {
             return dependency_json(graph, node, true);
         }
+        if path == "/api/blueprint" {
+            return self.blueprint_json();
+        }
         text(404, "not found")
+    }
+
+    fn blueprint_json(&self) -> Response {
+        let path = self.options.blueprint_path.clone();
+        let display_path = path.to_string_lossy().to_string();
+        match fs::read_to_string(&path) {
+            Ok(source) => json(
+                200,
+                &format!(
+                    "{{\"path\":\"{}\",\"source\":\"{}\"}}",
+                    esc(&display_path),
+                    esc(&source)
+                ),
+            ),
+            Err(error) => json(
+                404,
+                &format!(
+                    "{{\"path\":\"{}\",\"source\":null,\"error\":\"{}\"}}",
+                    esc(&display_path),
+                    esc(&error.to_string())
+                ),
+            ),
+        }
     }
 
     fn node_api(&self, project: &scanner::ScanResult, path: &str) -> Response {
@@ -501,7 +542,7 @@ fn graph_json(graph: &GraphResponse) -> String {
 
 fn node_json(node: &NodeRecord) -> String {
     format!(
-        "{{\"id\":\"{}\",\"kind\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"tags\":{},\"parent\":{},\"children\":{},\"paths\":{},\"contracts\":{},\"state\":\"{:?}\",\"files\":{}}}",
+        "{{\"id\":\"{}\",\"kind\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"tags\":{},\"parent\":{},\"children\":{},\"paths\":{},\"contracts\":{},\"state\":\"{}\",\"files\":{}}}",
         esc(&node.id),
         kind_name(node.kind),
         esc(&node.name),
@@ -511,7 +552,7 @@ fn node_json(node: &NodeRecord) -> String {
         string_array_json(&node.children),
         string_array_json(&node.paths),
         string_array_json(&node.contracts),
-        node.state,
+        state_name(node.state),
         string_array_json(&node.files)
     )
 }
@@ -526,12 +567,32 @@ fn dependency_json(graph: &Graph, node: &str, outbound: bool) -> Response {
     result.map_or_else(
         |finding| json(404, &finding_json(&finding)),
         |response| {
+            let entries = response
+                .nodes
+                .iter()
+                .map(|id| match graph.nodes.get(id) {
+                    Some(record) => format!(
+                        "{{\"id\":\"{}\",\"name\":\"{}\",\"slug\":\"{}\",\"state\":\"{}\",\"kind\":\"{}\"}}",
+                        esc(&record.id),
+                        esc(&record.name),
+                        esc(&record.id),
+                        state_name(record.state),
+                        kind_name(record.kind),
+                    ),
+                    None => format!(
+                        "{{\"id\":\"{}\",\"name\":\"{}\",\"slug\":\"{}\",\"state\":\"synced\",\"kind\":\"module\"}}",
+                        esc(id),
+                        esc(id),
+                        esc(id),
+                    ),
+                })
+                .collect::<Vec<_>>()
+                .join(",");
             json(
                 200,
                 &format!(
-                    "{{\"node\":\"{}\",\"nodes\":{}}}",
+                    "{{\"node\":\"{}\",\"nodes\":[{entries}]}}",
                     esc(&response.node),
-                    string_array_json(&response.nodes)
                 ),
             )
         },
@@ -684,9 +745,9 @@ fn artefact_json(kind: &str, artefact: &Artefact) -> String {
 
 fn finding_json(finding: &Finding) -> String {
     format!(
-        "{{\"code\":\"{}\",\"severity\":\"{:?}\",\"message\":\"{}\",\"node\":{},\"path\":{}}}",
+        "{{\"code\":\"{}\",\"severity\":\"{}\",\"message\":\"{}\",\"node\":{},\"path\":{}}}",
         esc(&finding.code),
-        finding.severity,
+        severity_name(finding.severity),
         esc(&finding.message),
         optional_json(finding.node.as_deref()),
         optional_json(finding.path.as_deref())
@@ -718,6 +779,23 @@ const fn kind_name(kind: NodeKind) -> &'static str {
         NodeKind::Container => "container",
         NodeKind::Module => "module",
         NodeKind::Actor => "actor",
+    }
+}
+
+/// Stable lowercase wire name for a reconciliation state.
+const fn state_name(state: crate::map::NodeState) -> &'static str {
+    use crate::map::NodeState;
+    match state {
+        NodeState::Synced => "synced",
+        NodeState::Ghost => "ghost",
+        NodeState::Orphaned => "orphaned",
+    }
+}
+
+const fn severity_name(severity: FindingSeverity) -> &'static str {
+    match severity {
+        FindingSeverity::Error => "error",
+        FindingSeverity::Warning => "warning",
     }
 }
 
