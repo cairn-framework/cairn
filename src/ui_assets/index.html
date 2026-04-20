@@ -1,71 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="stone">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cairn Graph Explorer</title>
+    <title>Cairn</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,300;1,8..60,400;1,8..60,500;1,8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="/assets/style.css">
   </head>
   <body>
-    <header class="topbar" role="banner">
-      <div class="topbar-mark">
-        <span class="mark-name serif">Cairn</span>
-        <span class="mark-rule" aria-hidden="true"></span>
-        <span class="mark-sub">Graph Explorer</span>
-      </div>
-      <div class="topbar-center-slot">
-        <div class="topbar-meta" id="topbar-meta">
-          <span class="meta-field"><span class="meta-value mono" id="meta-project">cairn</span></span>
-          <span class="meta-dot" aria-hidden="true">&middot;</span>
-          <span class="meta-field"><span class="meta-label">schema&nbsp;</span><span class="meta-value mono" id="meta-schema">v&mdash;</span></span>
-          <span class="meta-dot" aria-hidden="true">&middot;</span>
-          <span class="meta-field"><span class="meta-label">generated&nbsp;</span><span class="meta-value mono" id="meta-generated">&mdash;</span></span>
-        </div>
-      </div>
-      <div class="zoom-strip" role="group" aria-label="Canvas controls">
-        <button id="zoom-out" class="zoom-button mono" type="button" title="Zoom out" aria-label="Zoom out">&minus;</button>
-        <button id="zoom-in" class="zoom-button mono" type="button" title="Zoom in" aria-label="Zoom in">+</button>
-        <button id="reset-view" class="zoom-button mono" type="button" title="Reset view" aria-label="Reset view">&#9678;</button>
-      </div>
-    </header>
-    <main class="shell panel-closed" id="shell">
-      <section class="graph-region" aria-label="Architecture graph">
-        <div id="warning" class="warning mono" hidden></div>
-        <div id="graph-viewport" class="graph-viewport">
-          <div id="graph" class="graph" tabindex="0"></div>
-        </div>
-      </section>
-      <aside id="detail-panel" class="detail-panel inspector-wrap" aria-live="polite" hidden>
-        <div class="panel-inner inspector">
-          <div class="panel-header">
-            <p id="node-kind" class="eyebrow mono">&mdash;</p>
-            <button id="close-panel" class="close mono" type="button" title="Close panel" aria-label="Close panel">&times;</button>
-          </div>
-          <h2 id="node-name" class="panel-name serif">Select a node</h2>
-          <p id="node-id" class="panel-id mono"></p>
-          <p id="node-description" class="panel-description"></p>
-          <section id="findings-section" class="panel-section" hidden>
-            <header class="section-header">
-              <span class="section-label">Findings</span>
-              <span class="section-count mono" id="findings-count"></span>
-            </header>
-            <div id="finding-detail" class="finding-list"></div>
-          </section>
-          <nav id="layer-nav" class="layer-nav" aria-label="Artefact navigation" hidden>
-            <button id="prev-layer" class="layer-button mono" type="button">&larr;&nbsp;Back</button>
-            <span id="layer-count" class="layer-count mono">0&nbsp;/&nbsp;0</span>
-            <button id="next-layer" class="layer-button mono" type="button">Next&nbsp;&rarr;</button>
-          </nav>
-          <div id="artefacts" class="artefacts"></div>
-          <div id="metadata-blocks" class="metadata-blocks"></div>
-          <div class="panel-tail" aria-hidden="true"></div>
-        </div>
-        <div class="sheet-handle" aria-hidden="true"></div>
-      </aside>
-    </main>
+    <div id="root" class="app"></div>
+    <script src="/vendor/preact.min.js"></script>
+    <script src="/vendor/preact-hooks.min.js"></script>
+    <script src="/vendor/htm.min.js"></script>
     <script src="/assets/app.js"></script>
   </body>
 </html>
