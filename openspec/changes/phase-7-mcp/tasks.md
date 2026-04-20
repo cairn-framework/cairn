@@ -36,3 +36,8 @@
 - [x] 5.4 `cargo test` passes.
 - [x] 5.5 `cargo test --locked` passes.
 - [x] 5.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-7-mcp --strict` passes.
+
+## Acceptance #1 Failure Follow-up
+
+- [x] Make the MCP `cairn_archive` path run the same active-change conflict preflight as the CLI archive path before any archive mutation.
+- [x] Add a regression test proving MCP archive rejects conflicting active changes and leaves the blueprint plus active change directories unchanged.

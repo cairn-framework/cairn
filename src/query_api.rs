@@ -18,7 +18,7 @@ use crate::{
         },
     },
     changes,
-    hooks::{ExitDecision, HookKind},
+    hooks::{self, ExitDecision, HookKind},
     map::{
         graph::{Finding, NodeRecord},
         query,
@@ -411,6 +411,10 @@ fn execute_data(
 ) -> Result<Value, QueryError> {
     if metadata.cli_name == "archive" {
         let change = required(request.change.as_ref(), "change")?;
+        let conflict_findings = hooks::detect_active_change_conflicts(changes_dir);
+        if !conflict_findings.is_empty() {
+            return Err(findings_error(&conflict_findings));
+        }
         let report = changes::archive(root, blueprint_path, change).map_err(command_error)?;
         return Ok(json!({
             "archive_path": report.archive_path.to_string_lossy(),

@@ -66,6 +66,18 @@ rules:
     Ok(root)
 }
 
+fn write_change(
+    root: &Path,
+    id: &str,
+    blueprint_delta: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let change = root.join("meta/changes").join(id);
+    fs::create_dir_all(&change)?;
+    fs::write(change.join("proposal.md"), format!("# Proposal: {id}\n"))?;
+    fs::write(change.join("blueprint.delta"), blueprint_delta)?;
+    Ok(())
+}
+
 #[test]
 fn registry_lists_read_only_tools_without_mutations() {
     let tools = cairn::query_api::visible_tools(false);
@@ -212,6 +224,54 @@ fn mcp_missing_node_returns_stable_structured_error() -> Result<(), Box<dyn std:
             .unwrap_or_default()
             .contains("missing.node")
     );
+    Ok(())
+}
+
+#[test]
+fn mcp_archive_rejects_conflicting_active_changes_before_mutation()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = fixture("archive-conflict")?;
+    write_change(
+        &root,
+        "first",
+        "## MODIFIED Nodes\nModule Auth \"auth\" id \"app.auth\" {}\n",
+    )?;
+    write_change(
+        &root,
+        "second",
+        "## MODIFIED Nodes\nModule Auth \"auth\" id \"app.auth\" {}\n",
+    )?;
+    let blueprint_before = fs::read_to_string(root.join("cairn.blueprint"))?;
+    let first_change = root.join("meta/changes/first");
+    let second_change = root.join("meta/changes/second");
+    let mut config = mcp_config(&root);
+    config.allow_mutating_tools = true;
+
+    let line = json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+            "name": "cairn_archive",
+            "arguments": {
+                "change": "first",
+                "mutating": true
+            }
+        }
+    })
+    .to_string();
+    let response = cairn::mcp::handle_line(&line, &config);
+
+    assert_eq!(
+        response["error"]["data"]["code"],
+        "CAIRN_CHANGE_BLUEPRINT_CONFLICT"
+    );
+    assert_eq!(
+        fs::read_to_string(root.join("cairn.blueprint"))?,
+        blueprint_before
+    );
+    assert!(first_change.exists());
+    assert!(second_change.exists());
     Ok(())
 }
 
