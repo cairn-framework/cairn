@@ -1,4 +1,4 @@
-//! Ontology graph construction, integrity checks, and query services.
+//! Map graph construction, integrity checks, and query services.
 
 pub mod build;
 pub mod graph;

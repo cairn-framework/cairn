@@ -1,4 +1,4 @@
-//! Recursive descent parser for the Phase 1 Cairn DSL grammar.
+//! Recursive descent parser for the Phase 1 Cairn blueprint grammar.
 
 use std::{fs, path::Path};
 
@@ -8,22 +8,36 @@ use super::{
     lexer::{Token, TokenKind, tokenize},
 };
 
-/// Parses a DSL file from disk.
+/// Parses a blueprint file from disk.
 ///
 /// # Errors
 ///
 /// Returns an I/O-backed parse error when the file cannot be read, or a
-/// source-positioned parse error when the DSL is malformed.
+/// source-positioned parse error when the blueprint is malformed.
 pub fn parse_file(path: impl AsRef<Path>) -> Result<Ast, ParseError> {
     let path = path.as_ref();
+    if path.extension().is_some_and(|extension| extension == "dsl") {
+        let span = Span::point(path.display().to_string(), 1, 1);
+        return Err(ParseError {
+            code: "CAIRN_BLUEPRINT_LEGACY_EXTENSION",
+            message:
+                "legacy `.dsl` files are no longer accepted; rename this file to `cairn.blueprint`"
+                    .into(),
+            span: Box::new(span),
+            kind: Box::new(ParseErrorKind::UnexpectedToken {
+                expected: "`.blueprint` file".to_owned(),
+                encountered: "legacy `.dsl` file".to_owned(),
+            }),
+        });
+    }
     let source = fs::read_to_string(path).map_err(|error| {
         let span = Span::point(path.display().to_string(), 1, 1);
         ParseError {
-            code: "CAIRN_IO_READ_DSL",
-            message: format!("failed to read DSL: {error}").into_boxed_str(),
+            code: "CAIRN_IO_READ_BLUEPRINT",
+            message: format!("failed to read blueprint: {error}").into_boxed_str(),
             span: Box::new(span),
             kind: Box::new(ParseErrorKind::UnexpectedToken {
-                expected: "readable DSL file".to_owned(),
+                expected: "readable blueprint file".to_owned(),
                 encountered: "I/O error".to_owned(),
             }),
         }
@@ -31,11 +45,11 @@ pub fn parse_file(path: impl AsRef<Path>) -> Result<Ast, ParseError> {
     parse_str(&path.display().to_string(), &source)
 }
 
-/// Parses DSL source.
+/// Parses blueprint source.
 ///
 /// # Errors
 ///
-/// Returns a source-positioned parse error when the DSL is malformed.
+/// Returns a source-positioned parse error when the blueprint is malformed.
 pub fn parse_str(file: &str, source: &str) -> Result<Ast, ParseError> {
     Parser {
         tokens: tokenize(file, source)?,

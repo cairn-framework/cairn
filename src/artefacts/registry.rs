@@ -8,8 +8,8 @@ use std::{
 };
 
 use crate::{
-    dsl::{Ast, Field, Node},
-    ontology::graph::{Finding, FindingSeverity},
+    blueprint::{Ast, Field, Node},
+    map::graph::{Finding, FindingSeverity},
 };
 
 use super::{contract::ContractSet, frontmatter};
@@ -36,7 +36,7 @@ pub enum ArtefactType {
 pub struct ArtefactLoadRequest<'a> {
     /// Project root.
     pub root: &'a Path,
-    /// Parsed DSL.
+    /// Parsed blueprint.
     pub ast: &'a Ast,
 }
 
@@ -246,7 +246,7 @@ pub struct ArtefactSet {
     pub findings: Vec<Finding>,
 }
 
-/// Loads all non-contract Phase 2 artefacts from retained DSL pointers.
+/// Loads all non-contract Phase 2 artefacts from retained blueprint pointers.
 #[must_use]
 pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet {
     let ids = collect_ids(ast);

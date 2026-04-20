@@ -9,16 +9,16 @@
 
 ## 2. Edge Divergence
 
-- [ ] 2.1 Compare declared DSL edges against observed dependencies.
+- [ ] 2.1 Compare declared blueprint edges against observed dependencies.
 - [ ] 2.2 Report missing observed dependencies as rationale tensions.
 - [ ] 2.3 Report observed dependencies without declared edges as rationale tensions.
-- [ ] 2.4 Include edge divergence in `lint`, `scan`, `index.md`, and hook reports.
+- [ ] 2.4 Include edge divergence in `lint`, `scan`, `map.md`, and hook reports.
 
 ## 3. Docstring Drift
 
 - [ ] 3.1 Extract module-level docstrings from Rust `//!` comments in `lib.rs`, `main.rs`, and `mod.rs`, plus `///` comments attached to `mod` declarations.
 - [ ] 3.2 Parse exact, case-sensitive Cairn fact lines for ID, name, dependencies, tags, and contract references.
-- [ ] 3.3 Compare extracted facts to ontology facts.
+- [ ] 3.3 Compare extracted facts to map facts.
 - [ ] 3.4 Report contradictions and unknown IDs as rationale tensions, and unknown fact keys as informational findings.
 
 ## 4. Docstring Command

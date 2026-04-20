@@ -21,7 +21,7 @@ Cairn SHALL treat `meta/changes/<change-id>/` directories as proposed modificati
 
 ### Requirement: Apply deltas atomically at archive
 
-The archive command SHALL apply DSL and artefact deltas atomically or leave the repository unchanged.
+The archive command SHALL apply blueprint and artefact deltas atomically or leave the repository unchanged.
 
 #### Scenario: Archive succeeds
 
@@ -57,7 +57,7 @@ The rename command SHALL generate a change directory that updates all known refe
 - **GIVEN** a node `saas.api.auth`
 - **WHEN** the user runs `cairn rename saas.api.auth saas.api.identity`
 - **THEN** Cairn creates `meta/changes/rename-saas.api.auth-to-saas.api.identity/`
-- **AND** writes a `dsl.delta` containing the rename
+- **AND** writes a `blueprint.delta` containing the rename
 - **AND** includes modified artefact copies for frontmatter references to the old ID
 - **AND** leaves the main tree unchanged
 
@@ -70,7 +70,7 @@ The CLI SHALL expose explicit queries for proposed modifications.
 - **GIVEN** an active change directory
 - **WHEN** the user runs `cairn show <change>`
 - **THEN** the command prints proposal text
-- **AND** prints DSL delta summary
+- **AND** prints blueprint delta summary
 - **AND** prints artefact operation summary
 
 #### Scenario: Neighbourhood includes proposed operations by flag

@@ -3,12 +3,12 @@
 # IDs use dotted notation. Top-level is "cairn" (not "cairn.system") — the
 # System node's ID is the namespace root, not a label within it.
 
-System Cairn "Ontology framework with pluggable reconcilers" id "cairn" @framework {
+System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
 
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
         path "./src/kernel"
 
-        Module Parser "Parses .dsl files into a node graph" id "cairn.kernel.parser" {
+        Module Parser "Parses .blueprint files into a node graph" id "cairn.kernel.parser" {
             path "./src/kernel/parser"
             contract  "./meta/contracts/kernel/parser.md"
             decisions "./meta/decisions/kernel/parser/"
@@ -27,7 +27,7 @@ System Cairn "Ontology framework with pluggable reconcilers" id "cairn" @framewo
             research  "./meta/research/kernel/reconciler/"
         }
 
-        Module Reconciliation "Joins DSL, artefacts, and reconciler output into ontology" id "cairn.kernel.reconciliation" {
+        Module Reconciliation "Joins blueprint, artefacts, and reconciler output into map" id "cairn.kernel.reconciliation" {
             path "./src/kernel/reconciliation"
             contract "./meta/contracts/kernel/reconciliation.md"
         }
@@ -43,7 +43,7 @@ System Cairn "Ontology framework with pluggable reconcilers" id "cairn" @framewo
             contract "./meta/contracts/kernel/hooks.md"
         }
 
-        Module Query "Typed queries over the ontology" id "cairn.kernel.query" {
+        Module Query "Typed queries over the map" id "cairn.kernel.query" {
             path "./src/kernel/query"
             contract "./meta/contracts/kernel/query.md"
         }
@@ -69,8 +69,8 @@ System Cairn "Ontology framework with pluggable reconcilers" id "cairn" @framewo
 
 # Edges. IDs on both sides.
 cairn.kernel.cli           -> cairn.kernel.query          "Exposes queries as commands"
-cairn.kernel.query         -> cairn.kernel.reconciliation "Reads ontology"
-cairn.kernel.reconciliation -> cairn.kernel.parser        "Consumes parsed DSL"
+cairn.kernel.query         -> cairn.kernel.reconciliation "Reads map"
+cairn.kernel.reconciliation -> cairn.kernel.parser        "Consumes parsed blueprint"
 cairn.kernel.reconciliation -> cairn.kernel.artefacts     "Validates artefacts"
 cairn.kernel.reconciliation -> cairn.kernel.reconciler    "Invokes registered reconcilers"
 cairn.code-reconciler      -> cairn.kernel.reconciler     "Implements"

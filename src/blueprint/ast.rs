@@ -1,4 +1,4 @@
-//! Typed AST produced by the Cairn DSL parser.
+//! Typed AST produced by the Cairn blueprint parser.
 
 /// Source span with one-based line and column positions.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -29,7 +29,7 @@ impl Span {
     }
 }
 
-/// Parsed DSL root.
+/// Parsed blueprint root.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Ast {
     /// Top-level nodes.

@@ -1,4 +1,4 @@
-//! Typed query services over ontology graphs.
+//! Typed query services over map graphs.
 
 use super::{
     graph::{Finding, Graph, NodeRecord},
@@ -66,7 +66,7 @@ pub struct GraphEdgeResponse {
 /// Graph explorer response.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GraphResponse {
-    /// All ontology nodes.
+    /// All map nodes.
     pub nodes: Vec<NodeRecord>,
     /// Ownership and dependency edges.
     pub edges: Vec<GraphEdgeResponse>,

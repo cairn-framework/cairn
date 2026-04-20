@@ -31,7 +31,7 @@ pub enum HookKind {
 
 The engine SHALL compare active change directories and detect:
 
-- Multiple changes modifying the same DSL node or edge.
+- Multiple changes modifying the same blueprint node or edge.
 - A change removing a node that another change modifies.
 - Multiple changes modifying the same artefact path.
 - Rename chains that target the same old or new ID.

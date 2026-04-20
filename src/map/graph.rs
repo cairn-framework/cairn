@@ -1,8 +1,8 @@
-//! In-memory ontology graph structures.
+//! In-memory map graph structures.
 
 use std::{collections::BTreeMap, error::Error, fmt};
 
-use crate::dsl::{NodeKind, Span};
+use crate::blueprint::{NodeKind, Span};
 
 /// Runtime state assigned during reconciliation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -18,7 +18,7 @@ pub enum NodeState {
 /// Integrity or reconciliation finding severity.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FindingSeverity {
-    /// Blocks successful lint/ontology validation.
+    /// Blocks successful lint/map validation.
     Error,
     /// Advisory finding.
     Warning,
@@ -81,7 +81,7 @@ pub struct EdgeRef {
     pub description: String,
 }
 
-/// Queryable ontology graph.
+/// Queryable map graph.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Graph {
     /// Nodes keyed by ID.

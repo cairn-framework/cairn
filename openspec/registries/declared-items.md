@@ -26,10 +26,10 @@ but not yet designed enough to implement against.
 | D-01 | Agent introspective review subtype schema | 8.4 (design note) | open | Phase 2 | When generated, how promotes to proposed decisions, interaction with change system. Spec says "refinements to schema will land once real usage data exists." |
 | D-02 | Agent cross-model review subtype schema | 8.4 (design note) | open | Phase 2 | Severity taxonomy, aggregation of multiple reviews on same node, reviewer identifier format. |
 | D-03 | Edge validation against reality-layer dependencies | 10 (scanner step 5) | open | Phase 5 | Reconciler compares declared edges to observed dependencies. Surfaces as rationale tension. Requires semantic depth (Tree-sitter or LSP). |
-| D-04 | Docstring drift detection | 10 (scanner step 6) | open | Phase 5 | Scanner checks authored docstrings against ontology facts. Divergence surfaces as rationale tension. |
-| D-05 | `cairn docstring <node>` command | 12 | open | Phase 5 | Emits docstring template grounded in ontology facts. Language-aware (Rust, Python, TypeScript, Go). Structural facts from graph; human fills prose. |
-| D-06 | `cairn init --from-code` (brownfield extraction) | 12, 15 | open | Phase 9 | Generates initial DSL and contracts from existing codebase. Reconciler extracts candidates, summariser names/describes, human refines. |
-| D-07 | `cairn refine` (brownfield delta) | 12, 15 | open | Phase 9 | Re-runs brownfield extraction proposing delta against existing DSL rather than fresh draft. Merge semantics unspecified. |
+| D-04 | Docstring drift detection | 10 (scanner step 6) | open | Phase 5 | Scanner checks authored docstrings against map facts. Divergence surfaces as rationale tension. |
+| D-05 | `cairn docstring <node>` command | 12 | open | Phase 5 | Emits docstring template grounded in map facts. Language-aware (Rust, Python, TypeScript, Go). Structural facts from graph; human fills prose. |
+| D-06 | `cairn init --from-code` (brownfield extraction) | 12, 15 | open | Phase 9 | Generates initial blueprint and contracts from existing codebase. Reconciler extracts candidates, summariser names/describes, human refines. |
+| D-07 | `cairn refine` (brownfield delta) | 12, 15 | open | Phase 9 | Re-runs brownfield extraction proposing delta against existing blueprint rather than fresh draft. Merge semantics unspecified. |
 | D-08 | Brownfield extraction approach (full section) | 15 | open | Phase 9 | Entire section at Declared level. Approach decided (LLM generates, human refines) but detailed schema and prompt strategy deferred. |
 
 ## Open questions (unresolved)
@@ -50,7 +50,7 @@ Items explicitly described as v2, post-v1, or phase 10+ distribution concerns.
 
 | ID | Item | Source (v0.6 section) | Status | Resolving Phase | Notes |
 |----|------|-----------------------|--------|-----------------|-------|
-| V2-01 | Decision-to-DSL violation flagging | 3.2 | deferred-v2 | v2 | "Decisions can declare the DSL nodes they apply to; the framework can then flag when a change to those nodes appears to violate the decision (v2 capability, deferred)." |
+| V2-01 | Decision-to-blueprint violation flagging | 3.2 | deferred-v2 | v2 | "Decisions can declare the blueprint nodes they apply to; the framework can then flag when a change to those nodes appears to violate the decision (v2 capability, deferred)." |
 | V2-02 | LSP server | 14 (phase 10+) | deferred-v2 | Phase 10+ | Editor UX: autocomplete on IDs, hover for node metadata, jump-to-definition on edges. Distribution concern. |
 | V2-03 | Claude Code plugin packaging | 14 (phase 10+) | deferred-v2 | Phase 10+ | Distribution packaging. |
 | V2-04 | Non-code reconcilers | 14 (phase 10+) | deferred-v2 | Phase 10+ | Org structure, product BOMs, research programmes. The reconciler interface is designed in v1; additional reconcilers are post-v1. |

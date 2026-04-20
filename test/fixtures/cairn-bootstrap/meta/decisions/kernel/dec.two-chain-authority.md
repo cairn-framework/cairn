@@ -18,14 +18,14 @@ informed_by:
 
 ## Context
 
-v0.4 presented a single six-layer hierarchy: source → research → decision → DSL → contract → code. Elegant as a diagram but structurally wrong. A source cannot "win" over a decision in the same way a contract should win over code — they are different kinds of truth. The framework can mechanically verify that code matches a contract; it cannot mechanically verify that research faithfully reflects its sources. Presenting both under one word overclaimed enforcement.
+v0.4 presented a single six-layer hierarchy: source → research → decision → blueprint → contract → code. Elegant as a diagram but structurally wrong. A source cannot "win" over a decision in the same way a contract should win over code — they are different kinds of truth. The framework can mechanically verify that code matches a contract; it cannot mechanically verify that research faithfully reflects its sources. Presenting both under one word overclaimed enforcement.
 
 ## Decision
 
 Split the stack into two linked chains:
 
 - **Provenance chain:** source → research → decision. Traceability of reasoning. Advisory only.
-- **Authority chain:** decision → DSL → contract → code. Enforcement. Mechanical at every link.
+- **Authority chain:** decision → blueprint → contract → code. Enforcement. Mechanical at every link.
 
 The decision layer is the hinge: output of provenance, input to authority.
 

@@ -1,10 +1,10 @@
 # Cairn
 
-Cairn is a structural graph query layer over a human-authored architecture DSL. It produces an ontology for a project: a map of what exists (modules, dependencies, contracts, decisions, research, sources) and how the pieces relate. Agents and humans query the ontology instead of scanning the repo.
+Cairn is a structural graph query layer over a human-authored architecture blueprint. It produces a map for a project: a map of what exists (modules, dependencies, contracts, decisions, research, sources) and how the pieces relate. Agents and humans query the map instead of scanning the repo.
 
 ## Status
 
-Specification complete (v0.6). Implementation in progress — see `docs/spec.md` for the full specification and `openspec/changes/` for active work.
+Specification complete (v0.7). Implementation in progress — see `docs/spec.md` for the full specification and `openspec/changes/` for active work.
 
 ## Development Setup
 
@@ -33,7 +33,7 @@ tests before a change is archived.
 
 ## Phase 1 Kernel
 
-The Phase 1 kernel parses `cairn.dsl`, builds a queryable ontology graph, loads
+The Phase 1 kernel parses `cairn.blueprint`, builds a queryable map graph, loads
 contract Markdown artefacts, reconciles Rust source files against declared
 module paths, and exposes the first CLI query surface.
 
@@ -52,18 +52,18 @@ cairn order
 cairn lint --json
 ```
 
-Every Phase 1 command accepts `--file <path>` to select a DSL file and `--json`
+Every Phase 1 command accepts `--file <path>` to select a blueprint file and `--json`
 to render the same typed response structs as stable machine-readable JSON.
 
 Phase 1 implements only contract artefacts. A contract is a Markdown file with
 frontmatter containing `node: <id>`, and `cairn contract <node-id>` returns the
 parsed body. Other artefact pointers such as todos, decisions, research,
-reviews, and sources are retained as raw DSL metadata but are not interpreted
+reviews, and sources are retained as raw blueprint metadata but are not interpreted
 until Phase 2.
 
 `cairn scan` regenerates:
 
-- `index.md` with generated frontmatter, synced nodes, ghost nodes, active
+- `map.md` with generated frontmatter, synced nodes, ghost nodes, active
   changes, and findings.
 - `.cairn/log.md` with an appended scan event.
 - `.cairn/state/interface-hashes.json` with deterministic Rust interface hash
@@ -71,7 +71,7 @@ until Phase 2.
 
 ## Reference
 
-- `docs/spec.md` — Cairn v0.6 specification
-- `docs/dsl.md` — DSL grammar reference
-- `test/fixtures/cairn.dsl` — example DSL file
+- `docs/spec.md` — Cairn v0.7 specification
+- `docs/blueprint.md` — blueprint grammar reference
+- `test/fixtures/cairn.blueprint` — example blueprint file
 - `meta/campaigns/rust-full-spec.md` — implementation roadmap

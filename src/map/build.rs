@@ -1,4 +1,4 @@
-//! Ontology graph builder.
+//! Map graph builder.
 
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -7,12 +7,12 @@ use std::{
 
 use crate::{
     artefacts::contract::ContractSet,
-    dsl::{Ast, Edge, Node},
+    blueprint::{Ast, Edge, Node},
 };
 
 use super::graph::{EdgeRef, Finding, FindingSeverity, Graph, NodeRecord, NodeState};
 
-/// Builds a graph from parsed DSL, contracts, claimed files, and findings.
+/// Builds a graph from parsed blueprint, contracts, claimed files, and findings.
 #[must_use]
 pub fn build_graph(
     ast: &Ast,

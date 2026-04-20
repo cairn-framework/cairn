@@ -155,7 +155,7 @@ fn value_after_colon(line: &str) -> String {
 }
 
 fn is_protected(path: &str) -> bool {
-    matches!(path, "cairn.dsl" | "cairn.config.yaml")
+    matches!(path, "cairn.blueprint" | "cairn.config.yaml")
         || path.starts_with("meta/")
         || path == "meta"
         || path.starts_with(".cairn/")

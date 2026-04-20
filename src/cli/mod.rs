@@ -11,7 +11,7 @@ use crate::{
         Decision, DecisionStatus, Research, Review, ReviewType, Source, SourceVerification, Todo,
         TodoStatus,
     },
-    ontology::{
+    map::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
     },
@@ -190,7 +190,7 @@ struct ParsedArgs {
 
 fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let mut json = false;
-    let mut file = PathBuf::from("cairn.dsl");
+    let mut file = PathBuf::from("cairn.blueprint");
     let mut command_args = Vec::new();
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
@@ -222,6 +222,17 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         .parent()
         .filter(|path| !path.as_os_str().is_empty())
         .unwrap_or_else(|| Path::new("."));
+    if parsed.file.ends_with("cairn.blueprint")
+        && !parsed.file.exists()
+        && root.join("cairn.dsl").exists()
+    {
+        return error_output(
+            parsed.json,
+            "CAIRN_COMMAND_FAILED",
+            "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`",
+        );
+    }
+    let legacy_warning = legacy_blueprint_warning(root);
     let scan_result = if parsed.command == "scan" {
         scanner::scan(root, &parsed.file)
     } else {
@@ -231,7 +242,7 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         Ok(result) => result,
         Err(error) => return error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error),
     };
-    if requires_valid_ontology(parsed.command.as_str()) && scan_result.graph.has_errors() {
+    if requires_valid_map(parsed.command.as_str()) && scan_result.graph.has_errors() {
         return findings_output(parsed.json, &scan_result.graph.findings);
     }
     match parsed.command.as_str() {
@@ -284,7 +295,7 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
             return CliResult {
                 code,
                 stdout,
-                stderr: String::new(),
+                stderr: legacy_warning,
             };
         }
         _ => return err(2, "unknown command"),
@@ -294,15 +305,23 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         |stdout| CliResult {
             code: 0,
             stdout,
-            stderr: String::new(),
+            stderr: legacy_warning,
         },
     )
+}
+
+fn legacy_blueprint_warning(root: &Path) -> String {
+    if root.join("cairn.blueprint").exists() && root.join("cairn.dsl").exists() {
+        "warning: `cairn.dsl` is unused; remove it or rename remaining references to `cairn.blueprint`\n".to_owned()
+    } else {
+        String::new()
+    }
 }
 
 fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
     match ui::UiOptions::from_args(&parsed.command_args) {
         Ok(mut options) => {
-            options.dsl_path.clone_from(&parsed.file);
+            options.blueprint_path.clone_from(&parsed.file);
             ui::serve_current_thread(options).map_or_else(
                 |error| err(1, &error.to_string()),
                 |message| ok(format!("{message}\n")),
@@ -669,7 +688,7 @@ fn render_dependencies(
     })
 }
 
-fn requires_valid_ontology(command: &str) -> bool {
+fn requires_valid_map(command: &str) -> bool {
     matches!(
         command,
         "get"
@@ -691,7 +710,7 @@ fn requires_valid_ontology(command: &str) -> bool {
 fn init_project(root: &Path) -> CliResult {
     let writes = [
         (
-            "cairn.dsl",
+            "cairn.blueprint",
             "System Example \"Starter architecture\" id \"example\" {\n    Module App \"Starter app\" id \"example.app\" {\n        path \"./src\"\n    }\n}\n",
         ),
         (
@@ -888,7 +907,7 @@ fn sources_json(sources: &[Source]) -> String {
     )
 }
 
-fn neighbourhood_ids(graph: &crate::ontology::Graph, node: &str) -> BTreeSet<String> {
+fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
     let mut ids = BTreeSet::from([node.to_owned()]);
     if let Some(edges) = graph.inbound.get(node) {
         ids.extend(edges.iter().map(|edge| edge.from.clone()));

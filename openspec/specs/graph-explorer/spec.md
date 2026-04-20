@@ -8,7 +8,7 @@ The `cairn ui` command SHALL start an embedded web server serving the graph expl
 
 #### Scenario: Start the graph explorer
 
-- **GIVEN** a valid cairn project with a parsed DSL and artefacts
+- **GIVEN** a valid cairn project with a parsed blueprint and artefacts
 - **WHEN** the user runs `cairn ui`
 - **THEN** an HTTP server starts on a local port
 - **AND** the default browser opens to the graph explorer URL
@@ -42,7 +42,7 @@ The `cairn ui` command SHALL start an embedded web server serving the graph expl
 
 ### Requirement: Render the structural graph
 
-The graph view SHALL display all nodes and edges from the ontology with type-appropriate visual treatment.
+The graph view SHALL display all nodes and edges from the map with type-appropriate visual treatment.
 
 #### Scenario: Display node hierarchy
 

@@ -15,7 +15,7 @@
 
 ## 3. Active Change Conflicts
 
-- [ ] 3.1 Detect overlapping DSL node and edge operations.
+- [ ] 3.1 Detect overlapping blueprint node and edge operations.
 - [ ] 3.2 Detect artefact path operation collisions.
 - [ ] 3.3 Detect incompatible rename chains.
 - [ ] 3.4 Surface conflicts as structural hook failures.

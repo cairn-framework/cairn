@@ -10,8 +10,8 @@ use std::{
 
 use cairn::{
     artefacts::contract,
-    dsl::{lexer, parser},
-    ontology::{build_graph, query},
+    blueprint::{lexer, parser},
+    map::{build_graph, query},
     reconcile::{ReconcileRequest, Reconciler, code::RustCodeReconciler},
     scanner,
 };
@@ -63,11 +63,27 @@ app.api.auth -> app.api "uses"
 }
 
 #[test]
-fn test_parser_reports_location_for_malformed_dsl() {
-    let error = parser::parse_str("bad.dsl", "System App \"desc\" id \"app\" {").unwrap_err();
+fn test_parser_reports_location_for_malformed_blueprint() {
+    let error = parser::parse_str("bad.blueprint", "System App \"desc\" id \"app\" {").unwrap_err();
 
-    assert_eq!(error.span.file, "bad.dsl");
+    assert_eq!(error.span.file, "bad.blueprint");
     assert!(error.message.contains("expected `}`"));
+}
+
+#[test]
+fn test_parser_rejects_legacy_blueprint_extension() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("legacy-extension")?;
+    fs::write(
+        root.join("cairn.dsl"),
+        "System App \"desc\" id \"app\" {}\n",
+    )?;
+
+    let error = parser::parse_file(root.join("cairn.dsl")).unwrap_err();
+
+    assert_eq!(error.code, "CAIRN_BLUEPRINT_LEGACY_EXTENSION");
+    assert!(error.message.contains("cairn.blueprint"));
+
+    Ok(())
 }
 
 #[test]
@@ -154,7 +170,7 @@ fn test_contract_loader_and_cli_contract_query() -> Result<(), Box<dyn std::erro
     fs::create_dir_all(root.join("meta/contracts"))?;
     fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Module Auth "auth" id "app.auth" {
         path "./src/auth"
@@ -168,7 +184,7 @@ fn test_contract_loader_and_cli_contract_query() -> Result<(), Box<dyn std::erro
         "---\nnode: app.auth\n---\n# Auth Contract\n",
     )?;
 
-    let result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
     let node = result.graph.resolve("app.auth")?;
     assert_eq!(node.files, vec!["src/auth/lib.rs"]);
     assert_eq!(
@@ -193,7 +209,7 @@ fn test_scan_writes_outputs() -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(root.join("src"))?;
     fs::write(root.join("src/lib.rs"), "pub struct Api;\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Module Lib "lib" id "app.lib" {
         path "./src"
@@ -208,9 +224,58 @@ fn test_scan_writes_outputs() -> Result<(), Box<dyn std::error::Error>> {
         .output()?;
 
     assert!(output.status.success());
-    assert!(root.join("index.md").exists());
+    assert!(root.join("map.md").exists());
+    assert!(!root.join("index.md").exists());
     assert!(root.join(".cairn/log.md").exists());
     assert!(root.join(".cairn/state/interface-hashes.json").exists());
+
+    Ok(())
+}
+
+#[test]
+fn test_scan_warns_when_legacy_blueprint_file_also_exists() -> Result<(), Box<dyn std::error::Error>>
+{
+    let root = temp_root("legacy-collision")?;
+    fs::create_dir_all(root.join("src"))?;
+    fs::write(root.join("src/lib.rs"), "pub struct Api;\n")?;
+    fs::write(root.join("cairn.dsl"), "System Old \"old\" id \"old\" {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Lib "lib" id "app.lib" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .arg("scan")
+        .output()?;
+
+    assert!(output.status.success());
+    assert!(String::from_utf8(output.stderr)?.contains("cairn.dsl"));
+    assert!(root.join("map.md").exists());
+
+    Ok(())
+}
+
+#[test]
+fn test_scan_with_only_legacy_blueprint_file_suggests_rename()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("legacy-only")?;
+    fs::write(root.join("cairn.dsl"), "System Old \"old\" id \"old\" {}\n")?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .arg("scan")
+        .output()?;
+
+    assert!(!output.status.success());
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(stdout.contains("no blueprint file was found"));
+    assert!(stdout.contains("cairn.blueprint"));
 
     Ok(())
 }
@@ -223,7 +288,7 @@ fn test_internal_node_ownership_opt_in_controls_direct_files()
     fs::write(root.join("src/direct.rs"), "pub fn direct() {}\n")?;
     fs::write(root.join("src/auth/lib.rs"), "pub fn auth() {}\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Container Api "api" id "app.api" {
         path "./src"
@@ -235,7 +300,7 @@ fn test_internal_node_ownership_opt_in_controls_direct_files()
 "#,
     )?;
 
-    let default_result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    let default_result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
     assert!(
         default_result
             .graph
@@ -245,7 +310,7 @@ fn test_internal_node_ownership_opt_in_controls_direct_files()
     );
 
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Container Api "api" id "app.api" {
         path "./src"
@@ -257,7 +322,7 @@ fn test_internal_node_ownership_opt_in_controls_direct_files()
 }
 "#,
     )?;
-    let opt_in_result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    let opt_in_result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
     assert!(opt_in_result.graph.findings.is_empty());
     assert_eq!(
         opt_in_result.graph.resolve("app.api")?.files,
@@ -351,7 +416,7 @@ fn test_contract_wrong_node_and_missing_ghost_pointer_severity()
     fs::create_dir_all(root.join("meta/contracts"))?;
     fs::write(root.join("src/lib.rs"), "pub fn lib() {}\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Module Lib "lib" id "app.lib" {
         path "./src"
@@ -369,7 +434,7 @@ fn test_contract_wrong_node_and_missing_ghost_pointer_severity()
         "---\nnode: app.missing\n---\n# Wrong\n",
     )?;
 
-    let result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
 
     assert!(
         result
@@ -380,7 +445,7 @@ fn test_contract_wrong_node_and_missing_ghost_pointer_severity()
     );
     assert!(result.graph.findings.iter().any(|finding| {
         finding.code == "CAIRN_CONTRACT_MISSING"
-            && finding.severity == cairn::ontology::FindingSeverity::Warning
+            && finding.severity == cairn::map::FindingSeverity::Warning
     }));
 
     Ok(())
@@ -392,7 +457,7 @@ fn test_cli_blocks_queries_on_structural_errors() -> Result<(), Box<dyn std::err
     fs::create_dir_all(root.join("src"))?;
     fs::write(root.join("src/lib.rs"), "pub fn lib() {}\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Module One "one" id "app.one" {
         path "./src"
@@ -424,7 +489,7 @@ fn test_contract_frontmatter_must_match_declaring_node() -> Result<(), Box<dyn s
     fs::write(root.join("src/a/lib.rs"), "pub fn a() {}\n")?;
     fs::write(root.join("src/b/lib.rs"), "pub fn b() {}\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Module A "a" id "app.a" {
         path "./src/a"
@@ -441,11 +506,11 @@ fn test_contract_frontmatter_must_match_declaring_node() -> Result<(), Box<dyn s
         "---\nnode: app.b\n---\n# Wrong Contract\n",
     )?;
 
-    let result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
     assert!(result.graph.findings.iter().any(|finding| {
         finding.code == "CAIRN_CONTRACT_WRONG_NODE"
             && finding.node.as_deref() == Some("app.a")
-            && finding.severity == cairn::ontology::FindingSeverity::Error
+            && finding.severity == cairn::map::FindingSeverity::Error
     }));
 
     let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
@@ -468,7 +533,7 @@ fn test_phase_2_loads_artefacts_and_query_commands() -> Result<(), Box<dyn std::
         "- scan: nodes=2, findings=0, errors=0\n",
     )?;
 
-    let result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
 
     assert!(result.graph.findings.is_empty());
     assert_eq!(result.artefacts.todos.len(), 1);
@@ -534,11 +599,11 @@ fn test_phase_2_integrity_findings() -> Result<(), Box<dyn std::error::Error>> {
         "---\nid: dec.missing\nnodes: [app.auth]\nstatus: accepted\ndate: 2026-04-17\ninformed_by:\n  - type: source\n    id: src.missing\n---\n# Missing provenance\n",
     )?;
 
-    let result = scanner::load_project(&root, &root.join("cairn.dsl"))?;
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
 
     assert!(result.graph.findings.iter().any(|finding| {
         finding.code == "CAIRN_SOURCE_SHA256_MISMATCH"
-            && finding.severity == cairn::ontology::FindingSeverity::Error
+            && finding.severity == cairn::map::FindingSeverity::Error
     }));
     assert!(
         result
@@ -585,7 +650,7 @@ fn write_phase_2_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> 
     fs::write(root.join("src/store/lib.rs"), "pub fn save() {}\n")?;
     fs::write(root.join("meta/sources/auth.txt"), "evidence\n")?;
     fs::write(
-        root.join("cairn.dsl"),
+        root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Module Auth "auth" id "app.auth" {
         path "./src/auth"

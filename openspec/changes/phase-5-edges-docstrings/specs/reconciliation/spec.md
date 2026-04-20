@@ -4,11 +4,11 @@
 
 ### Requirement: Validate declared edges against observed dependencies
 
-Cairn SHALL compare DSL edges with source-level dependency observations and surface divergence as rationale tensions.
+Cairn SHALL compare blueprint edges with source-level dependency observations and surface divergence as rationale tensions.
 
 #### Scenario: Declared edge lacks observed dependency
 
-- **GIVEN** the DSL declares `saas.api.auth -> saas.db`
+- **GIVEN** the blueprint declares `saas.api.auth -> saas.db`
 - **AND** the reconciler observes no dependency from owned Auth files to owned DB files
 - **WHEN** `cairn scan` runs
 - **THEN** Cairn reports an edge divergence rationale tension
@@ -17,13 +17,13 @@ Cairn SHALL compare DSL edges with source-level dependency observations and surf
 #### Scenario: Observed dependency lacks declared edge
 
 - **GIVEN** Auth source imports Billing source
-- **AND** the DSL has no edge from Auth to Billing
+- **AND** the blueprint has no edge from Auth to Billing
 - **WHEN** `cairn lint` runs
 - **THEN** Cairn reports a rationale tension naming both nodes and source span
 
-### Requirement: Detect docstring drift against ontology facts
+### Requirement: Detect docstring drift against map facts
 
-Cairn SHALL compare supported authored docstring facts with ontology facts.
+Cairn SHALL compare supported authored docstring facts with map facts.
 
 #### Scenario: Rust module fact lines are parsed
 
@@ -35,7 +35,7 @@ Cairn SHALL compare supported authored docstring facts with ontology facts.
 #### Scenario: Docstring dependency contradicts graph
 
 - **GIVEN** a module docstring declares dependency `saas.db`
-- **AND** the ontology has no edge from the module to `saas.db`
+- **AND** the map has no edge from the module to `saas.db`
 - **WHEN** `cairn scan` runs
 - **THEN** Cairn reports docstring drift as a rationale tension
 
@@ -53,7 +53,7 @@ Cairn SHALL compare supported authored docstring facts with ontology facts.
 
 ### Requirement: Generate language-aware docstring templates
 
-The CLI SHALL generate docstring templates grounded in ontology facts.
+The CLI SHALL generate docstring templates grounded in map facts.
 
 #### Scenario: Rust template is generated
 

@@ -2,27 +2,27 @@
 
 ## Purpose
 
-Define parser behaviour for the active Rust implementation of the Cairn DSL.
+Define parser behaviour for the active Rust implementation of the Cairn blueprint.
 The parser is authoritative for turning authored architectural intent into
 typed AST structures that later phases reconcile with artefacts and reality.
 
 ## Requirements
 
-### Requirement: Parse the Cairn DSL grammar
+### Requirement: Parse the Cairn blueprint grammar
 
-The parser SHALL accept a `.dsl` file conforming to the Cairn grammar and
+The parser SHALL accept a `.blueprint` file conforming to the Cairn grammar and
 produce a typed AST, or raise a structured parse error.
 
-#### Scenario: Valid DSL with nested nodes
+#### Scenario: Valid blueprint with nested nodes
 
-- **GIVEN** a `.dsl` file declaring a System containing Containers and Modules with IDs, paths, artefact pointers, tags, and edges
+- **GIVEN** a `.blueprint` file declaring a System containing Containers and Modules with IDs, paths, artefact pointers, tags, and edges
 - **WHEN** the parser runs
 - **THEN** it produces an AST preserving node nesting and edge declarations
 - **AND** every parsed item carries a source span
 
 #### Scenario: Unknown declaration keyword
 
-- **GIVEN** a `.dsl` file containing a top-level declaration `Service Foo`
+- **GIVEN** a `.blueprint` file containing a top-level declaration `Service Foo`
 - **WHEN** the parser runs
 - **THEN** it raises a parse error naming the unknown keyword
 - **AND** lists valid declaration keywords
@@ -35,18 +35,18 @@ produce a typed AST, or raise a structured parse error.
 
 ### Requirement: Validate structural references after parse
 
-After producing the AST, the parser and ontology builder SHALL verify structural
-identity and references before exposing a successful ontology.
+After producing the AST, the parser and map builder SHALL verify structural
+identity and references before exposing a successful map.
 
 #### Scenario: Duplicate IDs fail
 
-- **GIVEN** a `.dsl` file declaring two nodes with the same ID
+- **GIVEN** a `.blueprint` file declaring two nodes with the same ID
 - **WHEN** validation runs
 - **THEN** it raises a structural error naming the duplicated ID and source spans
 
 #### Scenario: Edge to unknown node fails
 
-- **GIVEN** a `.dsl` file declaring an edge to an undeclared node ID
+- **GIVEN** a `.blueprint` file declaring an edge to an undeclared node ID
 - **WHEN** validation runs
 - **THEN** it raises a structural error naming the unknown ID and edge span
 

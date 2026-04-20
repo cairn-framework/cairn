@@ -16,7 +16,7 @@ Phase 8 implements the optional summariser from `docs/spec.md` sections 11, 13, 
 Add a pluggable summariser subsystem with:
 
 - Configurable backends: disabled, local command, or hosted API adapter.
-- Prompt inputs grounded in ontology facts, contract content, interface changes, docstring facts, and project context/rules.
+- Prompt inputs grounded in map facts, contract content, interface changes, docstring facts, and project context/rules.
 - Draft records stored under `.cairn/state/summariser/`.
 - Three resolution actions: accept, edit through an explicit editable draft file, and discard.
 - CLI commands to list, show, accept, edit, and discard drafts.

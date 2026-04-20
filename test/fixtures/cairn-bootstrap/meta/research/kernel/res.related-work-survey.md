@@ -4,13 +4,13 @@ nodes: [cairn, cairn.kernel.parser, cairn.kernel.artefacts, cairn.kernel.reconci
 date: 2026-04-13
 sources:
   - src.karpathy-llm-wiki
-  - src.structurizr-dsl
+  - src.structurizr-blueprint
   - src.openspec-repo
   - src.openspec-deepwiki
   - src.akash-llm-project-wiki
   - src.dual-graph-codex-compact
   - src.adr-tools
-  - src.dlthub-ontology-first
+  - src.dlthub-map-first
 tags: [prior-art, positioning]
 ---
 
@@ -18,11 +18,11 @@ tags: [prior-art, positioning]
 
 ## Question
 
-Where does Cairn sit relative to existing DSL, wiki, and architectural-enforcement tools? What does it borrow, and what does it deliberately not borrow?
+Where does Cairn sit relative to existing blueprint, wiki, and architectural-enforcement tools? What does it borrow, and what does it deliberately not borrow?
 
 ## What we considered
 
-**Structurizr DSL** is the closest prior art for the architectural layer. C4 hierarchy as a declarative DSL with strict model/view separation. Cairn borrows the hierarchy and declarative style but drops the view layer (rendering is downstream), adds artefact pointers and path ownership, and adds stable IDs and reconciliation.
+**Structurizr blueprint** is the closest prior art for the architectural layer. C4 hierarchy as a declarative blueprint with strict model/view separation. Cairn borrows the hierarchy and declarative style but drops the view layer (rendering is downstream), adds artefact pointers and path ownership, and adds stable IDs and reconciliation.
 
 **Karpathy's LLM Wiki pattern** (April 2026) describes an LLM-maintained markdown wiki between raw sources and agent. Same substrate as Cairn; opposite direction. Karpathy's wiki is descriptive — the LLM compiles it from sources, inventing schema as it goes. Cairn is prescriptive — the human authors intent upfront. Cairn borrows the three-layer framing (sources → compiled layer → code) and generalizes it into the two-chain model.
 
@@ -34,10 +34,10 @@ Where does Cairn sit relative to existing DSL, wiki, and architectural-enforceme
 
 **ADR tooling (adr-tools, log4brains)** established the ADR format. Cairn adopts it with four frontmatter additions: `nodes`, `revisited`, `revisit_triggers`, `informed_by`.
 
-**Ontology-first / context-engineering patterns** (dltHub and others) frame LLM skills as intent + skill + ontology, where the gap is almost always the ontology. Cairn produces an ontology for a project. The framing sharpens why Cairn refuses procedural detail: the framework gives the agent a map, not a recipe.
+**Map-first / context-engineering patterns** (dltHub and others) frame LLM skills as intent + skill + map, where the gap is almost always the map. Cairn produces an map for a project. The framing sharpens why Cairn refuses procedural detail: the framework gives the agent a map, not a recipe.
 
 ## What we're leaning toward
 
-Borrow the C4 hierarchy from Structurizr, the three-layer framing from Karpathy (generalized to two chains), the neighbourhood query shape from Dual-Graph, the ADR format from adr-tools, the ontology-first framing from dltHub, and the change-directory + delta pattern from OpenSpec.
+Borrow the C4 hierarchy from Structurizr, the three-layer framing from Karpathy (generalized to two chains), the neighbourhood query shape from Dual-Graph, the ADR format from adr-tools, the map-first framing from dltHub, and the change-directory + delta pattern from OpenSpec.
 
 Do not borrow OpenSpec's workflow layer. Workflow is a non-goal for Cairn; OpenSpec occupies that space.

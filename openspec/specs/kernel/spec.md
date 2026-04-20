@@ -2,27 +2,27 @@
 
 ## Requirements
 
-### Requirement: Parse the Cairn DSL into a typed AST
+### Requirement: Parse the Cairn blueprint into a typed AST
 
-The kernel SHALL parse the `docs/spec.md` section 7 DSL grammar into typed Rust AST structures with stable source spans.
+The kernel SHALL parse the `docs/spec.md` section 7 blueprint grammar into typed Rust AST structures with stable source spans.
 
-#### Scenario: Valid DSL parses
+#### Scenario: Valid blueprint parses
 
-- **GIVEN** a valid `cairn.dsl` containing systems, containers, modules, tags, paths, contract pointers, and edges
+- **GIVEN** a valid `cairn.blueprint` containing systems, containers, modules, tags, paths, contract pointers, and edges
 - **WHEN** the parser runs
 - **THEN** it returns an AST preserving node nesting, stable IDs, tags, fields, and edge descriptions
 - **AND** every parsed item carries a source span
 
 #### Scenario: Internal file ownership opt-in parses
 
-- **GIVEN** a valid `cairn.dsl` containing a Container with `path "./apps/api"` and `owns-files: true`
+- **GIVEN** a valid `cairn.blueprint` containing a Container with `path "./apps/api"` and `owns-files: true`
 - **WHEN** the parser runs
 - **THEN** the AST node records the internal ownership opt-in
 - **AND** the source span for the `owns-files` field is preserved
 
-#### Scenario: Malformed DSL reports location
+#### Scenario: Malformed blueprint reports location
 
-- **GIVEN** a DSL file with an unterminated node declaration
+- **GIVEN** a blueprint file with an unterminated node declaration
 - **WHEN** the parser runs
 - **THEN** it returns a parse error containing file, line, column, expected token, and encountered token
 
@@ -51,14 +51,14 @@ The kernel SHALL load `cairn.config.yaml` when present while remaining forward-c
 - **THEN** unknown sections do not fail validation
 - **AND** known Phase 1 fields remain available to scanner and later query layers
 
-### Requirement: Build a queryable ontology graph
+### Requirement: Build a queryable map graph
 
-The kernel SHALL transform the parsed DSL, contract artefacts, and reconciler reports into an ontology graph.
+The kernel SHALL transform the parsed blueprint, contract artefacts, and reconciler reports into a map graph.
 
 #### Scenario: Graph indexes are available
 
 - **GIVEN** a parsed project
-- **WHEN** ontology construction completes
+- **WHEN** map construction completes
 - **THEN** callers can resolve nodes by ID
 - **AND** callers can resolve nodes by exact name when unambiguous
 - **AND** callers can query parent, children, inbound edges, outbound edges, and claimed paths
@@ -78,25 +78,25 @@ The kernel SHALL transform the parsed DSL, contract artefacts, and reconciler re
 - **THEN** the file is claimed by the Container
 - **AND** descendant Module files still resolve by most-specific path
 
-#### Scenario: Structural errors block ontology success
+#### Scenario: Structural errors block map success
 
 - **GIVEN** a project with duplicate IDs, path ties, invalid edge endpoints, or broken contract pointers for synced leaf nodes
-- **WHEN** ontology construction or linting runs
+- **WHEN** map construction or linting runs
 - **THEN** the kernel reports structural errors with stable error codes
-- **AND** CLI commands that require a valid ontology exit with code `1`
+- **AND** CLI commands that require a valid map exit with code `1`
 
 #### Scenario: Ghost-node missing contract is advisory
 
 - **GIVEN** a ghost leaf node that declares a contract path whose file is missing
-- **WHEN** ontology construction or linting runs
+- **WHEN** map construction or linting runs
 - **THEN** the kernel reports a warning with a stable code
-- **AND** does not fail ontology construction solely because the ghost node contract is missing
+- **AND** does not fail map construction solely because the ghost node contract is missing
 
 #### Scenario: Dependency cycle does not block basic queries
 
-- **GIVEN** a project whose DSL edges contain a dependency cycle
+- **GIVEN** a project whose blueprint edges contain a dependency cycle
 - **WHEN** the user runs `cairn get <node>` or `cairn neighbourhood <node>`
-- **THEN** the command can return data from the otherwise valid ontology
+- **THEN** the command can return data from the otherwise valid map
 - **AND** the cycle remains available as a finding for `lint`, `order`, and later hook reuse
 
 ### Requirement: Reconcile Rust code reality through a trait interface
@@ -115,8 +115,8 @@ The kernel SHALL define a domain-agnostic reconciler trait and provide a Phase 1
 
 - **GIVEN** a leaf module whose declared path does not exist
 - **WHEN** `cairn scan` runs
-- **THEN** the ontology marks the node `ghost`
-- **AND** the finding is reflected in `index.md`
+- **THEN** the map marks the node `ghost`
+- **AND** the finding is reflected in `map.md`
 
 #### Scenario: Reality file is unclaimed
 
@@ -132,14 +132,14 @@ Phase 1 SHALL implement contract artefact loading while excluding all other arte
 
 - **GIVEN** a module with `contract "./meta/contracts/api/auth.md"`
 - **AND** the contract frontmatter contains `node: saas.api.auth`
-- **WHEN** the ontology is built
+- **WHEN** the map is built
 - **THEN** the contract is attached to `saas.api.auth`
 - **AND** `cairn contract saas.api.auth` returns the parsed contract content
 
 #### Scenario: Later artefact pointer is not interpreted
 
 - **GIVEN** a module that declares `todos`, `decisions`, `research`, `reviews`, or `sources`
-- **WHEN** Phase 1 builds the ontology
+- **WHEN** Phase 1 builds the map
 - **THEN** those pointers are retained as raw metadata
 - **AND** no Phase 2 artefact validation is performed
 
@@ -163,14 +163,14 @@ The CLI SHALL expose the Phase 1 kernel query surface with human and JSON output
 
 #### Scenario: Query commands succeed
 
-- **GIVEN** a valid reconciled ontology
+- **GIVEN** a valid reconciled map
 - **WHEN** the user runs `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, or `order`
 - **THEN** the command returns the requested data
 - **AND** `--json` returns a stable machine-readable schema
 
 #### Scenario: Order reports cycles
 
-- **GIVEN** a reconciled ontology whose dependency edges contain a cycle
+- **GIVEN** a reconciled map whose dependency edges contain a cycle
 - **WHEN** the user runs `cairn order`
 - **THEN** the command exits with code `1`
 - **AND** reports the cycle participants with a stable error code
@@ -179,7 +179,7 @@ The CLI SHALL expose the Phase 1 kernel query surface with human and JSON output
 
 - **GIVEN** a valid project
 - **WHEN** the user runs `cairn scan`
-- **THEN** Cairn writes `index.md`
+- **THEN** Cairn writes `map.md`
 - **AND** appends `.cairn/log.md`
 - **AND** writes `.cairn/state/interface-hashes.json`
 

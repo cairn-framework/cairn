@@ -7,7 +7,7 @@
 
 ## Problem/Context
 
-Phases 1-3 provide ontology reconciliation and safe change isolation, but enforcement still depends on humans manually running commands. Cairn needs hook entrypoints that make structural and interface integrity part of task and commit boundaries.
+Phases 1-3 provide map reconciliation and safe change isolation, but enforcement still depends on humans manually running commands. Cairn needs hook entrypoints that make structural and interface integrity part of task and commit boundaries.
 
 Phase 4 implements `docs/spec.md` section 11 and the phase-4 conflict detection called out in sections 9 and 16.
 
@@ -18,7 +18,7 @@ Add hook commands and integration scripts for:
 - Structural hook: blocks on structural errors.
 - Interface hook: blocks on unresolved interface contradictions.
 - Tension hook: reports rationale tensions without blocking.
-- Active-change conflict detection before archive, including overlapping DSL operations and artefact operation collisions.
+- Active-change conflict detection before archive, including overlapping blueprint operations and artefact operation collisions.
 - Git pre-commit and agent-task-end entrypoints that can run the same hook engine.
 
 ## Acceptance Criteria

@@ -6,12 +6,12 @@
 
 Cairn SHALL create a reviewable change directory for first-time adoption of an existing codebase.
 
-#### Scenario: Discovery does not require existing DSL
+#### Scenario: Discovery does not require existing blueprint
 
-- **GIVEN** a repository without `cairn.dsl`
+- **GIVEN** a repository without `cairn.blueprint`
 - **WHEN** `cairn init --from-code` runs
 - **THEN** Cairn scans supported source files using repository-wide discovery
-- **AND** does not require claimed node paths from an existing ontology
+- **AND** does not require claimed node paths from an existing map
 
 #### Scenario: Candidate heuristics are deterministic
 
@@ -22,13 +22,13 @@ Cairn SHALL create a reviewable change directory for first-time adoption of an e
 
 #### Scenario: Init creates brownfield change
 
-- **GIVEN** a repository without `cairn.dsl`
+- **GIVEN** a repository without `cairn.blueprint`
 - **WHEN** the user runs `cairn init --from-code`
 - **THEN** Cairn creates `meta/changes/brownfield-init/`
 - **AND** writes a proposal
-- **AND** writes `dsl.delta` with proposed nodes and edges
+- **AND** writes `blueprint.delta` with proposed nodes and edges
 - **AND** writes stub contracts
-- **AND** does not write main `cairn.dsl`
+- **AND** does not write main `cairn.blueprint`
 
 #### Scenario: Existing generated change is protected
 
@@ -42,25 +42,25 @@ Cairn SHALL create a reviewable change directory for first-time adoption of an e
 - **GIVEN** `meta/changes/brownfield-init/` already exists
 - **WHEN** the user runs `cairn init --from-code --force`
 - **THEN** Cairn replaces the existing generated brownfield change directory atomically
-- **AND** does not modify main `cairn.dsl` or main `meta/` artefacts
+- **AND** does not modify main `cairn.blueprint` or main `meta/` artefacts
 
 ### Requirement: Refine existing Cairn state from code changes
 
-Cairn SHALL propose deltas against an existing DSL.
+Cairn SHALL propose deltas against an existing blueprint.
 
 #### Scenario: Refine proposes additions
 
-- **GIVEN** a project with existing `cairn.dsl`
+- **GIVEN** a project with existing `cairn.blueprint`
 - **AND** new source directories are present
 - **WHEN** the user runs `cairn refine`
 - **THEN** Cairn creates a change directory
-- **AND** the `dsl.delta` contains added nodes or edges only for detected changes
+- **AND** the `blueprint.delta` contains added nodes or edges only for detected changes
 
 #### Scenario: Refine does not replace current truth
 
-- **GIVEN** a project with existing `cairn.dsl`
+- **GIVEN** a project with existing `cairn.blueprint`
 - **WHEN** `cairn refine` completes
-- **THEN** current-truth queries still read the original DSL
+- **THEN** current-truth queries still read the original blueprint
 - **AND** proposed changes appear only through change-aware queries
 
 ### Requirement: Keep human review authoritative

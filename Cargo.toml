@@ -21,7 +21,7 @@ description = "Foundation package for the Cairn architecture graph tool."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://example.invalid/cairn"
-keywords = ["architecture", "graph", "dsl", "cli", "rust"]
+keywords = ["architecture", "graph", "blueprint", "cli", "rust"]
 categories = ["command-line-utilities", "development-tools"]
 
 [lib]

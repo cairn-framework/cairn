@@ -7,11 +7,11 @@
 
 ## Change Discovery
 
-A change directory SHALL be any direct child of `meta/changes/` containing `proposal.md`, excluding `meta/changes/archive/`. Change IDs SHALL be directory names. Discovery SHALL parse proposal title, optional design file, `dsl.delta`, and mirrored artefact subtrees.
+A change directory SHALL be any direct child of `meta/changes/` containing `proposal.md`, excluding `meta/changes/archive/`. Change IDs SHALL be directory names. Discovery SHALL parse proposal title, optional design file, `blueprint.delta`, and mirrored artefact subtrees.
 
-## DSL Delta Parser
+## blueprint Delta Parser
 
-`dsl.delta` SHALL support these sections:
+`blueprint.delta` SHALL support these sections:
 
 - `## ADDED Nodes`
 - `## MODIFIED Nodes`
@@ -22,7 +22,7 @@ A change directory SHALL be any direct child of `meta/changes/` containing `prop
 - `## REMOVED Edges`
 - `## RENAMED Edges`
 
-Added and modified nodes SHALL use full DSL node declarations. Removed nodes SHALL name IDs. Renamed nodes SHALL declare old and new IDs. Edge operations SHALL reference stable node IDs and descriptions.
+Added and modified nodes SHALL use full blueprint node declarations. Removed nodes SHALL name IDs. Renamed nodes SHALL declare old and new IDs. Edge operations SHALL reference stable node IDs and descriptions.
 
 ## Artefact Operations
 
@@ -40,14 +40,14 @@ The archive engine SHALL reject artefact operations that lack required fields or
 4. Run a validation scan against the mutated main tree while explicitly excluding the archiving change from active-change discovery.
 5. Abort and restore the snapshot if the validation scan reports structural errors or unresolved interface contradictions.
 6. Move the change to `meta/changes/archive/YYYY-MM-DD-<change-id>/`.
-7. Run a final output scan after the move so generated `index.md`, `status`, and `.cairn/log.md` no longer list the archived change as active.
+7. Run a final output scan after the move so generated `map.md`, `status`, and `.cairn/log.md` no longer list the archived change as active.
 8. Append an archive event to `.cairn/log.md`.
 
 The implementation SHALL use temp files and atomic rename operations for file writes.
 
 ## Rename Command
 
-`cairn rename <old-id> <new-id>` SHALL create `meta/changes/rename-<old-id>-to-<new-id>/`. It SHALL generate a `dsl.delta` with the node rename and edge updates. It SHALL copy every artefact whose frontmatter references `old-id` into the change directory with modified frontmatter referencing `new-id`.
+`cairn rename <old-id> <new-id>` SHALL create `meta/changes/rename-<old-id>-to-<new-id>/`. It SHALL generate a `blueprint.delta` with the node rename and edge updates. It SHALL copy every artefact whose frontmatter references `old-id` into the change directory with modified frontmatter referencing `new-id`.
 
 The command SHALL not mutate the main tree. Archive performs the mutation after review.
 
@@ -55,7 +55,7 @@ The command SHALL not mutate the main tree. Archive performs the mutation after 
 
 Default queries SHALL read current truth only. `--include-changes` SHALL add proposed additions, modifications, removals, and renames to supported query output with operation labels.
 
-`cairn changes` SHALL show active change IDs, proposal titles, operation counts, and validation status. `cairn show <change>` SHALL show proposal text, DSL delta summary, and artefact operation summary.
+`cairn changes` SHALL show active change IDs, proposal titles, operation counts, and validation status. `cairn show <change>` SHALL show proposal text, blueprint delta summary, and artefact operation summary.
 
 ## Testing
 

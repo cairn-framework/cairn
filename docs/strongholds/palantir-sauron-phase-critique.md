@@ -36,7 +36,7 @@ The campaign plan has confused "conceptual ordering in the spec" with "technical
 
 **Phase 1 Is Three Phases Wearing a Trenchcoat.**
 
-The campaign itself acknowledges this on line 98: "This is the largest phase. Consider splitting into sub-changes: phase-1a-parser, phase-1b-graph, phase-1c-cli, phase-1d-scanner." And then the actual OpenSpec change is... one change. One proposal. One design. One tasks.md with 33 tasks spanning parser, ontology, reconciler, scanner, and CLI.
+The campaign itself acknowledges this on line 98: "This is the largest phase. Consider splitting into sub-changes: phase-1a-parser, phase-1b-graph, phase-1c-cli, phase-1d-scanner." And then the actual OpenSpec change is... one change. One proposal. One design. One tasks.md with 33 tasks spanning parser, map, reconciler, scanner, and CLI.
 
 A headless Codex agent executing this will face the largest context window of any phase, the most cross-cutting concerns, and the highest risk of producing globally incoherent output. The campaign protocol says each phase goes through WRITE -> REFORGE -> DEBATE -> FINALIZE. Phase 1 needs this treatment for each sub-phase, not once for the monolith.
 
@@ -92,7 +92,7 @@ The error-codes.md registry has zero allocated codes. Phase 1's spec requires "s
 
 ### Phase Scope Issues
 
-- [severity:critical] [phase-1-kernel] Phase 1 is acknowledged as needing splitting (campaign line 98) but is specified as a monolith. 33 tasks across parser, ontology, reconciler, scanner, and CLI. Too large for a single headless agent pass. Split into sub-changes as the campaign suggests.
+- [severity:critical] [phase-1-kernel] Phase 1 is acknowledged as needing splitting (campaign line 98) but is specified as a monolith. 33 tasks across parser, map, reconciler, scanner, and CLI. Too large for a single headless agent pass. Split into sub-changes as the campaign suggests.
 
 - [severity:important] [phase-5-edges-docstrings/design.md] Phase 5 relies on Tree-sitter dependency extraction but spec.md resolved question says LSP should be added in Phase 5. The phase design omits LSP entirely. Either the spec resolution is wrong or the phase is under-specified.
 
@@ -120,7 +120,7 @@ The error-codes.md registry has zero allocated codes. Phase 1's spec requires "s
 
 - [severity:important] [docs/phase-2-deferrals.md] Fully stale. Uses banned "MVP" language. Every item covered by a named phase. Should be deleted or archived.
 
-- [severity:minor] [docs/dsl.md:40] Uses "MVP" (banned). Missing multi-path syntax. Understates path-uniqueness rules vs spec.md section 7.
+- [severity:minor] [docs/blueprint.md:40] Uses "MVP" (banned). Missing multi-path syntax. Understates path-uniqueness rules vs spec.md section 7.
 
 - [severity:minor] [phase-2-artefacts/design.md:33-34] Phase 2 claims to address declared items D-01/D-02 (review subtype schemas) but only implements basic schema loading, not the design questions (when generated, how promotes, severity taxonomy). Tracker items will remain open but may be marked resolved.
 
@@ -128,5 +128,5 @@ The error-codes.md registry has zero allocated codes. Phase 1's spec requires "s
 
 - [severity:minor] [phase-6-multi-target/design.md:23] `ContractRole` defaulting to `public_api` for all targets is an assumption the spec does not make. Spec.md section 10.2 talks about targets claiming "the same contract" but never introduces the concept of contract roles. Phase 6 invents this abstraction without updating spec.md.
 
-- [severity:minor] [phase-5-edges-docstrings/design.md:41-52] Cairn fact-line format in docstrings (`Cairn-ID:`, `Cairn-Depends:`, etc.) is invented by Phase 5 with no precedent in spec.md. This is a new DSL-within-docstrings that users must learn. The spec says "scanner checks authored docstrings against ontology facts" — it does not say docstrings must contain structured Cairn metadata lines.
+- [severity:minor] [phase-5-edges-docstrings/design.md:41-52] Cairn fact-line format in docstrings (`Cairn-ID:`, `Cairn-Depends:`, etc.) is invented by Phase 5 with no precedent in spec.md. This is a new blueprint-within-docstrings that users must learn. The spec says "scanner checks authored docstrings against map facts" — it does not say docstrings must contain structured Cairn metadata lines.
 

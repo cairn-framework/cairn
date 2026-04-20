@@ -6,13 +6,13 @@ const FIXTURE_START_TOKENS: [&str; 4] = ["System", "Container", "Module", "Actor
 
 #[test]
 fn test_root_fixture_readable_contains_declared_node() -> Result<(), Box<dyn std::error::Error>> {
-    assert_fixture_contains_declared_node("test/fixtures/cairn.dsl")
+    assert_fixture_contains_declared_node("test/fixtures/cairn.blueprint")
 }
 
 #[test]
 fn test_bootstrap_fixture_readable_contains_declared_node() -> Result<(), Box<dyn std::error::Error>>
 {
-    assert_fixture_contains_declared_node("test/fixtures/cairn-bootstrap/cairn.dsl")
+    assert_fixture_contains_declared_node("test/fixtures/cairn-bootstrap/cairn.blueprint")
 }
 
 #[test]

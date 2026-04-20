@@ -18,8 +18,8 @@ Every Cairn error code follows the format **`CXNNN`** where:
 
 | Letter | Subsystem        | Owning Phase(s) |
 |--------|------------------|-----------------|
-| P      | Parser (DSL)     | 1               |
-| K      | Kernel/Ontology  | 1               |
+| P      | Parser (blueprint)     | 1               |
+| K      | Kernel/Map  | 1               |
 | A      | Artefacts        | 2               |
 | C      | Changes          | 3               |
 | H      | Hooks            | 4               |
@@ -83,8 +83,8 @@ The module tree MUST mirror the conceptual architecture:
 
 ```text
 src/
-  dsl/          # Phase 1 — parser, lexer, AST
-  ontology/     # Phase 1 — graph, build, query, integrity
+  blueprint/          # Phase 1 — parser, lexer, AST
+  map/     # Phase 1 — graph, build, query, integrity
   artefacts/    # Phase 2 — contract, todo, decision, etc.
   reconcile/    # Phase 1 — trait, code reconciler, fingerprint
   scanner/      # Phase 1 — scan orchestration, outputs, state
@@ -161,7 +161,7 @@ Types that are compared in tests SHOULD also derive `PartialEq` and `Eq`.
 
 Identifiers MUST be newtypes, not raw `String` values:
 
-- `NodeId` -- stable DSL node identifier.
+- `NodeId` -- stable blueprint node identifier.
 - `ChangeId` -- change directory identifier.
 - `ArtefactId` -- artefact file identifier.
 - `ReconcilerId` -- reconciler identifier.

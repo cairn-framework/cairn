@@ -18,9 +18,9 @@ use std::{
 
 use crate::{
     artefacts::{contract::Contract, frontmatter},
+    blueprint::NodeKind,
     cli,
-    dsl::NodeKind,
-    ontology::{
+    map::{
         graph::{Finding, FindingSeverity, Graph, NodeRecord},
         query::{self, GraphEdgeKind, GraphResponse},
     },
@@ -39,8 +39,8 @@ pub struct UiOptions {
     pub port: u16,
     /// Whether browser opening is disabled.
     pub no_open: bool,
-    /// Cairn DSL path.
-    pub dsl_path: PathBuf,
+    /// Cairn blueprint path.
+    pub blueprint_path: PathBuf,
 }
 
 impl Default for UiOptions {
@@ -48,7 +48,7 @@ impl Default for UiOptions {
         Self {
             port: 3000,
             no_open: false,
-            dsl_path: PathBuf::from("cairn.dsl"),
+            blueprint_path: PathBuf::from("cairn.blueprint"),
         }
     }
 }
@@ -203,7 +203,7 @@ struct Server {
 impl Server {
     fn bind(options: UiOptions) -> Result<Self, UiError> {
         let root = options
-            .dsl_path
+            .blueprint_path
             .parent()
             .filter(|path| !path.as_os_str().is_empty())
             .unwrap_or_else(|| Path::new("."))
@@ -324,7 +324,7 @@ impl Server {
     }
 
     fn load_project(&self) -> Result<scanner::ScanResult, UiError> {
-        scanner::load_project(&self.root, &self.options.dsl_path).map_err(UiError::Project)
+        scanner::load_project(&self.root, &self.options.blueprint_path).map_err(UiError::Project)
     }
 }
 

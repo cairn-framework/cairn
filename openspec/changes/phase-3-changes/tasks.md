@@ -3,8 +3,8 @@
 ## 1. Change Discovery and Parsing
 
 - [ ] 1.1 Implement active change discovery under `meta/changes/`.
-- [ ] 1.2 Parse `proposal.md`, optional `design.md`, and `dsl.delta`.
-- [ ] 1.3 Implement DSL delta operations for added, modified, removed, and renamed nodes and edges.
+- [ ] 1.2 Parse `proposal.md`, optional `design.md`, and `blueprint.delta`.
+- [ ] 1.3 Implement blueprint delta operations for added, modified, removed, and renamed nodes and edges.
 - [ ] 1.4 Parse artefact operation frontmatter in mirrored change directories.
 - [ ] 1.5 Add parser tests for every delta section and invalid operation.
 
@@ -28,7 +28,7 @@
 ## 4. Rename
 
 - [ ] 4.1 Implement `cairn rename <old-id> <new-id>`.
-- [ ] 4.2 Generate a change directory with DSL rename operations and edge updates.
+- [ ] 4.2 Generate a change directory with blueprint rename operations and edge updates.
 - [ ] 4.3 Copy and modify artefact frontmatter references into the change directory.
 - [ ] 4.4 Add tests proving the main tree is unchanged until archive.
 

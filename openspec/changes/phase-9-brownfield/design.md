@@ -10,9 +10,9 @@
 ## Candidate Extraction
 
 Brownfield extraction SHALL use a repository-wide discovery mode that does not
-require an existing `cairn.dsl` or claimed node paths. This mode SHALL reuse
+require an existing `cairn.blueprint` or claimed node paths. This mode SHALL reuse
 the language scanners and ignore rules from reconcilers, but it SHALL produce
-candidate structures rather than normal ontology reconciliation reports.
+candidate structures rather than normal map reconciliation reports.
 
 The discovery mode SHALL scan the codebase and produce structural candidates:
 
@@ -42,7 +42,7 @@ The summariser SHALL name and describe candidates, suggest tags, and draft stub 
 `cairn init --from-code` SHALL create `meta/changes/brownfield-init/` containing:
 
 - `proposal.md`.
-- `dsl.delta` with added nodes and edges.
+- `blueprint.delta` with added nodes and edges.
 - Stub contracts under mirrored `contracts/`.
 - Optional generated research notes explaining extraction evidence.
 
@@ -50,7 +50,7 @@ The command SHALL fail if `meta/changes/brownfield-init/` already exists unless 
 
 ## Refine Flow
 
-`cairn refine` SHALL compare current code reality with current DSL and produce a new change directory containing only proposed additions, removals, renames, or modifications. It SHALL not replace the whole DSL.
+`cairn refine` SHALL compare current code reality with current blueprint and produce a new change directory containing only proposed additions, removals, renames, or modifications. It SHALL not replace the whole blueprint.
 
 ## MCP Tools
 

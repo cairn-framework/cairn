@@ -2,9 +2,9 @@
 
 ## ADDED Requirements
 
-### Requirement: Provide LSP access to Cairn ontology facts
+### Requirement: Provide LSP access to Cairn map facts
 
-Cairn SHALL provide an LSP server over the same parser, ontology, and query APIs as CLI and MCP.
+Cairn SHALL provide an LSP server over the same parser, map, and query APIs as CLI and MCP.
 
 #### Scenario: LSP binary root is strict
 
@@ -22,13 +22,13 @@ Cairn SHALL provide an LSP server over the same parser, ontology, and query APIs
 
 #### Scenario: Hover returns node context
 
-- **GIVEN** a DSL edge references `saas.api.auth`
+- **GIVEN** a blueprint edge references `saas.api.auth`
 - **WHEN** the editor requests hover on the ID
 - **THEN** the response includes node name, description, state, paths, artefact counts, and findings summary
 
 #### Scenario: Definition resolves edge endpoint
 
-- **GIVEN** a DSL edge references `saas.api.auth`
+- **GIVEN** a blueprint edge references `saas.api.auth`
 - **WHEN** the editor requests definition for that ID
 - **THEN** the response points to the node declaration span
 
@@ -48,7 +48,7 @@ Cairn SHALL document and package agent-facing integrations around existing CLI a
 
 - **GIVEN** the packaged example project
 - **WHEN** release validation runs against it
-- **THEN** it exercises DSL parse, artefacts, changes, hooks, MCP queries, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and fixture non-code reconciler observations
+- **THEN** it exercises blueprint parse, artefacts, changes, hooks, MCP queries, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and fixture non-code reconciler observations
 
 ### Requirement: Expose reconciler extension points
 
@@ -58,6 +58,6 @@ Cairn SHALL document and test non-code reconciler registration.
 
 - **GIVEN** a fixture non-code reconciler is registered
 - **WHEN** `cairn scan` runs
-- **THEN** its observations enter the ontology through the shared reconciler interface
+- **THEN** its observations enter the map through the shared reconciler interface
 - **AND** query and diagnostic output can include those observations
-- **AND** it does not create new DSL nodes outside the brownfield change workflow
+- **AND** it does not create new blueprint nodes outside the brownfield change workflow

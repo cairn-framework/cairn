@@ -7,8 +7,8 @@ use std::{
 };
 
 use crate::{
-    dsl::{Ast, Node},
-    ontology::graph::{Finding, FindingSeverity},
+    blueprint::{Ast, Node},
+    map::graph::{Finding, FindingSeverity},
 };
 
 use super::frontmatter;

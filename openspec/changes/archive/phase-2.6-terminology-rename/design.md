@@ -59,7 +59,7 @@ Public API boundary — CLI, user-visible JSON shapes, error messages, and log l
 
 Phases 3–10 have proposals, designs, tasks, and specs referencing the old vocabulary in prose. Update these in-place as part of this phase. Structural content (what each phase builds, in what order) is unchanged; only prose vocabulary adjusts.
 
-Phase 8 (summariser) and phase 9 (brownfield) have the heaviest prose impact because they explicitly reference ontology snapshots and DSL authoring flows. Phase 3 (changes) has near-zero impact because `change` is kept.
+Phase 8 (summariser) and phase 9 (brownfield) have the heaviest prose impact because they explicitly reference map snapshots and blueprint authoring flows. Phase 3 (changes) has near-zero impact because `change` is kept.
 
 Archived phases under `openspec/changes/archive/` are historical records. Do NOT rewrite them; they stand as the original record. New phases authored after 2.6 use new vocabulary natively.
 
