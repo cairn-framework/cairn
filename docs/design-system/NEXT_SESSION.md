@@ -1,40 +1,65 @@
 # Next session handoff notes
 
-Outstanding feedback on the visual pass shipped in commit `f040288`. Future agents: read this first before making UI changes in this repo.
+State: landing calm-density pass landed (commit `5291360`). Webui CSS-only pass landed (commit `ab5f23c`). Both need a follow-up for reasons below.
 
-## Landing page: cognitive-overload on hero
+## Webui: redo the pass with JS in play, against real CAIRN data
 
-The current blueprint-sheet SVG at the top of `docs/landing/index.html` (the "SHEET · 01 / AUTH · NEIGHBOURHOOD" inline SVG in the hero) is too cramped. Too many nested labels, dimension lines, scale bar, title block, legend, benchmark markers, and module cards all fighting for attention in a small viewport slot. It reads as chaotic rather than precise.
+The first pass read "preserve functional behaviour in `app.js`" as "do not modify `app.js`" and dropped most of what made the reference mockup distinct. The next pass should widen the scope.
 
-The user pointed at the **Blueprint → Map** side-by-side panel (the "authored · cairn.blueprint" vs "reconciled · map.md" two-column block further down the page) as the direction to pull the rest of the landing toward. That panel is calm, spacious, each row has room, and the hierarchy is obvious.
+### What the mockup actually wanted (dropped last pass, needed next pass)
 
-### What to change
-- Simplify the hero SVG drastically. Fewer labels. No legend in the sheet. No dimension lines. Keep the modules, the AUTH boundary, and a single drift indicator. Nothing else.
-- Increase vertical breathing room throughout the landing. Section padding is currently using `--s-10` (128px) which sounds large but visually still feels compressed because content inside sections is dense. Audit inner spacing.
-- Let the reader's eye land on one thing per section, not six.
-- Keep the Blueprint → Map panel as the visual benchmark. Other sections should match its calm-density ratio, not exceed it.
+Bundle at `/tmp/claude-501/cairn-design-webui-ref/` (fetch via curl if gone; see bottom). Also pasted at `.claude/references/webui-design/` on disk locally (gitignored).
 
-## Webui: inspiration reference
+- **Hinge layout.** Not a flat 2-column graph. Provenance-heavy modules on the left, authority-heavy modules on the right, decisions on the central spine. Spatially encodes the two-chain model.
+- **Hinge diagram in decision detail.** 3-column grid inside the inspector when a decision is selected: provenance sources left, the hinge decision as a vertical gradient bar center, authority contracts right.
+- **Chain bars in inspector.** Two 4px progress tracks per node: provenance weight in amber, authority weight in sage. Low density, high signal.
+- **Chain rails on every chain-aware card/row.** Not just `.node`. Artefact cards, decision rows, change entries all get the left-amber / right-sage 2px rails.
+- **Decision chips on leader lines off graph nodes.** SVG overlay: small chips floating on lines pointing at decisions that shaped each node. Drops progressive disclosure onto the canvas.
+- **Command trigger center bar.** Topbar slot needs to become a real `⌘K` search/query trigger, not just the meta strip.
+- **Changes drawer.** Bottom dock that toggles open to show change cards horizontally. Surfaces pending changes without forcing a sidebar.
 
-User wants the CAIRN webui (`src/ui_assets/`) to take visual inspiration from:
+### Data source for next pass: CAIRN's own map, not a fake auth platform
 
-> https://claude.ai/design/p/d25f8bd4-7c08-43a3-b2be-ff78f7edc2b5?file=index.html
+The preview data I fed in last session (`src/ui_assets/api/{meta,graph,lint}`, gitignored) was a fictional auth module I invented. The webui's reason for existing is to show CAIRN's own reconciled map. Use one of:
 
-This is a Claude Design share link. Future agent should fetch that bundle (same pattern as the two bundles already extracted into `/tmp/claude-501/cairn-design/` in the prior session: WebFetch against the share URL returns a gzipped tar archive, extract with `tar -xzf`, read `README.md` first, then follow the design prototype files).
+1. **Live binary.** `cd test/fixtures/cairn-bootstrap && cairn ui` starts the real server against the bootstrap fixture (CAIRN describing itself). Preferred for visual iteration; guarantees the data shape matches what real users see.
+2. **Captured snapshot.** Run `cairn ui` once, curl `/api/graph` + `/api/meta` + `/api/lint`, save JSON into `src/ui_assets/api/` (gitignored) for a fast static-preview loop. Necessary only if the binary path is blocked.
 
-### Constraints
-- Apply that inspiration through the **existing CAIRN design system** (`docs/design-system/tokens.css` + `components.css`). Do not fork tokens or introduce a new palette. If the reference uses a different color system, translate it through the warm-stone / ink / chain-accent token vocabulary we already have.
-- Preserve all functional behaviour in `src/ui_assets/app.js`. Do not modify the JS layer.
-- Preserve the 5 test-critical strings: `Graph Explorer`, `detail-panel`, `loadArtefacts`, `renderArtefacts`, `just now`. They are matched verbatim by `tests/graph_explorer.rs`.
-- Cognitive overload is the governing concern here too. If the reference design is denser than our current webui, err toward our calmer direction. The blueprint → map panel is the density reference for all CAIRN surfaces.
+Mockup's `data.js` has a richer shape than CAIRN currently emits (systems > containers > modules, explicit chain weights, counts per artefact type, owner metadata, `lastTouched`). Decide early whether to:
+- Expand CAIRN's kernel output to carry the missing fields (`chains.{provenance,authority}` weights, `counts.{decisions,contracts,changes,todos}`, `owner`, `lastTouched`), or
+- Derive them client-side in `app.js` from what CAIRN already emits, or
+- Render the hinge/chain visuals against what's available today and note the gaps.
+
+Keep: the 5 test-critical strings. `Graph Explorer`, `detail-panel`, `loadArtefacts`, `renderArtefacts`, `just now`. `cargo test graph_explorer` must stay green.
+
+## Landing: hero still doesn't sell what CAIRN does
+
+Current hero trimmed to 4 auth modules inside an AUTH boundary. Calmer than before, but the user's exact read: "doesn't really give a sense of why someone should use CAIRN, or how it does its map. it's just 4 auth boxes connected to each other."
+
+Plan we agreed: once the webui is rebuilt against the mockup + real data, use a screenshot of the actual webui as the hero image. The hero then literally shows the product rather than inventing a diagram for it.
+
+Blocker: webui has to be visually real before that screenshot is worth pulling into the hero. So the webui pass above is the gating item.
+
+Also still open: `Read the spec` buttons (hero x2, footer x1) open `docs/spec.md` as raw markdown because `.nojekyll` disables Jekyll rendering. Fix is either repointing at the GitHub blob URL or generating an HTML-rendered spec. User hasn't picked a direction.
+
+## Constraints that carry forward
+
+- Use only `docs/design-system/tokens.css` + `components.css`. No new palette.
+- No em-dashes in any prose. Replace with period, colon, comma, parenthesis.
+- Font authority: Source Serif 4 + IBM Plex Mono + IBM Plex Sans.
+- Calm density still governs. The blueprint->map side-by-side panel on the landing is the benchmark.
 
 ## Workflow
 
-When the next session picks this up:
-
 1. Read this file first.
-2. Fetch the referenced Claude Design bundle.
-3. Propose a plan before implementing (the user prefers exploring before diving in for non-trivial UI work).
-4. Dispatch implementation agents with `general-purpose` subagent_type (not `feature-dev:code-architect`, which lacks Write tools).
-5. Verify `cargo build`, `cargo test`, `cargo clippy --all-targets --all-features -- -D warnings`, `cargo fmt --check` all green before committing.
-6. Commit cleanly (no unstaged files left) so cflx runs can start from a clean tree.
+2. Read `.claude/references/webui-design/` (pasted locally, gitignored) OR refetch the bundle:
+   ```
+   mkdir -p /tmp/claude-501/cairn-design-webui-ref && \
+   curl -sL "https://api.anthropic.com/v1/design/h/eyPs2Wy_c2yH_lqQXerZUQ?open_file=index.html" \
+     -o /tmp/claude-501/cairn-design-webui-ref/bundle.tar.gz && \
+   tar -xzf /tmp/claude-501/cairn-design-webui-ref/bundle.tar.gz \
+     -C /tmp/claude-501/cairn-design-webui-ref/
+   ```
+3. Verify visually as you go using the `claude-in-chrome` MCP (not Playwright; the plugin drives the user's real Chrome). Start `python3 -m http.server 8767` in `src/ui_assets/` after creating the `assets/` + `api/` scratch dirs, or just run `cairn ui` in the bootstrap fixture.
+4. Verify `cargo build`, `cargo clippy --all-targets --all-features -- -D warnings`, `cargo fmt --check`, `cargo test` all green before committing.
+5. Atomic commits per track. Don't bundle landing + webui in one commit.
