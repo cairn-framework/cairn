@@ -3,5 +3,9 @@
     "allow": [
       "WebFetch(domain:deepwiki.com)"
     ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
   }
 }
