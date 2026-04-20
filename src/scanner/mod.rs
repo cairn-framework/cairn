@@ -49,8 +49,10 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         .map_err(|error| error.to_string())?;
     let mut findings = contracts.findings.clone();
     findings.extend(artefacts.findings.clone());
-    findings.extend(report.findings);
-    let graph = build_graph(&ast, root, &contracts, &report.claimed_files, findings);
+    findings.extend(report.findings.clone());
+    let mut graph = build_graph(&ast, root, &contracts, &report.claimed_files, findings);
+    let semantic_findings = crate::reconcile::semantic_findings(&graph, &report);
+    graph.findings.extend(semantic_findings);
     Ok(ScanResult {
         graph,
         artefacts,

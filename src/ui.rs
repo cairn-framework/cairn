@@ -261,7 +261,19 @@ impl Server {
                 Ok((mut stream, _peer)) => {
                     stream.set_nonblocking(false)?;
                     stream.set_read_timeout(Some(Duration::from_secs(5)))?;
-                    self.handle_stream(&mut stream)?;
+                    if let Err(error) = self.handle_stream(&mut stream)
+                        && !matches!(
+                            error,
+                            UiError::Io(ref source)
+                                if matches!(
+                                    source.kind(),
+                                    std::io::ErrorKind::ConnectionReset
+                                        | std::io::ErrorKind::BrokenPipe
+                                )
+                        )
+                    {
+                        return Err(error);
+                    }
                 }
                 Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
                     thread::sleep(Duration::from_millis(25));
@@ -273,13 +285,12 @@ impl Server {
     }
 
     fn handle_stream(&self, stream: &mut TcpStream) -> Result<(), UiError> {
-        let mut buffer = [0_u8; 4096];
-        let read = stream.read(&mut buffer)?;
-        if read == 0 {
+        let request = read_http_request(stream)?;
+        if request.is_empty() {
             return Ok(());
         }
-        let request = String::from_utf8_lossy(&buffer[..read]);
-        let Some(path) = request_path(&request) else {
+        let request = String::from_utf8_lossy(&request);
+        let Some(path) = request_path(request.as_ref()) else {
             write_response(stream, 400, "text/plain; charset=utf-8", "bad request")?;
             return Ok(());
         };
@@ -354,6 +365,22 @@ impl Server {
     fn load_project(&self) -> Result<scanner::ScanResult, UiError> {
         scanner::load_project(&self.root, &self.options.blueprint_path).map_err(UiError::Project)
     }
+}
+
+fn read_http_request(stream: &mut TcpStream) -> Result<Vec<u8>, std::io::Error> {
+    let mut request = Vec::new();
+    let mut buffer = [0_u8; 1024];
+    loop {
+        let read = stream.read(&mut buffer)?;
+        if read == 0 {
+            break;
+        }
+        request.extend_from_slice(&buffer[..read]);
+        if request.windows(4).any(|window| window == b"\r\n\r\n") || request.len() >= 8192 {
+            break;
+        }
+    }
+    Ok(request)
 }
 
 struct Response {

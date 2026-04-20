@@ -6,7 +6,8 @@ use std::{
     io::{Read, Write as IoWrite},
     net::TcpStream,
     path::{Path, PathBuf},
-    time::{SystemTime, UNIX_EPOCH},
+    thread,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use cairn::ui::{self, UiOptions};
@@ -173,6 +174,28 @@ app.api -> app "reports"
 }
 
 fn get(address: std::net::SocketAddr, path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut last_error = None;
+    for _attempt in 0..10 {
+        match get_once(address, path) {
+            Ok(body) => return Ok(body),
+            Err(error)
+                if error
+                    .downcast_ref::<std::io::Error>()
+                    .is_some_and(|error| error.kind() == std::io::ErrorKind::ConnectionReset) =>
+            {
+                last_error = Some(error);
+                thread::sleep(Duration::from_millis(20));
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    Err(last_error.unwrap_or_else(|| "request failed".into()))
+}
+
+fn get_once(
+    address: std::net::SocketAddr,
+    path: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
     let mut stream = TcpStream::connect(address)?;
     write!(
         stream,
