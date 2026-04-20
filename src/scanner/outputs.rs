@@ -6,7 +6,10 @@ use std::{
     path::Path,
 };
 
-use crate::map::graph::{FindingSeverity, Graph, NodeState};
+use crate::{
+    changes,
+    map::graph::{FindingSeverity, Graph, NodeState},
+};
 
 /// Writes generated `map.md`.
 ///
@@ -34,12 +37,16 @@ pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
         })
         .collect::<Vec<_>>()
         .join("\n");
+    let active_changes = changes::discover(root)
+        .map(|items| changes::active_changes_lines(&items))
+        .unwrap_or_default();
     fs::write(
         root.join("map.md"),
         format!(
-            "---\ngenerated: true\n---\n\n# Cairn Map\n\n## Synced\n{}\n\n## Ghost\n{}\n\n## Active changes\n\nNone in Phase 1.\n\n## Findings\n{}\n",
+            "---\ngenerated: true\n---\n\n# Cairn Map\n\n## Synced\n{}\n\n## Ghost\n{}\n\n## Active changes\n\n{}\n\n## Findings\n{}\n",
             bullet_list(&synced),
             bullet_list(&ghost),
+            bullet_list(&active_changes),
             if findings.is_empty() {
                 "None".to_owned()
             } else {

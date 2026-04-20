@@ -8,6 +8,8 @@
 pub mod artefacts;
 /// Cairn blueprint parsing.
 pub mod blueprint;
+/// Isolated change directory support.
+pub mod changes;
 /// CLI command registry and renderer helpers.
 pub mod cli;
 /// Map graph construction and queries.
@@ -72,7 +74,11 @@ mod tests {
             cli::registry()
                 .iter()
                 .filter(|command| {
-                    command.name != "scan" && command.name != "init" && command.name != "ui"
+                    command.name != "scan"
+                        && command.name != "init"
+                        && command.name != "ui"
+                        && command.name != "archive"
+                        && command.name != "rename"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );
