@@ -18,6 +18,12 @@ if ! cargo fmt --check; then
     echo "pre-commit: cargo fmt --check failed" >&2
     exit 1
 fi
+
+echo "pre-commit: running cairn hook all"
+if ! scripts/cairn-hook-all.sh; then
+    echo "pre-commit: cairn hook all failed" >&2
+    exit 1
+fi
 HOOK
 
 chmod +x "$hook_path"

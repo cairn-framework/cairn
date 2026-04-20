@@ -22,8 +22,6 @@ Claude Code, Cursor, Copilot. They all work best when the structure is explicit,
 
 - Parses a human-authored `cairn.blueprint` into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
 - Reconciles declared nodes against real files on disk and flags `synced`, `ghost`, and `orphaned` state.
-- Compares declared edges to observed Rust dependencies and reports drift as advisory rationale tensions.
-- Generates language-aware docstring templates grounded in graph facts.
 - Produces `map.md` with generated frontmatter, active changes, and ranked findings agents can consume.
 - Computes deterministic Rust interface hashes and detects contract drift between revisions.
 - Surfaces `interface contradictions` (blocking) and `rationale tensions` (advisory) so commits that break the authority chain never land silently.
@@ -82,7 +80,7 @@ Cairn is a Rust workspace. After cloning, install the local Git format hook:
 scripts/install-pre-commit-hook.sh
 ```
 
-The hook recreates `.git/hooks/pre-commit`, which is not committed by Git, and runs `cargo fmt --check` before each commit.
+The hook recreates `.git/hooks/pre-commit`, which is not committed by Git, and runs `cargo fmt --check` plus `cairn hook all` before each commit.
 
 Run the local quality suite before pushing:
 
@@ -109,11 +107,14 @@ cairn get <node-id> --json
 cairn neighbourhood <node-id>
 cairn files <node-id>
 cairn contract <node-id>
-cairn docstring <node-id> --language rust
 cairn depends <node-id> --transitive
 cairn dependents <node-id>
 cairn order
 cairn lint --json
+cairn hook structural
+cairn hook interface
+cairn hook tension
+cairn hook all --json
 ```
 
 Every Phase 1 command accepts `--file <path>` to select a blueprint file and `--json` to render the same typed response structs as stable machine-readable JSON.
@@ -126,9 +127,16 @@ Phase 1 implements only contract artefacts. A contract is a Markdown file with f
 - `.cairn/log.md` with an appended scan event.
 - `.cairn/state/interface-hashes.json` with deterministic Rust interface hash state.
 
-Edge divergence and docstring drift are rationale tensions. They appear in `lint`, `scan`, JSON output, and generated `map.md`, but they do not block queries unless a separate structural error is present.
+## Hooks
 
-`cairn docstring <node-id> [--language <lang>]` emits a template for Rust, Python, TypeScript, or Go. The template includes stable Cairn fact lines from the graph plus a prose placeholder. The human or agent completing the template must still write the module explanation.
+Hooks enforce the integrity classes from `docs/spec.md`:
+
+- `cairn hook structural` exits `1` when structural errors or active-change conflicts exist.
+- `cairn hook interface` exits `1` when the current interface hash differs from `.cairn/state/interface-hashes.json`.
+- `cairn hook tension` prints advisory findings and always exits `0`.
+- `cairn hook all` runs all classes. Structural and interface failures determine the exit code; tensions do not fail the hook.
+
+Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `scripts/cairn-hook-all.sh` from Git hooks or agent task-end hooks so the same engine runs in every boundary.
 
 ## Design system
 

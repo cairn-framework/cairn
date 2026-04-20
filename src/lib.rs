@@ -8,10 +8,12 @@
 pub mod artefacts;
 /// Cairn blueprint parsing.
 pub mod blueprint;
-/// Isolated change directory support.
+/// Change discovery, delta parsing, validation, and archive support.
 pub mod changes;
 /// CLI command registry and renderer helpers.
 pub mod cli;
+/// Hook engine and active-change conflict detection.
+pub mod hooks;
 /// Map graph construction and queries.
 pub mod map;
 /// Code reconciliation interfaces.
@@ -78,7 +80,6 @@ mod tests {
                         && command.name != "init"
                         && command.name != "ui"
                         && command.name != "archive"
-                        && command.name != "rename"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );

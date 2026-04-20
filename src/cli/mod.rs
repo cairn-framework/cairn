@@ -11,8 +11,7 @@ use crate::{
         Decision, DecisionStatus, Research, Review, ReviewType, Source, SourceVerification, Todo,
         TodoStatus,
     },
-    changes,
-    cli::hooks::{HookKind, HookReport, errors_from_findings, warnings_from_findings},
+    hooks::{self, HookKind},
     map::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
@@ -53,7 +52,7 @@ pub struct CliResult {
     pub stderr: String,
 }
 
-const COMMAND_REGISTRY: [CommandMetadata; 23] = [
+const COMMAND_REGISTRY: [CommandMetadata; 19] = [
     CommandMetadata {
         name: "get",
         request: "NodeRequest",
@@ -109,30 +108,6 @@ const COMMAND_REGISTRY: [CommandMetadata; 23] = [
         safety: SafetyClass::ReadOnly,
     },
     CommandMetadata {
-        name: "changes",
-        request: "ChangesRequest",
-        response: "ChangesResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "show",
-        request: "ShowChangeRequest",
-        response: "ShowChangeResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
-        name: "archive",
-        request: "ArchiveChangeRequest",
-        response: "ArchiveChangeResponse",
-        safety: SafetyClass::Mutating,
-    },
-    CommandMetadata {
-        name: "rename",
-        request: "RenameRequest",
-        response: "RenameResponse",
-        safety: SafetyClass::Mutating,
-    },
-    CommandMetadata {
         name: "files",
         request: "NodeRequest",
         response: "FilesResponse",
@@ -181,16 +156,16 @@ const COMMAND_REGISTRY: [CommandMetadata; 23] = [
         safety: SafetyClass::ReadOnly,
     },
     CommandMetadata {
-        name: "docstring",
-        request: "DocstringRequest",
-        response: "DocstringResponse",
-        safety: SafetyClass::ReadOnly,
-    },
-    CommandMetadata {
         name: "hook",
         request: "HookRequest",
         response: "HookReport",
         safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "archive",
+        request: "ArchiveRequest",
+        response: "ArchiveResponse",
+        safety: SafetyClass::Mutating,
     },
 ];
 
@@ -222,8 +197,7 @@ pub fn run(args: &[String]) -> CliResult {
 struct ParsedArgs {
     json: bool,
     file: PathBuf,
-    changes_dir: Option<PathBuf>,
-    output_path: Option<PathBuf>,
+    changes_dir: PathBuf,
     command: String,
     command_args: Vec<String>,
 }
@@ -231,8 +205,7 @@ struct ParsedArgs {
 fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let mut json = false;
     let mut file = PathBuf::from("cairn.blueprint");
-    let mut changes_dir = None;
-    let mut output_path = None;
+    let mut changes_dir = PathBuf::from("meta/changes");
     let mut command_args = Vec::new();
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
@@ -248,13 +221,7 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
                 let Some(value) = iter.next() else {
                     return Err(err(2, "--changes-dir requires a path"));
                 };
-                changes_dir = Some(PathBuf::from(value));
-            }
-            "--output" => {
-                let Some(value) = iter.next() else {
-                    return Err(err(2, "--output requires a path"));
-                };
-                output_path = Some(PathBuf::from(value));
+                changes_dir = PathBuf::from(value);
             }
             value => command_args.push(value.to_owned()),
         }
@@ -266,7 +233,6 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
         json,
         file,
         changes_dir,
-        output_path,
         command: command.to_owned(),
         command_args,
     })
@@ -289,8 +255,8 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         );
     }
     let legacy_warning = legacy_blueprint_warning(root);
-    if let Some(result) = render_change_command(parsed, root, &legacy_warning) {
-        return result;
+    if parsed.command == "archive" {
+        return run_archive_command(parsed, root, legacy_warning);
     }
     let scan_result = if parsed.command == "scan" {
         scanner::scan(root, &parsed.file)
@@ -306,16 +272,15 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     }
     match parsed.command.as_str() {
         "get" => render_get(parsed, &scan_result),
-        "neighbourhood" => render_neighbourhood(parsed, &scan_result, root),
+        "neighbourhood" => render_neighbourhood(parsed, &scan_result),
         "files" => render_files(parsed, &scan_result),
         "todos" => render_todos(parsed, &scan_result),
         "decisions" => render_decisions(parsed, &scan_result),
         "research" => render_research(parsed, &scan_result),
         "sources" => render_sources(parsed, &scan_result),
         "rationale" => render_rationale(parsed, &scan_result),
-        "docstring" => render_docstring(parsed, &scan_result),
         "status" => Ok(render_status(parsed, &scan_result, root)),
-        "hook" => return render_hook(parsed, &scan_result),
+        "hook" => return run_hook_command(parsed, root, &scan_result, legacy_warning),
         "dependents" | "depends" => render_dependencies(parsed, &scan_result),
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
             let node = scan_result.graph.resolve(node)?;
@@ -371,17 +336,59 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     )
 }
 
-fn render_change_command(parsed: &ParsedArgs, root: &Path, stderr: &str) -> Option<CliResult> {
-    match parsed.command.as_str() {
-        "changes" => Some(render_changes_command(parsed, root, stderr.to_owned())),
-        "show" => Some(render_show_command(parsed, root, stderr.to_owned())),
-        "archive" => Some(render_archive_command(parsed, root, stderr.to_owned())),
-        "rename" => Some(render_rename_command(
-            parsed,
-            root,
-            &parsed.file,
-            stderr.to_owned(),
-        )),
+fn run_hook_command(
+    parsed: &ParsedArgs,
+    root: &Path,
+    scan_result: &scanner::ScanResult,
+    legacy_warning: String,
+) -> CliResult {
+    let Some(kind) = parsed
+        .command_args
+        .get(1)
+        .and_then(|value| parse_hook_kind(value))
+    else {
+        return err(2, "usage: cairn hook <structural|interface|tension|all>");
+    };
+    let changes_dir = root.join(&parsed.changes_dir);
+    let report = hooks::run(kind, root, &changes_dir, scan_result);
+    CliResult {
+        code: report.exit_code(),
+        stdout: if parsed.json {
+            hooks::render_json(&report)
+        } else {
+            hooks::render_human(&report)
+        },
+        stderr: legacy_warning,
+    }
+}
+
+fn run_archive_command(parsed: &ParsedArgs, root: &Path, legacy_warning: String) -> CliResult {
+    let Some(change_id) = parsed.command_args.get(1) else {
+        return err(2, "usage: cairn archive <change-id>");
+    };
+    let changes_dir = root.join(&parsed.changes_dir);
+    let conflict_findings = hooks::detect_active_change_conflicts(&changes_dir);
+    if !conflict_findings.is_empty() {
+        return CliResult {
+            code: 1,
+            stdout: render_findings(&conflict_findings, parsed.json),
+            stderr: legacy_warning,
+        };
+    }
+    err(
+        1,
+        &format!(
+            "archive `{change_id}` is not available until the change archive engine is installed"
+        ),
+    )
+}
+
+fn parse_hook_kind(value: &str) -> Option<HookKind> {
+    match value {
+        "structural" => Some(HookKind::Structural),
+        "interface" => Some(HookKind::Interface),
+        "tension" => Some(HookKind::Tension),
+        "all" => Some(HookKind::All),
         _ => None,
     }
 }
@@ -417,7 +424,6 @@ fn render_get(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> Result<
 fn render_neighbourhood(
     parsed: &ParsedArgs,
     scan_result: &scanner::ScanResult,
-    root: &Path,
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
         query::neighbourhood(&scan_result.graph, node).map(|response| {
@@ -439,7 +445,6 @@ fn render_neighbourhood(
                 .iter()
                 .any(|arg| arg == "--include-changes");
             let node_ids = neighbourhood_ids(&scan_result.graph, &response.node.id);
-            let active_changes = active_change_operations(root, include_changes, &node_ids);
             let decisions = scan_result
                 .artefacts
                 .decisions
@@ -478,13 +483,13 @@ fn render_neighbourhood(
                 Vec::new()
             };
             if parsed.json {
-                let active_changes_json = if include_changes {
-                    format!(",\"active_changes\":{}", string_array_json(&active_changes))
+                let active_changes = if include_changes {
+                    ",\"active_changes\":[]"
                 } else {
-                    String::new()
+                    ""
                 };
                 format!(
-                    "{{\"node\":{},\"inbound\":{},\"outbound\":{},\"contracts\":{},\"decisions\":{},\"todos\":{},\"research\":{},\"reviews\":{}{active_changes_json}}}\n",
+                    "{{\"node\":{},\"inbound\":{},\"outbound\":{},\"contracts\":{},\"decisions\":{},\"todos\":{},\"research\":{},\"reviews\":{}{active_changes}}}\n",
                     node_json(&response.node),
                     string_array_json(&response.inbound),
                     string_array_json(&response.outbound),
@@ -495,13 +500,13 @@ fn render_neighbourhood(
                     reviews_json(&reviews)
                 )
             } else {
-                let active_changes_text = if include_changes {
-                    format!("\nActive changes:\n{}", lines(&active_changes))
+                let active_changes = if include_changes {
+                    "\nActive changes:\nNone"
                 } else {
-                    String::new()
+                    ""
                 };
                 format!(
-                    "Node: {}\nInbound:\n{}\nOutbound:\n{}\nContracts:\n{}\nAccepted decisions:\n{}\nTodos:\n{}\nResearch:\n{}\nReviews:\n{}{active_changes_text}\n",
+                    "Node: {}\nInbound:\n{}\nOutbound:\n{}\nContracts:\n{}\nAccepted decisions:\n{}\nTodos:\n{}\nResearch:\n{}\nReviews:\n{}{active_changes}\n",
                     response.node.id,
                     lines(&response.inbound),
                     lines(&response.outbound),
@@ -514,20 +519,6 @@ fn render_neighbourhood(
             }
         })
     })
-}
-
-fn active_change_operations(
-    root: &Path,
-    include_changes: bool,
-    node_ids: &BTreeSet<String>,
-) -> Vec<String> {
-    if include_changes {
-        changes::discover(root)
-            .map(|changes| changes::operations_for_nodes(&changes, node_ids))
-            .unwrap_or_default()
-    } else {
-        Vec::new()
-    }
 }
 
 fn render_files(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> Result<String, Finding> {
@@ -724,184 +715,6 @@ fn render_rationale(
     })
 }
 
-fn render_hook(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> CliResult {
-    let kind_str = parsed.command_args.get(1).map_or("all", String::as_str);
-    let Some(kind) = HookKind::from_str(kind_str) else {
-        return err(2, "usage: cairn hook <structural|interface|tension|all>");
-    };
-    let errors = errors_from_findings(&scan_result.graph.findings);
-    let warnings = warnings_from_findings(&scan_result.graph.findings);
-    let findings = match kind {
-        HookKind::Structural | HookKind::Interface => errors.clone(),
-        HookKind::Tension => warnings,
-        HookKind::All => scan_result.graph.findings.clone(),
-    };
-    let conflicts = Vec::new();
-    let report = HookReport::new(kind)
-        .with_findings(findings)
-        .with_conflicts(conflicts)
-        .with_elapsed_ms(0)
-        .compute_exit_decision();
-    let code = u8::from(report.exit_decision);
-    let stdout = if parsed.json {
-        report.render_json()
-    } else {
-        report.render_human()
-    };
-    CliResult {
-        code,
-        stdout,
-        stderr: String::new(),
-    }
-}
-
-fn render_docstring(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    let language = flag_value(&parsed.command_args, "--language").unwrap_or("rust");
-    let language = DocLanguage::parse(language)?;
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let dependencies = scan_result
-            .graph
-            .outbound
-            .get(&node.id)
-            .into_iter()
-            .flatten()
-            .map(|edge| edge.to.clone())
-            .collect::<Vec<_>>();
-        let contract_headings = contract_headings(scan_result, node);
-        let text = render_docstring_text(language, node, &dependencies, &contract_headings);
-        Ok(if parsed.json {
-            format!(
-                "{{\"node\":\"{}\",\"language\":\"{}\",\"facts\":{{\"id\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"dependencies\":{},\"tags\":{},\"contracts\":{},\"contract_headings\":{}}},\"text\":\"{}\"}}\n",
-                esc(&node.id),
-                language.as_str(),
-                esc(&node.id),
-                esc(&node.name),
-                esc(&node.description),
-                string_array_json(&dependencies),
-                string_array_json(&node.tags),
-                string_array_json(&node.contracts),
-                string_array_json(&contract_headings),
-                esc(&text)
-            )
-        } else {
-            format!("{text}\n")
-        })
-    })
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum DocLanguage {
-    Rust,
-    Python,
-    TypeScript,
-    Go,
-}
-
-impl DocLanguage {
-    fn parse(value: &str) -> Result<Self, Finding> {
-        match value {
-            "rust" => Ok(Self::Rust),
-            "python" => Ok(Self::Python),
-            "typescript" => Ok(Self::TypeScript),
-            "go" => Ok(Self::Go),
-            _ => Err(Finding {
-                code: "CE010".to_owned(),
-                severity: FindingSeverity::Error,
-                message: format!(
-                    "unsupported docstring language `{value}`; supported languages: Rust, Python, TypeScript, Go"
-                ),
-                node: None,
-                path: None,
-            }),
-        }
-    }
-
-    const fn as_str(self) -> &'static str {
-        match self {
-            Self::Rust => "rust",
-            Self::Python => "python",
-            Self::TypeScript => "typescript",
-            Self::Go => "go",
-        }
-    }
-}
-
-fn render_docstring_text(
-    language: DocLanguage,
-    node: &NodeRecord,
-    dependencies: &[String],
-    contract_headings: &[String],
-) -> String {
-    let lines = docstring_fact_lines(node, dependencies, contract_headings);
-    let prefix = match language {
-        DocLanguage::Rust => "//! ",
-        DocLanguage::Python => "# ",
-        DocLanguage::TypeScript | DocLanguage::Go => "// ",
-    };
-    lines
-        .iter()
-        .map(|line| format!("{prefix}{line}"))
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
-fn docstring_fact_lines(
-    node: &NodeRecord,
-    dependencies: &[String],
-    contract_headings: &[String],
-) -> Vec<String> {
-    let mut lines = vec![
-        format!("Cairn-ID: {}", node.id),
-        format!("Cairn-Name: {}", node.name),
-        format!("Description: {}", node.description),
-    ];
-    lines.extend(
-        dependencies
-            .iter()
-            .map(|dependency| format!("Cairn-Depends: {dependency}")),
-    );
-    if !node.tags.is_empty() {
-        lines.push(format!("Cairn-Tags: {}", node.tags.join(", ")));
-    }
-    lines.extend(
-        node.contracts
-            .iter()
-            .map(|contract| format!("Cairn-Contract: {contract}")),
-    );
-    lines.extend(
-        contract_headings
-            .iter()
-            .map(|heading| format!("Contract-Heading: {heading}")),
-    );
-    lines.push(String::new());
-    lines.push("Purpose: Complete this prose with the module responsibility.".to_owned());
-    lines
-}
-
-fn contract_headings(scan_result: &scanner::ScanResult, node: &NodeRecord) -> Vec<String> {
-    node.contracts
-        .iter()
-        .filter_map(|path| scan_result.contracts.contracts.get(path))
-        .filter(|contract| contract.node == node.id)
-        .flat_map(|contract| {
-            contract
-                .body
-                .lines()
-                .filter_map(|line| {
-                    line.strip_prefix('#')
-                        .map(|heading| heading.trim_start_matches('#').trim())
-                })
-                .filter(|line| !line.is_empty())
-                .map(ToOwned::to_owned)
-                .collect::<Vec<_>>()
-        })
-        .collect()
-}
-
 fn render_status(parsed: &ParsedArgs, scan_result: &scanner::ScanResult, root: &Path) -> String {
     let open = scan_result
         .artefacts
@@ -920,153 +733,18 @@ fn render_status(parsed: &ParsedArgs, scan_result: &scanner::ScanResult, root: &
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default();
-    let active_changes = changes::discover(root).unwrap_or_default();
-    let change_lines = changes::active_changes_lines(&active_changes);
     if parsed.json {
         format!(
-            "{{\"active_changes\":{},\"open_todos\":{},\"recent_log_entries\":{}}}\n",
-            changes_json(&active_changes),
+            "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{}}}\n",
             todos_json(&open),
             string_array_json(&log_entries)
         )
     } else {
         format!(
-            "Status:\nActive changes:\n{}\nOpen todos:\n{}\nRecent log entries:\n{}\n",
-            lines(&change_lines),
+            "Status:\nActive changes:\nNone\nOpen todos:\n{}\nRecent log entries:\n{}\n",
             lines(&open.iter().map(todo_line).collect::<Vec<_>>()),
             lines(&log_entries)
         )
-    }
-}
-
-fn render_changes_command(parsed: &ParsedArgs, root: &Path, stderr: String) -> CliResult {
-    match changes::discover(root) {
-        Ok(active_changes) => {
-            let stdout = if parsed.json {
-                format!("{{\"changes\":{}}}\n", changes_json(&active_changes))
-            } else {
-                format!(
-                    "Active changes:\n{}\n",
-                    lines(&changes::active_changes_lines(&active_changes))
-                )
-            };
-            CliResult {
-                code: 0,
-                stdout,
-                stderr,
-            }
-        }
-        Err(error) => error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error.to_string()),
-    }
-}
-
-fn render_show_command(parsed: &ParsedArgs, root: &Path, stderr: String) -> CliResult {
-    let Some(change_id) = parsed.command_args.get(1) else {
-        return err(2, "change argument is required");
-    };
-    match changes::discover(root) {
-        Ok(active_changes) => {
-            let Some(change) = active_changes
-                .into_iter()
-                .find(|change| &change.id == change_id)
-            else {
-                return error_output(
-                    parsed.json,
-                    "CAIRN_COMMAND_FAILED",
-                    &format!("change `{change_id}` was not found"),
-                );
-            };
-            let stdout = if parsed.json {
-                format!("{{\"change\":{}}}\n", change_json(&change))
-            } else {
-                format!(
-                    "Change: {}\nTitle: {}\nOperations: {}\n\nProposal:\n{}\nBlueprint delta:\n{}\nArtefact operations:\n{}\n",
-                    change.id,
-                    change.title,
-                    changes::operation_summary(&change),
-                    change.proposal,
-                    render_delta_text(&change.delta),
-                    lines(
-                        &change
-                            .artefacts
-                            .iter()
-                            .map(|artefact| format!(
-                                "{:?} {}",
-                                artefact.operation,
-                                artefact.target_path.display()
-                            ))
-                            .collect::<Vec<_>>()
-                    )
-                )
-            };
-            CliResult {
-                code: 0,
-                stdout,
-                stderr,
-            }
-        }
-        Err(error) => error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error.to_string()),
-    }
-}
-
-fn render_archive_command(parsed: &ParsedArgs, root: &Path, stderr: String) -> CliResult {
-    let Some(change_id) = parsed.command_args.get(1) else {
-        return err(2, "change argument is required");
-    };
-    match changes::archive(root, &parsed.file, change_id) {
-        Ok(report) => {
-            let stdout = if parsed.json {
-                format!(
-                    "{{\"archived\":\"{}\",\"archive_path\":\"{}\",\"summary\":\"{}\"}}\n",
-                    esc(change_id),
-                    esc(&report.archive_path.display().to_string()),
-                    esc(&report.summary)
-                )
-            } else {
-                format!(
-                    "Archived {change_id} to {}\n{}\n",
-                    report.archive_path.display(),
-                    report.summary
-                )
-            };
-            CliResult {
-                code: 0,
-                stdout,
-                stderr,
-            }
-        }
-        Err(error) => error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error),
-    }
-}
-
-fn render_rename_command(
-    parsed: &ParsedArgs,
-    root: &Path,
-    blueprint_path: &Path,
-    stderr: String,
-) -> CliResult {
-    let (Some(old_id), Some(new_id)) = (parsed.command_args.get(1), parsed.command_args.get(2))
-    else {
-        return err(2, "rename requires old and new node IDs");
-    };
-    match changes::create_rename_change(root, blueprint_path, old_id, new_id) {
-        Ok(change) => {
-            let stdout = if parsed.json {
-                format!("{{\"change\":{}}}\n", change_json(&change))
-            } else {
-                format!(
-                    "Created change {}\n{}\n",
-                    change.id,
-                    changes::operation_summary(&change)
-                )
-            };
-            CliResult {
-                code: 0,
-                stdout,
-                stderr,
-            }
-        }
-        Err(error) => error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error),
     }
 }
 
@@ -1108,7 +786,6 @@ fn requires_valid_map(command: &str) -> bool {
             | "research"
             | "sources"
             | "rationale"
-            | "docstring"
             | "status"
     )
 }
@@ -1311,81 +988,6 @@ fn sources_json(sources: &[Source]) -> String {
             .collect::<Vec<_>>()
             .join(",")
     )
-}
-
-fn changes_json(changes: &[changes::Change]) -> String {
-    format!(
-        "[{}]",
-        changes
-            .iter()
-            .map(change_json)
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-fn change_json(change: &changes::Change) -> String {
-    format!(
-        "{{\"id\":\"{}\",\"title\":\"{}\",\"summary\":\"{}\",\"valid\":{},\"findings\":{}}}",
-        esc(&change.id),
-        esc(&change.title),
-        esc(&changes::operation_summary(change)),
-        change.findings.is_empty(),
-        string_array_json(&change.findings)
-    )
-}
-
-fn render_delta_text(delta: &changes::BlueprintDelta) -> String {
-    let mut summary = Vec::new();
-    summary.extend(
-        delta
-            .added_nodes
-            .iter()
-            .map(|node| format!("added node {}", node.id)),
-    );
-    summary.extend(
-        delta
-            .modified_nodes
-            .iter()
-            .map(|node| format!("modified node {}", node.id)),
-    );
-    summary.extend(
-        delta
-            .removed_nodes
-            .iter()
-            .map(|id| format!("removed node {id}")),
-    );
-    summary.extend(
-        delta
-            .renamed_nodes
-            .iter()
-            .map(|rename| format!("renamed node {} -> {}", rename.from, rename.to)),
-    );
-    summary.extend(
-        delta
-            .added_edges
-            .iter()
-            .map(|edge| format!("added edge {} -> {}", edge.from, edge.to)),
-    );
-    summary.extend(
-        delta
-            .modified_edges
-            .iter()
-            .map(|edge| format!("modified edge {} -> {}", edge.from, edge.to)),
-    );
-    summary.extend(
-        delta
-            .removed_edges
-            .iter()
-            .map(|edge| format!("removed edge {} -> {}", edge.from, edge.to)),
-    );
-    summary.extend(delta.renamed_edges.iter().map(|rename| {
-        format!(
-            "renamed edge {} -> {} as {} -> {}",
-            rename.from.from, rename.from.to, rename.to.from, rename.to.to
-        )
-    }));
-    lines(&summary)
 }
 
 fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
@@ -1592,8 +1194,6 @@ fn lines(values: &[String]) -> String {
             .join("\n")
     }
 }
-
-pub mod hooks;
 
 fn esc(value: &str) -> String {
     value
