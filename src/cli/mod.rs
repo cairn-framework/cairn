@@ -12,7 +12,9 @@ use crate::{
         TodoStatus,
     },
     changes,
-    cli::hooks::{HookKind, HookReport, errors_from_findings, warnings_from_findings},
+    cli::hooks::{
+        ExitDecision, HookKind, HookReport, errors_from_findings, warnings_from_findings,
+    },
     map::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
@@ -222,6 +224,8 @@ pub fn run(args: &[String]) -> CliResult {
 struct ParsedArgs {
     json: bool,
     file: PathBuf,
+    changes_dir: Option<PathBuf>,
+    output_path: Option<PathBuf>,
     command: String,
     command_args: Vec<String>,
 }
@@ -229,6 +233,8 @@ struct ParsedArgs {
 fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let mut json = false;
     let mut file = PathBuf::from("cairn.blueprint");
+    let mut changes_dir = None;
+    let mut output_path = None;
     let mut command_args = Vec::new();
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
@@ -240,6 +246,18 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
                 };
                 file = PathBuf::from(value);
             }
+            "--changes-dir" => {
+                let Some(value) = iter.next() else {
+                    return Err(err(2, "--changes-dir requires a path"));
+                };
+                changes_dir = Some(PathBuf::from(value));
+            }
+            "--output" => {
+                let Some(value) = iter.next() else {
+                    return Err(err(2, "--output requires a path"));
+                };
+                output_path = Some(PathBuf::from(value));
+            }
             value => command_args.push(value.to_owned()),
         }
     }
@@ -249,6 +267,8 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     Ok(ParsedArgs {
         json,
         file,
+        changes_dir,
+        output_path,
         command: command.to_owned(),
         command_args,
     })
@@ -719,15 +739,12 @@ fn render_hook(parsed: &ParsedArgs, scan_result: &scanner::ScanResult) -> CliRes
         HookKind::All => scan_result.graph.findings.clone(),
     };
     let conflicts = Vec::new();
-    let mut report = HookReport::new(kind)
+    let report = HookReport::new(kind)
         .with_findings(findings)
         .with_conflicts(conflicts)
         .with_elapsed_ms(0)
         .compute_exit_decision();
-    let code = match report.exit_decision {
-        crate::cli::hooks::ExitDecision::Pass => 0,
-        crate::cli::hooks::ExitDecision::Fail => 1,
-    };
+    let code = u8::from(report.exit_decision);
     let stdout = if parsed.json {
         report.render_json()
     } else {
