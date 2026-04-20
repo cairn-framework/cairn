@@ -630,11 +630,258 @@ fn test_phase_2_integrity_findings() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_hook_structural_blocks_structural_errors() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hook-structural")?;
+    fs::create_dir_all(root.join("src"))?;
+    fs::write(root.join("src/lib.rs"), "pub fn lib() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module One "one" id "app.one" {
+        path "./src"
+    }
+    Module Two "two" id "app.two" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["hook", "structural"])
+        .output()?;
+
+    assert!(!output.status.success());
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(stdout.contains("Decision: block"));
+    assert!(stdout.contains("CAIRN_INTEGRITY_PATH_TIE"));
+
+    Ok(())
+}
+
+#[test]
+fn test_hook_tension_reports_warnings_without_blocking() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hook-tension")?;
+    fs::create_dir_all(root.join("meta/contracts"))?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Lib "lib" id "app.lib" {
+        path "./src"
+        contract "./meta/contracts/missing.md"
+    }
+}
+"#,
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "hook", "tension"])
+        .output()?;
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(stdout.contains("\"kind\":\"tension\""));
+    assert!(stdout.contains("\"decision\":\"pass\""));
+    assert!(stdout.contains("CAIRN_CONTRACT_MISSING"));
+
+    Ok(())
+}
+
+#[test]
+fn test_hook_interface_blocks_changed_interface_hash() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hook-interface")?;
+    fs::create_dir_all(root.join("src"))?;
+    fs::write(root.join("src/lib.rs"), "pub fn one() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Lib "lib" id "app.lib" {
+        path "./src"
+    }
+}
+"#,
+    )?;
+    scanner::scan(&root, &root.join("cairn.blueprint"))?;
+    fs::write(root.join("src/lib.rs"), "pub fn two() {}\n")?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["hook", "interface"])
+        .output()?;
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8(output.stdout)?.contains("CAIRN_INTERFACE_HASH_CHANGED"));
+
+    Ok(())
+}
+
+#[test]
+fn test_hook_all_reports_active_change_conflicts() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hook-conflicts")?;
+    write_clean_hook_fixture(&root)?;
+    write_change(
+        &root,
+        "first",
+        "## MODIFIED Nodes\nModule Auth \"auth\" id \"app.auth\" {}\n",
+        &[],
+    )?;
+    write_change(&root, "second", "## REMOVED Nodes\napp.auth\n", &[])?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "hook", "all"])
+        .output()?;
+
+    assert!(!output.status.success());
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(stdout.contains("CAIRN_CHANGE_BLUEPRINT_CONFLICT"));
+    assert!(stdout.contains("first"));
+    assert!(stdout.contains("second"));
+
+    Ok(())
+}
+
+#[test]
+fn test_active_change_conflicts_cover_artefacts_and_renames()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hook-artifact-renames")?;
+    write_clean_hook_fixture(&root)?;
+    write_change(
+        &root,
+        "first",
+        "## RENAMED Nodes\napp.auth -> app.identity\n",
+        &[(
+            "meta/contracts/auth.md",
+            "---\noperation: modified\nnode: app.auth\n---\n# Contract\n",
+        )],
+    )?;
+    write_change(
+        &root,
+        "second",
+        "## RENAMED Nodes\napp.auth -> app.account\n",
+        &[(
+            "meta/contracts/auth.md",
+            "---\noperation: modified\nnode: app.auth\n---\n# Contract\n",
+        )],
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["hook", "structural"])
+        .output()?;
+
+    assert!(!output.status.success());
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(stdout.contains("CAIRN_CHANGE_ARTEFACT_CONFLICT"));
+    assert!(stdout.contains("CAIRN_CHANGE_RENAME_CONFLICT"));
+
+    Ok(())
+}
+
+#[test]
+fn test_archive_guard_runs_conflict_detector_before_mutation()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("archive-conflict")?;
+    write_clean_hook_fixture(&root)?;
+    write_change(
+        &root,
+        "first",
+        "## MODIFIED Nodes\nModule Auth \"auth\" id \"app.auth\" {}\n",
+        &[],
+    )?;
+    write_change(
+        &root,
+        "second",
+        "## MODIFIED Nodes\nModule Auth \"auth\" id \"app.auth\" {}\n",
+        &[],
+    )?;
+    let before = fs::read_to_string(root.join("cairn.blueprint"))?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["archive", "first"])
+        .output()?;
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8(output.stdout)?.contains("CAIRN_CHANGE_BLUEPRINT_CONFLICT"));
+    assert_eq!(fs::read_to_string(root.join("cairn.blueprint"))?, before);
+    assert!(root.join("meta/changes/first").exists());
+    assert!(root.join("meta/changes/second").exists());
+
+    Ok(())
+}
+
+#[test]
+fn test_committed_hook_runner_invokes_hook_all() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("hook-script")?;
+    write_clean_hook_fixture(&root)?;
+    let bin = PathBuf::from(env!("CARGO_BIN_EXE_cairn"));
+    let bin_dir = bin
+        .parent()
+        .ok_or("binary path has no parent directory")?
+        .to_owned();
+    let old_path = std::env::var_os("PATH").unwrap_or_default();
+    let path = format!("{}:{}", bin_dir.display(), old_path.to_string_lossy());
+
+    let output = Command::new("sh")
+        .current_dir(&root)
+        .env("PATH", path)
+        .args([
+            "/Users/george/.local/share/cflx/worktrees/cairn-ba64eedb/phase-4-hooks/scripts/cairn-hook-all.sh",
+            "--file",
+            "cairn.blueprint",
+        ])
+        .output()?;
+
+    assert!(output.status.success());
+    assert!(String::from_utf8(output.stdout)?.contains("Hook: all"));
+
+    Ok(())
+}
+
 fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
     let root = std::env::temp_dir().join(format!("cairn-{name}-{suffix}"));
     fs::create_dir_all(&root)?;
     Ok(root)
+}
+
+fn write_clean_hook_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+    }
+}
+"#,
+    )?;
+    Ok(())
+}
+
+fn write_change(
+    root: &Path,
+    id: &str,
+    blueprint_delta: &str,
+    artefacts: &[(&str, &str)],
+) -> Result<(), Box<dyn std::error::Error>> {
+    let change = root.join("meta/changes").join(id);
+    fs::create_dir_all(&change)?;
+    fs::write(change.join("proposal.md"), format!("# Proposal: {id}\n"))?;
+    fs::write(change.join("blueprint.delta"), blueprint_delta)?;
+    for (relative, content) in artefacts {
+        let path = change.join(relative);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(path, content)?;
+    }
+    Ok(())
 }
 
 fn write_phase_2_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> {

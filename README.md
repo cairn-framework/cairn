@@ -80,7 +80,7 @@ Cairn is a Rust workspace. After cloning, install the local Git format hook:
 scripts/install-pre-commit-hook.sh
 ```
 
-The hook recreates `.git/hooks/pre-commit`, which is not committed by Git, and runs `cargo fmt --check` before each commit.
+The hook recreates `.git/hooks/pre-commit`, which is not committed by Git, and runs `cargo fmt --check` plus `cairn hook all` before each commit.
 
 Run the local quality suite before pushing:
 
@@ -111,6 +111,10 @@ cairn depends <node-id> --transitive
 cairn dependents <node-id>
 cairn order
 cairn lint --json
+cairn hook structural
+cairn hook interface
+cairn hook tension
+cairn hook all --json
 ```
 
 Every Phase 1 command accepts `--file <path>` to select a blueprint file and `--json` to render the same typed response structs as stable machine-readable JSON.
@@ -122,6 +126,17 @@ Phase 1 implements only contract artefacts. A contract is a Markdown file with f
 - `map.md` with generated frontmatter, synced nodes, ghost nodes, active changes, and findings.
 - `.cairn/log.md` with an appended scan event.
 - `.cairn/state/interface-hashes.json` with deterministic Rust interface hash state.
+
+## Hooks
+
+Hooks enforce the integrity classes from `docs/spec.md`:
+
+- `cairn hook structural` exits `1` when structural errors or active-change conflicts exist.
+- `cairn hook interface` exits `1` when the current interface hash differs from `.cairn/state/interface-hashes.json`.
+- `cairn hook tension` prints advisory findings and always exits `0`.
+- `cairn hook all` runs all classes. Structural and interface failures determine the exit code; tensions do not fail the hook.
+
+Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `scripts/cairn-hook-all.sh` from Git hooks or agent task-end hooks so the same engine runs in every boundary.
 
 ## Design system
 

@@ -11,6 +11,7 @@ use crate::{
         Decision, DecisionStatus, Research, Review, ReviewType, Source, SourceVerification, Todo,
         TodoStatus,
     },
+    hooks::{self, HookKind},
     map::{
         graph::{Finding, FindingSeverity, NodeRecord},
         query,
@@ -51,7 +52,7 @@ pub struct CliResult {
     pub stderr: String,
 }
 
-const COMMAND_REGISTRY: [CommandMetadata; 17] = [
+const COMMAND_REGISTRY: [CommandMetadata; 19] = [
     CommandMetadata {
         name: "get",
         request: "NodeRequest",
@@ -154,6 +155,18 @@ const COMMAND_REGISTRY: [CommandMetadata; 17] = [
         response: "UiServerResponse",
         safety: SafetyClass::ReadOnly,
     },
+    CommandMetadata {
+        name: "hook",
+        request: "HookRequest",
+        response: "HookReport",
+        safety: SafetyClass::ReadOnly,
+    },
+    CommandMetadata {
+        name: "archive",
+        request: "ArchiveRequest",
+        response: "ArchiveResponse",
+        safety: SafetyClass::Mutating,
+    },
 ];
 
 /// Returns Phase 1 command registry.
@@ -184,6 +197,7 @@ pub fn run(args: &[String]) -> CliResult {
 struct ParsedArgs {
     json: bool,
     file: PathBuf,
+    changes_dir: PathBuf,
     command: String,
     command_args: Vec<String>,
 }
@@ -191,6 +205,7 @@ struct ParsedArgs {
 fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let mut json = false;
     let mut file = PathBuf::from("cairn.blueprint");
+    let mut changes_dir = PathBuf::from("meta/changes");
     let mut command_args = Vec::new();
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
@@ -202,6 +217,12 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
                 };
                 file = PathBuf::from(value);
             }
+            "--changes-dir" => {
+                let Some(value) = iter.next() else {
+                    return Err(err(2, "--changes-dir requires a path"));
+                };
+                changes_dir = PathBuf::from(value);
+            }
             value => command_args.push(value.to_owned()),
         }
     }
@@ -211,6 +232,7 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     Ok(ParsedArgs {
         json,
         file,
+        changes_dir,
         command: command.to_owned(),
         command_args,
     })
@@ -233,6 +255,9 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         );
     }
     let legacy_warning = legacy_blueprint_warning(root);
+    if parsed.command == "archive" {
+        return run_archive_command(parsed, root, legacy_warning);
+    }
     let scan_result = if parsed.command == "scan" {
         scanner::scan(root, &parsed.file)
     } else {
@@ -255,6 +280,7 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         "sources" => render_sources(parsed, &scan_result),
         "rationale" => render_rationale(parsed, &scan_result),
         "status" => Ok(render_status(parsed, &scan_result, root)),
+        "hook" => return run_hook_command(parsed, root, &scan_result, legacy_warning),
         "dependents" | "depends" => render_dependencies(parsed, &scan_result),
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
             let node = scan_result.graph.resolve(node)?;
@@ -308,6 +334,63 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
             stderr: legacy_warning,
         },
     )
+}
+
+fn run_hook_command(
+    parsed: &ParsedArgs,
+    root: &Path,
+    scan_result: &scanner::ScanResult,
+    legacy_warning: String,
+) -> CliResult {
+    let Some(kind) = parsed
+        .command_args
+        .get(1)
+        .and_then(|value| parse_hook_kind(value))
+    else {
+        return err(2, "usage: cairn hook <structural|interface|tension|all>");
+    };
+    let changes_dir = root.join(&parsed.changes_dir);
+    let report = hooks::run(kind, root, &changes_dir, scan_result);
+    CliResult {
+        code: report.exit_code(),
+        stdout: if parsed.json {
+            hooks::render_json(&report)
+        } else {
+            hooks::render_human(&report)
+        },
+        stderr: legacy_warning,
+    }
+}
+
+fn run_archive_command(parsed: &ParsedArgs, root: &Path, legacy_warning: String) -> CliResult {
+    let Some(change_id) = parsed.command_args.get(1) else {
+        return err(2, "usage: cairn archive <change-id>");
+    };
+    let changes_dir = root.join(&parsed.changes_dir);
+    let conflict_findings = hooks::detect_active_change_conflicts(&changes_dir);
+    if !conflict_findings.is_empty() {
+        return CliResult {
+            code: 1,
+            stdout: render_findings(&conflict_findings, parsed.json),
+            stderr: legacy_warning,
+        };
+    }
+    err(
+        1,
+        &format!(
+            "archive `{change_id}` is not available until the change archive engine is installed"
+        ),
+    )
+}
+
+fn parse_hook_kind(value: &str) -> Option<HookKind> {
+    match value {
+        "structural" => Some(HookKind::Structural),
+        "interface" => Some(HookKind::Interface),
+        "tension" => Some(HookKind::Tension),
+        "all" => Some(HookKind::All),
+        _ => None,
+    }
 }
 
 fn legacy_blueprint_warning(root: &Path) -> String {

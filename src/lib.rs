@@ -10,6 +10,8 @@ pub mod artefacts;
 pub mod blueprint;
 /// CLI command registry and renderer helpers.
 pub mod cli;
+/// Hook engine and active-change conflict detection.
+pub mod hooks;
 /// Map graph construction and queries.
 pub mod map;
 /// Code reconciliation interfaces.
@@ -72,7 +74,10 @@ mod tests {
             cli::registry()
                 .iter()
                 .filter(|command| {
-                    command.name != "scan" && command.name != "init" && command.name != "ui"
+                    command.name != "scan"
+                        && command.name != "init"
+                        && command.name != "ui"
+                        && command.name != "archive"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );
