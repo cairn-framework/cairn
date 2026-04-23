@@ -1,21 +1,21 @@
 {
   // Conflux Configuration
-  // Template: Codex
+  // Template: Claude
 
   // Command to analyze dependencies and select next change
   "analyze_command": "python3 scripts/cflx-analyze-cairn-phases.py",
 
   // Command to apply a change (supports {change_id} and {prompt} placeholders)
-  "apply_command": "codex exec '{prompt}'",
+  "apply_command": "claude --dangerously-skip-permissions -p '{prompt}'",
 
   // Command to archive a completed change (supports {change_id} and {prompt} placeholders)
-  "archive_command": "codex exec '{prompt}'",
+  "archive_command": "claude --dangerously-skip-permissions -p '{prompt}'",
 
   // Command to run acceptance tests after apply (supports {change_id} and {prompt} placeholders)
-  "acceptance_command": "codex exec '{prompt}'",
+  "acceptance_command": "claude --dangerously-skip-permissions -p '{prompt}'",
 
   // Command to resolve conflicts (supports {prompt} placeholder)
-  "resolve_command": "codex exec {prompt}",
+  "resolve_command": "claude --dangerously-skip-permissions -p {prompt}",
 
   // System prompt for apply command (user-customizable, injected into {prompt} placeholder)
   // Note: A hardcoded system prompt is always appended after this value
