@@ -1300,7 +1300,7 @@ mod tests {
 
             let mut json_command = vec!["--json".to_owned()];
             json_command.extend(command.iter().map(|value| (*value).to_owned()));
-            let json = run_in_owned(&root, &json_command);
+            let json = run_in_str(&root, &json_command);
             assert_eq!(json.code, 0, "{name} json stderr: {}", json.stderr);
             assert!(
                 json.stdout.trim_start().starts_with('{'),
@@ -1374,18 +1374,11 @@ mod tests {
     }
 
     fn run_in(root: &Path, args: &[&str]) -> CliResult {
-        let _guard = TEST_CWD_LOCK.lock().expect("lock cwd");
-        let old = std::env::current_dir().expect("cwd");
-        std::env::set_current_dir(root).expect("set cwd");
-        let result = run(&args
-            .iter()
-            .map(|value| (*value).to_owned())
-            .collect::<Vec<_>>());
-        std::env::set_current_dir(old).expect("restore cwd");
-        result
+        let owned: Vec<String> = args.iter().map(|s| (*s).to_owned()).collect();
+        run_in_str(root, &owned)
     }
 
-    fn run_in_owned(root: &Path, args: &[String]) -> CliResult {
+    fn run_in_str(root: &Path, args: &[String]) -> CliResult {
         let _guard = TEST_CWD_LOCK.lock().expect("lock cwd");
         let old = std::env::current_dir().expect("cwd");
         std::env::set_current_dir(root).expect("set cwd");

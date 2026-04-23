@@ -13,142 +13,45 @@ use cairn::ui::{self, UiOptions};
 use insta::assert_json_snapshot;
 use serde_json::{Value, json};
 
-#[test]
-fn test_api_meta_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("meta")?;
-    let json = get_json(server.address(), "/api/meta")?;
-    server.stop();
-    assert_json_snapshot!("api_meta", json);
-    Ok(())
-}
+/// (`snapshot_name`, `api_path`)
+const ENDPOINTS: &[(&str, &str)] = &[
+    ("api_meta", "/api/meta"),
+    ("api_status", "/api/status"),
+    ("api_graph", "/api/graph"),
+    ("api_lint", "/api/lint"),
+    ("api_blueprint", "/api/blueprint"),
+    ("api_node_app_api", "/api/node/app.api"),
+    ("api_node_app_api_contract", "/api/node/app.api/contract"),
+    ("api_node_app_api_decisions", "/api/node/app.api/decisions"),
+    ("api_node_app_api_todos", "/api/node/app.api/todos"),
+    ("api_node_app_api_research", "/api/node/app.api/research"),
+    ("api_node_app_api_sources", "/api/node/app.api/sources"),
+    ("api_node_app_api_rationale", "/api/node/app.api/rationale"),
+    ("api_depends_app_api", "/api/depends/app.api"),
+    ("api_dependents_app_api", "/api/dependents/app.api"),
+];
 
 #[test]
-fn test_api_status_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("status")?;
-    let json = get_json(server.address(), "/api/status")?;
-    server.stop();
-    assert_json_snapshot!("api_status", json);
-    Ok(())
-}
+fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
+    for (snapshot_name, api_path) in ENDPOINTS {
+        let root = temp_root(snapshot_name)?;
+        write_project(&root)?;
+        let server = ui::start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+        let mut value = get_json(server.address(), api_path)?;
+        server.stop();
 
-#[test]
-fn test_api_graph_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("graph")?;
-    let json = get_json(server.address(), "/api/graph")?;
-    server.stop();
-    assert_json_snapshot!("api_graph", json);
-    Ok(())
-}
+        // Normalise the unstable file-system path in the blueprint response.
+        if *snapshot_name == "api_blueprint" {
+            value["path"] = json!("<blueprint>");
+        }
 
-#[test]
-fn test_api_lint_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("lint")?;
-    let json = get_json(server.address(), "/api/lint")?;
-    server.stop();
-    assert_json_snapshot!("api_lint", json);
+        assert_json_snapshot!(*snapshot_name, value);
+    }
     Ok(())
-}
-
-#[test]
-fn test_api_blueprint_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("blueprint")?;
-    let mut json = get_json(server.address(), "/api/blueprint")?;
-    server.stop();
-    json["path"] = json!("<blueprint>");
-    assert_json_snapshot!("api_blueprint", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_node_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("node")?;
-    let json = get_json(server.address(), "/api/node/app.api")?;
-    server.stop();
-    assert_json_snapshot!("api_node_app_api", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_contract_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("contract")?;
-    let json = get_json(server.address(), "/api/node/app.api/contract")?;
-    server.stop();
-    assert_json_snapshot!("api_node_app_api_contract", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_decisions_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("decisions")?;
-    let json = get_json(server.address(), "/api/node/app.api/decisions")?;
-    server.stop();
-    assert_json_snapshot!("api_node_app_api_decisions", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_todos_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("todos")?;
-    let json = get_json(server.address(), "/api/node/app.api/todos")?;
-    server.stop();
-    assert_json_snapshot!("api_node_app_api_todos", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_research_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("research")?;
-    let json = get_json(server.address(), "/api/node/app.api/research")?;
-    server.stop();
-    assert_json_snapshot!("api_node_app_api_research", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_sources_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("sources")?;
-    let json = get_json(server.address(), "/api/node/app.api/sources")?;
-    server.stop();
-    assert_json_snapshot!("api_node_app_api_sources", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_rationale_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("rationale")?;
-    let json = get_json(server.address(), "/api/node/app.api/rationale")?;
-    server.stop();
-    assert_json_snapshot!("api_node_app_api_rationale", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_depends_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("depends")?;
-    let json = get_json(server.address(), "/api/depends/app.api")?;
-    server.stop();
-    assert_json_snapshot!("api_depends_app_api", json);
-    Ok(())
-}
-
-#[test]
-fn test_api_dependents_snapshot() -> Result<(), Box<dyn std::error::Error>> {
-    let server = bootstrap_server("dependents")?;
-    let json = get_json(server.address(), "/api/dependents/app.api")?;
-    server.stop();
-    assert_json_snapshot!("api_dependents_app_api", json);
-    Ok(())
-}
-
-fn bootstrap_server(name: &str) -> Result<ui::ServerHandle, Box<dyn std::error::Error>> {
-    let root = temp_root(name)?;
-    write_project(&root)?;
-    ui::start_background(UiOptions {
-        port: 0,
-        no_open: true,
-        blueprint_path: root.join("cairn.blueprint"),
-    })
-    .map_err(Into::into)
 }
 
 fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
