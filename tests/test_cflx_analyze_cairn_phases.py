@@ -33,9 +33,29 @@ class SortKeyTests(unittest.TestCase):
                 "phase-7-mcp",
                 "phase-7.5a-test-fortification",
                 "phase-7.5b-cleansing-splits",
-                "phase-8-summariser",
                 "phase-8.0-tests",
+                "phase-8-summariser",
                 "phase-9-brownfield",
+                "phase-10-distribution",
+            ],
+        )
+
+    def test_test_first_pre_phase_sorts_before_feature_phase(self) -> None:
+        ordered = sorted(
+            [
+                "phase-9-brownfield",
+                "phase-9.0-tests",
+                "phase-10.0-tests",
+                "phase-10-distribution",
+            ],
+            key=sort_key,
+        )
+        self.assertEqual(
+            ordered,
+            [
+                "phase-9.0-tests",
+                "phase-9-brownfield",
+                "phase-10.0-tests",
                 "phase-10-distribution",
             ],
         )

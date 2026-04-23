@@ -103,3 +103,10 @@ Feature phases that introduce new acceptance criteria SHOULD be preceded by a pa
 - **WHEN** the analyze script runs
 - **THEN** `phase-7.5a-test-fortification` appears before `phase-7.5b-cleansing-splits`
 - **AND** `phase-7.5b-cleansing-splits` depends on `phase-7.5a-test-fortification`
+
+#### Scenario: Test-first pre-phase sorts before its feature phase
+
+- **GIVEN** `phase-8.0-tests` and `phase-8-summariser` exist
+- **WHEN** the analyze script runs
+- **THEN** `phase-8.0-tests` appears before `phase-8-summariser`
+- **AND** `phase-8-summariser` depends on `phase-8.0-tests`
