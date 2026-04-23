@@ -23,3 +23,8 @@ src/ui_assets/api/
 src/ui_assets/assets/
 .worktrees
 .orchestrator/
+
+
+# Python bytecode caches from cflx analyze script tests
+__pycache__/
+*.pyc
