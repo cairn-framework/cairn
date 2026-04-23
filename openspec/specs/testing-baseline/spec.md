@@ -42,16 +42,34 @@ Cairn SHALL fail the pre-archive gate when any Rust source file under `src/` exc
 - **WHEN** the gate runs
 - **THEN** the script reports the file as an invalid allow-list entry and exits non-zero
 
+#### Scenario: Split submodules satisfy the ceiling
+
+- **GIVEN** Phase 7.5b has been applied and all five god modules have been split
+- **WHEN** `scripts/pre-archive-rust-gates.sh` runs
+- **THEN** no file under `src/` triggers a size violation
+- **AND** `grep -r "cairn:allow-large-module" src/` returns empty output
+
 ### Requirement: God modules carry unit test coverage
 
-Each of `src/changes.rs`, `src/cli/mod.rs`, `src/query_api.rs`, `src/artefacts/registry.rs`, `src/ui.rs` SHALL contain an inline `#[cfg(test)] mod tests` block exercising its primary dispatch, lookup, or parse surface. These tests act as the regression wall for Phase 7.5b splits.
+After Phase 7.5b, the five previously-monolithic files are split into directory modules. Test coverage migrates to the new layout as follows:
+
+| Coverage target | Host file after split |
+|---|---|
+| `parse_blueprint_delta`, `apply_blueprint_delta`, `validate_change` | `src/changes/mod.rs` |
+| `run()`, command dispatch | `src/cli/mod.rs` |
+| `registry()`, `visible_tools()`, `execute()`, `envelope_json()`, `error_json()` | `src/query_api/mod.rs` |
+| `load_artefacts()`, `parse_*` status functions | `src/artefacts/registry/mod.rs` |
+| `start_background()`, `request_path()`, route dispatch | `src/ui/mod.rs` |
+
+Each `mod.rs` SHALL contain the `#[cfg(test)] mod tests` block that was in the original god module. Tests that call functions moved to submodules SHALL add the minimum necessary `use super::<submodule>::<fn>;` imports inside the test block to resolve the moved symbols.
 
 #### Scenario: Refactor under tests
 
-- **GIVEN** Phase 7.5b splits one of the god modules at a natural seam
+- **GIVEN** Phase 7.5b has split the five god modules into directory modules
 - **WHEN** `cargo test` runs against the split tree
-- **THEN** all inline unit tests previously in the god module still pass
-- **AND** all `/api/*` snapshot tests still pass
+- **THEN** all inline unit tests previously in the god modules still pass without assertion changes
+- **AND** all `/api/*` snapshot tests still pass without `cargo insta review`
+- **AND** no `// cairn:allow-large-module` comment remains under `src/`
 
 ### Requirement: Test-first pre-phase convention
 
