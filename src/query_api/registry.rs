@@ -1,0 +1,194 @@
+// Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
+#![allow(clippy::wildcard_imports)]
+use super::*;
+
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 23] = [
+    tool(
+        "get",
+        "cairn_get",
+        "NodeRequest",
+        "NodeResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "neighbourhood",
+        "cairn_neighbourhood",
+        "NeighbourhoodRequest",
+        "NeighbourhoodResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "contract",
+        "cairn_contract",
+        "NodeRequest",
+        "ContractResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "docstring",
+        "cairn_docstring",
+        "DocstringRequest",
+        "DocstringResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "files",
+        "cairn_files",
+        "NodeRequest",
+        "FilesResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "dependents",
+        "cairn_dependents",
+        "DependencyRequest",
+        "DependencyResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "depends",
+        "cairn_depends",
+        "DependencyRequest",
+        "DependencyResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "order",
+        "cairn_order",
+        "OrderRequest",
+        "OrderResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "lint",
+        "cairn_lint",
+        "LintRequest",
+        "LintResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "status",
+        "cairn_status",
+        "StatusRequest",
+        "StatusResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "rationale",
+        "cairn_rationale",
+        "NodeRequest",
+        "RationaleResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "todos",
+        "cairn_todos",
+        "ArtefactNodeRequest",
+        "TodosResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "decisions",
+        "cairn_decisions",
+        "ArtefactNodeRequest",
+        "DecisionsResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "research",
+        "cairn_research",
+        "NodeRequest",
+        "ResearchResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "sources",
+        "cairn_sources",
+        "NodeRequest",
+        "SourcesResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "changes",
+        "cairn_changes",
+        "ChangesRequest",
+        "ChangesResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "show",
+        "cairn_show_change",
+        "ShowChangeRequest",
+        "ShowChangeResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "hook",
+        "cairn_hook",
+        "HookRequest",
+        "HookReport",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "ui",
+        "cairn_ui",
+        "UiRequest",
+        "UiServerResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "scan",
+        "cairn_scan",
+        "ScanRequest",
+        "ScanResponse",
+        SafetyClass::Mutating,
+    ),
+    tool(
+        "archive",
+        "cairn_archive",
+        "ArchiveRequest",
+        "ArchiveResponse",
+        SafetyClass::Mutating,
+    ),
+    tool(
+        "rename",
+        "cairn_rename",
+        "RenameRequest",
+        "RenameResponse",
+        SafetyClass::Mutating,
+    ),
+    tool(
+        "init",
+        "cairn_init",
+        "InitRequest",
+        "InitResponse",
+        SafetyClass::Mutating,
+    ),
+];
+
+pub(super) const fn tool(
+    cli_name: &'static str,
+    mcp_name: &'static str,
+    request_schema: &'static str,
+    response_schema: &'static str,
+    safety: SafetyClass,
+) -> ToolMetadata {
+    ToolMetadata {
+        cli_name,
+        mcp_name,
+        request_schema,
+        response_schema,
+        safety,
+    }
+}
+
+pub(super) fn metadata_for_tool(name: &str) -> Option<ToolMetadata> {
+    TOOL_REGISTRY
+        .iter()
+        .copied()
+        .find(|tool| tool.cli_name == name || tool.mcp_name == name)
+}
+
+pub(super) const fn registry_slice() -> &'static [ToolMetadata] {
+    &TOOL_REGISTRY
+}

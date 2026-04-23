@@ -989,15 +989,13 @@ fn test_committed_hook_runner_invokes_hook_all() -> Result<(), Box<dyn std::erro
         .to_owned();
     let old_path = std::env::var_os("PATH").unwrap_or_default();
     let path = format!("{}:{}", bin_dir.display(), old_path.to_string_lossy());
+    let hook_script = Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/cairn-hook-all.sh");
 
     let output = Command::new("sh")
         .current_dir(&root)
         .env("PATH", path)
-        .args([
-            "/Users/george/.local/share/cflx/worktrees/cairn-ba64eedb/phase-4-hooks/scripts/cairn-hook-all.sh",
-            "--file",
-            "cairn.blueprint",
-        ])
+        .arg(&hook_script)
+        .args(["--file", "cairn.blueprint"])
         .output()?;
 
     assert!(output.status.success());
