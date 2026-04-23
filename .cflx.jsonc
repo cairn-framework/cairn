@@ -6,13 +6,13 @@
   "analyze_command": "python3 scripts/cflx-analyze-cairn-phases.py",
 
   // Command to apply a change (supports {change_id} and {prompt} placeholders)
-  "apply_command": "codex exec '/openspec:apply {change_id} {prompt}'",
+  "apply_command": "codex exec '{prompt}'",
 
   // Command to archive a completed change (supports {change_id} and {prompt} placeholders)
-  "archive_command": "codex exec '/openspec:archive {change_id} {prompt}'",
+  "archive_command": "codex exec '{prompt}'",
 
   // Command to run acceptance tests after apply (supports {change_id} and {prompt} placeholders)
-  "acceptance_command": "codex exec '/cflx-accept {change_id} {prompt}'",
+  "acceptance_command": "codex exec '{prompt}'",
 
   // Command to resolve conflicts (supports {prompt} placeholder)
   "resolve_command": "codex exec {prompt}",
