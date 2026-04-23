@@ -31,16 +31,23 @@ fn test_check_file_sizes_script_behaviour() -> Result<(), Box<dyn std::error::Er
     fs::remove_file(src.join("too_big.rs"))?;
     assert!(run_script(&root).status.success());
 
-    write_lines(
-        &src.join("missing_reason.rs"),
-        501,
-        Some("// cairn:allow-large-module reason: "),
-    )?;
-    let missing_reason = run_script(&root);
-    assert!(!missing_reason.status.success());
-    let stderr = String::from_utf8(missing_reason.stderr)?;
-    assert!(stderr.contains("missing_reason.rs"));
-    assert!(stderr.contains("missing non-empty allow-list reason"));
+    for empty_reason in [
+        "// cairn:allow-large-module reason:",
+        "// cairn:allow-large-module reason: ",
+    ] {
+        write_lines(&src.join("missing_reason.rs"), 501, Some(empty_reason))?;
+        let missing_reason = run_script(&root);
+        assert!(
+            !missing_reason.status.success(),
+            "expected failure for {empty_reason:?}"
+        );
+        let stderr = String::from_utf8(missing_reason.stderr)?;
+        assert!(stderr.contains("missing_reason.rs"));
+        assert!(
+            stderr.contains("missing non-empty allow-list reason"),
+            "expected missing-reason diagnostic for {empty_reason:?}, got: {stderr}",
+        );
+    }
 
     Ok(())
 }
