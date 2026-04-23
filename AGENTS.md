@@ -22,6 +22,8 @@ Your change directory (`openspec/changes/<change-id>/`) contains everything you 
 - **Registries**: `openspec/registries/` covers declared items and error codes across all phases. Check when adding new public items or error codes to avoid collisions.
 - **Specs from other phases**: `openspec/changes/<other-phase>/specs/` is only relevant if your design.md references another phase's requirements.
 
+When implementing a feature phase, check `openspec/conventions.md` for the test-first pre-phase convention. If a paired `phase-<N>.0-tests` change exists, remove the matching `#[ignore = "awaits phase-<N>"]` markers as the feature lands rather than rewriting those tests from scratch.
+
 ## UI and visual work: use the design system
 
 Any UI change (the webui at `src/ui_assets/`, any landing or marketing page, any new surface) pulls from the canonical design system at `docs/design-system/`. Do not re-invent styling.

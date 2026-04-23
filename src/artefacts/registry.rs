@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: scheduled-for-phase-7.5b-split
 //! Typed artefact registry and Phase 2 loaders.
 
 use std::{
@@ -1098,4 +1099,140 @@ fn sha256_schedule(chunk: &[u8]) -> [u32; 64] {
             .wrapping_add(sigma1);
     }
     schedule
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blueprint::parser::parse_str;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn test_load_artefacts_loads_known_records() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("loads-known-records")?;
+        let ast = write_project(&root)?;
+
+        let set = load_artefacts(&root, &ast, ContractSet::default());
+
+        assert_eq!(set.todos.len(), 1);
+        assert_eq!(set.decisions.len(), 1);
+        assert_eq!(set.research.len(), 1);
+        assert_eq!(set.sources.len(), 1);
+        assert!(set.findings.is_empty(), "{:?}", set.findings);
+        Ok(())
+    }
+
+    #[test]
+    fn test_load_artefacts_reports_unknown_node_references()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("unknown-node")?;
+        let ast = parse_str(
+            "cairn.blueprint",
+            r#"System App "desc" id "app" {
+    Module Api "api" id "app.api" {
+        todos "./meta/todos"
+    }
+}
+"#,
+        )?;
+        fs::create_dir_all(root.join("meta/todos"))?;
+        fs::write(
+            root.join("meta/todos/todo.api.md"),
+            "---\nnode: ghost.node\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
+        )?;
+
+        let set = load_artefacts(&root, &ast, ContractSet::default());
+
+        assert!(
+            set.findings
+                .iter()
+                .any(|finding| finding.code == "CAIRN_TODO_ORPHAN_NODE")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_load_artefacts_reports_duplicate_or_invalid_provenance()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("invalid-provenance")?;
+        let ast = parse_str(
+            "cairn.blueprint",
+            r#"System App "desc" id "app" {
+    Module Api "api" id "app.api" {
+        decisions "./meta/decisions"
+    }
+}
+"#,
+        )?;
+        fs::create_dir_all(root.join("meta/decisions"))?;
+        fs::write(
+            root.join("meta/decisions/dec.api.md"),
+            "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [missing.ref]\n---\n# Decision\n",
+        )?;
+
+        let set = load_artefacts(&root, &ast, ContractSet::default());
+
+        assert!(
+            set.findings
+                .iter()
+                .any(|finding| finding.code == "CAIRN_DECISION_UNKNOWN_PROVENANCE")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_status_kinds_reject_unknown_values() {
+        let mut set = ArtefactSet::default();
+        let path = Path::new("bad.md");
+
+        assert!(parse_todo_status("bad", path, &mut set).is_none());
+        assert!(parse_decision_status("bad", path, &mut set).is_none());
+        assert!(parse_review_type("bad", path, &mut set).is_none());
+        assert!(parse_source_verification("bad", path, &mut set).is_none());
+        assert_eq!(set.findings.len(), 4);
+    }
+
+    fn write_project(root: &Path) -> Result<Ast, Box<dyn std::error::Error>> {
+        fs::create_dir_all(root.join("meta/todos"))?;
+        fs::create_dir_all(root.join("meta/decisions"))?;
+        fs::create_dir_all(root.join("meta/research"))?;
+        fs::create_dir_all(root.join("meta/sources"))?;
+        fs::write(root.join("docs-source.txt"), "source\n")?;
+        fs::write(
+            root.join("meta/todos/todo.api.md"),
+            "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
+        )?;
+        fs::write(
+            root.join("meta/decisions/dec.api.md"),
+            "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# Decision\n",
+        )?;
+        fs::write(
+            root.join("meta/research/res.api.md"),
+            "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api]\n---\n# Research\n",
+        )?;
+        fs::write(
+            root.join("meta/sources/src.api.md"),
+            "---\nid: src.api\nfile: docs-source.txt\nsha256: b8bb034f9b63bd0254fbc7c157cae746c75853f4643d6cea844dc48ddb57f522\nverification: verified\ntype: note\ndate: 2026-03-19\n---\n# Source\n",
+        )?;
+        parse_str(
+            "cairn.blueprint",
+            r#"System App "desc" id "app" {
+    Module Api "api" id "app.api" {
+        todos "./meta/todos"
+        decisions "./meta/decisions"
+        research "./meta/research"
+        sources "./meta/sources"
+    }
+}
+"#,
+        )
+        .map_err(Into::into)
+    }
+
+    fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+        let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
+        let root = std::env::temp_dir().join(format!("cairn-artefacts-tests-{name}-{suffix}"));
+        fs::create_dir_all(&root)?;
+        Ok(root)
+    }
 }

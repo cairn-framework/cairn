@@ -1,0 +1,5 @@
+## RENAMED Nodes
+- app.api -> app.api.v2
+
+## RENAMED Edges
+app.api -> app.core "reports" => app.api.v2 -> app.core "reports"

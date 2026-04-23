@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: scheduled-for-phase-7.5b-split
 //! CLI registry, command execution, and renderers.
 
 use std::{
@@ -1255,4 +1256,222 @@ fn esc(value: &str) -> String {
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('\n', "\\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        sync::{LazyLock, Mutex},
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    #[test]
+    fn test_cli_core_commands_support_human_and_json_output()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("core-commands")?;
+        write_project(&root)?;
+        let cases = [
+            ("get", vec!["get", "app.api"]),
+            (
+                "neighbourhood",
+                vec!["neighbourhood", "app.api", "--include-todos"],
+            ),
+            ("files", vec!["files", "app.api"]),
+            ("todos", vec!["todos", "app.api"]),
+            ("decisions", vec!["decisions", "app.api"]),
+            ("research", vec!["research", "app.api"]),
+            ("sources", vec!["sources", "app.api"]),
+            ("rationale", vec!["rationale", "app.api"]),
+            ("status", vec!["status"]),
+            ("dependents", vec!["dependents", "app.api"]),
+            ("depends", vec!["depends", "app.api"]),
+            ("contract", vec!["contract", "app.api"]),
+            ("order", vec!["order"]),
+            ("lint", vec!["lint"]),
+            ("scan", vec!["scan"]),
+            ("hook", vec!["hook", "all"]),
+        ];
+
+        for (name, command) in cases {
+            let human = run_in(&root, &command);
+            assert_eq!(human.code, 0, "{name} human stderr: {}", human.stderr);
+            assert!(!human.stdout.is_empty(), "{name} human output");
+
+            let mut json_command = vec!["--json".to_owned()];
+            json_command.extend(command.iter().map(|value| (*value).to_owned()));
+            let json = run_in_owned(&root, &json_command);
+            assert_eq!(json.code, 0, "{name} json stderr: {}", json.stderr);
+            assert!(
+                json.stdout.trim_start().starts_with('{'),
+                "{name} json output"
+            );
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_change_commands_and_error_paths() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("change-commands")?;
+        write_project(&root)?;
+        write_change(&root)?;
+
+        let changes = run_in(&root, &["--json", "changes"]);
+        assert_eq!(changes.code, 0);
+        assert!(changes.stdout.contains("phase-7.5a-test-fortification"));
+
+        let show = run_in(&root, &["--json", "show", "phase-7.5a-test-fortification"]);
+        assert_eq!(show.code, 0);
+        assert!(
+            show.stdout
+                .contains("\"title\":\"Phase 7.5a Test Fortification\"")
+        );
+
+        let rename = run_in(&root, &["--json", "rename", "app.api", "app.api.v2"]);
+        assert_eq!(rename.code, 0);
+        assert!(
+            rename
+                .stdout
+                .contains("\"id\":\"rename-app.api-to-app.api.v2\"")
+        );
+
+        let archive = run_in(&root, &["archive", "phase-7.5a-test-fortification"]);
+        assert_eq!(archive.code, 1);
+        assert!(archive.stderr.contains("not available"));
+
+        let missing = run_in(&root, &["get"]);
+        assert_eq!(missing.code, 1);
+        assert!(missing.stdout.contains("CAIRN_CLI_MISSING_NODE"));
+
+        let unknown = run_in(&root, &["unknown"]);
+        assert_eq!(unknown.code, 2);
+        assert!(unknown.stderr.contains("unknown command"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_and_version_commands() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init")?;
+        let init = run_in(&root, &["init"]);
+        assert_eq!(init.code, 0);
+        assert!(root.join("cairn.blueprint").exists());
+        assert!(root.join("cairn.config.yaml").exists());
+
+        let version = run(&["--version".to_owned()]);
+        assert_eq!(version.code, 0);
+        assert!(version.stdout.contains("cairn "));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_ui_command_surfaces_option_errors() {
+        let result = run(&["ui".to_owned(), "--port".to_owned()]);
+        assert_eq!(result.code, 2);
+        assert!(result.stderr.contains("--port requires a value"));
+    }
+
+    fn run_in(root: &Path, args: &[&str]) -> CliResult {
+        let _guard = TEST_CWD_LOCK.lock().expect("lock cwd");
+        let old = std::env::current_dir().expect("cwd");
+        std::env::set_current_dir(root).expect("set cwd");
+        let result = run(&args
+            .iter()
+            .map(|value| (*value).to_owned())
+            .collect::<Vec<_>>());
+        std::env::set_current_dir(old).expect("restore cwd");
+        result
+    }
+
+    fn run_in_owned(root: &Path, args: &[String]) -> CliResult {
+        let _guard = TEST_CWD_LOCK.lock().expect("lock cwd");
+        let old = std::env::current_dir().expect("cwd");
+        std::env::set_current_dir(root).expect("set cwd");
+        let result = run(args);
+        std::env::set_current_dir(old).expect("restore cwd");
+        result
+    }
+
+    fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        fs::create_dir_all(root.join("src/api"))?;
+        fs::create_dir_all(root.join("src/core"))?;
+        fs::create_dir_all(root.join("meta/contracts"))?;
+        fs::create_dir_all(root.join("meta/todos"))?;
+        fs::create_dir_all(root.join("meta/decisions"))?;
+        fs::create_dir_all(root.join("meta/research"))?;
+        fs::create_dir_all(root.join("meta/sources"))?;
+        fs::create_dir_all(root.join("meta/changes"))?;
+        fs::create_dir_all(root.join(".cairn"))?;
+        fs::write(root.join("src/api/lib.rs"), "pub fn serve() {}\n")?;
+        fs::write(root.join("src/core/lib.rs"), "pub fn core() {}\n")?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            r#"System App "desc" id "app" {
+    Module Core "core" id "app.core" {
+        path "./src/core"
+    }
+    Container Api "api" id "app.api" {
+        path "./src/api"
+        contract "./meta/contracts/api.md"
+        todos "./meta/todos"
+        decisions "./meta/decisions"
+        research "./meta/research"
+        sources "./meta/sources"
+    }
+}
+app.api -> app.core "reports"
+"#,
+        )?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"ctx\"\nrules: {}\n",
+        )?;
+        fs::write(
+            root.join("meta/contracts/api.md"),
+            "---\nnode: app.api\n---\n# API Contract\n",
+        )?;
+        fs::write(
+            root.join("meta/todos/todo.api.md"),
+            "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
+        )?;
+        fs::write(
+            root.join("meta/decisions/dec.api.md"),
+            "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# Decision\n",
+        )?;
+        fs::write(
+            root.join("meta/research/res.api.md"),
+            "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api]\n---\n# Research\n",
+        )?;
+        fs::write(root.join("docs-source.txt"), "source\n")?;
+        fs::write(
+            root.join("meta/sources/src.api.md"),
+            "---\nid: src.api\nfile: docs-source.txt\nsha256: b8bb034f9b63bd0254fbc7c157cae746c75853f4643d6cea844dc48ddb57f522\nverification: verified\ntype: note\ndate: 2026-03-19\n---\n# Source\n",
+        )?;
+        fs::write(root.join(".cairn/log.md"), "- first log\n")?;
+        Ok(())
+    }
+
+    fn write_change(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        let change = root
+            .join("meta/changes")
+            .join("phase-7.5a-test-fortification");
+        fs::create_dir_all(&change)?;
+        fs::write(
+            change.join("proposal.md"),
+            "# Proposal: Phase 7.5a Test Fortification\n",
+        )?;
+        fs::write(change.join("blueprint.delta"), "")?;
+        Ok(())
+    }
+
+    fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+        let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
+        let root = std::env::temp_dir().join(format!("cairn-cli-tests-{name}-{suffix}"));
+        fs::create_dir_all(&root)?;
+        Ok(root)
+    }
+
+    static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 }

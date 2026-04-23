@@ -12,3 +12,6 @@ RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features
 
 echo "pre-archive: running cargo test"
 cargo test
+
+echo "pre-archive: checking Rust file sizes"
+scripts/check-file-sizes.sh

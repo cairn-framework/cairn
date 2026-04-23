@@ -205,7 +205,14 @@ All public APIs MUST return `Result<T, CairnError>`. Internal functions MAY use 
 - Use the `insta` crate for snapshot testing.
 - Snapshot tests MUST cover CLI human-readable output and JSON output for every command.
 - Snapshot tests MUST cover the serialized form of state files written to `.cairn/state/`.
+- Public JSON wire formats SHALL be pinned via `insta` snapshot tests.
 - Snapshot files are committed and reviewed like any other source file.
+
+### Test-First Pre-Phase
+
+Feature phases that introduce new acceptance criteria SHOULD be preceded by a paired pre-phase `phase-<N>.0-tests` whose apply task writes failing test assertions against the feature's acceptance criteria.
+
+Pre-phase tests MUST be marked `#[ignore = "awaits phase-<N>"]` so pre-phase archives pass `cargo test` cleanly. Phase `N`'s first task group MUST remove the `#[ignore]` attribute from the relevant test as the corresponding feature code lands.
 
 ### Coverage Requirements
 

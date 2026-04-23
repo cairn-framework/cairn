@@ -1,0 +1,92 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: json
+---
+{
+  "edges": [
+    {
+      "description": "owns",
+      "from": "app",
+      "kind": "ownership",
+      "to": "app.api"
+    },
+    {
+      "description": "owns",
+      "from": "app",
+      "kind": "ownership",
+      "to": "app.core"
+    },
+    {
+      "description": "reports",
+      "from": "app.api",
+      "kind": "dependency",
+      "to": "app.core"
+    },
+    {
+      "description": "serves",
+      "from": "app.core",
+      "kind": "dependency",
+      "to": "app.api"
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        "app.core",
+        "app.api"
+      ],
+      "contracts": [],
+      "description": "desc",
+      "files": [],
+      "id": "app",
+      "kind": "system",
+      "name": "App",
+      "parent": null,
+      "paths": [],
+      "state": "synced",
+      "tags": [
+        "product"
+      ]
+    },
+    {
+      "children": [],
+      "contracts": [
+        "./meta/contracts/api.md"
+      ],
+      "description": "api",
+      "files": [
+        "src/api/lib.rs"
+      ],
+      "id": "app.api",
+      "kind": "container",
+      "name": "Api",
+      "parent": "app",
+      "paths": [
+        "./src/api"
+      ],
+      "state": "synced",
+      "tags": [
+        "backend"
+      ]
+    },
+    {
+      "children": [],
+      "contracts": [],
+      "description": "core",
+      "files": [
+        "src/core/lib.rs"
+      ],
+      "id": "app.core",
+      "kind": "module",
+      "name": "Core",
+      "parent": "app",
+      "paths": [
+        "./src/core"
+      ],
+      "state": "synced",
+      "tags": [
+        "backend"
+      ]
+    }
+  ]
+}

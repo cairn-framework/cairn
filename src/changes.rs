@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: scheduled-for-phase-7.5b-split
 //! Change directory discovery, delta parsing, validation, and archive support.
 
 use std::{
@@ -1283,4 +1284,160 @@ fn artefact_content_refs(source: &str, ids: &BTreeSet<String>) -> bool {
             .lists
             .values()
             .any(|values| values.iter().any(|value| ids.contains(value)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn test_parse_blueprint_delta_added_round_trip() -> Result<(), Box<dyn std::error::Error>> {
+        let delta = parse_blueprint_delta(
+            "change.delta",
+            r#"## ADDED Nodes
+System App "desc" id "app" {
+    Module Api "api" id "app.api" {}
+}
+
+## ADDED Edges
+app.api -> app "reports"
+"#,
+        )?;
+
+        let rendered = apply_blueprint_delta("", &delta)?;
+
+        assert!(rendered.contains("System App"));
+        assert!(rendered.contains("app.api -> app \"reports\""));
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_blueprint_delta_modified_round_trip() -> Result<(), Box<dyn std::error::Error>> {
+        let base = r#"System App "desc" id "app" {
+    Module Api "old" id "app.api" {}
+}
+"#;
+        let delta = parse_blueprint_delta(
+            "change.delta",
+            r#"## MODIFIED Nodes
+Module Api "new" id "app.api" {}
+"#,
+        )?;
+
+        let rendered = apply_blueprint_delta(base, &delta)?;
+
+        assert!(rendered.contains("Module Api \"new\" id \"app.api\""));
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_blueprint_delta_removed_round_trip() -> Result<(), Box<dyn std::error::Error>> {
+        let base = r#"System App "desc" id "app" {
+    Module Api "old" id "app.api" {}
+}
+app.api -> app "reports"
+"#;
+        let delta = parse_blueprint_delta(
+            "change.delta",
+            r#"## REMOVED Nodes
+- app.api
+
+## REMOVED Edges
+app.api -> app "reports"
+"#,
+        )?;
+
+        let rendered = apply_blueprint_delta(base, &delta)?;
+
+        assert!(!rendered.contains("app.api"));
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_blueprint_delta_renamed_round_trip() -> Result<(), Box<dyn std::error::Error>> {
+        let base = r#"System App "desc" id "app" {
+    Module Api "old" id "app.api" {}
+}
+app.api -> app "reports"
+"#;
+        let delta = parse_blueprint_delta(
+            "change.delta",
+            r"## RENAMED Nodes
+- app.api -> app.http
+",
+        )?;
+
+        let rendered = apply_blueprint_delta(base, &delta)?;
+
+        assert!(rendered.contains("id \"app.http\""));
+        assert!(rendered.contains("app.http -> app \"reports\""));
+        Ok(())
+    }
+
+    #[test]
+    fn test_validate_change_detects_conflicting_operations()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("conflict")?;
+        write_project(&root)?;
+        let graph = scanner::load_project(&root, &root.join("cairn.blueprint"))?.graph;
+        let change = Change {
+            id: "phase-7.5a-test-fortification".to_owned(),
+            path: root.join("meta/changes/phase-7.5a-test-fortification"),
+            title: "test".to_owned(),
+            proposal: String::new(),
+            design: None,
+            delta: BlueprintDelta {
+                modified_nodes: vec![Node {
+                    kind: NodeKind::Module,
+                    name: "Api".to_owned(),
+                    description: "desc".to_owned(),
+                    id: "app.api".to_owned(),
+                    tags: Vec::new(),
+                    paths: Vec::new(),
+                    owns_files: false,
+                    contracts: Vec::new(),
+                    raw_fields: Vec::new(),
+                    children: Vec::new(),
+                    span: crate::blueprint::Span::point("cairn.blueprint", 1, 1),
+                }],
+                removed_nodes: vec!["app.api".to_owned()],
+                ..BlueprintDelta::default()
+            },
+            artefacts: Vec::new(),
+            findings: Vec::new(),
+        };
+
+        let errors = validate_change(&change, &graph);
+
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("conflicting operations"))
+        );
+        Ok(())
+    }
+
+    fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        fs::create_dir_all(root.join("meta/changes"))?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            r#"System App "desc" id "app" {
+    Module Api "desc" id "app.api" {}
+}
+"#,
+        )?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"\"\nrules: {}\n",
+        )?;
+        Ok(())
+    }
+
+    fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+        let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
+        let root = std::env::temp_dir().join(format!("cairn-changes-tests-{name}-{suffix}"));
+        fs::create_dir_all(&root)?;
+        Ok(root)
+    }
 }
