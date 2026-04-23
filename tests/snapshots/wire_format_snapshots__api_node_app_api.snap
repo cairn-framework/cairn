@@ -1,0 +1,25 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: json
+---
+{
+  "children": [],
+  "contracts": [
+    "./meta/contracts/api.md"
+  ],
+  "description": "api",
+  "files": [
+    "src/api/lib.rs"
+  ],
+  "id": "app.api",
+  "kind": "container",
+  "name": "Api",
+  "parent": "app",
+  "paths": [
+    "./src/api"
+  ],
+  "state": "synced",
+  "tags": [
+    "backend"
+  ]
+}

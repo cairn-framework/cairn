@@ -1,0 +1,21 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: json
+---
+{
+  "artefacts": [
+    {
+      "body": "# API Todo\nShip the endpoint.",
+      "frontmatter": {
+        "created": "2026-04-01",
+        "node": "app.api",
+        "satisfies": "status.contract",
+        "status": "open"
+      },
+      "path": "meta/todos/todo.api.md",
+      "title": "API Todo",
+      "type": "todos"
+    }
+  ],
+  "node": "app.api"
+}

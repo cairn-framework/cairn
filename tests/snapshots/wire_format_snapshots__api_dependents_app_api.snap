@@ -1,0 +1,16 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: json
+---
+{
+  "node": "app.api",
+  "nodes": [
+    {
+      "id": "app.core",
+      "kind": "module",
+      "name": "Core",
+      "slug": "app.core",
+      "state": "synced"
+    }
+  ]
+}

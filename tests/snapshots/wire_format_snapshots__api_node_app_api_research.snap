@@ -1,0 +1,22 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: json
+---
+{
+  "artefacts": [
+    {
+      "body": "# API Research\nStudied payload evolution.",
+      "frontmatter": {
+        "date": "2026-03-20",
+        "id": "res.api",
+        "nodes": "[app.api]",
+        "sources": "[src.api]",
+        "tags": "[wire]"
+      },
+      "path": "meta/research/res.api.md",
+      "title": "API Research",
+      "type": "research"
+    }
+  ],
+  "node": "app.api"
+}

@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: scheduled-for-phase-7.5b-split
 //! Embedded HTTP server and browser UI for graph exploration.
 
 use std::{
@@ -859,4 +860,149 @@ fn esc(value: &str) -> String {
         .replace('"', "\\\"")
         .replace('\n', "\\n")
         .replace('\r', "\\r")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        fs,
+        io::Read,
+        net::TcpStream,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    #[test]
+    fn test_ui_route_dispatch_and_content_types() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("route-dispatch")?;
+        write_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let graph = request(server.address(), "GET", "/api/graph")?;
+        let asset = request(server.address(), "GET", "/assets/style.css")?;
+        let meta = request(server.address(), "GET", "/api/meta")?;
+
+        server.stop();
+
+        assert!(graph.head.contains("200 OK"));
+        assert!(graph.head.contains("application/json"));
+        assert!(graph.body.contains("\"nodes\""));
+        assert!(asset.head.contains("text/css"));
+        assert!(meta.body.contains("\"schema_version\":1"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_returns_not_found_for_unknown_routes() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("not-found")?;
+        write_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let missing = request(server.address(), "GET", "/missing")?;
+        let unknown_api = request(server.address(), "GET", "/api/node/app.api/unknown")?;
+
+        server.stop();
+
+        assert!(missing.head.contains("404 Not Found"));
+        assert_eq!(missing.body, "not found");
+        assert!(unknown_api.head.contains("404 Not Found"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_rejects_unsupported_methods() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("unsupported-method")?;
+        write_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "POST", "/api/meta")?;
+
+        server.stop();
+
+        assert!(response.head.contains("400 Bad Request"));
+        assert!(response.head.contains("text/plain"));
+        assert_eq!(response.body, "bad request");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_request_path_supports_get_only() {
+        assert_eq!(
+            request_path("GET /api/meta HTTP/1.1\r\nHost: test\r\n\r\n"),
+            Some("/api/meta")
+        );
+        assert_eq!(
+            request_path("POST /api/meta HTTP/1.1\r\nHost: test\r\n\r\n"),
+            None
+        );
+    }
+
+    struct HttpResponse {
+        head: String,
+        body: String,
+    }
+
+    fn request(
+        address: SocketAddr,
+        method: &str,
+        path: &str,
+    ) -> Result<HttpResponse, Box<dyn Error>> {
+        let mut stream = TcpStream::connect(address)?;
+        write!(
+            stream,
+            "{method} {path} HTTP/1.1\r\nHost: {address}\r\nConnection: close\r\n\r\n"
+        )?;
+        let mut response = String::new();
+        stream.read_to_string(&mut response)?;
+        let Some((head, body)) = response.split_once("\r\n\r\n") else {
+            return Err("missing http response body".into());
+        };
+        Ok(HttpResponse {
+            head: head.to_owned(),
+            body: body.to_owned(),
+        })
+    }
+
+    fn write_project(root: &Path) -> Result<(), Box<dyn Error>> {
+        fs::create_dir_all(root.join("src/api"))?;
+        fs::create_dir_all(root.join("meta/contracts"))?;
+        fs::write(root.join("src/api/lib.rs"), "pub fn serve() {}\n")?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            r#"System App "desc" id "app" {
+    Container Api "api" id "app.api" {
+        path "./src/api"
+        contract "./meta/contracts/api.md"
+    }
+}
+"#,
+        )?;
+        fs::write(
+            root.join("meta/contracts/api.md"),
+            "---\nnode: app.api\n---\n# API Contract\n",
+        )?;
+        Ok(())
+    }
+
+    fn temp_root(name: &str) -> Result<PathBuf, Box<dyn Error>> {
+        let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
+        let root = std::env::temp_dir().join(format!("cairn-ui-tests-{name}-{suffix}"));
+        fs::create_dir_all(&root)?;
+        Ok(root)
+    }
 }

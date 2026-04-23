@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: scheduled-for-phase-7.5b-split
 //! Shared structured query API used by CLI JSON output and MCP.
 
 use std::{
@@ -1166,5 +1167,156 @@ const fn hook_decision_name(decision: ExitDecision) -> &'static str {
     match decision {
         ExitDecision::Pass => "pass",
         ExitDecision::Block => "block",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    #[test]
+    fn test_registry_lists_known_tools() {
+        let names = registry()
+            .iter()
+            .map(|tool| tool.cli_name)
+            .collect::<Vec<_>>();
+        assert!(names.contains(&"get"));
+        assert!(names.contains(&"archive"));
+        assert!(!names.contains(&"missing"));
+    }
+
+    #[test]
+    fn test_visible_tools_filter_mutating_entries() {
+        let readonly = visible_tools(false);
+        let all = visible_tools(true);
+
+        assert!(
+            readonly
+                .iter()
+                .all(|tool| tool.safety == SafetyClass::ReadOnly)
+        );
+        assert!(all.iter().any(|tool| tool.cli_name == "scan"));
+        assert!(!readonly.iter().any(|tool| tool.cli_name == "scan"));
+    }
+
+    #[test]
+    fn test_execute_returns_node_json_for_valid_request() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("execute-ok")?;
+        write_project(&root)?;
+        let response = execute(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &QueryRequest {
+                tool: "get".to_owned(),
+                node: Some("app.api".to_owned()),
+                ..QueryRequest::default()
+            },
+        )?;
+
+        assert_eq!(response.data["id"], "app.api");
+        assert_eq!(response.data["name"], "Api");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_execute_rejects_unknown_or_invalid_requests() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("execute-error")?;
+        write_project(&root)?;
+
+        let missing = execute(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &QueryRequest {
+                tool: "get".to_owned(),
+                ..QueryRequest::default()
+            },
+        )
+        .expect_err("missing node should fail");
+        assert_eq!(missing.code, "CAIRN_QUERY_MISSING_NODE");
+
+        let unknown = execute(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &QueryRequest {
+                tool: "missing".to_owned(),
+                ..QueryRequest::default()
+            },
+        )
+        .expect_err("unknown tool should fail");
+        assert_eq!(unknown.code, "CAIRN_QUERY_UNKNOWN_TOOL");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_envelope_json_wraps_response() {
+        let response = QueryResponse {
+            project_context: "ctx".to_owned(),
+            rules: BTreeMap::from([("decision".to_owned(), "keep".to_owned())]),
+            data: json!({ "ok": true }),
+            findings: Vec::new(),
+        };
+
+        let json = envelope_json(&response);
+
+        assert_eq!(json["project_context"], "ctx");
+        assert_eq!(json["data"]["ok"], true);
+        assert_eq!(json["rules"]["decision"], "keep");
+    }
+
+    #[test]
+    fn test_error_json_includes_optional_fields() {
+        let json = error_json(&QueryError {
+            code: "CAIRN_QUERY_FAILED".to_owned(),
+            message: "failed".to_owned(),
+            source_span: Some("cairn.blueprint:1".to_owned()),
+            remediation: Some("fix it".to_owned()),
+        });
+
+        assert_eq!(json["code"], "CAIRN_QUERY_FAILED");
+        assert_eq!(json["source_span"], "cairn.blueprint:1");
+        assert_eq!(json["remediation"], "fix it");
+    }
+
+    fn write_project(root: &Path) -> Result<(), Box<dyn Error>> {
+        fs::create_dir_all(root.join("src/api"))?;
+        fs::create_dir_all(root.join("meta/contracts"))?;
+        fs::create_dir_all(root.join("meta/changes"))?;
+        fs::write(root.join("src/api/lib.rs"), "pub fn serve() {}\n")?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            r#"System App "desc" id "app" {
+    Container Api "desc" id "app.api" {
+        path "./src/api"
+        contract "./meta/contracts/api.md"
+    }
+}
+"#,
+        )?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"ctx\"\nrules:\n  contract: keep\n",
+        )?;
+        fs::write(
+            root.join("meta/contracts/api.md"),
+            "---\nnode: app.api\n---\n# API Contract\n",
+        )?;
+        Ok(())
+    }
+
+    fn temp_root(name: &str) -> Result<PathBuf, Box<dyn Error>> {
+        let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
+        let root = std::env::temp_dir().join(format!("cairn-query-api-{name}-{suffix}"));
+        fs::create_dir_all(&root)?;
+        Ok(root)
     }
 }

@@ -1,0 +1,22 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: json
+---
+{
+  "artefacts": [
+    {
+      "body": "# API Decision\nUse stable JSON payloads.",
+      "frontmatter": {
+        "date": "2026-04-01",
+        "id": "dec.api",
+        "informed_by": "[res.api]",
+        "nodes": "[app.api]",
+        "status": "accepted"
+      },
+      "path": "meta/decisions/dec.api.md",
+      "title": "API Decision",
+      "type": "decisions"
+    }
+  ],
+  "node": "app.api"
+}

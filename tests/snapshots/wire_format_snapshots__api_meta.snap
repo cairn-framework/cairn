@@ -1,0 +1,147 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: json
+---
+{
+  "available_commands": [
+    {
+      "name": "get",
+      "request": "NodeRequest",
+      "response": "NodeResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "neighbourhood",
+      "request": "NeighbourhoodRequest",
+      "response": "NeighbourhoodResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "contract",
+      "request": "NodeRequest",
+      "response": "ContractResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "docstring",
+      "request": "DocstringRequest",
+      "response": "DocstringResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "files",
+      "request": "NodeRequest",
+      "response": "FilesResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "dependents",
+      "request": "DependencyRequest",
+      "response": "DependencyResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "depends",
+      "request": "DependencyRequest",
+      "response": "DependencyResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "order",
+      "request": "OrderRequest",
+      "response": "OrderResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "lint",
+      "request": "LintRequest",
+      "response": "LintResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "status",
+      "request": "StatusRequest",
+      "response": "StatusResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "rationale",
+      "request": "NodeRequest",
+      "response": "RationaleResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "todos",
+      "request": "ArtefactNodeRequest",
+      "response": "TodosResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "decisions",
+      "request": "ArtefactNodeRequest",
+      "response": "DecisionsResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "research",
+      "request": "NodeRequest",
+      "response": "ResearchResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "sources",
+      "request": "NodeRequest",
+      "response": "SourcesResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "changes",
+      "request": "ChangesRequest",
+      "response": "ChangesResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "show",
+      "request": "ShowChangeRequest",
+      "response": "ShowChangeResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "hook",
+      "request": "HookRequest",
+      "response": "HookReport",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "ui",
+      "request": "UiRequest",
+      "response": "UiServerResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "scan",
+      "request": "ScanRequest",
+      "response": "ScanResponse",
+      "safety": "Mutating"
+    },
+    {
+      "name": "archive",
+      "request": "ArchiveRequest",
+      "response": "ArchiveResponse",
+      "safety": "Mutating"
+    },
+    {
+      "name": "rename",
+      "request": "RenameRequest",
+      "response": "RenameResponse",
+      "safety": "Mutating"
+    },
+    {
+      "name": "init",
+      "request": "InitRequest",
+      "response": "InitResponse",
+      "safety": "Mutating"
+    }
+  ],
+  "schema_version": 1
+}
