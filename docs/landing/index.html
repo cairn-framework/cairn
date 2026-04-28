@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cairn: Your agents stop re-reading your repo. They ask the map.</title>
 <meta name="description" content="You write a blueprint of your system. Cairn reconciles it against the code you actually shipped and produces a map your agents can query. Contradictions stop merges. Your architecture stops rotting.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cairn: your agents stop re-reading your repo. They ask the map.">
+<meta property="og:description" content="You write a blueprint of your system. Cairn reconciles it against the code you actually shipped and produces a map your agents can query.">
+<meta property="og:image" content="https://raw.githubusercontent.com/George-RD/cairn/dev/docs/images/webui-v2-empty.png">
+<meta property="og:url" content="https://george-rd.github.io/cairn/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cairn: your agents stop re-reading your repo. They ask the map.">
+<meta name="twitter:description" content="A blueprint, reconciled against the code you actually shipped, produces a map your agents can query.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/George-RD/cairn/dev/docs/images/webui-v2-empty.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -326,19 +335,34 @@ nav.site .cta:hover { background: var(--stone-3); color: var(--ink-char); }
   background: var(--stone-3);
 }
 
-/* Hero visual: the blueprint sheet. */
+/* Hero visual: the running webui, anchored in a stone frame. */
 
 .hero-visual {
   position: relative;
-  aspect-ratio: 1 / 1.05;
-  max-width: 520px;
-  margin-left: auto;
   width: 100%;
+  margin-left: auto;
 }
-.hero-visual svg { width: 100%; height: 100%; display: block; }
-
-.hero-visual svg.hviz { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms ease; pointer-events: none; }
-.hero-visual[data-hviz="blueprint"] svg[data-for="blueprint"] { opacity: 1; position: relative; }
+.hero-visual .product-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-stone);
+  border: 1px solid var(--seam-clear);
+  background: var(--stone-2);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 245, 220, 0.04) inset;
+}
+[data-theme="light"] .hero-visual .product-shot {
+  box-shadow: 0 18px 50px rgba(42, 36, 24, 0.18), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+.hero-visual figcaption {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mist);
+  margin-top: var(--s-3);
+  text-align: right;
+}
 
 /* Section primitives */
 
@@ -854,16 +878,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   50%      { opacity: 0.55; transform: scale(1.08); }
 }
 
-.hero-visual .ln {
-  stroke-dasharray: 400;
-  animation: drawLine 1.6s var(--ease) forwards;
-}
-.hero-visual .node.active { animation: pulseNode 2.4s ease-in-out infinite; }
-.hero-visual .reconcile-pulse { animation: softPulse 3s ease-in-out infinite; }
-
-[data-anim="off"] .hero-visual .ln { animation: none; stroke-dashoffset: 0; }
-[data-anim="off"] .hero-visual .node.active { animation: none; }
-[data-anim="off"] .hero-visual .reconcile-pulse { animation: none; opacity: 0.8; }
+/* Hero visual is now a product screenshot; no SVG draw animations. */
 
 /* Reveal on scroll */
 .reveal { opacity: 0; transform: translateY(10px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
@@ -881,7 +896,6 @@ footer.site .fnav a:hover { color: var(--ink-char); }
     transition-duration: 0.001ms !important;
   }
   .reveal { opacity: 1 !important; transform: none !important; }
-  .hero-visual .ln { stroke-dashoffset: 0 !important; }
 }
 </style>
 </head>
@@ -905,7 +919,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
       <a href="#blueprint">blueprint</a>
       <a href="#install">install</a>
       <a href="https://github.com/George-RD/cairn" target="_blank" rel="noopener">github</a>
-      <a class="cta" href="../spec.md">Read the spec</a>
+      <a class="cta" href="https://github.com/George-RD/cairn/blob/dev/docs/spec.md" target="_blank" rel="noopener">Read the spec</a>
     </div>
     <span class="version">a map of what you built</span>
   </nav>
@@ -931,85 +945,21 @@ footer.site .fnav a:hover { color: var(--ink-char); }
       </div>
 
       <div class="ctas">
-        <a class="btn primary" href="../spec.md">Read the spec →</a>
+        <a class="btn primary" href="https://github.com/George-RD/cairn/blob/dev/docs/spec.md" target="_blank" rel="noopener">Read the spec →</a>
         <a class="btn ghost" href="https://github.com/George-RD/cairn" target="_blank" rel="noopener">github.com/George-RD/cairn</a>
       </div>
     </div>
 
-    <!-- Hero visual: an architectural blueprint sheet -->
-    <div class="hero-visual" data-hviz="blueprint">
-
-      <!-- HERO: blueprint sheet, a drafted elevation of a system -->
-      <svg class="hviz" data-for="blueprint" viewBox="0 0 560 560" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <pattern id="bp-grid-fine" width="14" height="14" patternUnits="userSpaceOnUse">
-            <path d="M 14 0 L 0 0 0 14" fill="none" stroke="#2a2620" stroke-width="0.5" opacity="0.8"/>
-          </pattern>
-          <pattern id="bp-grid-major" width="70" height="70" patternUnits="userSpaceOnUse">
-            <path d="M 70 0 L 0 0 0 70" fill="none" stroke="#38332b" stroke-width="0.8"/>
-          </pattern>
-          <radialGradient id="bp-vignette" cx="50%" cy="50%">
-            <stop offset="0%" stop-color="#1b1915" stop-opacity="0"/>
-            <stop offset="100%" stop-color="#0d0c0a" stop-opacity="0.55"/>
-          </radialGradient>
-        </defs>
-
-        <!-- Sheet -->
-        <rect x="20" y="20" width="520" height="520" fill="#141310" stroke="#4a4338" stroke-width="0.8"/>
-        <rect x="20" y="20" width="520" height="520" fill="url(#bp-grid-fine)"/>
-        <rect x="20" y="20" width="520" height="520" fill="url(#bp-grid-major)"/>
-        <rect x="20" y="20" width="520" height="520" fill="url(#bp-vignette)"/>
-
-        <!-- The system drawn as a plan -->
-        <!-- Outer system boundary: dash-dot -->
-        <rect x="100" y="150" width="360" height="300" fill="none" stroke="#6a5d42" stroke-width="1" stroke-dasharray="8,4,1,4" opacity="0.85"/>
-        <text x="105" y="144" fill="#88c4b4" font-family="IBM Plex Mono" font-size="10" letter-spacing="0.2em" font-weight="500">AUTH</text>
-
-        <!-- Module: auth.api (primary structure) -->
-        <g>
-          <rect x="140" y="190" width="140" height="70" fill="#1b1915" stroke="#c9c0ae" stroke-width="1.1"/>
-          <rect x="144" y="194" width="132" height="62" fill="none" stroke="#5a5244" stroke-width="0.6"/>
-          <text x="152" y="214" fill="#e8e1d2" font-family="IBM Plex Mono" font-size="12" font-weight="500" letter-spacing="0.08em">auth.api</text>
-          <text x="152" y="230" fill="#908673" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">#a4e1 · MODULE</text>
-          <text x="152" y="246" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">session · tokens · login</text>
-        </g>
-
-        <!-- Module: auth.session -->
-        <g>
-          <rect x="310" y="190" width="130" height="70" fill="#1b1915" stroke="#c9c0ae" stroke-width="1.1"/>
-          <rect x="314" y="194" width="122" height="62" fill="none" stroke="#5a5244" stroke-width="0.6"/>
-          <text x="322" y="214" fill="#e8e1d2" font-family="IBM Plex Mono" font-size="12" font-weight="500" letter-spacing="0.08em">auth.session</text>
-          <text x="322" y="230" fill="#908673" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">#7c2f · MODULE</text>
-          <text x="322" y="246" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">issue · verify · rotate</text>
-        </g>
-
-        <!-- Module: auth.tokens (drifted, amber outline: the single drift indicator) -->
-        <g>
-          <rect x="140" y="340" width="140" height="70" fill="#1b1915" stroke="#c4864a" stroke-width="1.2"/>
-          <rect x="144" y="344" width="132" height="62" fill="none" stroke="#7d5530" stroke-width="0.6" stroke-dasharray="3,2"/>
-          <text x="152" y="364" fill="#f4b36a" font-family="IBM Plex Mono" font-size="12" font-weight="500" letter-spacing="0.08em">auth.tokens</text>
-          <text x="152" y="380" fill="#c4864a" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">#9b40 · DRIFT</text>
-          <text x="152" y="396" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">declared: rotate · is: reissue</text>
-        </g>
-
-        <!-- Module: auth.policy (ghost, not declared) -->
-        <g>
-          <rect x="310" y="340" width="130" height="70" fill="none" stroke="#5a5244" stroke-width="1" stroke-dasharray="4,3"/>
-          <text x="322" y="364" fill="#908673" font-family="IBM Plex Mono" font-size="12" letter-spacing="0.08em">auth.policy</text>
-          <text x="322" y="380" fill="#5f5849" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.1em">no hash · GHOST</text>
-          <text x="322" y="396" fill="#5f5849" font-family="Source Serif 4" font-style="italic" font-size="11">in code · not in blueprint</text>
-        </g>
-
-        <!-- Contract edges (solid = declared, dashed amber = drift, faint dashed = ghost) -->
-        <g fill="none">
-          <line x1="280" y1="225" x2="310" y2="225" stroke="#c9c0ae" stroke-width="1.2"/>
-          <path d="M 210 260 L 210 340" stroke="#c4864a" stroke-width="1.2" stroke-dasharray="5,3"/>
-          <path d="M 375 260 L 375 340" stroke="#5a5244" stroke-width="1" stroke-dasharray="3,3"/>
-          <path d="M 280 375 L 310 375" stroke="#5a5244" stroke-width="1" stroke-dasharray="3,3"/>
-        </g>
-      </svg>
-
-    </div>
+    <!-- Hero visual: the running webui, reconciled map for the Cairn repo itself -->
+    <figure class="hero-visual">
+      <img class="product-shot"
+           src="../images/webui-v2-empty.png"
+           alt="Cairn graph explorer showing the reconciled map for the Cairn repo"
+           loading="eager"
+           decoding="async"
+           width="2880" height="1800">
+      <figcaption>cairn ui · reconciled map, live</figcaption>
+    </figure>
   </section>
 
   <!-- ================ WHAT CAIRN IS ================ -->
@@ -1260,7 +1210,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
     <div class="install-grid">
       <div class="code-card">
         <div class="card-head"><span class="dot"></span> install</div>
-<pre><span class="prompt">$</span> <span class="cmd">brew install</span> <span class="arg">cairn</span>
+<pre><span class="prompt">$</span> <span class="cmd">cargo install</span> <span class="flag">--git</span> <span class="arg">https://github.com/George-RD/cairn</span> <span class="flag">--branch</span> <span class="arg">dev</span>
 <span class="prompt">$</span> <span class="cmd">cairn init</span>                 <span class="comment"># scaffolds cairn.blueprint</span>
 <span class="prompt">$</span> <span class="cmd">cairn scan</span>                 <span class="comment"># reconcile, emit map.md</span></pre>
       </div>
@@ -1281,11 +1231,10 @@ footer.site .fnav a:hover { color: var(--ink-char); }
     <div class="inner">
       <div class="brand">Cairn. One stone stacked against forgetting what you built and why.</div>
       <div class="fnav">
-        <a href="../spec.md">spec</a>
+        <a href="https://github.com/George-RD/cairn/blob/dev/docs/spec.md" target="_blank" rel="noopener">spec</a>
         <a href="https://github.com/George-RD/cairn" target="_blank" rel="noopener">github</a>
         <a href="../design-system/">design system</a>
       </div>
-      <div class="sig">a stone stacked against forgetting</div>
     </div>
   </footer>
 </div>
