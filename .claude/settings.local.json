@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:deepwiki.com)"
+      "WebFetch(domain:deepwiki.com)",
+      "Bash(mv /Users/george/repos/cairn/.claude/skills/graphite-atomic /Users/george/.claude/skills/graphite-atomic)",
+      "Read(//Users/george/.claude/skills/**)"
     ]
   },
   "sandbox": {
