@@ -15,7 +15,7 @@ status-phases:
 	@for f in openspec/changes/phase-*/tasks.md; do \
 		[ -f "$$f" ] || continue; \
 		total=$$(grep -c '^[[:space:]]*[-*][[:space:]]*\[' "$$f"); \
-		done_count=$$(grep -c '^[[:space:]]*[-*][[:space:]]*\[x\]' "$$f"); \
+		done_count=$$(grep -c '^[[:space:]]*[-*][[:space:]]*\[[xX]\]' "$$f"); \
 		dir=$$(dirname "$$f"); \
 		printf "  %-45s  %2d / %2d done\n" "$$dir" "$$done_count" "$$total"; \
 	done
