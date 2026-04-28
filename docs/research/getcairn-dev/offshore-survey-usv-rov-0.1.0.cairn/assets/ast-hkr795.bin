@@ -1,0 +1,361 @@
+// Offshore Survey USV-ROV System — EXPLORER-1
+// Hybrid diesel-electric USV with stern LARS, tethered ROV, full sensor suite
+// Based on concept image: white/orange monohull ~12m, enclosed wheelhouse amidships,
+// stern ramp LARS, fiber-optic tether spool, mast antenna array, yellow ROV with manipulator
+// Target: ~20,000+ vertices, 28 materials, 18+ groups
+
+// ── Materials ──────────────────────────────────────────────────────────
+mb.defineMaterial('hullWhite',     { color: [0.88, 0.86, 0.82], roughness: 0.55, metalness: 0.10 });
+mb.defineMaterial('hullLight',     { color: [0.78, 0.76, 0.72], roughness: 0.50, metalness: 0.12 });
+mb.defineMaterial('hullDark',      { color: [0.30, 0.30, 0.32], roughness: 0.55, metalness: 0.18 });
+mb.defineMaterial('antifoil',      { color: [0.38, 0.16, 0.10], roughness: 0.78, metalness: 0.05 });
+mb.defineMaterial('deckGray',      { color: [0.42, 0.42, 0.44], roughness: 0.68, metalness: 0.10 });
+mb.defineMaterial('deckPlate',     { color: [0.35, 0.35, 0.37], roughness: 0.72, metalness: 0.12 });
+mb.defineMaterial('orangeAccent',  { color: [0.88, 0.42, 0.06], roughness: 0.45, metalness: 0.10 });
+mb.defineMaterial('wheelhouse',    { color: [0.82, 0.80, 0.76], roughness: 0.50, metalness: 0.10 });
+mb.defineMaterial('wheelhouseTop', { color: [0.85, 0.40, 0.05], roughness: 0.45, metalness: 0.08 });
+mb.defineMaterial('windowGlass',   { color: [0.10, 0.14, 0.22], roughness: 0.02, metalness: 0.45 });
+mb.defineMaterial('windowFrame',   { color: [0.50, 0.50, 0.52], roughness: 0.25, metalness: 0.65 });
+mb.defineMaterial('railAlum',      { color: [0.62, 0.62, 0.64], roughness: 0.20, metalness: 0.75 });
+mb.defineMaterial('mastGray',      { color: [0.48, 0.48, 0.50], roughness: 0.35, metalness: 0.40 });
+mb.defineMaterial('radomWhite',    { color: [0.90, 0.90, 0.88], roughness: 0.50, metalness: 0.05 });
+mb.defineMaterial('antennaRod',    { color: [0.70, 0.70, 0.72], roughness: 0.20, metalness: 0.80 });
+mb.defineMaterial('equipBox',      { color: [0.28, 0.28, 0.30], roughness: 0.55, metalness: 0.18 });
+mb.defineMaterial('batteryBox',    { color: [0.32, 0.32, 0.34], roughness: 0.58, metalness: 0.15 });
+mb.defineMaterial('winchDrum',     { color: [0.55, 0.42, 0.08], roughness: 0.50, metalness: 0.30 });
+mb.defineMaterial('winchFrame',    { color: [0.38, 0.38, 0.40], roughness: 0.40, metalness: 0.45 });
+mb.defineMaterial('tetherOrange',  { color: [0.85, 0.45, 0.05], roughness: 0.65, metalness: 0.05 });
+mb.defineMaterial('rampMetal',     { color: [0.40, 0.40, 0.42], roughness: 0.55, metalness: 0.35 });
+mb.defineMaterial('propMetal',     { color: [0.45, 0.42, 0.38], roughness: 0.25, metalness: 0.70 });
+mb.defineMaterial('fenderBlack',   { color: [0.06, 0.06, 0.07], roughness: 0.90, metalness: 0.02 });
+mb.defineMaterial('gasketBlack',   { color: [0.04, 0.04, 0.04], roughness: 0.92 });
+mb.defineMaterial('ventSlot',      { color: [0.03, 0.03, 0.04], roughness: 0.70 });
+mb.defineMaterial('ledGreen',      { color: [0.10, 0.90, 0.20], roughness: 0.10, emissive: [0.05, 0.45, 0.10] });
+mb.defineMaterial('ledRed',        { color: [0.90, 0.10, 0.10], roughness: 0.10, emissive: [0.45, 0.05, 0.05] });
+mb.defineMaterial('ledWhite',      { color: [0.95, 0.95, 0.95], roughness: 0.10, emissive: [0.40, 0.40, 0.40] });
+mb.defineMaterial('screwMetal',    { color: [0.62, 0.62, 0.64], roughness: 0.10, metalness: 0.90 });
+mb.defineMaterial('cableBlack',    { color: [0.06, 0.06, 0.07], roughness: 0.80 });
+// ROV materials
+mb.defineMaterial('rovYellow',     { color: [0.90, 0.72, 0.05], roughness: 0.50, metalness: 0.12 });
+mb.defineMaterial('rovYellowDark', { color: [0.72, 0.55, 0.04], roughness: 0.55, metalness: 0.10 });
+mb.defineMaterial('rovBlack',      { color: [0.08, 0.08, 0.09], roughness: 0.55, metalness: 0.15 });
+mb.defineMaterial('rovLens',       { color: [0.04, 0.06, 0.14], roughness: 0.02, metalness: 0.50 });
+mb.defineMaterial('rovThruster',   { color: [0.18, 0.18, 0.20], roughness: 0.45, metalness: 0.30 });
+mb.defineMaterial('rovArm',        { color: [0.50, 0.50, 0.52], roughness: 0.30, metalness: 0.55 });
+mb.defineMaterial('sonarDome',     { color: [0.14, 0.18, 0.30], roughness: 0.45, metalness: 0.20 });
+
+// ── Dimensions (meters, scaled for viewer — ~12m vessel → 0.72 units) ──
+var scale = 0.06; // 1 unit = ~16.7m, so 12m vessel = 0.72 units
+var hullL = 0.72;
+var hullW = 0.16;
+var hullH = 0.10;
+var waterlineH = 0.042;
+var bowTaperLen = 0.20;
+var sternTaperLen = 0.05;
+var baseY = 0.0;
+var deckY = baseY + hullH;
+var deckH = 0.005;
+
+// ════════════════════════════════════════════════════════════════════════
+// 1. HULL — wave-shedding bow, high freeboard, two-tone paint
+// ════════════════════════════════════════════════════════════════════════
+mb.beginGroup('hull');
+
+var midStart = -hullL/2 + bowTaperLen;
+var midEnd = hullL/2 - sternTaperLen;
+var midLen = midEnd - midStart;
+
+// Mid upper hull (white above waterline)
+var midUpper = [
+  [-hullW/2 + 0.006, waterlineH],
+  [ hullW/2 - 0.006, waterlineH],
+  [ hullW/2 + 0.004, hullH - 0.010],
+  [ hullW/2 - 0.006, hullH],
+  [-hullW/2 + 0.006, hullH],
+  [-hullW/2 - 0.004, hullH - 0.010]
+];
+mb.addExtrudedProfile(midUpper, midLen, 'x', [midStart, baseY, 0], 'hullWhite');
+
+// Mid lower hull (anti-fouling red-brown)
+var midLower = [
+  [-hullW/2 + 0.014, 0],
+  [ hullW/2 - 0.014, 0],
+  [ hullW/2,         0.012],
+  [ hullW/2 + 0.006, waterlineH + 0.002],
+  [-hullW/2 - 0.006, waterlineH + 0.002],
+  [-hullW/2,         0.012]
+];
+mb.addExtrudedProfile(midLower, midLen, 'x', [midStart, baseY, 0], 'antifoil');
+
+// Bow taper — 8 sections, smooth quadratic narrowing
+var bowSections = 8;
+var secLen = bowTaperLen / bowSections;
+for (var bi = 0; bi < bowSections; bi++) {
+  var t = (bi + 1) / bowSections;
+  var bs = 1.0 - t * t * 0.82;
+  var hs = 1.0 - t * t * 0.20;
+  var bx = midStart - (bi + 1) * secLen;
+  var bw = hullW / 2 * bs;
+  var bh = hullH * hs;
+  var bwl = waterlineH * hs;
+
+  var bowUpper = [
+    [-bw + 0.004 * bs, bwl],
+    [ bw - 0.004 * bs, bwl],
+    [ bw + 0.002 * bs, bh - 0.006 * hs],
+    [ bw - 0.004 * bs, bh],
+    [-bw + 0.004 * bs, bh],
+    [-bw - 0.002 * bs, bh - 0.006 * hs]
+  ];
+  mb.addExtrudedProfile(bowUpper, secLen, 'x', [bx, baseY, 0], 'hullWhite');
+
+  var bowLower = [
+    [-bw + 0.008 * bs, 0],
+    [ bw - 0.008 * bs, 0],
+    [ bw,              0.008 * hs],
+    [ bw + 0.004 * bs, bwl + 0.002],
+    [-bw - 0.004 * bs, bwl + 0.002],
+    [-bw,              0.008 * hs]
+  ];
+  mb.addExtrudedProfile(bowLower, secLen, 'x', [bx, baseY, 0], 'antifoil');
+}
+
+// Bow tip
+mb.addExtrudedProfile(
+  [[-0.006, 0.004], [0.006, 0.004], [0.004, hullH * 0.55], [-0.004, hullH * 0.55]],
+  0.012, 'x', [-hullL/2 - 0.006, baseY, 0], 'hullWhite'
+);
+
+// Stern section
+var sw = hullW / 2 * 0.90;
+var sternUpper = [
+  [-sw + 0.005, waterlineH],
+  [ sw - 0.005, waterlineH],
+  [ sw + 0.003, hullH - 0.008],
+  [ sw - 0.008, hullH],
+  [-sw + 0.008, hullH],
+  [-sw - 0.003, hullH - 0.008]
+];
+mb.addExtrudedProfile(sternUpper, sternTaperLen, 'x', [midEnd, baseY, 0], 'hullWhite');
+
+var sternLower = [
+  [-sw + 0.012, 0],
+  [ sw - 0.012, 0],
+  [ sw,         0.010],
+  [ sw + 0.004, waterlineH + 0.002],
+  [-sw - 0.004, waterlineH + 0.002],
+  [-sw,         0.010]
+];
+mb.addExtrudedProfile(sternLower, sternTaperLen, 'x', [midEnd, baseY, 0], 'antifoil');
+
+// Waterline stripe (orange accent)
+for (var wls = -1; wls <= 1; wls += 2) {
+  mb.addBox([-hullL/2 + bowTaperLen * 0.5, baseY + waterlineH - 0.001, wls * (hullW/2 + 0.003)],
+    [hullL - bowTaperLen * 0.5 - sternTaperLen, 0.005, 0.002], 'orangeAccent');
+}
+
+// Hull panel seam lines
+for (var hls = -1; hls <= 1; hls += 2) {
+  mb.addBox([-hullL/2 + bowTaperLen * 0.6, baseY + hullH * 0.70, hls * (hullW/2 + 0.003)],
+    [hullL - bowTaperLen * 0.6 - sternTaperLen, 0.002, 0.002], 'gasketBlack');
+}
+
+// Rubber fendering strips
+for (var fs = -1; fs <= 1; fs += 2) {
+  var fZ = fs * (hullW/2 + 0.007);
+  for (var fi = 0; fi < 16; fi++) {
+    var fX = -hullL/2 + bowTaperLen * 0.7 + fi * (hullL - bowTaperLen * 0.7 - sternTaperLen) / 16;
+    mb.addCylinder([fX, baseY + waterlineH + 0.010, fZ], 0.005, 0.028, 8, 'fenderBlack', 'x');
+  }
+}
+
+mb.endGroup();
+
+// ════════════════════════════════════════════════════════════════════════
+// 2. DECK SURFACE
+// ════════════════════════════════════════════════════════════════════════
+mb.beginGroup('deck');
+
+// Main deck
+mb.addBox([-hullL/2 + bowTaperLen * 0.55, deckY, -hullW/2 + 0.010],
+  [hullL - bowTaperLen * 0.55 - sternTaperLen * 0.4, deckH, hullW - 0.020], 'deckGray');
+
+// Non-skid tread plates
+for (var dtx = 0; dtx < 12; dtx++) {
+  for (var dtz = 0; dtz < 3; dtz++) {
+    var tdX = -0.22 + dtx * 0.038;
+    var tdZ = -hullW/2 + 0.022 + dtz * 0.048;
+    mb.addBox([tdX, deckY + deckH, tdZ], [0.028, 0.001, 0.036], 'deckPlate');
+  }
+}
+
+// Deck coaming edges
+mb.addBox([-hullL/2 + bowTaperLen * 0.6, deckY + deckH, -hullW/2 + 0.006],
+  [hullL - bowTaperLen * 0.6 - sternTaperLen, 0.008, 0.005], 'hullLight');
+mb.addBox([-hullL/2 + bowTaperLen * 0.6, deckY + deckH, hullW/2 - 0.011],
+  [hullL - bowTaperLen * 0.6 - sternTaperLen, 0.008, 0.005], 'hullLight');
+
+mb.endGroup();
+
+// ════════════════════════════════════════════════════════════════════════
+// 3. ENCLOSED WHEELHOUSE AMIDSHIPS (orange roof, white walls, windows)
+// ════════════════════════════════════════════════════════════════════════
+mb.beginGroup('wheelhouse');
+
+var whX = -0.08;
+var whZ = 0;
+var whW = 0.24;
+var whD = 0.13;
+var whH = 0.14;
+var whBaseY = deckY + deckH;
+
+// Main cabin walls
+mb.addBox([whX, whBaseY, -whD/2], [whW, whH, whD], 'wheelhouse');
+
+// Orange roof
+mb.addBox([whX - 0.005, whBaseY + whH, -whD/2 - 0.005], [whW + 0.010, 0.012, whD + 0.010], 'wheelhouseTop');
+// Roof overhang lip
+mb.addBox([whX - 0.008, whBaseY + whH + 0.012, -whD/2 - 0.008], [whW + 0.016, 0.005, whD + 0.016], 'wheelhouseTop');
+
+// Front windows (3 large)
+for (var fw = 0; fw < 3; fw++) {
+  var fwX = whX + 0.018 + fw * 0.068;
+  mb.addBox([fwX, whBaseY + whH * 0.35, -whD/2 - 0.002], [0.050, whH * 0.45, 0.004], 'windowGlass');
+  mb.addBox([fwX - 0.003, whBaseY + whH * 0.33, -whD/2 - 0.003], [0.056, 0.003, 0.005], 'windowFrame');
+  mb.addBox([fwX - 0.003, whBaseY + whH * 0.33 + whH * 0.45 + 0.003, -whD/2 - 0.003], [0.056, 0.003, 0.005], 'windowFrame');
+  mb.addBox([fwX - 0.003, whBaseY + whH * 0.33, -whD/2 - 0.003], [0.003, whH * 0.45 + 0.006, 0.005], 'windowFrame');
+  mb.addBox([fwX + 0.050, whBaseY + whH * 0.33, -whD/2 - 0.003], [0.003, whH * 0.45 + 0.006, 0.005], 'windowFrame');
+}
+
+// Side windows (2 per side)
+for (var sw2 = -1; sw2 <= 1; sw2 += 2) {
+  var swZ = sw2 * (whD/2 + 0.002);
+  for (var swi = 0; swi < 2; swi++) {
+    var swX = whX + 0.030 + swi * 0.090;
+    mb.addBox([swX, whBaseY + whH * 0.38, swZ - 0.002], [0.040, whH * 0.38, 0.004], 'windowGlass');
+    mb.addBox([swX - 0.002, whBaseY + whH * 0.36, swZ - 0.003], [0.044, 0.003, 0.005], 'windowFrame');
+    mb.addBox([swX - 0.002, whBaseY + whH * 0.36 + whH * 0.38 + 0.003, swZ - 0.003], [0.044, 0.003, 0.005], 'windowFrame');
+  }
+}
+
+// Rear wall with door
+mb.addBox([whX + whW - 0.002, whBaseY + 0.020, -whD/2 + 0.020], [0.004, whH * 0.75, whD - 0.040], 'hullDark');
+mb.addBox([whX + whW - 0.003, whBaseY + 0.022, -whD/2 + 0.022], [0.003, whH * 0.70, 0.040], 'windowGlass');
+
+// Navigation display visible through front window
+mb.addBox([whX + 0.08, whBaseY + whH * 0.30, -whD/2 + 0.020], [0.040, 0.025, 0.003], 'windowGlass');
+
+// Cabin base trim (orange stripe)
+mb.addBox([whX, whBaseY, -whD/2 - 0.001], [whW, 0.010, 0.002], 'orangeAccent');
+mb.addBox([whX, whBaseY, whD/2 - 0.001], [whW, 0.010, 0.002], 'orangeAccent');
+
+mb.endGroup();
+
+// ════════════════════════════════════════════════════════════════════════
+// 4. SENSOR MAST (on wheelhouse roof — LEO sat, GPS, radar)
+// ════════════════════════════════════════════════════════════════════════
+mb.beginGroup('sensorMast');
+
+var mastX = whX + 0.06;
+var mastBaseY = whBaseY + whH + 0.017;
+
+// Mast base plate
+mb.addBox([mastX - 0.020, mastBaseY, -0.020], [0.040, 0.008, 0.040], 'hullDark');
+
+// Main mast tube (tapered)
+mb.addCylinder([mastX, mastBaseY + 0.008, 0], 0.010, 0.080, 12, 'mastGray', 'y');
+mb.addCylinder([mastX, mastBaseY + 0.088, 0], 0.007, 0.060, 10, 'mastGray', 'y');
+mb.addCylinder([mastX, mastBaseY + 0.148, 0], 0.005, 0.040, 10, 'mastGray', 'y');
+
+// Spreader cross-arm
+mb.addCylinder([mastX, mastBaseY + 0.075, -0.040], 0.004, 0.080, 8, 'mastGray', 'z');
+
+// Starlink/LEO satellite terminal (flat disc on mast)
+var satY = mastBaseY + 0.095;
+mb.addCylinder([mastX, satY, 0], 0.030, 0.006, 20, 'radomWhite', 'y');
+mb.addCylinder([mastX, satY + 0.006, 0], 0.028, 0.004, 20, 'radomWhite', 'y');
+mb.addCylinder([mastX, satY + 0.010, 0], 0.022, 0.003, 18, 'radomWhite', 'y');
+// Sat terminal mount arm
+mb.addCylinder([mastX, satY - 0.012, 0], 0.005, 0.014, 8, 'mastGray', 'y');
+
+// Radar dome (top of mast)
+var radarY = mastBaseY + 0.192;
+mb.addCylinder([mastX, radarY, 0], 0.022, 0.008, 18, 'radomWhite', 'y');
+mb.addCylinder([mastX, radarY + 0.008, 0], 0.020, 0.006, 18, 'radomWhite', 'y');
+mb.addCylinder([mastX, radarY + 0.014, 0], 0.016, 0.005, 16, 'radomWhite', 'y');
+mb.addCylinder([mastX, radarY + 0.019, 0], 0.011, 0.004, 14, 'radomWhite', 'y');
+mb.addSphere([mastX, radarY + 0.026, 0], 0.009, 12, 'radomWhite');
+
+// GPS/GNSS patch antennas (2, on spreader ends)
+mb.addCylinder([mastX, mastBaseY + 0.075, -0.042], 0.010, 0.004, 12, 'radomWhite', 'y');
+mb.addSphere([mastX, mastBaseY + 0.081, -0.042], 0.006, 8, 'radomWhite');
+mb.addCylinder([mastX, mastBaseY + 0.075, 0.042], 0.010, 0.004, 12, 'radomWhite', 'y');
+mb.addSphere([mastX, mastBaseY + 0.081, 0.042], 0.006, 8, 'radomWhite');
+
+// Radar reflector (octahedral shape approximated)
+var rrY = mastBaseY + 0.155;
+mb.addCylinder([mastX, rrY, 0], 0.014, 0.003, 8, 'antennaRod', 'y');
+mb.addCylinder([mastX, rrY + 0.003, -0.010], 0.003, 0.020, 6, 'antennaRod', 'z');
+mb.addCylinder([mastX, rrY + 0.003, 0], 0.003, 0.020, 6, 'antennaRod', 'x');
+
+// VHF whip antennas (2)
+mb.addCylinder([mastX + 0.012, mastBaseY + 0.185, 0.015], 0.002, 0.040, 6, 'antennaRod', 'y');
+mb.addSphere([mastX + 0.012, mastBaseY + 0.225, 0.015], 0.003, 6, 'antennaRod');
+mb.addCylinder([mastX - 0.012, mastBaseY + 0.180, -0.015], 0.002, 0.035, 6, 'antennaRod', 'y');
+
+// Nav lights on spreader
+mb.addSphere([mastX, mastBaseY + 0.075, -0.044], 0.004, 8, 'ledRed');
+mb.addSphere([mastX, mastBaseY + 0.075, 0.044], 0.004, 8, 'ledGreen');
+mb.addSphere([mastX, radarY + 0.038, 0], 0.005, 8, 'ledWhite');
+
+// Mast cables
+mb.addCylinder([mastX + 0.008, mastBaseY + 0.010, 0.008], 0.003, 0.12, 6, 'cableBlack', 'y');
+mb.addCylinder([mastX - 0.008, mastBaseY + 0.010, -0.008], 0.002, 0.10, 6, 'cableBlack', 'y');
+
+mb.endGroup();
+
+// ════════════════════════════════════════════════════════════════════════
+// 5. DECK RAILS (safety rails along both sides)
+// ════════════════════════════════════════════════════════════════════════
+mb.beginGroup('deckRails');
+
+var railStartX = -hullL/2 + bowTaperLen * 0.65;
+var railEndX = hullL/2 - sternTaperLen - 0.02;
+var railLen = railEndX - railStartX;
+var railY = deckY + deckH + 0.030;
+
+for (var rs = -1; rs <= 1; rs += 2) {
+  var rZ = rs * (hullW/2 - 0.008);
+  // Top rail
+  mb.addCylinder([railStartX, railY, rZ], 0.003, railLen, 8, 'railAlum', 'x');
+  // Mid rail
+  mb.addCylinder([railStartX, railY - 0.015, rZ], 0.002, railLen, 8, 'railAlum', 'x');
+  // Posts (every 0.06m)
+  var numPosts = Math.floor(railLen / 0.06);
+  for (var rp = 0; rp <= numPosts; rp++) {
+    var rpX = railStartX + rp * (railLen / numPosts);
+    mb.addCylinder([rpX, deckY + deckH, rZ], 0.003, 0.032, 6, 'railAlum', 'y');
+  }
+}
+
+// Bow rail (across front)
+mb.addCylinder([railStartX, railY, -hullW/2 + 0.008], 0.003, hullW - 0.016, 8, 'railAlum', 'z');
+
+mb.endGroup();
+
+// ════════════════════════════════════════════════════════════════════════
+// 6. BATTERY ENCLOSURES & FUEL TANKS (port/starboard deck boxes)
+// ════════════════════════════════════════════════════════════════════════
+mb.beginGroup('batteryEnclosures');
+
+// Large port battery enclosure
+mb.addBox([-0.28, deckY + deckH, -hullW/2 + 0.012], [0.12, 0.055, 0.055], 'batteryBox');
+mb.addBox([-0.28, deckY + deckH + 0.055, -hullW/2 + 0.012], [0.12, 0.004, 0.055], 'hullLight');
+// Vent grilles on battery box
+for (var bv = 0; bv < 5; bv++) {
+  mb.addBox([-0.27 + bv * 0.020, deckY + deckH + 0.010, -hullW/2 + 0.010], [0.008, 0.025, 0.003], 'ventSlot');
+}
+// Battery box door
+mb.addBox([-0.28 - 0.002, deckY + deckH + 0.008, -hullW/2 + 0.015], [0.004, 0.040, 0.040], 'equipBox');
+mb.addBox([-0.283, deckY + deckH + 0.006, -hullW/2 + 0.013], [0.003, 0.044, 0.003], 'gasketBlack');
+mb.add
