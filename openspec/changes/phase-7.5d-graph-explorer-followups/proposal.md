@@ -16,7 +16,7 @@ Add four ADDED Requirements to `openspec/specs/graph-explorer/spec.md`. C4.b is 
 
 ## Acceptance Criteria
 
-- The four ADDED requirements appear and `cflx openspec validate phase-7.6-graph-explorer-followups --strict` passes.
+- The four ADDED requirements appear and `cflx openspec validate phase-7.5d-graph-explorer-followups --strict` passes.
 - No `CairnResponse` shape changes per the UI Maintenance Contract requirement.
 
 ## Out of Scope
