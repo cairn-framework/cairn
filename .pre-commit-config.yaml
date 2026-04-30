@@ -1,0 +1,61 @@
+# prek / pre-commit configuration. Install hooks with `make install-hooks`.
+# Pre-commit: fast checks. Pre-push: full verification battery.
+
+repos:
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt --check
+        entry: cargo fmt --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: no-em-dash
+        name: No em-dash in repo prose
+        entry: "—"
+        language: pygrep
+        types: [text]
+        files: \.md$
+        exclude: ^(openspec/changes/archive/|docs/research/|graphify-out/)
+
+      - id: cargo-clippy
+        name: cargo clippy (warnings as errors)
+        entry: cargo clippy --all-targets --all-features -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: cargo-test
+        name: cargo test --locked
+        entry: cargo test --locked
+        language: system
+        types: [rust]
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: cargo-doc
+        name: cargo doc (warnings as errors)
+        entry: bash -c 'RUSTDOCFLAGS="-D warnings" cargo doc --no-deps'
+        language: system
+        types: [rust]
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: cflx-validate
+        name: cflx validate (strict)
+        entry: cflx openspec validate --strict
+        language: system
+        pass_filenames: false
+        files: ^openspec/
+        stages: [pre-push]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=500']

@@ -1,8 +1,8 @@
-.PHONY: check status status-phases status-worktrees status-untracked
+.PHONY: check status status-phases status-worktrees status-untracked install-hooks
 
 check:
 	cargo fmt --check
-	RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features
+	cargo clippy --all-targets --all-features -- -D warnings
 	cargo test
 	RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
 
@@ -33,3 +33,6 @@ status-untracked:
 	if [ "$$untracked" -gt 20 ]; then \
 		echo "  ... and $$(($$untracked - 20)) more"; \
 	fi
+
+install-hooks:
+	prek install --install-hooks --hook-type pre-commit --hook-type pre-push
