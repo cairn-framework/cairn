@@ -1,9 +1,12 @@
 # Proposal: Phase 9 Brownfield Extraction
 
+**Change Type**: hybrid
+
 ## Dependencies
 
-- Requires: `phase-8-summariser`.
-- Execution: MUST run after Phase 8 and before Phase 10.
+- `phase-8-summariser` (required dependency).
+
+Execution: MUST run after Phase 8 and before Phase 10.
 
 ## Problem/Context
 

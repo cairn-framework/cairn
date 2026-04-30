@@ -1,9 +1,12 @@
 # Proposal: Phase 8.0 Tests (Summariser Pre-Phase)
 
+**Change Type**: hybrid
+
 ## Dependencies
 
-- Requires: `phase-7.5b-cleansing-splits` (archived).
-- Execution: MUST run BEFORE `phase-8-summariser`. Archives when `cargo test` passes with all new tests ignored.
+- `phase-7.5b-cleansing-splits` (required dependency, archived).
+
+Execution: MUST run BEFORE `phase-8-summariser`. Archives when `cargo test` passes with all new tests ignored.
 
 ## Problem/Context
 

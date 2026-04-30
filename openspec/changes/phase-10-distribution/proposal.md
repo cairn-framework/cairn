@@ -1,9 +1,12 @@
 # Proposal: Phase 10 Distribution
 
+**Change Type**: hybrid
+
 ## Dependencies
 
-- Requires: `phase-9-brownfield`.
-- Execution: MUST run after Phase 9.
+- `phase-9-brownfield` (required dependency).
+
+Execution: MUST run after Phase 9.
 
 ## Problem/Context
 

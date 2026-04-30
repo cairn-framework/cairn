@@ -1,9 +1,12 @@
 # Proposal: Phase 10.0 Distribution Tests
 
+**Change Type**: hybrid
+
 ## Dependencies
 
-- Requires: `phase-9-brownfield` (not yet applied).
-- Execution: MUST run before `phase-10-distribution`.
+- `phase-9-brownfield` (required dependency, not yet applied).
+
+Execution: MUST run before `phase-10-distribution`.
 
 ## Problem/Context
 

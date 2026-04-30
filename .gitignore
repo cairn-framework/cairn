@@ -17,6 +17,10 @@ target/
 # Claude Code session-local references (design bundles, scratch assets)
 .claude/references/
 .claude/stronghold/
+.claude/worktrees/
+
+# Agent settings exports / transient agent dumps
+.agents/
 
 # Local preview scaffolding for src/ui_assets/ (mimics Rust include_str routes)
 src/ui_assets/api/

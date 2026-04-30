@@ -1,9 +1,12 @@
 # Proposal: Phase 9.0 Brownfield Tests
 
+**Change Type**: hybrid
+
 ## Dependencies
 
-- Requires: `phase-8-summariser` (not yet applied).
-- Execution: MUST run after Phase 8 and MUST run before Phase 9 Brownfield Extraction.
+- `phase-8-summariser` (required dependency, not yet applied).
+
+Execution: MUST run after Phase 8 and MUST run before Phase 9 Brownfield Extraction.
 
 ## Problem/Context
 

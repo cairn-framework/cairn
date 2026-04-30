@@ -83,20 +83,20 @@ The module tree MUST mirror the conceptual architecture:
 
 ```text
 src/
-  blueprint/          # Phase 1 — parser, lexer, AST
-  map/     # Phase 1 — graph, build, query, integrity
-  artefacts/    # Phase 2 — contract, todo, decision, etc.
-  reconcile/    # Phase 1 — trait, code reconciler, fingerprint
-  scanner/      # Phase 1 — scan orchestration, outputs, state
-  changes/      # Phase 3 — delta parser, archive, rename
-  hooks/        # Phase 4 — hook runner, commit/task hooks
-  edges/        # Phase 5 — edge validation
-  targets/      # Phase 6 — multi-target resolution
-  mcp/          # Phase 7 — MCP server, tool registry
-  summariser/   # Phase 8 — summariser trait, impls
-  brownfield/   # Phase 9 — extraction engine
-  distribution/ # Phase 10 — packaging, output formats
-  cli/          # Phases 1+ — command definitions, output rendering
+  blueprint/          # Phase 1: parser, lexer, AST
+  map/     # Phase 1: graph, build, query, integrity
+  artefacts/    # Phase 2: contract, todo, decision, etc.
+  reconcile/    # Phase 1: trait, code reconciler, fingerprint
+  scanner/      # Phase 1: scan orchestration, outputs, state
+  changes/      # Phase 3: delta parser, archive, rename
+  hooks/        # Phase 4: hook runner, commit/task hooks
+  edges/        # Phase 5: edge validation
+  targets/      # Phase 6: multi-target resolution
+  mcp/          # Phase 7: MCP server, tool registry
+  summariser/   # Phase 8: summariser trait, impls
+  brownfield/   # Phase 9: extraction engine
+  distribution/ # Phase 10: packaging, output formats
+  cli/          # Phases 1+: command definitions, output rendering
   error.rs      # Shared CairnError type
   lib.rs        # Crate root, re-exports
   main.rs       # Thin binary entrypoint
@@ -279,3 +279,9 @@ The Cairn spec v0.6 contains items at the "Declared" maturity level -- capabilit
 ### No Narrative Prose in Source
 
 - Source files MUST NOT contain long narrative explanations. If a design rationale requires more than 3 lines, reference the relevant OpenSpec design document by path instead.
+
+---
+
+## 8. Git Hooks
+
+Hooks are managed via [prek](https://github.com/j178/prek) (Rust rewrite of pre-commit, drop-in `.pre-commit-config.yaml` compatible). After clone, run `make install-hooks` to install both pre-commit and pre-push stages. Pre-commit runs `cargo fmt --check` plus the em-dash detector. Pre-push runs `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test --locked`, `cargo doc --no-deps` (with `RUSTDOCFLAGS=-D warnings`), and `cflx openspec validate --strict`. CI mirrors the pre-push battery as a server-side safety net.

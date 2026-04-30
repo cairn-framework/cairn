@@ -9,16 +9,16 @@ tracker and either resolve items in its scope or explicitly note why they remain
 |----|------|-----------------------|--------|-----------------|-------|
 
 ## Status values
-- `open` — not yet resolved by any phase
-- `partial` — partially addressed, details noted
-- `resolved` — fully specified in a phase spec
-- `deferred-v2` — explicitly punted to post-v1
+- `open`: not yet resolved by any phase
+- `partial`: partially addressed, details noted
+- `resolved`: fully specified in a phase spec
+- `deferred-v2`: explicitly punted to post-v1
 
 ---
 
 ## Explicitly Declared sections
 
-These are items the spec itself marks as "Declared" maturity level — named and scoped
+These are items the spec itself marks as "Declared" maturity level: named and scoped
 but not yet designed enough to implement against.
 
 | ID | Item | Source (v0.6 section) | Status | Resolving Phase | Notes |
@@ -34,11 +34,11 @@ but not yet designed enough to implement against.
 
 ## Open questions (unresolved)
 
-Items from section 16 that remain open design questions — no resolution yet committed.
+Items from section 16 that remain open design questions, no resolution yet committed.
 
 | ID | Item | Source (v0.6 section) | Status | Resolving Phase | Notes |
 |----|------|-----------------------|--------|-----------------|-------|
-| Q-01 | Shared utilities pattern | 16.1 | open | Convention | Where "this is a module" vs "this is two helpers" — convention, not grammar. Projects decide. May need guidance in docs. |
+| Q-01 | Shared utilities pattern | 16.1 | open | Convention | Where "this is a module" vs "this is two helpers": convention, not grammar. Projects decide. May need guidance in docs. |
 | Q-02 | Todo coverage strictness | 16.2 | open | Phase 2 or 4 | Default is loose (warnings, no enforcement). Config allows strict. When/whether to promote strict to default is open. |
 | Q-03 | meta/ directory layout | 16.3 | open | Phase 1 | By artefact type first (`meta/decisions/kernel/`) vs by node first (`meta/kernel/parser/decisions/`). Real usage may surface winner. |
 | Q-04 | Detailed schemas for agent review subtypes | 16.4 | open | Phase 2 | Overlaps D-01/D-02. When introspective review is generated, how it promotes to decisions, severity taxonomy for cross-model, multi-review aggregation. |
@@ -58,7 +58,7 @@ Items explicitly described as v2, post-v1, or phase 10+ distribution concerns.
 
 ## Uncommitted implementation choices
 
-Section 17 items — the spec deliberately does not commit to these. Each must be
+Section 17 items: the spec deliberately does not commit to these. Each must be
 decided at implementation time for its respective phase.
 
 | ID | Item | Source (v0.6 section) | Status | Resolving Phase | Notes |
@@ -78,16 +78,16 @@ incomplete or dependent on later phases.
 
 | ID | Item | Source (v0.6 section) | Status | Resolving Phase | Notes |
 |----|------|-----------------------|--------|-----------------|-------|
-| P-01 | Actor node type | 7 | open | TBD | "Actor is optional in v1" — declared in grammar but no schema, integrity rules, or reconciliation behaviour specified. |
-| P-02 | Brownfield prompt template | 15 | open | Phase 9 | "The exact prompt template the summariser uses" — explicitly deferred. |
-| P-03 | Brownfield structural candidate heuristics | 15 | open | Phase 9 | "The heuristics the reconciler uses to detect 'module-like' structural candidates" — explicitly deferred. |
-| P-04 | Brownfield refine merge semantics | 15 | open | Phase 9 | "The merge semantics for `cairn refine`" — explicitly deferred. |
-| P-05 | Brownfield-init change directory frontmatter schema | 15 | open | Phase 9 | "The frontmatter schema for the brownfield-init change directory" — explicitly deferred. |
+| P-01 | Actor node type | 7 | open | TBD | "Actor is optional in v1": declared in grammar but no schema, integrity rules, or reconciliation behaviour specified. |
+| P-02 | Brownfield prompt template | 15 | open | Phase 9 | "The exact prompt template the summariser uses": explicitly deferred. |
+| P-03 | Brownfield structural candidate heuristics | 15 | open | Phase 9 | "The heuristics the reconciler uses to detect 'module-like' structural candidates": explicitly deferred. |
+| P-04 | Brownfield refine merge semantics | 15 | open | Phase 9 | "The merge semantics for `cairn refine`": explicitly deferred. |
+| P-05 | Brownfield-init change directory frontmatter schema | 15 | open | Phase 9 | "The frontmatter schema for the brownfield-init change directory": explicitly deferred. |
 | P-06 | Summariser drafting non-contract artefact types | 13 | open | Phase 8 | "The summariser can optionally draft other artefact types (e.g. research from a conversation transcript), but contracts are the primary use case." No schema or interface specified. |
 | P-07 | Multi-target interface divergence: error vs tension | 10.2 | open | Phase 6 | "Structural error if targets claim to implement the same contract but diverge; tension if intentional asymmetry is documented." How to declare intentional asymmetry is unspecified. |
-| P-08 | Cross-model review aggregation | 16.4 | open | Phase 2 | "How do multiple reviews on the same node aggregate" — raised as open question, no design. |
+| P-08 | Cross-model review aggregation | 16.4 | open | Phase 2 | "How do multiple reviews on the same node aggregate": raised as open question, no design. |
 | P-09 | Introspective review cluster detection | 8.4 | open | Phase 2 | "When the framework detects clusters of introspective reviews on the same node, that node's spec is a candidate for revision." Clustering heuristic unspecified. |
-| P-10 | MCP query interface | 12 | open | Phase 7 | "Same underlying queries exposed via MCP (v2)" — noted as future wrapping of CLI queries. No transport or protocol details. |
-| P-11 | LSP query interface | 12 | open | Phase 10+ | "LSP (v3)" — noted alongside MCP. No details. |
+| P-10 | MCP query interface | 12 | open | Phase 7 | "Same underlying queries exposed via MCP (v2)": noted as future wrapping of CLI queries. No transport or protocol details. |
+| P-11 | LSP query interface | 12 | open | Phase 10+ | "LSP (v3)": noted alongside MCP. No details. |
 | P-12 | Concurrent change conflict detection | 14 (phase 4) | open | Phase 4 | "Detect conflicts between concurrent active changes at authoring time, not only at archive time." Mechanism unspecified. |
 | P-13 | Init-time ignore list assistance | 6.1 | open | Phase 1 | `cairn init` scans and proposes initial ignore list. Heuristics described (detects package.json, monorepo dist/) but exact implementation unspecified. |
