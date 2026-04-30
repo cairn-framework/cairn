@@ -91,6 +91,14 @@ This is the simpler operational model and matches how software projects actually
 
 The framework is a fence around the authority chain and a navigator for the provenance chain. It tells you when the fence has been crossed; it helps you trace why the fence was placed where it was. It does not decide which side is right.
 
+### 3.5 Layer ordering of enforcement, configuration, and AI
+
+Cairn is deterministic-typed at the bottom, configurable-templated in the middle, AI-assisted at the top, and the layer ordering is non-negotiable. Enforcement value lives in the kernel's deterministic, typed, two-chain primitives. Flexibility is delivered above the kernel via templates, tags, project config, and queued AI assistance.
+
+- **Bottom: deterministic-typed.** Artefact types are obligation-bearing, not decorative. Each direct type's place in the provenance or authority chain determines what the kernel can enforce about it. Flattening the taxonomy collapses the obligations into labels, and labels are not enforceable.
+- **Middle: configurable-templated.** Cairn's authoring guidance is template-driven and tag-extensible, not enum-bound. The kernel ships generic types; projects compose domain vocabulary on top via templates (per `artefact_types` in §6) and tags. A closed enum would constrain cairn's domain scope at the kernel layer; templates and tags do not.
+- **Top: AI-assisted at authoring only.** Cairn extends to new domains by adding deterministic reconcilers, not by leaning on AI to normalise reality. The reality layer must produce a content-addressable fingerprint; without it, drift detection is impossible and the authority chain collapses to documentation. AI may propose edges, draft contracts, and suggest narrative summaries, all reviewable through the change-isolation primitive. AI may not produce the deterministic record itself.
+
 ## 4. Related work
 
 **Structurizr blueprint** is the closest prior art for the architectural layer. It models C4 systems as a declarative blueprint with strict model/view separation. Cairn borrows the C4 hierarchy and the declarative style but drops the view layer (rendering is downstream), simplifies the grammar, and adds artefact pointers, path ownership, stable IDs, and reconciliation.

@@ -92,6 +92,16 @@ Amend on review: `git add <files>; gt modify -a; gt submit --publish --no-intera
 
 Sizing: one commit equals one logical unit, target under 250 lines added+removed, hard cap 400. See `~/.claude/skills/graphite-pr/SKILL.md` for full rules.
 
+## What cairn is, positively
+
+Three principles, complementary to the negative-space "What to avoid" list below:
+
+1. **Typed artefacts encode obligations, not labels.** Each direct type (`contract`, `decision`, `todo`, `research`, `review`, `source`) has a different role in the two-chain topology. The kernel's enforcement value comes from those role differences. Treating types as decorative labels (or proposing a flat schema) is the same mistake as flattening the two chains into a six-layer stack.
+2. **Authoring guidance is template-driven and tag-extensible, never closed-enum.** Domain-specific vocabulary belongs in project config (`artefact_types`) or in tag conventions, both of which are extensible. The kernel speaks taxonomy; the project speaks domain.
+3. **AI assists authoring; AI does not substitute for the reconciler.** AI may propose edges, draft contracts, suggest narrative summaries, all reviewable through the change-isolation primitive. AI may not produce the deterministic reality fingerprint that drift detection compares against. The enforcement layer stays mechanically checkable.
+
+These three are the positive form of the rejections in "What to avoid." Stated in spec.md §3.5 with rationale.
+
 ## What to avoid
 
 - Rewriting archived phases under `openspec/changes/archive/`; they are historical record.
