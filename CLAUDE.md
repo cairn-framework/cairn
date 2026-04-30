@@ -75,6 +75,23 @@ Phases execute via `cflx` (Conflux). Lifecycle: **apply → accept → archive**
 
 Pre-commit hook runs `cargo fmt --check`. Verification gate battery for every phase: `cargo build` (zero warnings), `cargo clippy --all-targets --all-features` with `-D warnings`, `cargo fmt --check`, `cargo test`, `cargo test --locked`, plus `cflx.py validate <phase> --strict`.
 
+## Workflow: Graphite (gt)
+
+This repo uses Graphite (the `gt` CLI) for stacked PRs. The graphite-pr skill activates whenever you work in this repo. `gt` owns branch state. Every branch, commit, and push goes through `gt create` / `gt modify` / `gt submit`. Plain `git status`, `git log`, `git diff`, `git add`, `git reset`, `git stash` stay fine. Raw `git commit`, `git push`, `git checkout -b`, `git branch -D` bypass Graphite's metadata and corrupt the stack.
+
+The 90% loop:
+
+```bash
+gt sync --no-interactive --force                     # Sync trunk
+git add <files-for-this-unit>                        # Stage selectively
+gt create -m "<type>(<scope>): <subject>"            # New branch + commit
+gt submit --stack --publish --no-interactive         # Publish (auto-review fires)
+```
+
+Amend on review: `git add <files>; gt modify -a; gt submit --publish --no-interactive`. New scope on top: `git add <files>; gt create -m "..."`. After submit and review, run `~/.claude/skills/graphite-pr/scripts/gt-merge-cascade.sh` to merge with review-thread gating.
+
+Sizing: one commit equals one logical unit, target under 250 lines added+removed, hard cap 400. See `~/.claude/skills/graphite-pr/SKILL.md` for full rules.
+
 ## What to avoid
 
 - Rewriting archived phases under `openspec/changes/archive/`; they are historical record.
