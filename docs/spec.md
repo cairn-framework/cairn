@@ -1,4 +1,4 @@
-# Cairn — Spec v0.7
+# Cairn: Spec v0.7
 
 > Working draft. The name *Cairn* is a placeholder; the spec will stand if it changes. v0.6 is a scope revision following a frame correction: capability scope and implementation phasing are now separate concerns. Several items previously labelled "v2" or "deferred" were genuinely in-scope capabilities whose implementation happens later in the build order; labelling them as out-of-scope was mistakenly conflating "not yet built" with "not part of the product." v0.6 brings those back in: brownfield extraction, multi-target paths, edge validation, docstring generation, a rename operation, and cross-model peer review as a review subtype. The kernel architecture from v0.5 stands unchanged.
 
@@ -6,12 +6,12 @@
 
 Used consistently throughout this spec:
 
-- **The framework (Cairn)** — the toolchain. Parser, scanner, reconciler interface, artefact type system, hooks, CLI, query interface. What you install and run.
-- **The blueprint** — the grammar, and by extension the `.blueprint` file a project authors. The intent layer.
-- **The artefacts** — typed markdown files attached to nodes (contracts, todos, decisions, reviews, research, sources).
-- **The map** — the runtime graph produced by reconciling the blueprint, the artefacts, and the scanned reality layer. The unified queryable layer.
-- **The reality layer** — whatever the framework reconciles against. For v1 this is source code; the reconciler interface allows others (org structure, product BOMs, research programmes) as later additions.
-- **A change** — a proposed modification to the current state, isolated in its own directory until merged. Changes never touch the main tree directly.
+- **The framework (Cairn)**: the toolchain. Parser, scanner, reconciler interface, artefact type system, hooks, CLI, query interface. What you install and run.
+- **The blueprint**: the grammar, and by extension the `.blueprint` file a project authors. The intent layer.
+- **The artefacts**: typed markdown files attached to nodes (contracts, todos, decisions, reviews, research, sources).
+- **The map**: the runtime graph produced by reconciling the blueprint, the artefacts, and the scanned reality layer. The unified queryable layer.
+- **The reality layer**: whatever the framework reconciles against. For v1 this is source code; the reconciler interface allows others (org structure, product BOMs, research programmes) as later additions.
+- **A change**: a proposed modification to the current state, isolated in its own directory until merged. Changes never touch the main tree directly.
 
 The framework is the tool. The blueprint is what you write. The map is what the tool produces. Changes are how you modify it safely.
 
@@ -23,7 +23,7 @@ Not every part of this spec is at the same level of readiness. Three levels:
 - **Designed.** Interfaces, behaviour, integrity rules, and artefact schemas are specified. Someone can implement against this section without needing more spec work.
 - **Implemented.** Code exists that satisfies the design. (Tracked in the build order and in the project's own Cairn state, not in the spec itself.)
 
-Each section in this spec sits at one of these levels. Sections at Declared level are marked as such at the top. Sections without a marker are at Designed level — the default.
+Each section in this spec sits at one of these levels. Sections at Declared level are marked as such at the top. Sections without a marker are at Designed level: the default.
 
 Declared-level sections exist because we know a capability matters and we know roughly where it fits, but specifying its details now would either invent constraints we don't yet have evidence for, or require knowledge we can only gain by implementing earlier phases first. Promoting a section from Declared to Designed is itself a spec change, usually prompted by the implementation of an earlier phase surfacing the information the design needs.
 
@@ -42,7 +42,7 @@ Cairn addresses all four by making the architectural map the spine of a unified 
 
 Cairn produces an *map* for a project: a map of what exists (modules, dependencies, contracts, decisions, research, sources) and how the pieces relate. It is not a procedure manual for how to build the project.
 
-This distinction dictates what belongs in the map and what does not. Anything that describes *what the project is* — a module, its interface, its dependencies, its invariants, its open work items, the decisions that shaped it, the research that informed those decisions — goes in the graph. Anything that describes *how to operate on the project* — run the tests, format the code, deploy to staging — does not.
+This distinction dictates what belongs in the map and what does not. Anything that describes *what the project is*, a module, its interface, its dependencies, its invariants, its open work items, the decisions that shaped it, the research that informed those decisions, goes in the graph. Anything that describes *how to operate on the project*, run the tests, format the code, deploy to staging, does not.
 
 The practical consequence is a hard ceiling on the blueprint's complexity. If a feature being proposed is "how to do X," it belongs in an agent prompt, a skill, or a script. If it is "what X is and how it relates to Y," it belongs in the map.
 
@@ -58,7 +58,7 @@ v0.5 splits the stack into two chains that meet at the decision layer.
 
 This chain is about traceability of reasoning. Sources are raw material (documents, interviews, transcripts, links). Research synthesizes sources into understanding. Decisions cite research (and sometimes sources directly) as justification.
 
-The framework surfaces this chain and checks link integrity — every research artefact must cite at least one source, every decision must cite at least one piece of research or source — but it does not enforce *correctness*. Whether a research artefact faithfully represents its sources, and whether a decision is actually justified by its cited research, are human judgment calls. The framework exposes the chain so the judgment can be made; it does not attempt to make the judgment itself.
+The framework surfaces this chain and checks link integrity (every research artefact must cite at least one source, every decision must cite at least one piece of research or source), but it does not enforce *correctness*. Whether a research artefact faithfully represents its sources, and whether a decision is actually justified by its cited research, are human judgment calls. The framework exposes the chain so the judgment can be made; it does not attempt to make the judgment itself.
 
 Issues in the provenance chain surface as **rationale tensions** (see section 10): advisory findings that warn but do not block.
 
@@ -95,11 +95,11 @@ The framework is a fence around the authority chain and a navigator for the prov
 
 **Structurizr blueprint** is the closest prior art for the architectural layer. It models C4 systems as a declarative blueprint with strict model/view separation. Cairn borrows the C4 hierarchy and the declarative style but drops the view layer (rendering is downstream), simplifies the grammar, and adds artefact pointers, path ownership, stable IDs, and reconciliation.
 
-**Karpathy's LLM Wiki pattern** (April 2026) describes a persistent, LLM-maintained markdown wiki sitting between raw sources and an agent. The substrate is the same (markdown files in a git repo), but the direction is opposite: Karpathy's wiki is *descriptive* — the LLM compiles it from sources, inventing schema as it goes. Cairn is *prescriptive* — the human authors architectural intent upfront, and the framework reconciles reality against it. Cairn borrows Karpathy's three-layer framing (raw sources → compiled layer → code) and generalizes it into the two-chain model in section 3.
+**Karpathy's LLM Wiki pattern** (April 2026) describes a persistent, LLM-maintained markdown wiki sitting between raw sources and an agent. The substrate is the same (markdown files in a git repo), but the direction is opposite: Karpathy's wiki is *descriptive*, the LLM compiles it from sources, inventing schema as it goes. Cairn is *prescriptive*: the human authors architectural intent upfront, and the framework reconciles reality against it. Cairn borrows Karpathy's three-layer framing (raw sources → compiled layer → code) and generalizes it into the two-chain model in section 3.
 
 **akash-r34's llm-project-wiki** applies Karpathy's pattern to codebases. Wiki pages per file, diff-based ingest, gap logging. Remains descriptive where Cairn is prescriptive. The diff-based ingest mechanics transfer directly to Cairn's change-directory model.
 
-**OpenSpec (Fission-AI)** is AI-native spec-driven development with a workflow system (OPSX), change directories for isolated proposals, and delta operations (`## ADDED`, `## MODIFIED`, `## REMOVED`, `## RENAMED`) for semantic merging. Cairn and OpenSpec solve different problems — OpenSpec is a change-lifecycle workflow, Cairn is a structural reconciliation framework — but OpenSpec's change-isolation and delta-merging patterns are directly applicable and are adopted in sections 9 and 12. Cairn deliberately does not adopt OpenSpec's workflow layer; the two tools are complementary and could coexist in the same repo.
+**OpenSpec (Fission-AI)** is AI-native spec-driven development with a workflow system (OPSX), change directories for isolated proposals, and delta operations (`## ADDED`, `## MODIFIED`, `## REMOVED`, `## RENAMED`) for semantic merging. Cairn and OpenSpec solve different problems (OpenSpec is a change-lifecycle workflow, Cairn is a structural reconciliation framework), but OpenSpec's change-isolation and delta-merging patterns are directly applicable and are adopted in sections 9 and 12. Cairn deliberately does not adopt OpenSpec's workflow layer; the two tools are complementary and could coexist in the same repo.
 
 **Dual-Graph / Codex-CLI-Compact** builds a bottom-up index of a codebase and exposes it to agents via MCP. Descriptive and code-level where Cairn is prescriptive and module-level. Its `graph_neighbors` tool inspired Cairn's neighbourhood query shape.
 
@@ -122,7 +122,7 @@ The framework is a fence around the authority chain and a navigator for the prov
 - An map small enough for a human to read in one sitting.
 - Full provenance from a line of reality to the source material that justified it.
 - Safe change isolation: proposed modifications do not affect current truth until explicitly merged.
-- Brownfield extraction: generating an initial blueprint and contracts from an existing codebase, refined by a human. (Declared — see section 17.)
+- Brownfield extraction: generating an initial blueprint and contracts from an existing codebase, refined by a human. (Declared, see section 17.)
 - Multi-target modules: a single module with implementations across multiple languages or reconcilers.
 - Docstring generation and drift detection: the framework emits docstring templates grounded in map facts, and surfaces drift when authored docstrings diverge from the map.
 - Edge validation: the reconciler verifies declared edges are realised in the reality layer and surfaces discrepancies.
@@ -401,7 +401,7 @@ related_change: commit:a3f2c1
 
 **Role.** Reviews close the loop between intent and implementation. Human reviews capture lessons learned. Agent introspective reviews surface spec-vs-behaviour tensions that would otherwise be lost. Cross-model reviews provide an adversarial check single-model self-review cannot.
 
-**Design note (Declared).** The exact schema for `agent_introspective` and `agent_cross_model` — when they are generated, how they promote to proposed decisions, how they interact with the change system — is specified at Declared level only. Initial implementations should use the schema above as-is; refinements to schema will land once real usage data exists. This is an intentional tradeoff: ship the capability now rather than wait for perfect design.
+**Design note (Declared).** The exact schema for `agent_introspective` and `agent_cross_model` (when they are generated, how they promote to proposed decisions, how they interact with the change system) is specified at Declared level only. Initial implementations should use the schema above as-is; refinements to schema will land once real usage data exists. This is an intentional tradeoff: ship the capability now rather than wait for perfect design.
 
 ### 8.5 Research (provenance)
 
@@ -460,7 +460,7 @@ Optional free-form notes about the source: provenance, context, why it matters.
 **Verification states.**
 
 - **verified.** Local file with a populated `sha256` that matches the file's current hash. The default for content the project controls. Immutability is mechanical.
-- **external.** A URL or external reference where the project does not hold the bytes. `file` is a URL, `sha256` may be null. Cannot be checksummed. Trust is conventional — the project accepts that the source exists at that URL and may change over time.
+- **external.** A URL or external reference where the project does not hold the bytes. `file` is a URL, `sha256` may be null. Cannot be checksummed. Trust is conventional: the project accepts that the source exists at that URL and may change over time.
 - **unverified.** A local file with no `sha256` yet, or a claimed source whose integrity the project has not yet confirmed. Allowed temporarily; surfaces as a rationale tension until resolved to verified or external.
 
 **Integrity rule.** Every source must be referenced by at least one research artefact or decision. Orphan sources are warnings. Files without sidecars are not tracked as sources. Sources in `unverified` state persist as rationale tensions until moved to `verified` or `external`. Sources marked `external` must have a non-null `file` that parses as a URL.
@@ -530,10 +530,10 @@ Module Auth "JWT authentication and session management" id "saas.api.auth" @auth
 
 At archive time, the archiver applies deltas in this order:
 
-1. **RENAMED** — update IDs and references first, so subsequent operations can find their targets.
-2. **REMOVED** — delete nodes, edges, and artefacts before modifications could accidentally re-add them.
-3. **MODIFIED** — replace content in place.
-4. **ADDED** — append new content last.
+1. **RENAMED**: update IDs and references first, so subsequent operations can find their targets.
+2. **REMOVED**: delete nodes, edges, and artefacts before modifications could accidentally re-add them.
+3. **MODIFIED**: replace content in place.
+4. **ADDED**: append new content last.
 
 This order is not optional; it is required for semantic consistency. Adopted directly from OpenSpec.
 
@@ -558,9 +558,9 @@ Archiving is atomic: either the change lands cleanly or nothing moves.
 
 Queries default to the main tree (current truth) but accept flags for looking into active changes:
 
-- `cairn changes` — list active change directories with one-line summaries.
-- `cairn show <change>` — show what a change proposes.
-- `cairn neighbourhood <node> --include-changes` — show the node plus any modifications pending in active changes.
+- `cairn changes`: list active change directories with one-line summaries.
+- `cairn show <change>`: show what a change proposes.
+- `cairn neighbourhood <node> --include-changes`: show the node plus any modifications pending in active changes.
 
 Agents reasoning about "what is the system today" read the main tree. Agents reasoning about "what are we about to change" read change directories explicitly.
 
@@ -580,7 +580,7 @@ Renaming a node's ID is a structural change that must propagate through every re
 4. Opens the change directory for human review.
 5. The human runs `cairn archive` to merge, same as any other change.
 
-After archive, references to `<old-id>` in the main tree are a structural error — either the rename was incomplete (framework bug) or external references exist and must be updated manually.
+After archive, references to `<old-id>` in the main tree are a structural error: either the rename was incomplete (framework bug) or external references exist and must be updated manually.
 
 This resolves the ID stability question. IDs remain readable (reflecting structural position), and restructuring is safe because the rename propagates atomically.
 
@@ -592,17 +592,17 @@ The scanner runs on demand or on filesystem change. It does nine things:
 2. For every registered reconciler, invokes it against its claimed nodes. The code reconciler walks the filesystem, parses source via Tree-sitter (and optionally LSP for richer semantics), and extracts symbols, signatures, and intra-module references.
 3. For every declared artefact pointer, parses the artefact files and validates them against their type's frontmatter schema.
 4. Joins all of this into the map, resolving ID references.
-5. **Validates declared edges against reality-layer dependencies.** The reconciler compares declared edges to observed dependencies and surfaces divergence as rationale tension. (Declared — see section 17.)
-6. **Checks docstrings against map facts.** For modules with authored docstrings, the reconciler compares the facts claimed in the docstring (module name, dependencies, tags) to the map. Divergence surfaces as rationale tension. (Declared — see section 17.)
+5. **Validates declared edges against reality-layer dependencies.** The reconciler compares declared edges to observed dependencies and surfaces divergence as rationale tension. (Declared, see section 17.)
+6. **Checks docstrings against map facts.** For modules with authored docstrings, the reconciler compares the facts claimed in the docstring (module name, dependencies, tags) to the map. Divergence surfaces as rationale tension. (Declared, see section 17.)
 7. Runs every artefact type's integrity rules and the global integrity rules.
 8. Regenerates `map.md` at the project root and appends events to `.cairn/log.md`.
 9. Writes updated state (interface hashes, scan cache) to `.cairn/state/`.
 
 ### 10.1 Node states
 
-- **synced** — declared in blueprint, path exists, reconciler found expected content.
-- **ghost** — declared in blueprint, path does not yet exist (planned but unimplemented).
-- **orphaned** — reality content exists but no blueprint node claims it (via the all-files-claimed rule for the code reconciler).
+- **synced**: declared in blueprint, path exists, reconciler found expected content.
+- **ghost**: declared in blueprint, path does not yet exist (planned but unimplemented).
+- **orphaned**: reality content exists but no blueprint node claims it (via the all-files-claimed rule for the code reconciler).
 
 ### 10.2 Contradiction classes
 
@@ -628,7 +628,7 @@ The word "contradiction" from v0.4 is split into three classes with different en
 - **Docstring drift.** An authored docstring on a module claims facts that disagree with the map (wrong dependencies listed, wrong module name, contradictory description). Surfaces as tension so the human or agent can reconcile.
 - **Multi-target interface divergence.** A module with multiple paths has different interface shapes across targets. Structural error if targets claim to implement the same contract but diverge; tension if intentional asymmetry is documented.
 
-Only the first two classes are "contradictions" in the strong sense. The third is a tension — the framework is drawing attention, not making a claim about correctness.
+Only the first two classes are "contradictions" in the strong sense. The third is a tension: the framework is drawing attention, not making a claim about correctness.
 
 ### 10.3 map.md
 
@@ -643,16 +643,16 @@ scanned_at: 2026-04-13T10:23:00Z
 # Project index
 
 ## Synced
-- [saas.api.auth](./meta/contracts/api/auth.md) — `./apps/api/auth` — @auth, @api
-  — 3 decisions, 2 research, 5 todos open
-- [saas.api.billing](./meta/contracts/api/billing.md) — `./apps/api/billing` — @billing, @api
-  — 2 decisions, 1 research, 3 todos open
+- [saas.api.auth](./meta/contracts/api/auth.md), `./apps/api/auth`, @auth, @api
+  (3 decisions, 2 research, 5 todos open)
+- [saas.api.billing](./meta/contracts/api/billing.md), `./apps/api/billing`, @billing, @api
+  (2 decisions, 1 research, 3 todos open)
 
 ## Ghost
-- [saas.api.notifications] — `./apps/api/notifications` (planned, change: add-notifications-module)
+- [saas.api.notifications], `./apps/api/notifications` (planned, change: add-notifications-module)
 
 ## Active changes
-- add-notifications-module — 1 ADDED node, 1 MODIFIED node, 2 ADDED contracts
+- add-notifications-module: 1 ADDED node, 1 MODIFIED node, 2 ADDED contracts
 
 ## Findings
 - 0 structural errors
@@ -696,28 +696,28 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 
 **Core queries**
 
-- `cairn get <node>` — node metadata, tags, path, current state, list of attached artefacts.
-- `cairn neighbourhood <node> [--include-types contract,todos,research] [--include-changes]` — the node, its inbound and outbound edges, and requested artefact types for directly connected nodes. **Default returns contracts and accepted decisions.** Todos, research, reviews, deprecated decisions, and active changes are opt-in.
-- `cairn contract <node>` — the parsed contract.
-- `cairn todos <node> [--status open]` — todos for a node.
-- `cairn decisions <node> [--status accepted]` — decisions applying to a node.
-- `cairn research <node>` — research artefacts linked to a node.
-- `cairn sources <node>` — sources cited by research and decisions attached to a node. Transitive.
-- `cairn rationale <node>` — convenience command. Returns accepted decisions attached to this node and its direct neighbours, plus the research and sources informing them. The canonical "why was it built this way" lookup.
-- `cairn files <node>` — reality-layer elements claimed by a module. (For the code reconciler, files with extracted symbols.)
-- `cairn dependents <node> [--transitive]` — nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
-- `cairn depends <node> [--transitive]` — nodes this one edges into. Inverse of `dependents`. What does this node rely on?
-- `cairn order [--from <node>] [--scope <id-prefix>]` — returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic map queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
-- `cairn changes` — list active change directories.
-- `cairn show <change>` — show what a change proposes.
-- `cairn archive <change>` — merge a change into the main tree.
-- `cairn rename <old-id> <new-id>` — create a rename change that propagates to all references. See section 9.6.
-- `cairn status` — composed view of "what's in flight": active change directories, open todos across nodes, and recent entries from `.cairn/log.md`. Answers "where is this project right now" without requiring the caller to compose three separate queries. Replaces the need for a dedicated session-state artefact.
-- `cairn docstring <node> [--language <lang>]` — emits a docstring template for the module, grounded in map facts (name, description, declared dependencies, tags, contract sections). Language-aware: knows how to format for Rust, Python, TypeScript, Go. The human or agent fills in prose; the structural facts are guaranteed accurate because they came from the graph. (Declared — see section 17.)
-- `cairn init --from-code` — generates an initial blueprint and contract set from an existing codebase. The reconciler extracts structural candidates; the summariser proposes names, descriptions, and tags; the human refines. See section 16. (Declared — see section 17.)
-- `cairn refine` — re-runs brownfield extraction against the current codebase, proposing a delta against the existing blueprint rather than a fresh draft. (Declared — see section 17.)
-- `cairn lint` — runs every integrity rule. Groups findings by class (structural, interface, tension).
-- `cairn scan` — rescans, regenerates the map, `map.md`, and `.cairn/state/`.
+- `cairn get <node>`: node metadata, tags, path, current state, list of attached artefacts.
+- `cairn neighbourhood <node> [--include-types contract,todos,research] [--include-changes]`: the node, its inbound and outbound edges, and requested artefact types for directly connected nodes. **Default returns contracts and accepted decisions.** Todos, research, reviews, deprecated decisions, and active changes are opt-in.
+- `cairn contract <node>`: the parsed contract.
+- `cairn todos <node> [--status open]`: todos for a node.
+- `cairn decisions <node> [--status accepted]`: decisions applying to a node.
+- `cairn research <node>`: research artefacts linked to a node.
+- `cairn sources <node>`: sources cited by research and decisions attached to a node. Transitive.
+- `cairn rationale <node>`: convenience command. Returns accepted decisions attached to this node and its direct neighbours, plus the research and sources informing them. The canonical "why was it built this way" lookup.
+- `cairn files <node>`: reality-layer elements claimed by a module. (For the code reconciler, files with extracted symbols.)
+- `cairn dependents <node> [--transitive]`: nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
+- `cairn depends <node> [--transitive]`: nodes this one edges into. Inverse of `dependents`. What does this node rely on?
+- `cairn order [--from <node>] [--scope <id-prefix>]`: returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic map queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
+- `cairn changes`: list active change directories.
+- `cairn show <change>`: show what a change proposes.
+- `cairn archive <change>`: merge a change into the main tree.
+- `cairn rename <old-id> <new-id>`: create a rename change that propagates to all references. See section 9.6.
+- `cairn status`: composed view of "what's in flight": active change directories, open todos across nodes, and recent entries from `.cairn/log.md`. Answers "where is this project right now" without requiring the caller to compose three separate queries. Replaces the need for a dedicated session-state artefact.
+- `cairn docstring <node> [--language <lang>]`: emits a docstring template for the module, grounded in map facts (name, description, declared dependencies, tags, contract sections). Language-aware: knows how to format for Rust, Python, TypeScript, Go. The human or agent fills in prose; the structural facts are guaranteed accurate because they came from the graph. (Declared, see section 17.)
+- `cairn init --from-code`: generates an initial blueprint and contract set from an existing codebase. The reconciler extracts structural candidates; the summariser proposes names, descriptions, and tags; the human refines. See section 16. (Declared, see section 17.)
+- `cairn refine`: re-runs brownfield extraction against the current codebase, proposing a delta against the existing blueprint rather than a fresh draft. (Declared, see section 17.)
+- `cairn lint`: runs every integrity rule. Groups findings by class (structural, interface, tension).
+- `cairn scan`: rescans, regenerates the map, `map.md`, and `.cairn/state/`.
 
 **Design principle.** Small composable queries. Default responses are tight. Anything heavy is opt-in. The agent pulls what it needs.
 
@@ -733,9 +733,9 @@ Pluggable callout invoked when an interface contradiction is detected. Proposes 
 
 **Resolution actions.** When the summariser produces a draft, the human or agent has three first-class actions:
 
-1. **Accept** — the draft replaces the existing contract; the interface hash is re-recorded.
-2. **Edit** — the draft is written to an editable draft file under `.cairn/state/summariser/editable/`; a later explicit edited accept command replaces the contract with that edited content and re-records the interface hash.
-3. **Discard** — the draft is thrown away; the contradiction remains unresolved until the human or agent takes another action (typically editing the contract directly or reverting the reality-layer change).
+1. **Accept**: the draft replaces the existing contract; the interface hash is re-recorded.
+2. **Edit**: the draft is written to an editable draft file under `.cairn/state/summariser/editable/`; a later explicit edited accept command replaces the contract with that edited content and re-records the interface hash.
+3. **Discard**: the draft is thrown away; the contradiction remains unresolved until the human or agent takes another action (typically editing the contract directly or reverting the reality-layer change).
 
 The discard path is first-class to prevent the summariser from subtly degrading into an auto-applier. The human remains the ultimate authority over contract content.
 
@@ -759,7 +759,7 @@ Each phase produces something usable on its own. Phases determine implementation
 
 **Phase 2.5: graph explorer.** Interactive terminal UI for navigating the map graph. Visualises nodes, edges, and artefact summaries in a TUI. Output: a `cairn explore` command that lets humans and agents browse the graph interactively.
 
-**Phase 5: edge validation and docstring generation.** The code reconciler grows semantic capability — either via deeper Tree-sitter analysis or by integrating LSP where available — to verify declared edges against observed imports and to check docstrings against map facts. Add `cairn docstring <node>` command. Both edge divergence and docstring drift surface as rationale tensions.
+**Phase 5: edge validation and docstring generation.** The code reconciler grows semantic capability (either via deeper Tree-sitter analysis or by integrating LSP where available) to verify declared edges against observed imports and to check docstrings against map facts. Add `cairn docstring <node>` command. Both edge divergence and docstring drift surface as rationale tensions.
 
 **Phase 6: multi-target and additional language support.** Modules with multiple paths are reconciled across all targets. Per-target interface hashes. The code reconciler grows beyond its initial language (likely Rust or TypeScript) to cover the primary languages of the project's real use cases.
 
@@ -856,7 +856,7 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 
 - Made `Container` optional in the blueprint grammar. A `System` may contain `Module` nodes directly. Previously all Modules had to nest under a Container, which added ceremony for small projects.
 - Added ID-depth advisory to section 7: three levels scan cleanly, four or more are usually a smell.
-- Added three optional frontmatter fields to the Decision artefact type: `supersedes`, `refines`, `related` — all arrays of ADR IDs. Formalises the ADR-to-ADR linking that the bootstrap needed but v0.5 did not define. `supersedes` has integrity semantics (target ADR must have `status: superseded`); the other two are informational.
+- Added three optional frontmatter fields to the Decision artefact type: `supersedes`, `refines`, `related`, all arrays of ADR IDs. Formalises the ADR-to-ADR linking that the bootstrap needed but v0.5 did not define. `supersedes` has integrity semantics (target ADR must have `status: superseded`); the other two are informational.
 - Expanded the Source artefact type with a `verification` field taking one of three values: `verified` (local file with matching sha256), `external` (URL-referenced, no checksum possible), `unverified` (transitional state, surfaces as a rationale tension).
 - Added `cairn order` query for dependency-tier ordering. Returns nodes grouped by topological tier, detecting cycles as `order`-specific structural errors. Supports `--from` and `--scope` for restricted queries. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) without re-implementing graph traversal.
 - Added `cairn depends <node>` as the inverse of `dependents`. Returns what a node relies on. Both now support `--transitive` explicitly.
