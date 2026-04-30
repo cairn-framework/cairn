@@ -1,91 +1,74 @@
-# Context Snapshot — 2026-04-20 (pre-compact)
+# Context Snapshot: 2026-04-28 (post-research-net, pre-graphify)
 
-**Session role:** orchestrator (user: "manage CFLX dev, don't develop stuff yourself unless really have to get involved").
+Authoritative record of in-flight state. Read this **before** acting after resume. Supersedes all earlier 2026-04-XX snapshots.
 
-## Active tasks
+## Branch / git state
 
-| # | Task | Status |
-|---|---|---|
-| 1 | Land phase-4-hooks merge | DONE — commit `f7f00e9` on `dev` |
-| 2 | Debate §3 gap question | DONE — recorded at `.orchestrator/decision-phase4-section3.md` |
-| 3 | Ship phase-6-multi-target | IN PROGRESS — parser fixed, 16/27 tasks pending |
-| 4 | Ship phase-7-mcp | QUEUED |
-| 5 | Ship phase-8-summariser | QUEUED |
-| 6 | Ship phase-9-brownfield | QUEUED |
-| 7 | Final verification + memory sync | QUEUED |
+- Branch: `dev` @ `3519f20` (synced with origin)
+- Working copy: dirty with **untracked research net** at `docs/research/getcairn-dev/` (~213 files, 13.6K lines), plus untracked strongholds:
+  - `docs/strongholds/cairn-domain-expandability.md`
+  - `docs/strongholds/external-cairn-docs-research.md`
+  - `docs/strongholds/image-batch-inventory.md`
+  - `docs/strongholds/pr-bundle-recon.md`
+  - `docs/strongholds/context-snapshot.md` (this file, modified)
+- `.claude/worktrees/agent-a4895e9ba76616454/` leftover (failed Recovery Nazgul; safe to delete)
+- Stash: `stash@{0}: webui-cmd-palette-and-changes-drawer` (untouched, predates session)
+- Two abandoned local branches NOT pushed and harmless until cleaned:
+  - `04-28-fix_makefile_match_uppercase_x_checkboxes_in_status-phases` (gt-create -a accident; commit `135c000` carries the entire research tree)
+  - `temp_clean_fix` (intermediate cherry-pick branch)
 
-## Key decisions (this session)
+## Closed campaigns this session
 
-1. **Phase-4 §3 is shipped, not gapped.** `/palantir-debate` round 2 verified all five §3 checkmarks against Apply commit `0a3faf1`. Stash entries on `dev` were superseded drafts, not canonical work. No micro-phase; no rescope.
-2. **Ownership.** George handed orchestrator ownership of phases 4-9. Use `/palantir-debate` for judgment calls; record each decision under `.orchestrator/`.
-3. **Orchestrator-only role.** User clarified: manage cflx; do not implement directly. Parser-fix handover (below) was the one exception — justified because cflx/opencode was stuck in a local minimum for 50+ minutes on a parser bug I had a diagnosis for.
-4. **`.orchestrator/` is gitignored** (commit `d5f482d`). Scratch files live outside the working tree.
+### Campaign 1: PR bundle merge ✅
+All 5 PRs merged onto dev:
+- #6 `chore: remove legacy agent scaffolding`
+- #7 `chore: track .claude/ workflow skills and openspec project config`
+- #8 `build: add make status target for phase and worktree visibility`
+- #9 `chore: commit pending wip across settings, claude.md, landing`
+- #10 `fix(makefile): match uppercase [X] checkboxes in status-phases` (follow-up for #8 review comment that slipped through)
 
-## Current git state
+### Campaign 2: getcairn.dev research net ✅
+Doc set landed at `docs/research/getcairn-dev/` (untracked, awaiting commit decision):
+- 10 numbered docs (`01-product-overview.md` through `10-source-attribution.md`)
+- 64 named screenshots in `screenshots/` (skip 19, 57, 59-dup-of-58, 63-dup-of-62)
+- 34 per-image analyses in `screenshots/_analysis/`
+- 47 captured site pages in `site-pages/` (23 marketing + 24 docs)
+- `_export-analysis.md` (15 sections from project + settings exports)
+- `working-notes.md` extended with 4 new sections including software-domain PRD hypothesis (image #65)
+- `offshore-survey-usv-rov-0.1.0.cairn/` (project export bundle)
+- `export-from-settings/` (settings export: JSON, CSV, MD, dialog screenshot)
+- 0 em-dashes in authored docs (sweep also cleaned 02, 04, 05, 06, working-notes pre-existing)
 
-| Location | State |
+### Campaign 3: graphite-pr skill hardening ✅
+Edited `~/.claude/skills/graphite-pr/`:
+- `scripts/gt-merge-cascade.sh`: review-thread gate via `gh api graphql`. Counts unresolved + not-outdated reviewThreads per PR; fails with `unresolved-review-threads` before invoking `gt merge`. Low context cost (integers only).
+- `SKILL.md`: updated "After submit: merge" with gate description; corrected single-PR pre-flight to GraphQL form (`gh pr view --json reviewThreads` does NOT exist; only GraphQL exposes that field).
+- Validated end-to-end on PR #10 merge.
+
+## Open items for next session
+
+1. **Run `/graphify wiki`** on `docs/research/getcairn-dev/`. User queued this. Graphify may auto-index photos; descriptive PNG filenames + adjacent analysis MDs are the inputs.
+2. **Decide whether to commit the research tree** (currently untracked). Options: commit as-is to dev, commit via a dedicated PR for review, or keep untracked.
+3. **Cleanup**: delete the two abandoned local branches and the `.claude/worktrees/agent-a4895e9ba76616454/` leftover. Destructive-op guard blocked `git branch -D` earlier; needs explicit user approval.
+4. **Optional**: enable GitHub branch-protection rule on `dev` ("Require conversations to be resolved before merging"). Belt-and-braces alongside the new skill gate.
+
+## Key facts established this session
+
+| Fact | Source |
 |---|---|
-| `dev` (main repo) | clean; phase-4 landed at `f7f00e9` |
-| Phase-6 worktree `/Users/george/.local/share/cflx/worktrees/cairn-ba64eedb/phase-6-multi-target` | dirty with parser fix + codex's prior §2 work (8 modified, 4 new) |
-| Other worktrees | not actively worked |
+| getcairn.dev's data model: only 2 node types (system, subsystem); no edges[] array; decisions implicit in `history[].pipelineTrace` | export-parse scout |
+| `interfaceHash` is a pipe-joined ID string, not a content hash (substantive divergence from our model) | export-parse scout |
+| `_narrativeAnalysis.mainstaySentence` + cards + verbPhrases is an AI-generated causality layer with no analogue in our framework | export-parse scout + image #56 |
+| User fed software-domain PRD (OpenSpine) into getcairn.dev; platform handled it without complaint (image #65). Logged as **hypothesis**, sample size 1 | image-65 analysis + user direction |
+| `gt merge` does NOT block on unresolved review comments by default. Branch protection or skill-side gate required | live failure on PR #8 + Graphite docs |
 
-### Phase-6 worktree dirty files
+## Held / pending user input
 
-```
- M Cargo.lock / Cargo.toml
- M openspec/changes/phase-6-multi-target/tasks.md  ← premature §6 verification marks stripped
- M openspec/registries/error-codes.md
- M src/reconcile/{code,mod}.rs
- M src/scanner/{config,mod,state}.rs               ← my parser rewrite in config.rs
- M tests/kernel.rs
-?? src/reconcile/{go,python,target,typescript}.rs  ← codex's reconcilers
-```
+- None blocking. Next-session start can go straight to graphify.
 
-## Unfinished work (phase-6)
+## Workflow protocol reminders
 
-Tasks file: `openspec/changes/phase-6-multi-target/tasks.md`
-
-- [x] 1.x Target model (done)
-- [x] 2.x Reconcilers incl. canonical extraction §2.6 (done — codex shipped TS/Python/Go + trait dispatch)
-- [x] 3.1 state keyed by node+target / 3.2 migrate single→multi hash (done)
-- [ ] **3.3 divergence detection** (parser fix unblocked this; test passes)
-- [ ] **3.4 intentional asymmetry markers** (parser fix unblocked this; `matches()` works)
-- [ ] **3.5 hash-stability tests** (private symbols, comments, formatting, source order)
-- [ ] **3.6 contradiction + tension tests**
-- [ ] **4.x CLI + output** (get/files/lint/scan target-level; JSON schemas; snapshots)
-- [ ] **5.x docs** (path-list reconciliation; languages; state format/migration)
-- [ ] **6.x verification** (build/clippy/fmt/test/test --locked/cflx validate --strict)
-
-## Parser fix (what landed in the worktree, needs codex to build on)
-
-**File:** `src/scanner/config.rs` — YAML state machine for `intentional_asymmetry:` blocks.
-
-**Bug:** the `-` handler pushed a new blank `IntentionalAsymmetry` on every target-path entry, destroying node/contract_role/reason. Diagnosis at `.orchestrator/phase-6-yaml-parser-diagnosis.md`.
-
-**Fix shipped:**
-- Added `let mut in_asymmetry_targets = false;` state flag
-- Guarded outer `targets:` handler with `!in_asymmetry` so nested `targets:` inside `intentional_asymmetry:` stops exiting asymmetry mode
-- New `-` handler branches on `in_asymmetry_targets`: if true, push path into current asym; if false, finalize + start new block
-- Removed `current_asymmetry_target: Option<PathBuf>` variable entirely
-- Stripped 3 DEBUG eprintlns that codex had left in `matches()`
-- Simplified EOF flush to single `if !asym.node.is_empty()` push
-
-**Verification:** `test_divergence_intentional_asymmetry_ct002` passes; full gate battery (build, clippy -D warnings, fmt, test) green at time of fix.
-
-## Outstanding lessons / bugs filed in head
-
-1. **cflx Ctrl+C doesn't propagate to opencode child.** Exiting cflx TUI (Esc or q) leaves opencode running in background under PID it spawned. Workaround: `pgrep -fl opencode` and kill the runaway PID before Edit tool gives "file modified by linter" errors. Worth filing upstream.
-2. **cflx TUI display lag.** Merge `f7f00e9` landed on `dev`, but TUI kept showing "[merge wait]". Restarting cflx cleared it.
-3. **codex merge sweeps orchestrator scratch.** First phase-6 queue swept `.orchestrator/phases-6-9-scope.md` into `dev`. Fixed by gitignoring `.orchestrator/` (commit `d5f482d`).
-
-## Next action when session resumes
-
-1. Confirm codex API is available again (user said "~10 min, maybe").
-2. In cflx TUI: select `phase-6-multi-target` → Space → F5 to resume Apply. Codex will pick up from the parser-fixed worktree and continue §3.5 onward.
-3. Keep 15m cron monitor running (`15m monitor the cairn tmux session ...`).
-4. Do **not** hand-edit code in worktrees. If codex stalls on another local minimum for 30+ minutes, diagnose via scout, write fix-sketch to `.orchestrator/`, then hand back — don't implement.
-
-## Memory index entries updated
-
-- `project_cairn_phase_ownership_4_to_9.md` (new)
-- existing: `project_cflx_workflow.md`, `project_codex_sandbox_preauth.md`, `reference_tmux_cairn_session.md`
+- **Em-dashes banned** in repo prose (CLAUDE.md).
+- **Images stored in repo, sub-agents analyse**. Orchestrator does NOT view images directly.
+- **Per-image analysis** = one image per scout call. Oversized images (>2000px) must be resized via `sips` before reading; sips temp-write may need `dangerouslyDisableSandbox: true`.
+- **Skills live at** `~/.claude/skills/<name>/`. Edit there for cross-repo behaviour.
