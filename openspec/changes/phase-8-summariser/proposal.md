@@ -1,9 +1,12 @@
 # Proposal: Phase 8 Summariser
 
+**Change Type**: hybrid
+
 ## Dependencies
 
-- Requires: `phase-7-mcp`.
-- Execution: MUST run after Phase 7 and before Phases 9-10.
+- `phase-7-mcp` (required dependency).
+
+Execution: MUST run after Phase 7 and before Phases 9-10.
 
 ## Problem/Context
 
