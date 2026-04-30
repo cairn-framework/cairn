@@ -120,14 +120,14 @@ Do not restructure the existing spec.md, openspec/, or any existing per-area spe
 
 **Status:** done_with_concerns
 **Expanded by:** Uruk-hai scout (deep-dive dispatch)
-**Note:** The prior section above was correct at the level it looked — getcairn.dev is a different product. This section goes deeper into the *workflow* layer revealed by app screenshots. The finding shifts from "zero overlap" to "structural parallels worth studying, though the underlying models diverge sharply."
+**Note:** The prior section above was correct at the level it looked, getcairn.dev is a different product. This section goes deeper into the *workflow* layer revealed by app screenshots. The finding shifts from "zero overlap" to "structural parallels worth studying, though the underlying models diverge sharply."
 
 ### Source code
 
 **Verdict: closed source. No public implementation found.**
 
 Evidence:
-- `https://github.com/getcairn` org exists but contains one unrelated repo (`apod-viewer`, a Django interview project, last updated 2022-01-12). The org website is `www.getcairn.com` (outdoor subscription box — entirely different entity, same handle).
+- `https://github.com/getcairn` org exists but contains one unrelated repo (`apod-viewer`, a Django interview project, last updated 2022-01-12). The org website is `www.getcairn.com` (outdoor subscription box, entirely different entity, same handle).
 - No source code for the getcairn.dev MBSE tool appears anywhere on GitHub under any search combination tried: `getcairn`, `cairn MBSE system brief project genesis`, `cairn v0.3.1`.
 - The docs site's local-first architecture page says "runs locally, no setup ceremony, no cloud lock-in" but gives no repository URL or open-source statement.
 - The changelog page is blank/not detailed enough to extract version history.
@@ -187,10 +187,10 @@ Step-by-step comparison of their app workflow (from screenshots) against our cfl
 |---|---|---|
 | 1. Capture intent | User types free-form prompt ("a USV with an ROV, controlled from a remote ops centre") | Human or Architect agent authors `proposal.md` in `openspec/changes/<phase>/` |
 | 2. Refine intent | 3 AI-driven rounds of clarifying questions (5+4+3 = 12 Qs); each round updates "current understanding" with a confidence score (78% → 82%) | No equivalent; Architect authors design.md and tasks.md directly. User reviews and approves. |
-| 3. Preserve intent as provenance | "Project Genesis · 3 rounds · Preserved as provenance" — QA transcript durably stored before any build action | No equivalent genesis record. Proposal.md is the closest analogue but it is not a QA transcript and is not explicitly labelled as provenance. |
+| 3. Preserve intent as provenance | "Project Genesis · 3 rounds · Preserved as provenance", QA transcript durably stored before any build action | No equivalent genesis record. Proposal.md is the closest analogue but it is not a QA transcript and is not explicitly labelled as provenance. |
 | 4. Generate structure | AI generates: root system node, 4-7 subsystems, key interfaces, system brief. Progress checklist: creating project structure → generating system architecture → writing system brief → saving project genesis → ready to explore. | cflx apply: codex agent executes tasks.md, implements blueprint changes, adds/modifies artefacts, runs cargo build + clippy + fmt + tests. |
 | 5. Review proposals | ChangeSets: per-node accept/skip, atomic model update on commit | cflx accept: human reviews agent output, runs verification gate battery, merges worktree. |
-| 6. Iterate | "round 03" — model persists across rounds, IDs stable, chat discarded | Next phase: archive current phase, draft new proposal.md for next change set. |
+| 6. Iterate | "round 03": model persists across rounds, IDs stable, chat discarded | Next phase: archive current phase, draft new proposal.md for next change set. |
 | 7. Query the model | 12 lenses (Requirements, Architecture, Verification, etc.) applied to the persistent model | `cairn scan`, map.md, neighbourhood queries, hook-injected context. |
 
 **Biggest structural parallel:** both treat the human as a gating agent between AI-proposed changes and model state. Neither allows the AI to modify the authoritative model without explicit human commit. This is the deepest architectural alignment.
@@ -209,7 +209,7 @@ Mapped to our model: replace (or wrap) the manual `proposal.md` authoring step w
 
 This is **additive, not a replacement.** The existing OpenSpec proposal format stays; the interview is a new entrypoint that auto-drafts the proposal. Architects can still bypass it and author proposals directly.
 
-Effort: medium (MCP tool + interview agent + genesis artefact type). Leverage: high — it closes the biggest UX gap for non-developer users and produces a richer provenance record than manual authoring.
+Effort: medium (MCP tool + interview agent + genesis artefact type). Leverage: high: it closes the biggest UX gap for non-developer users and produces a richer provenance record than manual authoring.
 
 **2. Genesis record as a first-class provenance artefact (medium leverage)**
 

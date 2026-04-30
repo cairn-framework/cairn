@@ -1,4 +1,4 @@
-# Image Batch Inventory — getcairn.dev research net
+# Image Batch Inventory: getcairn.dev research net
 
 **Generated:** 2026-04-28 post-compaction
 **Purpose:** Authoritative path manifest for all session image inputs. Every analysis sub-agent reads from this list, ONE IMAGE PER CALL. Oversized images (>2000px in any dimension) **must be downscaled before reading** or the dim-limit error recurs.
@@ -150,7 +150,7 @@ clipboard-2026-04-28-175204-84651D06.png
 clipboard-2026-04-28-175233-221CDE82.png
 ```
 
-## Processing protocol — strict
+## Processing protocol: strict
 
 1. **Stage scout (one-shot bash):** for every cache image with width or height > 2000, run `sips --resampleHeightWidthMax 1800 <src>.png --out screenshots/_resized/<n>.png`. For non-oversized images, hard-link or copy unchanged into `_resized/<n>.png` so analysers always reach the same path.
 2. **Per-image analysis scouts:** dispatch ONE scout per image. Each scout reads exactly ONE file from `screenshots/_resized/<n>.png` and writes findings to `docs/research/getcairn-dev/screenshots/_analysis/<n>.md`. Scouts MUST NOT call Glob, MUST NOT batch reads, MUST NOT view multiple PNGs in one Read call.
@@ -158,29 +158,29 @@ clipboard-2026-04-28-175233-221CDE82.png
 
 ## Analysis priority order
 
-**Tier 1 — newest, unprocessed, high-value (dispatch first):**
+**Tier 1: newest, unprocessed, high-value (dispatch first):**
 - 31, 32, 38, 40 (interfaces / ICD / signal model)
-- 35, 36, 37, 39 (node detail panel — budgets, ai chips, causal position)
+- 35, 36, 37, 39 (node detail panel: budgets, ai chips, causal position)
 - 41, 42 (visuals 2D gallery + 3D viewer pipeline)
 - 44 (requirements panel filters)
-- 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56 (NEW THIS TURN — content unknown, identify first)
-- 58, 59, 61 (usage/cost + quality-check panel — operational metering signals)
-- 62, 63 (3D glTF viewer asset — capability proof)
+- 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56 (NEW THIS TURN, content unknown, identify first)
+- 58, 59, 61 (usage/cost + quality-check panel: operational metering signals)
+- 62, 63 (3D glTF viewer asset: capability proof)
 
-**Tier 2 — verification page (already partially documented):**
+**Tier 2: verification page (already partially documented):**
 - 28, 29, 30 (verification methods page from prior summary)
-- 33, 34, 43 (small fragments — may be dead ends)
+- 33, 34, 43 (small fragments: may be dead ends)
 
-**Tier 3 — low-priority / duplicates:**
-- 60 (single QUALITY 34 chip — fold into 61 analysis)
-- 58 ↔ 59 duplicate, 62 ↔ 63 duplicate — analyse once
+**Tier 3: low-priority / duplicates:**
+- 60 (single QUALITY 34 chip: fold into 61 analysis)
+- 58 ↔ 59 duplicate, 62 ↔ 63 duplicate: analyse once
 
 ## Missing doc files to author after analysis
 
-- `07-ontology-comparison.md` — their methods/links ↔ our evidence/provenance edges
-- `08-borrow-list.md` — concrete affordances worth porting
-- `09-design-influence.md` — visual + voice cues to absorb
-- `10-source-attribution.md` — what we saw, in their UI, and where
+- `07-ontology-comparison.md`: their methods/links ↔ our evidence/provenance edges
+- `08-borrow-list.md`: concrete affordances worth porting
+- `09-design-influence.md`: visual + voice cues to absorb
+- `10-source-attribution.md`: what we saw, in their UI, and where
 
 ## Completion gate
 
