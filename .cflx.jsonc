@@ -35,5 +35,10 @@
   // Lifecycle hooks (optional)
   "hooks": {
     "pre_archive": "scripts/pre-archive-rust-gates.sh"
-  }
+  },
+
+  // Parallel execution defaults (sequential to prevent cross-phase races during apply)
+  // Override per-invocation with `cflx run --parallel --max-concurrent N` if needed.
+  "parallel_mode": false,
+  "max_concurrent_workspaces": 1
 }
