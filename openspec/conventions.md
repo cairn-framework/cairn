@@ -285,3 +285,13 @@ The Cairn spec v0.6 contains items at the "Declared" maturity level -- capabilit
 ## 8. Git Hooks
 
 Hooks are managed via [prek](https://github.com/j178/prek) (Rust rewrite of pre-commit, drop-in `.pre-commit-config.yaml` compatible). After clone, run `make install-hooks` to install both pre-commit and pre-push stages. Pre-commit runs `cargo fmt --check` plus the em-dash detector. Pre-push runs `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test --locked`, `cargo doc --no-deps` (with `RUSTDOCFLAGS=-D warnings`), and `cflx openspec validate --strict`. CI mirrors the pre-push battery as a server-side safety net.
+
+---
+
+## 9. Genesis Transcript
+
+Proposal authoring via the `cflx-proposal` skill writes the elicitation transcript to `openspec/changes/<id>/research/genesis.md` with id `genesis-<change-id>`. The file lives in the change directory, archives with the change directory, and is not loaded by the cairn scanner. It provides human-readable and codex-readable provenance for the change's elicitation history.
+
+The `nodes` field of the genesis artefact carries the change ID as a placeholder, not a blueprint node ID. The apply-stage codex agent SHALL NOT re-point or rewrite this field. The file SHALL NOT be moved to `meta/research/` or any other location during apply or archive. Rationale and the option-A/B/C debate that produced this verdict live in `docs/strongholds/oq3-genesis-lifecycle.md`.
+
+When a future phase implements artefact-delta processing in the cflx archiver and a scanner-visible `meta/research/genesis/` subtree exists, this convention may be revisited (see the forward-compatibility note in the linked stronghold). Until then, the change-directory-relative path is the durable home.

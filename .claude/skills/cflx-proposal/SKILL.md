@@ -57,6 +57,8 @@ openspec/changes/<change-id>/
 ├── proposal.md          # Change description and context
 ├── tasks.md             # Implementation task checklist
 ├── design.md            # Architecture and design (optional)
+├── research/            # Provenance artefacts (see step 8)
+│   └── genesis.md       # Elicitation transcript
 └── specs/               # Spec deltas
     └── <capability>/
         └── spec.md      # Requirement specifications
@@ -227,7 +229,38 @@ Create `openspec/changes/<id>/specs/<capability>/spec.md`:
 
 **Discuss with user**: "Should we add these requirements to the spec?"
 
-### 8. Validate Proposal
+### 8. Write Genesis Transcript
+
+Write the elicitation transcript to `openspec/changes/<id>/research/genesis.md`. This captures the conversation that produced the proposal and lives with the change directory forever. No migration on apply. No migration on archive. The cairn scanner does not load this file; it is human-readable and codex-readable provenance only. See `openspec/conventions.md` Section 9 (Genesis Transcript) and `docs/strongholds/oq3-genesis-lifecycle.md` for rationale.
+
+**Format**:
+```markdown
+---
+id: genesis-<change-id>
+nodes: [<change-id>]
+date: <YYYY-MM-DD>
+sources: []
+informed_by: []
+type: genesis
+---
+
+## Summary
+
+<3-6 bullets distilling the premise, context, and key decisions reached during elicitation>
+
+## Transcript
+
+<Full elicitation Q/A turns from this conversation, in chronological order>
+```
+
+**Critical rules**:
+- The `nodes` field uses the change ID itself as a placeholder; it is not a blueprint node ID. The codex agent does not re-point this field at apply time.
+- The file is created at propose time and stays at this exact path through accept and archive.
+- Do not move the file to `meta/research/` or any other location.
+
+**Announce, do not ask**: "Writing the genesis transcript to `openspec/changes/<id>/research/genesis.md` per `openspec/conventions.md` Section 9. Confirm the Summary captures the premise and key decisions before I write it."
+
+### 9. Validate Proposal
 
 Run validation:
 ```bash
@@ -242,7 +275,7 @@ Run validation:
 
 **Present results**: "Validation passed! The proposal is ready for review."
 
-### 9. Final Review
+### 10. Final Review
 
 Present complete proposal to user:
 - Show directory structure
