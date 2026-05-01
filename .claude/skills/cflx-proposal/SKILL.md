@@ -57,6 +57,8 @@ openspec/changes/<change-id>/
 ├── proposal.md          # Change description and context
 ├── tasks.md             # Implementation task checklist
 ├── design.md            # Architecture and design (optional)
+├── research/            # Provenance artefacts (see step 8)
+│   └── genesis.md       # Elicitation transcript
 └── specs/               # Spec deltas
     └── <capability>/
         └── spec.md      # Requirement specifications
@@ -256,7 +258,7 @@ type: genesis
 - The file is created at propose time and stays at this exact path through accept and archive.
 - Do not move the file to `meta/research/` or any other location.
 
-**Discuss with user**: "Should we save the genesis transcript for this change?"
+**Announce, do not ask**: "Writing the genesis transcript to `openspec/changes/<id>/research/genesis.md` per `openspec/conventions.md` Section 9. Confirm the Summary captures the premise and key decisions before I write it."
 
 ### 9. Validate Proposal
 
