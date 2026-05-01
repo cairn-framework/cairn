@@ -32,7 +32,10 @@
   // Supports {workspace_dir} and {repo_root} placeholders
   "worktree_command": "tmux new-window -n wt ",
   // "worktree_command": "claude run '/openspec:proposal --worktree {workspace_dir}'",
+  //parralel
+  "parallel_mode": false,
 
+  "max_concurrent_workspaces": 1,
   // Maximum iterations for the orchestration loop (default: 50, 0 = no limit)
   // "max_iterations": 50,
 
