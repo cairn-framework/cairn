@@ -135,3 +135,6 @@ Cairn SHALL model verification outcomes with the five-state `VerificationState` 
 - **WHEN** the analyze script runs
 - **THEN** `phase-8.0-tests` appears before `phase-8-summariser`
 - **AND** `phase-8-summariser` depends on `phase-8.0-tests`
+
+
+#
