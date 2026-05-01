@@ -3,14 +3,15 @@
 ## 1. Test File
 
 - [ ] 1.1 Create `tests/phase_9_brownfield.rs` with fixture helpers (`fixture_repo_without_blueprint`, `fixture_repo_with_blueprint`, `fixture_repo_with_brownfield_change`).
+- [ ] 1.2 Add additional fixture helpers needed by Wave 4 stubs: `fixture_repo_with_pending_suggested_edges`, `fixture_change_with_partial_interview_state`, `fixture_project_config_with_contract_template`, and `fixture_decision_with_obligations_field`. Helpers may return placeholder values until Phase 9 supplies them; tests calling these helpers carry `unimplemented!()` markers so the runtime failure is informative.
 
 ## 2. Init Tests (spec Req 1)
 
 - [ ] 2.1 Write `init__discovery_does_not_require_existing_blueprint`: asserts `init_from_code` does not error when no `cairn.blueprint` exists in fixture repo.
 - [ ] 2.2 Write `init__candidate_heuristics_are_deterministic`: asserts that running `init_from_code` twice on the same fixture produces identical candidate sets.
-- [ ] 2.3 Write `init__creates_brownfield_change_directory`: asserts `meta/changes/brownfield-init/`, `proposal.md`, `blueprint.delta`, and stub contracts are created; asserts `cairn.blueprint` is not created.
+- [ ] 2.3 Write `init__creates_brownfield_change_directory`: asserts `openspec/changes/brownfield-init/`, `proposal.md`, `blueprint.delta`, and stub contracts are created; asserts `cairn.blueprint` is not created.
 - [ ] 2.4 Write `init__existing_change_protected_without_force`: asserts `init_from_code` returns error code 1 when `brownfield-init/` already exists and `--force` is not set.
-- [ ] 2.5 Write `init__force_replaces_existing_change`: asserts `init_from_code --force` replaces the existing change directory; asserts main `cairn.blueprint` and main `meta/` artefacts are untouched.
+- [ ] 2.5 Write `init__force_replaces_existing_change`: asserts `init_from_code --force` replaces the existing change directory; asserts main `cairn.blueprint` and main `openspec/specs/` artefacts are untouched.
 
 ## 3. Refine Tests (spec Req 2)
 
@@ -36,11 +37,40 @@
 - [ ] 6.6 Write `heuristics__edge_threshold_two_import_observations`: asserts an edge is emitted between two candidates when there are at least 2 import observations; asserts no edge is emitted for 1 observation without a high-confidence public API reference.
 - [ ] 6.7 Write `heuristics__summariser_disabled_uses_path_derived_names`: asserts that when the summariser is disabled, candidate names derive from directory paths and contain no AI-generated content.
 
-## 7. Required Verification
+## 7. Suggest Engine Tests (spec Req 5)
 
-- [ ] 7.1 `cargo build` passes with zero warnings.
-- [ ] 7.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
-- [ ] 7.3 `cargo fmt --check` passes.
-- [ ] 7.4 `cargo test` passes (all phase-9 tests are skipped via `#[ignore]`).
-- [ ] 7.5 `cargo test -- --ignored` shows all 17 phase-9 tests as failing (not compile errors).
-- [ ] 7.6 `bash scripts/pre-archive-rust-gates.sh` passes end-to-end.
+- [ ] 7.1 Write `suggest__engine_writes_to_queue_file`: asserts the suggest engine emits a cross-cutting edge into `openspec/changes/<change>/suggested-edges.json` during a brownfield init run that triggers the engine. Stub calls `unimplemented!()` until the engine fixture exists.
+- [ ] 7.2 Write `suggest__entry_triage_state_is_pending`: asserts every entry written by the engine has `triage_state == "pending"` regardless of computed confidence.
+- [ ] 7.3 Write `suggest__entry_provenance_carries_trace_phase`: asserts the `provenance.trace_phase` field on a written entry names the phase that produced it.
+- [ ] 7.4 Write `suggest__pending_entries_block_archive_with_cc002`: asserts `cflx openspec validate <change> --strict` exits non-zero with error code `CC002` when pending entries exist; the failure message names the pending count and the queue file path.
+- [ ] 7.5 Write `suggest__no_auto_accept_on_high_confidence`: asserts a synthetic entry with high computed confidence still lands as `pending`; no auto-accept policy promotes it.
+- [ ] 7.6 Write `suggest__refine_emits_to_queue_file_with_propose_stage`: asserts that `cairn refine` against a project with new cross-cutting edges writes entries into `openspec/changes/<refine-change>/suggested-edges.json` with `triage_state == "pending"` and `provenance.stage == "propose"`; asserts archive of the refine change is blocked by `CC002` until every entry is triaged off `pending`. Stub calls `unimplemented!()` until the refine engine fixture exists.
+- [ ] 7.7 Write `suggest__force_init_aborts_on_pending_entries`: asserts that `cairn init --from-code --force` aborts non-zero with a message naming the pending entries when `openspec/changes/brownfield-init/suggested-edges.json` carries entries in `triage_state == "pending"`; asserts the existing change directory is not overwritten. Stub calls `unimplemented!()` until the force-init guard fixture exists.
+
+## 8. Interview Runner Tests (spec Req 6)
+
+- [ ] 8.1 Write `interview__session_persists_across_invocations`: asserts an in-progress brownfield onboarding session is detected and resumed at the next outstanding turn after re-invocation against the same change directory. Stub uses `unimplemented!()` until the session-persistence fixture exists.
+- [ ] 8.2 Write `interview__final_transcript_lands_at_genesis_path`: asserts the transcript writes to `openspec/changes/<id>/research/genesis.md`, carries the user-visible Q/A turns and final premise, and the `nodes` field carries the change ID per `openspec/conventions.md` Section 9.
+- [ ] 8.3 Write `interview__session_state_never_leaks_outside_change_dir`: asserts all reads and writes happen inside `openspec/changes/<change>/research/`; asserts no session state lands in main `openspec/specs/` or in `cairn.blueprint`.
+
+## 9. Templated Authoring Tests (spec Req 7)
+
+- [ ] 9.1 Write `templates__matching_template_guides_stub_authoring`: asserts a project-config-declared contract template whose match rule covers a generated candidate is applied; the draft uses the template's required headers and optional sections; summariser-supplied content fills the body sections per the documented precedence rule. Stub uses `unimplemented!()` until the project-config fixture exists.
+- [ ] 9.2 Write `templates__non_matching_candidates_fall_back_to_builtin`: asserts a candidate with no matching template uses the built-in minimum-viable stub; asserts authoring completes without error.
+- [ ] 9.3 Write `templates__ill_formed_template_does_not_block_authoring`: asserts an unparseable template body causes a logged warning naming the offending template; asserts authoring continues using the built-in stub for affected candidates.
+
+## 10. Decision-Attached Obligations Tests (spec Req 8, conditional)
+
+- [ ] 10.1 Write `obligations__populated_when_field_exists`: asserts that when decision artefacts in this phase declare an `obligations` field, an AI-suggested decision carries the obligations identified by the summariser; asserts the generated change directory exposes the obligations alongside the decision body. Stub guard-comment names current schema state; carries `unimplemented!()` if fixture not present.
+- [ ] 10.2 Write `obligations__reviewable_before_archive`: asserts the obligations field is editable and removable in a generated change; asserts archive applies only the human-reviewed obligations.
+- [ ] 10.3 Write `obligations__no_op_when_field_absent`: asserts that when decision artefacts in this phase do not declare an `obligations` field, the brownfield generator emits decisions using the existing schema with no obligations-related output. This stub is the always-callable branch; the other two stubs become callable when the schema gains the field.
+
+## 11. Required Verification
+
+- [ ] 11.1 `cargo build` passes with zero warnings.
+- [ ] 11.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
+- [ ] 11.3 `cargo fmt --check` passes.
+- [ ] 11.4 `cargo test` passes (all phase-9 tests are skipped via `#[ignore]`).
+- [ ] 11.5 `cargo test -- --ignored` shows all 33 phase-9 tests as failing (not compile errors); the count is 26 acceptance-criterion stubs plus 7 heuristic-invariant stubs.
+- [ ] 11.6 `bash scripts/pre-archive-rust-gates.sh` passes end-to-end.
+- [ ] 11.7 `python3 .claude/skills/cflx-proposal/scripts/cflx.py validate phase-9.0-tests --strict` exits 0.
