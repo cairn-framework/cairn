@@ -210,9 +210,11 @@ All public APIs MUST return `Result<T, CairnError>`. Internal functions MAY use 
 
 ### Test-First Pre-Phase
 
-Feature phases that introduce new acceptance criteria SHOULD be preceded by a paired pre-phase `phase-<N>.0-tests` whose apply task writes failing test assertions against the feature's acceptance criteria.
+Feature phases that introduce new acceptance criteria and contain **more than 10 tasks** MUST be preceded by a paired pre-phase `phase-<N>.0-tests` whose apply task writes failing test assertions against the feature's acceptance criteria. Phases with 10 or fewer tasks SHOULD still be preceded by a pre-phase; omission MUST be documented with rationale in the phase proposal.
 
 Pre-phase tests MUST be marked `#[cflx_planned(phase = <N>)]` so pre-phase archives pass `cargo test` cleanly. The proc-macro expands to `#[ignore = "cflx_planned: phase-<N>"]` underneath so `cargo test` keeps working without runner changes. Phase `N`'s first task group MUST remove the `#[cflx_planned]` attribute from the relevant test as the corresponding feature code lands.
+
+For decimal phase numbers (for example `phase-7.6`), encode the phase argument as an integer by removing the dot (`phase = 76`). When the `cflx_planned` macro does not yet support a required encoding, manual `#[ignore = "awaits phase-<N>"]` is an acceptable temporary substitute; the pre-phase spec delta MUST document which mechanism is used.
 
 Verification states are modeled by the five-state `VerificationState` enum (`Draft`, `Planned`, `Passed`, `Failed`, `Blocked`) defined in `src/verification.rs`. See `openspec/specs/testing-baseline/spec.md` for canonical scenarios and `openspec/registries/error-codes.md` for the `CC001` error code used when a verification is `Blocked` by an upstream dependency.
 

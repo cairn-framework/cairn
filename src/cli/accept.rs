@@ -75,6 +75,14 @@ pub fn run_accept_gate(change_id: Option<&str>) -> CliResult {
         );
     }
 
+    run_step(
+        &mut findings,
+        "openspec validate --specs",
+        || run_command("openspec", &["validate", "--specs", "--strict"]),
+        "spec validation failed",
+        "could not run spec validation",
+    );
+
     let has_failed = findings
         .iter()
         .any(|f| f.state == VerificationState::Failed);
