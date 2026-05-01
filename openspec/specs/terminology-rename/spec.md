@@ -1,5 +1,9 @@
 # Terminology Rename Capability Spec
 
+## Purpose
+
+This capability renames Cairn's user-facing terminology to establish `.blueprint` as the canonical extension for authored architecture files and "map" as the user-facing name for the reconciled graph across CLI output, documentation, and generated artifacts. It preserves all load-bearing technical taxonomy and bumps the spec version to v0.7 to mark the vocabulary boundary.
+
 ## Requirements
 
 ### Requirement: Authored blueprint file

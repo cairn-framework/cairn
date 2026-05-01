@@ -1,5 +1,9 @@
 # Hooks Capability Spec
 
+## Purpose
+
+The Hooks capability provides enforcement commands that validate structural integrity, interface contracts, and rationale tensions within a Cairn graph. It detects conflicts between active changes before archive time, ensuring the codebase remains consistent as modifications are integrated.
+
 ## Requirements
 
 ### Requirement: Run structural, interface, and tension hooks

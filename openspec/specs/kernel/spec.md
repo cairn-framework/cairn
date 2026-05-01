@@ -1,5 +1,9 @@
 # Kernel Capability Spec
 
+## Purpose
+
+The Kernel capability parses the Cairn blueprint into a typed AST, reconciles declared structure against actual code reality through a trait-based reconciler interface, and assembles a queryable map graph. It serves as the foundational data layer and CLI query surface that all other Cairn capabilities build upon.
+
 ## Requirements
 
 ### Requirement: Parse the Cairn blueprint into a typed AST

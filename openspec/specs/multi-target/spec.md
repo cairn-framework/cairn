@@ -1,5 +1,9 @@
 # Multi-Target Capability Spec
 
+## Purpose
+
+The Multi-Target capability allows a single Cairn module to declare multiple independent implementation paths, each reconciled as a distinct target with its own language, contract role, and interface hash. It preserves backward compatibility for single-path modules while adding per-target state tracking. The capability also detects and reports interface divergence across a module's targets during lint and hooks, distinguishing unintended asymmetries from intentional ones marked by metadata.
+
 ## Requirements
 
 ### Requirement: Reconcile every path in a path list

@@ -1,5 +1,9 @@
 # Change System Capability Spec
 
+## Purpose
+
+The Change System isolates proposed modifications to Cairn's blueprint and artefacts in dedicated change directories, keeping them outside current truth until they are explicitly archived. It supports reviewable operations such as reference-preserving renames, exposes change-aware queries through the CLI, and applies all deltas atomically with automatic rollback when validation fails.
+
 ## Requirements
 
 ### Requirement: Isolate proposed modifications in change directories

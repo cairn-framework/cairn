@@ -1,5 +1,9 @@
 # Foundation Capability Spec
 
+## Purpose
+
+The Foundation capability establishes the minimal, reproducible Rust workspace for Cairn: a library and binary crate with strict linting, local quality gates (pre-commit hooks and an archive script), and foundation tests that verify checked-in fixtures and binary smoke behaviour without implementing any domain logic.
+
 ## Requirements
 
 ### Requirement: Provide a strict Rust project skeleton

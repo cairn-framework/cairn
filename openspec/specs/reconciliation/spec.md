@@ -1,5 +1,9 @@
 # Semantic Reconciliation Capability Spec
 
+## Purpose
+
+Semantic Reconciliation ensures the Cairn graph accurately reflects the codebase by comparing declared blueprint edges against observed source-level dependencies and module docstring facts against the map, surfacing mismatches as rationale tensions. It also generates language-aware docstring templates to help authors keep inline documentation aligned with the map.
+
 ## Requirements
 
 ### Requirement: Validate declared edges against observed dependencies

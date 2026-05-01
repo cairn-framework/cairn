@@ -1,5 +1,9 @@
 # Testing Baseline Capability Spec
 
+## Purpose
+
+The Testing Baseline capability establishes the testing guardrails and conventions that keep Cairn's Rust codebase reviewable and aligned with the OpenSpec phase lifecycle. It pins public JSON wire formats via snapshot tests, enforces module size ceilings, preserves test coverage through refactors, and models verification states while codifying the test-first pre-phase convention and CFLX phase ordering rules.
+
 ## Requirements
 
 ### Requirement: Public JSON wire formats pinned by snapshot tests
@@ -51,7 +55,7 @@ Cairn SHALL fail the pre-archive gate when any Rust source file under `src/` exc
 
 ### Requirement: God modules carry unit test coverage
 
-After Phase 7.5b, the five previously-monolithic files are split into directory modules. Test coverage migrates to the new layout as follows:
+After Phase 7.5b, the five previously-monolithic files SHALL be split into directory modules. Test coverage MUST migrate to the new layout as follows:
 
 | Coverage target | Host file after split |
 |---|---|

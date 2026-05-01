@@ -1,5 +1,9 @@
 # Graph Explorer Capability Spec
 
+## Purpose
+
+The Graph Explorer provides an interactive web-based visualization of a Cairn project's structural graph, rendering nodes, ownership and dependency edges, and attached artefacts through a locally served interface. It enables users to browse the codebase architecture, inspect node details and their associated artefacts, and view integrity findings overlaid on the graph, consuming all data exclusively via the query API.
+
 ## Requirements
 
 ### Requirement: Serve the graph explorer via cairn ui

@@ -1,5 +1,9 @@
 # Artefact Capability Spec
 
+## Purpose
+
+The Artefact capability attaches structured documents — contracts, todos, decisions, reviews, research, and sources — to nodes in the Cairn graph, capturing the depth and provenance that explain why the system is shaped the way it is. It loads these artefacts into the map, enforces integrity rules across their relationships, and exposes them through queries so that rationale, status, and neighbourhood context remain traceable across the graph.
+
 ## Requirements
 
 ### Requirement: Load all v1 artefact types

@@ -1,5 +1,9 @@
 # MCP Capability Spec
 
+## Purpose
+
+The MCP capability exposes Cairn's query layer as a Model Context Protocol server, enabling external clients to read the codebase graph, artefacts, and project context through a standardized tool interface.
+
 ## Requirements
 
 ### Requirement: Expose Cairn queries through MCP

@@ -1,5 +1,9 @@
 # Verification States Capability Spec
 
+## Purpose
+
+The Verification States capability gives Cairn a structured vocabulary for test outcomes beyond pass and fail. It introduces a `#[cflx_planned]` attribute to register future-phase tests, a `Blocked` state with error code `CC001` to distinguish upstream dependency issues from assertion failures, and a `VerificationState` enum that unifies Draft, Planned, Passed, Failed, and Blocked into the runtime and tooling API.
+
 ## Requirements
 
 ### Requirement: Provide a structured planned-verification attribute
