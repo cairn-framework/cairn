@@ -46,7 +46,7 @@
 
 ## Acceptance #1 Failure Follow-up
 
-- [ ] Stage and commit all changes (9 modified files + 4 untracked artefacts) to produce a clean working tree before archive
+- [x] Stage and commit all changes (9 modified files + 4 untracked artefacts) to produce a clean working tree before archive
 
 ## Acceptance #2 Failure Follow-up
-- [ ] Investigate acceptance failure and apply the required fix
+- [x] Investigate acceptance failure and apply the required fix
