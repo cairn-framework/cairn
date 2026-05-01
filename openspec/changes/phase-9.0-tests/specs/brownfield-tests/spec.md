@@ -4,7 +4,7 @@
 
 ### Requirement: Phase 9 acceptance criteria have failing test coverage
 
-Phase 9 Brownfield acceptance criterion scenarios SHALL each have a corresponding `#[ignore = "awaits phase-9"]` test in `tests/phase_9_brownfield.rs`. The pre-phase archives on a green `cargo test` because the tests are ignored. Phase 9 removes each `#[ignore]` attribute as the corresponding feature code lands. After the Wave 4 rescope, the brownfield spec carries 8 requirements with 23 acceptance-criterion scenarios; this requirement covers all of them plus the 7 heuristic invariants from `phase-9-brownfield/design.md`.
+Phase 9 Brownfield acceptance criterion scenarios SHALL each have a corresponding `#[ignore = "awaits phase-9"]` test in `tests/phase_9_brownfield.rs`. The pre-phase archives on a green `cargo test` because the tests are ignored. Phase 9 removes each `#[ignore]` attribute as the corresponding feature code lands. After the Wave 4 rescope, the brownfield spec carries 8 requirements with 24 acceptance-criterion scenarios; this requirement covers all of them plus the 7 heuristic invariants from `phase-9-brownfield/design.md`. This requirement spans two semantic axes (acceptance-criterion stub presence and the failing-state contract those stubs must satisfy); the broadened scope is intentional in this debate round and was not split into a second requirement to keep the proposal converging.
 
 #### Scenario: Pre-phase archives green with ignored brownfield tests
 
@@ -17,7 +17,7 @@ Phase 9 Brownfield acceptance criterion scenarios SHALL each have a correspondin
 
 - **GIVEN** `phase-9.0-tests` has been applied
 - **WHEN** `cargo test -- --ignored 2>&1` runs
-- **THEN** the output lists at least 30 test names from `tests/phase_9_brownfield.rs`
+- **THEN** the output lists 33 test names from `tests/phase_9_brownfield.rs` (26 acceptance-criterion stubs plus 7 heuristic-invariant stubs)
 - **AND** each listed test fails (not errors) because the feature code does not yet exist
 - **AND** stubs that depend on Phase 9 fixtures fail via `unimplemented!()` runtime panic rather than compile error
 
@@ -48,7 +48,8 @@ Phase 9 Brownfield acceptance criterion scenarios SHALL each have a correspondin
   - `suggest__entry_provenance_carries_trace_phase`
   - `suggest__pending_entries_block_archive_with_cc002`
   - `suggest__no_auto_accept_on_high_confidence`
-  - `suggest__manual_test_entries_accept_empty_provenance`
+  - `suggest__refine_emits_to_queue_file_with_propose_stage`
+  - `suggest__force_init_aborts_on_pending_entries`
   - `interview__session_persists_across_invocations`
   - `interview__final_transcript_lands_at_genesis_path`
   - `interview__session_state_never_leaks_outside_change_dir`

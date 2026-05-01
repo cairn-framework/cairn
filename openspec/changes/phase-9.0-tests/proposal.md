@@ -11,18 +11,18 @@ Execution: MUST run after Phase 8 and MUST run before Phase 9 Brownfield Extract
 
 ## Problem/Context
 
-Phase 9 Brownfield Extraction, after the Wave 4 rescope (Pattern 3 in `docs/strongholds/getcairn-cross-check-integrated.md`; trigger event Option B refined per `docs/strongholds/oq4-phase9-rescope-timing.md`), introduces 23 acceptance-criterion scenarios across 8 requirements:
+Phase 9 Brownfield Extraction, after the Wave 4 rescope (Pattern 3 in `docs/strongholds/getcairn-cross-check-integrated.md`; trigger event Option B refined per `docs/strongholds/oq4-phase9-rescope-timing.md`), introduces 24 acceptance-criterion scenarios across 8 requirements:
 
 1. Generate initial Cairn state from code (5 scenarios; existing).
 2. Refine existing Cairn state from code changes (2 scenarios; existing).
 3. Keep human review authoritative (1 scenario; existing).
 4. Expose brownfield commands through MCP (2 scenarios; existing).
-5. Suggest cross-cutting edges through the phase 7.6 queue (4 scenarios; new in Wave 4).
+5. Suggest cross-cutting edges through the phase 7.6 queue (5 scenarios; new in Wave 4).
 6. Run multi-round elicitation for brownfield onboarding (3 scenarios; new in Wave 4).
 7. Resolve project-declared templates for stub authoring (3 scenarios; new in Wave 4).
 8. Populate decision-attached obligations when the schema supports them (3 scenarios; conditional, new in Wave 4).
 
-No failing test assertions exist today to confirm those criteria are met when Phase 9 lands. Without a pre-phase test wall, the apply agent implementing Phase 9 has no automated grading signal beyond build success. Sibling proposal `phase-9.0-tests` previously claimed "ten acceptance-criterion scenarios across four requirements"; this update syncs the count to the rescoped 23-across-8 shape.
+No failing test assertions exist today to confirm those criteria are met when Phase 9 lands. Without a pre-phase test wall, the apply agent implementing Phase 9 has no automated grading signal beyond build success. Sibling proposal `phase-9.0-tests` previously claimed "ten acceptance-criterion scenarios across four requirements"; this update syncs the count to the rescoped 24-across-8 shape.
 
 ## Proposed Solution
 
@@ -36,9 +36,9 @@ Test stubs follow the failing-state contract: each stub compiles cleanly under `
 
 ## Acceptance Criteria
 
-- `tests/phase_9_brownfield.rs` exists and contains one `#[ignore = "awaits phase-9"]` test per Phase 9 acceptance-criterion scenario across all 8 rescoped requirements (23 scenarios total).
+- `tests/phase_9_brownfield.rs` exists and contains one `#[ignore = "awaits phase-9"]` test per Phase 9 acceptance-criterion scenario across all 8 rescoped requirements (24 scenarios total).
 - The same file contains one `#[ignore = "awaits phase-9"]` test per heuristic invariant in `phase-9-brownfield/design.md` (7 invariants).
-- Total ignored test count is 30 (23 acceptance + 7 heuristic).
+- Total ignored test count is 33 (26 acceptance + 7 heuristic). The acceptance count exceeds the 24 scenarios because Req 5 scenario 1 splits into three stubs for failure isolation per the splitting principle in `design.md`.
 - `cargo test` passes (all new tests are skipped).
 - `cargo test -- --ignored` reports all new tests as failing (not erroring at compile time). Tests that cannot yet be exercised end-to-end without Phase 9 fixtures call `unimplemented!()` so the failure is a runtime panic, not a compile error.
 - For Requirement 8 (conditional obligations), tests carry guard comments naming whether the decision schema currently exposes an `obligations` field; they compile and run identically in either branch.

@@ -2,7 +2,7 @@
 
 ## References
 
-- `openspec/changes/phase-9-brownfield/specs/brownfield/spec.md`: acceptance criteria being tested. After Wave 4 rescope, the spec carries 8 requirements with 23 scenarios.
+- `openspec/changes/phase-9-brownfield/specs/brownfield/spec.md`: acceptance criteria being tested. After Wave 4 rescope, the spec carries 8 requirements with 24 scenarios.
 - `openspec/changes/phase-9-brownfield/design.md`: numeric invariants being tested.
 - `openspec/specs/testing-baseline/spec.md`: test-first pre-phase convention.
 - `openspec/changes/archive/phase-7.5a-test-fortification/`: prior-art pre-phase structure.
@@ -24,11 +24,12 @@ Running `cargo test -- --ignored` at any point between this pre-phase and Phase 
 
 ## Failing-State Stub Contract
 
-Each stub MUST satisfy three properties:
+Each stub MUST satisfy four properties:
 
 1. Compile cleanly under `cargo build` with zero warnings (the stub respects the project's clippy-as-deny-warnings posture).
 2. Sit behind `#[ignore = "awaits phase-9"]` so `cargo test` skips it and the gate stays green.
 3. Either call `unimplemented!()` (when no fixture is yet available) or assert a property only a not-yet-written feature satisfies (when the assertion compiles against today's tree). Either form yields a runtime panic, not a compile error, when run with `--ignored`.
+4. Carry a `///` doc-comment naming the property the implementation must satisfy. The doc-comment is intentional redundancy with the corresponding `tasks.md` task line (the canonical apply-stage authority): it lets a reader of `tests/phase_9_brownfield.rs` see the asserted property without context-switching to `tasks.md`. The doc-comment is not a second source of truth; if the two drift, `tasks.md` wins.
 
 Stubs for the conditional Requirement 8 (decision-attached obligations) carry a guard comment naming the current schema state. The two field-present stubs panic via `unimplemented!()` until the schema grows the field; the field-absent stub asserts the no-op rider directly and is the always-callable branch.
 
@@ -51,7 +52,8 @@ Stubs for the conditional Requirement 8 (decision-attached obligations) carry a 
 | `suggest__entry_provenance_carries_trace_phase` | spec Req 5, scenario 1 (assertion split) |
 | `suggest__pending_entries_block_archive_with_cc002` | spec Req 5, scenario 3 |
 | `suggest__no_auto_accept_on_high_confidence` | spec Req 5, scenario 2 |
-| `suggest__manual_test_entries_accept_empty_provenance` | spec Req 5, scenario 4 |
+| `suggest__refine_emits_to_queue_file_with_propose_stage` | spec Req 5, scenario 4 |
+| `suggest__force_init_aborts_on_pending_entries` | spec Req 5, scenario 5 |
 | `interview__session_persists_across_invocations` | spec Req 6, scenario 1 |
 | `interview__final_transcript_lands_at_genesis_path` | spec Req 6, scenario 2 |
 | `interview__session_state_never_leaks_outside_change_dir` | spec Req 6, scenario 3 |
@@ -69,7 +71,9 @@ Stubs for the conditional Requirement 8 (decision-attached obligations) carry a 
 | `heuristics__edge_threshold_two_import_observations` | design doc edge threshold >= 2 |
 | `heuristics__summariser_disabled_uses_path_derived_names` | design doc disabled-mode fallback |
 
-Total: 25 acceptance-criterion stubs plus 7 heuristic-invariant stubs. The acceptance count exceeds the spec's 23-scenario count because Req 5 scenario 1 carries three load-bearing assertions (queue write, pending state, trace phase) and is split across three stubs for clear failure isolation; the other 22 scenarios map one-to-one. Total stub count is 32. Regenerating the count is straightforward: `grep -c "#\[ignore" tests/phase_9_brownfield.rs`.
+Total: 26 acceptance-criterion stubs plus 7 heuristic-invariant stubs. The acceptance count exceeds the spec's 24-scenario count because Req 5 scenario 1 carries three load-bearing assertions (queue write, pending state, trace phase) and is split across three stubs for clear failure isolation; the other 23 scenarios map one-to-one. Total stub count is 33 (26 acceptance + 7 heuristic). Regenerating the count is straightforward: `grep -c "#\[ignore" tests/phase_9_brownfield.rs`.
+
+**Splitting principle.** Multi-THEN scenarios split into separate stubs when each clause exercises a distinct subsystem (for example schema serialisation versus gate registration versus trace context resolver); they stay unified when all clauses hinge on one syscall (for example one filesystem write producing four sibling artefacts). Req 5 scenario 1 splits because its three THENs touch the queue file writer, the triage-state policy, and the trace-phase resolver. Req 1 scenario 3 stays unified because its five THENs all hinge on one init invocation's filesystem fan-out.
 
 ## Flagged Vague Criteria
 
@@ -83,17 +87,21 @@ Wave 4 stubs that depend on cross-component fixtures (suggest engine queue file,
 ## Sample Test Sketch
 
 ```rust
+/// Asserts brownfield init creates `openspec/changes/brownfield-init/` with proposal,
+/// blueprint.delta, and stub contracts, and does not touch the main `cairn.blueprint`.
 #[test]
 #[ignore = "awaits phase-9"]
 fn init__creates_brownfield_change_directory() {
     let repo = fixture_repo_without_blueprint();
     cairn::init_from_code(&repo, false).expect("init should succeed");
-    assert!(repo.path().join("meta/changes/brownfield-init").exists());
-    assert!(repo.path().join("meta/changes/brownfield-init/proposal.md").exists());
-    assert!(repo.path().join("meta/changes/brownfield-init/blueprint.delta").exists());
+    assert!(repo.path().join("openspec/changes/brownfield-init").exists());
+    assert!(repo.path().join("openspec/changes/brownfield-init/proposal.md").exists());
+    assert!(repo.path().join("openspec/changes/brownfield-init/blueprint.delta").exists());
     assert!(!repo.path().join("cairn.blueprint").exists());
 }
 
+/// Asserts every entry written by the suggest engine carries `triage_state == "pending"`
+/// regardless of computed confidence (no auto-accept policy promotes it).
 #[test]
 #[ignore = "awaits phase-9"]
 fn suggest__entry_triage_state_is_pending() {

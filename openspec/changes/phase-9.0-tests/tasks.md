@@ -9,9 +9,9 @@
 
 - [ ] 2.1 Write `init__discovery_does_not_require_existing_blueprint`: asserts `init_from_code` does not error when no `cairn.blueprint` exists in fixture repo.
 - [ ] 2.2 Write `init__candidate_heuristics_are_deterministic`: asserts that running `init_from_code` twice on the same fixture produces identical candidate sets.
-- [ ] 2.3 Write `init__creates_brownfield_change_directory`: asserts `meta/changes/brownfield-init/`, `proposal.md`, `blueprint.delta`, and stub contracts are created; asserts `cairn.blueprint` is not created.
+- [ ] 2.3 Write `init__creates_brownfield_change_directory`: asserts `openspec/changes/brownfield-init/`, `proposal.md`, `blueprint.delta`, and stub contracts are created; asserts `cairn.blueprint` is not created.
 - [ ] 2.4 Write `init__existing_change_protected_without_force`: asserts `init_from_code` returns error code 1 when `brownfield-init/` already exists and `--force` is not set.
-- [ ] 2.5 Write `init__force_replaces_existing_change`: asserts `init_from_code --force` replaces the existing change directory; asserts main `cairn.blueprint` and main `meta/` artefacts are untouched.
+- [ ] 2.5 Write `init__force_replaces_existing_change`: asserts `init_from_code --force` replaces the existing change directory; asserts main `cairn.blueprint` and main `openspec/specs/` artefacts are untouched.
 
 ## 3. Refine Tests (spec Req 2)
 
@@ -44,13 +44,14 @@
 - [ ] 7.3 Write `suggest__entry_provenance_carries_trace_phase`: asserts the `provenance.trace_phase` field on a written entry names the phase that produced it.
 - [ ] 7.4 Write `suggest__pending_entries_block_archive_with_cc002`: asserts `cflx openspec validate <change> --strict` exits non-zero with error code `CC002` when pending entries exist; the failure message names the pending count and the queue file path.
 - [ ] 7.5 Write `suggest__no_auto_accept_on_high_confidence`: asserts a synthetic entry with high computed confidence still lands as `pending`; no auto-accept policy promotes it.
-- [ ] 7.6 Write `suggest__manual_test_entries_accept_empty_provenance`: asserts a manually authored entry with no producing trace context loads cleanly with an empty `provenance` object and the schema-version check still passes.
+- [ ] 7.6 Write `suggest__refine_emits_to_queue_file_with_propose_stage`: asserts that `cairn refine` against a project with new cross-cutting edges writes entries into `openspec/changes/<refine-change>/suggested-edges.json` with `triage_state == "pending"` and `provenance.stage == "propose"`; asserts archive of the refine change is blocked by `CC002` until every entry is triaged off `pending`. Stub calls `unimplemented!()` until the refine engine fixture exists.
+- [ ] 7.7 Write `suggest__force_init_aborts_on_pending_entries`: asserts that `cairn init --from-code --force` aborts non-zero with a message naming the pending entries when `openspec/changes/brownfield-init/suggested-edges.json` carries entries in `triage_state == "pending"`; asserts the existing change directory is not overwritten. Stub calls `unimplemented!()` until the force-init guard fixture exists.
 
 ## 8. Interview Runner Tests (spec Req 6)
 
 - [ ] 8.1 Write `interview__session_persists_across_invocations`: asserts an in-progress brownfield onboarding session is detected and resumed at the next outstanding turn after re-invocation against the same change directory. Stub uses `unimplemented!()` until the session-persistence fixture exists.
 - [ ] 8.2 Write `interview__final_transcript_lands_at_genesis_path`: asserts the transcript writes to `openspec/changes/<id>/research/genesis.md`, carries the user-visible Q/A turns and final premise, and the `nodes` field carries the change ID per `openspec/conventions.md` Section 9.
-- [ ] 8.3 Write `interview__session_state_never_leaks_outside_change_dir`: asserts all reads and writes happen inside `openspec/changes/<change>/research/`; asserts no session state lands in main `meta/` or in `cairn.blueprint`.
+- [ ] 8.3 Write `interview__session_state_never_leaks_outside_change_dir`: asserts all reads and writes happen inside `openspec/changes/<change>/research/`; asserts no session state lands in main `openspec/specs/` or in `cairn.blueprint`.
 
 ## 9. Templated Authoring Tests (spec Req 7)
 
@@ -70,6 +71,6 @@
 - [ ] 11.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
 - [ ] 11.3 `cargo fmt --check` passes.
 - [ ] 11.4 `cargo test` passes (all phase-9 tests are skipped via `#[ignore]`).
-- [ ] 11.5 `cargo test -- --ignored` shows all 30 phase-9 tests as failing (not compile errors); the count is 23 acceptance-criterion stubs plus 7 heuristic-invariant stubs.
+- [ ] 11.5 `cargo test -- --ignored` shows all 33 phase-9 tests as failing (not compile errors); the count is 26 acceptance-criterion stubs plus 7 heuristic-invariant stubs.
 - [ ] 11.6 `bash scripts/pre-archive-rust-gates.sh` passes end-to-end.
 - [ ] 11.7 `python3 .claude/skills/cflx-proposal/scripts/cflx.py validate phase-9.0-tests --strict` exits 0.
