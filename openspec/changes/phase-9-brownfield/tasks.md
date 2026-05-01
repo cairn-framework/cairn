@@ -18,7 +18,7 @@
 ## 3. Init from Code
 
 - [ ] 3.1 Implement `cairn init --from-code`.
-- [ ] 3.2 Generate `meta/changes/brownfield-init/proposal.md`.
+- [ ] 3.2 Generate `openspec/changes/brownfield-init/proposal.md`.
 - [ ] 3.3 Generate `blueprint.delta` with added nodes and edges.
 - [ ] 3.4 Generate stub contracts in the change directory.
 - [ ] 3.5 Fail safely when the target change exists unless `--force` is provided.

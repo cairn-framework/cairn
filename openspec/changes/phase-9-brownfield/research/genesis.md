@@ -13,7 +13,7 @@ type: genesis
 ## Summary
 
 - Wave 4 of the getcairn.dev adoption campaign rescopes `phase-9-brownfield` to absorb four AI-assisted authoring sub-components that earlier bundles deferred to "the brownfield phase": C8.c suggest engine, C1.b interview runner, C15 templated authoring, and the conditional C4.b decision-attached obligations follow-on.
-- Trigger event: phase-7.6-ai-provenance-foundation (Bundle A) merged on PR #18 and ratified the identifiers this rescope cites (`suggested-edges.json`, error code `CC002`, capability area `provenance-foundation`, sidecar location `<archive-root>/<phase>/.cflx-trace.json`). Per the Option B refined verdict in `oq4-phase9-rescope-timing.md`, the rescope unlocks once those identifiers are fixed.
+- Trigger event: phase-7.6-ai-provenance-foundation (Bundle A) proposal-draft merged on PR #18; its design.md ratifies the identifiers this rescope cites (`suggested-edges.json`, error code `CC002`, capability area `provenance-foundation`, sidecar location `<archive-root>/<phase>/.cflx-trace.json`). Per the Option B refined verdict in `oq4-phase9-rescope-timing.md`, the rescope unlocks at design level once those identifiers are fixed; phase-7.6's apply registers `CC002` and ships the queue file class before this phase's apply.
 - The rescope is docs-only: `proposal.md`, `tasks.md`, `design.md`, and `specs/brownfield/spec.md`. It does not move Phase 9's implementation start; it only makes the plan honest before code lands.
 - Phase dependency added: `phase-7.6-ai-provenance-foundation` is now a required predecessor alongside the existing `phase-8-summariser` dependency.
 - Path drift fixed in `tasks.md` 10.6: validate invocation path migrated from `.agents/skills/...` to `.claude/skills/...` to match the live tree.
@@ -21,11 +21,11 @@ type: genesis
 
 ## Transcript
 
-This rescope was authored autonomously by a Nazgul force per the Wave 4 mission brief in `docs/strongholds/session-handoff.md`. The mission supplied the absorbed sub-component list (C8.c, C1.b, C15, C4.b follow-on) and the source strongholds; no live elicitation Q/A occurred. The transcript below records the key decisions made during authoring, in lieu of a turn-by-turn user dialogue.
+Decision record synthesised from committed strongholds; no live elicitation Q/A occurred. This rescope was authored autonomously by a Nazgul force against the committed strongholds `docs/strongholds/getcairn-cross-check-integrated.md` (Pattern 3 absorption rationale and Integrator decision 5 path policy) and `docs/strongholds/oq4-phase9-rescope-timing.md` (Option B refined, design.md-ratification trigger). Those strongholds supplied the absorbed sub-component list (C8.c, C1.b, C15, C4.b follow-on) and the timing rationale. The transcript below records the key decisions made during authoring, in lieu of a turn-by-turn user dialogue.
 
 **Q: Should the rescope wait for phase-7.6 to fully apply, or is design.md ratification sufficient?**
 
-A: Per `oq4-phase9-rescope-timing.md` Option B refined, design.md ratification is sufficient. Phase-7.6 has merged in full (PR #18) so this question is moot for the current rescope; the design.md identifiers are stable.
+A: Per `oq4-phase9-rescope-timing.md` Option B refined, design.md ratification is sufficient. Phase-7.6 has design.md ratification (PR #18) so this question is moot for design-level integration; the design.md identifiers are stable. Phase-7.6's apply remains a downstream prerequisite that runs before this phase's apply.
 
 **Q: Should the suggest engine be allowed to auto-accept high-confidence entries?**
 

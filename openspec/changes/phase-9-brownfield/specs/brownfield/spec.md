@@ -24,7 +24,7 @@ Cairn SHALL create a reviewable change directory for first-time adoption of an e
 
 - **GIVEN** a repository without `cairn.blueprint`
 - **WHEN** the user runs `cairn init --from-code`
-- **THEN** Cairn creates `meta/changes/brownfield-init/`
+- **THEN** Cairn creates `openspec/changes/brownfield-init/`
 - **AND** writes a proposal
 - **AND** writes `blueprint.delta` with proposed nodes and edges
 - **AND** writes stub contracts
@@ -32,17 +32,17 @@ Cairn SHALL create a reviewable change directory for first-time adoption of an e
 
 #### Scenario: Existing generated change is protected
 
-- **GIVEN** `meta/changes/brownfield-init/` already exists
+- **GIVEN** `openspec/changes/brownfield-init/` already exists
 - **WHEN** the user runs `cairn init --from-code`
 - **THEN** Cairn exits with code `1`
 - **AND** does not overwrite the existing change
 
 #### Scenario: Force replaces generated change
 
-- **GIVEN** `meta/changes/brownfield-init/` already exists
+- **GIVEN** `openspec/changes/brownfield-init/` already exists
 - **WHEN** the user runs `cairn init --from-code --force`
 - **THEN** Cairn replaces the existing generated brownfield change directory atomically
-- **AND** does not modify main `cairn.blueprint` or main `meta/` artefacts
+- **AND** does not modify main `cairn.blueprint` or main `openspec/specs/` artefacts
 
 ### Requirement: Refine existing Cairn state from code changes
 
@@ -118,12 +118,24 @@ The brownfield generator SHALL emit AI-suggested edges into the suggested-edges 
 - **THEN** the call fails with error code `CC002`
 - **AND** the failure message names the pending count and the queue file path
 
-#### Scenario: Manual-test entries leave provenance empty
+#### Scenario: Refine emits suggested edges into the refine change directory
 
-- **GIVEN** a brownfield change whose suggested-edges file is authored manually for testing
-- **WHEN** the change directory is read by the cairn library
-- **THEN** entries with no producing trace context are accepted with an empty `provenance` object
-- **AND** the schema-version check still passes for the file
+- **GIVEN** a project with an existing `cairn.blueprint` and new source directories that introduce cross-cutting edges
+- **WHEN** the user runs `cairn refine`
+- **AND** the suggest engine identifies at least one cross-cutting edge that the deterministic extractor did not infer
+- **THEN** the entry is written to `openspec/changes/<refine-change>/suggested-edges.json` with `triage_state: "pending"`
+- **AND** the entry's `provenance.stage` is `propose`
+- **AND** archive of the refine change is blocked by `CC002` until every entry is triaged off `pending`
+
+#### Scenario: Force-init aborts when pending entries exist
+
+- **GIVEN** `openspec/changes/brownfield-init/` already exists and its `suggested-edges.json` contains one or more entries with `triage_state: "pending"`
+- **WHEN** the user runs `cairn init --from-code --force`
+- **THEN** Cairn aborts with a non-zero exit and a message naming the pending entries
+- **AND** does not overwrite the existing change directory
+- **AND** instructs the user to triage pending entries (or pass an explicit override flag) before re-running force-init
+
+This guards the human triage queue: silent wipe on `--force` would destroy unreviewed AI suggestions and break the load-bearing constraint that triage is non-bypassable.
 
 ### Requirement: Run multi-round elicitation for brownfield onboarding
 
@@ -149,7 +161,7 @@ The `cflx-proposal` skill SHALL support a multi-round interview mode for brownfi
 - **GIVEN** any state of an in-progress interview session
 - **WHEN** the runner persists or reads session data
 - **THEN** all reads and writes happen inside `openspec/changes/<change>/research/`
-- **AND** no session state is written to the main `meta/` tree or to `cairn.blueprint`
+- **AND** no session state is written to the main `openspec/specs/` tree or to `cairn.blueprint`
 
 ### Requirement: Resolve project-declared templates for stub authoring
 

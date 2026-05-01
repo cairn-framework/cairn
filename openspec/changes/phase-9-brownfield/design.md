@@ -2,8 +2,9 @@
 
 ## References
 
-- `docs/spec.md` section 15 for brownfield approach.
 - `docs/spec.md` section 12 for `init --from-code` and `refine`.
+- `docs/spec.md` section 14 for brownfield MCP tool registry.
+- `docs/spec.md` section 15 for brownfield approach.
 - Phase 3 for change directory archive semantics.
 - Phase 8 for summariser backend and draft safety.
 - Phase 7.6 (`phase-7.6-ai-provenance-foundation`) for the trace sidecar (`<archive-root>/<phase>/.cflx-trace.json`), the suggested-edges queue file (`openspec/changes/<change>/suggested-edges.json`), the `CC002` accept-time block, and the `provenance-foundation` capability area; cited by the Wave 4 rescope sections below.
@@ -43,14 +44,14 @@ The summariser SHALL name and describe candidates, suggest tags, and draft stub 
 
 ## Init Flow
 
-`cairn init --from-code` SHALL create `meta/changes/brownfield-init/` containing:
+`cairn init --from-code` SHALL create `openspec/changes/brownfield-init/` containing:
 
 - `proposal.md`.
 - `blueprint.delta` with added nodes and edges.
 - Stub contracts under mirrored `contracts/`.
 - Optional generated research notes explaining extraction evidence.
 
-The command SHALL fail if `meta/changes/brownfield-init/` already exists unless `--force` is provided.
+The command SHALL fail if `openspec/changes/brownfield-init/` already exists unless `--force` is provided.
 
 ## Refine Flow
 
@@ -82,9 +83,11 @@ The suggest engine is the brownfield-side producer for the queue file class ship
 
 **Triage state**: the engine SHALL only emit entries with `triage_state: "pending"`. Setting any other state at emission time would bypass the phase 7.6 `CC002` gate and break the load-bearing constraint that triage stays human-driven.
 
-**Gate interaction**: `cflx openspec validate <change> --strict` reads the queue, counts pending entries, and fails with `CC002` when the count is non-zero. A brownfield change containing a fresh suggest-engine output therefore cannot archive until a human walks the queue and transitions every entry to `accepted`, `rejected`, or `deferred`. This is the integration point that makes the suggest engine safe to ship.
+**Gate interaction**: `cflx openspec validate <change> --strict` reads the queue, counts pending entries, and fails with `CC002` when the count is non-zero. A brownfield change containing fresh suggest-engine output cannot archive until a human walks the queue and transitions every entry to `accepted`, `rejected`, or `deferred`.
 
 **Confidence policy**: the engine never auto-accepts on confidence. The phase 7.6 design rejected confidence-thresholded auto-accept for the same reason this phase rejects it: the gate's value is its non-bypassability.
+
+**Refine activation**: the suggest engine fires for both `cairn init --from-code` and `cairn refine`. Refine-emitted entries set `provenance.stage = "propose"` against the refine-time change directory's `suggested-edges.json` and are subject to the same `CC002` accept-time gate. This preserves the engine's value as code grows: cross-cutting edges that emerge between refine cycles are captured at the same human-triage gate as init-time suggestions, not silently dropped.
 
 ### C1.b. Interview runner
 
@@ -102,11 +105,11 @@ The interview runner extends the `cflx-proposal` skill with a multi-round elicit
 
 Templated authoring lets organisations declare contract templates that the brownfield generator consumes when drafting stubs, beyond the current "minimum viable stub contract" path.
 
-**Project-config surface**: a new `[templates]` block in `cairn.blueprint` (or an equivalent project config file, design choice deferred to apply) declares templates with: a unique `name`, a `match` rule (glob over candidate path or tag list), and a `body` template containing required headers, optional sections, and placeholder markers. The block is extensible per the kernel's "tag-extensible, never closed-enum" principle (CLAUDE.md "What cairn is, positively" §2).
+**Project-config surface**: a new `[templates]` block in `cairn.blueprint` declares templates with: a unique `name`, a `match` rule (glob over candidate path or tag list), and a `body` template containing required headers, optional sections, and placeholder markers. If the apply-time agent finds blueprint grammar constraints prevent a `[templates]` block, the agent SHALL document the alternative location and update the corresponding spec scenario accordingly. The block is extensible per the kernel's "tag-extensible, never closed-enum" principle (CLAUDE.md "What cairn is, positively" §2).
 
 **Resolution order during draft**: the brownfield generator resolves templates in declared order; the first matching template wins for a given candidate. If no template matches, the generator falls back to the built-in stub. A failed-to-parse template logs a warning and is skipped, never blocking authoring.
 
-**Merge with summariser output**: template body provides structure (headers, required sections); summariser provides content (names, descriptions, suggested tags). Where both supply text for a section, summariser content takes precedence and template text becomes a guidance comment in the draft. The precedence rule is documented in `tasks.md` section 9.5.
+**Merge with summariser output**: template body provides structure (headers, required sections); summariser provides content (names, descriptions, suggested tags). Where both supply text for a section, summariser content takes precedence and template text becomes a guidance comment in the draft. The precedence rule is documented per task 9.5.
 
 **Scope boundary**: templates apply only to contract drafting in this phase. Decision, todo, research, and review templates are deferred to a later phase.
 
@@ -118,15 +121,15 @@ This sub-component is conditional on the Phase 9 decision-stamping schema growin
 
 **If the field does not exist**: the brownfield generator emits decisions with the existing schema; section 8 of `tasks.md` records the no-op explicitly; section 8 tests stay `#[ignore]` until the schema lands.
 
-**Forward compatibility**: when a future phase adds the `obligations` field, the section 8 work activates without re-opening this phase's design. The conditionality is captured in the spec deltas with a "WHEN obligations field is present" guard so dormant scenarios do not regress validate-strict.
+**Forward compatibility**: when a future phase adds the `obligations` field, the section 8 work activates without re-opening this phase's design. The conditionality is captured in the spec deltas with parallel scenarios for the field-present and field-absent cases, so dormant scenarios do not regress validate-strict. The apply-time agent picks the active branch by reading the decision-stamping schema in force at apply time.
 
 ## Wave 4 atomic-commit grouping
 
-The Wave 4 sub-components extend the existing four task groups. Suggested orderings for review-narrative clarity:
+The Wave 4 sub-components form four atomic-commit groups layered on top of the existing task sections 1-4. Suggested orderings for review-narrative clarity:
 
-1. **Group E (suggest engine)**: section 5 tasks. Depends on the existing summariser pipeline (section 2) and the phase 7.6 queue file class. Lands as a single grouped commit set.
-2. **Group F (interview runner)**: section 6 tasks. Depends on the existing `cflx-proposal` skill body. Independent of Group E; can land in parallel.
-3. **Group G (templated authoring)**: section 7 tasks. Depends on the existing init flow (section 3) and refine flow (section 4). Independent of Groups E and F.
-4. **Group H (obligations follow-on)**: section 8 tasks. Conditional on schema state at apply time; lands last or stays dormant.
+1. **Suggest engine group**: section 5 tasks. Depends on the existing summariser pipeline (section 2) and the phase 7.6 queue file class. Lands as a single grouped commit set.
+2. **Interview runner group**: section 6 tasks. Depends on the existing `cflx-proposal` skill body. Independent of the suggest engine group; can land in parallel.
+3. **Templated authoring group**: section 7 tasks. Depends on the existing init flow (section 3) and refine flow (section 4). Independent of the suggest engine and interview runner groups.
+4. **Obligations follow-on group**: section 8 tasks. Conditional on schema state at apply time; lands last or stays dormant.
 
-The four Wave 4 groups commit in any order with respect to Groups A through D from the original phase scope, subject to the within-group dependency rules above. The cflx-runner enforces group-level boundaries when the phase declares them.
+The four Wave 4 groups commit in any order with respect to the pre-existing task sections 1-4, subject to the within-group dependency rules above. Pre-existing task sections 1-4 commit as individual logical units per the graphite-pr discipline. The cflx-runner enforces group-level boundaries when the phase declares them.

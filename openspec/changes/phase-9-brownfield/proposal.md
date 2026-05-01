@@ -5,15 +5,15 @@
 ## Dependencies
 
 - `phase-8-summariser` (required dependency).
-- `phase-7.6-ai-provenance-foundation` (required dependency, added by Wave 4 rescope; the suggest engine consumes the suggested-edges queue file class and is gated by the `CC002` accept-time block both ratified by phase 7.6).
+- `phase-7.6-ai-provenance-foundation` (required dependency, added by Wave 4 rescope; the suggest engine consumes the suggested-edges queue file class and is gated by the `CC002` accept-time block, both ratified by phase 7.6).
 
-Execution: MUST run after Phase 8 and Phase 7.6, and before Phase 10.
+Execution: MUST run after `phase-8-summariser` apply, after `phase-7.6-ai-provenance-foundation` apply, after `phase-9.0-tests` apply, and before Phase 10.
 
 ## Problem/Context
 
 Cairn now has a mature blueprint, reconcilers, artefacts, change system, hooks, MCP access, summariser, and (post-7.6) an AI provenance foundation with a suggested-edges queue and untriaged-block accept gate. Existing projects still need a path to adopt Cairn without manually authoring the initial map from nothing.
 
-Phase 9 implements brownfield extraction from `docs/spec.md` sections 12, 15, and 14, plus the Wave 4 rescope absorbs the AI-assisted authoring surfaces that other bundles assumed Phase 9 would carry (see "Wave 4 rescope" below).
+Phase 9 implements brownfield extraction from `docs/spec.md` sections 12, 14, and 15. The Wave 4 rescope absorbs the AI-assisted authoring surfaces that other bundles assumed Phase 9 would carry (see "Wave 4 rescope" below).
 
 ## Proposed Solution
 
@@ -27,7 +27,7 @@ Add:
 
 ### Wave 4 rescope (absorbed scope)
 
-Per the cross-check integration in `docs/strongholds/getcairn-cross-check-integrated.md` (Pattern 3, Integrator decision 3) and the timing analysis in `docs/strongholds/oq4-phase9-rescope-timing.md` (Option B refined, trigger sharpened to phase-7.6 design.md ratification), Phase 9 absorbs four AI-assisted authoring sub-components that earlier bundles deferred to "the brownfield phase". Phase 7.6 (Bundle A) merged on PR #18; its design.md ratified the identifiers this rescope cites (`suggested-edges.json`, `CC002`, capability area `provenance-foundation`, sidecar location `<archive-root>/<phase>/.cflx-trace.json`). The rescope is therefore unblocked and lands as a docs-only proposal-update.
+Per the cross-check integration in `docs/strongholds/getcairn-cross-check-integrated.md` (Pattern 3, Integrator decision 3) and the timing analysis in `docs/strongholds/oq4-phase9-rescope-timing.md` (Option B refined, trigger sharpened to phase-7.6 design.md ratification), Phase 9 absorbs four AI-assisted authoring sub-components that earlier bundles deferred to "the brownfield phase". Phase 7.6 (Bundle A) design.md ratified the identifiers this rescope cites (`suggested-edges.json` queue file path, `CC002` accept-time block, capability area `provenance-foundation`, sidecar location `<archive-root>/<phase>/.cflx-trace.json`); phase-7.6's apply must run before this rescope's apply so `CC002` is registered and the queue file class shipped. The rescope is therefore unblocked at design level and lands as a docs-only proposal-update.
 
 Absorbed sub-components:
 
@@ -38,8 +38,8 @@ Absorbed sub-components:
 
 ## Acceptance Criteria
 
-- Brownfield init never writes directly to main `cairn.blueprint` or main `meta/` artefacts.
-- Generated candidates include nodes, paths, stub contracts, and obvious edges.
+- Brownfield init never writes directly to main `cairn.blueprint` or main `openspec/specs/` artefacts.
+- Generated candidates include nodes, paths, stub contracts, and observed edges that meet the deterministic threshold defined in `design.md` Candidate Extraction (at least two import observations between candidates, or one public API reference at high confidence).
 - Summariser outputs are marked as proposed and require human archive.
 - `refine` produces a delta instead of a full redraft when a blueprint already exists.
 - False positives can be deleted from the generated change before archive.
