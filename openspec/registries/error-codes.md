@@ -49,7 +49,7 @@ _No codes allocated yet._
 
 ## CC -- Changes
 
-_No codes allocated yet._
+- CC001 -- verification blocked by upstream dependency -- phase-7.5c
 
 ## CH -- Hooks
 

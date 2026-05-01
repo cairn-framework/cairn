@@ -12,6 +12,8 @@ pub mod blueprint;
 pub mod changes;
 /// CLI command registry and renderer helpers.
 pub mod cli;
+/// Shared error type.
+pub mod error;
 /// Hook engine and active-change conflict detection.
 pub mod hooks;
 /// Map graph construction and queries.
@@ -26,6 +28,12 @@ pub mod reconcile;
 pub mod scanner;
 /// Embedded graph explorer server and query bridge.
 pub mod ui;
+
+/// Verification state types.
+pub mod verification;
+
+/// Re-export the `cflx_planned` attribute macro.
+pub use cairn_macros::cflx_planned;
 
 /// Returns the Cargo package name compiled into this crate.
 #[must_use]

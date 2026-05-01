@@ -73,19 +73,44 @@ Each `mod.rs` SHALL contain the `#[cfg(test)] mod tests` block that was in the o
 
 ### Requirement: Test-first pre-phase convention
 
-Feature phases that introduce new acceptance criteria SHOULD be preceded by a paired pre-phase `phase-<N>.0-tests` whose apply task writes failing test assertions against the feature's acceptance criteria. Pre-phase tests SHALL be marked `#[ignore = "awaits phase-<N>"]` so the pre-phase archives on a green `cargo test`. The feature phase's first task per group SHALL remove the matching `#[ignore]` attribute as the corresponding feature code lands.
+Feature phases that introduce new acceptance criteria SHOULD be preceded by a paired pre-phase `phase-<N>.0-tests` whose apply task writes failing test assertions against the feature's acceptance criteria. Pre-phase tests SHALL be marked `#[cflx_planned(phase = <N>)]` so the pre-phase archives on a green `cargo test`. The proc-macro expands to `#[ignore = "cflx_planned: phase-<N>"]` underneath so `cargo test` keeps working without runner changes. The feature phase's first task per group SHALL remove the matching `#[cflx_planned]` attribute as the corresponding feature code lands.
 
-#### Scenario: Pre-phase archives green with ignored red tests
+#### Scenario: Pre-phase archives green with planned tests
 
-- **GIVEN** `phase-<N>.0-tests` has been applied and its tests are committed with `#[ignore = "awaits phase-<N>"]`
+- **GIVEN** `phase-<N>.0-tests` has been applied and its tests are committed with `#[cflx_planned(phase = <N>)]`
 - **WHEN** `cargo test` runs as part of the archive gate
-- **THEN** the ignored tests are skipped and the gate passes
+- **THEN** the planned tests are skipped and the gate passes
 
-#### Scenario: Feature phase turns ignored tests green
+#### Scenario: Feature phase turns planned tests green
 
 - **GIVEN** `phase-<N>.0-tests` has archived and `phase-<N>` applies the feature
 - **WHEN** `cargo test` runs at the end of `phase-<N>`
-- **THEN** the previously-ignored tests now run and pass without their `#[ignore]` attribute
+- **THEN** the previously-planned tests now run and pass without their `#[cflx_planned]` attribute
+
+### Requirement: Verification states attached to test attributes
+
+Cairn SHALL model verification outcomes with the five-state `VerificationState` enum (`Draft`, `Planned`, `Passed`, `Failed`, `Blocked`). Tests marked `#[cflx_planned(phase = N)]` SHALL be classified as `Planned`. Tests that cannot execute because of an upstream missing piece SHALL surface error code `CC001` and be classified as `Blocked` rather than `Failed`.
+
+#### Scenario: Planned classification via cflx_planned attribute
+
+- **GIVEN** a test function is marked `#[cflx_planned(phase = 8)]`
+- **WHEN** `cargo test` runs
+- **THEN** the test is skipped (ignored)
+- **AND** `cairn accept` classifies the test outcome as `Planned`
+
+#### Scenario: Blocked classification via CC001 error code
+
+- **GIVEN** a test surfaces a `CC001` blocked-verification error during `cairn accept`
+- **WHEN** the gate inspects the outcome
+- **THEN** the test is classified as `Blocked` rather than `Failed`
+- **AND** the upstream cause is surfaced in human-readable and JSON output
+
+#### Scenario: CC001 does not fail accept gate by default
+
+- **GIVEN** a test outcome carries error code `CC001`
+- **WHEN** `cairn accept` evaluates the battery
+- **THEN** the `Blocked` outcome does NOT cause the gate to fail by default
+- **AND** the deferral is documented in the gate's help text
 
 ### Requirement: CFLX phase ordering supports decimal and suffix phase ids
 

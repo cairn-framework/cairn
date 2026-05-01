@@ -22,6 +22,7 @@ use crate::{
 pub use crate::query_api::SafetyClass;
 
 /// Command metadata.
+mod accept;
 mod commands;
 mod format;
 mod render;
@@ -73,6 +74,10 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "ui" {
         return run_ui_command(&parsed);
+    }
+    if parsed.command == "accept" {
+        let change_id = parsed.command_args.get(1).map(String::as_str);
+        return crate::cli::accept::run_accept_gate(change_id);
     }
     run_project_command(&parsed)
 }

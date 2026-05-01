@@ -1,0 +1,21 @@
+[package]
+name = "cairn-macros"
+version = "0.1.0"
+edition = "2024"
+description = "Proc macros for the Cairn architecture graph tool."
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://example.invalid/cairn"
+keywords = ["proc-macro", "cairn"]
+categories = ["development-tools::procedural-macro-helpers"]
+
+[lib]
+proc-macro = true
+
+[lints]
+workspace = true
+
+[dependencies]
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
+syn = { workspace = true }
+quote = { workspace = true }
