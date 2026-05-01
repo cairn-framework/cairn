@@ -1,44 +1,71 @@
 {
   // Conflux Configuration
-  // Template: Claude
+  // Template: OpenCode
 
   // Command to analyze dependencies and select next change
-  "analyze_command": "python3 scripts/cflx-analyze-cairn-phases.py",
+  "analyze_command": "opencode run --format json {prompt}",
 
   // Command to apply a change (supports {change_id} and {prompt} placeholders)
-  "apply_command": "claude --dangerously-skip-permissions -p '{prompt}'",
+  "apply_command": "opencode run '{prompt}'",
 
   // Command to archive a completed change (supports {change_id} and {prompt} placeholders)
-  "archive_command": "claude --dangerously-skip-permissions -p '{prompt}'",
+  "archive_command": "opencode run '{prompt}'",
 
   // Command to run acceptance tests after apply (supports {change_id} and {prompt} placeholders)
-  "acceptance_command": "claude --dangerously-skip-permissions -p '{prompt}'",
+  "acceptance_command": "opencode run '{prompt}'",
 
   // Command to resolve conflicts (supports {prompt} placeholder)
-  "resolve_command": "claude --dangerously-skip-permissions -p {prompt}",
+  "resolve_command": "opencode run {prompt}",
 
   // System prompt for apply command (user-customizable, injected into {prompt} placeholder)
   // Note: A hardcoded system prompt is always appended after this value
-  "apply_prompt": "Target language is Rust. Lint policy is in Cargo.toml [workspace.lints] — do not add lint attributes to crate roots. All code must pass `RUSTFLAGS=\"-D warnings\" cargo clippy --all-targets --all-features`, `cargo fmt --check`, and `cargo test` before any task can be marked complete. Use idiomatic Rust: Result<T,E> for errors, impl Trait for interfaces, #[derive] for data types. No unsafe code unless explicitly justified.",
+  //"apply_prompt": "",
 
   // System prompt for archive command (injected into {prompt} placeholder)
-  "archive_prompt": "",
+  //"archive_prompt": "",
 
   // System prompt for acceptance command (injected into {prompt} placeholder)
   // Note: A hardcoded acceptance prompt is always prepended before this value
-  "acceptance_prompt": "",
+  //"acceptance_prompt": "",
 
   // Worktree command for TUI (+ key)
   // Supports {workspace_dir} and {repo_root} placeholders
   "worktree_command": "tmux new-window -n wt ",
+  // "worktree_command": "claude run '/openspec:proposal --worktree {workspace_dir}'",
+
+  // Maximum iterations for the orchestration loop (default: 50, 0 = no limit)
+  // "max_iterations": 50,
+
+  // Logging configuration for TUI debug output
+  // "logging": {
+  //   "suppress_repetitive_debug": true,
+  //   "summary_interval_secs": 60
+  // },
 
   // Lifecycle hooks (optional)
+  // Available hooks:
+  //   Run lifecycle: on_start, on_finish, on_error
+  //   Change lifecycle: on_change_start, pre_apply, post_apply, on_change_complete, pre_archive, post_archive, on_change_end, on_merged
+  //   TUI interaction: on_queue_add, on_queue_remove
+  // Available placeholders: {change_id}, {changes_processed}, {total_changes}, {remaining_changes}, {apply_count}, {completed_tasks}, {total_tasks}
   "hooks": {
-    "pre_archive": "scripts/pre-archive-rust-gates.sh"
-  },
+    // Run lifecycle
+    // "on_start": "echo '[on_start] changes_processed={changes_processed} total={total_changes} remaining={remaining_changes}'",
+    // "on_finish": "echo '[on_finish] status={status} processed={changes_processed}/{total_changes}'",
+    // "on_error": "echo '[on_error] change={change_id} error={error}'",
 
-  // Parallel execution defaults (sequential to prevent cross-phase races during apply)
-  // Override per-invocation with `cflx run --parallel --max-concurrent N` if needed.
-  "parallel_mode": false,
-  "max_concurrent_workspaces": 1
+    // Change lifecycle
+    // "on_change_start": "echo '[on_change_start] change={change_id} tasks={completed_tasks}/{total_tasks} progress={changes_processed}/{total_changes}'",
+    // "pre_apply": "echo '[pre_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
+    // "post_apply": "echo '[post_apply] change={change_id} apply_count={apply_count} tasks={completed_tasks}/{total_tasks}'",
+    // "on_change_complete": "echo '[on_change_complete] change={change_id} tasks={total_tasks}/{total_tasks}'",
+    // "pre_archive": "echo '[pre_archive] change={change_id} progress={changes_processed}/{total_changes}'",
+    // "post_archive": "echo '[post_archive] change={change_id} progress={changes_processed}/{total_changes}'",
+    // "on_change_end": "echo '[on_change_end] change={change_id} progress={changes_processed}/{total_changes} remaining={remaining_changes}'",
+    // "on_merged": "echo '[on_merged] change={change_id} tasks={completed_tasks}/{total_tasks} progress={changes_processed}/{total_changes}'",
+
+    // TUI interaction
+    // "on_queue_add": "echo '[on_queue_add] change={change_id} tasks={completed_tasks}/{total_tasks}'",
+    // "on_queue_remove": "echo '[on_queue_remove] change={change_id} tasks={completed_tasks}/{total_tasks}'"
+  }
 }
