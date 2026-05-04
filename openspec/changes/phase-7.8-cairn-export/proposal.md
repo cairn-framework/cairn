@@ -4,15 +4,16 @@
 
 ## Dependencies
 
+- `phase-7.8.0-tests` (required; ships the test contract this phase grades against, enabling planned stubs group-by-group).
 - `phase-7.5c-verification-states` (queued, not blocking): unrelated subsystem; export reads graph state, not verification state.
 
-Execution: this phase is lifecycle-orthogonal. It does not block, and is not blocked by, any active phase. It MAY apply in parallel with `phase-7.5c-verification-states`, the `phase-N.0-tests` pre-phases, or the feature phases (`phase-8-summariser`, `phase-9-brownfield`, `phase-10-distribution`). Archive when the new `cairn export` command, the JSON schema, the Markdown renderer, and the cli capability spec delta are in place and the strict Rust gate battery passes.
+Execution: this phase is lifecycle-orthogonal to the main pipeline. It does not block, and is not blocked by, any main-pipeline phase. It MUST run after `phase-7.8.0-tests` apply. It MAY apply in parallel with `phase-7.5c-verification-states` or the feature phases (`phase-8-summariser`, `phase-9-brownfield`, `phase-10-distribution`). Archive when the new `cairn export` command, the JSON schema, the Markdown renderer, and the cli capability spec delta are in place and the strict Rust gate battery passes.
 
 ## Sequencing
 
-This phase has no hard ordering constraint against other queued phases. The `cairn export` command reads the current scanner output (nodes, edges, artefacts, change directory state) regardless of the cflx lifecycle stage. Export does not interact with the verification battery, the apply-stage codex, or the accept-stage gate. A blocked or failed verification does not change export behaviour; export always exits 0 on a successful render.
+This phase has no hard ordering constraint against other queued phases except its own test pre-phase (`phase-7.8.0-tests`). The `cairn export` command reads the current scanner output (nodes, edges, artefacts, change directory state) regardless of the cflx lifecycle stage. Export does not interact with the verification battery, the apply-stage codex, or the accept-stage gate. A blocked or failed verification does not change export behaviour; export always exits 0 on a successful render.
 
-The phase ships in isolation and is parallel-safe with the queued pre-phase + feature pairs.
+The phase ships in isolation after its own test pre-phase and is parallel-safe with the main-pipeline pre-phase + feature pairs.
 
 ## Problem/Context
 

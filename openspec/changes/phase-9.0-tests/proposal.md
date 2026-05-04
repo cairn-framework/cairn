@@ -5,9 +5,10 @@
 ## Dependencies
 
 - `phase-8-summariser` (required dependency, not yet applied).
-- `phase-9-brownfield` (Wave 4 rescope of `phase-9-brownfield/specs/brownfield/spec.md`; the test stub structure references the rescoped requirements). The rescoped scope is fixed; this pre-phase mirrors that scope as failing-state stubs.
 
 Execution: MUST run after Phase 8 and MUST run before Phase 9 Brownfield Extraction.
+
+Scope note: test stub structure mirrors the Wave 4 rescoped requirements from `phase-9-brownfield/specs/brownfield/spec.md`. This is a content reference, not a scheduling dependency.
 
 ## Problem/Context
 

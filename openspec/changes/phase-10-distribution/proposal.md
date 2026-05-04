@@ -4,9 +4,10 @@
 
 ## Dependencies
 
+- `phase-10.0-tests` (required; ships the test contract this phase grades against, enabling planned stubs group-by-group).
 - `phase-9-brownfield` (required dependency).
 
-Execution: MUST run after Phase 9.
+Execution: MUST run after Phase 9 and after `phase-10.0-tests` apply.
 
 ## Problem/Context
 

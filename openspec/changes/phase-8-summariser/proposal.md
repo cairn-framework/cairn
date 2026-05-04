@@ -4,9 +4,10 @@
 
 ## Dependencies
 
+- `phase-8.0-tests` (required; ships the test contract this phase grades against, enabling planned stubs group-by-group).
 - `phase-7-mcp` (required dependency).
 
-Execution: MUST run after Phase 7 and before Phases 9-10.
+Execution: MUST run after Phase 7, after `phase-8.0-tests` apply, and before Phases 9-10.
 
 ## Problem/Context
 

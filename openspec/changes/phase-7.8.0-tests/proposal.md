@@ -4,7 +4,7 @@
 
 ## Dependencies
 
-- None hard (lifecycle-orthogonal).
+No hard dependencies; this pre-phase is lifecycle-orthogonal.
 
 Execution: MUST run BEFORE `phase-7.8-cairn-export`. Archives when `cargo test` passes with all new tests ignored.
 
