@@ -24,7 +24,8 @@ edition = "2024"
 description = "Foundation package for the Cairn architecture graph tool."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-repository = "https://example.invalid/cairn"
+repository = "https://github.com/cairn-framework/cairn"
+homepage = "https://github.com/cairn-framework/cairn"
 keywords = ["architecture", "graph", "blueprint", "cli", "rust"]
 categories = ["command-line-utilities", "development-tools"]
 
