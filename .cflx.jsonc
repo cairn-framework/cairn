@@ -8,6 +8,14 @@
   // Command to apply a change (supports {change_id} and {prompt} placeholders)
   "apply_command": "opencode run '{prompt}'",
 
+  // Stronger fallback used during late empty-WIP retries (cflx >= 0.6.55).
+  // Triggered by stall_detection.apply_escalation_after_empty_wip below.
+  "apply_escalation_command": "command -v claude >/dev/null 2>&1 && claude --dangerously-skip-permissions -p '{prompt}'",
+
+  // One-shot diagnosis command run immediately before final empty-WIP stall (cflx >= 0.6.55).
+  // Output is logged as evidence; does not override the underlying stall reason.
+  "apply_stall_diagnose_command": "command -v claude >/dev/null 2>&1 && claude --dangerously-skip-permissions -p 'Diagnose why apply for change {change_id} stalled. Examine the worktree, recent WIP commits, tasks.md, and any APPLY_BLOCKED or REJECTED markers. Output: root cause + suggested unblock action.'",
+
   // Command to archive a completed change (supports {change_id} and {prompt} placeholders)
   "archive_command": "opencode run '{prompt}'",
 
@@ -34,13 +42,30 @@
   // "worktree_command": "claude run '/openspec:proposal --worktree {workspace_dir}'",
 
   // Maximum iterations for the orchestration loop (default: 50, 0 = no limit)
-  // "max_iterations": 50,
+  // Tightened from default to fail fast on runaway loops; must exceed 2x pending-change count (apply + archive per change).
+  "max_iterations": 40,
+
+  // Empty-WIP stall detection plus escalation policy.
+  // When 3 consecutive empty WIP commits occur, the next 2 retries use apply_escalation_command.
+  // If those still produce empty WIPs, apply_stall_diagnose_command runs once before declaring stall at threshold=5.
+  "stall_detection": {
+    "enabled": true,
+    "threshold": 5,
+    "apply_escalation_after_empty_wip": 3,
+    "apply_escalation_max_uses_per_stall": 2
+  },
+
+  // Trip when the same error repeats N times in a row.
+  "error_circuit_breaker": {
+    "enabled": true,
+    "threshold": 3
+  },
 
   // Logging configuration for TUI debug output
-  // "logging": {
-  //   "suppress_repetitive_debug": true,
-  //   "summary_interval_secs": 60
-  // },
+  "logging": {
+    "suppress_repetitive_debug": true,
+    "summary_interval_secs": 60
+  },
 
   // Lifecycle hooks (optional)
   // Available hooks:

@@ -44,3 +44,5 @@ graphify-out/
 # Python bytecode caches from cflx analyze script tests
 __pycache__/
 *.pyc
+
+.firecrawl/
