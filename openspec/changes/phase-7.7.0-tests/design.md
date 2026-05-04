@@ -43,35 +43,35 @@ mod reconciliation { ... }   // Requirement: Info-severity findings for advisory
 
 | # | Spec scenario | Test function |
 |---|---|---|
-| 1 | Whole-map inspection without arguments | `check__whole_map_inspection_without_arguments` |
-| 2 | Node-scoped inspection with a positional argument | `check__node_scoped_inspection_with_positional_argument` |
-| 3 | Inspection delegates to the same library service as lint | `check__inspection_delegates_to_same_library_service_as_lint` |
-| 4 | Inspection has no JSON mode in this phase | `check__inspection_has_no_json_mode` |
-| 5 | No-blueprint invocation renders a CTA | `empty_state__no_blueprint_invocation_renders_cta` |
-| 6 | Clean-map result renders a CTA | `empty_state__clean_map_result_renders_cta` |
-| 7 | Empty-state copy is free of em-dashes (CLI) | `empty_state__copy_has_no_em_dashes` |
-| 8 | Component is defined with token-only styling | `explorer__empty_state_component_uses_token_only_styling` |
-| 9 | All ten inline empty-state strings are replaced | `explorer__ten_inline_empty_state_strings_replaced` |
-| 10 | Missing copy keys surface a console warning | `explorer__missing_copy_keys_surface_console_warning` |
-| 11 | Empty-state copy is free of em-dashes (webui) | `empty_state__copy_has_no_em_dashes` (shared with scenario 7) |
-| 12 | Three severity buckets render with count badges | `explorer__three_severity_buckets_render_with_count_badges` |
-| 13 | Scope toggle filters to the selected node | `explorer__scope_toggle_filters_to_selected_node` |
-| 14 | Scope toggle is disabled when no node is selected | `explorer__scope_toggle_disabled_when_no_node_selected` |
-| 15 | Category filter chips derive from the finding stream | `explorer__category_filter_chips_derive_from_finding_stream` |
-| 16 | Panel reads only from the query-consumer API | `explorer__panel_reads_only_from_query_consumer_api` |
-| 17 | Banner renders the highest-severity finding's nudge | `explorer__banner_renders_highest_severity_finding_nudge` |
-| 18 | Tie-break by lowest-numbered code | `explorer__banner_tie_break_by_lowest_numbered_code` |
-| 19 | Banner CTA is a copy-pasteable CLI snippet | `explorer__banner_cta_is_copy_pasteable_cli_snippet` |
-| 20 | Banner is hidden when the node has no findings | `explorer__banner_hidden_when_node_has_no_findings` |
-| 21 | Structural error indicator (integrity overlay) | `explorer__structural_error_indicator` |
-| 22 | Interface contradiction indicator (integrity overlay) | `explorer__interface_contradiction_indicator` |
-| 23 | Rationale tension indicator (integrity overlay) | `explorer__rationale_tension_indicator` |
-| 24 | Info-severity findings appear in the overlay | `explorer__info_severity_findings_appear_in_overlay` |
-| 25 | Info variant is defined on the kernel enum | `reconciliation__info_variant_defined_on_kernel_enum` |
-| 26 | Orphaned-file state emits an Info finding | `reconciliation__orphaned_file_emits_info_finding` |
-| 27 | Unverified-contract state emits an Info finding | `reconciliation__unverified_contract_emits_info_finding` |
-| 28 | Info findings do not block hooks or gates | `reconciliation__info_findings_do_not_block_hooks_or_gates` |
-| 29 | Info findings round-trip through serde_json | `reconciliation__info_findings_round_trip_through_serde_json` |
+| 1 | Whole-map inspection without arguments | `test_check__whole_map_inspection_without_arguments` |
+| 2 | Node-scoped inspection with a positional argument | `test_check__node_scoped_inspection_with_positional_argument` |
+| 3 | Inspection delegates to the same library service as lint | `test_check__inspection_delegates_to_same_library_service_as_lint` |
+| 4 | Inspection has no JSON mode in this phase | `test_check__inspection_has_no_json_mode` |
+| 5 | No-blueprint invocation renders a CTA | `test_empty_state__no_blueprint_invocation_renders_cta` |
+| 6 | Clean-map result renders a CTA | `test_empty_state__clean_map_result_renders_cta` |
+| 7 | Empty-state copy is free of em-dashes (CLI) | `test_empty_state__copy_has_no_em_dashes` |
+| 8 | Component is defined with token-only styling | `test_explorer__empty_state_component_uses_token_only_styling` |
+| 9 | All ten inline empty-state strings are replaced | `test_explorer__ten_inline_empty_state_strings_replaced` |
+| 10 | Missing copy keys surface a console warning | `test_explorer__missing_copy_keys_surface_console_warning` |
+| 11 | Empty-state copy is free of em-dashes (webui) | `test_empty_state__copy_has_no_em_dashes` (shared with scenario 7) |
+| 12 | Three severity buckets render with count badges | `test_explorer__three_severity_buckets_render_with_count_badges` |
+| 13 | Scope toggle filters to the selected node | `test_explorer__scope_toggle_filters_to_selected_node` |
+| 14 | Scope toggle is disabled when no node is selected | `test_explorer__scope_toggle_disabled_when_no_node_selected` |
+| 15 | Category filter chips derive from the finding stream | `test_explorer__category_filter_chips_derive_from_finding_stream` |
+| 16 | Panel reads only from the query-consumer API | `test_explorer__panel_reads_only_from_query_consumer_api` |
+| 17 | Banner renders the highest-severity finding's nudge | `test_explorer__banner_renders_highest_severity_finding_nudge` |
+| 18 | Tie-break by lowest-numbered code | `test_explorer__banner_tie_break_by_lowest_numbered_code` |
+| 19 | Banner CTA is a copy-pasteable CLI snippet | `test_explorer__banner_cta_is_copy_pasteable_cli_snippet` |
+| 20 | Banner is hidden when the node has no findings | `test_explorer__banner_hidden_when_node_has_no_findings` |
+| 21 | Structural error indicator (integrity overlay) | `test_explorer__structural_error_indicator` |
+| 22 | Interface contradiction indicator (integrity overlay) | `test_explorer__interface_contradiction_indicator` |
+| 23 | Rationale tension indicator (integrity overlay) | `test_explorer__rationale_tension_indicator` |
+| 24 | Info-severity findings appear in the overlay | `test_explorer__info_severity_findings_appear_in_overlay` |
+| 25 | Info variant is defined on the kernel enum | `test_reconciliation__info_variant_defined_on_kernel_enum` |
+| 26 | Orphaned-file state emits an Info finding | `test_reconciliation__orphaned_file_emits_info_finding` |
+| 27 | Unverified-contract state emits an Info finding | `test_reconciliation__unverified_contract_emits_info_finding` |
+| 28 | Info findings do not block hooks or gates | `test_reconciliation__info_findings_do_not_block_hooks_or_gates` |
+| 29 | Info findings round-trip through serde_json | `test_reconciliation__info_findings_round_trip_through_serde_json` |
 
 Total: 28 unique test functions covering 29 scenarios. Scenarios 7 and 11 assert the same property on the same centralised copy file (`docs/design-system/copy.toml`) and share one test.
 

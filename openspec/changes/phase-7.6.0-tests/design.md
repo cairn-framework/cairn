@@ -42,37 +42,37 @@ mod cli { ... }                    // Requirement: Surface architectural islands
 mod query { ... }                  // Requirement: Answer disconnected-subgraph queries
 ```
 
-Each `mod` contains the tests for its requirement's scenarios. All tests carry both `#[test]` and `#[cflx_planned(phase = 76)]`.
+Each `mod` contains the tests for its requirement's scenarios. All tests carry both `#[test]` and `#[cflx_planned(phase = 706)]`.
 
 | # | Spec source | Scenario | Test function |
 |---|---|---|---|
-| 1 | provenance-foundation | Sidecar is state-versioned | `sidecar_is_state_versioned` |
-| 2 | provenance-foundation | Sidecar covers the four cairn-native stages | `sidecar_covers_four_native_stages` |
-| 3 | provenance-foundation | Prompt content is reserved but empty in this phase | `prompt_content_reserved_but_empty` |
-| 4 | provenance-foundation | Higher version than understood fails with a clear error | `higher_version_fails_with_clear_error` |
-| 5 | provenance-foundation | Default human output is labelled per stage | `trace_human_output_labels_each_stage` |
-| 6 | provenance-foundation | JSON output is the schema with promoted version | `trace_json_output_is_schema_with_version` |
-| 7 | provenance-foundation | Missing sidecar exits cleanly | `trace_missing_sidecar_exits_cleanly` |
-| 8 | provenance-foundation | Trace command does not own semantics | `trace_command_delegates_to_library_reader` |
-| 9 | changes | Queue file is state-versioned | `queue_file_is_state_versioned` |
-| 10 | changes | Each entry carries source, target, relation, and triage state | `entry_carries_source_target_relation_and_triage_state` |
-| 11 | changes | Triage state defaults to pending for newly-emitted entries | `triage_state_defaults_to_pending` |
-| 12 | changes | Queue is a sibling, not a delta operation | `queue_is_sibling_not_delta_operation` |
-| 13 | changes | Validate without --strict surfaces count as warning | `validate_without_strict_surfaces_warning` |
-| 14 | changes | Validate --strict fails with CC002 on pending entries | `validate_strict_fails_cc002_on_pending` |
-| 15 | changes | Validate --strict passes when all entries are non-pending | `validate_strict_passes_when_all_non_pending` |
-| 16 | changes | Absent queue file is not an error | `absent_queue_file_is_not_error` |
-| 17 | cli | Islands command returns whole-graph component breakdown | `islands_returns_component_breakdown` |
-| 18 | cli | Islands JSON output is versioned | `islands_json_output_is_versioned` |
-| 19 | cli | Neighbourhood with --include-orphans surfaces reverse-only nodes | `neighbourhood_include_orphans_surfaces_reverse_only` |
-| 20 | cli | Both forms delegate to the library query | `both_forms_delegate_to_library_query` |
-| 21 | cli | Trace human output names each stage | `trace_human_output_labels_each_stage` (same as #5) |
-| 22 | cli | Trace JSON output is exactly the sidecar payload | `trace_json_output_is_schema_with_version` (same as #6) |
-| 23 | cli | Trace exits non-zero when the sidecar is missing | `trace_missing_sidecar_exits_cleanly` (same as #7) |
-| 24 | query | Islands returns one entry per connected component | `query_islands_returns_one_entry_per_component` |
-| 25 | query | Islands handles the trivial single-component case | `query_islands_handles_single_component` |
-| 26 | query | Neighbourhood with include_orphans surfaces inbound-only neighbours | `query_neighbourhood_include_orphans_surfaces_inbound_only` |
-| 27 | query | Islands query response is versioned | `query_islands_response_is_versioned` |
+| 1 | provenance-foundation | Sidecar is state-versioned | `test_sidecar_is_state_versioned` |
+| 2 | provenance-foundation | Sidecar covers the four cairn-native stages | `test_sidecar_covers_four_native_stages` |
+| 3 | provenance-foundation | Prompt content is reserved but empty in this phase | `test_prompt_content_reserved_but_empty` |
+| 4 | provenance-foundation | Higher version than understood fails with a clear error | `test_higher_version_fails_with_clear_error` |
+| 5 | provenance-foundation | Default human output is labelled per stage | `test_trace_human_output_labels_each_stage` |
+| 6 | provenance-foundation | JSON output is the schema with promoted version | `test_trace_json_output_is_schema_with_version` |
+| 7 | provenance-foundation | Missing sidecar exits cleanly | `test_trace_missing_sidecar_exits_cleanly` |
+| 8 | provenance-foundation | Trace command does not own semantics | `test_trace_command_delegates_to_library_reader` |
+| 9 | changes | Queue file is state-versioned | `test_queue_file_is_state_versioned` |
+| 10 | changes | Each entry carries source, target, relation, and triage state | `test_entry_carries_source_target_relation_and_triage_state` |
+| 11 | changes | Triage state defaults to pending for newly-emitted entries | `test_triage_state_defaults_to_pending` |
+| 12 | changes | Queue is a sibling, not a delta operation | `test_queue_is_sibling_not_delta_operation` |
+| 13 | changes | Validate without --strict surfaces count as warning | `test_validate_without_strict_surfaces_warning` |
+| 14 | changes | Validate --strict fails with CC002 on pending entries | `test_validate_strict_fails_cc002_on_pending` |
+| 15 | changes | Validate --strict passes when all entries are non-pending | `test_validate_strict_passes_when_all_non_pending` |
+| 16 | changes | Absent queue file is not an error | `test_absent_queue_file_is_not_error` |
+| 17 | cli | Islands command returns whole-graph component breakdown | `test_islands_returns_component_breakdown` |
+| 18 | cli | Islands JSON output is versioned | `test_islands_json_output_is_versioned` |
+| 19 | cli | Neighbourhood with --include-orphans surfaces reverse-only nodes | `test_neighbourhood_include_orphans_surfaces_reverse_only` |
+| 20 | cli | Both forms delegate to the library query | `test_both_forms_delegate_to_library_query` |
+| 21 | cli | Trace human output names each stage | `test_trace_human_output_labels_each_stage` (same as #5) |
+| 22 | cli | Trace JSON output is exactly the sidecar payload | `test_trace_json_output_is_schema_with_version` (same as #6) |
+| 23 | cli | Trace exits non-zero when the sidecar is missing | `test_trace_missing_sidecar_exits_cleanly` (same as #7) |
+| 24 | query | Islands returns one entry per connected component | `test_query_islands_returns_one_entry_per_component` |
+| 25 | query | Islands handles the trivial single-component case | `test_query_islands_handles_single_component` |
+| 26 | query | Neighbourhood with include_orphans surfaces inbound-only neighbours | `test_query_neighbourhood_include_orphans_surfaces_inbound_only` |
+| 27 | query | Islands query response is versioned | `test_query_islands_response_is_versioned` |
 
 Total: 24 unique tests. Scenarios 21-23 reference the same test names as 5-7 because the CLI trace scenarios duplicate the provenance-foundation trace render scenarios.
 

@@ -4,7 +4,7 @@
 
 ### Requirement: Phase 10 acceptance criteria have failing ignored tests
 
-All acceptance-criterion scenarios from `openspec/changes/phase-10-distribution/specs/distribution/spec.md` SHALL have a corresponding `#[ignore = "awaits phase-10"]` test in `tests/phase_10_distribution.rs`. The test file SHALL compile and all tests SHALL be skipped (not failed) when `cargo test` runs without `--ignored`.
+All acceptance-criterion scenarios from `openspec/changes/phase-10-distribution/specs/distribution/spec.md` SHALL have a corresponding `#[cflx_planned(phase = 1000)]` test in `tests/phase_10_distribution.rs`. The test file SHALL compile and all tests SHALL be skipped (not failed) when `cargo test` runs without `--ignored`.
 
 #### Scenario: Pre-phase archives with all tests ignored
 
@@ -25,4 +25,4 @@ All acceptance-criterion scenarios from `openspec/changes/phase-10-distribution/
 - **GIVEN** `phase-10-distribution` has been applied
 - **WHEN** `cargo test` runs without `--ignored`
 - **THEN** all seven tests in `tests/phase_10_distribution.rs` run and pass
-- **AND** no `#[ignore = "awaits phase-10"]` attribute remains in that file
+- **AND** no `#[cflx_planned(phase = 1000)]` attribute remains in that file

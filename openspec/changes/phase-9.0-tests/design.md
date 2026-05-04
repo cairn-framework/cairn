@@ -18,7 +18,7 @@ Each test function name encodes the requirement and scenario it covers, followin
 
 ## Ignored-Test Convention
 
-Every test carries `#[ignore = "awaits phase-9"]`. Phase 9's first task in each group removes the attribute from the relevant tests and makes the implementation pass.
+Every test carries `#[cflx_planned(phase = 900)]`. Phase 9's first task in each group removes the attribute from the relevant tests and makes the implementation pass.
 
 Running `cargo test -- --ignored` at any point between this pre-phase and Phase 9 landing will show the full list of failing red tests and serve as the design contract.
 
@@ -27,7 +27,7 @@ Running `cargo test -- --ignored` at any point between this pre-phase and Phase 
 Each stub MUST satisfy four properties:
 
 1. Compile cleanly under `cargo build` with zero warnings (the stub respects the project's clippy-as-deny-warnings posture).
-2. Sit behind `#[ignore = "awaits phase-9"]` so `cargo test` skips it and the gate stays green.
+2. Sit behind `#[cflx_planned(phase = 900)]` so `cargo test` skips it and the gate stays green.
 3. Either call `unimplemented!()` (when no fixture is yet available) or assert a property only a not-yet-written feature satisfies (when the assertion compiles against today's tree). Either form yields a runtime panic, not a compile error, when run with `--ignored`.
 4. Carry a `///` doc-comment naming the property the implementation must satisfy. The doc-comment is intentional redundancy with the corresponding `tasks.md` task line (the canonical apply-stage authority): it lets a reader of `tests/phase_9_brownfield.rs` see the asserted property without context-switching to `tasks.md`. The doc-comment is not a second source of truth; if the two drift, `tasks.md` wins.
 
@@ -90,7 +90,7 @@ Wave 4 stubs that depend on cross-component fixtures (suggest engine queue file,
 /// Asserts brownfield init creates `openspec/changes/brownfield-init/` with proposal,
 /// blueprint.delta, and stub contracts, and does not touch the main `cairn.blueprint`.
 #[test]
-#[ignore = "awaits phase-9"]
+#[cflx_planned(phase = 900)]
 fn init__creates_brownfield_change_directory() {
     let repo = fixture_repo_without_blueprint();
     cairn::init_from_code(&repo, false).expect("init should succeed");
@@ -103,7 +103,7 @@ fn init__creates_brownfield_change_directory() {
 /// Asserts every entry written by the suggest engine carries `triage_state == "pending"`
 /// regardless of computed confidence (no auto-accept policy promotes it).
 #[test]
-#[ignore = "awaits phase-9"]
+#[cflx_planned(phase = 900)]
 fn suggest__entry_triage_state_is_pending() {
     // Wave 4 stub: fixture not yet available; runtime panic is the failing-state signal.
     unimplemented!("phase-9 supplies the suggest engine fixture");

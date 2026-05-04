@@ -4,7 +4,7 @@
 
 ### Requirement: Phase 8 acceptance criteria have failing ignored tests
 
-Phase 8 acceptance-criterion scenarios SHALL each have a corresponding `#[test]` in `tests/phase_8_summariser.rs` marked `#[ignore = "awaits phase-8"]`. The pre-phase archives on a green `cargo test` because the tests are skipped. Phase 8 removes each `#[ignore]` attribute as the corresponding feature code lands.
+Phase 8 acceptance-criterion scenarios SHALL each have a corresponding `#[test]` in `tests/phase_8_summariser.rs` marked `#[cflx_planned(phase = 800)]`. The pre-phase archives on a green `cargo test` because the tests are skipped. Phase 8 removes each `#[cflx_planned(phase = 800)]` attribute as the corresponding feature code lands.
 
 #### Scenario: Pre-phase compiles and archives clean
 
@@ -17,7 +17,7 @@ Phase 8 acceptance-criterion scenarios SHALL each have a corresponding `#[test]`
 
 - **GIVEN** `phase-8.0-tests` has been applied
 - **WHEN** `cargo test -- --ignored` runs before phase-8 lands
-- **THEN** all 12 tests in `tests/phase_8_summariser.rs` fail with `todo!()` panics
+- **THEN** all 12 tests in `tests/phase_8_summariser.rs` fail with `unimplemented!()` panics
 - **AND** each failure message names its scenario
 
 #### Scenario: All phase-8 scenarios have a corresponding test
@@ -42,5 +42,5 @@ Phase 8 acceptance-criterion scenarios SHALL each have a corresponding `#[test]`
 
 - **GIVEN** `phase-8-summariser` has been applied in full
 - **WHEN** `cargo test` runs at the end of phase-8
-- **THEN** no `#[ignore = "awaits phase-8"]` attribute remains in `tests/phase_8_summariser.rs`
+- **THEN** no `#[cflx_planned(phase = 800)]` attribute remains in `tests/phase_8_summariser.rs`
 - **AND** all 12 tests pass

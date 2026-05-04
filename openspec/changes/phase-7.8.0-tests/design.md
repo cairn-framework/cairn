@@ -34,14 +34,14 @@ All tests live in a single flat module (no `mod` blocks needed because there is 
 
 | # | Spec scenario | Test function |
 |---|---|---|
-| 1 | Default format is JSON | `default_format_is_json` |
-| 2 | Markdown format is selected via flag | `markdown_format_selected_via_flag` |
-| 3 | JSON envelope carries a schema version | `json_envelope_carries_schema_version` |
-| 4 | Markdown payload contains no em-dashes | `markdown_payload_contains_no_em_dashes` |
-| 5 | Output flag is required | `output_flag_is_required` |
-| 6 | Invalid format value is rejected | `invalid_format_value_is_rejected` |
-| 7 | Export is lifecycle-orthogonal | `export_is_lifecycle_orthogonal` |
-| 8 | Render delegates to a shared library service | `render_delegates_to_shared_library_service` |
+| 1 | Default format is JSON | `test_default_format_is_json` |
+| 2 | Markdown format is selected via flag | `test_markdown_format_selected_via_flag` |
+| 3 | JSON envelope carries a schema version | `test_json_envelope_carries_schema_version` |
+| 4 | Markdown payload contains no em-dashes | `test_markdown_payload_contains_no_em_dashes` |
+| 5 | Output flag is required | `test_output_flag_is_required` |
+| 6 | Invalid format value is rejected | `test_invalid_format_value_is_rejected` |
+| 7 | Export is lifecycle-orthogonal | `test_export_is_lifecycle_orthogonal` |
+| 8 | Render delegates to a shared library service | `test_render_delegates_to_shared_library_service` |
 
 ## Compile Dependency
 

@@ -2,14 +2,14 @@
 
 ## 1. Export Command Tests
 
-- [ ] 1.1 Write `#[cflx_planned(phase = 78)]` test: `default_format_is_json`.
-- [ ] 1.2 Write `#[cflx_planned(phase = 78)]` test: `markdown_format_selected_via_flag`.
-- [ ] 1.3 Write `#[cflx_planned(phase = 78)]` test: `json_envelope_carries_schema_version`.
-- [ ] 1.4 Write `#[cflx_planned(phase = 78)]` test: `markdown_payload_contains_no_em_dashes`.
-- [ ] 1.5 Write `#[cflx_planned(phase = 78)]` test: `output_flag_is_required`.
-- [ ] 1.6 Write `#[cflx_planned(phase = 78)]` test: `invalid_format_value_is_rejected`.
-- [ ] 1.7 Write `#[cflx_planned(phase = 78)]` test: `export_is_lifecycle_orthogonal`.
-- [ ] 1.8 Write `#[cflx_planned(phase = 78)]` test: `render_delegates_to_shared_library_service`.
+- [ ] 1.1 Write `#[cflx_planned(phase = 708)]` test: `test_default_format_is_json`.
+- [ ] 1.2 Write `#[cflx_planned(phase = 708)]` test: `test_markdown_format_selected_via_flag`.
+- [ ] 1.3 Write `#[cflx_planned(phase = 708)]` test: `test_json_envelope_carries_schema_version`.
+- [ ] 1.4 Write `#[cflx_planned(phase = 708)]` test: `test_markdown_payload_contains_no_em_dashes`.
+- [ ] 1.5 Write `#[cflx_planned(phase = 708)]` test: `test_output_flag_is_required`.
+- [ ] 1.6 Write `#[cflx_planned(phase = 708)]` test: `test_invalid_format_value_is_rejected`.
+- [ ] 1.7 Write `#[cflx_planned(phase = 708)]` test: `test_export_is_lifecycle_orthogonal`.
+- [ ] 1.8 Write `#[cflx_planned(phase = 708)]` test: `test_render_delegates_to_shared_library_service`.
 
 ## 2. Required Verification
 

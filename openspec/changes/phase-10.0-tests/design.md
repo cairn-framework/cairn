@@ -18,7 +18,7 @@ Each test carries:
 
 ```rust
 #[test]
-#[ignore = "awaits phase-10"]
+#[cflx_planned(phase = 1000)]
 fn <name>() { ... }
 ```
 

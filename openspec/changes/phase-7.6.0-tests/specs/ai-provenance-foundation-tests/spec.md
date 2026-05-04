@@ -4,7 +4,7 @@
 
 ### Requirement: Phase 7.6 acceptance criteria have failing ignored tests
 
-Phase 7.6 acceptance-criterion scenarios SHALL each have a corresponding `#[test]` in `tests/phase_7_6_ai_provenance.rs` marked `#[cflx_planned(phase = 76)]`. The pre-phase archives on a green `cargo test` because the tests are skipped. Phase 7.6 removes each `#[cflx_planned]` attribute as the corresponding feature code lands.
+Phase 7.6 acceptance-criterion scenarios SHALL each have a corresponding `#[test]` in `tests/phase_7_6_ai_provenance.rs` marked `#[cflx_planned(phase = 706)]`. The pre-phase archives on a green `cargo test` because the tests are skipped. Phase 7.6 removes each `#[cflx_planned]` attribute as the corresponding feature code lands.
 
 #### Scenario: Pre-phase compiles and archives clean
 
@@ -54,5 +54,5 @@ Phase 7.6 acceptance-criterion scenarios SHALL each have a corresponding `#[test
 
 - **GIVEN** `phase-7.6-ai-provenance-foundation` has been applied in full
 - **WHEN** `cargo test` runs at the end of phase-7.6
-- **THEN** no `#[cflx_planned(phase = 76)]` attribute remains in `tests/phase_7_6_ai_provenance.rs`
+- **THEN** no `#[cflx_planned(phase = 706)]` attribute remains in `tests/phase_7_6_ai_provenance.rs`
 - **AND** all 24 tests pass

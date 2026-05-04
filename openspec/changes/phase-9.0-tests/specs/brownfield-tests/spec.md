@@ -4,11 +4,11 @@
 
 ### Requirement: Phase 9 acceptance criteria have failing test coverage
 
-Phase 9 Brownfield acceptance criterion scenarios SHALL each have a corresponding `#[ignore = "awaits phase-9"]` test in `tests/phase_9_brownfield.rs`. The pre-phase archives on a green `cargo test` because the tests are ignored. Phase 9 removes each `#[ignore]` attribute as the corresponding feature code lands. After the Wave 4 rescope, the brownfield spec carries 8 requirements with 24 acceptance-criterion scenarios; this requirement covers all of them plus the 7 heuristic invariants from `phase-9-brownfield/design.md`. This requirement spans two semantic axes (acceptance-criterion stub presence and the failing-state contract those stubs must satisfy); the broadened scope is intentional in this debate round and was not split into a second requirement to keep the proposal converging.
+Phase 9 Brownfield acceptance criterion scenarios SHALL each have a corresponding `#[cflx_planned(phase = 900)]` test in `tests/phase_9_brownfield.rs`. The pre-phase archives on a green `cargo test` because the tests are ignored. Phase 9 removes each `#[ignore]` attribute as the corresponding feature code lands. After the Wave 4 rescope, the brownfield spec carries 8 requirements with 24 acceptance-criterion scenarios; this requirement covers all of them plus the 7 heuristic invariants from `phase-9-brownfield/design.md`. This requirement spans two semantic axes (acceptance-criterion stub presence and the failing-state contract those stubs must satisfy); the broadened scope is intentional in this debate round and was not split into a second requirement to keep the proposal converging.
 
 #### Scenario: Pre-phase archives green with ignored brownfield tests
 
-- **GIVEN** `phase-9.0-tests` has been applied and `tests/phase_9_brownfield.rs` exists with all tests marked `#[ignore = "awaits phase-9"]`
+- **GIVEN** `phase-9.0-tests` has been applied and `tests/phase_9_brownfield.rs` exists with all tests marked `#[cflx_planned(phase = 900)]`
 - **WHEN** `cargo test` runs
 - **THEN** all brownfield tests are skipped
 - **AND** the gate passes with zero failures
@@ -24,7 +24,7 @@ Phase 9 Brownfield acceptance criterion scenarios SHALL each have a correspondin
 #### Scenario: Phase 9 removes ignore attributes as criteria are met
 
 - **GIVEN** `phase-9.0-tests` has archived and Phase 9 implements a feature group
-- **WHEN** Phase 9 removes `#[ignore = "awaits phase-9"]` from the corresponding tests and runs `cargo test`
+- **WHEN** Phase 9 removes `#[cflx_planned(phase = 900)]` from the corresponding tests and runs `cargo test`
 - **THEN** those tests pass
 - **AND** remaining ignored tests are still skipped
 
