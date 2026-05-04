@@ -134,6 +134,10 @@ fn load_ignore_file(path: &Path) -> Result<Vec<String>, ConfigError> {
         .collect())
 }
 
+// Reason: line-by-line config parser collapses several state-machine flags;
+// splitting the function would interleave shared mutable state across multiple
+// helpers and obscure the grammar. Tracked for a future refactor; gating on
+// `collapsible_if` and `too_many_lines` here is the lower-risk choice.
 #[allow(clippy::collapsible_if, clippy::too_many_lines)]
 fn parse_config(source: &str, config: &mut Config) {
     let mut in_ignore = false;
