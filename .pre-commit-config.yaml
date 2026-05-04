@@ -51,6 +51,14 @@ repos:
         files: ^openspec/
         stages: [pre-push]
 
+      - id: openspec-validate-specs
+        name: openspec validate --specs (strict)
+        entry: openspec validate --specs --strict
+        language: system
+        pass_filenames: false
+        files: ^openspec/specs/
+        stages: [pre-push]
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

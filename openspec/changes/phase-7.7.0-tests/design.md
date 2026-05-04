@@ -6,7 +6,7 @@
 - `openspec/changes/phase-7.7-ux-foundation/specs/graph-explorer/spec.md`: source of scenarios 8–24.
 - `openspec/changes/phase-7.7-ux-foundation/specs/reconciliation/spec.md`: source of scenarios 25–29.
 - `openspec/specs/testing-baseline/spec.md`: test-first pre-phase convention.
-- `openspec/conventions.md`: `#[ignore = "awaits phase-<N>"]` pattern.
+- `openspec/conventions.md`: `#[cflx_planned(phase = <N>)]` pattern.
 
 ## Test File Placement
 
@@ -18,15 +18,17 @@ Integration test files under `tests/` are compiled as separate crates by Cargo. 
 - Avoids touching any `src/` file before phase-7.7 lands.
 - Matches the convention established by existing files under `tests/`.
 
-Phase-7.7 will either flesh out these test bodies in-place or move individual tests closer to the modules they exercise, removing `#[ignore]` as each group lands.
+Phase-7.7 will either flesh out these test bodies in-place or move individual tests closer to the modules they exercise, removing `#[cflx_planned]` as each group lands.
 
 ## Test Body Convention
 
-Every test body is `todo!("awaits phase-7.7: <scenario name>")`. This ensures:
+Every test body is `unimplemented!("awaits phase-7.7: <scenario name>")`. This ensures:
 
-- The file compiles.
+- The file compiles (the workspace denies `clippy::todo`, so `unimplemented!()` is used instead of `todo!()`).
 - Running with `--ignored` produces a clear failure message naming the missing scenario.
-- Grepping for `todo!` after phase-7.7 apply confirms no scenario was silently dropped.
+- Grepping for `unimplemented!` after phase-7.7 apply confirms no scenario was silently dropped.
+
+Every integration test file MUST begin with a `//!` crate-level doc comment. Every test function MUST carry a `///` doc comment naming the scenario it covers.
 
 ## Scenario-to-Test Mapping
 
@@ -75,11 +77,11 @@ Total: 28 unique test functions covering 29 scenarios. Scenarios 7 and 11 assert
 
 ## Compile Dependency
 
-The test file imports nothing from `src/` at pre-phase time. Any use statements needed by the eventual implementations are added by phase-7.7 as it removes `#[ignore]` attributes.
+The test file imports nothing from `src/` at pre-phase time. Any use statements needed by the eventual implementations are added by phase-7.7 as it removes `#[cflx_planned]` attributes.
 
 ## Phase-7.7 Removal Contract
 
-Phase-7.7 tasks.md specifies that the first task in each group removes `#[ignore]` from the corresponding tests and makes them pass. The grouping here (4 mods, 28 tests) aligns directly with phase-7.7 task groups.
+Phase-7.7 tasks.md specifies that the first task in each group removes `#[cflx_planned]` from the corresponding tests and makes them pass. The grouping here (4 mods, 28 tests) aligns directly with phase-7.7 task groups.
 
 ## Vague Scenario Flagged
 
