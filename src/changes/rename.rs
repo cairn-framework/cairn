@@ -1,6 +1,8 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
-use super::apply::atomic_write;
+use std::fmt::Write as _;
+
+use super::apply::{atomic_write, replace_exact_id};
 use super::*;
 
 pub(super) fn read_to_string(path: &Path, findings: &mut Vec<String>) -> String {
@@ -20,7 +22,7 @@ pub(super) fn proposal_title(source: &str) -> Option<String> {
     })
 }
 
-pub(super) fn copy_referencing_artefacts(
+fn copy_referencing_artefacts(
     root: &Path,
     change_path: &Path,
     old_id: &str,
@@ -33,7 +35,7 @@ pub(super) fn copy_referencing_artefacts(
     copy_referencing_artefacts_from(root, change_path, &meta, old_id, new_id)
 }
 
-pub(super) fn copy_referencing_artefacts_from(
+fn copy_referencing_artefacts_from(
     root: &Path,
     change_path: &Path,
     dir: &Path,
@@ -132,4 +134,59 @@ pub(super) fn artefact_content_refs(source: &str, ids: &BTreeSet<String>) -> boo
             .lists
             .values()
             .any(|values| values.iter().any(|value| ids.contains(value)))
+}
+
+/// Creates a reviewable rename change without mutating current truth.
+///
+/// # Errors
+///
+/// Returns an error when the old node is missing, the target exists, or files
+/// cannot be written.
+pub fn create_rename_change(
+    root: &Path,
+    blueprint_path: &Path,
+    old_id: &str,
+    new_id: &str,
+) -> Result<Change, String> {
+    let scan = scanner::load_project(root, blueprint_path)?;
+    if !scan.graph.nodes.contains_key(old_id) {
+        return Err(format!("node `{old_id}` was not found"));
+    }
+    if scan.graph.nodes.contains_key(new_id) {
+        return Err(format!("node `{new_id}` already exists"));
+    }
+    let change_id = format!("rename-{old_id}-to-{new_id}");
+    let change_path = root.join("meta/changes").join(&change_id);
+    if change_path.exists() {
+        return Err(format!("change `{change_id}` already exists"));
+    }
+    fs::create_dir_all(&change_path).map_err(|error| error.to_string())?;
+    atomic_write(
+        &change_path.join("proposal.md"),
+        &format!("# Proposal: Rename {old_id} to {new_id}\n\nRename `{old_id}` to `{new_id}`.\n"),
+    )?;
+    let mut delta = format!("## RENAMED Nodes\n- {old_id} -> {new_id}\n");
+    let mut changed_edges = Vec::new();
+    for edges in scan.graph.outbound.values() {
+        for edge in edges {
+            if edge.from == old_id || edge.to == old_id {
+                changed_edges.push(edge.clone());
+            }
+        }
+    }
+    if !changed_edges.is_empty() {
+        delta.push_str("\n## RENAMED Edges\n");
+        for edge in changed_edges {
+            let new_from = replace_exact_id(&edge.from, old_id, new_id);
+            let new_to = replace_exact_id(&edge.to, old_id, new_id);
+            let _ = writeln!(
+                delta,
+                "{} -> {} {:?} => {} -> {} {:?}",
+                edge.from, edge.to, edge.description, new_from, new_to, edge.description
+            );
+        }
+    }
+    atomic_write(&change_path.join("blueprint.delta"), &delta)?;
+    copy_referencing_artefacts(root, &change_path, old_id, new_id)?;
+    Ok(load_change(root, change_path))
 }
