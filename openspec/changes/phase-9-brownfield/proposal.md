@@ -4,6 +4,7 @@
 
 ## Dependencies
 
+- `phase-9.0-tests` (required; ships the test contract this phase grades against, enabling planned stubs group-by-group).
 - `phase-8-summariser` (required dependency).
 - `phase-7.6-ai-provenance-foundation` (required dependency, added by Wave 4 rescope; the suggest engine consumes the suggested-edges queue file class and is gated by the `CC002` accept-time block, both ratified by phase 7.6).
 

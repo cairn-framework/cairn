@@ -4,6 +4,7 @@
 
 ## Dependencies
 
+- `phase-7.7.0-tests` (required; ships the test contract this phase grades against by removing `#[cflx_planned]` group-by-group).
 - `phase-7.5c-verification-states` (recommended ordering only; not a code dependency).
 
 Execution: MAY run in parallel with the other active phases (`phase-8-summariser`, `phase-9-brownfield`, `phase-10-distribution`). Touches the consumer side of the existing `Finding` stream and the read-only `/api/lint` endpoint; no kernel artefact additions beyond a single `FindingSeverity` variant.

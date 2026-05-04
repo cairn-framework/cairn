@@ -4,6 +4,7 @@
 
 ## Dependencies
 
+- `phase-7.6.0-tests` (required; ships the test contract this phase grades against by removing `#[cflx_planned]` group-by-group).
 - `phase-7.5c-verification-states` (queued; precedes this phase only by being earlier in the 7.x chain, no shared surface).
 
 Execution: MUST run BEFORE any phase that introduces an AI suggest engine for blueprint edges (currently planned to live inside `phase-9-brownfield` per the integrated roadmap). The four primitives this phase ships (trace sidecar, suggested-edges queue, untriaged-block accept gate, architectural-islands query) are loadbearing prerequisites for that future suggest engine. Archives when the new capability area, the spec deltas in `specs/changes`, `specs/cli`, and `specs/query`, the new error code `CC002`, and the strict Rust gate battery all pass.
