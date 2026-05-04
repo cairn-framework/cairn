@@ -342,7 +342,7 @@ pub(super) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
     finding_output(json, finding)
 }
 
-pub(super) fn ok(stdout: String) -> CliResult {
+pub(super) const fn ok(stdout: String) -> CliResult {
     CliResult {
         code: 0,
         stdout,

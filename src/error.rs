@@ -30,7 +30,7 @@ impl std::error::Error for CairnError {}
 impl CairnError {
     /// Returns the error code for this error.
     #[must_use]
-    pub fn code(&self) -> &'static str {
+    pub const fn code(&self) -> &'static str {
         match self {
             Self::BlockedVerification { .. } => "CC001",
         }

@@ -750,14 +750,14 @@ pub struct Bar/*trailing*/;
         root: &root,
         ignores: &[],
     })?;
-    let hash1 = report1.fingerprint.hash.clone();
+    let hash1 = report1.fingerprint.hash;
 
     fs::write(root.join("src/lib.rs"), source2)?;
     let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
         root: &root,
         ignores: &[],
     })?;
-    let hash2 = report2.fingerprint.hash.clone();
+    let hash2 = report2.fingerprint.hash;
 
     assert_eq!(
         hash1, hash2,
@@ -795,14 +795,14 @@ const PRIVATE_CONST: u8 = 1;
         root: &root,
         ignores: &[],
     })?;
-    let hash1 = report1.fingerprint.hash.clone();
+    let hash1 = report1.fingerprint.hash;
 
     fs::write(root.join("src/lib.rs"), source2)?;
     let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
         root: &root,
         ignores: &[],
     })?;
-    let hash2 = report2.fingerprint.hash.clone();
+    let hash2 = report2.fingerprint.hash;
 
     assert_eq!(hash1, hash2, "hash should be stable across private symbols");
     Ok(())
@@ -836,14 +836,14 @@ pub fn first() {}
         root: &root,
         ignores: &[],
     })?;
-    let hash1 = report1.fingerprint.hash.clone();
+    let hash1 = report1.fingerprint.hash;
 
     fs::write(root.join("src/lib.rs"), source2)?;
     let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
         root: &root,
         ignores: &[],
     })?;
-    let hash2 = report2.fingerprint.hash.clone();
+    let hash2 = report2.fingerprint.hash;
 
     assert_eq!(hash1, hash2, "hash should be stable across source order");
     Ok(())

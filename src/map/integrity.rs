@@ -16,7 +16,7 @@ pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
             };
             for edge in edges {
                 if &edge.to == start && path.len() > 1 {
-                    let mut cycle = path.clone();
+                    let mut cycle = path;
                     cycle.push(start.clone());
                     findings.push(Finding {
                         code: "CAIRN_ORDER_CYCLE".to_owned(),
