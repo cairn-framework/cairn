@@ -1,3 +1,4 @@
+//! Authoring helpers that scaffold a rename change directory and copy referencing artefacts.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use std::fmt::Write as _;

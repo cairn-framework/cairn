@@ -1,3 +1,4 @@
+//! Static `TOOL_REGISTRY` table listing every query tool with its schemas and safety class.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

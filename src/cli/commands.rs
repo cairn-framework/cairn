@@ -1,3 +1,4 @@
+//! CLI command dispatchers that translate parsed args into shared query API calls.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::format::flag_value;

@@ -1,3 +1,4 @@
+//! Shared registry data types: artefact kinds, load requests, and the aggregated `ArtefactSet`.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
