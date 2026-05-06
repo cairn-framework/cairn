@@ -168,30 +168,39 @@ pub(super) fn render_files(
             if has_multi_target {
                 for r in &target_reports_for_node {
                     use std::fmt::Write;
+                    // Reason: writing into a String via fmt::Write is infallible.
                     writeln!(
                         output,
                         "  {} ({}): {}",
                         r.target_id.path.display(),
                         r.language.as_str(),
                         r.claimed_files.join(", ")
-                    ).unwrap();
-                    writeln!(output, "    reconciler: {}", r.reconciler_id.0).unwrap();
-                    writeln!(output, "    hash: {}", r.hash).unwrap();
+                    ).expect("write to String is infallible");
+                    writeln!(output, "    reconciler: {}", r.reconciler_id.0)
+                        .expect("write to String is infallible");
+                    writeln!(output, "    hash: {}", r.hash)
+                        .expect("write to String is infallible");
                 }
             } else if let Some(r) = target_reports_for_node.first() {
                 use std::fmt::Write;
+                // Reason: writing into a String via fmt::Write is infallible.
                 writeln!(
                     output,
                     "  {}: {}",
                     r.target_id.path.display(),
                     r.claimed_files.join(", ")
-                ).unwrap();
-                writeln!(output, "  language: {}", r.language.as_str()).unwrap();
-                writeln!(output, "  reconciler: {}", r.reconciler_id.0).unwrap();
-                writeln!(output, "  hash: {}", r.hash).unwrap();
+                ).expect("write to String is infallible");
+                writeln!(output, "  language: {}", r.language.as_str())
+                    .expect("write to String is infallible");
+                writeln!(output, "  reconciler: {}", r.reconciler_id.0)
+                    .expect("write to String is infallible");
+                writeln!(output, "  hash: {}", r.hash)
+                    .expect("write to String is infallible");
             } else {
                 use std::fmt::Write;
-                writeln!(output, "  {}", lines(&node_record.files)).unwrap();
+                // Reason: writing into a String via fmt::Write is infallible.
+                writeln!(output, "  {}", lines(&node_record.files))
+                    .expect("write to String is infallible");
             }
             output.push('\n');
             Ok(output)
