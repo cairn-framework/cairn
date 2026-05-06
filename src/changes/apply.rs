@@ -188,7 +188,7 @@ pub(super) fn serialize_node(node: &Node, indent: usize, output: &mut String) {
     let _ = writeln!(output, "{pad}}}");
 }
 
-pub(super) fn node_kind_name(kind: NodeKind) -> &'static str {
+pub(super) const fn node_kind_name(kind: NodeKind) -> &'static str {
     match kind {
         NodeKind::System => "System",
         NodeKind::Container => "Container",

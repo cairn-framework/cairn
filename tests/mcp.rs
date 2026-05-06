@@ -187,7 +187,7 @@ fn mcp_tool_list_is_registry_backed_and_gates_mutations() -> Result<(), Box<dyn 
     assert!(tools.iter().any(|tool| tool["name"] == "cairn_get"));
     assert!(!tools.iter().any(|tool| tool["name"] == "cairn_archive"));
 
-    let mut mutating = config.clone();
+    let mut mutating = config;
     mutating.allow_mutating_tools = true;
     let response = cairn::mcp::handle_line(
         r#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#,

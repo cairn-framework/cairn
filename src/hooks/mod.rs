@@ -87,7 +87,7 @@ pub fn run(
             .chain(conflict_findings.iter().cloned())
             .collect(),
         HookKind::Interface => interface.clone(),
-        HookKind::Tension => tensions.clone(),
+        HookKind::Tension => tensions,
         HookKind::All => structural
             .iter()
             .cloned()

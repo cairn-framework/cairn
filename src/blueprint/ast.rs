@@ -73,7 +73,7 @@ pub struct Node {
     /// Retained non-contract artefact pointer fields.
     pub raw_fields: Vec<Field>,
     /// Nested child nodes.
-    pub children: Vec<Node>,
+    pub children: Vec<Self>,
     /// Declaration source span.
     pub span: Span,
 }

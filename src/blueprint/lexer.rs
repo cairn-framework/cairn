@@ -193,7 +193,7 @@ impl Lexer<'_> {
         Span::point(self.file, self.line, self.column)
     }
 
-    fn finish(&self, mut span: Span) -> Span {
+    const fn finish(&self, mut span: Span) -> Span {
         span.end_line = self.line;
         span.end_column = self.column;
         span
@@ -220,6 +220,6 @@ impl Lexer<'_> {
     }
 }
 
-fn is_word_char(ch: char) -> bool {
+const fn is_word_char(ch: char) -> bool {
     ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.')
 }
