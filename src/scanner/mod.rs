@@ -113,8 +113,6 @@ fn reconcile_targets(
     }
     for (node_id, node_targets) in by_node {
         let mut node_reports = Vec::new();
-        let mut aggregated_files = BTreeMap::<String, Vec<String>>::new();
-        let mut aggregated_symbols = Vec::new();
         for target in node_targets {
             let request = ReconcileRequest { root, ignores };
             let result = match target.language {
@@ -139,11 +137,7 @@ fn reconcile_targets(
                     .get(&node_id)
                     .cloned()
                     .unwrap_or_default();
-                let owned_symbols = report.symbols.clone();
-                for (owner, files) in report.claimed_files {
-                    aggregated_files.entry(owner).or_default().extend(files);
-                }
-                aggregated_symbols.extend(report.symbols);
+                let owned_symbols = report.symbols;
                 all_findings.extend(report.findings);
                 node_reports.push(TargetReport {
                     target_id: target.id.clone(),
