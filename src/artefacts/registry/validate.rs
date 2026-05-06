@@ -1,3 +1,4 @@
+//! Cross-artefact validation: node references, decision provenance, and source hashes.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

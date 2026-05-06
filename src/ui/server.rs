@@ -1,3 +1,4 @@
+//! Embedded HTTP listener that routes UI requests to the API and serialisation helpers.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

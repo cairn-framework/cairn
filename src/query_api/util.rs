@@ -1,3 +1,4 @@
+//! Internal helpers: scan loaders, required-field guards, and shared error constructors.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

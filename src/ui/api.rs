@@ -1,3 +1,4 @@
+//! JSON builders for UI endpoints (graph, nodes, contracts, findings, status).
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

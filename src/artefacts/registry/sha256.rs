@@ -1,3 +1,4 @@
+//! Pure-Rust SHA-256 implementation used to verify source artefact integrity.
 use std::fmt::Write as _;
 
 pub(super) const SHA256_INITIAL_STATE: [u32; 8] = [

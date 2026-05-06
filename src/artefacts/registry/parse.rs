@@ -1,3 +1,4 @@
+//! Frontmatter parsers that turn artefact files into typed registry entries.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::io::error_finding;

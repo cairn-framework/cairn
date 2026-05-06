@@ -1,3 +1,4 @@
+//! `serde_json::Value` builders for query API responses (nodes, todos, decisions, hooks).
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

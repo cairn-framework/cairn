@@ -1,3 +1,4 @@
+//! Atomic file writes, snapshotting, and archive log emission used when applying a change.
 use super::*;
 
 pub(super) fn mutation_paths(root: &Path, blueprint_path: &Path, change: &Change) -> Vec<PathBuf> {

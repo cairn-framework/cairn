@@ -1,3 +1,4 @@
+//! Change-domain data types: `Change`, `BlueprintDelta`, artefact operations, and snapshots.
 use super::*;
 
 pub struct Change {
