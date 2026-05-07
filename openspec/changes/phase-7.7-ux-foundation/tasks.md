@@ -4,7 +4,7 @@
 
 - [x] 1.1 Add the `Info` variant to `FindingSeverity` in `src/map/graph.rs` and update the type's derived traits to keep `Debug`, `Clone`, `PartialEq`, `Eq`, `serde::Serialize`, and `serde::Deserialize` intact.
 - [x] 1.2 Update every `match FindingSeverity` site across `src/`, `tests/`, and `src/ui/api.rs` so the new arm is handled exhaustively without `_` catch-alls.
-- [ ] 1.3 Update producers for orphaned-file states and unverified-contract states to emit `Finding` values with `severity = FindingSeverity::Info` instead of staying silent.
+- [ ] 1.3 Update producers for orphaned-file states and unverified-contract states to emit `Finding` values with `severity = FindingSeverity::Info` instead of staying silent. (Partial: src/artefacts/registry/io.rs adds an `info()` constructor and `validate.rs` emits `CAIRN_SOURCE_UNVERIFIED` as Info; the orphaned-file producer is still pending.)
 - [x] 1.4 Add a unit test that constructs a `Finding` with `severity = Info` and round-trips it through `serde_json` without loss.
 - [ ] 1.5 Add a reconciler integration test asserting that an orphaned-file fixture produces at least one `Info` finding under `cairn lint`.
 

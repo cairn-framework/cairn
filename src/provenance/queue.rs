@@ -172,6 +172,14 @@ pub fn write_to_change(change_dir: &Path, queue: &SuggestedEdgesQueue) -> Result
 }
 
 fn unique_temp_path(final_path: &Path) -> std::path::PathBuf {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    // Cycle 4: pid alone is insufficient for cross-thread uniqueness,
+    // and SystemTime::now() may report identical nanos on consecutive
+    // sub-microsecond calls. The atomic counter guarantees uniqueness
+    // across threads in the same process; pid + nanos guards against
+    // cross-process collisions.
+    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
@@ -182,7 +190,7 @@ fn unique_temp_path(final_path: &Path) -> std::path::PathBuf {
         .map(std::ffi::OsStr::to_string_lossy)
         .unwrap_or_default();
     let parent = final_path.parent().unwrap_or_else(|| Path::new("."));
-    parent.join(format!("{stem}.{pid}.{nanos}.tmp"))
+    parent.join(format!("{stem}.{pid}.{nanos}.{seq}.tmp"))
 }
 
 /// Returns `Ok(())` when the queue (if present) has zero pending

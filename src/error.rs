@@ -82,7 +82,7 @@ impl CairnError {
             Self::UntriagedSuggestedEdges { .. } => "CC002",
             Self::ChangeDiscovery { .. } => "CC003",
             Self::ScannerLoad { .. } => "CK001",
-            Self::WriteOutput { .. } => "CK002",
+            Self::WriteOutput { .. } => "CO001",
         }
     }
 }

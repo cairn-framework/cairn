@@ -83,7 +83,7 @@ pub(super) fn findings_json(findings: &[Finding]) -> Vec<Value> {
         .map(|finding| {
             json!({
                 "code": finding.code,
-                "severity": format!("{:?}", finding.severity),
+                "severity": finding.severity.name(),
                 "message": finding.message,
                 "node": finding.node,
                 "path": finding.path,

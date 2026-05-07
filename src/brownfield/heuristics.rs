@@ -37,16 +37,79 @@ pub enum CandidateConfidence {
 }
 
 /// Brownfield candidate emitted from directory scanning.
+///
+/// `id` is path-derived by construction. Cycle 4 fix: previously a
+/// public `String` field, now produced via `Candidate::new(directory,
+/// file_count, confidence)` which derives the id deterministically
+/// from the directory path. Consumers that need a different id source
+/// can call `with_id` after construction; that path is explicit so
+/// the path-derived invariant is the default.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Candidate {
+    id: String,
+    directory: String,
+    file_count: usize,
+    confidence: CandidateConfidence,
+}
+
+impl Candidate {
+    /// Constructs a candidate from a directory path. The id is derived
+    /// deterministically from the directory by replacing path
+    /// separators with `.` and stripping leading `./`.
+    #[must_use]
+    pub fn new(
+        directory: impl Into<String>,
+        file_count: usize,
+        confidence: CandidateConfidence,
+    ) -> Self {
+        let directory = directory.into();
+        let id = path_derived_id(&directory);
+        Self {
+            id,
+            directory,
+            file_count,
+            confidence,
+        }
+    }
+
+    /// Overrides the path-derived id. Use only when a project config
+    /// has a declared candidate name that differs from the directory.
+    #[must_use]
+    pub fn with_id(mut self, id: impl Into<String>) -> Self {
+        self.id = id.into();
+        self
+    }
+
     /// Path-derived candidate identifier.
-    pub id: String,
+    #[must_use]
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
     /// Directory path from the repo root.
-    pub directory: String,
+    #[must_use]
+    pub fn directory(&self) -> &str {
+        &self.directory
+    }
+
     /// Number of source files contributing to the candidate.
-    pub file_count: usize,
+    #[must_use]
+    pub const fn file_count(&self) -> usize {
+        self.file_count
+    }
+
     /// Confidence bucket.
-    pub confidence: CandidateConfidence,
+    #[must_use]
+    pub const fn confidence(&self) -> CandidateConfidence {
+        self.confidence
+    }
+}
+
+fn path_derived_id(directory: &str) -> String {
+    directory
+        .trim_start_matches("./")
+        .trim_start_matches('/')
+        .replace(['/', '\\'], ".")
 }
 
 /// Computes the coupling score for a candidate per design.md:
@@ -116,18 +179,41 @@ mod tests {
         assert_eq!(classify_score(1.99), CandidateConfidence::Medium);
     }
 
+    // Cycle 4: removed three tautological tests
+    // (`min_candidate_file_count_is_three`,
+    // `directory_depth_limit_is_four`,
+    // `edge_observation_threshold_is_two`) that asserted constants
+    // against literals (`assert_eq!(CONST, 3)`). Real fixture-driven
+    // tests will land alongside the directory-traversal engine in
+    // phase-9 task 1.1-1.3. The integration-test counterparts are
+    // already `#[cflx_planned(phase = 900)]` per cycle 3 reasoning.
+
     #[test]
-    fn min_candidate_file_count_is_three() {
-        assert_eq!(MIN_CANDIDATE_FILE_COUNT, 3);
+    fn candidate_new_derives_id_from_directory() {
+        let c = Candidate::new("src/auth", 4, CandidateConfidence::High);
+        assert_eq!(c.id(), "src.auth");
+        assert_eq!(c.directory(), "src/auth");
+        assert_eq!(c.file_count(), 4);
+        assert_eq!(c.confidence(), CandidateConfidence::High);
     }
 
     #[test]
-    fn directory_depth_limit_is_four() {
-        assert_eq!(DIRECTORY_DEPTH_LIMIT, 4);
+    fn candidate_new_strips_leading_dot_slash() {
+        let c = Candidate::new("./src/api", 5, CandidateConfidence::Medium);
+        assert_eq!(c.id(), "src.api");
     }
 
     #[test]
-    fn edge_observation_threshold_is_two() {
-        assert_eq!(EDGE_OBSERVATION_THRESHOLD, 2);
+    fn candidate_with_id_overrides_path_derived() {
+        let c = Candidate::new("src/auth", 4, CandidateConfidence::High).with_id("custom-name");
+        assert_eq!(c.id(), "custom-name");
+        assert_eq!(c.directory(), "src/auth");
+    }
+
+    #[test]
+    fn path_derived_id_replaces_separators() {
+        assert_eq!(path_derived_id("a/b/c"), "a.b.c");
+        assert_eq!(path_derived_id("./a/b"), "a.b");
+        assert_eq!(path_derived_id("a"), "a");
     }
 }

@@ -27,6 +27,27 @@ pub enum FindingSeverity {
     Info,
 }
 
+impl FindingSeverity {
+    /// Canonical lowercase wire-format label.
+    ///
+    /// Use this everywhere a severity is rendered into JSON. Cycle 4
+    /// fix: previously, four manual emitters (`cli/format.rs`,
+    /// `query_api/serialise.rs`, `hooks/render.rs`, `cli/hooks.rs`)
+    /// printed the severity via Debug (`PascalCase`) while
+    /// `ui/serialise.rs` and the serde derive emitted lowercase.
+    /// Consumers parsing `severity` saw `"Error"` from one path and
+    /// `"error"` from another. This method is the single source of
+    /// truth.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Error => "error",
+            Self::Warning => "warning",
+            Self::Info => "info",
+        }
+    }
+}
+
 /// Finding with stable code.
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Finding {

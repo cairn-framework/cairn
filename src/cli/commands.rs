@@ -89,7 +89,12 @@ pub(super) fn shared_exit_code(command: &str, data: &serde_json::Value) -> u8 {
     u8::from(
         findings
             .filter_map(|finding| finding.get("severity"))
-            .any(|severity| severity.as_str().is_some_and(|value| value == "Error")),
+            .any(|severity| {
+                // Cycle 4: severity wire format is now lowercase per
+                // FindingSeverity::name(). Compare to "error" rather
+                // than the legacy PascalCase "Error".
+                severity.as_str().is_some_and(|value| value == "error")
+            }),
     )
 }
 

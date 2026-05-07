@@ -21,7 +21,7 @@ Atomic-commit groupings: tasks within a numbered section MAY land as separate co
 - [x] 2.4 Define `EdgeProvenance` carrying `trace_phase` (`String`) and `stage` (`String`).
 - [x] 2.5 Define the `TriageState` enum with variants `Pending`, `Accepted`, `Rejected`, `Deferred`, deriving the standard traits and serialising as lowercase strings per existing serde-rename convention used elsewhere in the cairn crate.
 - [x] 2.6 Implement `SuggestedEdges::read_from_change(change_dir: &Utf8Path) -> Result<Option<Self>, CairnError>` that returns `Ok(None)` if no `suggested-edges.json` file exists in the directory, validates the schema version, and returns the parsed value.
-- [ ] 2.7 Implement `SuggestedEdges::write_to_change(change_dir: &Utf8Path, value: &Self) -> Result<(), CairnError>` that writes the file atomically.
+- [x] 2.7 Implement `SuggestedEdges::write_to_change(change_dir: &Utf8Path, value: &Self) -> Result<(), CairnError>` that writes the file atomically.
 - [x] 2.8 Implement `SuggestedEdges::count_pending(&self) -> usize` for the gate in section 3.
 - [x] 2.9 Re-export `SuggestedEdges`, `SuggestedEdge`, `EdgeProvenance`, and `TriageState` from `src/lib.rs`.
 - [x] 2.10 Add unit tests covering: round-trip serialisation of a queue with one entry per `TriageState` value; `count_pending` with mixed states; schema-version mismatch error path; `read_from_change` returning `Ok(None)` for an absent file.
@@ -30,19 +30,19 @@ Atomic-commit groupings: tasks within a numbered section MAY land as separate co
 ## 3. Validate-strict accept gate untriaged-block
 
 - [x] 3.1 Allocate `CC002 -- untriaged suggested edges remain in change -- phase-7.6` under the `CC -- Changes` heading in `openspec/registries/error-codes.md`.
-- [ ] 3.2 Add or extend a `CairnError` variant `UntriagedSuggestedEdges { change_id: String, pending_count: usize, file_path: Utf8PathBuf }` whose `.code()` returns `"CC002"` and whose `Display` impl names the count and the file path.
+- [x] 3.2 Add or extend a `CairnError` variant `UntriagedSuggestedEdges { change_id: String, pending_count: usize, file_path: Utf8PathBuf }` whose `.code()` returns `"CC002"` and whose `Display` impl names the count and the file path.
 - [ ] 3.3 Extend the `cflx openspec validate <change>` command path to call `SuggestedEdges::read_from_change` on the change directory and surface `count_pending` as a warning when the count is non-zero (without `--strict`).
 - [ ] 3.4 Extend the `--strict` mode of the same command path to fail with `CC002` and a non-zero exit code when `count_pending` is non-zero.
 - [ ] 3.5 Confirm that when `count_pending` is zero or no `suggested-edges.json` file is present, the validate call's behaviour is unchanged.
 - [ ] 3.6 Add an integration test that runs `cflx openspec validate <change> --strict` against a fixture change containing one entry with `triage_state: pending` and asserts the call exits non-zero with `CC002` in the output.
 - [ ] 3.7 Add a parallel integration test against a fixture where every entry has `triage_state: accepted` and asserts the call exits zero.
-- [ ] 3.8 Add a unit test that constructs the new `CairnError` variant and asserts `.code() == "CC002"`.
+- [x] 3.8 Add a unit test that constructs the new `CairnError` variant and asserts `.code() == "CC002"`.
 
 ## 4. Architectural islands query, `--include-orphans`, and verb-edge display
 
 - [x] 4.1 Add an `islands(map: &Map) -> Vec<Island>` query to the query module. `Island` carries `node_count` (integer) and `representative` (`NodeId`, the lexicographically smallest ID in the component for determinism).
-- [ ] 4.2 Add an `include_orphans` field on the existing `NeighbourhoodOpts` value with a default of `false`. When `true`, the neighbourhood query includes nodes reachable from the anchor only via reverse-direction edges that the default traversal skips.
-- [ ] 4.3 Share a connected-component traversal helper between the `islands` query and the `--include-orphans` neighbourhood path, internal to the query module.
+- [x] 4.2 Add an `include_orphans` field on the existing `NeighbourhoodOpts` value with a default of `false`. When `true`, the neighbourhood query includes nodes reachable from the anchor only via reverse-direction edges that the default traversal skips. (Delivered as `neighbourhood_with_options(graph, anchor, include_orphans)` rather than an Opts struct.)
+- [x] 4.3 Share a connected-component traversal helper between the `islands` query and the `--include-orphans` neighbourhood path, internal to the query module.
 - [ ] 4.4 Add the `cairn islands` CLI command that calls the new library query and renders human and `--json` output. The `--json` schema is `{ "schema_version": 1, "islands": [{ "node_count": ..., "representative": "..." }] }`.
 - [ ] 4.5 Extend the `cairn neighbourhood <node>` CLI command with the `--include-orphans` flag that sets `include_orphans: true` on the underlying query.
 - [ ] 4.6 Pin `cairn islands --json` output via an `insta` snapshot test against a fixture map with two disconnected components.
