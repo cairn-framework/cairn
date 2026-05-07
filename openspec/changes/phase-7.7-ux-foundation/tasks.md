@@ -2,10 +2,10 @@
 
 ## 1. Kernel: FindingSeverity::Info
 
-- [ ] 1.1 Add the `Info` variant to `FindingSeverity` in `src/map/graph.rs` and update the type's derived traits to keep `Debug`, `Clone`, `PartialEq`, `Eq`, `serde::Serialize`, and `serde::Deserialize` intact.
-- [ ] 1.2 Update every `match FindingSeverity` site across `src/`, `tests/`, and `src/ui/api.rs` so the new arm is handled exhaustively without `_` catch-alls.
+- [x] 1.1 Add the `Info` variant to `FindingSeverity` in `src/map/graph.rs` and update the type's derived traits to keep `Debug`, `Clone`, `PartialEq`, `Eq`, `serde::Serialize`, and `serde::Deserialize` intact.
+- [x] 1.2 Update every `match FindingSeverity` site across `src/`, `tests/`, and `src/ui/api.rs` so the new arm is handled exhaustively without `_` catch-alls.
 - [ ] 1.3 Update producers for orphaned-file states and unverified-contract states to emit `Finding` values with `severity = FindingSeverity::Info` instead of staying silent.
-- [ ] 1.4 Add a unit test that constructs a `Finding` with `severity = Info` and round-trips it through `serde_json` without loss.
+- [x] 1.4 Add a unit test that constructs a `Finding` with `severity = Info` and round-trips it through `serde_json` without loss.
 - [ ] 1.5 Add a reconciler integration test asserting that an orphaned-file fixture produces at least one `Info` finding under `cairn lint`.
 
 ## 2. Centralised copy file
@@ -24,9 +24,9 @@
 
 ## 4. CLI: cairn check subcommand
 
-- [ ] 4.1 Add the `cairn check` subcommand to the CLI definition in `src/cli/mod.rs` accepting an optional positional `node` argument.
-- [ ] 4.2 Implement `cairn check` to call `query::lint(graph)` and render results through the existing `src/cli/format.rs` rendering layer with inspection semantics (always exits zero).
-- [ ] 4.3 When a node argument is supplied, filter the finding stream to findings whose `node` field equals the requested node ID before rendering.
+- [x] 4.1 Add the `cairn check` subcommand to the CLI definition in `src/cli/mod.rs` accepting an optional positional `node` argument.
+- [x] 4.2 Implement `cairn check` to call `query::lint(graph)` and render results through the existing `src/cli/format.rs` rendering layer with inspection semantics (always exits zero).
+- [x] 4.3 When a node argument is supplied, filter the finding stream to findings whose `node` field equals the requested node ID before rendering.
 - [ ] 4.4 Add an integration test under `tests/check.rs` that runs `cairn check` over a fixture map containing one Error, one Warning, and one Info finding, asserting that all three are rendered, the exit code is zero, and the rendered text is stable.
 - [ ] 4.5 Add an integration test that runs `cairn check <node>` over the same fixture, asserting that only findings on that node are rendered.
 

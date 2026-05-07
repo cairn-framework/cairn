@@ -16,16 +16,18 @@ pub enum NodeState {
 }
 
 /// Integrity or reconciliation finding severity.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum FindingSeverity {
     /// Blocks successful lint/map validation.
     Error,
     /// Advisory finding.
     Warning,
+    /// Informational nudge that does not block hooks or gates.
+    Info,
 }
 
 /// Finding with stable code.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Finding {
     /// Stable finding code.
     pub code: String,

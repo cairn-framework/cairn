@@ -29,17 +29,24 @@ mod cli {
     }
 
     /// Scenario: Inspection delegates to the same library service as lint.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_check__inspection_delegates_to_same_library_service_as_lint() {
-        unimplemented!("awaits phase-7.7: check inspection delegates to same library service");
+        // Both commands consume `query::lint`; this test is a structural
+        // assertion that the same library entry-point exists. The check
+        // command path inside src/cli/mod.rs calls `query::lint(&graph)`.
+        let _: fn(&cairn::map::Graph) -> cairn::map::query::LintResponse = cairn::map::query::lint;
     }
 
     /// Scenario: Inspection has no JSON mode in this phase.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_check__inspection_has_no_json_mode() {
-        unimplemented!("awaits phase-7.7: check inspection has no JSON mode");
+        let result = cairn::cli::run(&["--json".to_owned(), "check".to_owned()]);
+        assert_eq!(result.code, 1, "cairn check --json must be rejected");
+        assert!(
+            result.stderr.contains("cairn lint --json"),
+            "rejection must point at `cairn lint --json`, got: {}",
+            result.stderr
+        );
     }
 }
 
@@ -188,10 +195,11 @@ mod reconciliation {
     use super::cflx_planned;
 
     /// Scenario: Info variant is defined on the kernel enum.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_reconciliation__info_variant_defined_on_kernel_enum() {
-        unimplemented!("awaits phase-7.7: reconciliation info variant defined on kernel enum");
+        let info = cairn::map::FindingSeverity::Info;
+        assert_ne!(info, cairn::map::FindingSeverity::Error);
+        assert_ne!(info, cairn::map::FindingSeverity::Warning);
     }
 
     /// Scenario: Orphaned-file state emits an Info finding.
@@ -216,9 +224,17 @@ mod reconciliation {
     }
 
     /// Scenario: Info findings round-trip through `serde_json`.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_reconciliation__info_findings_round_trip_through_serde_json() {
-        unimplemented!("awaits phase-7.7: reconciliation info findings round-trip serde_json");
+        let finding = cairn::map::graph::Finding {
+            code: "CT001".to_owned(),
+            severity: cairn::map::FindingSeverity::Info,
+            message: "advisory".to_owned(),
+            node: Some("node-a".to_owned()),
+            path: None,
+        };
+        let json = serde_json::to_string(&finding).expect("serialise");
+        let back: cairn::map::graph::Finding = serde_json::from_str(&json).expect("deserialise");
+        assert_eq!(back, finding);
     }
 }

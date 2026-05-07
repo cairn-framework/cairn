@@ -83,6 +83,12 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "export" {
         return export::run(&parsed.command_args, &parsed.file, &parsed.changes_dir);
     }
+    if parsed.command == "check" && parsed.json {
+        return err(
+            1,
+            "cairn check has no JSON mode; use `cairn lint --json` for JSON output",
+        );
+    }
     run_project_command(&parsed)
 }
 
@@ -227,6 +233,28 @@ fn render_loaded_project_command(
             let stdout = render_findings(&response.findings, parsed.json);
             return CliResult {
                 code,
+                stdout,
+                stderr: legacy_warning,
+            };
+        }
+        "check" => {
+            if parsed.json {
+                return err(
+                    1,
+                    "cairn check has no JSON mode; use `cairn lint --json` for JSON output",
+                );
+            }
+            let response = query::lint(&scan_result.graph);
+            let target_node = parsed.command_args.get(1).map(String::as_str);
+            let findings: Vec<_> = response
+                .findings
+                .iter()
+                .filter(|f| target_node.is_none_or(|t| f.node.as_deref().is_some_and(|n| n == t)))
+                .cloned()
+                .collect();
+            let stdout = render_findings(&findings, false);
+            return CliResult {
+                code: 0,
                 stdout,
                 stderr: legacy_warning,
             };

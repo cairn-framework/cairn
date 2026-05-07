@@ -25,6 +25,7 @@ pub(super) const fn severity_name(severity: FindingSeverity) -> &'static str {
     match severity {
         FindingSeverity::Error => "error",
         FindingSeverity::Warning => "warning",
+        FindingSeverity::Info => "info",
     }
 }
 
