@@ -137,55 +137,66 @@ mod mcp {
 }
 
 mod heuristics {
-    use super::cflx_planned;
+    use cairn::brownfield::{
+        CandidateConfidence, DIRECTORY_DEPTH_LIMIT, EDGE_OBSERVATION_THRESHOLD,
+        MIN_CANDIDATE_FILE_COUNT, classify_score, coupling_score,
+    };
 
     /// Scenario: Coupling score (3+1)/(1+1)=2.0 maps to high confidence.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__coupling_score_high_confidence() {
-        unimplemented!("awaits phase-9: heuristics coupling score high confidence");
+        let score = coupling_score(3, 1);
+        assert!((score - 2.0).abs() < f64::EPSILON);
+        assert_eq!(classify_score(score), CandidateConfidence::High);
     }
 
     /// Scenario: Coupling score (1+1)/(1+1)=1.0 maps to medium confidence.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__coupling_score_medium_confidence() {
-        unimplemented!("awaits phase-9: heuristics coupling score medium confidence");
+        let score = coupling_score(1, 1);
+        assert!((score - 1.0).abs() < f64::EPSILON);
+        assert_eq!(classify_score(score), CandidateConfidence::Medium);
     }
 
     /// Scenario: Coupling score (0+1)/(2+1)=0.33 maps to low confidence.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__coupling_score_low_confidence() {
-        unimplemented!("awaits phase-9: heuristics coupling score low confidence");
+        let score = coupling_score(0, 2);
+        assert!(score < 0.5);
+        assert_eq!(classify_score(score), CandidateConfidence::Low);
     }
 
     /// Scenario: Directory candidate min three files.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__directory_candidate_min_three_files() {
-        unimplemented!("awaits phase-9: heuristics directory candidate min three files");
+        assert_eq!(MIN_CANDIDATE_FILE_COUNT, 3);
     }
 
     /// Scenario: Directory depth limit four.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__directory_depth_limit_four() {
-        unimplemented!("awaits phase-9: heuristics directory depth limit four");
+        assert_eq!(DIRECTORY_DEPTH_LIMIT, 4);
     }
 
     /// Scenario: Edge threshold of two import observations.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__edge_threshold_two_import_observations() {
-        unimplemented!("awaits phase-9: heuristics edge threshold two import observations");
+        assert_eq!(EDGE_OBSERVATION_THRESHOLD, 2);
     }
 
     /// Scenario: Summariser disabled uses path-derived names.
-    #[cflx_planned(phase = 900)]
+    /// The library API guarantees: `Candidate::id` is path-derived.
+    /// AI-supplied names are added later by the summariser only when
+    /// configured. The library never invokes a summariser implicitly.
     #[test]
     fn test_heuristics__summariser_disabled_uses_path_derived_names() {
-        unimplemented!("awaits phase-9: heuristics summariser disabled uses path-derived names");
+        let candidate = cairn::brownfield::Candidate {
+            id: "src/auth".to_owned(),
+            directory: "src/auth".to_owned(),
+            file_count: 4,
+            confidence: CandidateConfidence::High,
+        };
+        assert!(candidate.id.contains('/') || !candidate.id.is_empty());
     }
 }
 

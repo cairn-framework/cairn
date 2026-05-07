@@ -8,6 +8,8 @@
 pub mod artefacts;
 /// Cairn blueprint parsing.
 pub mod blueprint;
+/// Phase 9 brownfield extraction heuristics and candidate types.
+pub mod brownfield;
 /// Change discovery, delta parsing, validation, and archive support.
 pub mod changes;
 /// CLI command registry and renderer helpers.
