@@ -24,6 +24,7 @@ pub use crate::query_api::SafetyClass;
 /// Command metadata.
 mod accept;
 mod commands;
+pub mod export;
 mod format;
 mod render;
 
@@ -78,6 +79,9 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "accept" {
         let change_id = parsed.command_args.get(1).map(String::as_str);
         return crate::cli::accept::run_accept_gate(change_id);
+    }
+    if parsed.command == "export" {
+        return export::run(&parsed.command_args, &parsed.file, &parsed.changes_dir);
     }
     run_project_command(&parsed)
 }
