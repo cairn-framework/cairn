@@ -154,7 +154,7 @@ mod tests {
             args: Vec::new(),
             timeout_ms: 5000,
         };
-        assert_eq!(mode.timeout(), Some(Duration::from_millis(5000)));
+        assert_eq!(mode.timeout(), Some(Duration::from_secs(5)));
     }
 
     #[test]
