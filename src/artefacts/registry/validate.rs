@@ -1,7 +1,7 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
-use io::{error, is_url, warning};
+use io::{error, info, is_url, warning};
 use sha256::sha256_hex;
 use std::collections::BTreeMap;
 
@@ -239,7 +239,7 @@ pub(super) fn validate_sources(root: &Path, source_ids: &BTreeSet<String>, set: 
                     ));
                 }
             }
-            SourceVerification::Unverified => set.findings.push(warning(
+            SourceVerification::Unverified => set.findings.push(info(
                 "CAIRN_SOURCE_UNVERIFIED",
                 format!("source `{}` is unverified", source.id),
                 None,

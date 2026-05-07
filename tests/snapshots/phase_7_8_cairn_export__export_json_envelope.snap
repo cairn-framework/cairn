@@ -1,0 +1,20 @@
+---
+source: tests/phase_7_8_cairn_export.rs
+assertion_line: 189
+expression: "export::render_json(&env)"
+---
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-07T12:00:00Z",
+  "blueprint_path": "cairn.blueprint",
+  "nodes": [],
+  "edges": [
+    {"from": "node-a", "to": "node-b", "verb": "calls"}
+  ],
+  "artefacts": [
+    {"type": "contract", "id": "openspec/specs/foo/contract.md", "path": "openspec/specs/foo/contract.md", "node": "node-a"}
+  ],
+  "changes": [
+    {"id": "phase-x", "state": "active", "title": "Phase X"}
+  ]
+}

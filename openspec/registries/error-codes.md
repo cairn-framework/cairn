@@ -25,6 +25,7 @@ All codes follow the pattern **`CXNNN`**:
 | S      | Summariser       |
 | B      | Brownfield       |
 | D      | Distribution     |
+| O      | CLI output / I/O |
 
 ## Rules
 
@@ -41,7 +42,7 @@ _No codes allocated yet._
 
 ## CK -- Kernel/Map
 
-_No codes allocated yet._
+- CK001 -- scanner failed to load project -- phase-7.8 reforge
 
 ## CA -- Artefacts
 
@@ -50,7 +51,8 @@ _No codes allocated yet._
 ## CC -- Changes
 
 - CC001 -- verification blocked by upstream dependency -- phase-7.5c
-- CC002 -- validation strict fails on pending suggested-edge entries -- phase-7.6
+- CC002 -- pending suggested-edges entries block --strict validate -- phase-7.6
+- CC003 -- failed to enumerate changes directory -- phase-7.8 reforge cycle 3
 
 ## CH -- Hooks
 
@@ -89,3 +91,7 @@ _No codes allocated yet._
 ## CD -- Distribution
 
 _No codes allocated yet._
+
+## CO -- CLI output / I/O
+
+- CO001 -- failed to write CLI output to disk -- phase-7.8 reforge cycle 4

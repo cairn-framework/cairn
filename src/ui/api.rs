@@ -120,9 +120,16 @@ pub(super) fn status_json(project: &scanner::ScanResult) -> String {
         .iter()
         .filter(|finding| finding.severity == FindingSeverity::Error)
         .count();
-    let warnings = findings.len().saturating_sub(errors);
+    let warnings = findings
+        .iter()
+        .filter(|finding| finding.severity == FindingSeverity::Warning)
+        .count();
+    let infos = findings
+        .iter()
+        .filter(|finding| finding.severity == FindingSeverity::Info)
+        .count();
     format!(
-        "{{\"schema_version\":{SCHEMA_VERSION},\"nodes\":{},\"edges\":{},\"findings\":{},\"errors\":{errors},\"warnings\":{warnings},\"interface_hash\":\"{}\"}}",
+        "{{\"schema_version\":{SCHEMA_VERSION},\"nodes\":{},\"edges\":{},\"findings\":{},\"errors\":{errors},\"warnings\":{warnings},\"infos\":{infos},\"interface_hash\":\"{}\"}}",
         project.graph.nodes.len(),
         project.graph.outbound.values().map(Vec::len).sum::<usize>(),
         findings.len(),

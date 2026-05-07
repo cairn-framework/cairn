@@ -8,6 +8,8 @@
 pub mod artefacts;
 /// Cairn blueprint parsing.
 pub mod blueprint;
+/// Phase 9 brownfield extraction heuristics and candidate types.
+pub mod brownfield;
 /// Change discovery, delta parsing, validation, and archive support.
 pub mod changes;
 /// CLI command registry and renderer helpers.
@@ -20,12 +22,16 @@ pub mod hooks;
 pub mod map;
 /// MCP stdio transport.
 pub mod mcp;
+/// AI provenance: trace sidecar and suggested-edges queue schemas.
+pub mod provenance;
 /// Shared structured query API and MCP tool registry.
 pub mod query_api;
 /// Code reconciliation interfaces.
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
+/// Phase 8 summariser: pluggable backends and draft store.
+pub mod summariser;
 /// Embedded graph explorer server and query bridge.
 pub mod ui;
 

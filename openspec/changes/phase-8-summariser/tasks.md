@@ -2,8 +2,8 @@
 
 ## 1. Backend and Configuration
 
-- [ ] 1.1 Add summariser configuration with disabled default.
-- [ ] 1.2 Define backend trait, request type, draft type, and error type.
+- [x] 1.1 Add summariser configuration with disabled default.
+- [x] 1.2 Define backend trait, request type, draft type, and error type.
 - [ ] 1.3 Define provider-neutral `SummariserRequest` and `SummariserResponse` JSON schemas.
 - [ ] 1.4 Implement local command backend using stdin/stdout JSON, timeout, non-zero exit handling, and invalid response handling.
 - [ ] 1.5 Implement hosted API configuration parsing and validation as an adapter boundary without committing secrets; a concrete hosted provider may return an unsupported-backend error until a later adapter exists.
@@ -12,7 +12,7 @@
 ## 2. Prompt Inputs and Draft Storage
 
 - [ ] 2.1 Build prompt inputs from map facts, contracts, interface changes, docstring findings, context, rules, and bounded code samples.
-- [ ] 2.2 Persist drafts under `.cairn/state/summariser/`.
+- [x] 2.2 Persist drafts under `.cairn/state/summariser/`. (DraftStore implemented; CLI plumbing pending.)
 - [ ] 2.3 Track draft status transitions.
 - [ ] 2.4 Add tests for prompt input byte limits, sample truncation, and persisted metadata.
 

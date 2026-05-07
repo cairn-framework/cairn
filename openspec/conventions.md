@@ -27,6 +27,7 @@ Every Cairn error code follows the format **`CXNNN`** where:
 | T      | Targets          | 6               |
 | M      | MCP              | 7               |
 | S      | Summariser       | 8               |
+| O      | CLI output / I/O | 7.8 onwards     |
 | B      | Brownfield       | 9               |
 | D      | Distribution     | 10              |
 

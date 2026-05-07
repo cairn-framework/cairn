@@ -1,0 +1,25 @@
+---
+source: tests/phase_7_8_cairn_export.rs
+assertion_line: 212
+expression: "export::render_markdown(&env)"
+---
+# Cairn Export
+
+Generated: 2026-05-07T12:00:00Z
+Blueprint: cairn.blueprint
+
+## Nodes
+
+(none)
+
+## Edges
+
+- `node-a` calls `node-b`
+
+## Artefacts
+
+(none)
+
+## Active Changes
+
+- `phase-x` (active): Phase X

@@ -73,9 +73,9 @@ const fn decision_name(decision: ExitDecision) -> &'static str {
 
 fn finding_json(finding: &Finding) -> String {
     format!(
-        "{{\"code\":\"{}\",\"severity\":\"{:?}\",\"message\":\"{}\",\"node\":{},\"path\":{}}}",
+        "{{\"code\":\"{}\",\"severity\":\"{}\",\"message\":\"{}\",\"node\":{},\"path\":{}}}",
         esc(&finding.code),
-        finding.severity,
+        finding.severity.name(),
         esc(&finding.message),
         optional_json(finding.node.as_deref()),
         optional_json(finding.path.as_deref())

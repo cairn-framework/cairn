@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: CLI dispatch hub for many subcommands; the natural seam (per-command modules) already exists for newer commands like export and accept; legacy commands grew here historically and a refactor will land in a future phase.
 //! CLI registry, command execution, and renderers.
 
 use std::{
@@ -24,6 +25,7 @@ pub use crate::query_api::SafetyClass;
 /// Command metadata.
 mod accept;
 mod commands;
+pub mod export;
 mod format;
 mod render;
 
@@ -78,6 +80,47 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "accept" {
         let change_id = parsed.command_args.get(1).map(String::as_str);
         return crate::cli::accept::run_accept_gate(change_id);
+    }
+    if parsed.command == "export" {
+        return export::run(
+            &parsed.command_args,
+            &parsed.file,
+            &parsed.changes_dir,
+            parsed.json,
+        );
+    }
+    if parsed.command == "check" {
+        if parsed.json {
+            return err(
+                1,
+                "--json: unknown flag for `cairn check`; use `cairn lint --json` for JSON output",
+            );
+        }
+        if !parsed.file.exists() {
+            // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
+            // warning that run_project_command emits at line 145-148.
+            // Without this, a user mid-migration from cairn.dsl to
+            // cairn.blueprint would see "Run `cairn init`" instead of
+            // the rename guidance, and `init` would scaffold over the
+            // existing declaration.
+            let root = parsed
+                .file
+                .parent()
+                .filter(|path| !path.as_os_str().is_empty())
+                .unwrap_or_else(|| Path::new("."));
+            if parsed.file.ends_with("cairn.blueprint") && root.join("cairn.dsl").exists() {
+                return error_output(
+                    parsed.json,
+                    "CAIRN_COMMAND_FAILED",
+                    "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`",
+                );
+            }
+            return ok(
+                "No cairn.blueprint found. Inspection has nothing to look at.\n\
+                 Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.\n"
+                    .to_owned(),
+            );
+        }
     }
     run_project_command(&parsed)
 }
@@ -223,6 +266,22 @@ fn render_loaded_project_command(
             let stdout = render_findings(&response.findings, parsed.json);
             return CliResult {
                 code,
+                stdout,
+                stderr: legacy_warning,
+            };
+        }
+        "check" => {
+            let response = query::lint(&scan_result.graph);
+            let target_node = parsed.command_args.get(1).map(String::as_str);
+            let findings: Vec<_> = response
+                .findings
+                .iter()
+                .filter(|f| target_node.is_none_or(|t| f.node.as_deref().is_some_and(|n| n == t)))
+                .cloned()
+                .collect();
+            let stdout = render_findings(&findings, false);
+            return CliResult {
+                code: 0,
                 stdout,
                 stderr: legacy_warning,
             };

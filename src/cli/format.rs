@@ -64,9 +64,9 @@ pub(super) fn node_json(node: &NodeRecord) -> String {
 
 pub(super) fn finding_json(finding: &Finding) -> String {
     format!(
-        "{{\"code\":\"{}\",\"severity\":\"{:?}\",\"message\":\"{}\"}}",
+        "{{\"code\":\"{}\",\"severity\":\"{}\",\"message\":\"{}\"}}",
         esc(&finding.code),
-        finding.severity,
+        finding.severity.name(),
         esc(&finding.message)
     )
 }
