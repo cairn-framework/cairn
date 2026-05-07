@@ -8,15 +8,16 @@
 
 use cairn::cflx_planned;
 
-mod backend_and_configuration {
+mod backend_and_config {
     use cairn::summariser::{
-        DisabledBackend, Draft, DraftStatus, DraftStore, NodeContext, SummariserBackend,
-        SummariserBackendError, SummariserMode, SummariserRequest,
+        DisabledBackend, Draft, DraftStore, NodeContext, PendingDraft, SUMMARISER_SCHEMA_VERSION,
+        SummariserBackend, SummariserBackendError, SummariserMode, SummariserRequest,
     };
+    use std::time::Duration;
 
     fn sample_request() -> SummariserRequest {
         SummariserRequest {
-            version: 1,
+            schema_version: SUMMARISER_SCHEMA_VERSION,
             artefact_type: "contract".to_owned(),
             node: NodeContext {
                 node_id: "node-a".to_owned(),
@@ -28,13 +29,25 @@ mod backend_and_configuration {
         }
     }
 
+    fn pending_draft() -> Draft {
+        Draft::Pending(PendingDraft {
+            header: cairn::summariser::DraftHeader {
+                id: "draft-001".to_owned(),
+                node_id: "node-a".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "# Auth\n\nReturns user.".to_owned(),
+                created_at: "2026-05-07T12:00:00Z".to_owned(),
+            },
+        })
+    }
+
     /// Scenario: Disabled summariser does not generate a draft.
     #[test]
     fn test_disabled_backend_skips_draft_on_contradiction() {
         let mode = SummariserMode::default();
         assert!(matches!(mode, SummariserMode::Disabled));
         let backend = DisabledBackend;
-        let result = backend.invoke(&sample_request());
+        let result = backend.invoke(&sample_request(), Duration::from_secs(1));
         assert!(matches!(result, Err(SummariserBackendError::Disabled)));
     }
 
@@ -43,67 +56,72 @@ mod backend_and_configuration {
     fn test_configured_backend_creates_pending_draft() {
         let dir = tempfile::tempdir().expect("tempdir");
         let store = DraftStore::new(dir.path().to_owned());
-        let draft = Draft {
-            id: "draft-001".to_owned(),
-            node_id: "node-a".to_owned(),
-            artefact_type: "contract".to_owned(),
-            draft_text: "# Auth\n\nReturns user.".to_owned(),
-            status: DraftStatus::Pending,
-            accepted_interface_hash: String::new(),
-            created_at: "2026-05-07T12:00:00Z".to_owned(),
-        };
+        let draft = pending_draft();
         let path = store.write(&draft).expect("write");
         assert!(path.exists());
         let back = store.read("draft-001").expect("read");
-        assert_eq!(back.status, DraftStatus::Pending);
+        assert!(matches!(back, Draft::Pending(_)));
     }
 
-    /// Scenario: Local command receives one request and stores `draft_text` only.
+    /// Scenario: Local command receives one request and stores `summary` only.
+    /// Wire protocol assertion: `SummariserRequest` serialises with the
+    /// design.md field names (`schema_version`, `artefact_type`, `node`)
+    /// and `SummariserResponse` parses with `summary` as the canonical text
+    /// payload (renamed from `draft_text` per phase-8 reforge cycle 1).
     #[test]
-    fn test_local_command_receives_request_and_stores_draft_text() {
-        // Wire protocol assertion: SummariserRequest serialises to a
-        // single JSON object with `version`, `artefact_type`, and `node`
-        // fields. SummariserResponse parses with only `draft_text`
-        // mandatory.
+    fn test_local_command_receives_request_and_stores_summary_only() {
         let req = sample_request();
         let json = serde_json::to_string(&req).expect("serialise");
-        assert!(json.contains("\"version\""));
+        assert!(json.contains("\"schema_version\""));
         assert!(json.contains("\"artefact_type\""));
         assert!(json.contains("\"node\""));
         let resp: cairn::summariser::SummariserResponse =
-            serde_json::from_str(r#"{"version":1,"draft_text":"hi"}"#).expect("parse");
-        assert_eq!(resp.draft_text, "hi");
+            serde_json::from_str(r#"{"schema_version":1,"summary":"hi"}"#).expect("parse");
+        assert_eq!(resp.summary, "hi");
     }
 
     /// Scenario: Backend failure does not create or modify a draft.
     #[test]
     fn test_backend_failure_does_not_create_or_modify_draft() {
-        // The DisabledBackend never returns Ok, so no draft would be
-        // written even when a contradiction is present.
         let backend = DisabledBackend;
         let dir = tempfile::tempdir().expect("tempdir");
         let store = DraftStore::new(dir.path().to_owned());
-        let result = backend.invoke(&sample_request());
+        let result = backend.invoke(&sample_request(), Duration::from_secs(1));
         if result.is_err() {
             assert!(store.list().expect("list").is_empty());
         }
     }
+
+    /// Wire protocol drift is caught early: response with unknown field rejected.
+    #[test]
+    fn test_response_rejects_unknown_fields_per_design() {
+        let bad = r#"{"schema_version":1,"summary":"hi","rationale":"no"}"#;
+        let result: Result<cairn::summariser::SummariserResponse, _> = serde_json::from_str(bad);
+        assert!(result.is_err());
+    }
 }
 
 mod resolution_actions {
-    use cairn::summariser::{Draft, DraftStatus, DraftStore};
+    use cairn::summariser::{
+        AcceptedDraft, DiscardedDraft, Draft, DraftHeader, DraftStore, DraftStoreError,
+        PendingDraft,
+    };
     use std::fs;
 
-    fn sample_draft() -> Draft {
-        Draft {
+    fn sample_header() -> DraftHeader {
+        DraftHeader {
             id: "draft-001".to_owned(),
             node_id: "node-a".to_owned(),
             artefact_type: "contract".to_owned(),
             draft_text: "# Auth\n\nReturns user.".to_owned(),
-            status: DraftStatus::Pending,
-            accepted_interface_hash: String::new(),
             created_at: "2026-05-07T12:00:00Z".to_owned(),
         }
+    }
+
+    fn pending() -> Draft {
+        Draft::Pending(PendingDraft {
+            header: sample_header(),
+        })
     }
 
     /// Scenario: draft accept replaces target contract and records hash.
@@ -113,17 +131,30 @@ mod resolution_actions {
         unimplemented!("awaits phase-8: cairn draft accept CLI command wiring");
     }
 
+    /// Scenario: Accepted variant carries non-empty interface hash by construction.
+    #[test]
+    fn test_accepted_carries_non_empty_interface_hash() {
+        let accepted = Draft::Accepted(AcceptedDraft {
+            header: sample_header(),
+            accepted_interface_hash: "sha256:abc".to_owned(),
+        });
+        match accepted {
+            Draft::Accepted(d) => assert!(!d.accepted_interface_hash.is_empty()),
+            _ => panic!("expected Accepted variant"),
+        }
+    }
+
     /// Scenario: draft edit writes editable file without modifying contract.
     #[test]
     fn test_draft_edit_writes_editable_file_without_modifying_contract() {
         let dir = tempfile::tempdir().expect("tempdir");
         let store = DraftStore::new(dir.path().to_owned());
-        let draft = sample_draft();
+        let draft = pending();
         store.write(&draft).expect("write");
         let editable_path = store.write_editable(&draft).expect("write editable");
         assert!(editable_path.exists());
         let body = fs::read_to_string(&editable_path).expect("read editable");
-        assert_eq!(body, draft.draft_text);
+        assert_eq!(body, "# Auth\n\nReturns user.");
     }
 
     /// Scenario: draft accept --edited applies the editable file.
@@ -143,27 +174,30 @@ mod resolution_actions {
     /// Scenario: draft discard marks the draft discarded.
     #[test]
     fn test_draft_discard_marks_discarded() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let store = DraftStore::new(dir.path().to_owned());
-        let mut draft = sample_draft();
-        store.write(&draft).expect("write");
-        // Library API: status mutation is the producer's responsibility
-        // and is captured in DraftStatus.
-        draft.status = DraftStatus::Discarded;
-        assert_eq!(draft.status, DraftStatus::Discarded);
+        let discarded = Draft::Discarded(DiscardedDraft {
+            header: sample_header(),
+            reason: Some("user rejected".to_owned()),
+        });
+        assert!(matches!(discarded, Draft::Discarded(_)));
     }
 
     /// Scenario: Generation never modifies a contract until resolution runs.
     #[test]
     fn test_generation_never_modifies_contract() {
-        // Library separation: Draft holds candidate text, but no contract
-        // file IO is exposed by DraftStore. The producer must invoke a
-        // resolution command (accept/edit/discard) to mutate contracts.
         let dir = tempfile::tempdir().expect("tempdir");
         let store = DraftStore::new(dir.path().to_owned());
-        store.write(&sample_draft()).expect("write");
-        // Pending dir contains the draft; no contract path is written.
+        store.write(&pending()).expect("write");
         assert!(store.pending_dir().join("draft-001.json").exists());
+    }
+
+    /// New: write refuses to clobber an existing draft.
+    #[test]
+    fn test_write_refuses_conflict_per_reforge_cycle_1() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let store = DraftStore::new(dir.path().to_owned());
+        store.write(&pending()).expect("first write");
+        let err = store.write(&pending()).expect_err("second must conflict");
+        assert!(matches!(err, DraftStoreError::Conflict(_)));
     }
 }
 

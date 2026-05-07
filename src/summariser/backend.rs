@@ -1,5 +1,7 @@
 //! Summariser backend trait and the default disabled implementation.
 
+use std::time::Duration;
+
 use serde::{Deserialize, Serialize};
 
 use super::request::{SummariserRequest, SummariserResponse};
@@ -27,6 +29,17 @@ pub enum SummariserMode {
         /// Adapter identifier.
         adapter: String,
     },
+}
+
+impl SummariserMode {
+    /// Returns the configured per-invocation timeout, when applicable.
+    #[must_use]
+    pub const fn timeout(&self) -> Option<Duration> {
+        match self {
+            Self::Disabled | Self::Hosted { .. } => None,
+            Self::LocalCommand { timeout_ms, .. } => Some(Duration::from_millis(*timeout_ms)),
+        }
+    }
 }
 
 /// Backend invocation error.
@@ -71,6 +84,12 @@ impl std::fmt::Display for SummariserBackendError {
 impl std::error::Error for SummariserBackendError {}
 
 /// Pluggable summariser interface.
+///
+/// `timeout` is a per-call obligation (not pulled from `&self`) so that
+/// hosted backends can honour the same contract without re-deriving the
+/// configured timeout from a mode struct. Implementations MUST kill the
+/// child or cancel the request when the deadline elapses and return
+/// `SummariserBackendError::Timeout`.
 pub trait SummariserBackend {
     /// Sends one `SummariserRequest` and returns the parsed response.
     ///
@@ -83,6 +102,7 @@ pub trait SummariserBackend {
     fn invoke(
         &self,
         request: &SummariserRequest,
+        timeout: Duration,
     ) -> Result<SummariserResponse, SummariserBackendError>;
 }
 
@@ -95,6 +115,7 @@ impl SummariserBackend for DisabledBackend {
     fn invoke(
         &self,
         _request: &SummariserRequest,
+        _timeout: Duration,
     ) -> Result<SummariserResponse, SummariserBackendError> {
         Err(SummariserBackendError::Disabled)
     }
@@ -103,11 +124,11 @@ impl SummariserBackend for DisabledBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::summariser::request::NodeContext;
+    use crate::summariser::request::{NodeContext, SUMMARISER_SCHEMA_VERSION};
 
     fn sample_request() -> SummariserRequest {
         SummariserRequest {
-            version: 1,
+            schema_version: SUMMARISER_SCHEMA_VERSION,
             artefact_type: "contract".to_owned(),
             node: NodeContext {
                 node_id: "node-a".to_owned(),
@@ -123,13 +144,26 @@ mod tests {
     fn mode_default_is_disabled() {
         let mode = SummariserMode::default();
         assert!(matches!(mode, SummariserMode::Disabled));
+        assert!(mode.timeout().is_none());
+    }
+
+    #[test]
+    fn local_command_mode_exposes_timeout() {
+        let mode = SummariserMode::LocalCommand {
+            command: "/bin/cat".to_owned(),
+            args: Vec::new(),
+            timeout_ms: 5000,
+        };
+        assert_eq!(mode.timeout(), Some(Duration::from_millis(5000)));
     }
 
     #[test]
     fn disabled_backend_returns_disabled_error() {
         let backend = DisabledBackend;
         let request = sample_request();
-        let err = backend.invoke(&request).expect_err("should error");
+        let err = backend
+            .invoke(&request, Duration::from_secs(1))
+            .expect_err("should error");
         assert!(matches!(err, SummariserBackendError::Disabled));
     }
 

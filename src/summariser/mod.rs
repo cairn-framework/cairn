@@ -8,7 +8,8 @@ mod request;
 mod store;
 
 pub use backend::{DisabledBackend, SummariserBackend, SummariserBackendError, SummariserMode};
-pub use request::{NodeContext, SummariserRequest, SummariserResponse};
+pub use request::{NodeContext, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse};
 pub use store::{
-    Draft, DraftStatus, DraftStore, DraftStoreError, REQUEST_SCHEMA_VERSION, read_draft,
+    AcceptedDraft, DRAFT_SCHEMA_VERSION, DiscardedDraft, Draft, DraftHeader, DraftStore,
+    DraftStoreError, EditableDraft, PendingDraft, read_draft,
 };
