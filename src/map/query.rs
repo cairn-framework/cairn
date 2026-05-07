@@ -498,6 +498,28 @@ mod tests {
         assert_eq!(reps, vec!["a", "c"]);
     }
 
+    /// Cycle 3 reviewer F2: two ownership-only trees with no
+    /// dependency edges remain two separate islands. Catches a
+    /// regression that would flatten ownership-disjoint trees into
+    /// one component.
+    #[test]
+    fn islands_two_ownership_trees_stay_separate() {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("r1".to_owned(), node("r1", None, &["a"]));
+        nodes.insert("a".to_owned(), node("a", Some("r1"), &[]));
+        nodes.insert("r2".to_owned(), node("r2", None, &["b"]));
+        nodes.insert("b".to_owned(), node("b", Some("r2"), &[]));
+        let graph = Graph {
+            nodes,
+            names: BTreeMap::new(),
+            outbound: BTreeMap::new(),
+            inbound: BTreeMap::new(),
+            findings: Vec::new(),
+        };
+        let resp = islands(&graph);
+        assert_eq!(resp.islands.len(), 2);
+    }
+
     /// Cycle 3: `include_orphans` contract pinned against the default
     /// neighbourhood query.
     #[test]

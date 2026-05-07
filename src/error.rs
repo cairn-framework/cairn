@@ -65,7 +65,7 @@ impl fmt::Display for CairnError {
                 write!(f, "failed to write {path}: {detail}")
             }
             Self::ChangeDiscovery { path, detail } => {
-                write!(f, "failed to read changes directory {path}: {detail}")
+                write!(f, "failed to read changes metadata at {path}: {detail}")
             }
         }
     }

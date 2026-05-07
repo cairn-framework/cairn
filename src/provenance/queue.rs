@@ -85,20 +85,6 @@ pub enum QueueError {
     },
 }
 
-impl QueueError {
-    /// Short human label for embedding in `validate_strict` failure
-    /// messages so users can distinguish between Io/Parse/Version
-    /// surfaces without inspecting the full error variant.
-    #[must_use]
-    pub fn short_label(&self) -> &'static str {
-        match self {
-            Self::Io(_) => "io",
-            Self::Parse(_) => "parse",
-            Self::UnsupportedVersion { .. } => "unsupported-version",
-        }
-    }
-}
-
 impl std::fmt::Display for QueueError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -220,7 +206,7 @@ pub fn validate_strict(change_id: &str, change_dir: &Path) -> Result<(), crate::
                 path: queue_path_for_change(change_dir)
                     .to_string_lossy()
                     .into_owned(),
-                detail: format!("{} ({})", e, e.short_label()),
+                detail: e.to_string(),
             });
         }
     };
