@@ -21,15 +21,21 @@ pub enum TraceStage {
     Archive,
 }
 
-/// Stage record carried by the sidecar for one stage.
+/// Stage record carried by the sidecar for one stage. Token and model
+/// fields are `Option` per phase-7.6 task 1.2: backends that do not
+/// report tokens or stages that ran without a model (e.g., archive
+/// verification only) round-trip cleanly.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StageRecord {
-    /// Identifier of the model that ran the stage.
-    pub model_id: String,
-    /// Tokens consumed on the input side, summed across model calls.
-    pub tokens_in: u64,
-    /// Tokens generated, summed across model calls.
-    pub tokens_out: u64,
+    /// Identifier of the model that ran the stage, when known.
+    #[serde(default)]
+    pub model_id: Option<String>,
+    /// Tokens consumed on the input side, when reported.
+    #[serde(default)]
+    pub tokens_in: Option<u64>,
+    /// Tokens generated, when reported.
+    #[serde(default)]
+    pub tokens_out: Option<u64>,
     /// End-to-end latency in milliseconds.
     pub latency_ms: u64,
     /// Whether the stage completed successfully.
@@ -43,26 +49,23 @@ pub struct StageRecord {
     pub ended_at: String,
 }
 
-/// Top-level sidecar payload.
+/// Top-level sidecar payload. The `phase` field self-identifies the
+/// archived phase the sidecar describes per phase-7.6 task 1.1.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TraceSidecar {
     /// Schema version. The reader rejects sidecars with a higher version.
     pub version: u32,
+    /// Phase identifier (e.g., "phase-7.6") this sidecar describes.
+    #[serde(default)]
+    pub phase: String,
     /// Stage records keyed by stage name.
     #[serde(default)]
     pub stages: BTreeMap<TraceStage, StageRecord>,
-    /// Reserved for a future phase. Currently always empty.
+    /// Reserved for a future phase. Currently always empty. Stored as
+    /// untyped JSON values so future producers can evolve the prompt
+    /// schema without bumping `version`.
     #[serde(default)]
-    pub prompts: Vec<PromptRecord>,
-}
-
-/// Reserved prompt record. Empty in this phase.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct PromptRecord {
-    /// Free-form key for the prompt occurrence.
-    pub key: String,
-    /// Stage the prompt belongs to.
-    pub stage: TraceStage,
+    pub prompts: Vec<serde_json::Value>,
 }
 
 /// Trace sidecar reader error.
@@ -132,9 +135,9 @@ mod tests {
             stages.insert(
                 stage,
                 StageRecord {
-                    model_id: "claude-sonnet-4-6".to_owned(),
-                    tokens_in: 100,
-                    tokens_out: 50,
+                    model_id: Some("claude-sonnet-4-6".to_owned()),
+                    tokens_in: Some(100),
+                    tokens_out: Some(50),
                     latency_ms: 1234,
                     success: true,
                     error_message: None,
@@ -145,6 +148,7 @@ mod tests {
         }
         TraceSidecar {
             version: TRACE_SIDECAR_VERSION,
+            phase: "phase-7.6".to_owned(),
             stages,
             prompts: Vec::new(),
         }
@@ -228,5 +232,27 @@ mod tests {
     fn read_sidecar_io_error_for_missing_file() {
         let err = read_sidecar(Path::new("/nonexistent/trace.json")).expect_err("should error");
         assert!(matches!(err, TraceError::Io(_)));
+    }
+
+    #[test]
+    fn sidecar_carries_phase_field() {
+        let sidecar = sample_sidecar();
+        assert_eq!(sidecar.phase, "phase-7.6");
+        let json = serde_json::to_string(&sidecar).expect("serialise");
+        assert!(json.contains("\"phase\":\"phase-7.6\""));
+    }
+
+    #[test]
+    fn stage_record_token_fields_optional() {
+        let json = r#"{
+            "latency_ms": 100,
+            "success": true,
+            "started_at": "2026-05-07T12:00:00Z",
+            "ended_at": "2026-05-07T12:00:01Z"
+        }"#;
+        let record: StageRecord = serde_json::from_str(json).expect("parse without tokens");
+        assert!(record.model_id.is_none());
+        assert!(record.tokens_in.is_none());
+        assert!(record.tokens_out.is_none());
     }
 }

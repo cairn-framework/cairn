@@ -274,8 +274,13 @@ pub fn islands(graph: &Graph) -> IslandsResponse {
     }
 }
 
-/// Returns direct graph neighbours, optionally including inbound-only
-/// nodes that the default neighbourhood traversal does not surface.
+/// Returns direct graph neighbours.
+///
+/// When `include_orphans` is `false` the response carries only the
+/// outbound-edge neighbours, matching the spec scenario "with
+/// `include_orphans: false` includes only the outbound-edge neighbour".
+/// When `true` the inbound neighbours (nodes that depend on `node` but
+/// are not reachable forward from it) are also included.
 ///
 /// # Errors
 ///
@@ -285,17 +290,10 @@ pub fn neighbourhood_with_options(
     node: &str,
     include_orphans: bool,
 ) -> Result<NeighbourhoodResponse, Finding> {
-    let response = neighbourhood(graph, node)?;
+    let mut response = neighbourhood(graph, node)?;
     if !include_orphans {
-        return Ok(response);
+        response.inbound.clear();
     }
-    // include_orphans=true expands the neighbourhood to include nodes
-    // reachable only via inbound traversal that the default would miss.
-    // The default neighbourhood already includes inbound and outbound; the
-    // option becomes a structural assertion that inbound-only neighbours
-    // are present (they already are, given the symmetric inbound/outbound
-    // collection above). The flag remains addressable for future producers
-    // who tighten the default traversal.
     Ok(response)
 }
 
@@ -333,6 +331,10 @@ fn bfs_component(
 }
 
 fn undirected_neighbours(graph: &Graph, id: &str) -> Vec<String> {
+    // Connected-component grouping treats DEPENDENCY edges as undirected.
+    // Ownership (parent/children) is intentionally excluded: a graph
+    // where one root system owns disjoint subsystems should still report
+    // multiple islands per phase-2.5 graph-explorer's edge-kind taxonomy.
     let mut out = Vec::new();
     if let Some(edges) = graph.outbound.get(id) {
         for edge in edges {
@@ -342,14 +344,6 @@ fn undirected_neighbours(graph: &Graph, id: &str) -> Vec<String> {
     if let Some(edges) = graph.inbound.get(id) {
         for edge in edges {
             out.push(edge.from.clone());
-        }
-    }
-    if let Some(node) = graph.nodes.get(id) {
-        if let Some(parent) = &node.parent {
-            out.push(parent.clone());
-        }
-        for child in &node.children {
-            out.push(child.clone());
         }
     }
     out

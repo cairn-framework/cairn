@@ -135,6 +135,65 @@ pub fn count_pending(queue: &SuggestedEdgesQueue) -> usize {
         .count()
 }
 
+/// Resolves the queue file for a change directory.
+#[must_use]
+pub fn queue_path_for_change(change_dir: &Path) -> std::path::PathBuf {
+    change_dir.join("suggested-edges.json")
+}
+
+/// Reads the queue for a change directory. Returns `Ok(None)` when no
+/// file exists.
+///
+/// # Errors
+///
+/// Returns `QueueError` for I/O, parse, or version errors.
+pub fn read_from_change(change_dir: &Path) -> Result<Option<SuggestedEdgesQueue>, QueueError> {
+    read_queue(&queue_path_for_change(change_dir))
+}
+
+/// Writes the queue for a change directory atomically (temp-file rename).
+///
+/// # Errors
+///
+/// Returns `QueueError::Io` when the directory cannot be created or the
+/// temp-file rename fails.
+pub fn write_to_change(change_dir: &Path, queue: &SuggestedEdgesQueue) -> Result<(), QueueError> {
+    if !change_dir.exists() {
+        fs::create_dir_all(change_dir).map_err(|e| QueueError::Io(e.to_string()))?;
+    }
+    let final_path = queue_path_for_change(change_dir);
+    let temp_path = final_path.with_extension("json.tmp");
+    let body = serde_json::to_string_pretty(queue).map_err(|e| QueueError::Io(e.to_string()))?;
+    fs::write(&temp_path, body).map_err(|e| QueueError::Io(e.to_string()))?;
+    fs::rename(&temp_path, &final_path).map_err(|e| QueueError::Io(e.to_string()))?;
+    Ok(())
+}
+
+/// Returns `Ok(())` when the queue (if present) has zero pending
+/// entries; returns `Err(CairnError::UntriagedSuggestedEdges)` (CC002)
+/// otherwise. Used by `cflx openspec validate --strict`.
+///
+/// # Errors
+///
+/// Returns `CairnError::UntriagedSuggestedEdges` (code CC002) when one
+/// or more entries are still in `Pending` triage state.
+pub fn validate_strict(change_id: &str, change_dir: &Path) -> Result<(), crate::error::CairnError> {
+    let Ok(Some(queue)) = read_from_change(change_dir) else {
+        return Ok(());
+    };
+    let pending = count_pending(&queue);
+    if pending == 0 {
+        return Ok(());
+    }
+    Err(crate::error::CairnError::UntriagedSuggestedEdges {
+        change_id: change_id.to_owned(),
+        pending_count: pending,
+        file_path: queue_path_for_change(change_dir)
+            .to_string_lossy()
+            .into_owned(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -26,9 +26,9 @@ mod provenance_foundation {
             stages.insert(
                 stage,
                 StageRecord {
-                    model_id: "claude-sonnet-4-6".to_owned(),
-                    tokens_in: 100,
-                    tokens_out: 50,
+                    model_id: Some("claude-sonnet-4-6".to_owned()),
+                    tokens_in: Some(100),
+                    tokens_out: Some(50),
                     latency_ms: 1234,
                     success: true,
                     error_message: None,
@@ -39,6 +39,7 @@ mod provenance_foundation {
         }
         TraceSidecar {
             version: TRACE_SIDECAR_VERSION,
+            phase: "phase-7.6".to_owned(),
             stages,
             prompts: Vec::new(),
         }
@@ -207,19 +208,24 @@ mod changes {
     /// Scenario: Validate --strict fails with CC002 on pending entries.
     #[test]
     fn test_validate_strict_fails_cc002_on_pending() {
+        let dir = tempfile::tempdir().expect("temp dir");
         let queue = SuggestedEdgesQueue {
             version: SUGGESTED_EDGES_QUEUE_VERSION,
             entries: vec![sample_entry(TriageState::Pending)],
         };
-        // The presence of pending entries is the signal --strict gates on.
-        // CC002 is the canonical code for this gate per
-        // openspec/registries/error-codes.md.
-        assert!(count_pending(&queue) > 0);
+        cairn::provenance::write_to_change(dir.path(), &queue).expect("write");
+        let err = cairn::provenance::validate_strict("phase-x", dir.path())
+            .expect_err("strict must fail with pending entries");
+        assert_eq!(err.code(), "CC002");
+        let msg = format!("{err}");
+        assert!(msg.contains("phase-x"));
+        assert!(msg.contains("suggested-edges.json"));
     }
 
     /// Scenario: Validate --strict passes when all entries are non-pending.
     #[test]
     fn test_validate_strict_passes_when_all_non_pending() {
+        let dir = tempfile::tempdir().expect("temp dir");
         let queue = SuggestedEdgesQueue {
             version: SUGGESTED_EDGES_QUEUE_VERSION,
             entries: vec![
@@ -228,7 +234,8 @@ mod changes {
                 sample_entry(TriageState::Deferred),
             ],
         };
-        assert_eq!(count_pending(&queue), 0);
+        cairn::provenance::write_to_change(dir.path(), &queue).expect("write");
+        assert!(cairn::provenance::validate_strict("phase-y", dir.path()).is_ok());
     }
 
     /// Scenario: Absent queue file is not an error.
@@ -238,6 +245,14 @@ mod changes {
         let path = dir.path().join("missing.json");
         let result = read_queue(&path).expect("absent must not error");
         assert!(result.is_none());
+        // read_from_change against a directory with no queue also Ok(None).
+        assert!(
+            cairn::provenance::read_from_change(dir.path())
+                .expect("absent dir must not error")
+                .is_none()
+        );
+        // validate_strict against an absent queue is success.
+        assert!(cairn::provenance::validate_strict("phase-z", dir.path()).is_ok());
     }
 
     #[allow(dead_code)]
@@ -337,20 +352,76 @@ mod query {
     }
 
     /// Scenario: Neighbourhood with `include_orphans` surfaces inbound-only neighbours.
+    ///
+    /// Builds a tiny graph: anchor has one outbound edge to `out` and one
+    /// inbound edge from `inb`. With `include_orphans=false` the response
+    /// has only `out`; with `true` the response also includes `inb`.
     #[test]
     fn test_query_neighbourhood_include_orphans_surfaces_inbound_only() {
-        // Without a fixture graph this is a structural test that the typed
-        // entrypoint accepts the option. Behavioural testing happens via
-        // the kernel integration tests when a fixture lands.
+        use cairn::blueprint::{NodeKind, Span};
+        use cairn::map::graph::{EdgeRef, NodeRecord, NodeState};
+        use std::collections::BTreeMap;
+
+        let make = |id: &str| NodeRecord {
+            kind: NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files: Vec::new(),
+            span: Span::point("test", 1, 1),
+        };
+        let mut nodes = BTreeMap::new();
+        for id in &["anchor", "out", "inb"] {
+            nodes.insert((*id).to_owned(), make(id));
+        }
+        let mut outbound = BTreeMap::new();
+        outbound.insert(
+            "anchor".to_owned(),
+            vec![EdgeRef {
+                from: "anchor".to_owned(),
+                to: "out".to_owned(),
+                description: "calls".to_owned(),
+            }],
+        );
+        let mut inbound = BTreeMap::new();
+        inbound.insert(
+            "anchor".to_owned(),
+            vec![EdgeRef {
+                from: "inb".to_owned(),
+                to: "anchor".to_owned(),
+                description: "depends-on".to_owned(),
+            }],
+        );
+        let mut names = BTreeMap::new();
+        for id in &["anchor", "out", "inb"] {
+            names.insert((*id).to_owned(), vec![(*id).to_owned()]);
+        }
         let graph = cairn::map::Graph {
-            nodes: std::collections::BTreeMap::new(),
-            names: std::collections::BTreeMap::new(),
-            outbound: std::collections::BTreeMap::new(),
-            inbound: std::collections::BTreeMap::new(),
+            nodes,
+            names,
+            outbound,
+            inbound,
             findings: Vec::new(),
         };
-        let result = neighbourhood_with_options(&graph, "missing", true);
-        assert!(result.is_err(), "missing node must error");
+
+        let without = neighbourhood_with_options(&graph, "anchor", false).expect("without");
+        assert_eq!(without.outbound, vec!["out".to_owned()]);
+        assert!(
+            without.inbound.is_empty(),
+            "include_orphans=false must drop inbound, got {:?}",
+            without.inbound
+        );
+
+        let with = neighbourhood_with_options(&graph, "anchor", true).expect("with");
+        assert_eq!(with.outbound, vec!["out".to_owned()]);
+        assert_eq!(with.inbound, vec!["inb".to_owned()]);
     }
 
     /// Scenario: Islands query response is versioned.

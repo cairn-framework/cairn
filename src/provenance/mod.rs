@@ -10,7 +10,8 @@ mod trace;
 
 pub use queue::{
     QueueError, SUGGESTED_EDGES_QUEUE_VERSION, SuggestedEdgeEntry, SuggestedEdgesQueue,
-    TriageState, count_pending, read_queue,
+    TriageState, count_pending, queue_path_for_change, read_from_change, read_queue,
+    validate_strict, write_to_change,
 };
 pub use trace::{
     StageRecord, TRACE_SIDECAR_VERSION, TraceError, TraceSidecar, TraceStage, read_sidecar,
