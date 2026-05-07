@@ -28,6 +28,8 @@ pub mod query_api;
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
+/// Phase 8 summariser: pluggable backends and draft store.
+pub mod summariser;
 /// Embedded graph explorer server and query bridge.
 pub mod ui;
 
