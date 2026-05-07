@@ -12,16 +12,13 @@ pub const DIRECTORY_DEPTH_LIMIT: usize = 4;
 /// candidates.
 pub const EDGE_OBSERVATION_THRESHOLD: usize = 2;
 
-/// Confidence threshold above which the heuristic is deemed high.
-/// Score = (`high_confidence_refs` + 1) / (`total_refs` + 1).
+/// Confidence threshold at or above which the heuristic is deemed high.
+/// Score = (`internal_imports` + 1) / (`external_imports` + 1).
 /// (3+1)/(1+1) = 2.0 (high), (1+1)/(1+1) = 1.0 (medium), (0+1)/(2+1) = 0.33 (low).
-pub const CONFIDENCE_HIGH: f64 = 1.5;
+pub const CONFIDENCE_HIGH: f64 = 2.0;
 
-/// Confidence threshold above which the heuristic is deemed medium.
-pub const CONFIDENCE_MEDIUM: f64 = 0.5;
-
-/// Confidence threshold below which the heuristic is deemed low.
-pub const CONFIDENCE_LOW: f64 = 0.5;
+/// Confidence threshold at or above which the heuristic is deemed medium.
+pub const CONFIDENCE_MEDIUM: f64 = 1.0;
 
 /// Confidence bucket for a coupling score.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -47,18 +44,18 @@ pub struct Candidate {
     pub confidence: CandidateConfidence,
 }
 
-/// Computes the coupling score for a candidate.
+/// Computes the coupling score for a candidate per design.md:
+/// `(internal_imports + 1) / (external_imports + 1)`.
 ///
-/// `high_confidence_refs` counts public-API or import references that the
-/// scanner classified as high confidence; `total_refs` counts all
-/// references including unresolved or test-only ones. The +1 offset
-/// avoids division by zero and rewards candidates with corroborating
-/// signal even when reference totals are small.
+/// `internal_imports` counts imports that resolve inside the candidate
+/// directory; `external_imports` counts imports that cross the candidate
+/// boundary. The +1 offset avoids division by zero and rewards
+/// candidates with internal cohesion even when import totals are small.
 #[must_use]
 #[allow(clippy::cast_precision_loss)]
-pub fn coupling_score(high_confidence_refs: usize, total_refs: usize) -> f64 {
-    let numerator = (high_confidence_refs + 1) as f64;
-    let denominator = (total_refs + 1) as f64;
+pub fn coupling_score(internal_imports: usize, external_imports: usize) -> f64 {
+    let numerator = (internal_imports + 1) as f64;
+    let denominator = (external_imports + 1) as f64;
     numerator / denominator
 }
 
@@ -100,6 +97,18 @@ mod tests {
         let score = coupling_score(0, 2);
         assert!(score < CONFIDENCE_MEDIUM);
         assert_eq!(classify_score(score), CandidateConfidence::Low);
+    }
+
+    #[test]
+    fn classify_boundary_cases() {
+        // Score exactly at the High threshold buckets as High (>= 2.0).
+        assert_eq!(classify_score(2.0), CandidateConfidence::High);
+        // Score exactly at the Medium threshold buckets as Medium (>= 1.0).
+        assert_eq!(classify_score(1.0), CandidateConfidence::Medium);
+        // Just below Medium buckets as Low.
+        assert_eq!(classify_score(0.99), CandidateConfidence::Low);
+        // Just below High buckets as Medium.
+        assert_eq!(classify_score(1.99), CandidateConfidence::Medium);
     }
 
     #[test]

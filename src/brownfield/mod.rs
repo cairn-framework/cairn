@@ -6,7 +6,6 @@
 mod heuristics;
 
 pub use heuristics::{
-    CONFIDENCE_HIGH, CONFIDENCE_LOW, CONFIDENCE_MEDIUM, Candidate, CandidateConfidence,
-    DIRECTORY_DEPTH_LIMIT, EDGE_OBSERVATION_THRESHOLD, MIN_CANDIDATE_FILE_COUNT, classify_score,
-    coupling_score,
+    CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, Candidate, CandidateConfidence, DIRECTORY_DEPTH_LIMIT,
+    EDGE_OBSERVATION_THRESHOLD, MIN_CANDIDATE_FILE_COUNT, classify_score, coupling_score,
 };

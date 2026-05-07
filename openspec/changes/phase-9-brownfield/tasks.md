@@ -5,8 +5,8 @@
 - [ ] 1.1 Add repository-wide discovery mode that extracts source roots and module-like directories without requiring an existing `cairn.blueprint`.
 - [ ] 1.2 Cluster files by path ownership and observed dependency density.
 - [ ] 1.3 Produce candidate nodes, paths, edges, confidence scores, and evidence paths.
-- [x] 1.4 Implement deterministic fallback heuristics for minimum file counts, max depth, coupling score bands, observed edge thresholds, and sample byte limits.
-- [x] 1.5 Add fixture tests for simple, nested, mixed-language, low-confidence, and high-coupling repositories.
+- [ ] 1.4 Implement deterministic fallback heuristics for minimum file counts, max depth, coupling score bands, observed edge thresholds, and sample byte limits. (Partial: src/brownfield/heuristics.rs ships the coupling-score formula and threshold constants matching design.md; the directory-traversal enforcement landing on top remains.)
+- [ ] 1.5 Add fixture tests for simple, nested, mixed-language, low-confidence, and high-coupling repositories.
 
 ## 2. Summariser Integration
 
