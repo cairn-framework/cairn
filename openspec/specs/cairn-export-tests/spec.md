@@ -1,5 +1,13 @@
 # Cairn Export Tests Capability Spec
 
+## Purpose
+
+Records the test-first contract that phase 7.8 (Cairn Export) shipped
+against. Asserts that every phase-7.8 acceptance-criterion scenario has
+a corresponding test in `tests/phase_7_8_cairn_export.rs`. Phase 7.8
+has archived; this meta-spec is retained for audit-trail symmetry with
+the other six pre-phase capability areas.
+
 ## Requirements
 
 ### Requirement: Phase 7.8 acceptance criteria have failing planned tests

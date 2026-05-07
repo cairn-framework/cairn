@@ -1,4 +1,13 @@
-# Summariser Capability Spec
+# Summariser Tests Capability Spec
+
+## Purpose
+
+Records the test-first contract that phase 8 (Summariser) ships against.
+Asserts that every phase-8 acceptance-criterion scenario has a
+corresponding `#[cflx_planned(phase = 800)]` stub in
+`tests/phase_8_summariser.rs`. The parent phase removes these
+attributes group-by-group as the underlying summariser code lands; this
+meta-spec retires when phase-8 archives.
 
 ## Requirements
 

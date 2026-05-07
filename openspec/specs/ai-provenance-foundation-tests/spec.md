@@ -1,5 +1,14 @@
 # AI Provenance Foundation Tests Capability Spec
 
+## Purpose
+
+Records the test-first contract that phase 7.6 (AI Provenance
+Foundation) ships against. Asserts that every phase-7.6 acceptance-
+criterion scenario has a corresponding `#[cflx_planned(phase = 706)]`
+stub in `tests/phase_7_6_ai_provenance.rs`. The parent phase removes
+these attributes group-by-group as the underlying schema / queue /
+islands code lands; this meta-spec retires when phase-7.6 archives.
+
 ## Requirements
 
 ### Requirement: Phase 7.6 acceptance criteria have failing ignored tests

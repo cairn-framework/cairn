@@ -1,4 +1,14 @@
-# Distribution Capability Spec
+# Distribution Tests Capability Spec
+
+## Purpose
+
+Records the test-first contract that phase 10 (Distribution) ships
+against. Asserts that every phase-10 acceptance-criterion scenario has a
+corresponding `#[cflx_planned(phase = 1000)]` stub in
+`tests/phase_10_distribution.rs`. The parent phase removes these
+attributes group-by-group as the underlying LSP / packaging /
+reconciler-extension code lands; this meta-spec retires when phase-10
+archives.
 
 ## Requirements
 

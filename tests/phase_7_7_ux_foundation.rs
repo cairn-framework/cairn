@@ -1,3 +1,6 @@
+// Reason: design.md prescribes `module__scenario` test names; the
+// `__` collides with the rustc non_snake_case lint despite being
+// syntactically valid snake_case identifiers.
 #![allow(non_snake_case)]
 //! Phase 7.7 UX Foundation acceptance-criterion tests.
 //!
