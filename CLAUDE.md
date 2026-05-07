@@ -2,6 +2,10 @@
 
 Repo-level context for Claude Code sessions working in this codebase. For the OpenSpec codex agent's instructions, see `AGENTS.md`.
 
+## Coding behaviour
+
+Activate the `karpathy-guidelines` skill (`.claude/skills/karpathy-guidelines/SKILL.md`) for any coding work in this repo: think before coding, simplicity first, surgical changes, goal-driven execution. Invoke it via the Skill tool when writing, reviewing, or refactoring code.
+
 ## What CAIRN is
 
 Connective tissue between past decisions, present code structure, and future intent. You author a declarative file describing your system; CAIRN parses it, reconciles against actual code, surfaces the graph + artefacts for coding agents to consume as reliable context, and gates commits when code drifts from the declaration. Extending beyond code to non-code domains (orgs, research, processes) is in-scope for future phases.
