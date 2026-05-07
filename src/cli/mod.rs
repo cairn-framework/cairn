@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: CLI dispatch hub for many subcommands; the natural seam (per-command modules) already exists for newer commands like export and accept; legacy commands grew here historically and a refactor will land in a future phase.
 //! CLI registry, command execution, and renderers.
 
 use std::{

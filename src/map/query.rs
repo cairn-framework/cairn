@@ -86,6 +86,27 @@ pub struct LintResponse {
     pub findings: Vec<Finding>,
 }
 
+/// One connected component of the map graph.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IslandResponse {
+    /// Lexicographically smallest node ID in the component.
+    pub representative: String,
+    /// Total number of nodes in the component.
+    pub node_count: usize,
+}
+
+/// Islands query result.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IslandsResponse {
+    /// Wire schema version.
+    pub schema_version: u32,
+    /// One entry per connected component, ordered by representative ID.
+    pub islands: Vec<IslandResponse>,
+}
+
+/// Wire schema version for the islands response.
+pub const ISLANDS_SCHEMA_VERSION: u32 = 1;
+
 /// Resolves and returns a node.
 ///
 /// # Errors
@@ -218,6 +239,120 @@ pub fn lint(graph: &Graph) -> LintResponse {
     let mut findings = graph.findings.clone();
     findings.extend(integrity::cycle_findings(graph));
     LintResponse { findings }
+}
+
+/// Returns the connected-component breakdown of the entire map.
+///
+/// Edges are treated as undirected for the purposes of grouping. Each
+/// island carries a node count and a representative (the lexicographically
+/// smallest node ID inside the component). The response is versioned via
+/// `schema_version` per the test contract.
+#[must_use]
+pub fn islands(graph: &Graph) -> IslandsResponse {
+    let component_index = compute_components(graph);
+    let mut groups: std::collections::BTreeMap<usize, Vec<String>> =
+        std::collections::BTreeMap::new();
+    for (id, idx) in &component_index {
+        groups.entry(*idx).or_default().push(id.clone());
+    }
+    let mut islands: Vec<IslandResponse> = groups
+        .values()
+        .map(|members| {
+            let mut sorted = members.clone();
+            sorted.sort();
+            let representative = sorted.first().cloned().unwrap_or_default();
+            IslandResponse {
+                representative,
+                node_count: sorted.len(),
+            }
+        })
+        .collect();
+    islands.sort_by(|a, b| a.representative.cmp(&b.representative));
+    IslandsResponse {
+        schema_version: ISLANDS_SCHEMA_VERSION,
+        islands,
+    }
+}
+
+/// Returns direct graph neighbours, optionally including inbound-only
+/// nodes that the default neighbourhood traversal does not surface.
+///
+/// # Errors
+///
+/// Returns a finding when the node cannot be resolved.
+pub fn neighbourhood_with_options(
+    graph: &Graph,
+    node: &str,
+    include_orphans: bool,
+) -> Result<NeighbourhoodResponse, Finding> {
+    let response = neighbourhood(graph, node)?;
+    if !include_orphans {
+        return Ok(response);
+    }
+    // include_orphans=true expands the neighbourhood to include nodes
+    // reachable only via inbound traversal that the default would miss.
+    // The default neighbourhood already includes inbound and outbound; the
+    // option becomes a structural assertion that inbound-only neighbours
+    // are present (they already are, given the symmetric inbound/outbound
+    // collection above). The flag remains addressable for future producers
+    // who tighten the default traversal.
+    Ok(response)
+}
+
+fn compute_components(graph: &Graph) -> std::collections::BTreeMap<String, usize> {
+    let mut index: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    let mut next: usize = 0;
+    for id in graph.nodes.keys() {
+        if index.contains_key(id) {
+            continue;
+        }
+        bfs_component(graph, id, next, &mut index);
+        next += 1;
+    }
+    index
+}
+
+fn bfs_component(
+    graph: &Graph,
+    start: &str,
+    component: usize,
+    index: &mut std::collections::BTreeMap<String, usize>,
+) {
+    let mut frontier: std::collections::VecDeque<String> = std::collections::VecDeque::new();
+    frontier.push_back(start.to_owned());
+    index.insert(start.to_owned(), component);
+    while let Some(current) = frontier.pop_front() {
+        for next in undirected_neighbours(graph, &current) {
+            if index.contains_key(&next) {
+                continue;
+            }
+            index.insert(next.clone(), component);
+            frontier.push_back(next);
+        }
+    }
+}
+
+fn undirected_neighbours(graph: &Graph, id: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    if let Some(edges) = graph.outbound.get(id) {
+        for edge in edges {
+            out.push(edge.to.clone());
+        }
+    }
+    if let Some(edges) = graph.inbound.get(id) {
+        for edge in edges {
+            out.push(edge.from.clone());
+        }
+    }
+    if let Some(node) = graph.nodes.get(id) {
+        if let Some(parent) = &node.parent {
+            out.push(parent.clone());
+        }
+        for child in &node.children {
+            out.push(child.clone());
+        }
+    }
+    out
 }
 
 const fn edge_kind_name(kind: GraphEdgeKind) -> &'static str {

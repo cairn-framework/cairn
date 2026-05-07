@@ -20,6 +20,8 @@ pub mod hooks;
 pub mod map;
 /// MCP stdio transport.
 pub mod mcp;
+/// AI provenance: trace sidecar and suggested-edges queue schemas.
+pub mod provenance;
 /// Shared structured query API and MCP tool registry.
 pub mod query_api;
 /// Code reconciliation interfaces.

@@ -50,6 +50,7 @@ _No codes allocated yet._
 ## CC -- Changes
 
 - CC001 -- verification blocked by upstream dependency -- phase-7.5c
+- CC002 -- pending suggested-edges entries block --strict validate -- phase-7.6
 - CC002 -- validation strict fails on pending suggested-edge entries -- phase-7.6
 
 ## CH -- Hooks
