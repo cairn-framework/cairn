@@ -21,7 +21,10 @@ use super::{ArtefactEntry, ChangeEntry, EdgeEntry, ExportEnvelope, SCHEMA_VERSIO
 /// # Errors
 ///
 /// Returns `CairnError::ScannerLoad` (code CK001) when the project
-/// cannot be loaded.
+/// cannot be loaded, and `CairnError::ChangeDiscovery` (code CK003)
+/// when the changes directory exists but cannot be read. An absent
+/// changes directory is not an error and contributes an empty changes
+/// list to the envelope.
 pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, CairnError> {
     let root = super::blueprint_root(file);
     let scan_result =
@@ -29,7 +32,16 @@ pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, C
     let now = current_timestamp_rfc3339();
     let edges = flatten_edges(&scan_result.graph);
     let artefacts = flatten_artefacts(&scan_result.artefacts);
-    let change_records = changes::discover(changes_dir).unwrap_or_default();
+    let change_records = match changes::discover(changes_dir) {
+        Ok(changes) => changes,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+        Err(e) => {
+            return Err(CairnError::ChangeDiscovery {
+                path: changes_dir.to_string_lossy().into_owned(),
+                detail: e.to_string(),
+            });
+        }
+    };
     let changes_out = flatten_changes(&change_records);
     let mut nodes: Vec<NodeRecord> = scan_result.graph.nodes.values().cloned().collect();
     nodes.sort_by(|a, b| a.id.cmp(&b.id));

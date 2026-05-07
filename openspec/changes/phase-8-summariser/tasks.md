@@ -11,15 +11,15 @@
 
 ## 2. Prompt Inputs and Draft Storage
 
-- [x] 2.1 Build prompt inputs from map facts, contracts, interface changes, docstring findings, context, rules, and bounded code samples.
-- [x] 2.2 Persist drafts under `.cairn/state/summariser/`.
+- [ ] 2.1 Build prompt inputs from map facts, contracts, interface changes, docstring findings, context, rules, and bounded code samples.
+- [x] 2.2 Persist drafts under `.cairn/state/summariser/`. (DraftStore implemented; CLI plumbing pending.)
 - [ ] 2.3 Track draft status transitions.
 - [ ] 2.4 Add tests for prompt input byte limits, sample truncation, and persisted metadata.
 
 ## 3. Resolution Actions
 
-- [x] 3.1 Implement draft generation without applying output.
-- [x] 3.2 Implement accept action with contract validation, atomic replacement, rollback on failure, and interface hash recording.
+- [ ] 3.1 Implement draft generation without applying output.
+- [ ] 3.2 Implement accept action with contract validation, atomic replacement, rollback on failure, and interface hash recording.
 - [ ] 3.3 Implement edit action that writes an editable draft file without applying output.
 - [ ] 3.4 Implement `draft accept <draft-id> --edited` with the same validation, atomic replacement, and rollback guarantees as generated draft accept.
 - [ ] 3.5 Implement discard action that preserves unresolved contradictions.

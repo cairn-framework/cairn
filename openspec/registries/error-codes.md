@@ -43,6 +43,7 @@ _No codes allocated yet._
 
 - CK001 -- scanner failed to load project -- phase-7.8 reforge
 - CK002 -- failed to write CLI output to disk -- phase-7.8 reforge
+- CK003 -- failed to read changes directory -- phase-7.8 reforge cycle 2
 
 ## CA -- Artefacts
 

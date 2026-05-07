@@ -1,10 +1,15 @@
 //! Phase 8 Summariser acceptance-criterion tests.
 //!
-//! Tests for the typed library framework: `SummariserMode`, the
-//! `SummariserBackend` trait, the request/response wire protocol, and the
-//! `DraftStore`. CLI-level scenarios that bind to `cairn summarise` and
-//! `cairn draft accept/edit/discard` remain `#[cflx_planned]` until the
-//! per-command CLI wrappers land.
+//! Mixed state: tests that bind to library types delivered by reforge
+//! cycle 1 (`SummariserMode`, `SummariserBackend`, the wire-protocol
+//! request/response shapes, `DraftStore`, the typestate-tagged `Draft`
+//! variants, and `Conflict` semantics) run as plain `#[test]` and
+//! enforce their invariants on every `cargo test`. Tests that bind to
+//! the still-pending CLI surface (`cairn summarise`, `cairn draft
+//! accept/edit/discard`, MCP tool-registry filtering, contract
+//! validation + rollback) carry `#[cflx_planned(phase = 800)]` and
+//! stay skipped under `cargo test`; they fail with `unimplemented!`
+//! under `cargo test -- --ignored`.
 
 use cairn::cflx_planned;
 

@@ -111,6 +111,8 @@ pub enum DraftStoreError {
     Io(String),
     /// JSON parse error for an existing draft file.
     Parse(String),
+    /// JSON serialisation error for a draft about to be written.
+    Serialize(String),
     /// Draft with the given ID was not found.
     NotFound(String),
     /// A draft with the same ID already exists; the caller must use
@@ -123,6 +125,7 @@ impl std::fmt::Display for DraftStoreError {
         match self {
             Self::Io(msg) => write!(f, "draft store io: {msg}"),
             Self::Parse(msg) => write!(f, "draft store parse: {msg}"),
+            Self::Serialize(msg) => write!(f, "draft store serialise: {msg}"),
             Self::NotFound(id) => write!(f, "draft {id} not found"),
             Self::Conflict(id) => write!(
                 f,
@@ -167,8 +170,9 @@ impl DraftStore {
     /// # Errors
     ///
     /// Returns `DraftStoreError::Io` when the directory cannot be created
-    /// or the file cannot be written, and `Conflict` for the
-    /// already-present case.
+    /// or the file cannot be written, `Serialize` when the draft cannot
+    /// be encoded as JSON, and `Conflict` when a draft with the same id
+    /// already exists.
     pub fn write(&self, draft: &Draft) -> Result<std::path::PathBuf, DraftStoreError> {
         let dir = self.pending_dir();
         fs::create_dir_all(&dir).map_err(|e| DraftStoreError::Io(e.to_string()))?;
@@ -185,7 +189,8 @@ impl DraftStore {
     ///
     /// # Errors
     ///
-    /// Returns `DraftStoreError::Io` when the file cannot be written.
+    /// Returns `DraftStoreError::Io` when the file cannot be written and
+    /// `Serialize` when the draft cannot be encoded as JSON.
     pub fn overwrite(&self, draft: &Draft) -> Result<std::path::PathBuf, DraftStoreError> {
         let dir = self.pending_dir();
         fs::create_dir_all(&dir).map_err(|e| DraftStoreError::Io(e.to_string()))?;
@@ -194,8 +199,8 @@ impl DraftStore {
     }
 
     fn write_inner(path: &Path, draft: &Draft) -> Result<std::path::PathBuf, DraftStoreError> {
-        let body =
-            serde_json::to_string_pretty(draft).map_err(|e| DraftStoreError::Io(e.to_string()))?;
+        let body = serde_json::to_string_pretty(draft)
+            .map_err(|e| DraftStoreError::Serialize(e.to_string()))?;
         fs::write(path, body).map_err(|e| DraftStoreError::Io(e.to_string()))?;
         Ok(path.to_path_buf())
     }

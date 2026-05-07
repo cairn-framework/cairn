@@ -4,13 +4,15 @@
 #![allow(non_snake_case)]
 //! Phase 9 Brownfield Extraction acceptance-criterion tests.
 //!
-//! Test contract for `phase-9-brownfield`. Each test corresponds to one
-//! acceptance-criterion scenario across the eight brownfield requirements,
-//! plus heuristic-invariant stubs derived from the design doc. Tests are
-//! marked `#[cflx_planned(phase = 900)]` so `cargo test` skips them while
-//! `cargo test -- --ignored` runs them and they fail with a clear
-//! `unimplemented!` message naming the scenario. Phase 9 will remove
-//! `#[cflx_planned]` group-by-group as code lands.
+//! Mixed state: the seven heuristic-invariant scenarios delivered by
+//! reforge cycle 1 (coupling-score formula, threshold buckets, file
+//! count, depth limit, edge threshold, path-derived names) run as
+//! plain `#[test]` and enforce their invariants on every `cargo test`.
+//! The 26 acceptance-criterion stubs covering init / refine / review /
+//! mcp / suggest / interview / templates / obligations carry
+//! `#[cflx_planned(phase = 900)]` and stay skipped under `cargo test`;
+//! they fail with `unimplemented!` under `cargo test -- --ignored`.
+//! Phase 9 removes `#[cflx_planned]` group-by-group as code lands.
 
 use cairn::cflx_planned;
 

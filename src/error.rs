@@ -32,6 +32,13 @@ pub enum CairnError {
         /// Underlying I/O error message.
         detail: String,
     },
+    /// Changes directory exists but could not be read.
+    ChangeDiscovery {
+        /// Path that could not be enumerated.
+        path: String,
+        /// Underlying I/O error message.
+        detail: String,
+    },
 }
 
 impl fmt::Display for CairnError {
@@ -57,6 +64,9 @@ impl fmt::Display for CairnError {
             Self::WriteOutput { path, detail } => {
                 write!(f, "failed to write {path}: {detail}")
             }
+            Self::ChangeDiscovery { path, detail } => {
+                write!(f, "failed to read changes directory {path}: {detail}")
+            }
         }
     }
 }
@@ -72,6 +82,7 @@ impl CairnError {
             Self::UntriagedSuggestedEdges { .. } => "CC002",
             Self::ScannerLoad { .. } => "CK001",
             Self::WriteOutput { .. } => "CK002",
+            Self::ChangeDiscovery { .. } => "CK003",
         }
     }
 }

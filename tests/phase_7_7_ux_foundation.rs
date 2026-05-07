@@ -4,13 +4,21 @@
 #![allow(non_snake_case)]
 //! Phase 7.7 UX Foundation acceptance-criterion tests.
 //!
+//! Mixed state: scenarios already satisfied by reforge cycle 1
+//! (`FindingSeverity::Info` on the kernel enum, the `cairn check`
+//! subcommand, `Info`-finding round-trip through `serde_json`, and the
+//! unverified-contract Info producer) run as plain `#[test]` and
+//! enforce their invariants on every `cargo test`. Scenarios still
+//! awaiting phase-7.7 UI work (copy.toml authoring, empty-state
+//! component, findings rollup panel, prose-nudge banner) carry
+//! `#[cflx_planned(phase = 707)]` and stay skipped under `cargo test`;
+//! they fail with `unimplemented!` under `cargo test -- --ignored`.
+//!
 //! Test contract for `phase-7.7-ux-foundation`. Each test corresponds to one
 //! acceptance-criterion scenario across the three spec deltas (`cli`,
-//! `graph-explorer`, `reconciliation`). Tests are marked
-//! `#[cflx_planned(phase = 707)]` so `cargo test` skips them while
-//! `cargo test -- --ignored` runs them and they fail with a clear
-//! `unimplemented!` message naming the scenario. Phase 7.7 will remove
-//! `#[cflx_planned]` group-by-group as code lands.
+//! `graph-explorer`, `reconciliation`). Phase 7.7 removes
+//! `#[cflx_planned]` and replaces stub bodies with real assertions
+//! group-by-group as code lands.
 
 use cairn::cflx_planned;
 
