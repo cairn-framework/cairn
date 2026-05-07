@@ -1,0 +1,224 @@
+#![allow(non_snake_case)]
+//! Phase 7.7 UX Foundation acceptance-criterion tests.
+//!
+//! Test contract for `phase-7.7-ux-foundation`. Each test corresponds to one
+//! acceptance-criterion scenario across the three spec deltas (`cli`,
+//! `graph-explorer`, `reconciliation`). Tests are marked
+//! `#[cflx_planned(phase = 707)]` so `cargo test` skips them while
+//! `cargo test -- --ignored` runs them and they fail with a clear
+//! `unimplemented!` message naming the scenario. Phase 7.7 will remove
+//! `#[cflx_planned]` group-by-group as code lands.
+
+use cairn::cflx_planned;
+
+mod cli {
+    use super::cflx_planned;
+
+    /// Scenario: Whole-map inspection without arguments.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_check__whole_map_inspection_without_arguments() {
+        unimplemented!("awaits phase-7.7: check whole-map inspection without arguments");
+    }
+
+    /// Scenario: Node-scoped inspection with a positional argument.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_check__node_scoped_inspection_with_positional_argument() {
+        unimplemented!("awaits phase-7.7: check node-scoped inspection with positional argument");
+    }
+
+    /// Scenario: Inspection delegates to the same library service as lint.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_check__inspection_delegates_to_same_library_service_as_lint() {
+        unimplemented!("awaits phase-7.7: check inspection delegates to same library service");
+    }
+
+    /// Scenario: Inspection has no JSON mode in this phase.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_check__inspection_has_no_json_mode() {
+        unimplemented!("awaits phase-7.7: check inspection has no JSON mode");
+    }
+}
+
+mod empty_state {
+    use super::cflx_planned;
+
+    /// Scenario: No-blueprint invocation renders a CTA.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_empty_state__no_blueprint_invocation_renders_cta() {
+        unimplemented!("awaits phase-7.7: empty-state no-blueprint invocation renders CTA");
+    }
+
+    /// Scenario: Clean-map result renders a CTA.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_empty_state__clean_map_result_renders_cta() {
+        unimplemented!("awaits phase-7.7: empty-state clean-map result renders CTA");
+    }
+
+    /// Scenario: Empty-state copy is free of em-dashes (CLI and webui share copy file).
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_empty_state__copy_has_no_em_dashes() {
+        unimplemented!("awaits phase-7.7: empty-state copy has no em-dashes");
+    }
+}
+
+mod explorer {
+    use super::cflx_planned;
+
+    /// Scenario: Component is defined with token-only styling.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__empty_state_component_uses_token_only_styling() {
+        unimplemented!("awaits phase-7.7: explorer empty-state component uses token-only styling");
+    }
+
+    /// Scenario: All ten inline empty-state strings are replaced.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__ten_inline_empty_state_strings_replaced() {
+        unimplemented!("awaits phase-7.7: explorer ten inline empty-state strings replaced");
+    }
+
+    /// Scenario: Missing copy keys surface a console warning.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__missing_copy_keys_surface_console_warning() {
+        unimplemented!("awaits phase-7.7: explorer missing copy keys surface console warning");
+    }
+
+    /// Scenario: Three severity buckets render with count badges.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__three_severity_buckets_render_with_count_badges() {
+        unimplemented!("awaits phase-7.7: explorer three severity buckets render with badges");
+    }
+
+    /// Scenario: Scope toggle filters to the selected node.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__scope_toggle_filters_to_selected_node() {
+        unimplemented!("awaits phase-7.7: explorer scope toggle filters to selected node");
+    }
+
+    /// Scenario: Scope toggle is disabled when no node is selected.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__scope_toggle_disabled_when_no_node_selected() {
+        unimplemented!("awaits phase-7.7: explorer scope toggle disabled when no node selected");
+    }
+
+    /// Scenario: Category filter chips derive from the finding stream.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__category_filter_chips_derive_from_finding_stream() {
+        unimplemented!("awaits phase-7.7: explorer category filter chips derive from findings");
+    }
+
+    /// Scenario: Panel reads only from the query-consumer API.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__panel_reads_only_from_query_consumer_api() {
+        unimplemented!("awaits phase-7.7: explorer panel reads only from query-consumer API");
+    }
+
+    /// Scenario: Banner renders the highest-severity finding's nudge.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__banner_renders_highest_severity_finding_nudge() {
+        unimplemented!("awaits phase-7.7: explorer banner renders highest-severity nudge");
+    }
+
+    /// Scenario: Tie-break by lowest-numbered code.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__banner_tie_break_by_lowest_numbered_code() {
+        unimplemented!("awaits phase-7.7: explorer banner tie-break by lowest-numbered code");
+    }
+
+    /// Scenario: Banner CTA is a copy-pasteable CLI snippet.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__banner_cta_is_copy_pasteable_cli_snippet() {
+        unimplemented!("awaits phase-7.7: explorer banner CTA is copy-pasteable CLI snippet");
+    }
+
+    /// Scenario: Banner is hidden when the node has no findings.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__banner_hidden_when_node_has_no_findings() {
+        unimplemented!("awaits phase-7.7: explorer banner hidden when node has no findings");
+    }
+
+    /// Scenario: Structural error indicator (integrity overlay).
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__structural_error_indicator() {
+        unimplemented!("awaits phase-7.7: explorer structural error indicator");
+    }
+
+    /// Scenario: Interface contradiction indicator (integrity overlay).
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__interface_contradiction_indicator() {
+        unimplemented!("awaits phase-7.7: explorer interface contradiction indicator");
+    }
+
+    /// Scenario: Rationale tension indicator (integrity overlay).
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__rationale_tension_indicator() {
+        unimplemented!("awaits phase-7.7: explorer rationale tension indicator");
+    }
+
+    /// Scenario: Info-severity findings appear in the overlay.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_explorer__info_severity_findings_appear_in_overlay() {
+        unimplemented!("awaits phase-7.7: explorer info-severity findings appear in overlay");
+    }
+}
+
+mod reconciliation {
+    use super::cflx_planned;
+
+    /// Scenario: Info variant is defined on the kernel enum.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_reconciliation__info_variant_defined_on_kernel_enum() {
+        unimplemented!("awaits phase-7.7: reconciliation info variant defined on kernel enum");
+    }
+
+    /// Scenario: Orphaned-file state emits an Info finding.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_reconciliation__orphaned_file_emits_info_finding() {
+        unimplemented!("awaits phase-7.7: reconciliation orphaned-file emits Info finding");
+    }
+
+    /// Scenario: Unverified-contract state emits an Info finding.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_reconciliation__unverified_contract_emits_info_finding() {
+        unimplemented!("awaits phase-7.7: reconciliation unverified-contract emits Info finding");
+    }
+
+    /// Scenario: Info findings do not block hooks or gates.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_reconciliation__info_findings_do_not_block_hooks_or_gates() {
+        unimplemented!("awaits phase-7.7: reconciliation info findings do not block hooks/gates");
+    }
+
+    /// Scenario: Info findings round-trip through `serde_json`.
+    #[cflx_planned(phase = 707)]
+    #[test]
+    fn test_reconciliation__info_findings_round_trip_through_serde_json() {
+        unimplemented!("awaits phase-7.7: reconciliation info findings round-trip serde_json");
+    }
+}
