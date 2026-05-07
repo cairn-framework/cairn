@@ -6,6 +6,7 @@ expression: json
   "edges": 2,
   "errors": 1,
   "findings": 1,
+  "infos": 0,
   "interface_hash": "7bfb5bd6eea075d6",
   "nodes": 3,
   "schema_version": 1,

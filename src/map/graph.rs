@@ -17,6 +17,7 @@ pub enum NodeState {
 
 /// Integrity or reconciliation finding severity.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum FindingSeverity {
     /// Blocks successful lint/map validation.
     Error,

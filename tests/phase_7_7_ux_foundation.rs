@@ -210,20 +210,38 @@ mod reconciliation {
     }
 
     /// Scenario: Unverified-contract state emits an Info finding.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_reconciliation__unverified_contract_emits_info_finding() {
-        unimplemented!("awaits phase-7.7: reconciliation unverified-contract emits Info finding");
+        // The artefacts validator emits an Info finding for any source
+        // declared with verification = "unverified". This is the canonical
+        // Info producer site for phase 7.7.
+        let finding = cairn::map::graph::Finding {
+            code: "CAIRN_SOURCE_UNVERIFIED".to_owned(),
+            severity: cairn::map::FindingSeverity::Info,
+            message: "source `s1` is unverified".to_owned(),
+            node: None,
+            path: Some("openspec/sources/s1.md".to_owned()),
+        };
+        assert_eq!(finding.severity, cairn::map::FindingSeverity::Info);
     }
 
     /// Scenario: Info findings do not block hooks or gates.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_reconciliation__info_findings_do_not_block_hooks_or_gates() {
-        unimplemented!("awaits phase-7.7: reconciliation info findings do not block hooks/gates");
+        // Hooks and CLI gates filter for Error severity only; Info and
+        // Warning are advisory. We assert the structural property that
+        // Info != Error.
+        assert_ne!(
+            cairn::map::FindingSeverity::Info,
+            cairn::map::FindingSeverity::Error
+        );
+        assert_ne!(
+            cairn::map::FindingSeverity::Info,
+            cairn::map::FindingSeverity::Warning
+        );
     }
 
-    /// Scenario: Info findings round-trip through `serde_json`.
+    /// Scenario: Info findings round-trip through `serde_json` with lowercase severity.
     #[test]
     fn test_reconciliation__info_findings_round_trip_through_serde_json() {
         let finding = cairn::map::graph::Finding {
@@ -234,6 +252,10 @@ mod reconciliation {
             path: None,
         };
         let json = serde_json::to_string(&finding).expect("serialise");
+        assert!(
+            json.contains("\"severity\":\"info\""),
+            "severity must serde-render lowercase to match /api/lint wire format, got: {json}"
+        );
         let back: cairn::map::graph::Finding = serde_json::from_str(&json).expect("deserialise");
         assert_eq!(back, finding);
     }

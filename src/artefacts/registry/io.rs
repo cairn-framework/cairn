@@ -164,6 +164,21 @@ pub(super) fn error_finding(code: &str, message: String, path: Option<String>) -
     error(code, message, None, path)
 }
 
+pub(super) fn info(
+    code: &str,
+    message: String,
+    node: Option<String>,
+    path: Option<String>,
+) -> Finding {
+    Finding {
+        code: code.to_owned(),
+        severity: FindingSeverity::Info,
+        message,
+        node,
+        path,
+    }
+}
+
 pub(super) fn path_string(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }

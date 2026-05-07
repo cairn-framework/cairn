@@ -84,11 +84,20 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "export" {
         return export::run(&parsed.command_args, &parsed.file, &parsed.changes_dir);
     }
-    if parsed.command == "check" && parsed.json {
-        return err(
-            1,
-            "cairn check has no JSON mode; use `cairn lint --json` for JSON output",
-        );
+    if parsed.command == "check" {
+        if parsed.json {
+            return err(
+                1,
+                "--json: unknown flag for `cairn check`; use `cairn lint --json` for JSON output",
+            );
+        }
+        if !parsed.file.exists() {
+            return ok(
+                "No cairn.blueprint found. Inspection has nothing to look at.\n\
+                 Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.\n"
+                    .to_owned(),
+            );
+        }
     }
     run_project_command(&parsed)
 }
@@ -239,12 +248,6 @@ fn render_loaded_project_command(
             };
         }
         "check" => {
-            if parsed.json {
-                return err(
-                    1,
-                    "cairn check has no JSON mode; use `cairn lint --json` for JSON output",
-                );
-            }
             let response = query::lint(&scan_result.graph);
             let target_node = parsed.command_args.get(1).map(String::as_str);
             let findings: Vec<_> = response
