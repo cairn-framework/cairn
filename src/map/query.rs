@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: hub for typed query responses (get, neighbourhood, files, depends/dependents, graph, order, lint, islands, neighbourhood_with_options) plus their unit tests; per-query splits already exist for renderers in src/cli/render.rs but the typed surface lives together.
 //! Typed query services over map graphs.
 
 use super::{
@@ -331,10 +332,14 @@ fn bfs_component(
 }
 
 fn undirected_neighbours(graph: &Graph, id: &str) -> Vec<String> {
-    // Connected-component grouping treats DEPENDENCY edges as undirected.
-    // Ownership (parent/children) is intentionally excluded: a graph
-    // where one root system owns disjoint subsystems should still report
-    // multiple islands per phase-2.5 graph-explorer's edge-kind taxonomy.
+    // Connected-component grouping treats both DEPENDENCY and
+    // OWNERSHIP edges as undirected. Cycle 3 reasoning: the spec
+    // scenario "a map whose nodes form a single connected component"
+    // (specs/query/spec.md) reads naturally for ownership-rooted maps;
+    // restricting to dependency edges only would split typical N-node
+    // ownership trees into N islands, breaking the scenario verbatim.
+    // Phase-2.5's edge-kind taxonomy (Ownership vs Dependency) remains
+    // useful for rendering but is not the right axis for connectivity.
     let mut out = Vec::new();
     if let Some(edges) = graph.outbound.get(id) {
         for edge in edges {
@@ -344,6 +349,14 @@ fn undirected_neighbours(graph: &Graph, id: &str) -> Vec<String> {
     if let Some(edges) = graph.inbound.get(id) {
         for edge in edges {
             out.push(edge.from.clone());
+        }
+    }
+    if let Some(node) = graph.nodes.get(id) {
+        if let Some(parent) = &node.parent {
+            out.push(parent.clone());
+        }
+        for child in &node.children {
+            out.push(child.clone());
         }
     }
     out
@@ -375,4 +388,159 @@ fn collect(graph: &Graph, id: &str, transitive: bool, outbound: bool) -> Vec<Str
     nodes.sort();
     nodes.dedup();
     nodes
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blueprint::{NodeKind, Span};
+    use crate::map::graph::{EdgeRef, NodeRecord, NodeState};
+    use std::collections::BTreeMap;
+
+    fn node(id: &str, parent: Option<&str>, children: &[&str]) -> NodeRecord {
+        NodeRecord {
+            kind: NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: parent.map(str::to_owned),
+            children: children.iter().map(|c| (*c).to_owned()).collect(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files: Vec::new(),
+            span: Span::point("test", 1, 1),
+        }
+    }
+
+    /// Cycle 3: ownership-only graph forms a single connected component.
+    /// Locks the spec scenario "a map whose nodes form a single connected
+    /// component" against future regressions where someone removes the
+    /// parent/children traversal from `undirected_neighbours`.
+    #[test]
+    fn islands_single_component_via_ownership_only() {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("root".to_owned(), node("root", None, &["a", "b"]));
+        nodes.insert("a".to_owned(), node("a", Some("root"), &[]));
+        nodes.insert("b".to_owned(), node("b", Some("root"), &[]));
+        let graph = Graph {
+            nodes,
+            names: BTreeMap::new(),
+            outbound: BTreeMap::new(),
+            inbound: BTreeMap::new(),
+            findings: Vec::new(),
+        };
+        let resp = islands(&graph);
+        assert_eq!(resp.islands.len(), 1);
+        assert_eq!(resp.islands[0].node_count, 3);
+        assert_eq!(resp.islands[0].representative, "a");
+    }
+
+    /// Cycle 3: two dependency-disconnected components remain two
+    /// islands. Locks the disconnected-subgraph scenario.
+    #[test]
+    fn islands_split_two_dependency_components() {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("a".to_owned(), node("a", None, &[]));
+        nodes.insert("b".to_owned(), node("b", None, &[]));
+        nodes.insert("c".to_owned(), node("c", None, &[]));
+        nodes.insert("d".to_owned(), node("d", None, &[]));
+        let mut outbound = BTreeMap::new();
+        outbound.insert(
+            "a".to_owned(),
+            vec![EdgeRef {
+                from: "a".to_owned(),
+                to: "b".to_owned(),
+                description: "calls".to_owned(),
+            }],
+        );
+        outbound.insert(
+            "c".to_owned(),
+            vec![EdgeRef {
+                from: "c".to_owned(),
+                to: "d".to_owned(),
+                description: "calls".to_owned(),
+            }],
+        );
+        let mut inbound = BTreeMap::new();
+        inbound.insert(
+            "b".to_owned(),
+            vec![EdgeRef {
+                from: "a".to_owned(),
+                to: "b".to_owned(),
+                description: "calls".to_owned(),
+            }],
+        );
+        inbound.insert(
+            "d".to_owned(),
+            vec![EdgeRef {
+                from: "c".to_owned(),
+                to: "d".to_owned(),
+                description: "calls".to_owned(),
+            }],
+        );
+        let graph = Graph {
+            nodes,
+            names: BTreeMap::new(),
+            outbound,
+            inbound,
+            findings: Vec::new(),
+        };
+        let resp = islands(&graph);
+        assert_eq!(resp.islands.len(), 2);
+        let reps: Vec<&str> = resp
+            .islands
+            .iter()
+            .map(|i| i.representative.as_str())
+            .collect();
+        assert_eq!(reps, vec!["a", "c"]);
+    }
+
+    /// Cycle 3: `include_orphans` contract pinned against the default
+    /// neighbourhood query.
+    #[test]
+    fn neighbourhood_with_options_diverges_against_default() {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("anchor".to_owned(), node("anchor", None, &[]));
+        nodes.insert("out".to_owned(), node("out", None, &[]));
+        nodes.insert("inb".to_owned(), node("inb", None, &[]));
+        let mut outbound = BTreeMap::new();
+        outbound.insert(
+            "anchor".to_owned(),
+            vec![EdgeRef {
+                from: "anchor".to_owned(),
+                to: "out".to_owned(),
+                description: "calls".to_owned(),
+            }],
+        );
+        let mut inbound = BTreeMap::new();
+        inbound.insert(
+            "anchor".to_owned(),
+            vec![EdgeRef {
+                from: "inb".to_owned(),
+                to: "anchor".to_owned(),
+                description: "depends-on".to_owned(),
+            }],
+        );
+        let mut names = BTreeMap::new();
+        for id in &["anchor", "out", "inb"] {
+            names.insert((*id).to_owned(), vec![(*id).to_owned()]);
+        }
+        let graph = Graph {
+            nodes,
+            names,
+            outbound,
+            inbound,
+            findings: Vec::new(),
+        };
+        let with_orphans = neighbourhood_with_options(&graph, "anchor", true).expect("with");
+        let default = neighbourhood(&graph, "anchor").expect("default");
+        assert_eq!(with_orphans.inbound, default.inbound);
+        assert_eq!(with_orphans.outbound, default.outbound);
+        let no_orphans = neighbourhood_with_options(&graph, "anchor", false).expect("no orphans");
+        assert!(no_orphans.inbound.is_empty());
+        assert_eq!(no_orphans.outbound, default.outbound);
+    }
 }

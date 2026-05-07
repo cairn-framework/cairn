@@ -18,13 +18,19 @@ use super::{ArtefactEntry, ChangeEntry, EdgeEntry, ExportEnvelope, SCHEMA_VERSIO
 
 /// Builds a full export envelope by scanning the project and reading active changes.
 ///
+/// `changes_dir` is the literal path to the active-changes folder
+/// (e.g., `meta/changes`). Cycle 3 fix: previously this was passed
+/// through `changes::discover`, which itself joins `meta/changes`
+/// internally, producing the wrong-path lookup `meta/changes/meta/changes`.
+/// The folder is now enumerated directly here.
+///
 /// # Errors
 ///
 /// Returns `CairnError::ScannerLoad` (code CK001) when the project
-/// cannot be loaded, and `CairnError::ChangeDiscovery` (code CK003)
-/// when the changes directory exists but cannot be read. An absent
-/// changes directory is not an error and contributes an empty changes
-/// list to the envelope.
+/// cannot be loaded, and `CairnError::ChangeDiscovery` (code CC003)
+/// when the changes directory exists but cannot be enumerated. An
+/// absent changes directory is not an error and yields an empty
+/// changes list.
 pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, CairnError> {
     let root = super::blueprint_root(file);
     let scan_result =
@@ -32,16 +38,7 @@ pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, C
     let now = current_timestamp_rfc3339();
     let edges = flatten_edges(&scan_result.graph);
     let artefacts = flatten_artefacts(&scan_result.artefacts);
-    let change_records = match changes::discover(changes_dir) {
-        Ok(changes) => changes,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
-        Err(e) => {
-            return Err(CairnError::ChangeDiscovery {
-                path: changes_dir.to_string_lossy().into_owned(),
-                detail: e.to_string(),
-            });
-        }
-    };
+    let change_records = enumerate_changes(root, changes_dir)?;
     let changes_out = flatten_changes(&change_records);
     let mut nodes: Vec<NodeRecord> = scan_result.graph.nodes.values().cloned().collect();
     nodes.sort_by(|a, b| a.id.cmp(&b.id));
@@ -54,6 +51,39 @@ pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, C
         artefacts,
         changes: changes_out,
     })
+}
+
+fn enumerate_changes(project_root: &Path, changes_dir: &Path) -> Result<Vec<Change>, CairnError> {
+    if !changes_dir.exists() {
+        return Ok(Vec::new());
+    }
+    let entries = std::fs::read_dir(changes_dir).map_err(|e| CairnError::ChangeDiscovery {
+        path: changes_dir.to_string_lossy().into_owned(),
+        detail: e.to_string(),
+    })?;
+    let mut out = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|e| CairnError::ChangeDiscovery {
+            path: changes_dir.to_string_lossy().into_owned(),
+            detail: e.to_string(),
+        })?;
+        let path = entry.path();
+        let Ok(file_type) = entry.file_type() else {
+            continue;
+        };
+        if !file_type.is_dir() {
+            continue;
+        }
+        if path.file_name().is_some_and(|name| name == "archive") {
+            continue;
+        }
+        if !path.join("proposal.md").exists() {
+            continue;
+        }
+        out.push(changes::load_change(project_root, path));
+    }
+    out.sort_by(|left, right| left.id.cmp(&right.id));
+    Ok(out)
 }
 
 fn flatten_edges(graph: &Graph) -> Vec<EdgeEntry> {

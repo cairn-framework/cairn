@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: typestate-tagged Draft enum + four payload structs + DraftStore + AcceptedDraft constructor gating + EmptyInterfaceHash error + serde TryFrom shim live together because the invariant "Accepted carries non-empty hash" is enforced across all of them; splitting fragments the typestate.
 //! Draft store: pending/editable/accepted/discarded drafts under
 //! `.cairn/state/summariser/`.
 //!
@@ -10,7 +11,11 @@
 //! `DraftStoreError::Conflict`; the caller must invoke `overwrite` for
 //! the rare legitimate replacement path.
 
-use std::{fs, path::Path};
+use std::{
+    fs::{self, OpenOptions},
+    io::{ErrorKind, Write as _},
+    path::Path,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -70,14 +75,87 @@ pub struct EditableDraft {
 
 /// A draft applied to a contract; carries the interface hash at the
 /// moment of acceptance.
+///
+/// The hash field is held private to enforce non-emptiness via
+/// `AcceptedDraft::new`. Direct construction is unavailable; serde
+/// deserialisation runs through the same constructor via a custom
+/// `TryFrom` so corrupt payloads with empty hashes are rejected.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "AcceptedDraftRaw", into = "AcceptedDraftRaw")]
 pub struct AcceptedDraft {
-    /// Common header fields.
+    header: DraftHeader,
+    accepted_interface_hash: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct AcceptedDraftRaw {
     #[serde(flatten)]
-    pub header: DraftHeader,
-    /// Interface hash recorded at acceptance time. Non-empty by
-    /// construction.
-    pub accepted_interface_hash: String,
+    header: DraftHeader,
+    accepted_interface_hash: String,
+}
+
+/// Error returned when constructing an `AcceptedDraft` with an empty
+/// interface hash.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EmptyInterfaceHash;
+
+impl std::fmt::Display for EmptyInterfaceHash {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("AcceptedDraft requires a non-empty interface hash")
+    }
+}
+
+impl std::error::Error for EmptyInterfaceHash {}
+
+impl AcceptedDraft {
+    /// Constructs an `AcceptedDraft`. Returns `EmptyInterfaceHash` when
+    /// `accepted_interface_hash` is empty or whitespace-only.
+    ///
+    /// # Errors
+    ///
+    /// Returns `EmptyInterfaceHash` for empty or whitespace-only hashes.
+    pub fn new(
+        header: DraftHeader,
+        accepted_interface_hash: String,
+    ) -> Result<Self, EmptyInterfaceHash> {
+        if accepted_interface_hash.trim().is_empty() {
+            return Err(EmptyInterfaceHash);
+        }
+        Ok(Self {
+            header,
+            accepted_interface_hash,
+        })
+    }
+
+    /// Returns the common header.
+    #[must_use]
+    pub fn header(&self) -> &DraftHeader {
+        &self.header
+    }
+
+    /// Returns the interface hash recorded at acceptance time. Non-empty
+    /// by construction.
+    #[must_use]
+    pub fn accepted_interface_hash(&self) -> &str {
+        &self.accepted_interface_hash
+    }
+}
+
+impl TryFrom<AcceptedDraftRaw> for AcceptedDraft {
+    type Error = EmptyInterfaceHash;
+
+    fn try_from(raw: AcceptedDraftRaw) -> Result<Self, Self::Error> {
+        Self::new(raw.header, raw.accepted_interface_hash)
+    }
+}
+
+impl From<AcceptedDraft> for AcceptedDraftRaw {
+    fn from(draft: AcceptedDraft) -> Self {
+        Self {
+            header: draft.header,
+            accepted_interface_hash: draft.accepted_interface_hash,
+        }
+    }
 }
 
 /// A draft the user discarded.
@@ -167,6 +245,10 @@ impl DraftStore {
     /// `DraftStoreError::Conflict` when a draft with the same ID is
     /// already present; the caller must use `overwrite` to replace it.
     ///
+    /// Cycle 3 fix: conflict detection is now kernel-atomic via
+    /// `OpenOptions::create_new(true)`, eliminating the
+    /// `path.exists()`/`fs::write` TOCTOU window.
+    ///
     /// # Errors
     ///
     /// Returns `DraftStoreError::Io` when the directory cannot be created
@@ -177,10 +259,18 @@ impl DraftStore {
         let dir = self.pending_dir();
         fs::create_dir_all(&dir).map_err(|e| DraftStoreError::Io(e.to_string()))?;
         let path = dir.join(format!("{}.json", draft.id()));
-        if path.exists() {
-            return Err(DraftStoreError::Conflict(draft.id().to_owned()));
-        }
-        Self::write_inner(&path, draft)
+        let body = serde_json::to_string_pretty(draft)
+            .map_err(|e| DraftStoreError::Serialize(e.to_string()))?;
+        let mut file = match OpenOptions::new().write(true).create_new(true).open(&path) {
+            Ok(f) => f,
+            Err(e) if e.kind() == ErrorKind::AlreadyExists => {
+                return Err(DraftStoreError::Conflict(draft.id().to_owned()));
+            }
+            Err(e) => return Err(DraftStoreError::Io(e.to_string())),
+        };
+        file.write_all(body.as_bytes())
+            .map_err(|e| DraftStoreError::Io(e.to_string()))?;
+        Ok(path)
     }
 
     /// Writes a draft, replacing any existing entry with the same ID.
@@ -328,12 +418,17 @@ mod tests {
 
     #[test]
     fn accepted_carries_non_empty_hash() {
-        let draft = Draft::Accepted(AcceptedDraft {
-            header: sample_header(),
-            accepted_interface_hash: "sha256:abc".to_owned(),
-        });
+        let inner =
+            AcceptedDraft::new(sample_header(), "sha256:abc".to_owned()).expect("non-empty hash");
+        let draft = Draft::Accepted(inner);
         let json = serde_json::to_string(&draft).expect("serialise");
         assert!(json.contains("\"accepted_interface_hash\":\"sha256:abc\""));
+    }
+
+    #[test]
+    fn accepted_constructor_rejects_empty_hash() {
+        assert!(AcceptedDraft::new(sample_header(), String::new()).is_err());
+        assert!(AcceptedDraft::new(sample_header(), "  \t  ".to_owned()).is_err());
     }
 
     #[test]

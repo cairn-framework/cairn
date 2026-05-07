@@ -7,7 +7,9 @@ Foundation) ships against. Asserts that every phase-7.6 acceptance-
 criterion scenario has a corresponding `#[cflx_planned(phase = 706)]`
 stub in `tests/phase_7_6_ai_provenance.rs`. The parent phase removes
 these attributes group-by-group as the underlying schema / queue /
-islands code lands; this meta-spec retires when phase-7.6 archives.
+islands code lands. This meta-spec is retained as historical record
+once phase-7.6 archives and may be removed manually at that time; cflx
+has no automated retire-meta-spec step today.
 
 ## Requirements
 

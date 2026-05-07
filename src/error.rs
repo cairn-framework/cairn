@@ -80,9 +80,9 @@ impl CairnError {
         match self {
             Self::BlockedVerification { .. } => "CC001",
             Self::UntriagedSuggestedEdges { .. } => "CC002",
+            Self::ChangeDiscovery { .. } => "CC003",
             Self::ScannerLoad { .. } => "CK001",
             Self::WriteOutput { .. } => "CK002",
-            Self::ChangeDiscovery { .. } => "CK003",
         }
     }
 }

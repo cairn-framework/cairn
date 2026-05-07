@@ -7,8 +7,10 @@ ships against. Asserts that every phase-9 acceptance-criterion scenario
 plus heuristic-invariant has a corresponding `#[cflx_planned(phase = 900)]`
 stub in `tests/phase_9_brownfield.rs`. The parent phase removes these
 attributes as the underlying init / refine / suggest engine /
-interview / templates / obligations code lands; this meta-spec retires
-when phase-9 archives.
+interview / templates / obligations code lands. This meta-spec is
+retained as historical record once phase-9 archives and may be removed
+manually at that time; cflx has no automated retire-meta-spec step
+today.
 
 ## Requirements
 

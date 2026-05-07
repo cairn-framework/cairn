@@ -43,7 +43,6 @@ _No codes allocated yet._
 
 - CK001 -- scanner failed to load project -- phase-7.8 reforge
 - CK002 -- failed to write CLI output to disk -- phase-7.8 reforge
-- CK003 -- failed to read changes directory -- phase-7.8 reforge cycle 2
 
 ## CA -- Artefacts
 
@@ -53,6 +52,7 @@ _No codes allocated yet._
 
 - CC001 -- verification blocked by upstream dependency -- phase-7.5c
 - CC002 -- pending suggested-edges entries block --strict validate -- phase-7.6
+- CC003 -- failed to enumerate changes directory -- phase-7.8 reforge cycle 3
 
 ## CH -- Hooks
 

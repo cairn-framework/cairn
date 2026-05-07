@@ -238,6 +238,33 @@ mod changes {
         assert!(cairn::provenance::validate_strict("phase-y", dir.path()).is_ok());
     }
 
+    /// Cycle 3: corrupt or future-version queues raise CC003 instead of
+    /// silently passing the --strict gate.
+    #[test]
+    fn test_validate_strict_raises_cc003_on_corrupt_queue() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        std::fs::write(dir.path().join("suggested-edges.json"), "{not json")
+            .expect("write corrupt queue");
+        let err = cairn::provenance::validate_strict("phase-x", dir.path())
+            .expect_err("strict must fail on corrupt queue");
+        assert_eq!(err.code(), "CC003");
+    }
+
+    /// Cycle 3: future-version queues raise CC003 too.
+    #[test]
+    fn test_validate_strict_raises_cc003_on_future_version() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let body = serde_json::json!({
+            "version": SUGGESTED_EDGES_QUEUE_VERSION + 1,
+            "entries": [],
+        })
+        .to_string();
+        std::fs::write(dir.path().join("suggested-edges.json"), body).expect("write");
+        let err = cairn::provenance::validate_strict("phase-y", dir.path())
+            .expect_err("strict must fail on future version");
+        assert_eq!(err.code(), "CC003");
+    }
+
     /// Scenario: Absent queue file is not an error.
     #[test]
     fn test_absent_queue_file_is_not_error() {

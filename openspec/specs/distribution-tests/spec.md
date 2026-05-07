@@ -7,8 +7,18 @@ against. Asserts that every phase-10 acceptance-criterion scenario has a
 corresponding `#[cflx_planned(phase = 1000)]` stub in
 `tests/phase_10_distribution.rs`. The parent phase removes these
 attributes group-by-group as the underlying LSP / packaging /
-reconciler-extension code lands; this meta-spec retires when phase-10
-archives.
+reconciler-extension code lands.
+
+This meta-spec is retained as historical record once phase-10 archives
+and may be removed manually at that time; cflx has no automated
+retire-meta-spec step today.
+
+The archived delta lives at
+`openspec/changes/archive/phase-10.0-tests/specs/distribution/spec.md`
+under the legacy area name `distribution`. Re-running cflx's archive
+consolidation against that delta would recreate
+`openspec/specs/distribution/`; future maintainers should consolidate
+the two manually rather than re-applying.
 
 ## Requirements
 

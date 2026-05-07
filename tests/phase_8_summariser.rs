@@ -137,16 +137,33 @@ mod resolution_actions {
     }
 
     /// Scenario: Accepted variant carries non-empty interface hash by construction.
+    /// Cycle 3: `AcceptedDraft` is now constructor-gated so empty hashes
+    /// cannot be assembled, even via deserialisation.
     #[test]
     fn test_accepted_carries_non_empty_interface_hash() {
-        let accepted = Draft::Accepted(AcceptedDraft {
-            header: sample_header(),
-            accepted_interface_hash: "sha256:abc".to_owned(),
-        });
+        let inner = AcceptedDraft::new(sample_header(), "sha256:abc".to_owned())
+            .expect("non-empty hash accepted");
+        let accepted = Draft::Accepted(inner);
         match accepted {
-            Draft::Accepted(d) => assert!(!d.accepted_interface_hash.is_empty()),
+            Draft::Accepted(d) => assert_eq!(d.accepted_interface_hash(), "sha256:abc"),
             _ => panic!("expected Accepted variant"),
         }
+    }
+
+    /// Cycle 3: `AcceptedDraft::new` rejects empty / whitespace hashes.
+    #[test]
+    fn test_accepted_rejects_empty_hash() {
+        assert!(AcceptedDraft::new(sample_header(), String::new()).is_err());
+        assert!(AcceptedDraft::new(sample_header(), "   \n".to_owned()).is_err());
+    }
+
+    /// Cycle 3: deserialising a payload with empty hash fails too,
+    /// closing the wire-channel hole.
+    #[test]
+    fn test_accepted_deserialise_rejects_empty_hash() {
+        let bad = r#"{"status":"accepted","id":"d1","node_id":"n","artefact_type":"contract","draft_text":"x","created_at":"t","accepted_interface_hash":""}"#;
+        let result: Result<Draft, _> = serde_json::from_str(bad);
+        assert!(result.is_err(), "deserialise must reject empty hash");
     }
 
     /// Scenario: draft edit writes editable file without modifying contract.

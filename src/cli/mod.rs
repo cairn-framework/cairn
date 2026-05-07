@@ -82,7 +82,12 @@ pub fn run(args: &[String]) -> CliResult {
         return crate::cli::accept::run_accept_gate(change_id);
     }
     if parsed.command == "export" {
-        return export::run(&parsed.command_args, &parsed.file, &parsed.changes_dir);
+        return export::run(
+            &parsed.command_args,
+            &parsed.file,
+            &parsed.changes_dir,
+            parsed.json,
+        );
     }
     if parsed.command == "check" {
         if parsed.json {
@@ -92,6 +97,24 @@ pub fn run(args: &[String]) -> CliResult {
             );
         }
         if !parsed.file.exists() {
+            // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
+            // warning that run_project_command emits at line 145-148.
+            // Without this, a user mid-migration from cairn.dsl to
+            // cairn.blueprint would see "Run `cairn init`" instead of
+            // the rename guidance, and `init` would scaffold over the
+            // existing declaration.
+            let root = parsed
+                .file
+                .parent()
+                .filter(|path| !path.as_os_str().is_empty())
+                .unwrap_or_else(|| Path::new("."));
+            if parsed.file.ends_with("cairn.blueprint") && root.join("cairn.dsl").exists() {
+                return error_output(
+                    parsed.json,
+                    "CAIRN_COMMAND_FAILED",
+                    "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`",
+                );
+            }
             return ok(
                 "No cairn.blueprint found. Inspection has nothing to look at.\n\
                  Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.\n"

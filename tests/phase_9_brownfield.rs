@@ -142,10 +142,7 @@ mod mcp {
 }
 
 mod heuristics {
-    use cairn::brownfield::{
-        CandidateConfidence, DIRECTORY_DEPTH_LIMIT, EDGE_OBSERVATION_THRESHOLD,
-        MIN_CANDIDATE_FILE_COUNT, classify_score, coupling_score,
-    };
+    use cairn::brownfield::{CandidateConfidence, classify_score, coupling_score};
 
     /// Scenario: Coupling score (3+1)/(1+1)=2.0 maps to high confidence.
     #[test]
@@ -172,36 +169,46 @@ mod heuristics {
     }
 
     /// Scenario: Directory candidate min three files.
+    /// Cycle 3: reverted to `#[cflx_planned]` because asserting the
+    /// constant value tautologically (`assert_eq!(CONST, 3)`) does not
+    /// prove the directory traversal honours the threshold. The real
+    /// behavioural test must call into the (still-pending) traversal
+    /// engine against a fixture repo.
+    #[cairn::cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__directory_candidate_min_three_files() {
-        assert_eq!(MIN_CANDIDATE_FILE_COUNT, 3);
+        unimplemented!("awaits phase-9: directory traversal honours MIN_CANDIDATE_FILE_COUNT");
     }
 
-    /// Scenario: Directory depth limit four.
+    /// Scenario: Directory depth limit four. Same rationale as the
+    /// min-three-files test above.
+    #[cairn::cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__directory_depth_limit_four() {
-        assert_eq!(DIRECTORY_DEPTH_LIMIT, 4);
+        unimplemented!("awaits phase-9: directory traversal honours DIRECTORY_DEPTH_LIMIT");
     }
 
     /// Scenario: Edge threshold of two import observations.
+    /// Cycle 3: same rationale; awaits the import-observation engine.
+    #[cairn::cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__edge_threshold_two_import_observations() {
-        assert_eq!(EDGE_OBSERVATION_THRESHOLD, 2);
+        unimplemented!(
+            "awaits phase-9: import-observation engine honours EDGE_OBSERVATION_THRESHOLD"
+        );
     }
 
     /// Scenario: Summariser disabled uses path-derived names.
-    /// The library API guarantees: `Candidate::id` is path-derived.
-    /// AI-supplied names are added later by the summariser only when
-    /// configured. The library never invokes a summariser implicitly.
+    /// Cycle 3: reverted to `#[cflx_planned]` because the prior
+    /// assertion only confirmed a hand-constructed Candidate had a
+    /// non-empty id, not that the disabled-summariser path actually
+    /// derives names from filesystem paths.
+    #[cairn::cflx_planned(phase = 900)]
     #[test]
     fn test_heuristics__summariser_disabled_uses_path_derived_names() {
-        let candidate = cairn::brownfield::Candidate {
-            id: "src/auth".to_owned(),
-            directory: "src/auth".to_owned(),
-            file_count: 4,
-            confidence: CandidateConfidence::High,
-        };
-        assert!(candidate.id.contains('/') || !candidate.id.is_empty());
+        unimplemented!(
+            "awaits phase-9: disabled-summariser fallback constructor derives id from path"
+        );
     }
 }
 

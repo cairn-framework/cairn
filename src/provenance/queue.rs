@@ -85,6 +85,20 @@ pub enum QueueError {
     },
 }
 
+impl QueueError {
+    /// Short human label for embedding in `validate_strict` failure
+    /// messages so users can distinguish between Io/Parse/Version
+    /// surfaces without inspecting the full error variant.
+    #[must_use]
+    pub fn short_label(&self) -> &'static str {
+        match self {
+            Self::Io(_) => "io",
+            Self::Parse(_) => "parse",
+            Self::UnsupportedVersion { .. } => "unsupported-version",
+        }
+    }
+}
+
 impl std::fmt::Display for QueueError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -151,35 +165,64 @@ pub fn read_from_change(change_dir: &Path) -> Result<Option<SuggestedEdgesQueue>
     read_queue(&queue_path_for_change(change_dir))
 }
 
-/// Writes the queue for a change directory atomically (temp-file rename).
+/// Writes the queue for a change directory atomically. Cycle 3 fix:
+/// temp-file path now carries pid + nanos suffix so concurrent writers
+/// do not race on the same `.json.tmp` filename.
 ///
 /// # Errors
 ///
-/// Returns `QueueError::Io` when the directory cannot be created or the
-/// temp-file rename fails.
+/// Returns `QueueError::Io` when the directory cannot be created or
+/// either filesystem operation fails.
 pub fn write_to_change(change_dir: &Path, queue: &SuggestedEdgesQueue) -> Result<(), QueueError> {
     if !change_dir.exists() {
         fs::create_dir_all(change_dir).map_err(|e| QueueError::Io(e.to_string()))?;
     }
     let final_path = queue_path_for_change(change_dir);
-    let temp_path = final_path.with_extension("json.tmp");
+    let temp_path = unique_temp_path(&final_path);
     let body = serde_json::to_string_pretty(queue).map_err(|e| QueueError::Io(e.to_string()))?;
     fs::write(&temp_path, body).map_err(|e| QueueError::Io(e.to_string()))?;
     fs::rename(&temp_path, &final_path).map_err(|e| QueueError::Io(e.to_string()))?;
     Ok(())
 }
 
+fn unique_temp_path(final_path: &Path) -> std::path::PathBuf {
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or_default();
+    let pid = std::process::id();
+    let stem = final_path
+        .file_name()
+        .map(std::ffi::OsStr::to_string_lossy)
+        .unwrap_or_default();
+    let parent = final_path.parent().unwrap_or_else(|| Path::new("."));
+    parent.join(format!("{stem}.{pid}.{nanos}.tmp"))
+}
+
 /// Returns `Ok(())` when the queue (if present) has zero pending
 /// entries; returns `Err(CairnError::UntriagedSuggestedEdges)` (CC002)
-/// otherwise. Used by `cflx openspec validate --strict`.
+/// when entries are pending; returns
+/// `Err(CairnError::ChangeDiscovery)` (CC003) when the queue file
+/// exists but cannot be read, parsed, or carries a version newer than
+/// supported. Cycle 3 fix: previously swallowed read/parse/version
+/// errors as success, defeating the very gate it implements.
 ///
 /// # Errors
 ///
-/// Returns `CairnError::UntriagedSuggestedEdges` (code CC002) when one
-/// or more entries are still in `Pending` triage state.
+/// Returns `UntriagedSuggestedEdges` (CC002) for pending entries and
+/// `ChangeDiscovery` (CC003) for queue I/O, parse, or version errors.
 pub fn validate_strict(change_id: &str, change_dir: &Path) -> Result<(), crate::error::CairnError> {
-    let Ok(Some(queue)) = read_from_change(change_dir) else {
-        return Ok(());
+    let queue = match read_from_change(change_dir) {
+        Ok(None) => return Ok(()),
+        Ok(Some(q)) => q,
+        Err(e) => {
+            return Err(crate::error::CairnError::ChangeDiscovery {
+                path: queue_path_for_change(change_dir)
+                    .to_string_lossy()
+                    .into_owned(),
+                detail: format!("{} ({})", e, e.short_label()),
+            });
+        }
     };
     let pending = count_pending(&queue);
     if pending == 0 {

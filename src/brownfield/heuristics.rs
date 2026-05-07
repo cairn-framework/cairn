@@ -21,6 +21,11 @@ pub const CONFIDENCE_HIGH: f64 = 2.0;
 pub const CONFIDENCE_MEDIUM: f64 = 1.0;
 
 /// Confidence bucket for a coupling score.
+///
+/// In-process classification only. The phase-7.6 suggested-edges
+/// queue (`suggested-edges.json`) carries the raw `f64` score on
+/// `SuggestedEdgeEntry::confidence`, not this enum, so no `serde`
+/// derives are required.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CandidateConfidence {
     /// High-confidence candidate.

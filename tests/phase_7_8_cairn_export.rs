@@ -161,6 +161,28 @@ fn test_build_export_returns_ck001_on_scanner_error() {
     assert_eq!(err.code(), "CK001");
 }
 
+/// Cycle 3: when the runner is invoked with --json, error envelopes
+/// carry the canonical `code` field so MCP/LSP consumers can parse them.
+#[test]
+fn test_export_runner_emits_json_errors_when_json_flag_set() {
+    let result = cairn::cli::run(&[
+        "--json".to_owned(),
+        "export".to_owned(),
+        "--format".to_owned(),
+        "json".to_owned(),
+        "--output".to_owned(),
+        "/tmp/cycle-3-test-out.json".to_owned(),
+    ]);
+    assert_eq!(result.code, 1, "missing blueprint must exit 1");
+    // findings_output writes JSON envelopes to stdout, plain text to stderr.
+    assert!(
+        result.stdout.contains("\"code\":\"CK001\""),
+        "JSON error envelope must carry CK001 on stdout, got stdout: {}, stderr: {}",
+        result.stdout,
+        result.stderr
+    );
+}
+
 /// Insta snapshot: pin JSON wire format for a representative envelope.
 #[test]
 fn json_snapshot_pins_wire_format() {

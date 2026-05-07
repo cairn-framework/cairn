@@ -7,7 +7,9 @@ against. Asserts that every phase-7.7 acceptance-criterion scenario has
 a corresponding `#[cflx_planned(phase = 707)]` stub in
 `tests/phase_7_7_ux_foundation.rs`. The parent phase removes these
 attributes group-by-group as the underlying CLI / copy / explorer code
-lands; this meta-spec retires when phase-7.7 archives.
+lands. This meta-spec is retained as historical record once phase-7.7
+archives and may be removed manually at that time; cflx has no
+automated retire-meta-spec step today.
 
 ## Requirements
 

@@ -17,19 +17,23 @@ use crate::{
 use super::{ExportEnvelope, build_export, render_json, render_markdown};
 
 /// Entrypoint for the `cairn export` command.
+///
+/// `json` flag is propagated from the global parser (per cycle 3 fix);
+/// when set, error envelopes are emitted as JSON so MCP/LSP consumers
+/// can parse the carrying `code` field.
 #[must_use]
-pub fn run(args: &[String], file: &Path, changes_dir: &Path) -> CliResult {
+pub fn run(args: &[String], file: &Path, changes_dir: &Path, json: bool) -> CliResult {
     let parsed = match parse_export_args(args) {
         Ok(p) => p,
         Err(result) => return result,
     };
     let envelope = match build_export(file, changes_dir) {
         Ok(e) => e,
-        Err(error) => return error_output(false, error.code(), &error.to_string()),
+        Err(error) => return error_output(json, error.code(), &error.to_string()),
     };
     let body = render(&envelope, parsed.format);
     if let Err(error) = write_output(&parsed.output, &body) {
-        return error_output(false, error.code(), &error.to_string());
+        return error_output(json, error.code(), &error.to_string());
     }
     ok(format!(
         "wrote {} bytes to {}\n",

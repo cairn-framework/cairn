@@ -168,9 +168,18 @@ fn structural_findings(findings: &[Finding]) -> Vec<Finding> {
 }
 
 fn tension_findings(findings: &[Finding]) -> Vec<Finding> {
+    // Cycle 3: include both Warning and Info severities so the
+    // advisory channel still surfaces non-blocking signals (e.g.,
+    // CAIRN_SOURCE_UNVERIFIED, which phase 7.7 demoted from Warning to
+    // Info per the FindingSeverity::Info kernel addition).
     findings
         .iter()
-        .filter(|finding| finding.severity == FindingSeverity::Warning)
+        .filter(|finding| {
+            matches!(
+                finding.severity,
+                FindingSeverity::Warning | FindingSeverity::Info
+            )
+        })
         .cloned()
         .collect()
 }
