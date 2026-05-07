@@ -20,6 +20,18 @@ pub enum CairnError {
         /// Path to the queue file.
         file_path: String,
     },
+    /// Scanner failed to load the project for an export, scan, or query.
+    ScannerLoad {
+        /// Detail returned by the scanner.
+        detail: String,
+    },
+    /// Writing CLI output to disk failed.
+    WriteOutput {
+        /// Path that could not be written.
+        path: String,
+        /// Underlying I/O error message.
+        detail: String,
+    },
 }
 
 impl fmt::Display for CairnError {
@@ -39,6 +51,12 @@ impl fmt::Display for CairnError {
                 f,
                 "change `{change_id}` has {pending_count} untriaged suggested-edge entries in {file_path}; resolve them before --strict validate passes"
             ),
+            Self::ScannerLoad { detail } => {
+                write!(f, "scanner failed to load project: {detail}")
+            }
+            Self::WriteOutput { path, detail } => {
+                write!(f, "failed to write {path}: {detail}")
+            }
         }
     }
 }
@@ -52,6 +70,8 @@ impl CairnError {
         match self {
             Self::BlockedVerification { .. } => "CC001",
             Self::UntriagedSuggestedEdges { .. } => "CC002",
+            Self::ScannerLoad { .. } => "CK001",
+            Self::WriteOutput { .. } => "CK002",
         }
     }
 }

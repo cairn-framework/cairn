@@ -41,7 +41,8 @@ _No codes allocated yet._
 
 ## CK -- Kernel/Map
 
-_No codes allocated yet._
+- CK001 -- scanner failed to load project -- phase-7.8 reforge
+- CK002 -- failed to write CLI output to disk -- phase-7.8 reforge
 
 ## CA -- Artefacts
 

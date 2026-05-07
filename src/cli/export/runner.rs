@@ -1,11 +1,17 @@
 //! CLI dispatch for `cairn export`: parses local flags, builds the
 //! envelope, renders, and writes to disk.
 
-use std::{fs, io, path::Path, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
-use crate::cli::{
-    CliResult,
-    format::{err, error_output, ok},
+use crate::{
+    cli::{
+        CliResult,
+        format::{err, error_output, ok},
+    },
+    error::CairnError,
 };
 
 use super::{ExportEnvelope, build_export, render_json, render_markdown};
@@ -19,11 +25,11 @@ pub fn run(args: &[String], file: &Path, changes_dir: &Path) -> CliResult {
     };
     let envelope = match build_export(file, changes_dir) {
         Ok(e) => e,
-        Err(error) => return error_output(false, "CAIRN_COMMAND_FAILED", &error),
+        Err(error) => return error_output(false, error.code(), &error.to_string()),
     };
     let body = render(&envelope, parsed.format);
-    if let Err(write_err) = write_output(&parsed.output, &body) {
-        return error_output(false, "CAIRN_COMMAND_FAILED", &write_err);
+    if let Err(error) = write_output(&parsed.output, &body) {
+        return error_output(false, error.code(), &error.to_string());
     }
     ok(format!(
         "wrote {} bytes to {}\n",
@@ -39,9 +45,11 @@ fn render(envelope: &ExportEnvelope, format: ExportFormat) -> String {
     }
 }
 
-fn write_output(path: &Path, body: &str) -> Result<(), String> {
-    fs::write(path, body)
-        .map_err(|e: io::Error| format!("failed to write {}: {}", path.to_string_lossy(), e))
+fn write_output(path: &Path, body: &str) -> Result<(), CairnError> {
+    fs::write(path, body).map_err(|e| CairnError::WriteOutput {
+        path: path.to_string_lossy().into_owned(),
+        detail: e.to_string(),
+    })
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

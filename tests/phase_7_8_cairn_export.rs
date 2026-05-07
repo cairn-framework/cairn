@@ -140,9 +140,74 @@ fn test_export_is_lifecycle_orthogonal() {
 #[test]
 fn test_render_delegates_to_shared_library_service() {
     // build_export is the shared library entrypoint usable by CLI, MCP, LSP,
-    // and webui consumers without parsing CLI text.
-    let _: fn(&std::path::Path, &std::path::Path) -> Result<ExportEnvelope, String> =
-        export::build_export;
+    // and webui consumers without parsing CLI text. Returns CairnError per
+    // phase-7.8 reforge cycle 1 (was Result<_, String>).
+    let _: fn(
+        &std::path::Path,
+        &std::path::Path,
+    ) -> Result<ExportEnvelope, cairn::error::CairnError> = export::build_export;
     let _: fn(&ExportEnvelope) -> String = export::render_json;
     let _: fn(&ExportEnvelope) -> String = export::render_markdown;
+}
+
+/// Scenario: `build_export` errors carry CK001 when the scanner fails.
+#[test]
+fn test_build_export_returns_ck001_on_scanner_error() {
+    let result = export::build_export(
+        std::path::Path::new("/nonexistent/cairn.blueprint"),
+        std::path::Path::new("/nonexistent/changes"),
+    );
+    let err = result.expect_err("missing blueprint must error");
+    assert_eq!(err.code(), "CK001");
+}
+
+/// Insta snapshot: pin JSON wire format for a representative envelope.
+#[test]
+fn json_snapshot_pins_wire_format() {
+    let env = ExportEnvelope {
+        schema_version: SCHEMA_VERSION,
+        generated_at: "2026-05-07T12:00:00Z".to_owned(),
+        blueprint_path: PathBuf::from("cairn.blueprint"),
+        nodes: Vec::new(),
+        edges: vec![EdgeEntry {
+            from: "node-a".to_owned(),
+            to: "node-b".to_owned(),
+            verb: "calls".to_owned(),
+        }],
+        artefacts: vec![ArtefactEntry {
+            artefact_type: cairn::artefacts::registry::ArtefactType::Contract,
+            id: "openspec/specs/foo/contract.md".to_owned(),
+            path: "openspec/specs/foo/contract.md".to_owned(),
+            node: Some("node-a".to_owned()),
+        }],
+        changes: vec![ChangeEntry {
+            id: "phase-x".to_owned(),
+            state: "active".to_owned(),
+            title: "Phase X".to_owned(),
+        }],
+    };
+    insta::assert_snapshot!("export_json_envelope", export::render_json(&env));
+}
+
+/// Insta snapshot: pin Markdown wire format for a representative envelope.
+#[test]
+fn markdown_snapshot_pins_wire_format() {
+    let env = ExportEnvelope {
+        schema_version: SCHEMA_VERSION,
+        generated_at: "2026-05-07T12:00:00Z".to_owned(),
+        blueprint_path: PathBuf::from("cairn.blueprint"),
+        nodes: Vec::new(),
+        edges: vec![EdgeEntry {
+            from: "node-a".to_owned(),
+            to: "node-b".to_owned(),
+            verb: "calls".to_owned(),
+        }],
+        artefacts: Vec::new(),
+        changes: vec![ChangeEntry {
+            id: "phase-x".to_owned(),
+            state: "active".to_owned(),
+            title: "Phase X".to_owned(),
+        }],
+    };
+    insta::assert_snapshot!("export_markdown_envelope", export::render_markdown(&env));
 }

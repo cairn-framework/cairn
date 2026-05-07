@@ -9,6 +9,7 @@ use std::{
 use crate::{
     artefacts::registry::{ArtefactSet, ArtefactType},
     changes::{self, Change},
+    error::CairnError,
     map::graph::{Graph, NodeRecord},
     scanner,
 };
@@ -19,10 +20,12 @@ use super::{ArtefactEntry, ChangeEntry, EdgeEntry, ExportEnvelope, SCHEMA_VERSIO
 ///
 /// # Errors
 ///
-/// Returns the scanner error string when the project cannot be loaded.
-pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, String> {
+/// Returns `CairnError::ScannerLoad` (code CK001) when the project
+/// cannot be loaded.
+pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, CairnError> {
     let root = super::blueprint_root(file);
-    let scan_result = scanner::load_project(root, file)?;
+    let scan_result =
+        scanner::load_project(root, file).map_err(|detail| CairnError::ScannerLoad { detail })?;
     let now = current_timestamp_rfc3339();
     let edges = flatten_edges(&scan_result.graph);
     let artefacts = flatten_artefacts(&scan_result.artefacts);
@@ -207,11 +210,12 @@ mod tests {
     }
 
     #[test]
-    fn build_export_propagates_scanner_errors() {
+    fn build_export_propagates_scanner_errors_with_ck001() {
         let result = build_export(
             Path::new("/nonexistent/cairn.blueprint"),
             Path::new("/nonexistent/changes"),
         );
-        assert!(result.is_err());
+        let err = result.expect_err("missing blueprint must error");
+        assert_eq!(err.code(), "CK001");
     }
 }
