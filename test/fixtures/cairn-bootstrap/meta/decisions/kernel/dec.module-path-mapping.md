@@ -25,7 +25,7 @@ The original blueprint declared paths under `./src/kernel/*` and a `CodeReconcil
 2. **Three module names are aligned to the canonical taxonomy** (reconciler = pluggable interface, scanner = engine, scan = verb):
    - `cairn.kernel.reconciler` ("Reconciler") is the abstract contract a reconciler must satisfy. No on-disk path. The trait file lives in the directory owned by the concrete CodeReconciler module.
    - `cairn.kernel.scanner` ("Scanner", renamed from "Reconciliation") is the engine that runs all reconcilers and assembles their output into the map. Path: `./src/scanner`.
-   - `cairn.code-reconciler` ("CodeReconciler") is the concrete reconciler for source code. Path: `./src/reconcile` (the directory containing the trait in `mod.rs` and per-language reconcilers in `code.rs`, `go.rs`, `python.rs`, `typescript.rs`).
+   - `cairn.code-reconciler` ("CodeReconciler") is the concrete reconciler for source code. Path: `./src/reconcile` (the directory containing the trait in `mod.rs`, per-language reconcilers in `code.rs`, `go.rs`, `python.rs`, `typescript.rs`, plus the supporting infrastructure in `fingerprint.rs` and `target.rs`).
 
 3. **`Reconciliation` was renamed to `Scanner`** to remove the shared "reconcil-" stem with `Reconciler` and `CodeReconciler`. Three distinct stems read more clearly to humans and to AI agents reading the blueprint.
 
