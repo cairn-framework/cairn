@@ -1,6 +1,6 @@
 ---
 id: dec.contradiction-classes
-nodes: [cairn.kernel.reconciliation, cairn.kernel.hooks]
+nodes: [cairn.kernel.scanner, cairn.kernel.hooks]
 status: accepted
 date: 2026-04-13
 revisited: 2026-04-13

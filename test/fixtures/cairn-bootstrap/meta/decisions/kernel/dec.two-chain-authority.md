@@ -1,6 +1,6 @@
 ---
 id: dec.two-chain-authority
-nodes: [cairn.kernel.parser, cairn.kernel.artefacts, cairn.kernel.reconciliation]
+nodes: [cairn.kernel.parser, cairn.kernel.artefacts, cairn.kernel.scanner]
 status: accepted
 date: 2026-04-13
 revisited: 2026-04-13

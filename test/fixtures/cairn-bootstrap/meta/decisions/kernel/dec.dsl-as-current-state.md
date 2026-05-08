@@ -1,6 +1,6 @@
 ---
 id: dec.blueprint-as-current-state
-nodes: [cairn.kernel.parser, cairn.kernel.reconciliation, cairn.kernel.query]
+nodes: [cairn.kernel.parser, cairn.kernel.scanner, cairn.kernel.query]
 status: accepted
 date: 2026-04-13
 revisited: 2026-04-13
