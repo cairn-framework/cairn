@@ -1,6 +1,6 @@
 [workspace]
 members = [".", "cairn-macros"]
-resolver = "3"
+resolver = "2"
 
 [workspace.dependencies]
 syn = { version = "2.0", features = ["full"] }
