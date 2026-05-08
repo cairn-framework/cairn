@@ -9,16 +9,16 @@ Cairn hooks enforce structural and interface integrity at task boundaries (pre-c
 Blocks on structural errors: duplicate node IDs, path ties, broken artefact pointers, reference orphans, source checksum mismatches, orphaned files.
 
 **Exit codes:**
-- `0` — no structural errors found
-- `1` — one or more structural errors found (blocks commit)
+- `0`: no structural errors found
+- `1`: one or more structural errors found (blocks commit)
 
 ### `cairn hook interface`
 
 Blocks on unresolved interface contradictions: a module's current interface hash differs from what is recorded in `.cairn/state/interface-hashes.json`.
 
 **Exit codes:**
-- `0` — no interface contradictions found
-- `1` — one or more interface contradictions found (blocks commit)
+- `0`: no interface contradictions found
+- `1`: one or more interface contradictions found (blocks commit)
 
 ### `cairn hook tension`
 
@@ -27,15 +27,15 @@ Reports rationale tensions (advisory findings) without blocking. Always exits `0
 Reports: orphan sources, research not linked from decisions, decision cite chains pointing to deleted artefacts, revisit triggers that appear relevant.
 
 **Exit codes:**
-- `0` — always (tensions are advisory, not blocking)
+- `0`: always (tensions are advisory, not blocking)
 
 ### `cairn hook all`
 
 Combined semantics. Runs structural and interface checks. Reports tensions.
 
 **Exit codes:**
-- `0` — no structural errors and no interface contradictions
-- `1` — structural errors or interface contradictions found
+- `0`: no structural errors and no interface contradictions
+- `1`: structural errors or interface contradictions found
 
 Tensions do not independently fail the hook; they appear in the report alongside blocking findings.
 

@@ -995,70 +995,70 @@ footer.site .fnav a:hover { color: var(--ink-char); }
         <svg viewBox="0 0 640 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
           <defs>
             <pattern id="grid-dot-2" width="24" height="24" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="0.7" fill="#2a2620" opacity="0.55"/>
+              <circle cx="1" cy="1" r="0.7" opacity="0.55" style="fill:var(--seam-faint)"/>
             </pattern>
           </defs>
           <rect width="640" height="520" fill="url(#grid-dot-2)"/>
 
           <!-- Rail labels at top -->
-          <text x="80" y="44" fill="#f4b36a" font-family="IBM Plex Mono" font-size="13" font-weight="500" letter-spacing="0.2em">PROVENANCE</text>
-          <text x="560" y="44" text-anchor="end" fill="#88c4b4" font-family="IBM Plex Mono" font-size="13" font-weight="500" letter-spacing="0.2em">AUTHORITY</text>
-          <text x="80" y="62" fill="#908673" font-family="Source Serif 4" font-style="italic" font-size="12">chain of why</text>
-          <text x="560" y="62" text-anchor="end" fill="#908673" font-family="Source Serif 4" font-style="italic" font-size="12">chain of what</text>
+          <text x="80" y="44" font-family="IBM Plex Mono" font-weight="500" letter-spacing="0.2em" style="fill:var(--prov-1);font-size:var(--t-body)">PROVENANCE</text>
+          <text x="560" y="44" text-anchor="end" font-family="IBM Plex Mono" font-weight="500" letter-spacing="0.2em" style="fill:var(--auth-1);font-size:var(--t-body)">AUTHORITY</text>
+          <text x="80" y="62" font-family="Source Serif 4" font-style="italic" style="fill:var(--ink-faded);font-size:var(--t-small)">chain of why</text>
+          <text x="560" y="62" text-anchor="end" font-family="Source Serif 4" font-style="italic" style="fill:var(--ink-faded);font-size:var(--t-small)">chain of what</text>
 
           <!-- Provenance spine (left) -->
-          <g font-family="IBM Plex Mono" font-size="14" fill="#e8e1d2">
-            <circle cx="90" cy="120" r="7" fill="#f4b36a"/>
+          <g font-family="IBM Plex Mono" style="font-size:var(--t-body);fill:var(--hinge-1)">
+            <circle cx="90" cy="120" r="7" style="fill:var(--prov-1)"/>
             <text x="110" y="125">source</text>
-            <line x1="90" y1="128" x2="90" y2="182" stroke="#7d5530" stroke-width="1.2"/>
-            <circle cx="90" cy="190" r="7" fill="#f4b36a"/>
+            <line x1="90" y1="128" x2="90" y2="182" stroke-width="1.2" style="stroke:var(--prov-3)"/>
+            <circle cx="90" cy="190" r="7" style="fill:var(--prov-1)"/>
             <text x="110" y="195">research</text>
-            <line x1="90" y1="198" x2="90" y2="252" stroke="#7d5530" stroke-width="1.2"/>
-            <circle cx="90" cy="260" r="7" fill="#f4b36a"/>
+            <line x1="90" y1="198" x2="90" y2="252" stroke-width="1.2" style="stroke:var(--prov-3)"/>
+            <circle cx="90" cy="260" r="7" style="fill:var(--prov-1)"/>
             <text x="110" y="265">synthesis</text>
           </g>
 
           <!-- Authority spine (right) -->
-          <g font-family="IBM Plex Mono" font-size="14" fill="#e8e1d2">
-            <circle cx="550" cy="120" r="7" fill="#88c4b4"/>
+          <g font-family="IBM Plex Mono" style="font-size:var(--t-body);fill:var(--hinge-1)">
+            <circle cx="550" cy="120" r="7" style="fill:var(--auth-1)"/>
             <text x="530" y="125" text-anchor="end">blueprint</text>
-            <line x1="550" y1="128" x2="550" y2="182" stroke="#2f5448" stroke-width="1.2"/>
-            <circle cx="550" cy="190" r="7" fill="#88c4b4"/>
+            <line x1="550" y1="128" x2="550" y2="182" stroke-width="1.2" style="stroke:var(--auth-3)"/>
+            <circle cx="550" cy="190" r="7" style="fill:var(--auth-1)"/>
             <text x="530" y="195" text-anchor="end">contract</text>
-            <line x1="550" y1="198" x2="550" y2="252" stroke="#2f5448" stroke-width="1.2"/>
-            <circle cx="550" cy="260" r="7" fill="#88c4b4"/>
+            <line x1="550" y1="198" x2="550" y2="252" stroke-width="1.2" style="stroke:var(--auth-3)"/>
+            <circle cx="550" cy="260" r="7" style="fill:var(--auth-1)"/>
             <text x="530" y="265" text-anchor="end">code</text>
           </g>
 
           <!-- Arcs from prov spine to hinge -->
-          <path d="M 97 260 Q 180 260, 280 260" fill="none" stroke="#c4864a" stroke-width="1.6" opacity="0.85"/>
-          <path d="M 97 190 Q 200 220, 275 250" fill="none" stroke="#c4864a" stroke-width="1.1" opacity="0.5"/>
+          <path d="M 97 260 Q 180 260, 280 260" fill="none" stroke-width="1.6" opacity="0.85" style="stroke:var(--prov-2)"/>
+          <path d="M 97 190 Q 200 220, 275 250" fill="none" stroke-width="1.1" opacity="0.5" style="stroke:var(--prov-2)"/>
 
           <!-- Arcs from hinge to auth spine -->
-          <path d="M 360 260 Q 460 260, 543 260" fill="none" stroke="#5a9687" stroke-width="1.6" opacity="0.85"/>
-          <path d="M 360 260 Q 460 220, 543 190" fill="none" stroke="#5a9687" stroke-width="1.1" opacity="0.5"/>
+          <path d="M 360 260 Q 460 260, 543 260" fill="none" stroke-width="1.6" opacity="0.85" style="stroke:var(--auth-2)"/>
+          <path d="M 360 260 Q 460 220, 543 190" fill="none" stroke-width="1.1" opacity="0.5" style="stroke:var(--auth-2)"/>
 
           <!-- Hinge (center) -->
           <g transform="translate(320, 260)">
-            <text text-anchor="middle" y="-72" font-family="Source Serif 4" font-style="italic" font-size="18" fill="#908673">the hinge</text>
-            <circle r="52" fill="#22201b" stroke="#e8e1d2" stroke-width="1.5"/>
-            <circle r="36" fill="#f2ece0"/>
-            <text text-anchor="middle" y="5" font-family="IBM Plex Mono" font-weight="600" font-size="13" fill="#141310" letter-spacing="0.04em">DECISION</text>
+            <text text-anchor="middle" y="-72" font-family="Source Serif 4" font-style="italic" style="fill:var(--ink-faded);font-size:var(--t-lede)">the hinge</text>
+            <circle r="52" stroke-width="1.5" style="fill:var(--stone-3);stroke:var(--hinge-1)"/>
+            <circle r="36" style="fill:var(--ink-char)"/>
+            <text text-anchor="middle" y="5" font-family="IBM Plex Mono" font-weight="600" letter-spacing="0.04em" style="fill:var(--stone-1);font-size:var(--t-body)">DECISION</text>
           </g>
 
           <!-- Bottom: downstream outcomes -->
-          <g font-family="IBM Plex Mono" font-size="12" fill="#c9c0ae">
-            <line x1="90" y1="320" x2="90" y2="388" stroke="#38332b" stroke-width="1.2"/>
-            <circle cx="90" cy="395" r="5" fill="#7d5530"/>
+          <g font-family="IBM Plex Mono" style="font-size:var(--t-small);fill:var(--ink-aged)">
+            <line x1="90" y1="320" x2="90" y2="388" stroke-width="1.2" style="stroke:var(--seam-thin)"/>
+            <circle cx="90" cy="395" r="5" style="fill:var(--prov-3)"/>
             <text x="110" y="400">todo · review</text>
 
-            <line x1="550" y1="320" x2="550" y2="388" stroke="#38332b" stroke-width="1.2"/>
-            <circle cx="550" cy="395" r="5" fill="#2f5448"/>
+            <line x1="550" y1="320" x2="550" y2="388" stroke-width="1.2" style="stroke:var(--seam-thin)"/>
+            <circle cx="550" cy="395" r="5" style="fill:var(--auth-3)"/>
             <text x="530" y="400" text-anchor="end">tests · runtime</text>
           </g>
 
           <!-- Caption -->
-          <text x="320" y="480" text-anchor="middle" font-family="Source Serif 4" font-style="italic" font-size="15" fill="#b6ac96">two chains · one honest system</text>
+          <text x="320" y="480" text-anchor="middle" font-family="Source Serif 4" font-style="italic" style="fill:var(--hinge-2);font-size:var(--t-lede)">two chains · one honest system</text>
         </svg>
       </div>
 
@@ -1133,7 +1133,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
             <span class="status ghost">ghost</span>
           </div>
         </div>
-        <div style="margin-top:var(--s-5); padding-top:var(--s-4); border-top:1px dashed var(--seam-thin); font-family:var(--font-mono); font-size:12px; color:var(--ink-faded); line-height:1.7">
+        <div style="margin-top:var(--s-5); padding-top:var(--s-4); border-top:1px dashed var(--seam-thin); font-family:var(--font-mono); font-size:var(--t-small); color:var(--ink-faded); line-height:1.7">
           <div>3 synced · 1 drift · 1 ghost</div>
           <div>2 findings · <span style="color:var(--drift)">1 contradiction</span> · <span style="color:var(--prov-2)">1 tension</span></div>
         </div>

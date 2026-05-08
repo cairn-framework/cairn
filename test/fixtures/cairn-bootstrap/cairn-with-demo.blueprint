@@ -1,12 +1,21 @@
-# Cairn bootstrap — the framework described as a Cairn project.
+# Cairn bootstrap, demo variant. Mirrors cairn.blueprint plus the
+# meta/_demo pointers that activate the finding-class demonstrators.
+# See meta/_demo/README.md for what this surfaces and why.
 #
-# IDs use dotted notation. Top-level is "cairn" (not "cairn.system") — the
-# System node's ID is the namespace root, not a label within it.
+# Use this blueprint when the demonstrators must fire:
+#     cairn --file cairn-with-demo.blueprint scan
+#
+# The default cairn.blueprint excludes meta/_demo/ so the regular
+# scan path stays green (see issue #54 acceptance).
 
 System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
 
     todos    "./meta/todos"
     reviews  "./meta/reviews"
+
+    # Demonstrator pointers, only loaded by this variant.
+    todos    "./meta/_demo/todos"
+    reviews  "./meta/_demo/reviews"
 
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
 

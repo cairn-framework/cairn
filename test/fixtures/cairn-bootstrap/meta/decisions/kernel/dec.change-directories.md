@@ -1,6 +1,6 @@
 ---
 id: dec.change-directories
-nodes: [cairn.kernel.changes, cairn.kernel.reconciliation]
+nodes: [cairn.kernel.changes, cairn.kernel.scanner]
 status: accepted
 date: 2026-04-13
 revisited: 2026-04-13
