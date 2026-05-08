@@ -1,0 +1,89 @@
+# Cairn bootstrap, demo variant. Mirrors cairn.blueprint plus the
+# meta/_demo pointers that activate the finding-class demonstrators.
+# See meta/_demo/README.md for what this surfaces and why.
+#
+# Use this blueprint when the demonstrators must fire:
+#     cairn --file cairn-with-demo.blueprint scan
+#
+# The default cairn.blueprint excludes meta/_demo/ so the regular
+# scan path stays green (see issue #54 acceptance).
+
+System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
+
+    todos    "./meta/todos"
+    reviews  "./meta/reviews"
+
+    # Demonstrator pointers, only loaded by this variant.
+    todos    "./meta/_demo/todos"
+    reviews  "./meta/_demo/reviews"
+
+    Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
+
+        Module Parser "Parses .blueprint files into a node graph" id "cairn.kernel.parser" {
+            path "./src/blueprint"
+            contract  "./meta/contracts/kernel/parser.md"
+            decisions "./meta/decisions/kernel/parser/"
+        }
+
+        Module Artefacts "Pluggable artefact type registry" id "cairn.kernel.artefacts" {
+            path "./src/artefacts"
+            contract  "./meta/contracts/kernel/artefacts.md"
+            decisions "./meta/decisions/kernel/artefacts/"
+        }
+
+        Module Reconciler "Abstract contract for reconcilers" id "cairn.kernel.reconciler" {
+            contract  "./meta/contracts/kernel/reconciler.md"
+            decisions "./meta/decisions/kernel/reconciler/"
+            research  "./meta/research/kernel/reconciler/"
+        }
+
+        Module Scanner "Engine that runs reconcilers and joins their output into the map" id "cairn.kernel.scanner" {
+            path "./src/scanner"
+            contract "./meta/contracts/kernel/scanner.md"
+        }
+
+        Module Changes "Change directories, delta semantics, archive" id "cairn.kernel.changes" {
+            path "./src/changes"
+            contract  "./meta/contracts/kernel/changes.md"
+            decisions "./meta/decisions/kernel/changes/"
+        }
+
+        Module Hooks "Commit and task-boundary enforcement" id "cairn.kernel.hooks" {
+            path "./src/hooks"
+            contract "./meta/contracts/kernel/hooks.md"
+        }
+
+        Module Query "Typed queries over the map" id "cairn.kernel.query" {
+            path "./src/query_api"
+            contract "./meta/contracts/kernel/query.md"
+        }
+
+        Module CLI "Primary user surface" id "cairn.kernel.cli" {
+            path "./src/cli"
+            contract "./meta/contracts/kernel/cli.md"
+        }
+    }
+
+    Module CodeReconciler "Tree-sitter-based reconciler for source code" id "cairn.code-reconciler" @reconciler @code {
+        path "./src/reconcile"
+        contract  "./meta/contracts/reconcilers/code.md"
+        decisions "./meta/decisions/reconcilers/code/"
+        research  "./meta/research/reconcilers/code/"
+    }
+
+    Module Summariser "Optional LLM callout for interface contradictions" id "cairn.summariser" @optional {
+        path "./src/summariser"
+        contract "./meta/contracts/summariser.md"
+    }
+}
+
+# Edges. IDs on both sides.
+cairn.kernel.cli           -> cairn.kernel.query    "Exposes queries as commands"
+cairn.kernel.query         -> cairn.kernel.scanner  "Reads map"
+cairn.kernel.scanner       -> cairn.kernel.parser   "Consumes parsed blueprint"
+cairn.kernel.scanner       -> cairn.kernel.artefacts "Validates artefacts"
+cairn.kernel.scanner       -> cairn.kernel.reconciler "Invokes registered reconcilers"
+cairn.code-reconciler      -> cairn.kernel.reconciler "Implements"
+cairn.kernel.changes       -> cairn.kernel.scanner  "Validates before archive"
+cairn.kernel.hooks         -> cairn.kernel.scanner  "Gates on integrity"
+cairn.summariser           -> cairn.kernel.scanner  "Proposes contract updates on contradictions"
