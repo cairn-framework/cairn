@@ -5,6 +5,9 @@
 
 System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
 
+    todos    "./meta/todos"
+    reviews  "./meta/reviews"
+
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
 
         Module Parser "Parses .blueprint files into a node graph" id "cairn.kernel.parser" {
