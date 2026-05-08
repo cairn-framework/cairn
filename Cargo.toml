@@ -20,7 +20,7 @@ todo = { level = "deny" }
 [package]
 name = "cairn"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 description = "Foundation package for the Cairn architecture graph tool."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
