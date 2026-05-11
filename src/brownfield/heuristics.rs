@@ -105,7 +105,7 @@ impl Candidate {
     }
 }
 
-fn path_derived_id(directory: &str) -> String {
+pub(crate) fn path_derived_id(directory: &str) -> String {
     directory
         .trim_start_matches("./")
         .trim_start_matches('/')

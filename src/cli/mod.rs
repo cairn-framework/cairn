@@ -31,7 +31,7 @@ mod render;
 
 use commands::{
     init_project, legacy_blueprint_warning, requires_valid_map, run_archive_command,
-    run_hook_command, run_shared_json_command, run_ui_command,
+    run_hook_command, run_onboard_command, run_shared_json_command, run_ui_command,
 };
 use format::{
     err, error_output, esc, finding_output, findings_output, lines, node_arg, ok, render_findings,
@@ -88,6 +88,9 @@ pub fn run(args: &[String]) -> CliResult {
             &parsed.changes_dir,
             parsed.json,
         );
+    }
+    if parsed.command == "onboard" {
+        return run_onboard_command(&parsed);
     }
     if parsed.command == "check" {
         if parsed.json {

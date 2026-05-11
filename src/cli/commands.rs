@@ -159,6 +159,46 @@ pub(super) fn parse_hook_kind(value: &str) -> Option<HookKind> {
     }
 }
 
+pub(super) fn run_onboard_command(parsed: &ParsedArgs) -> CliResult {
+    let root = parsed
+        .file
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+
+    let (blueprint_path, _temp_dir) = if parsed.file.exists() {
+        (parsed.file.clone(), None)
+    } else {
+        let dir = std::env::temp_dir().join(format!(
+            "cairn-onboard-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |d| d.as_nanos())
+        ));
+        let _ = fs::create_dir_all(&dir);
+        let stub = dir.join("cairn.blueprint");
+        let _ = fs::write(&stub, "System Stub \"onboard stub\" id \"stub\" {\n}\n");
+        (stub, Some(dir))
+    };
+
+    match crate::scanner::load_project(root, &blueprint_path) {
+        Ok(result) => {
+            let report = crate::brownfield::onboard::analyze(&result.graph.findings);
+            let output = if parsed.json {
+                crate::brownfield::onboard::render_json(&report)
+            } else {
+                crate::brownfield::onboard::render_human(&report)
+            };
+            CliResult {
+                code: 0,
+                stdout: output,
+                stderr: String::new(),
+            }
+        }
+        Err(error) => err(1, &error),
+    }
+}
+
 pub(super) fn legacy_blueprint_warning(root: &Path) -> String {
     if root.join("cairn.blueprint").exists() && root.join("cairn.dsl").exists() {
         "warning: `cairn.dsl` is unused; remove it or rename remaining references to `cairn.blueprint`\n".to_owned()

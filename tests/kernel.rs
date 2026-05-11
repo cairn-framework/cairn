@@ -1278,3 +1278,72 @@ fn test_neighbourhood_renders_with_warning_despite_scan_errors()
 
     Ok(())
 }
+
+#[test]
+fn test_onboard_groups_orphans_and_classifies() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("onboard")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::create_dir_all(root.join("src/db"))?;
+    fs::create_dir_all(root.join("generated/cache"))?;
+    fs::write(root.join("src/auth/login.rs"), "pub fn login() {}\n")?;
+    fs::write(root.join("src/auth/session.rs"), "pub fn session() {}\n")?;
+    fs::write(root.join("src/db/pool.rs"), "pub fn pool() {}\n")?;
+    fs::write(
+        root.join("generated/cache/output.rs"),
+        "pub fn cached() {}\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Core "core" id "app.core" {
+        path "./src/core"
+    }
+}
+"#,
+    )?;
+
+    let text = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["onboard"])
+        .output()?;
+    let stdout = String::from_utf8(text.stdout)?;
+    assert!(text.status.success(), "onboard should succeed");
+    assert!(
+        stdout.contains("Suggested ignores"),
+        "should suggest ignores for generated dir"
+    );
+    assert!(
+        stdout.contains("Suggested blueprint nodes"),
+        "should suggest nodes for source dirs"
+    );
+    assert!(
+        stdout.contains("generated"),
+        "should mention generated in ignore suggestions"
+    );
+    assert!(
+        stdout.contains("src/auth") || stdout.contains("src.auth"),
+        "should mention auth in node suggestions"
+    );
+
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "onboard"])
+        .output()?;
+    let json_stdout = String::from_utf8(json.stdout)?;
+    assert!(json.status.success(), "JSON onboard should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&json_stdout)?;
+    assert!(
+        parsed["total_orphaned_files"].as_u64().unwrap() >= 4,
+        "should find at least 4 orphaned files"
+    );
+    assert!(
+        !parsed["ignore_suggestions"].as_array().unwrap().is_empty(),
+        "should have ignore suggestions"
+    );
+    assert!(
+        !parsed["node_suggestions"].as_array().unwrap().is_empty(),
+        "should have node suggestions"
+    );
+
+    Ok(())
+}
