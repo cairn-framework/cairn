@@ -38,6 +38,7 @@ This repo dogfoods cairn. The root `cairn.blueprint` describes the module graph.
 - `cairn get <id>` to inspect a module (e.g. `cairn get cairn.kernel.scanner`).
 - `cairn neighbourhood <id>` to see a module's dependencies and dependents.
 - `cairn lint --json` for structured findings output consumable by scripts or agents.
+- `cairn onboard` to group orphaned files by directory with ignore/node suggestions.
 - `cairn ui --port 3000` to browse the graph in a browser (human use).
 
 Module IDs follow dotted notation rooted at `cairn` (e.g. `cairn.kernel.map`, `cairn.reconcile`, `cairn.ui`). Run `cairn get <any-known-id>` to verify a node exists, or open `cairn.blueprint` to see the full ID list.

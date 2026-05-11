@@ -64,6 +64,18 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./cairn-macros"
     }
 
+    Module Brownfield "Orphan grouping, candidate heuristics, and onboard analysis" id "cairn.brownfield" {
+        path "./src/brownfield"
+    }
+
+    Module Provenance "Provenance chain queue and trace primitives" id "cairn.provenance" {
+        path "./src/provenance"
+    }
+
+    Module Summariser "LLM-assisted summarisation backend and request queue" id "cairn.summariser" {
+        path "./src/summariser"
+    }
+
     Module Tests "Integration and smoke tests" id "cairn.tests" @test {
         path "./tests"
     }
@@ -101,3 +113,7 @@ cairn.mcp               -> cairn.kernel.query       "Wraps queries as MCP tools"
 
 # Pluggable reconciler reports back to graph
 cairn.reconcile         -> cairn.kernel.map         "Reports findings to graph"
+
+# Brownfield onboard consumes scanner findings
+cairn.brownfield        -> cairn.kernel.map         "Reads orphan findings"
+cairn.kernel.cli        -> cairn.brownfield         "Dispatches onboard command"
