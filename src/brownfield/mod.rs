@@ -4,6 +4,8 @@
 //! and CLI wiring land in subsequent commits.
 
 mod heuristics;
+/// Brownfield onboarding: orphan grouping and classification.
+pub mod onboard;
 
 pub use heuristics::{
     CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, Candidate, CandidateConfidence, DIRECTORY_DEPTH_LIMIT,
