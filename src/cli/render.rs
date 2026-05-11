@@ -405,6 +405,68 @@ pub(super) fn render_rationale(
     })
 }
 
+pub(super) fn render_context(scan_result: &scanner::ScanResult) -> String {
+    use std::fmt::Write as _;
+
+    let system = scan_result
+        .graph
+        .nodes
+        .values()
+        .find(|n| n.kind == crate::blueprint::ast::NodeKind::System);
+    let system_name = system.map_or("unknown", |n| n.name.as_str());
+    let system_desc = system.map_or("", |n| n.description.as_str());
+
+    let edge_count: usize = scan_result.graph.outbound.values().map(Vec::len).sum();
+
+    let (errors, warnings) = {
+        let mut e = 0usize;
+        let mut w = 0usize;
+        for f in &scan_result.graph.findings {
+            match f.severity {
+                FindingSeverity::Error => e += 1,
+                FindingSeverity::Warning => w += 1,
+                FindingSeverity::Info => {}
+            }
+        }
+        (e, w)
+    };
+
+    let mut out = format!(
+        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings\n\nModules:\n",
+        system_name,
+        scan_result.graph.nodes.len(),
+        edge_count,
+        system_desc,
+        errors,
+        warnings,
+    );
+
+    for node in scan_result.graph.nodes.values() {
+        if node.children.is_empty() {
+            let paths = node.paths.join(", ");
+            let _ = writeln!(
+                out,
+                "  {} ({}) [{:?}] {}",
+                node.id, node.name, node.state, paths
+            );
+        }
+    }
+
+    let ac = &scan_result.artefacts;
+    let _ = write!(
+        out,
+        "\nArtefacts: {} contracts, {} decisions, {} todos, {} research, {} reviews, {} sources\n",
+        ac.contracts.contracts.len(),
+        ac.decisions.len(),
+        ac.todos.len(),
+        ac.research.len(),
+        ac.reviews.len(),
+        ac.sources.len(),
+    );
+
+    out
+}
+
 pub(super) fn render_status(
     parsed: &ParsedArgs,
     scan_result: &scanner::ScanResult,
