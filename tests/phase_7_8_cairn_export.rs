@@ -167,6 +167,8 @@ fn test_build_export_returns_ck001_on_scanner_error() {
 fn test_export_runner_emits_json_errors_when_json_flag_set() {
     let result = cairn::cli::run(&[
         "--json".to_owned(),
+        "--file".to_owned(),
+        "/nonexistent/cairn.blueprint".to_owned(),
         "export".to_owned(),
         "--format".to_owned(),
         "json".to_owned(),

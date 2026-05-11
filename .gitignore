@@ -46,3 +46,7 @@ __pycache__/
 *.pyc
 
 .firecrawl/
+
+# Cairn generated state (map.md is regenerated on every scan)
+.cairn/
+/map.md

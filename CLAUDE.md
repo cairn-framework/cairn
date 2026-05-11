@@ -26,8 +26,23 @@ The framework's role (spec §3.4): *"a fence around the authority chain and a na
 | `openspec/registries/` | `declared-items.md`, `error-codes.md` |
 | `src/` | Rust implementation (phase 1+ kernel and onwards) |
 | `src/ui_assets/` | Embedded web UI (styled via `docs/design-system/`) |
-| `test/fixtures/cairn-bootstrap/` | Bootstrap fixture: CAIRN describing itself |
+| `cairn.blueprint` | Root blueprint: CAIRN describing itself (dogfood) |
+| `test/fixtures/cairn-bootstrap/` | Bootstrap fixture (test artifact, may lag behind root) |
 | `AGENTS.md` | Instructions read by the codex agent during cflx runs |
+
+## Using cairn in this repo
+
+This repo dogfoods cairn. The root `cairn.blueprint` describes the module graph. Prefer cairn CLI over grep/find for navigating architecture:
+
+- `cairn scan` before committing: check for orphaned files or drift.
+- `cairn get <id>` to inspect a module (e.g. `cairn get cairn.kernel.scanner`).
+- `cairn neighbourhood <id>` to see a module's dependencies and dependents.
+- `cairn lint --json` for structured findings output consumable by scripts or agents.
+- `cairn ui --port 3000` to browse the graph in a browser (human use).
+
+Module IDs follow dotted notation rooted at `cairn` (e.g. `cairn.kernel.map`, `cairn.reconcile`, `cairn.ui`). Run `cairn get <any-known-id>` to verify a node exists, or open `cairn.blueprint` to see the full ID list.
+
+When adding new source files or directories, check whether they fall under an existing module's `path` declaration in `cairn.blueprint`. If not, either add them to an existing module or declare a new one. A clean `cairn scan` (zero findings) is the target state.
 
 ## Architecture: two chains meeting at a hinge
 
