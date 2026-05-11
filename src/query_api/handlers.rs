@@ -67,6 +67,17 @@ pub(super) fn neighbourhood_json(
     if request.has(QueryFlag::IncludeChanges) {
         data["active_changes"] = json!([]);
     }
+    let error_count = scan_result
+        .graph
+        .findings
+        .iter()
+        .filter(|f| f.severity == FindingSeverity::Error)
+        .count();
+    if error_count > 0 {
+        data["warnings"] = json!([format!(
+            "scan has {error_count} error(s); graph may be incomplete"
+        )]);
+    }
     Ok(data)
 }
 
