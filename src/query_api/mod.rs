@@ -20,7 +20,7 @@ use crate::{
     changes,
     hooks::{self, ExitDecision, HookKind},
     map::{
-        graph::{Finding, NodeRecord},
+        graph::{Finding, FindingSeverity, NodeRecord},
         query,
     },
     scanner::{self, config},

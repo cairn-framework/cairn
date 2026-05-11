@@ -8,6 +8,29 @@ use super::format::{
 };
 use super::*;
 
+fn scan_error_count(scan_result: &scanner::ScanResult) -> usize {
+    scan_result
+        .graph
+        .findings
+        .iter()
+        .filter(|finding| finding.severity == FindingSeverity::Error)
+        .count()
+}
+
+fn scan_error_warning(error_count: usize, json: bool) -> String {
+    if error_count == 0 {
+        return String::new();
+    }
+    if json {
+        format!(",\"warnings\":[\"scan has {error_count} error(s); graph may be incomplete\"]")
+    } else {
+        format!(
+            "\nWarning: scan has {error_count} error(s); graph may be incomplete. \
+             Run `cairn scan` for details."
+        )
+    }
+}
+
 pub(super) fn render_get(
     parsed: &ParsedArgs,
     scan_result: &scanner::ScanResult,
@@ -79,6 +102,8 @@ pub(super) fn render_neighbourhood(
             } else {
                 Vec::new()
             };
+            let error_count = scan_error_count(scan_result);
+            let warnings = scan_error_warning(error_count, parsed.json);
             if parsed.json {
                 let active_changes = if include_changes {
                     ",\"active_changes\":[]"
@@ -86,7 +111,7 @@ pub(super) fn render_neighbourhood(
                     ""
                 };
                 format!(
-                    "{{\"node\":{},\"inbound\":{},\"outbound\":{},\"contracts\":{},\"decisions\":{},\"todos\":{},\"research\":{},\"reviews\":{}{active_changes}}}\n",
+                    "{{\"node\":{},\"inbound\":{},\"outbound\":{},\"contracts\":{},\"decisions\":{},\"todos\":{},\"research\":{},\"reviews\":{}{active_changes}{warnings}}}\n",
                     node_json(&response.node),
                     string_array_json(&response.inbound),
                     string_array_json(&response.outbound),
@@ -103,7 +128,7 @@ pub(super) fn render_neighbourhood(
                     ""
                 };
                 format!(
-                    "Node: {}\nInbound:\n{}\nOutbound:\n{}\nContracts:\n{}\nAccepted decisions:\n{}\nTodos:\n{}\nResearch:\n{}\nReviews:\n{}{active_changes}\n",
+                    "Node: {}\nInbound:\n{}\nOutbound:\n{}\nContracts:\n{}\nAccepted decisions:\n{}\nTodos:\n{}\nResearch:\n{}\nReviews:\n{}{active_changes}{warnings}\n",
                     response.node.id,
                     lines(&response.inbound),
                     lines(&response.outbound),

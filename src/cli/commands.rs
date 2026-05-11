@@ -184,7 +184,6 @@ pub(super) fn requires_valid_map(command: &str) -> bool {
     matches!(
         command,
         "get"
-            | "neighbourhood"
             | "files"
             | "dependents"
             | "depends"
