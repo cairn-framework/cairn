@@ -5,7 +5,7 @@ pub mod outputs;
 pub mod state;
 
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
 };
 
@@ -274,7 +274,8 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         files.sort();
         files.dedup();
     }
-    let graph = build_graph(&ast, root, &contracts, &claimed_files, all_findings);
+    let mut graph = build_graph(&ast, root, &contracts, &claimed_files, all_findings);
+    check_provenance_coverage(&mut graph, &artefacts);
     Ok(ScanResult {
         graph,
         artefacts,
@@ -297,4 +298,29 @@ pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     outputs::write_map(root, &result.graph).map_err(|error| error.to_string())?;
     outputs::append_log(root, &result.graph).map_err(|error| error.to_string())?;
     Ok(result)
+}
+
+fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactSet) {
+    if artefacts.decisions.is_empty() {
+        return;
+    }
+    let covered: BTreeSet<&str> = artefacts
+        .decisions
+        .iter()
+        .flat_map(|d| d.nodes.iter().map(String::as_str))
+        .collect();
+    for node in graph.nodes.values() {
+        if node.children.is_empty() && !covered.contains(node.id.as_str()) {
+            graph.findings.push(crate::map::graph::Finding {
+                code: "CAIRN_PROVENANCE_NO_DECISION".to_owned(),
+                severity: crate::map::graph::FindingSeverity::Warning,
+                message: format!(
+                    "node `{}` has no decision artefact explaining why it exists",
+                    node.id
+                ),
+                node: Some(node.id.clone()),
+                path: None,
+            });
+        }
+    }
 }
