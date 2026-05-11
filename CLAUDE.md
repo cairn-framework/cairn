@@ -6,6 +6,8 @@ Repo-level context for Claude Code sessions working in this codebase. For the Op
 
 Activate the `karpathy-guidelines` skill (`.claude/skills/karpathy-guidelines/SKILL.md`) for any coding work in this repo: think before coding, simplicity first, surgical changes, goal-driven execution. Invoke it via the Skill tool when writing, reviewing, or refactoring code.
 
+Activate the `cairn-dev` skill (`.claude/skills/cairn-dev/SKILL.md`) when navigating architecture, adding files, interpreting findings, or authoring blueprint/artefact changes. It covers the full cairn CLI surface, blueprint syntax, artefact schemas, and development loop.
+
 ## What CAIRN is
 
 Connective tissue between past decisions, present code structure, and future intent. You author a declarative file describing your system; CAIRN parses it, reconciles against actual code, surfaces the graph + artefacts for coding agents to consume as reliable context, and gates commits when code drifts from the declaration. Extending beyond code to non-code domains (orgs, research, processes) is in-scope for future phases.
@@ -112,6 +114,18 @@ gt submit --stack --publish --no-interactive         # Publish (auto-review fire
 Amend on review: `git add <files>; gt modify -a; gt submit --publish --no-interactive`. New scope on top: `git add <files>; gt create -m "..."`. After submit and review, run `~/.claude/skills/graphite-pr/scripts/gt-merge-cascade.sh` to merge with review-thread gating.
 
 Sizing: one commit equals one logical unit, target under 250 lines added+removed, hard cap 400. See `~/.claude/skills/graphite-pr/SKILL.md` for full rules.
+
+## Pre-submit review: mandatory
+
+Before submitting any PR (via `gt submit` or `/forge-pr`), run both `/reforge` and `/debate` (or `/palantir-debate`) on the changes. This is not optional. The sequence is:
+
+1. Implementation complete, tests pass, `cairn scan` clean
+2. `/reforge` on the changed files (simplify, remove dead code, naming consistency)
+3. `/debate` on the changes (adversarial review catches bugs, logic errors, convention violations)
+4. Fix anything surfaced by reforge or debate
+5. Then submit
+
+This applies to every PR in a stack, not just the top. Skip only if the PR is a single-line documentation change.
 
 ## What cairn is, positively
 
