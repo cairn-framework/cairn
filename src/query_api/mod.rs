@@ -34,9 +34,9 @@ mod util;
 
 use change_queries::dispatch_change_tool;
 use handlers::{
-    contract_json, decisions_response_json, dependency_json, docstring_json, files_json, hook_json,
-    neighbourhood_json, rationale_json, research_response_json, sources_response_json, status_json,
-    todos_response_json,
+    context_json, contract_json, decisions_response_json, dependency_json, docstring_json,
+    files_json, hook_json, neighbourhood_json, rationale_json, research_response_json,
+    sources_response_json, status_json, todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{findings_json, node_json, relevant_rules, requires_valid_map};
@@ -199,7 +199,14 @@ pub fn execute(
         source_span: Some(root.join("cairn.config.yaml").display().to_string()),
         remediation: None,
     })?;
-    let data = execute_data(root, blueprint_path, changes_dir, request, metadata)?;
+    let data = execute_data(
+        root,
+        blueprint_path,
+        changes_dir,
+        request,
+        metadata,
+        &loaded_config,
+    )?;
     let rules = relevant_rules(&loaded_config.rules, &request.tool);
     Ok(QueryResponse {
         project_context: loaded_config.context,
@@ -236,6 +243,7 @@ fn execute_data(
     changes_dir: &Path,
     request: &QueryRequest,
     metadata: ToolMetadata,
+    loaded_config: &config::Config,
 ) -> Result<Value, QueryError> {
     if let Some(result) = dispatch_change_tool(root, blueprint_path, changes_dir, request, metadata)
     {
@@ -266,6 +274,7 @@ fn execute_data(
             Ok(json!({ "findings": findings_json(&response.findings) }))
         }
         "status" => Ok(status_json(root, &scan_result)),
+        "context" => Ok(context_json(&scan_result, loaded_config)),
         "rationale" => rationale_json(&scan_result, required(request.node.as_ref(), "node")?),
         "todos" => todos_response_json(&scan_result, request),
         "decisions" => decisions_response_json(&scan_result, request),

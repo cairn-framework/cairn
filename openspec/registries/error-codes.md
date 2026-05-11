@@ -47,6 +47,7 @@ _No codes allocated yet._
 ## CA -- Artefacts
 
 - CA001 -- leaf node has no decision artefact (CAIRN_PROVENANCE_NO_DECISION) -- issue #46
+- CA002 -- blueprint shape changed for node but no decision artefact covers it (CAIRN_BLUEPRINT_CHANGE_NO_DECISION) -- issue #68
 
 ## CC -- Changes
 

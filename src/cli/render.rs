@@ -17,6 +17,15 @@ fn scan_error_count(scan_result: &scanner::ScanResult) -> usize {
         .count()
 }
 
+fn scan_warning_count(scan_result: &scanner::ScanResult) -> usize {
+    scan_result
+        .graph
+        .findings
+        .iter()
+        .filter(|finding| finding.severity == FindingSeverity::Warning)
+        .count()
+}
+
 fn scan_error_warning(error_count: usize, json: bool) -> String {
     if error_count == 0 {
         return String::new();
@@ -403,6 +412,60 @@ pub(super) fn render_rationale(
             )
         })
     })
+}
+
+// NOTE: render_context does not have access to Config, so it cannot show
+// project_context. The JSON endpoint (context_json) includes it. Accept the
+// divergence rather than threading Config through the CLI render layer.
+pub(super) fn render_context(scan_result: &scanner::ScanResult) -> String {
+    use std::fmt::Write as _;
+
+    let system = scan_result
+        .graph
+        .nodes
+        .values()
+        .find(|n| n.kind == crate::blueprint::ast::NodeKind::System);
+    let system_name = system.map_or("unknown", |n| n.name.as_str());
+    let system_desc = system.map_or("", |n| n.description.as_str());
+
+    let edge_count: usize = scan_result.graph.outbound.values().map(Vec::len).sum();
+    let errors = scan_error_count(scan_result);
+    let warnings = scan_warning_count(scan_result);
+
+    let mut out = format!(
+        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings\n\nModules:\n",
+        system_name,
+        scan_result.graph.nodes.len(),
+        edge_count,
+        system_desc,
+        errors,
+        warnings,
+    );
+
+    for node in scan_result.graph.nodes.values() {
+        let paths = node.paths.join(", ");
+        writeln!(
+            out,
+            "  {} ({}) [{:?}] {}",
+            node.id, node.name, node.state, paths
+        )
+        .unwrap();
+    }
+
+    let ac = &scan_result.artefacts;
+    write!(
+        out,
+        "\nArtefacts: {} contracts, {} decisions, {} todos, {} research, {} reviews, {} sources\n",
+        ac.contracts.contracts.len(),
+        ac.decisions.len(),
+        ac.todos.len(),
+        ac.research.len(),
+        ac.reviews.len(),
+        ac.sources.len(),
+    )
+    .unwrap();
+
+    out
 }
 
 pub(super) fn render_status(

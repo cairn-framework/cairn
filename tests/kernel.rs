@@ -1431,3 +1431,296 @@ fn test_provenance_lint_skips_when_no_decisions_exist() -> Result<(), Box<dyn st
 
     Ok(())
 }
+
+// ---------------------------------------------------------------------------
+// Blueprint shape change gate helpers
+// ---------------------------------------------------------------------------
+
+fn write_bp_auth_fixture(root: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+    }
+}
+"#,
+    )?;
+    Ok(())
+}
+
+fn write_previous_snapshot(
+    root: &std::path::Path,
+    json: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let state_dir = root.join(".cairn/state");
+    fs::create_dir_all(&state_dir)?;
+    fs::write(state_dir.join("blueprint-snapshot.json"), json)?;
+    Ok(())
+}
+
+fn bp_change_findings(result: &cairn::scanner::ScanResult) -> Vec<&cairn::map::graph::Finding> {
+    result
+        .graph
+        .findings
+        .iter()
+        .filter(|f| f.code == "CAIRN_BLUEPRINT_CHANGE_NO_DECISION")
+        .collect()
+}
+
+/// Minimal previous snapshot: only the `app` system node.
+const SNAPSHOT_APP_ONLY: &str =
+    r#"{"version":1,"nodes":{"app":{"kind":"System","parent":null,"paths":[]}}}"#;
+
+/// Previous snapshot with `app.auth` under `app`.
+const SNAPSHOT_APP_WITH_AUTH: &str = r#"{"version":1,"nodes":{"app":{"kind":"System","parent":null,"paths":[]},"app.auth":{"kind":"Module","parent":"app","paths":["./src/auth"]}}}"#;
+
+#[test]
+fn test_blueprint_change_gate_fires_on_new_module() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("bp-change-new")?;
+    write_bp_auth_fixture(&root)?;
+    // Previous snapshot does NOT contain app.auth — it is a new node.
+    write_previous_snapshot(&root, SNAPSHOT_APP_ONLY)?;
+    // Need at least one decision to activate the gate (decisions.is_empty guard).
+    // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
+    fs::create_dir_all(root.join("meta/decisions"))?;
+    fs::write(
+        root.join("meta/decisions/dec.other.md"),
+        "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+        decisions "./meta/decisions"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    let errors = bp_change_findings(&result);
+
+    assert!(
+        errors.iter().any(|f| f.node.as_deref() == Some("app.auth")),
+        "new module without decision should produce error finding"
+    );
+    assert_eq!(
+        errors
+            .iter()
+            .find(|f| f.node.as_deref() == Some("app.auth"))
+            .unwrap()
+            .severity,
+        cairn::map::graph::FindingSeverity::Error,
+        "blueprint change gate findings must be Error severity"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_blueprint_change_gate_passes_with_decision() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("bp-change-covered")?;
+    write_previous_snapshot(&root, SNAPSHOT_APP_ONLY)?;
+
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::create_dir_all(root.join("meta/decisions"))?;
+    fs::write(
+        root.join("meta/decisions/dec.auth.md"),
+        "---\nid: dec.auth\nnodes: [app.auth]\nstatus: accepted\ndate: 2026-05-11\n---\n# Auth decision\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+        decisions "./meta/decisions"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        !bp_change_findings(&result)
+            .iter()
+            .any(|f| f.node.as_deref() == Some("app.auth")),
+        "covered new module should NOT produce blueprint change finding"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_blueprint_change_gate_ignores_first_scan() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("bp-change-first")?;
+    // No previous snapshot — first scan must not fire.
+    write_bp_auth_fixture(&root)?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        bp_change_findings(&result).is_empty(),
+        "first scan (no previous snapshot) should not fire blueprint change gate"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_blueprint_change_gate_ignores_path_only_rename() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("bp-change-path")?;
+    write_previous_snapshot(&root, SNAPSHOT_APP_WITH_AUTH)?;
+
+    fs::create_dir_all(root.join("src/auth2"))?;
+    fs::write(root.join("src/auth2/lib.rs"), "pub fn login() {}\n")?;
+    // Blueprint now points app.auth at ./src/auth2 — same parent, same kind.
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth2"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        !bp_change_findings(&result)
+            .iter()
+            .any(|f| f.node.as_deref() == Some("app.auth")),
+        "within-container path rename should NOT fire blueprint change gate"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_blueprint_change_gate_fires_on_parent_change() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("bp-change-reparent")?;
+    // Previous: app.auth was under "app.old_parent".
+    write_previous_snapshot(
+        &root,
+        r#"{"version":1,"nodes":{"app":{"kind":"System","parent":null,"paths":[]},"app.auth":{"kind":"Module","parent":"app.old_parent","paths":["./src/auth"]}}}"#,
+    )?;
+    write_bp_auth_fixture(&root)?;
+    // Need at least one decision to activate the gate (decisions.is_empty guard).
+    // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
+    fs::create_dir_all(root.join("meta/decisions"))?;
+    fs::write(
+        root.join("meta/decisions/dec.other.md"),
+        "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+        decisions "./meta/decisions"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        bp_change_findings(&result)
+            .iter()
+            .any(|f| f.node.as_deref() == Some("app.auth")),
+        "cross-container reassignment (parent change) should fire blueprint change gate"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_blueprint_change_gate_fires_on_removed_module() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("bp-change-removed")?;
+    // Previous snapshot has both app and app.auth.
+    write_previous_snapshot(&root, SNAPSHOT_APP_WITH_AUTH)?;
+    // Need at least one decision to activate the gate (decisions.is_empty guard).
+    // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
+    fs::create_dir_all(root.join("meta/decisions"))?;
+    fs::write(
+        root.join("meta/decisions/dec.other.md"),
+        "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
+    )?;
+    // Current blueprint only has app (app.auth removed).
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    decisions "./meta/decisions"
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    let errors = bp_change_findings(&result);
+
+    assert!(
+        errors.iter().any(|f| f.node.as_deref() == Some("app.auth")),
+        "removed module without covering decision should produce error finding"
+    );
+    assert_eq!(
+        errors
+            .iter()
+            .find(|f| f.node.as_deref() == Some("app.auth"))
+            .unwrap()
+            .severity,
+        cairn::map::graph::FindingSeverity::Error,
+        "blueprint change gate findings must be Error severity"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_blueprint_change_gate_fires_on_kind_change() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("bp-change-kind")?;
+    // Previous snapshot has app.auth as "Module".
+    write_previous_snapshot(&root, SNAPSHOT_APP_WITH_AUTH)?;
+    // Need at least one decision to activate the gate (decisions.is_empty guard).
+    // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
+    fs::create_dir_all(root.join("meta/decisions"))?;
+    fs::write(
+        root.join("meta/decisions/dec.other.md"),
+        "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
+    )?;
+    // Current blueprint declares app.auth as Container instead of Module.
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Container Auth "auth" id "app.auth" {
+        path "./src/auth"
+        owns-files: true
+        decisions "./meta/decisions"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    let errors = bp_change_findings(&result);
+
+    assert!(
+        errors.iter().any(|f| f.node.as_deref() == Some("app.auth")),
+        "kind change (Module -> Container) without covering decision should produce error finding"
+    );
+    assert_eq!(
+        errors
+            .iter()
+            .find(|f| f.node.as_deref() == Some("app.auth"))
+            .unwrap()
+            .severity,
+        cairn::map::graph::FindingSeverity::Error,
+        "blueprint change gate findings must be Error severity"
+    );
+
+    Ok(())
+}
