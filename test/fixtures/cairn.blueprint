@@ -1,61 +1,58 @@
-# Cairn bootstrap fixture for the kernel MVP.
+# Cairn kernel-MVP fixture (simplified).
+#
+# Covers core kernel modules with real paths. Not comprehensive;
+# see cairn.blueprint at repo root for the full graph.
+# Used by tests/fixtures_smoke.rs.
 
 System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
-        path "./src/kernel"
 
-        Module Parser "Parses .blueprint files into a node graph" id "cairn.kernel.parser" {
-            path "./src/kernel/parser"
-            contract "./meta/contracts/kernel/parser.md"
-            decisions "./meta/decisions/kernel/parser/"
+        Module Blueprint "Parses .blueprint files into AST node graph" id "cairn.kernel.blueprint" {
+            path "./src/blueprint"
         }
 
-        Module Artefacts "Pluggable artefact type registry" id "cairn.kernel.artefacts" {
-            path "./src/kernel/artefacts"
-            contract "./meta/contracts/kernel/artefacts.md"
+        Module Artefacts "Typed artefact registry and contract loader" id "cairn.kernel.artefacts" {
+            path "./src/artefacts"
         }
 
-        Module ReconcilerInterface "Abstract contract for reconcilers" id "cairn.kernel.reconciler" {
-            path "./src/kernel/reconciler"
-            contract "./meta/contracts/kernel/reconciler.md"
+        Module Map "Graph construction, integrity checks, and query traversal" id "cairn.kernel.map" {
+            path "./src/map"
         }
 
-        Module Reconciliation "Joins blueprint, artefacts, and reconciler output into map" id "cairn.kernel.reconciliation" {
-            path "./src/kernel/reconciliation"
-            contract "./meta/contracts/kernel/reconciliation.md"
+        Module Scanner "Orchestrates parse, reconcile, and graph-build pipeline" id "cairn.kernel.scanner" {
+            path "./src/scanner"
         }
 
-        Module Query "Typed queries over the map" id "cairn.kernel.query" {
-            path "./src/kernel/query"
-            contract "./meta/contracts/kernel/query.md"
+        Module Changes "Change directories, delta semantics, and archive" id "cairn.kernel.changes" {
+            path "./src/changes"
         }
 
-        Module Changes "Change directories, delta semantics, archive" id "cairn.kernel.changes" {
-            path "./src/kernel/changes"
-            contract "./meta/contracts/kernel/changes.md"
+        Module Hooks "Commit and task-boundary enforcement gates" id "cairn.kernel.hooks" {
+            path "./src/hooks"
         }
 
-        Module Hooks "Commit and task-boundary enforcement" id "cairn.kernel.hooks" {
-            path "./src/kernel/hooks"
-            contract "./meta/contracts/kernel/hooks.md"
+        Module QueryAPI "Structured query handlers and serialisation" id "cairn.kernel.query" {
+            path "./src/query_api"
         }
 
-        Module CLI "Primary user surface" id "cairn.kernel.cli" {
-            path "./src/kernel/cli"
-            contract "./meta/contracts/kernel/cli.md"
+        Module CLI "Primary user surface and output formatting" id "cairn.kernel.cli" {
+            path "./src/cli"
         }
     }
 
-    Module CodeReconciler "Tree-sitter-based reconciler for source code" id "cairn.reconcilers.code" @reconciler @code {
-        path "./src/reconcilers/code"
-        contract "./meta/contracts/reconcilers/code.md"
+    Module CodeReconciler "Tree-sitter reconciler for Rust, TypeScript, Python, Go" id "cairn.reconcile" @reconciler @code {
+        path "./src/reconcile"
     }
 }
 
-cairn.kernel.cli -> cairn.kernel.query "Exposes queries as commands"
-cairn.kernel.query -> cairn.kernel.reconciliation "Reads map"
-cairn.kernel.reconciliation -> cairn.kernel.parser "Consumes parsed blueprint"
-cairn.kernel.reconciliation -> cairn.kernel.artefacts "Validates artefacts"
-cairn.kernel.changes -> cairn.kernel.reconciliation "Validates before archive"
-cairn.kernel.hooks -> cairn.kernel.reconciliation "Gates on integrity"
-cairn.reconcilers.code -> cairn.kernel.reconciler "Implements"
+cairn.kernel.scanner    -> cairn.kernel.blueprint   "Parses blueprint files"
+cairn.kernel.scanner    -> cairn.kernel.artefacts   "Loads artefact metadata"
+cairn.kernel.scanner    -> cairn.kernel.map         "Builds graph from parsed output"
+cairn.kernel.scanner    -> cairn.reconcile          "Invokes registered reconcilers"
+cairn.kernel.map        -> cairn.kernel.blueprint   "Consumes parsed AST"
+cairn.kernel.map        -> cairn.kernel.artefacts   "Validates contracts against code"
+cairn.kernel.cli        -> cairn.kernel.query       "Exposes queries as CLI commands"
+cairn.kernel.cli        -> cairn.kernel.scanner     "Orchestrates scan runs"
+cairn.kernel.hooks      -> cairn.kernel.scanner     "Gates commits on scan integrity"
+cairn.kernel.changes    -> cairn.kernel.scanner     "Validates deltas before archive"
+cairn.reconcile         -> cairn.kernel.map         "Reports findings to graph"
