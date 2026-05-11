@@ -50,3 +50,8 @@ __pycache__/
 # Cairn generated state (map.md is regenerated on every scan)
 .cairn/
 /map.md
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
