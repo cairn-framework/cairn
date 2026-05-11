@@ -49,7 +49,7 @@ These findings cause `cairn hook structural` and `cairn hook all` to exit 1 (fai
 
 **Severity:** Error
 **Meaning:** The blueprint's structural shape changed for a node (module added, removed, or reassigned across containers) but no decision artefact has that node's ID in its `nodes` field.
-**Remediation:** Author a decision artefact covering the changed node. The decision should explain why the structural change was made. Any decision status (proposed, accepted) satisfies the gate. First scan creates a baseline; the gate only fires on subsequent scans when a previous snapshot exists.
+**Remediation:** Author a decision artefact covering the changed node. The decision should explain why the structural change was made. Only active decisions (proposed or accepted) satisfy the gate; deprecated or superseded decisions do not count. First scan creates a baseline; the gate only fires on subsequent scans when a previous snapshot exists. If no decisions exist in the project at all, the gate is skipped.
 
 ## Warning findings (advisory)
 
