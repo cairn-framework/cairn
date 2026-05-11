@@ -1,0 +1,103 @@
+# Cairn — the framework described as a Cairn project.
+#
+# Promoted from test/fixtures/cairn-bootstrap/ and updated to match
+# the real source tree as of 2026-05-11.
+
+System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" @framework {
+
+    Module Root "Crate entry points, shared error types, and verification" id "cairn.root" {
+        path "./src/main.rs"
+        path "./src/lib.rs"
+        path "./src/error.rs"
+        path "./src/verification.rs"
+    }
+
+    Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
+
+        Module Blueprint "Parses .blueprint files into AST node graph" id "cairn.kernel.blueprint" {
+            path "./src/blueprint"
+        }
+
+        Module Artefacts "Typed artefact registry and contract loader" id "cairn.kernel.artefacts" {
+            path "./src/artefacts"
+        }
+
+        Module Map "Graph construction, integrity checks, and query traversal" id "cairn.kernel.map" {
+            path "./src/map"
+        }
+
+        Module Scanner "Orchestrates parse, reconcile, and graph-build pipeline" id "cairn.kernel.scanner" {
+            path "./src/scanner"
+        }
+
+        Module Changes "Change directories, delta semantics, and archive" id "cairn.kernel.changes" {
+            path "./src/changes"
+        }
+
+        Module Hooks "Commit and task-boundary enforcement gates" id "cairn.kernel.hooks" {
+            path "./src/hooks"
+        }
+
+        Module QueryAPI "Structured query handlers and serialisation" id "cairn.kernel.query" {
+            path "./src/query_api"
+        }
+
+        Module CLI "Primary user surface and output formatting" id "cairn.kernel.cli" {
+            path "./src/cli"
+        }
+    }
+
+    Module CodeReconciler "Tree-sitter reconciler for Rust, TypeScript, Python, Go" id "cairn.reconcile" @reconciler @code {
+        path "./src/reconcile"
+    }
+
+    Module UI "Read-only web graph explorer and API server" id "cairn.ui" @ui {
+        path "./src/ui"
+    }
+
+    Module MCP "MCP tool wrapper over query API" id "cairn.mcp" @integration {
+        path "./src/mcp.rs"
+        path "./src/bin/cairn-mcp.rs"
+    }
+
+    Module Macros "Proc-macro crate for compile-time attributes" id "cairn.macros" @build {
+        path "./cairn-macros"
+    }
+
+    Module Tests "Integration and smoke tests" id "cairn.tests" @test {
+        path "./tests"
+    }
+}
+
+# Core data flow: scanner is the orchestration hub
+cairn.kernel.scanner    -> cairn.kernel.blueprint   "Parses blueprint files"
+cairn.kernel.scanner    -> cairn.kernel.artefacts   "Loads artefact metadata"
+cairn.kernel.scanner    -> cairn.kernel.map         "Builds graph from parsed output"
+cairn.kernel.scanner    -> cairn.reconcile          "Invokes registered reconcilers"
+
+# Map consumes parser and artefact output
+cairn.kernel.map        -> cairn.kernel.blueprint   "Consumes parsed AST"
+cairn.kernel.map        -> cairn.kernel.artefacts   "Validates contracts against code"
+
+# Enforcement gates
+cairn.kernel.hooks      -> cairn.kernel.scanner     "Gates commits on scan integrity"
+cairn.kernel.hooks      -> cairn.kernel.map         "Reads findings"
+cairn.kernel.changes    -> cairn.kernel.scanner     "Validates deltas before archive"
+cairn.kernel.changes    -> cairn.kernel.blueprint   "Parses blueprint deltas"
+cairn.kernel.changes    -> cairn.kernel.map         "Reads graph state"
+
+# Query and presentation surfaces
+cairn.kernel.cli        -> cairn.kernel.query       "Exposes queries as CLI commands"
+cairn.kernel.cli        -> cairn.kernel.scanner     "Orchestrates scan runs"
+cairn.kernel.cli        -> cairn.kernel.hooks       "Runs hook checks"
+cairn.kernel.cli        -> cairn.ui                 "Launches graph explorer"
+cairn.kernel.query      -> cairn.kernel.scanner     "Reads scan state"
+cairn.kernel.query      -> cairn.kernel.map         "Traverses graph"
+cairn.kernel.query      -> cairn.kernel.changes     "Reads change state"
+cairn.kernel.query      -> cairn.kernel.hooks       "Reads hook findings"
+cairn.ui                -> cairn.kernel.scanner     "Runs scans for API responses"
+cairn.ui                -> cairn.kernel.map         "Serves graph data"
+cairn.mcp               -> cairn.kernel.query       "Wraps queries as MCP tools"
+
+# Pluggable reconciler reports back to graph
+cairn.reconcile         -> cairn.kernel.map         "Reports findings to graph"
