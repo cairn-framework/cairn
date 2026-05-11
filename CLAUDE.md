@@ -37,6 +37,7 @@ This repo dogfoods cairn. The root `cairn.blueprint` describes the module graph.
 - `cairn scan` before committing: check for orphaned files or drift.
 - `cairn get <id>` to inspect a module (e.g. `cairn get cairn.kernel.scanner`).
 - `cairn neighbourhood <id>` to see a module's dependencies and dependents.
+- `cairn context` for a structured project overview (start here as an agent entry point).
 - `cairn lint --json` for structured findings output consumable by scripts or agents.
 - `cairn onboard` to group orphaned files by directory with ignore/node suggestions.
 - `cairn ui --port 3000` to browse the graph in a browser (human use).
