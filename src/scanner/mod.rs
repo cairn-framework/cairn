@@ -12,7 +12,7 @@ use std::{
 use crate::{
     artefacts::{
         contract::{ContractSet, load_contracts},
-        registry::{ArtefactSet, load_artefacts},
+        registry::{ArtefactSet, DecisionStatus, load_artefacts},
     },
     blueprint,
     map::{Graph, build_graph},
@@ -55,6 +55,8 @@ pub struct ScanResult {
     pub target_reports: Vec<TargetReport>,
     /// Interface hashes keyed by target ID.
     pub target_hashes: state::TargetHashes,
+    /// Blueprint node fingerprints for change detection.
+    pub blueprint_snapshot: state::BlueprintSnapshot,
 }
 
 fn build_targets(ast: &blueprint::Ast, config: &config::Config) -> Vec<Target> {
@@ -276,6 +278,15 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     }
     let mut graph = build_graph(&ast, root, &contracts, &claimed_files, all_findings);
     check_provenance_coverage(&mut graph, &artefacts);
+    let current_snapshot = compute_blueprint_snapshot(&ast);
+    let previous_snapshot =
+        state::read_blueprint_snapshot(root).map_err(|error| error.to_string())?;
+    check_blueprint_change_decisions(
+        &mut graph,
+        &artefacts,
+        &current_snapshot,
+        &previous_snapshot,
+    );
     Ok(ScanResult {
         graph,
         artefacts,
@@ -283,6 +294,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         interface_hash,
         target_reports,
         target_hashes,
+        blueprint_snapshot: current_snapshot,
     })
 }
 
@@ -295,9 +307,104 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
 pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     let result = load_project(root, blueprint_path)?;
     state::write_interface_hash(root, &result.target_hashes).map_err(|error| error.to_string())?;
+    state::write_blueprint_snapshot(root, &result.blueprint_snapshot)
+        .map_err(|error| error.to_string())?;
     outputs::write_map(root, &result.graph).map_err(|error| error.to_string())?;
     outputs::append_log(root, &result.graph).map_err(|error| error.to_string())?;
     Ok(result)
+}
+
+fn walk_blueprint_nodes(
+    nodes: &[blueprint::Node],
+    parent: Option<&str>,
+    snapshot: &mut state::BlueprintSnapshot,
+) {
+    for node in nodes {
+        let mut paths = node.paths.clone();
+        paths.sort();
+        snapshot.nodes.insert(
+            node.id.clone(),
+            state::NodeFingerprint {
+                kind: match node.kind {
+                    blueprint::NodeKind::System => "System",
+                    blueprint::NodeKind::Container => "Container",
+                    blueprint::NodeKind::Module => "Module",
+                    blueprint::NodeKind::Actor => "Actor",
+                }
+                .to_owned(),
+                parent: parent.map(String::from),
+                paths,
+            },
+        );
+        walk_blueprint_nodes(&node.children, Some(&node.id), snapshot);
+    }
+}
+
+fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot {
+    let mut snapshot = state::BlueprintSnapshot::new();
+    walk_blueprint_nodes(&ast.nodes, None, &mut snapshot);
+    snapshot
+}
+
+fn check_blueprint_change_decisions(
+    graph: &mut Graph,
+    artefacts: &ArtefactSet,
+    current: &state::BlueprintSnapshot,
+    previous: &state::BlueprintSnapshot,
+) {
+    if previous.is_empty() {
+        return;
+    }
+    if artefacts.decisions.is_empty() {
+        return;
+    }
+
+    let covered: BTreeSet<&str> = artefacts
+        .decisions
+        .iter()
+        .filter(|d| {
+            matches!(
+                d.status,
+                DecisionStatus::Proposed | DecisionStatus::Accepted
+            )
+        })
+        .flat_map(|d| d.nodes.iter().map(String::as_str))
+        .collect();
+
+    let mut emit = |node_id: &str| {
+        if !covered.contains(node_id) {
+            graph.findings.push(crate::map::graph::Finding {
+                code: "CAIRN_BLUEPRINT_CHANGE_NO_DECISION".to_owned(),
+                severity: crate::map::graph::FindingSeverity::Error,
+                message: format!(
+                    "blueprint shape changed for node `{node_id}` but no decision artefact covers it"
+                ),
+                node: Some(node_id.to_owned()),
+                path: None,
+            });
+        }
+    };
+
+    // Added nodes.
+    for id in current.nodes.keys() {
+        if !previous.nodes.contains_key(id) {
+            emit(id);
+        }
+    }
+    // Removed nodes.
+    for id in previous.nodes.keys() {
+        if !current.nodes.contains_key(id) {
+            emit(id);
+        }
+    }
+    // Structural changes: parent or kind changed. Path-only changes are not gated.
+    for (id, cur_fp) in &current.nodes {
+        if let Some(prev_fp) = previous.nodes.get(id)
+            && (cur_fp.parent != prev_fp.parent || cur_fp.kind != prev_fp.kind)
+        {
+            emit(id);
+        }
+    }
 }
 
 fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactSet) {

@@ -38,8 +38,9 @@ use format::{
     string_array_json,
 };
 use render::{
-    render_decisions, render_dependencies, render_files, render_get, render_neighbourhood,
-    render_rationale, render_research, render_sources, render_status, render_todos,
+    render_context, render_decisions, render_dependencies, render_files, render_get,
+    render_neighbourhood, render_rationale, render_research, render_sources, render_status,
+    render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -226,6 +227,7 @@ fn render_loaded_project_command(
         "sources" => render_sources(parsed, scan_result),
         "rationale" => render_rationale(parsed, scan_result),
         "status" => Ok(render_status(parsed, scan_result, root)),
+        "context" => Ok(render_context(scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "changes" | "show" | "docstring" | "rename" => {
             return err(2, "this command currently requires --json");
@@ -324,6 +326,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "show"
             | "hook"
             | "rename"
+            | "context"
     )
 }
 

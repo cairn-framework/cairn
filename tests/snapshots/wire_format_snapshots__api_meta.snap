@@ -1,6 +1,7 @@
 ---
 source: tests/wire_format_snapshots.rs
-expression: json
+assertion_line: 52
+expression: value
 ---
 {
   "available_commands": [
@@ -141,6 +142,12 @@ expression: json
       "request": "InitRequest",
       "response": "InitResponse",
       "safety": "Mutating"
+    },
+    {
+      "name": "context",
+      "request": "ContextRequest",
+      "response": "ContextResponse",
+      "safety": "ReadOnly"
     }
   ],
   "schema_version": 1
