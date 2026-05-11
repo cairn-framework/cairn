@@ -1347,3 +1347,87 @@ fn test_onboard_groups_orphans_and_classifies() -> Result<(), Box<dyn std::error
 
     Ok(())
 }
+
+#[test]
+fn test_provenance_lint_warns_for_uncovered_nodes() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("provenance-lint")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::create_dir_all(root.join("src/store"))?;
+    fs::create_dir_all(root.join("meta/decisions"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(root.join("src/store/lib.rs"), "pub fn save() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+        decisions "./meta/decisions"
+    }
+    Module Store "store" id "app.store" {
+        path "./src/store"
+    }
+}
+"#,
+    )?;
+    fs::write(
+        root.join("meta/decisions/dec.auth.md"),
+        "---\nid: dec.auth\nnodes: [app.auth]\nstatus: accepted\ndate: 2026-05-11\n---\n# Auth decision\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    let provenance_warnings: Vec<_> = result
+        .graph
+        .findings
+        .iter()
+        .filter(|f| f.code == "CAIRN_PROVENANCE_NO_DECISION")
+        .collect();
+
+    assert!(
+        provenance_warnings
+            .iter()
+            .any(|f| f.node.as_deref() == Some("app.store")),
+        "uncovered leaf node should get provenance warning"
+    );
+    assert!(
+        !provenance_warnings
+            .iter()
+            .any(|f| f.node.as_deref() == Some("app.auth")),
+        "covered node should NOT get provenance warning"
+    );
+    assert!(
+        !provenance_warnings
+            .iter()
+            .any(|f| f.node.as_deref() == Some("app")),
+        "parent node should NOT get provenance warning"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_provenance_lint_skips_when_no_decisions_exist() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("provenance-skip")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        !result
+            .graph
+            .findings
+            .iter()
+            .any(|f| f.code == "CAIRN_PROVENANCE_NO_DECISION"),
+        "should not warn when no decisions exist at all"
+    );
+
+    Ok(())
+}

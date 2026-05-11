@@ -46,7 +46,7 @@ _No codes allocated yet._
 
 ## CA -- Artefacts
 
-_No codes allocated yet._
+- CA001 -- leaf node has no decision artefact (CAIRN_PROVENANCE_NO_DECISION) -- issue #46
 
 ## CC -- Changes
 

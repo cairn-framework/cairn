@@ -1,9 +1,16 @@
 ---
 source: tests/wire_format_snapshots.rs
-expression: json
+expression: value
 ---
 {
   "findings": [
+    {
+      "code": "CAIRN_PROVENANCE_NO_DECISION",
+      "message": "node `app.core` has no decision artefact explaining why it exists",
+      "node": "app.core",
+      "path": null,
+      "severity": "warning"
+    },
     {
       "code": "CAIRN_ORDER_CYCLE",
       "message": "dependency cycle: app.api -> app.core -> app.api",
