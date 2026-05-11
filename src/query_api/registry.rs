@@ -2,7 +2,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 23] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 24] = [
     tool(
         "get",
         "cairn_get",
@@ -163,6 +163,13 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 23] = [
         "InitRequest",
         "InitResponse",
         SafetyClass::Mutating,
+    ),
+    tool(
+        "context",
+        "cairn_context",
+        "ContextRequest",
+        "ContextResponse",
+        SafetyClass::ReadOnly,
     ),
 ];
 

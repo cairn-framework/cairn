@@ -208,6 +208,71 @@ pub(super) fn status_json(root: &Path, scan_result: &scanner::ScanResult) -> Val
     })
 }
 
+pub(super) fn context_json(
+    scan_result: &scanner::ScanResult,
+    config: &scanner::config::Config,
+) -> Value {
+    let system_name = scan_result
+        .graph
+        .nodes
+        .values()
+        .find(|n| n.kind == crate::blueprint::ast::NodeKind::System)
+        .map_or("unknown", |n| n.name.as_str());
+
+    let edge_count: usize = scan_result.graph.outbound.values().map(Vec::len).sum();
+
+    let nodes: Vec<Value> = scan_result
+        .graph
+        .nodes
+        .values()
+        .map(|n| {
+            json!({
+                "id": n.id,
+                "name": n.name,
+                "kind": format!("{:?}", n.kind),
+                "state": format!("{:?}", n.state),
+                "paths": n.paths,
+                "children": n.children,
+            })
+        })
+        .collect();
+
+    let (errors, warnings, info) = {
+        let mut e = 0usize;
+        let mut w = 0usize;
+        let mut i = 0usize;
+        for f in &scan_result.graph.findings {
+            match f.severity {
+                FindingSeverity::Error => e += 1,
+                FindingSeverity::Warning => w += 1,
+                FindingSeverity::Info => i += 1,
+            }
+        }
+        (e, w, i)
+    };
+
+    json!({
+        "system_name": system_name,
+        "project_context": config.context,
+        "node_count": scan_result.graph.nodes.len(),
+        "edge_count": edge_count,
+        "nodes": nodes,
+        "artefact_counts": {
+            "contracts": scan_result.artefacts.contracts.contracts.len(),
+            "decisions": scan_result.artefacts.decisions.len(),
+            "todos": scan_result.artefacts.todos.len(),
+            "research": scan_result.artefacts.research.len(),
+            "reviews": scan_result.artefacts.reviews.len(),
+            "sources": scan_result.artefacts.sources.len(),
+        },
+        "finding_counts": {
+            "error": errors,
+            "warning": warnings,
+            "info": info,
+        },
+    })
+}
+
 pub(super) fn rationale_json(
     scan_result: &scanner::ScanResult,
     node: &str,
