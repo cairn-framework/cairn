@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "cairn",
+  "project_id": "ad6cc3db-c17e-4804-a6d4-669cdf6f2e7d"
+}
