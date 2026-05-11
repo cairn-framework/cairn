@@ -1165,3 +1165,116 @@ app.auth -> app.store "persists"
     )?;
     Ok(())
 }
+
+#[test]
+fn test_scan_exclusions_suppress_orphan_findings() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("scan-exclude")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::create_dir_all(root.join("generated/cache"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(
+        root.join("generated/cache/output.rs"),
+        "pub fn cached() {}\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+    }
+}
+"#,
+    )?;
+
+    let without_exclude = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        without_exclude
+            .graph
+            .findings
+            .iter()
+            .any(|f| f.code == "CAIRN_RECONCILE_ORPHANED_FILE"
+                && f.message.contains("generated/cache/output.rs")),
+        "orphan finding expected without exclusion"
+    );
+
+    fs::write(root.join("cairn.config.yaml"), "ignore:\n  - generated\n")?;
+
+    fs::write(root.join("src/stray.rs"), "pub fn stray() {}\n")?;
+
+    let with_exclude = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        !with_exclude
+            .graph
+            .findings
+            .iter()
+            .any(|f| f.code == "CAIRN_RECONCILE_ORPHANED_FILE"
+                && f.message.contains("generated/cache/output.rs")),
+        "orphan finding should be suppressed by ignore"
+    );
+    assert!(
+        with_exclude
+            .graph
+            .findings
+            .iter()
+            .any(|f| f.code == "CAIRN_RECONCILE_ORPHANED_FILE" && f.message.contains("stray.rs")),
+        "non-excluded orphan should still produce a finding"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_neighbourhood_renders_with_warning_despite_scan_errors()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("neighbourhood-errors")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(root.join("src/orphan.rs"), "pub fn stray() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    assert!(
+        result.graph.has_errors(),
+        "fixture should have orphan errors"
+    );
+
+    let text = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["neighbourhood", "app.auth"])
+        .output()?;
+    let stdout = String::from_utf8(text.stdout)?;
+    assert!(
+        text.status.success(),
+        "neighbourhood should succeed with warnings"
+    );
+    assert!(stdout.contains("Node: app.auth"), "should render the node");
+    assert!(
+        stdout.contains("Warning: scan has"),
+        "should include warning"
+    );
+
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "neighbourhood", "app.auth"])
+        .output()?;
+    let json_stdout = String::from_utf8(json.stdout)?;
+    assert!(
+        json.status.success(),
+        "JSON neighbourhood should succeed with warnings"
+    );
+    assert!(json_stdout.contains("\"node\""), "should render node JSON");
+    assert!(
+        json_stdout.contains("\"warnings\""),
+        "JSON output should include warnings field"
+    );
+
+    Ok(())
+}
