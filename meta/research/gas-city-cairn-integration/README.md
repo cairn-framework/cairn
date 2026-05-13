@@ -70,18 +70,20 @@ User confirmed: GitHub issues in `cairn-framework/cairn`, mirrored locally as be
 
 Either path: the **first issue created should be the epic** (#1 in the slate), so subsequent issues can reference it via parent edge (`bd dep add <sub> <epic>`) or via "Part of #N" prose in GH body.
 
-Cross-reference table to fill in once posted:
+Cross-reference table:
 
-| Slate # | GH # | Bead ID |
-|---|---|---|
-| 1 (epic) | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
-| 6 | | |
-| 7 | | |
-| 8 | | |
-| 9 | | |
-| 10 | | |
-| 11 | | |
+| Slate # | GH # | Bead ID | Title |
+|---|---|---|---|
+| 1 (epic) | [#95](https://github.com/cairn-framework/cairn/issues/95) | | Epic: orchestrator-agnostic CAIRN |
+| 2 | [#96](https://github.com/cairn-framework/cairn/issues/96) | | [orch-agnostic] Integration contract |
+| 3 | [#97](https://github.com/cairn-framework/cairn/issues/97) | | [orch-agnostic] Pluggable `ArtefactStore` trait |
+| 4 | [#98](https://github.com/cairn-framework/cairn/issues/98) | | [orch-agnostic] Stable JSON + exit codes |
+| 5 | [#99](https://github.com/cairn-framework/cairn/issues/99) | | [beads] `BeadsStore` + schema enforcement |
+| 6 | [#100](https://github.com/cairn-framework/cairn/issues/100) | | [gas-city] `adapters/gascity/` reference pack |
+| 7 | [#101](https://github.com/cairn-framework/cairn/issues/101) | | [gas-city] SSE event consumer spike |
+| 8 | [#102](https://github.com/cairn-framework/cairn/issues/102) | | [openspec-retire] Change-lifecycle skills + scaffold |
+| 9 | [#103](https://github.com/cairn-framework/cairn/issues/103) | | [openspec-retire] Tasks-as-beads inside a change |
+| 10 | [#104](https://github.com/cairn-framework/cairn/issues/104) | | [openspec-retire] OpenSpec retirement: migration + parity |
+| 11 | [#105](https://github.com/cairn-framework/cairn/issues/105) | | [decision] CAIRN does not ship its own orchestrator |
+
+Beads column left blank for the user to fill in if mirroring locally.

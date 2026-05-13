@@ -162,6 +162,18 @@ Based on cairness issues #1, #2, #6, #7, #9, #10, #14 (supplied by user; repo `g
 
 **Estimated overlap:** ~70%. Two novel pieces (#7, #9) survive but are formula-sized (hundreds of LOC), not standalone-orchestrator-sized (thousands).
 
+### 4.1 Where the surviving novel pieces actually live
+
+**Cairness #7 (graph-walking wave scheduler) splits across the two sides of the integration:**
+
+- **CAIRN side (~50-100 LOC).** The graph-walking primitive — *"given the current change, what's ready right now?"* — must live where the graph definition lives. Concretely: `cairn query --ready --change <id> --json` walks blueprint + active change, applies `needs:` edge resolution, groups results by topological depth, emits waves as JSON. Covered by existing slate issues #4 (JSON contract), #9 (tasks-as-beads gives `bd ready` for free when beads-backed), and #3 (`ArtefactStore.query_by_dependency`).
+
+- **Orchestrator side (~300-400 LOC, free re-use).** Wave dispatcher, concurrency limit, retry policy, role-based routing — these are operational, not architectural. Gas City already ships them via formula `needs:` edges, runtime pools, `max_restarts`/`restart_window`, label-based routing. In `adapters/gascity/` (issue #6) this becomes one formula (`cairn-wave-dispatch.formula.toml`) + a small worker prompt template.
+
+Cairness was estimating 400-500 LOC because it was building the dispatcher from scratch. The dispatcher already exists in Gas City. We just need the right query feeding it. No new slate issue needed — the work is distributed across #3, #4, #6, #9.
+
+**Cairness #9 (self-improvement loop)** is similarly distributed: Gas City + Dolt gives the audit data; the analysis-agent-proposes-changes loop is one or two formulas on top, also in `adapters/gascity/` or as a future skill. Defer until the data is flowing.
+
 ---
 
 ## 5. What CAIRN already has
