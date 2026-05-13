@@ -627,3 +627,68 @@ None of this is in the current slate. Adding it now would distract from getting 
 - **Forward-compatible:** all current trait surfaces and storage decisions accommodate a future server mode without breaking changes.
 - **Deferred:** Cairnhub server, protocol standardization, hosted service, cross-project state aggregation. Real opportunities, wrong time.
 - **Rejected:** code-in-Dolt as a replacement for Git. Wrong battle.
+
+---
+
+## 18. "Everything is a bead" — what Gas City actually claims (tutorial-verified)
+
+User raised: *"Gas City says everything is built on top of beads, but we were saying everything should be built on top of CAIRN."*
+
+Read the official tutorials at `gascity/docs/tutorials/` to check whether the claims actually conflict.
+
+### What the tutorials say verbatim
+
+`docs/tutorials/06-beads.md` line 471: *"Beads are the ground truth of the **running state** of the city. Everything else in Gas City — sessions, mail, formulas, convoys — is built on top of them."*
+
+Line 170: *"The bead store is effectively the **execution state** of the entire system."*
+
+Line 11: *"Beads are the universal **work primitive** in Gas City."*
+
+`docs/tutorials/05-formulas.md`: *"Beads — the universal **work primitive** underneath formulas, sessions, and everything else."*
+
+Bead types per tutorial:
+
+| Type | What it is |
+|---|---|
+| task | A unit of work |
+| message | Inter-agent mail |
+| session | A running agent session |
+| molecule | Persistent formula instance |
+| wisp | Ephemeral formula instance |
+| convoy | Container grouping related beads |
+
+**Zero architectural concepts in the type list.** No module, contract, decision, drift finding, interface hash, blueprint node. Gas City's "everything" is honestly scoped: every *runtime / work / execution-state* thing is a bead.
+
+### Resolution
+
+The two claims aren't competing. They cover different layers:
+
+| Layer | Gas City's claim | CAIRN's claim |
+|---|---|---|
+| Architectural truth (modules, contracts, decisions, blueprint, drift) | (out of scope) | CAIRN graph is ground truth |
+| Execution state (sessions, tasks, mail, formula runs, dispatched work) | Beads is ground truth | use Beads via #99 |
+
+They compose vertically. CAIRN's structural ontology sits **above** Beads's execution ontology. The whole 7-tutorial set covers cities / rigs / agents / sessions / communication / formulas / beads / orders — all runtime concepts. Zero mention of architecture, modules, contracts, drift, blueprint, declared-vs-actual. **CAIRN's territory is unoccupied in Gas City's worldview.**
+
+### Why this matters for the slate
+
+This strengthens, not weakens, the case for keeping CAIRN distinct:
+
+- The "extension of Beads" framing remains rejected: Beads doesn't reach into CAIRN's domain, so CAIRN isn't an extension.
+- The "graph in Beads" framing remains rejected: Beads's graph is the work-dependency graph, not the architectural graph.
+- The state-pluggable / content-files split (§16) holds: state is bead-shaped (execution state); architectural content isn't.
+- The Cairnhub vision (§17) is sharpened: it adds a *new* layer (cross-project structural aggregation) that Gas City doesn't claim to cover.
+
+### LSP/lint role: intact
+
+User flagged: *"havent forgotten i guess cairn supposed to be able to keep stuff on track, by its sort of linting or LSP, like highlighting stuff done not captured in cairn?"*
+
+That role is unaffected by every architectural decision in this session. The drift-gate pieces remain:
+
+- `cairn scan` — finds orphaned files (code that exists but isn't owned by any node)
+- `cairn lint --json` — runs the check battery
+- Interface-hash drift raises "interface contradiction" findings (spec §"Freshness rule")
+- Drift gate blocks commits when reality diverges from declaration
+- `cairn neighbourhood` — answers "what does this code touch?"
+
+The session has been about what *not* to add to CAIRN. The drift gate hasn't moved.
