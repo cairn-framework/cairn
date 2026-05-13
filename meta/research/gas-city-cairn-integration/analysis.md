@@ -490,3 +490,51 @@ Three actionable sharpenings, captured as open questions / proposed issue edits:
 1. **Edit #104:** add "Blocked by: #102, #103."
 2. **Edit #102 acceptance:** specify CAIRN owns the required-field set + validation rules; both surfaces consume `cairn node template --type=X --json`.
 3. **New README open question:** what counts as adequate validation evidence before upstream submission to `gascity-packs`?
+
+---
+
+## 16. Storage model refinement: content / state / map split
+
+Surfaced when the user asked directly: *"Would we look at storing cairn's graphics and relations in Dolt/beads? Or should we look at it as an extension of beads?"*
+
+Pulling those apart led to a meaningful refinement of earlier issues #97 and #99.
+
+### Three distinct things, three distinct storage answers
+
+| Thing | What it is | Storage |
+|---|---|---|
+| **Content** | Authored text: `cairn.blueprint`, contract bodies, decision rationale, research notes, sources, todo descriptions. Reviewed in PRs. | **Files. Always.** Markdown + `cairn.blueprint`. No pluggable backend. |
+| **State** | Metadata about content: status, assignee, atomic claim, dependency edges between work items. Mutable. Two agents can race. | **Pluggable.** Filesystem default (status in frontmatter). Beads optional (atomic claim, hash IDs, Dolt versioning). |
+| **Map** | Typed node graph derived from parsing content + reconciling against the filesystem. | **Ephemeral by default; optional cache** (Dolt or SQLite, per cairness #14). Source of truth is files. |
+
+### Why this is cleaner than "ArtefactStore for everything"
+
+- **PR-reviewability preserved.** Contract changes appear as markdown diffs in GitHub. Reviewers don't browse Dolt to read a contract.
+- **Grep-friendly.** Any tool can read CAIRN content without knowing about Beads.
+- **Beads's strengths used where they matter.** Atomic claim, hash IDs, Dolt versioning — for state and work, where races and audit actually happen. Not spent on content that's already git-versioned.
+- **No backend pluggability for content.** Files are the canonical format. The pluggable layer is the *state backend*, a much smaller surface.
+- **Reconciler simplicity.** Reads files, compares to filesystem, emits findings. No database round-trip per node.
+
+### Per-artefact-type implications
+
+| Artefact type | Content storage | State storage |
+|---|---|---|
+| Contract | file | (none — derived from interface hash) |
+| Source | file | (none — immutable) |
+| Decision | file | bead (status: proposed/accepted/deprecated/superseded) |
+| Research | file | bead (status) |
+| Review | file | bead (status, who reviewed when) |
+| Todo | file | bead (status, assignee, claim) |
+
+Hybrid artefacts (Decision, Research, Review, Todo) get the cleanest model: markdown owns *content*, bead owns *state*. The bead's `ref` field points at the markdown file path. `cairn get <id>` reads both. When the state backend is filesystem-only, state lives in markdown frontmatter — same fields, just no atomic-claim guarantee.
+
+### Slate impact
+
+Refactored two issues to reflect this:
+
+- **#97 (now `StateBackend` trait, was `ArtefactStore`)** — narrowed to state only. Content is unconditionally files.
+- **#99 (now Beads `StateBackend`, was Beads `ArtefactStore`)** — narrowed accordingly. Schema enforcement applies to status/lifecycle/edge rules on top of any backend, not to bead contents.
+
+The "extension of Beads" framing rejected: CAIRN is not an extension of Beads, because content is not in Beads. The "graph in Dolt" framing rejected: the graph is derived, not stored — only its state component goes to Beads.
+
+This is the interface layer the user was asking for. Cleaner, smaller backend surface, no compromise on PR-reviewability of CAIRN content.

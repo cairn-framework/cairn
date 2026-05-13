@@ -65,14 +65,17 @@ Any orchestrator that wants to drive CAIRN needs a stable surface: command shape
 
 ---
 
-## #3 — Pluggable `ArtefactStore` trait with filesystem default
+## #3 — Pluggable `StateBackend` trait with filesystem default
+
+> **Refocused 2026-05-13** (analysis.md §16): scope narrowed from "all typed-artefact persistence" to "artefact **state** only." Content (markdown bodies, blueprint text) stays as files unconditionally. This trait covers status / claim / ready-queries.
 
 **Labels:** `orchestrator-agnostic`, `phase:integration`
 **Coupling:** agnostic
+**GH:** #97
 
 ### Problem
 
-CAIRN's typed artefacts live as files today. To swap in Beads (or any future backend) without forking the core, persistence needs a seam.
+CAIRN artefacts have two storage shapes: **content** (markdown text — already great as files, git-versioned, PR-reviewable) and **state** (status, assignee, atomic claim — where races and audit happen). Today both are bundled into filesystem-only storage. To get Beads's atomic-claim and Dolt versioning where they matter, the state layer needs a seam. Content needs no seam.
 
 ### Evidence
 
@@ -122,14 +125,17 @@ Without stable JSON, every adapter scrapes stdout. Without documented exit codes
 
 ---
 
-## #5 — Beads `ArtefactStore` backend + bead-type ↔ CAIRN artefact-type schema enforcement
+## #5 — Beads `StateBackend` implementation + status / lifecycle / edge schema enforcement
+
+> **Refocused 2026-05-13** (analysis.md §16): scope narrowed from "Beads as content store" to "Beads as state backend only." Content (contract bodies, decision rationale, research notes) stays as markdown files. Beads stores status, atomic claim, and the work derived from artefacts.
 
 **Labels:** `beads-adapter`, `phase:integration`
 **Coupling:** beads (orchestrator-agnostic)
+**GH:** #99
 
 ### Problem
 
-Replicating Beads's Dolt-backed versioning, hash-IDs, and federation in Rust is years of work. Adopting it as a backend gets all of that for free. But beads stores untyped bytes per `type` string — CAIRN's value is in the typed *semantics*, which it must enforce on top.
+CAIRN artefacts split cleanly into content (files, PR-reviewable, git-versioned already) and state (status transitions, atomic claim, dependency graph between work items). Beads is excellent for state; it would be wasted on content. This issue implements Beads as the state backend behind the trait in slate #3 / GH #97.
 
 ### Evidence
 

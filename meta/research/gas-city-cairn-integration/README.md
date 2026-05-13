@@ -57,9 +57,24 @@ User confirmed: GitHub issues in `cairn-framework/cairn`, mirrored locally as be
 4. **New slate issue for node-type → workflow association?** Mentioned in `analysis.md` §11. Would promote spec line 71 (currently v2/deferred) to active scope. The missing piece for explicit "graph IS orchestration" on the CAIRN side. Decision pending.
 5. **Timing of upstream pack submission.** When does `adapters/gascity/` graduate from "local dogfood" to "PR to `gastownhall/gascity-packs`"? Probably after the drift gate has caught real issues in a real CAIRN-using project — concrete value demonstration matters for the upstream review.
 6. **What counts as adequate validation evidence?** From adversarial review §15 #8 (the deepest risk). How many case studies of CAIRN catching architectural drift that probabilistic agent review missed, on what kind of project, gathered over what time period — before submitting `cairn-governance` to `gascity-packs`? Suggested floor: at least 3 distinct real-world cases over 4-8 weeks of dogfood, with before/after evidence.
-7. **Proposed GH issue edits** (from adversarial review §15):
-    - **#104:** add "Blocked by: #102, #103" to body. Don't retire openspec until replacement is proven.
-    - **#102 acceptance:** add a clause specifying CAIRN owns the required-field set + validation rules; skill and formula surfaces both consume `cairn node template --type=X --json` rather than duplicating schema.
+7. ~~**Proposed GH issue edits**~~ **Applied 2026-05-13.** From adversarial review §15 + storage refinement §16:
+    - **#97:** refocused from `ArtefactStore` to `StateBackend` (state only; content stays as files).
+    - **#99:** refocused from Beads as content store to Beads as state backend.
+    - **#102:** acceptance bullet added — CAIRN owns the required-field set + validation rules; skill and formula surfaces both consume `cairn node template --type=X --json`.
+    - **#104:** "Blocked by: #102, #103" added to body.
+
+## Community pack sequencing (decided 2026-05-13)
+
+Submit `cairn-governance` to `gastownhall/gascity-packs` as a **community pack**, never as a PR to `gascity` core. Sequence:
+
+1. Land agnostic core (#96 + #97 + #98) — CAIRN works standalone, has stable JSON output
+2. Land Beads `StateBackend` (refined #99) — bd dogfood proves out
+3. Land openspec retirement (#102 + #103 + #104) — proves end-to-end on CAIRN's own repo, generates case-study evidence the adversarial review #8 demanded
+4. Dogfood several weeks; gather ≥3 real drift-gate-catches-something stories (open question #6)
+5. Polish + write case studies
+6. **Then** submit pack to `gastownhall/gascity-packs`
+
+"Pack first" means *the pack is the destination, never a core fork* — not "pack tomorrow." The Gas City core stays untouched; the pack is the only interface CAIRN ever takes upstream.
 
 ## Primary external sources
 
