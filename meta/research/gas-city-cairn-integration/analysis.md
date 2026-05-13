@@ -434,3 +434,59 @@ No new issue needed.
 If every workflow lives outside CAIRN, *CAIRN-the-product* could feel skeletal to a new user. *"I installed cairn but there's no `cairn wizard` command?"*
 
 **Mitigation:** ship the skills + formulas in `.claude/skills/` and `adapters/gascity/` directories of the CAIRN repo itself. A fresh clone has the wizard UX available out of the box. The composition lives in the repo; only the *engine* runs externally.
+
+---
+
+## 15. Adversarial review
+
+Run at session-end when the plan/direction felt settled. Each item below is the strongest counter-argument against a decision in this analysis, answered honestly.
+
+### 1. "CAIRN should just be a Gas City pack from day one. No separate Rust binary."
+
+Counter: drift detection needs to run **offline**, **in CI**, **on machines without Gas City**, as a **git pre-commit hook**. The reconciler must produce a content-addressable fingerprint per spec §3.5 — that's a deterministic-correctness claim, can't depend on an orchestrator. Standalone binary is essential. *Pressure created:* keep the Rust footprint tight enough to install in CI without pain.
+
+### 2. "Three layers (semantic / storage / orchestrator) are too many. Skip the trait, just adopt Beads + skills."
+
+Counter: filesystem default is required for `brew install cairn` to work without `brew install beads`. Adoption friction matters. The trait is the seam between CAIRN-works-alone and CAIRN-better-with-Beads. Not speculative. Keep.
+
+### 3. "Gas City might pivot or fade in 6 months."
+
+Counter: the adapter is small (formulas + prompts in `adapters/gascity/`). Core stack (#95–#98) is orchestrator-neutral. If Gas City fades, only `adapters/gascity/` needs replacing. *Pressure created:* don't let Gas-City-specific concepts leak into #96 (integration contract). It must stay generic.
+
+### 4. "OpenSpec retirement is risky. Replacement skills are unbuilt."
+
+Counter: phasing is explicit. #102 + #103 must land and prove themselves before #104 fires. **Action item:** edit #104 body to add "Blocked by: #102, #103."
+
+### 5. "Authoring-workflows-as-external will fragment the user experience."
+
+Counter: skill and formula share the same `cairn` commands underneath. Divergence is bounded to question-asking surface. **Action item:** edit #102 acceptance to specify that required-field set + validation rules come from CAIRN (`cairn node template --type=X --json`), not duplicated in surfaces.
+
+### 6. "11 issues is overscoped for solo work."
+
+Counter: roadmap, not sprint backlog. Phased dependencies are clear; agnostic core (#95–#98) is one-quarter scope. *Pressure created:* cross-refs between issues should be explicit. Currently only #99 references #91.
+
+### 7. "Beads might fade too. Yegge-affiliated."
+
+Counter: Beads is more independent than cairness ever would have been (separate repo, brew/npm install, MIT). And the trait in #97 means we can swap backends. Lock-in bounded. *Pressure created:* the trait surface must be defined in terms of what CAIRN needs, not what Beads can offer.
+
+### 8. **Deepest risk.** "The architecture-truth bet hasn't been validated externally. It might be wrong."
+
+Counter: acknowledged, not fully resolvable from inside. Yegge's probabilistic-reliability bet (more agents reviewing each other) might just be correct, and deterministic gates might be solving a problem nobody has. **Mitigation:** dogfood CAIRN aggressively *before* submitting `cairn-governance` to `gascity-packs`. Document concrete cases where the drift gate caught something a probabilistic agent review would have missed. Without case studies, the upstream submission is unsubstantiated. **Action item:** README open question — what counts as adequate validation evidence before upstream submission?
+
+### 9. "Gas City community might reject a Rust-shim pack."
+
+Counter: subprocess/exec providers exist to run anything. Polyglot via subprocess is intentional. Examples in `gascity/examples/` already shell to bash. Low-medium risk.
+
+### 10. "External workflows mean less out-of-the-box. openspec ships more."
+
+Counter: §14 mitigation — ship the skills + formulas in CAIRN's own repo. Fresh clone has everything. *Pressure created:* CAIRN's own README needs to lead with the wizard UX, not the kernel architecture. First-run experience matters.
+
+### Verdict
+
+The plan survives the adversarial review. The deepest risk (#8 — validation of the architectural-truth bet) is unavoidable; you can't prove it from inside. Mitigation is dogfood + case studies before public submission.
+
+Three actionable sharpenings, captured as open questions / proposed issue edits:
+
+1. **Edit #104:** add "Blocked by: #102, #103."
+2. **Edit #102 acceptance:** specify CAIRN owns the required-field set + validation rules; both surfaces consume `cairn node template --type=X --json`.
+3. **New README open question:** what counts as adequate validation evidence before upstream submission to `gascity-packs`?

@@ -56,6 +56,10 @@ User confirmed: GitHub issues in `cairn-framework/cairn`, mirrored locally as be
 3. **Spec §4 amendment.** Wording change is tracked inside GH #102; needs explicit human sign-off before the spec PR lands.
 4. **New slate issue for node-type → workflow association?** Mentioned in `analysis.md` §11. Would promote spec line 71 (currently v2/deferred) to active scope. The missing piece for explicit "graph IS orchestration" on the CAIRN side. Decision pending.
 5. **Timing of upstream pack submission.** When does `adapters/gascity/` graduate from "local dogfood" to "PR to `gastownhall/gascity-packs`"? Probably after the drift gate has caught real issues in a real CAIRN-using project — concrete value demonstration matters for the upstream review.
+6. **What counts as adequate validation evidence?** From adversarial review §15 #8 (the deepest risk). How many case studies of CAIRN catching architectural drift that probabilistic agent review missed, on what kind of project, gathered over what time period — before submitting `cairn-governance` to `gascity-packs`? Suggested floor: at least 3 distinct real-world cases over 4-8 weeks of dogfood, with before/after evidence.
+7. **Proposed GH issue edits** (from adversarial review §15):
+    - **#104:** add "Blocked by: #102, #103" to body. Don't retire openspec until replacement is proven.
+    - **#102 acceptance:** add a clause specifying CAIRN owns the required-field set + validation rules; skill and formula surfaces both consume `cairn node template --type=X --json` rather than duplicating schema.
 
 ## Primary external sources
 
