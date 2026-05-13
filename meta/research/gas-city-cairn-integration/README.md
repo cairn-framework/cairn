@@ -63,6 +63,15 @@ User confirmed: GitHub issues in `cairn-framework/cairn`, mirrored locally as be
     - **#102:** acceptance bullet added — CAIRN owns the required-field set + validation rules; skill and formula surfaces both consume `cairn node template --type=X --json`.
     - **#104:** "Blocked by: #102, #103" added to body.
 
+## Long-horizon vision: Cairnhub (deferred, not slate work)
+
+See `analysis.md` §17 for the full decomposition. Summary:
+
+- **Real and worth aspiring to:** multi-project state aggregation, cross-orchestrator agent-action audit log, standard protocol for agent skills + model definitions, hosted Cairnhub service indexing many project repos.
+- **Today's architecture is forward-compatible:** the `StateBackend` trait (#97) is the right seam. A future `CairnhubBackend` impl talks to a remote server; trait surface unchanged. Content stays as files; the server indexes, doesn't replace.
+- **Explicitly rejected:** code-in-Dolt as a Git replacement. Network effects via GitHub are too strong; every prior "replace Git" attempt has lost.
+- **When:** after local CAIRN proves value via dogfood + case studies. Not now.
+
 ## Community pack sequencing (decided 2026-05-13)
 
 Submit `cairn-governance` to `gastownhall/gascity-packs` as a **community pack**, never as a PR to `gascity` core. Sequence:

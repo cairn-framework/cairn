@@ -538,3 +538,64 @@ Refactored two issues to reflect this:
 The "extension of Beads" framing rejected: CAIRN is not an extension of Beads, because content is not in Beads. The "graph in Dolt" framing rejected: the graph is derived, not stored — only its state component goes to Beads.
 
 This is the interface layer the user was asking for. Cleaner, smaller backend surface, no compromise on PR-reviewability of CAIRN content.
+
+---
+
+## 17. Cairnhub: the long-horizon vision (not slate work)
+
+User raised: *"if dolt is VCS like git, we get cairn to be like a dolt powered system, which uses beads i guess for the task part, but it also just has all the code etc in one? So its like an agentic coding VCS. Cairnhub."*
+
+Worth capturing the shape, the rejections, and the forward-compatible parts.
+
+### What's real in the vision
+
+Decomposed into evaluable pieces:
+
+| Piece | Worth pursuing? | When |
+|---|---|---|
+| Single-project single source of truth | ✓ Already in plan (§16) | Now |
+| Multi-project state aggregation | ✓ | Future server mode |
+| Standard agent skills + model definitions protocol | ✓ | Future |
+| Cross-orchestrator agent-action audit log | ✓ Yegge's SOC2 angle | Future |
+| Hosted "Cairnhub" SaaS | Possibly | Far future |
+| **Replace Git for code** | ✗ | Never |
+
+### Why "replace Git" is the wrong fight
+
+Code is unstructured text in files. Dolt wants structured rows in tables. Storing code as text blobs in Dolt costs: line-level diffs, blame, hunk operations, every IDE integration, GitHub network effects. Every previous "replace Git" attempt (Mercurial, Pijul, Fossil, Bazaar) is technically superior in some way and has tiny adoption. Network effects via GitHub are the strongest force in software tooling.
+
+### What the realistic Cairnhub looks like
+
+A *server tier* above today's local-file architecture:
+
+1. **Indexes multiple project repos.** Each project still has its own `cairn.blueprint`, content as files, Git as VCS for code.
+2. **Aggregates state in Dolt** — tables for projects, cross-project contracts, decisions-of-record, tasks-by-project, audit log of agent actions. Federation via Dolt remotes between teams/orgs.
+3. **Exposes a query API** — "show me all contracts across all projects whose interface hash changed and have no review in 30 days" becomes one SQL query.
+4. **Hosts standard protocol endpoints:**
+    - `GET /context/<project>` — current map + active change + ready tasks
+    - `POST /action` — agent publishes "I did X" (audit-log row)
+    - `POST /validate` — run drift gate against proposed change, return findings
+5. **Provides a plugin contract** — orchestrators (Gas City, Hermes, Claude Code, future) implement it. Plugins let agents read CAIRN context and publish actions; they don't replace Git.
+
+### Why today's architecture is forward-compatible
+
+The `StateBackend` trait (#97) is already the right seam. Today's impls: filesystem, Beads (local Dolt). A future impl: `CairnhubBackend` (talks to a remote Dolt-backed CAIRN server). Trait surface unchanged.
+
+Content stays as files in repos, regardless of whether you run local-only or against Cairnhub. The server indexes; it doesn't replace.
+
+### What a Cairnhub Phase would actually add (someday)
+
+- A `cairn-server` binary or service
+- Protocol endpoint definitions (probably OpenAPI, learning from Gas City's Huma approach in `gascity/engdocs/architecture/api-control-plane.md`)
+- Cross-project schema in Dolt
+- Authentication/authorization layer
+- A plugin SDK for orchestrator integration
+
+None of this is in the current slate. Adding it now would distract from getting #95 → #105 done. Recorded here so the vision isn't lost; promote to active scope only when local CAIRN has proven its value via the dogfood + case-study evidence the adversarial review §15 #8 demanded.
+
+### Decision
+
+- **Today:** local CAIRN, files + Beads + derived map. The plan we have.
+- **Forward-compatible:** all current trait surfaces and storage decisions accommodate a future server mode without breaking changes.
+- **Deferred:** Cairnhub server, protocol standardization, hosted service, cross-project state aggregation. Real opportunities, wrong time.
+- **Rejected:** code-in-Dolt as a replacement for Git. Wrong battle.
