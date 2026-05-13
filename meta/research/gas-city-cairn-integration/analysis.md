@@ -345,3 +345,92 @@ We're not contributing into 250k LOC of Go. We're contributing a pack (TOML + Ma
 **Community angle:** if `cairn-governance` lands in `gascity-packs`, CAIRN gets a discovery channel to ~15k-star Gas City community. The Gas City Discord audience (~2,000 active members per Yegge's article) is *exactly* the audience for architecture governance — people running multi-agent systems who've felt the hallucination pain and want deterministic gates. CAIRN repo stays the canonical home; the pack is the bridge.
 
 Low-risk strategic bet. Downside is zero — you'd build the pack anyway for your own use under issue #100.
+
+---
+
+## 14. Authoring workflows: same principle, applied to progressive disclosure
+
+The "workflow lives outside CAIRN; CAIRN provides atomic operations" pattern from §11 also applies to **how a user builds out a spec one node at a time**. Surfaced in conversation when comparing to getcairn.dev's progressive-disclosure spec UX.
+
+A multi-step node creator — pick type → assign ID/name → fill required fields → validate → commit — is a workflow with `needs:` edges, conditional retries, and human-in-the-loop pauses. **That's what formulas are designed for.**
+
+### What CAIRN ships
+
+Atomic, composable, JSON-shaped CLI commands. Each independently testable.
+
+- `cairn node template --type=<artefact-type>` → emits a JSON schema with required/optional fields for the type
+- `cairn validate-node --file=<draft.toml> --strict` → exit 0/1/2 + JSON findings
+- `cairn change add-node --change=<id> --file=<draft.toml>` → idempotent commit
+
+### What CAIRN does NOT ship
+
+- Interactive prompt loops
+- Wizard state machines
+- Branching flow logic ("if Contract, also ask for X")
+- Retry/recovery on validation failure
+- Persistence of partial drafts
+
+### Where the wizard UX actually lives
+
+Two surfaces, sharing the same underlying commands:
+
+**Formula version (Gas City users) — lives in `adapters/gascity/`:**
+
+```toml
+formula = "cairn-propose-node"
+
+[[steps]]
+id = "pick-type"
+description = "Ask user: Module, Contract, Decision, Todo, Research, Review, Source"
+
+[[steps]]
+id = "id-and-name"
+needs = ["pick-type"]
+description = "Run: cairn node template --type={{type}}; ask user for id + name"
+
+[[steps]]
+id = "fill-fields"
+needs = ["id-and-name"]
+description = "Read template; prompt for each required field one at a time"
+
+[[steps]]
+id = "validate"
+needs = ["fill-fields"]
+description = "cairn validate-node --file={{tmpfile}}; on exit 2, loop back to fill-fields with errors"
+
+[[steps]]
+id = "commit"
+needs = ["validate"]
+description = "cairn change add-node --change={{change}} --file={{tmpfile}}"
+```
+
+~30 lines of TOML. All flow state lives in the formula's molecule (bead tree). All semantic correctness lives in CAIRN's atomic commands.
+
+**Skill version (Claude Code / Codex / chat agents) — lives in `.claude/skills/`:**
+
+Same workflow, different surface. Markdown skill that drives the same atomic commands conversationally. Covered by issue #102.
+
+### Why this matters
+
+The two surfaces — formula and skill — diverge only in *how they ask the user*. The CAIRN commands underneath are identical. This means:
+
+- Any future surface (web UI, TUI, getcairn.dev clone, IDE plugin) is a thin client over the same CLI
+- Each atomic command is unit-testable in isolation
+- The wizard's logic (which questions, what order, branching on type) is reviewable as a single TOML or Markdown file, not buried in Rust
+- CAIRN's binary stays small
+
+### Connection to slate issues
+
+This **refines**, not adds:
+
+- **#98 (Stable JSON + exit codes)** hardens what "atomic" means: no command embeds multi-step state
+- **#100 (`adapters/gascity/` pack)** gains `cairn-propose-*.formula.toml` files as first-class content
+- **#102 (change-lifecycle skills)** gets the symmetric markdown skills
+
+No new issue needed.
+
+### Risk
+
+If every workflow lives outside CAIRN, *CAIRN-the-product* could feel skeletal to a new user. *"I installed cairn but there's no `cairn wizard` command?"*
+
+**Mitigation:** ship the skills + formulas in `.claude/skills/` and `adapters/gascity/` directories of the CAIRN repo itself. A fresh clone has the wizard UX available out of the box. The composition lives in the repo; only the *engine* runs externally.
