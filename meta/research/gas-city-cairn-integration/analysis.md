@@ -692,3 +692,62 @@ That role is unaffected by every architectural decision in this session. The dri
 - `cairn neighbourhood` — answers "what does this code touch?"
 
 The session has been about what *not* to add to CAIRN. The drift gate hasn't moved.
+
+---
+
+## 19. Three positioning clarifications
+
+Surfaced in conversation late in the session. Each is a sharpening, not a change.
+
+### 19.1 CAIRN is a tool, not a pack
+
+Earlier wording in this analysis loosely said things like "ship CAIRN as a Gas City pack." That muddles two things:
+
+- **CAIRN itself** is a CLI tool (`cairn scan`, `cairn lint`, `cairn neighbourhood`, ...) installed via brew/cargo/script. It runs on a project with or without Gas City. Runs in CI. Runs as a git pre-commit hook. **Not a pack.**
+- **`cairn-governance` (the Gas City adapter)** is a pack — `pack.toml` + formulas + prompts. The formulas shell out to `cairn` commands as steps. The pack is **integration glue**, not a wrapper of CAIRN.
+
+A pack is *"a reusable agent configuration directory loaded from pack.toml"* per `gascity/engdocs/architecture/glossary.md`. CAIRN doesn't fit that shape. The pack that uses CAIRN does. Issue #100 is correctly scoped on this — it's *"`adapters/gascity/` reference pack: formulas, prompts, install steps"* — the install steps are "install cairn first."
+
+### 19.2 Autonomous generation = drift detection at a different timing
+
+User raised: *"i plan to use cairn for autonomous generation too, just thats where we were looking at pairing it (blitzy is hidden proprietary)."*
+
+Both use cases reduce to one primitive:
+
+| Use case | When CAIRN runs | What it does |
+|---|---|---|
+| Drift detection | Post-hoc / pre-commit | Verifies existing code matches declared blueprint + contracts |
+| Autonomous generation | During / after generation | Verifies just-generated code matches declared blueprint + contracts |
+
+The drift gate doesn't know whether code was hand-written or AI-generated. It just enforces invariants. For autonomous generation the agent loop is:
+
+1. Agent reads `cairn.blueprint` + relevant contracts + neighbourhood
+2. Agent generates code
+3. Agent runs `cairn lint --json` to verify
+4. On exit 2 (blocking finding), agent iterates with findings as feedback
+5. On exit 0 (clean), commit
+
+CAIRN doesn't generate code. CAIRN doesn't know about the generating agent. It enforces the invariant either way. **Value of being a tool, not an agent.** Blitzy-style autonomous engineering, Gas City formula dispatch, Claude Code in-IDE — all consume the same primitive.
+
+This means the slate (#95-#105) serves both use cases. No additional scope needed.
+
+### 19.3 "Missing piece" is the product positioning
+
+User: *"i don't necessarily want an all in one tool, but i want a very lean ability to achieve these goals. And i guess cairn in my mind is a missing piece, as loads of other things have different parts of the puzzle, with different overlaps in cairn."*
+
+Restating the position explicitly:
+
+| Existing tool category | What it does | What it doesn't do |
+|---|---|---|
+| Coding agents (Claude Code, Codex, jcode) | Generate / edit code | Know what's *supposed* to be true |
+| Orchestrators / harnesses (Gas City, Hermes, custom) | Run agents at scale | Know what's *supposed* to be true |
+| Memory systems (automem, mag, beads) | Remember what happened | Know what's *supposed* to be true |
+| Knowledge graphs (graphify, etc.) | Derive structure from code | Enforce what *should* be true |
+
+Across all of these: nobody declares architectural truth and gates against drift from it. Existing tools *describe* (graphify, beads, automem) or *act* (Claude Code, Gas City, jcode). None *constrain*.
+
+**CAIRN's positioning: the declarative, deterministic constraint layer the ecosystem doesn't have.** Lean by design — a small CLI saying *"this is supposed to be true, this is what's actually there, here's the diff."* Every other tool can use it as the conscience.
+
+This is *why* CAIRN should not try to be a swiss army knife. Each thing it adds dilutes the constraint-layer identity. The integration value comes *from* being small and focused.
+
+Action implication: when introducing CAIRN to others (docs, README, pitch to gascity-packs reviewers), lead with "the missing constraint layer." Not "the AI coding framework." Not "the agent orchestration system." The constraint layer.

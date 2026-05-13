@@ -63,6 +63,14 @@ User confirmed: GitHub issues in `cairn-framework/cairn`, mirrored locally as be
     - **#102:** acceptance bullet added — CAIRN owns the required-field set + validation rules; skill and formula surfaces both consume `cairn node template --type=X --json`.
     - **#104:** "Blocked by: #102, #103" added to body.
 
+## Product positioning (clarified 2026-05-13)
+
+See `analysis.md` §19 for full reasoning.
+
+- **CAIRN is a tool, not a pack.** CLI installed via brew/cargo/script. Runs with or without Gas City. The `cairn-governance` Gas City pack is *integration glue that uses CAIRN*, not a wrapper of CAIRN.
+- **Drift detection and autonomous generation are the same primitive at different timings.** CAIRN's drift gate doesn't care whether code was hand-written, AI-generated, or pre-existing. The slate (#95-#105) serves both use cases.
+- **Positioning: the missing constraint layer.** Existing tools either describe (graphify, beads, automem, knowledge graphs) or act (coding agents, orchestrators). None declare architectural truth and gate against drift from it. CAIRN occupies that gap and stays small to keep that identity sharp.
+
 ## Storage model (refined 2026-05-13)
 
 Two axes of pluggability, each defaulting to filesystem. See `analysis.md` §16 for full reasoning (with corrections to earlier framing).
