@@ -40,6 +40,10 @@ path = "src/main.rs"
 name = "cairn-mcp"
 path = "src/bin/cairn-mcp.rs"
 
+[[bin]]
+name = "cairn-lsp"
+path = "src/bin/cairn-lsp.rs"
+
 [lints]
 workspace = true
 
@@ -54,6 +58,10 @@ tree-sitter-typescript = "0.23.2"
 tree-sitter-python = "0.25.0"
 tree-sitter-go = "0.25.0"
 
+[profile.release]
+lto = "thin"
+strip = true
+
 [dev-dependencies]
-insta = { version = "1", features = ["json", "yaml"] }
+insta = { version = "1", features = ["json", "yaml", "redactions"] }
 tempfile = "3"
