@@ -509,11 +509,19 @@ Pulling those apart led to a meaningful refinement of earlier issues #97 and #99
 
 ### Why this is cleaner than "ArtefactStore for everything"
 
-- **PR-reviewability preserved.** Contract changes appear as markdown diffs in GitHub. Reviewers don't browse Dolt to read a contract.
-- **Grep-friendly.** Any tool can read CAIRN content without knowing about Beads.
-- **Beads's strengths used where they matter.** Atomic claim, hash IDs, Dolt versioning — for state and work, where races and audit actually happen. Not spent on content that's already git-versioned.
-- **No backend pluggability for content.** Files are the canonical format. The pluggable layer is the *state backend*, a much smaller surface.
+- **Atomic merge with code preserved.** A new contract or todo usually lands in the same PR that implements/adopts it. If content lives in Git, contract change + code change merge atomically as one unit, revert together, appear together in `git log`. If content lived in a separate Dolt store, you'd have a two-VCS coordination problem (no distributed transaction between Dolt and Git).
+- **Beads's strengths used where they matter.** Atomic claim, hash IDs, Dolt versioning — for state and work, where races and audit actually happen.
+- **No backend pluggability for content (today).** Files are the canonical format for commit-coupled content. The pluggable layer is the *state backend*, a much smaller surface.
 - **Reconciler simplicity.** Reads files, compares to filesystem, emits findings. No database round-trip per node.
+
+### What's *not* a reason for files-canonical
+
+The earlier draft of this section claimed "Dolt loses line-level diffs" and "content already git-versioned, so don't waste Beads on it." Both wrong:
+
+- **Dolt does have cell-level diffs.** Text content in a `text` column is fully diff-able across commits and branches. Beads proves this: every issue body lives in Dolt's `Description` column and is fully versioned, diffed, branched.
+- The "already git-versioned" argument was circular — it assumed git is the right versioner, which is the question, not the answer.
+
+The actual argument is atomic-merge-with-code, above. That's the load-bearing constraint.
 
 ### Per-artefact-type implications
 
@@ -528,16 +536,22 @@ Pulling those apart led to a meaningful refinement of earlier issues #97 and #99
 
 Hybrid artefacts (Decision, Research, Review, Todo) get the cleanest model: markdown owns *content*, bead owns *state*. The bead's `ref` field points at the markdown file path. `cairn get <id>` reads both. When the state backend is filesystem-only, state lives in markdown frontmatter — same fields, just no atomic-claim guarantee.
 
+### Two axes of pluggability (refined)
+
+| Axis | Default | Optional (today) | Optional (future) |
+|---|---|---|---|
+| **State** | filesystem (frontmatter) | Beads (#97 / #99) | remote `StateBackend` (Cairnhub) |
+| **Content** | filesystem (atomic merge with code) | — | Dolt-direct `ContentBackend` for non-commit-coupled artefacts |
+
+Today's slate covers **state**. Content stays filesystem-only by default because the artefacts CAIRN cares about (blueprint, contract, decision, todo bound to code) are commit-coupled. A future `ContentBackend` trait could mirror `StateBackend`, with filesystem as default and Dolt-direct as an option — for artefacts that *don't* travel with code (Cairnhub-style cross-project decisions, multi-project research, agent-action audit logs).
+
 ### Slate impact
 
-Refactored two issues to reflect this:
+- **#97 (now `StateBackend`)** — narrowed to state only for today. Forward-compatible with a future `ContentBackend` sibling.
+- **#99 (now Beads `StateBackend`)** — narrowed accordingly.
+- **No `ContentBackend` issue today.** Filesystem content is the right default while local-project workflows dominate. Add the trait only when Cairnhub-style multi-project workloads create real demand.
 
-- **#97 (now `StateBackend` trait, was `ArtefactStore`)** — narrowed to state only. Content is unconditionally files.
-- **#99 (now Beads `StateBackend`, was Beads `ArtefactStore`)** — narrowed accordingly. Schema enforcement applies to status/lifecycle/edge rules on top of any backend, not to bead contents.
-
-The "extension of Beads" framing rejected: CAIRN is not an extension of Beads, because content is not in Beads. The "graph in Dolt" framing rejected: the graph is derived, not stored — only its state component goes to Beads.
-
-This is the interface layer the user was asking for. Cleaner, smaller backend surface, no compromise on PR-reviewability of CAIRN content.
+The "extension of Beads" framing remains rejected: CAIRN's commit-coupled content is not in Beads, today or ever, because it needs to merge atomically with code. The "graph in Dolt" framing is *partially* rejected: the graph stays derived locally; only state (today) and potentially non-commit-coupled content (future) go to Dolt.
 
 ---
 
@@ -546,6 +560,20 @@ This is the interface layer the user was asking for. Cleaner, smaller backend su
 User raised: *"if dolt is VCS like git, we get cairn to be like a dolt powered system, which uses beads i guess for the task part, but it also just has all the code etc in one? So its like an agentic coding VCS. Cairnhub."*
 
 Worth capturing the shape, the rejections, and the forward-compatible parts.
+
+### Cairnhub's natural domain: non-commit-coupled artefacts
+
+Refined in light of §16's atomic-merge-with-code constraint: Cairnhub's clearest value is for artefacts that **don't** need to land atomically with specific code commits. Those are:
+
+- Cross-project decision archive ("which projects adopted dec.use-shared-crypto?")
+- Agent-action audit log ("which agent did what in any project last week?")
+- Cross-project contract dependencies (module A in project X importing contract from project Y)
+- Federated research across organisations
+- Hosted shared libraries of skills/model-definitions
+
+Per-project, commit-coupled content (blueprint, contract bodies, todos tied to specific code) stays in git repos under any architecture. Cairnhub indexes; it doesn't repatriate.
+
+This sharpens what Cairnhub is *for* and what it's *not* for.
 
 ### What's real in the vision
 

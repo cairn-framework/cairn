@@ -63,13 +63,25 @@ User confirmed: GitHub issues in `cairn-framework/cairn`, mirrored locally as be
     - **#102:** acceptance bullet added — CAIRN owns the required-field set + validation rules; skill and formula surfaces both consume `cairn node template --type=X --json`.
     - **#104:** "Blocked by: #102, #103" added to body.
 
+## Storage model (refined 2026-05-13)
+
+Two axes of pluggability, each defaulting to filesystem. See `analysis.md` §16 for full reasoning (with corrections to earlier framing).
+
+| Axis | Default | Optional today | Optional future |
+|---|---|---|---|
+| **State** (status, claim, edges) | filesystem (frontmatter) | Beads (#97 / #99) | remote `StateBackend` |
+| **Content** (blueprint, markdown bodies) | filesystem (atomic merge with code) | — | Dolt-direct `ContentBackend` for non-commit-coupled artefacts |
+
+The real reason content stays in files: **atomic merge with code.** A contract change and the code change implementing it need to land as one PR, one commit, one revert. If content lived in a separate Dolt store you'd have a two-VCS coordination problem without a distributed transaction. Dolt's cell-level diffs are real (Beads proves it) — the constraint is merge atomicity, not diff capability.
+
 ## Long-horizon vision: Cairnhub (deferred, not slate work)
 
 See `analysis.md` §17 for the full decomposition. Summary:
 
 - **Real and worth aspiring to:** multi-project state aggregation, cross-orchestrator agent-action audit log, standard protocol for agent skills + model definitions, hosted Cairnhub service indexing many project repos.
-- **Today's architecture is forward-compatible:** the `StateBackend` trait (#97) is the right seam. A future `CairnhubBackend` impl talks to a remote server; trait surface unchanged. Content stays as files; the server indexes, doesn't replace.
-- **Explicitly rejected:** code-in-Dolt as a Git replacement. Network effects via GitHub are too strong; every prior "replace Git" attempt has lost.
+- **Cairnhub's natural domain (sharpened):** artefacts that *don't* need to land atomically with specific code commits — cross-project decision archives, agent-action audit logs, cross-project contract dependencies, federated research, shared skill/model-definition libraries.
+- **Today's architecture is forward-compatible:** the `StateBackend` trait (#97) is the right seam. A future `CairnhubBackend` impl talks to a remote server; trait surface unchanged. Commit-coupled content stays as files in repos; the server indexes, doesn't repatriate.
+- **Explicitly rejected:** code-in-Dolt as a Git replacement. Network effects via GitHub are decisive; every prior "replace Git" attempt has lost.
 - **When:** after local CAIRN proves value via dogfood + case studies. Not now.
 
 ## Community pack sequencing (decided 2026-05-13)
