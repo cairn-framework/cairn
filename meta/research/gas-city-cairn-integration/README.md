@@ -38,11 +38,12 @@ Full reasoning with citations: see `analysis.md`.
 
 ## Recommended next actions
 
-1. **Begin #1 (epic) + #2 (integration contract).** These unblock everything else.
-2. **#10 (openspec retirement) order:** wait until #8 (change-lifecycle skills) lands so the replacement workflow exists before openspec is retired.
-3. **Build cairn locally** so future sessions can use it on itself. `cargo build --release` + symlink.
+1. **Begin GH #95 (epic) + #96 (integration contract).** These unblock everything else.
+2. **GH #104 (openspec retirement) order:** wait until #102 (change-lifecycle skills) lands so the replacement workflow exists before openspec is retired.
+3. **Build cairn locally** so future sessions can use it on itself. `cargo build --release` + symlink. Mirrors existing GH issue #90.
 4. **Seed beads from `issue-slate.md`** if dogfooding. The slate includes a conversion snippet at the bottom.
-5. **Mirror against the GH issues** created this session (see "GitHub issues created" below).
+5. **After dogfooding #100 (`adapters/gascity/` pack), submit upstream to `gastownhall/gascity-packs`.** That repo is the explicit community-pack home; CAIRN gets a discovery channel to the ~15k-star Gas City community without forking anything. See `analysis.md` §13 for full reasoning.
+6. **Decide on the node-type → workflow association issue.** Mentioned in `analysis.md` §11 as the missing "graph IS orchestration" piece on the CAIRN side. Not yet in the slate. Promote spec line 71 (currently v2/deferred) to active scope, or defer further.
 
 ## Recommended issue venue (resolved)
 
@@ -50,9 +51,11 @@ User confirmed: GitHub issues in `cairn-framework/cairn`, mirrored locally as be
 
 ## Open questions left for human
 
-1. **Promote this analysis to a CAIRN Source artefact?** Currently plain markdown in `meta/research/`. Once #5 (Beads `ArtefactStore` backend) and the Source artefact schema are concrete, this material is a natural candidate for `type=source`.
+1. **Promote this analysis to a CAIRN Source artefact?** Currently plain markdown in `meta/research/`. Once #99 (Beads `ArtefactStore` backend) and the Source artefact schema are concrete, this material is a natural candidate for `type=source`.
 2. **Pin inspected commits.** Gas City and Beads repos were cloned shallow without tag pinning. If this is promoted to a Source, re-verify against pinned refs.
-3. **Spec §4 amendment.** Wording change is tracked inside issue #8; needs explicit human sign-off before the spec PR lands.
+3. **Spec §4 amendment.** Wording change is tracked inside GH #102; needs explicit human sign-off before the spec PR lands.
+4. **New slate issue for node-type → workflow association?** Mentioned in `analysis.md` §11. Would promote spec line 71 (currently v2/deferred) to active scope. The missing piece for explicit "graph IS orchestration" on the CAIRN side. Decision pending.
+5. **Timing of upstream pack submission.** When does `adapters/gascity/` graduate from "local dogfood" to "PR to `gastownhall/gascity-packs`"? Probably after the drift gate has caught real issues in a real CAIRN-using project — concrete value demonstration matters for the upstream review.
 
 ## Primary external sources
 

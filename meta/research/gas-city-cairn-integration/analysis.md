@@ -276,3 +276,72 @@ CAIRN's deterministic-gate-at-commit + architectural-truth angle is complementar
 - `bd` was not installed in the session sandbox; Beads claims were verified via README + cloned source inspection only, not via runtime use.
 - cairness scope is from the issue inventory supplied by the user (`#1, #2, #6, #7, #9, #10, #14`). The repo `george-rd/cairness` is private; source not inspected.
 - Gas City and Beads repos were cloned shallow (`--depth 1`) to `/tmp/gc-review/gascity` and `/tmp/beads-repo`. Tag/commit not pinned. If this analysis is promoted to a Source artefact, re-clone with explicit refs and re-verify.
+
+---
+
+## 11. The "graph IS orchestration" framing
+
+Surfaced in conversation after the initial slate was drafted. Cairness #7 was reaching for this; the spec hints at it (line 71: *"Decisions can declare the blueprint nodes they apply to; the framework can then flag when a change to those nodes appears to violate the decision (v2 capability, deferred)"*).
+
+Two distinct meanings:
+
+**(a) Reactive: graph state changes drive work.** New `Todo` appears → worker spawned. `Contract` interface hash changes → drift gate fires. `Decision` flips to `accepted` → implementation work materialises.
+
+**(b) Declarative: node types carry workflow semantics.** Each artefact type has an associated lifecycle and an associated kind-of-work. `Contract`: draft → reviewed → accepted. `Todo`: proposed → ready → claimed → done. The graph topology directly maps to dispatch decisions.
+
+Both are CAIRN-side concerns. Neither requires CAIRN to own the dispatcher. The right division of labour:
+
+- **CAIRN owns the semantics:** which node states imply which work types, what the lifecycle transitions are, when the drift gate must fire
+- **The orchestrator owns the runtime:** parallelism, retries, pool scaling, crash recovery
+
+This preserves the cairness vision in spirit (graph-native orchestration) while extracting the orchestrator into Gas City where it's more mature.
+
+Three operational paths for graph-state-driven work in the Gas City world:
+
+1. **CAIRN queries drive Gas City formulas.** `cairn query --ready --change <id>` returns ready wave; Gas City formula dispatches. Covered by #98 + #100.
+2. **Beads-mediated.** Typed beads (`type=contract`) become work items via existing `bd ready` detection. Covered by #99 + #103.
+3. **SSE reactive** (strongest form). CAIRN emits events on graph state changes; Gas City Orders react. Covered by #96 + #101.
+
+**Gap in the current slate:** explicit `node-type → workflow` association in `cairn.blueprint`. Example: `Module @api → on_drift: cairn-drift-gate`, `Contract → on_status_change(accepted): cairn-implement`. The orchestrator becomes a dumb pump that runs whatever formula the graph state says is implied. This is the missing piece that makes "graph IS orchestration" concrete on the CAIRN side. Candidate for a new slate issue; pending decision.
+
+---
+
+## 12. Gas City tech-debt assessment
+
+Asked late in the session because contributing back upstream became a strategic option. Concrete numbers from `/tmp/gc-review/gascity`:
+
+| Signal | Value | Read |
+|---|---|---|
+| TODO/FIXME/HACK in non-test Go | 21 across ~250k LOC | 0.0084% density — well below industry concern |
+| Test files | 796 | Heavy investment |
+| Active design RFCs (`engdocs/design/`) | 20 | Working RFC pipeline; debt is documented before it's debt |
+| Archived RFCs | 18 | Things actually ship and graduate |
+| CHANGELOG detail | Per-fix operator-impact notes | Mature release engineering |
+| Pre-commit hooks | Auto-regen OpenAPI + dashboard schema + lint + vet + test | CI-equivalent gates run locally |
+| Recent activity | PR #1169 in last commit message | High velocity, large contributor base |
+
+Sample TODOs read as `// Wired: TODO — operation context plumbing pending` — deliberate incremental implementation, not rot. No "broken and we don't know how to fix" debt visible.
+
+`CONTRIBUTING.md` verbatim: *"Gas City is experimental software, but the repo is now structured for external contributors."*
+
+**Verdict:** healthy. Contributing into Gas City would not be a rescue mission.
+
+---
+
+## 13. Contribution-path strategy
+
+Key finding: `gastownhall/gascity-packs` exists as the explicit community pack home. README verbatim: *"A collection of opt-in Gas City packs... Packs compose through `pack.toml` imports, so a city can opt into any subset of the packs in this repo without forking."*
+
+So the upstream contribution path is:
+
+1. Build `adapters/gascity/` in `cairn-framework/cairn` (issue #100)
+2. Dogfood locally for some weeks
+3. Polish: docs, README, pinned Gas City version
+4. Submit to `gastownhall/gascity-packs` as `packs/cairn-governance/` (or similar)
+5. Optionally: a small PR to `gascity` core if a genuine integration-contract gap surfaces (unlikely; their extension model is good)
+
+We're not contributing into 250k LOC of Go. We're contributing a pack (TOML + Markdown + prompt templates + a thin shim that shells to `cairn`). Tractable from outside; minimal upstream maintainer load.
+
+**Community angle:** if `cairn-governance` lands in `gascity-packs`, CAIRN gets a discovery channel to ~15k-star Gas City community. The Gas City Discord audience (~2,000 active members per Yegge's article) is *exactly* the audience for architecture governance — people running multi-agent systems who've felt the hallucination pain and want deterministic gates. CAIRN repo stays the canonical home; the pack is the bridge.
+
+Low-risk strategic bet. Downside is zero — you'd build the pack anyway for your own use under issue #100.
