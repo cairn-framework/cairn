@@ -30,6 +30,7 @@ The framework's role (spec §3.4): *"a fence around the authority chain and a na
 | `src/ui_assets/` | Embedded web UI (styled via `docs/design-system/`) |
 | `cairn.blueprint` | Root blueprint: CAIRN describing itself (dogfood) |
 | `test/fixtures/cairn-bootstrap/` | Bootstrap fixture (test artifact, may lag behind root) |
+| `meta/research/gas-city-cairn-integration/` | Gas City / Beads integration analysis, decisions, and issue slate |
 | `AGENTS.md` | Instructions read by the codex agent during cflx runs |
 
 ## Using cairn in this repo
