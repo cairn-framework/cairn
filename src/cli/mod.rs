@@ -73,7 +73,25 @@ pub fn run(args: &[String]) -> CliResult {
         Err(result) => return result,
     };
     if parsed.command == "init" {
+        let from_code = parsed.command_args.iter().any(|a| a == "--from-code");
+        if from_code {
+            let force = parsed.command_args.iter().any(|a| a == "--force");
+            return match crate::brownfield::init::run_init_from_code(Path::new("."), force) {
+                Ok(change_id) => ok(format!(
+                    "brownfield init complete; change written to openspec/changes/{change_id}/\n"
+                )),
+                Err(e) => err(1, &e.to_string()),
+            };
+        }
         return init_project(Path::new("."));
+    }
+    if parsed.command == "refine" {
+        return match crate::brownfield::refine::run_refine(Path::new(".")) {
+            Ok(change_id) => ok(format!(
+                "refine complete; change written to openspec/changes/{change_id}/\n"
+            )),
+            Err(e) => err(1, &e.to_string()),
+        };
     }
     if parsed.command == "ui" {
         return run_ui_command(&parsed);
