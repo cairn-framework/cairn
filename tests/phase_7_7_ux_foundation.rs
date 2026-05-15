@@ -48,15 +48,28 @@ mod cli {
         let _: fn(&cairn::map::Graph) -> cairn::map::query::LintResponse = cairn::map::query::lint;
     }
 
-    /// Scenario: Inspection has no JSON mode in this phase.
+    /// Scenario: Inspection supports JSON output with command envelope.
     #[test]
-    fn test_check__inspection_has_no_json_mode() {
+    fn test_check__inspection_supports_json_mode() {
         let result = cairn::cli::run(&["--json".to_owned(), "check".to_owned()]);
-        assert_eq!(result.code, 1, "cairn check --json must be rejected");
+        // When a blueprint exists in the CWD (the repo root), check
+        // produces a JSON envelope. When it does not, it falls through
+        // to a human-friendly guidance message.
+        let stdout = result.stdout.trim();
+        if stdout.starts_with('{') {
+            let parsed: serde_json::Value =
+                serde_json::from_str(stdout).expect("cairn check --json must produce valid JSON");
+            assert_eq!(parsed["command"], "check", "envelope must name the command");
+            assert!(
+                parsed["data"]["findings"].is_array(),
+                "envelope must contain findings array"
+            );
+        }
+        // Either way, check --json must not be rejected with an error
+        // message pointing at `cairn lint --json`.
         assert!(
-            result.stderr.contains("cairn lint --json"),
-            "rejection must point at `cairn lint --json`, got: {}",
-            result.stderr
+            !result.stderr.contains("cairn lint --json"),
+            "check --json is no longer rejected"
         );
     }
 }
