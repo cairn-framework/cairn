@@ -25,6 +25,7 @@ pub use crate::query_api::SafetyClass;
 /// Command metadata.
 mod accept;
 mod commands;
+pub(crate) mod copy;
 pub mod export;
 mod format;
 mod render;
@@ -162,7 +163,7 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
         }
     }
     let Some(command) = command_args.first().map(String::as_str) else {
-        return Err(err(2, "usage: cairn <command> [--file path] [--json]"));
+        return Err(err(2, copy::lookup("errors.usage")));
     };
     Ok(ParsedArgs {
         json,
@@ -291,7 +292,7 @@ fn render_loaded_project_command(
                 stderr: legacy_warning,
             };
         }
-        _ => return err(2, "unknown command"),
+        _ => return err(2, copy::lookup("errors.unknown-command")),
     }
     .map_or_else(
         |finding| finding_output(parsed.json, finding),
