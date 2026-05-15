@@ -92,13 +92,22 @@ pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
         if files.len() >= MIN_FILES {
             let rel = dir.strip_prefix(root).unwrap_or(dir);
             let rel_str = rel.to_string_lossy().to_string();
+            if rel_str.is_empty() {
+                continue;
+            }
             let id = node_id_from_path(&rel_str);
             let name = name_from_path(&rel_str);
             let confidence = compute_confidence(files.len());
-            let evidence: Vec<String> = files
+            let mut evidence: Vec<String> = files
                 .iter()
-                .map(|p| p.to_string_lossy().to_string())
+                .map(|p| {
+                    p.strip_prefix(root)
+                        .unwrap_or(p)
+                        .to_string_lossy()
+                        .to_string()
+                })
                 .collect();
+            evidence.sort();
             candidates.push(DiscoveredCandidate {
                 id,
                 name,

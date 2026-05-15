@@ -162,7 +162,7 @@ mod init {
                 description: "Core module".to_owned(),
                 path: "src/core".to_owned(),
                 tags: vec![],
-                confidence: 2.0,
+                confidence: 0.8,
                 evidence: vec!["src/core/a.rs".to_owned()],
                 edges: vec![],
             }],
@@ -204,8 +204,6 @@ mod refine {
         let first = bf_refine::run_refine(&root).unwrap();
         // Add a second source dir and refine again.
         populate_source_dir(&root, "src/api", 3);
-        // Wait one second so the timestamp differs.
-        std::thread::sleep(std::time::Duration::from_secs(1));
         let second = bf_refine::run_refine(&root).unwrap();
         // Each refine creates a separate change directory.
         assert_ne!(first, second);

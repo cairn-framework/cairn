@@ -92,9 +92,7 @@ pub fn blueprint_delta(extraction: &Extraction) -> String {
 }
 
 fn node_kind_from_path(path: &str) -> &'static str {
-    if path.contains("test") || path.contains("spec") {
-        "Test"
-    } else if path.contains("api") || path.contains("service") {
+    if path.contains("api") || path.contains("service") {
         "Container"
     } else {
         "Module"

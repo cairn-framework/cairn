@@ -326,7 +326,7 @@ fn render_loaded_project_command(
 }
 
 /// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard"];
+const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard", "refine"];
 
 /// Returns all command names the CLI recognises.
 fn all_command_names() -> Vec<&'static str> {
@@ -361,6 +361,7 @@ fn command_description(name: &str) -> &'static str {
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
         "onboard" => "Suggest blueprint entries for orphaned files",
+        "refine" => "Re-run brownfield discovery and write a timestamped change",
         "order" => "Topological order of all nodes",
         "rationale" => "Show rationale chain for a node",
         "rename" => "Rename a node ID across the project",

@@ -45,9 +45,9 @@ fn unique_change_id(root: &Path, ts: &str) -> String {
 
 fn timestamp() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
-    let secs = SystemTime::now()
+    let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
-        .as_secs();
-    format!("{secs}")
+        .as_nanos();
+    format!("{nanos}")
 }
