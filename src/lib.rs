@@ -22,7 +22,7 @@ pub mod hooks;
 pub mod map;
 /// MCP stdio transport.
 pub mod mcp;
-/// AI provenance: trace sidecar and suggested-edges queue schemas.
+/// AI provenance: trace sidecar schemas.
 pub mod provenance;
 /// Shared structured query API and MCP tool registry.
 pub mod query_api;
@@ -30,6 +30,8 @@ pub mod query_api;
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
+/// Suggested-edges queue: mutable triage workflows for AI-suggested graph edges.
+pub mod suggested_edges;
 /// Phase 8 summariser: pluggable backends and draft store.
 pub mod summariser;
 /// Embedded graph explorer server and query bridge.

@@ -1,104 +1,17 @@
 //! Suggested-edges queue: per-change `suggested-edges.json`.
+//!
+//! Mutable triage workflows for AI-suggested graph edges. Traces
+//! (immutable records) remain in the `provenance` module; this module
+//! owns the queue lifecycle: read, write, validate, and count.
+
+mod types;
 
 use std::{fs, path::Path};
 
-use serde::{Deserialize, Serialize};
+pub use types::{EdgeProvenance, QueueError, SuggestedEdgeEntry, SuggestedEdgesQueue, TriageState};
 
 /// Wire schema version for the suggested-edges queue.
 pub const SUGGESTED_EDGES_QUEUE_VERSION: u32 = 1;
-
-/// Triage state for a single suggested edge entry.
-///
-/// Newly-emitted entries default to `Pending`. A human reviewer
-/// transitions the entry to `Accepted`, `Rejected`, or `Deferred`.
-/// Pending entries block `cflx openspec validate <change> --strict` with
-/// error code `CC002`.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum TriageState {
-    /// Awaiting human triage. Default for new entries.
-    #[default]
-    Pending,
-    /// Human approved this suggestion.
-    Accepted,
-    /// Human rejected this suggestion.
-    Rejected,
-    /// Human deferred this suggestion to a future change.
-    Deferred,
-}
-
-/// Provenance pointer back into a trace sidecar.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct EntryProvenance {
-    /// Phase identifier that produced the entry.
-    pub trace_phase: String,
-    /// Stage within the run that produced the entry.
-    pub stage: String,
-}
-
-/// One suggested edge between two declared nodes.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct SuggestedEdgeEntry {
-    /// Source node ID.
-    pub source: String,
-    /// Target node ID.
-    pub target: String,
-    /// Verb describing the suggested relation.
-    pub relation: String,
-    /// Triage state. Defaults to `Pending` for new entries.
-    #[serde(default)]
-    pub triage_state: TriageState,
-    /// Producer-computed confidence in [0.0, 1.0]. Optional.
-    #[serde(default)]
-    pub confidence: Option<f64>,
-    /// Optional pointer back into the trace sidecar that produced the entry.
-    #[serde(default)]
-    pub provenance: Option<EntryProvenance>,
-    /// Optional human note recorded during triage.
-    #[serde(default)]
-    pub triage_note: Option<String>,
-}
-
-/// Top-level queue payload.
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct SuggestedEdgesQueue {
-    /// Schema version. Reader rejects higher values.
-    pub version: u32,
-    /// Queue entries.
-    #[serde(default)]
-    pub entries: Vec<SuggestedEdgeEntry>,
-}
-
-/// Queue reader error.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum QueueError {
-    /// File could not be read from disk.
-    Io(String),
-    /// File could not be parsed as JSON.
-    Parse(String),
-    /// Queue carries a higher schema version than the reader supports.
-    UnsupportedVersion {
-        /// Version found on disk.
-        found: u32,
-        /// Maximum version this reader supports.
-        expected: u32,
-    },
-}
-
-impl std::fmt::Display for QueueError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Io(msg) => write!(f, "queue io: {msg}"),
-            Self::Parse(msg) => write!(f, "queue parse: {msg}"),
-            Self::UnsupportedVersion { found, expected } => write!(
-                f,
-                "queue version {found} is newer than reader version {expected}"
-            ),
-        }
-    }
-}
-
-impl std::error::Error for QueueError {}
 
 /// Reads the queue file at `path`. Returns `Ok(None)` when the file does
 /// not exist; an absent queue is not an error per the phase-7.6 spec.
@@ -151,8 +64,8 @@ pub fn read_from_change(change_dir: &Path) -> Result<Option<SuggestedEdgesQueue>
     read_queue(&queue_path_for_change(change_dir))
 }
 
-/// Writes the queue for a change directory atomically. Cycle 3 fix:
-/// temp-file path now carries pid + nanos suffix so concurrent writers
+/// Writes the queue for a change directory atomically. The temp-file
+/// path carries pid + nanos + counter suffix so concurrent writers
 /// do not race on the same `.json.tmp` filename.
 ///
 /// # Errors
@@ -174,8 +87,8 @@ pub fn write_to_change(change_dir: &Path, queue: &SuggestedEdgesQueue) -> Result
 fn unique_temp_path(final_path: &Path) -> std::path::PathBuf {
     use std::sync::atomic::{AtomicU64, Ordering};
     static COUNTER: AtomicU64 = AtomicU64::new(0);
-    // Cycle 4: pid alone is insufficient for cross-thread uniqueness,
-    // and SystemTime::now() may report identical nanos on consecutive
+    // pid alone is insufficient for cross-thread uniqueness, and
+    // SystemTime::now() may report identical nanos on consecutive
     // sub-microsecond calls. The atomic counter guarantees uniqueness
     // across threads in the same process; pid + nanos guards against
     // cross-process collisions.
@@ -198,8 +111,7 @@ fn unique_temp_path(final_path: &Path) -> std::path::PathBuf {
 /// when entries are pending; returns
 /// `Err(CairnError::ChangeDiscovery)` (CC003) when the queue file
 /// exists but cannot be read, parsed, or carries a version newer than
-/// supported. Cycle 3 fix: previously swallowed read/parse/version
-/// errors as success, defeating the very gate it implements.
+/// supported.
 ///
 /// # Errors
 ///
@@ -242,7 +154,7 @@ mod tests {
             relation: "calls".to_owned(),
             triage_state: state,
             confidence: Some(0.8),
-            provenance: Some(EntryProvenance {
+            provenance: Some(EdgeProvenance {
                 trace_phase: "phase-9".to_owned(),
                 stage: "propose".to_owned(),
             }),
@@ -318,5 +230,16 @@ mod tests {
         fs::write(&path, body).expect("write");
         let err = read_queue(&path).expect_err("should reject");
         assert!(matches!(err, QueueError::UnsupportedVersion { .. }));
+    }
+
+    #[test]
+    fn edge_provenance_round_trips() {
+        let prov = EdgeProvenance {
+            trace_phase: "phase-10".to_owned(),
+            stage: "apply".to_owned(),
+        };
+        let json = serde_json::to_string(&prov).expect("serialise");
+        let back: EdgeProvenance = serde_json::from_str(&json).expect("deserialise");
+        assert_eq!(back, prov);
     }
 }
