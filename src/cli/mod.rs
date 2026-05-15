@@ -3,6 +3,7 @@
 
 use std::{
     collections::BTreeSet,
+    fmt::Write as _,
     fs,
     path::{Path, PathBuf},
 };
@@ -67,6 +68,9 @@ pub const fn registry() -> &'static [CommandMetadata] {
 pub fn run(args: &[String]) -> CliResult {
     if args == ["--version"] {
         return ok(format!("{}\n", version_label()));
+    }
+    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
+        return ok(help_text());
     }
     let parsed = match parse_args(args) {
         Ok(parsed) => parsed,
@@ -291,7 +295,7 @@ fn render_loaded_project_command(
                 stderr: legacy_warning,
             };
         }
-        _ => return err(2, "unknown command"),
+        other => return unknown_command_error(other),
     }
     .map_or_else(
         |finding| finding_output(parsed.json, finding),
@@ -301,6 +305,114 @@ fn render_loaded_project_command(
             stderr: legacy_warning,
         },
     )
+}
+
+/// Command names not in the query registry but handled by the CLI.
+const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard"];
+
+/// Returns all command names the CLI recognises.
+fn all_command_names() -> Vec<&'static str> {
+    let mut names: Vec<&str> = registry().iter().map(|t| t.cli_name).collect();
+    for cmd in EXTRA_CLI_COMMANDS {
+        if !names.contains(cmd) {
+            names.push(cmd);
+        }
+    }
+    names.sort_unstable();
+    names
+}
+
+/// Short description for each CLI command.
+fn command_description(name: &str) -> &'static str {
+    match name {
+        "accept" => "Run acceptance gate for a change",
+        "archive" => "Archive a completed change",
+        "changes" => "List active changes",
+        "check" => "Inspect findings for a node or project",
+        "context" => "Structured project overview for agents",
+        "contract" => "Show the contract for a node",
+        "decisions" => "List decisions linked to a node",
+        "dependents" => "List nodes that depend on a given node",
+        "depends" => "List nodes a given node depends on",
+        "docstring" => "Generate a docstring for a node",
+        "export" => "Export project data",
+        "files" => "List files owned by a node",
+        "get" => "Inspect a node by ID",
+        "hook" => "Run reconciliation hooks",
+        "init" => "Scaffold a new cairn project",
+        "lint" => "Lint the blueprint and report findings",
+        "neighbourhood" => "Show a node and its neighbours",
+        "onboard" => "Suggest blueprint entries for orphaned files",
+        "order" => "Topological order of all nodes",
+        "rationale" => "Show rationale chain for a node",
+        "rename" => "Rename a node ID across the project",
+        "research" => "List research linked to a node",
+        "scan" => "Scan the project and report findings",
+        "show" => "Show details of a change",
+        "sources" => "List sources linked to a node",
+        "status" => "Show project status summary",
+        "todos" => "List todos linked to a node",
+        "ui" => "Launch the web UI",
+        _ => "",
+    }
+}
+
+/// Generates the `--help` output for the CLI.
+fn help_text() -> String {
+    let mut out = format!(
+        "{}\n\nUsage: cairn <command> [options]\n\nCommands:\n",
+        version_label()
+    );
+    let names = all_command_names();
+    let max_width = names.iter().map(|n| n.len()).max().unwrap_or(0);
+    for name in &names {
+        let desc = command_description(name);
+        let _ = writeln!(out, "  {name:<max_width$}  {desc}");
+    }
+    out.push_str("\nOptions:\n");
+    out.push_str("  --file <path>         Blueprint file (default: cairn.blueprint)\n");
+    out.push_str("  --changes-dir <path>  Changes directory (default: meta/changes)\n");
+    out.push_str("  --json                Output in JSON format\n");
+    out.push_str("  --version             Print version\n");
+    out.push_str("  -h, --help            Print this help\n");
+    out
+}
+
+/// Levenshtein edit distance between two strings.
+fn edit_distance(a: &str, b: &str) -> usize {
+    let b_len = b.len();
+    let mut previous: Vec<usize> = (0..=b_len).collect();
+    let mut current = vec![0; b_len + 1];
+    for (i, a_char) in a.chars().enumerate() {
+        current[0] = i + 1;
+        for (j, b_char) in b.chars().enumerate() {
+            let cost = usize::from(a_char != b_char);
+            current[j + 1] = (previous[j] + cost)
+                .min(current[j] + 1)
+                .min(previous[j + 1] + 1);
+        }
+        std::mem::swap(&mut previous, &mut current);
+    }
+    previous[b_len]
+}
+
+/// Builds an error message for an unknown command, suggesting close matches.
+fn unknown_command_error(input: &str) -> CliResult {
+    let names = all_command_names();
+    let best = names
+        .iter()
+        .map(|name| (*name, edit_distance(input, name)))
+        .min_by_key(|(_, dist)| *dist);
+    let message = match best {
+        Some((suggestion, dist)) if dist <= 2 => {
+            format!("unknown command '{input}'. Did you mean '{suggestion}'?")
+        }
+        _ => format!(
+            "unknown command '{input}'. Available commands: {}",
+            names.join(", ")
+        ),
+    };
+    err(2, &message)
 }
 
 fn uses_shared_json(command: &str) -> bool {
@@ -536,6 +648,94 @@ app.api -> app.core "reports"
         let root = std::env::temp_dir().join(format!("cairn-cli-tests-{name}-{suffix}"));
         fs::create_dir_all(&root)?;
         Ok(root)
+    }
+
+    #[test]
+    fn test_help_flag_returns_code_zero_with_command_names() {
+        for flag in &["--help", "-h"] {
+            let result = run(&[flag.to_string()]);
+            assert_eq!(result.code, 0, "{flag} should exit 0");
+            assert!(result.stderr.is_empty(), "{flag} should have no stderr");
+            assert!(
+                result.stdout.contains("cairn"),
+                "{flag} should show program name"
+            );
+            // Verify several command names appear.
+            for cmd in &["scan", "get", "lint", "init", "context"] {
+                assert!(
+                    result.stdout.contains(cmd),
+                    "{flag} output should list '{cmd}'"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_help_flag_with_other_args() {
+        let result = run(&["scan".to_owned(), "--help".to_owned()]);
+        assert_eq!(result.code, 0, "--help with command should still show help");
+        assert!(result.stdout.contains("Commands:"));
+    }
+
+    #[test]
+    fn test_no_args_shows_help() {
+        let result = run(&[]);
+        assert_eq!(result.code, 0, "no args should show help");
+        assert!(result.stdout.contains("Usage:"));
+    }
+
+    #[test]
+    fn test_unknown_command_suggests_close_match() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("suggest-close")?;
+        write_project(&root)?;
+        let result = run_in(&root, &["scn"]);
+        assert_eq!(result.code, 2);
+        assert!(
+            result.stderr.contains("Did you mean 'scan'?"),
+            "should suggest 'scan' for 'scn', got: {}",
+            result.stderr
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_unknown_command_lists_available_when_distant() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let root = temp_root("suggest-distant")?;
+        write_project(&root)?;
+        let result = run_in(&root, &["zzzznotacommand"]);
+        assert_eq!(result.code, 2);
+        assert!(
+            result.stderr.contains("Available commands:"),
+            "should list available commands for distant input, got: {}",
+            result.stderr
+        );
+        assert!(result.stderr.contains("scan"));
+        Ok(())
+    }
+
+    #[test]
+    fn test_unknown_command_preserves_existing_behaviour() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let root = temp_root("suggest-preserve")?;
+        write_project(&root)?;
+        // The existing test at test_cli_change_commands_and_error_paths
+        // checks unknown.code == 2 and stderr contains "unknown command".
+        // Verify the new message still matches.
+        let result = run_in(&root, &["unknown"]);
+        assert_eq!(result.code, 2);
+        assert!(result.stderr.contains("unknown command"));
+        Ok(())
+    }
+
+    #[test]
+    fn test_edit_distance() {
+        assert_eq!(edit_distance("scan", "scan"), 0);
+        assert_eq!(edit_distance("scn", "scan"), 1);
+        assert_eq!(edit_distance("sca", "scan"), 1);
+        assert_eq!(edit_distance("scam", "scan"), 1);
+        assert_eq!(edit_distance("lint", "init"), 2);
+        assert_eq!(edit_distance("abc", "xyz"), 3);
     }
 
     static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
