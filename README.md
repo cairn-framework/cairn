@@ -59,18 +59,12 @@ Specification complete (v0.7). Phase 1 kernel shipped. Phase 2 and later are ong
 ## Quickstart
 
 ```sh
-# 1. Clone and build
-git clone https://github.com/George-RD/cairn.git && cd cairn && cargo build --release
-
-# 2. Initialise a blueprint in your repo
-cairn init
-
-# 3. Scan and query
-cairn scan
-cairn neighbourhood <node-id>
+cargo install --git https://github.com/George-RD/cairn.git   # install
+cairn init                                                     # create a blueprint
+cairn scan                                                     # reconcile against code
 ```
 
-Full CLI surface is listed below and in `docs/spec.md`.
+See [docs/quickstart.md](docs/quickstart.md) for prerequisites, alternative install methods, and a full first-run walkthrough.
 
 ## Development
 
