@@ -34,7 +34,10 @@ pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
                 .join(",")
         )
     } else if findings.is_empty() {
-        "Findings:\nNone\n".to_owned()
+        format!(
+            "Findings:\n{}\n",
+            super::copy::lookup("empty-states.no-findings")
+        )
     } else {
         format!(
             "Findings:\n{}\n",

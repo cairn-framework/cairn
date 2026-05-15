@@ -1,0 +1,38 @@
+# User-facing CLI copy, externalised from source.
+# Consumed at compile time via include_str! in src/cli/copy.rs.
+#
+# Conventions:
+#   - No em-dashes. Use period, colon, comma, or parenthesis.
+#   - Plain, concise English accessible to non-developers.
+#   - Placeholders use {name} syntax (expanded by callers, not by the lookup helper).
+
+# ── Empty states ──────────────────────────────────────────────────────
+
+[empty-states]
+no-blueprint = "No cairn.blueprint found. Run `cairn init` to create one."
+no-findings = "No findings to report."
+no-nodes = "No nodes declared in the blueprint."
+
+# ── Findings ──────────────────────────────────────────────────────────
+
+[findings]
+
+[findings.severity]
+error = "Error: a blocking issue that must be resolved."
+warning = "Warning: a potential issue worth reviewing."
+info = "Info: an observation with no required action."
+
+[findings.types]
+orphaned-file = "A source file exists but no node owns its path."
+ghost-node = "A declared node has no source files on disk."
+missing-edge = "An observed dependency has no declared blueprint edge."
+extra-edge = "A declared edge has no observed source dependency."
+interface-contradiction = "Multiple contracts for the same role have divergent interfaces."
+rationale-tension = "An intentional asymmetry was detected; review the rationale."
+
+# ── Errors ────────────────────────────────────────────────────────────
+
+[errors]
+usage = "usage: cairn <command> [--file path] [--json]"
+unknown-command = "unknown command"
+migrate-dsl = "No blueprint file was found. Rename `cairn.dsl` to `cairn.blueprint`."

@@ -26,6 +26,7 @@ pub use crate::query_api::SafetyClass;
 /// Command metadata.
 mod accept;
 mod commands;
+pub(crate) mod copy;
 pub mod export;
 mod format;
 mod render;
@@ -166,7 +167,7 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
         }
     }
     let Some(command) = command_args.first().map(String::as_str) else {
-        return Err(err(2, "usage: cairn <command> [--file path] [--json]"));
+        return Err(err(2, copy::lookup("errors.usage")));
     };
     Ok(ParsedArgs {
         json,
@@ -403,14 +404,12 @@ fn unknown_command_error(input: &str) -> CliResult {
         .iter()
         .map(|name| (*name, edit_distance(input, name)))
         .min_by_key(|(_, dist)| *dist);
+    let base = copy::lookup("errors.unknown-command");
     let message = match best {
         Some((suggestion, dist)) if dist <= 2 => {
-            format!("unknown command '{input}'. Did you mean '{suggestion}'?")
+            format!("{base} '{input}'. Did you mean '{suggestion}'?")
         }
-        _ => format!(
-            "unknown command '{input}'. Available commands: {}",
-            names.join(", ")
-        ),
+        _ => format!("{base} '{input}'. Available commands: {}", names.join(", ")),
     };
     err(2, &message)
 }
