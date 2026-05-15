@@ -1332,16 +1332,22 @@ fn test_onboard_groups_orphans_and_classifies() -> Result<(), Box<dyn std::error
     let json_stdout = String::from_utf8(json.stdout)?;
     assert!(json.status.success(), "JSON onboard should succeed");
     let parsed: serde_json::Value = serde_json::from_str(&json_stdout)?;
+    assert_eq!(
+        parsed["command"], "onboard",
+        "envelope should contain command"
+    );
+    assert_eq!(parsed["status"], "ok", "envelope should contain status");
+    let data = &parsed["data"];
     assert!(
-        parsed["total_orphaned_files"].as_u64().unwrap() >= 4,
+        data["total_orphaned_files"].as_u64().unwrap() >= 4,
         "should find at least 4 orphaned files"
     );
     assert!(
-        !parsed["ignore_suggestions"].as_array().unwrap().is_empty(),
+        !data["ignore_suggestions"].as_array().unwrap().is_empty(),
         "should have ignore suggestions"
     );
     assert!(
-        !parsed["node_suggestions"].as_array().unwrap().is_empty(),
+        !data["node_suggestions"].as_array().unwrap().is_empty(),
         "should have node suggestions"
     );
 

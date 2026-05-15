@@ -349,6 +349,13 @@ pub(super) fn ok(stdout: String) -> CliResult {
     }
 }
 
+/// Build an error `CliResult` with the given exit code and message.
+///
+/// # Exit codes
+///
+/// - **0**: success (clean, no findings)
+/// - **1**: success with advisory findings, or operational error
+/// - **2**: argument/usage error (bad args, unknown command)
 pub(super) fn err(code: u8, message: &str) -> CliResult {
     CliResult {
         code,

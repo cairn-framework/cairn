@@ -185,7 +185,9 @@ pub(super) fn run_onboard_command(parsed: &ParsedArgs) -> CliResult {
         Ok(result) => {
             let report = crate::brownfield::onboard::analyze(&result.graph.findings);
             let output = if parsed.json {
-                crate::brownfield::onboard::render_json(&report)
+                let inner = crate::brownfield::onboard::render_json(&report);
+                let inner = inner.trim();
+                format!("{{\"command\":\"onboard\",\"status\":\"ok\",\"data\":{inner}}}\n")
             } else {
                 crate::brownfield::onboard::render_human(&report)
             };
@@ -195,7 +197,20 @@ pub(super) fn run_onboard_command(parsed: &ParsedArgs) -> CliResult {
                 stderr: String::new(),
             }
         }
-        Err(error) => err(1, &error),
+        Err(error) => {
+            if parsed.json {
+                CliResult {
+                    code: 1,
+                    stdout: format!(
+                        "{{\"command\":\"onboard\",\"status\":\"error\",\"data\":{{\"message\":\"{}\"}}}}\n",
+                        super::format::esc(&error)
+                    ),
+                    stderr: String::new(),
+                }
+            } else {
+                err(1, &error)
+            }
+        }
     }
 }
 
