@@ -76,11 +76,16 @@ pub fn run(args: &[String]) -> CliResult {
         Ok(parsed) => parsed,
         Err(result) => return result,
     };
+    let project_root = parsed
+        .file
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
     if parsed.command == "init" {
         let from_code = parsed.command_args.iter().any(|a| a == "--from-code");
         if from_code {
             let force = parsed.command_args.iter().any(|a| a == "--force");
-            return match crate::brownfield::init::run_init_from_code(Path::new("."), force) {
+            return match crate::brownfield::init::run_init_from_code(project_root, force) {
                 Ok(change_id) => ok(format!(
                     "brownfield init complete; change written to openspec/changes/{change_id}/\n"
                 )),
@@ -90,7 +95,7 @@ pub fn run(args: &[String]) -> CliResult {
         return init_project(Path::new("."));
     }
     if parsed.command == "refine" {
-        return match crate::brownfield::refine::run_refine(Path::new(".")) {
+        return match crate::brownfield::refine::run_refine(project_root) {
             Ok(change_id) => ok(format!(
                 "refine complete; change written to openspec/changes/{change_id}/\n"
             )),

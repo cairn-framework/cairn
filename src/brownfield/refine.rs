@@ -33,14 +33,13 @@ fn unique_change_id(root: &Path, ts: &str) -> String {
     if !changes_dir.join(&base).exists() {
         return base;
     }
-    let mut counter = 1u32;
-    loop {
+    for counter in 1..=999u32 {
         let candidate = format!("{base}-{counter}");
         if !changes_dir.join(&candidate).exists() {
             return candidate;
         }
-        counter += 1;
     }
+    format!("{base}-overflow")
 }
 
 fn timestamp() -> String {

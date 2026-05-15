@@ -129,9 +129,8 @@ pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
     })
 }
 
-// Reason: root parameter is reserved for relative-path computation in a
-// future extension; keeping it in the signature avoids a breaking
-// refactor later.
+// Reason: `root` is used by the caller for strip_prefix at lines 93/104
+// but clippy's flow-insensitive analysis flags it as recursion-only.
 #[allow(clippy::only_used_in_recursion)]
 fn collect_source_files(
     root: &Path,
@@ -165,7 +164,7 @@ fn collect_source_files(
     }
 
     for path in &entries {
-        if path.is_dir() && !is_ignored_dir(path) {
+        if path.is_dir() && !is_ignored_dir(path) && !is_symlink(path) {
             collect_source_files(root, path, dir_counts, depth + 1)?;
         }
     }
@@ -176,6 +175,12 @@ fn is_source_file(path: &Path) -> bool {
     path.extension()
         .and_then(|ext| ext.to_str())
         .is_some_and(|ext| SOURCE_EXTS.contains(&ext))
+}
+
+fn is_symlink(path: &Path) -> bool {
+    std::fs::symlink_metadata(path)
+        .map(|m| m.file_type().is_symlink())
+        .unwrap_or(false)
 }
 
 fn is_ignored_dir(path: &Path) -> bool {
