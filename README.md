@@ -5,18 +5,49 @@
 <h1 align="center">Cairn</h1>
 
 <p align="center">
-  <em>Your agent gets lost in your repo every session. Give it the map.</em>
+  <em>Your agent gets lost in your repo every session. Give it the map.</em><br>
+  <strong>The declarative constraint layer for AI-assisted codebases.</strong>
 </p>
 
 <!-- badges placeholder: build, crates.io, license once published -->
 
 ## Why Cairn
 
-You wrote the ADR. Nobody reads it. Six months later you are the only person who remembers why `auth.tokens` cannot call the cache directly, and your AI agent keeps confidently proposing that it should.
+Existing tools either *describe* or *act*. Knowledge graphs describe your codebase but never enforce anything. Coding agents act on your codebase but have no architectural guardrails. Static analysis checks syntax, not intent.
 
-Cairn is the connective tissue between past decisions, present code, and future intent. You author a short declarative `cairn.blueprint` that names your systems, containers, modules, contracts, and the decisions that shaped them. Cairn reconciles that file against the code you actually shipped and produces `map.md`: a graph every agent and teammate can query instead of scanning the repo from scratch.
+Cairn is the missing constraint layer. You declare architectural truth in a `cairn.blueprint`. Cairn reconciles that declaration against the code you actually shipped, gates commits when they drift, and gives every agent a queryable map grounded in reality, not inference.
 
-Claude Code, Cursor, Copilot. They all work best when the structure is explicit, not inferred from file names at 2am. Cairn makes it explicit and gates the commit when the declaration and the code stop agreeing.
+| Gap | What exists today | What Cairn adds |
+|---|---|---|
+| **Knowledge graphs** | Describe structure. No enforcement. | Declares structure *and* gates against drift from it. |
+| **Coding agents** | Act on code. No architectural memory. | Persistent map agents query instead of re-scanning. |
+| **Static analysis** | Checks syntax and style. | Checks architectural intent: dependencies, contracts, decisions. |
+
+## How it works
+
+```
+blueprint  -->  reconcile  -->  gate  -->  query
+(declare)      (scan code)    (enforce)   (serve agents)
+```
+
+1. **Declare.** Author a `cairn.blueprint` naming your systems, modules, contracts, and the decisions that shaped them.
+2. **Reconcile.** `cairn scan` walks the code, computes interface hashes, and flags every node as `synced`, `ghost`, or `orphaned`.
+3. **Gate.** Pre-commit hooks block on `interface contradictions` (breaking drift) and surface `rationale tensions` (advisory warnings).
+4. **Query.** `cairn get`, `cairn neighbourhood`, `cairn context` return typed JSON so agents ground on structure, not guesswork.
+
+## The Kubernetes analogy
+
+Cairn follows the same pattern as Kubernetes: declare desired state, reconcile continuously, and reject mutations that violate it.
+
+| Cairn | Kubernetes | Role |
+|---|---|---|
+| `cairn.blueprint` | Manifests (YAML) | Declared desired state |
+| Scanner | Controllers | Reconciliation loop |
+| Drift gate / hooks | Admission webhooks | Reject invalid mutations |
+| Artefact types | CRDs | Typed extensions |
+| Map (graph) | etcd | Reconciled state store |
+| CLI (`cairn get`, `cairn scan`) | kubectl | Operator interface |
+| Reconcilers (tree-sitter, etc.) | Operators | Pluggable domain logic |
 
 ## What it does
 
