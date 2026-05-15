@@ -116,6 +116,12 @@ pub fn run(args: &[String]) -> CliResult {
                 "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`",
             );
         }
+        if parsed.json {
+            return ok(format!(
+                "{{\"command\":\"check\",\"status\":\"ok\",\"data\":{{\"findings\":[],\"message\":\"{}\"}}}}\n",
+                esc("No cairn.blueprint found. Run `cairn init` to scaffold a blueprint.")
+            ));
+        }
         return ok(
             "No cairn.blueprint found. Inspection has nothing to look at.\n\
              Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.\n"

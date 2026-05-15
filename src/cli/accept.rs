@@ -154,13 +154,14 @@ fn state_str(state: &VerificationState) -> &'static str {
 }
 
 fn format_json(findings: &[VerificationFinding], has_failed: bool, has_blocked: bool) -> String {
-    let status = if has_failed {
+    let gate_outcome = if has_failed {
         "failed"
     } else if has_blocked {
         "blocked"
     } else {
         "passed"
     };
+    let status = if has_failed { "error" } else { "ok" };
     let steps: Vec<String> = findings
         .iter()
         .map(|f| {
@@ -178,7 +179,7 @@ fn format_json(findings: &[VerificationFinding], has_failed: bool, has_blocked: 
         })
         .collect();
     format!(
-        "{{\"command\":\"accept\",\"status\":\"{status}\",\"data\":{{\"steps\":[{}]}}}}\n",
+        "{{\"command\":\"accept\",\"status\":\"{status}\",\"data\":{{\"gate_outcome\":\"{gate_outcome}\",\"steps\":[{}]}}}}\n",
         steps.join(",")
     )
 }
@@ -228,7 +229,8 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(output.trim())
             .unwrap_or_else(|e| panic!("invalid JSON from accept --json: {e}\n{output}"));
         assert_eq!(parsed["command"], "accept");
-        assert_eq!(parsed["status"], "failed");
+        assert_eq!(parsed["status"], "error");
+        assert_eq!(parsed["data"]["gate_outcome"], "failed");
         let steps = parsed["data"]["steps"].as_array().expect("steps array");
         assert_eq!(steps.len(), 2);
         assert_eq!(steps[0]["state"], "passed");
@@ -245,7 +247,8 @@ mod tests {
         }];
         let output = format_json(&findings, false, false);
         let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-        assert_eq!(parsed["status"], "passed");
+        assert_eq!(parsed["status"], "ok");
+        assert_eq!(parsed["data"]["gate_outcome"], "passed");
     }
 
     #[test]
@@ -257,6 +260,7 @@ mod tests {
         }];
         let output = format_json(&findings, false, true);
         let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-        assert_eq!(parsed["status"], "blocked");
+        assert_eq!(parsed["status"], "ok");
+        assert_eq!(parsed["data"]["gate_outcome"], "blocked");
     }
 }

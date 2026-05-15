@@ -52,21 +52,14 @@ mod cli {
     #[test]
     fn test_check__inspection_supports_json_mode() {
         let result = cairn::cli::run(&["--json".to_owned(), "check".to_owned()]);
-        // When a blueprint exists in the CWD (the repo root), check
-        // produces a JSON envelope. When it does not, it falls through
-        // to a human-friendly guidance message.
         let stdout = result.stdout.trim();
-        if stdout.starts_with('{') {
-            let parsed: serde_json::Value =
-                serde_json::from_str(stdout).expect("cairn check --json must produce valid JSON");
-            assert_eq!(parsed["command"], "check", "envelope must name the command");
-            assert!(
-                parsed["data"]["findings"].is_array(),
-                "envelope must contain findings array"
-            );
-        }
-        // Either way, check --json must not be rejected with an error
-        // message pointing at `cairn lint --json`.
+        let parsed: serde_json::Value = serde_json::from_str(stdout)
+            .expect("cairn check --json must always produce valid JSON");
+        assert_eq!(parsed["command"], "check", "envelope must name the command");
+        assert!(
+            parsed["data"]["findings"].is_array(),
+            "envelope must contain findings array"
+        );
         assert!(
             !result.stderr.contains("cairn lint --json"),
             "check --json is no longer rejected"
