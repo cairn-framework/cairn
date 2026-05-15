@@ -133,7 +133,7 @@ mod provenance_foundation {
 }
 
 mod changes {
-    use cairn::provenance::{
+    use cairn::suggested_edges::{
         QueueError, SUGGESTED_EDGES_QUEUE_VERSION, SuggestedEdgeEntry, SuggestedEdgesQueue,
         TriageState, count_pending, read_queue,
     };
@@ -213,8 +213,8 @@ mod changes {
             version: SUGGESTED_EDGES_QUEUE_VERSION,
             entries: vec![sample_entry(TriageState::Pending)],
         };
-        cairn::provenance::write_to_change(dir.path(), &queue).expect("write");
-        let err = cairn::provenance::validate_strict("phase-x", dir.path())
+        cairn::suggested_edges::write_to_change(dir.path(), &queue).expect("write");
+        let err = cairn::suggested_edges::validate_strict("phase-x", dir.path())
             .expect_err("strict must fail with pending entries");
         assert_eq!(err.code(), "CC002");
         let msg = format!("{err}");
@@ -234,8 +234,8 @@ mod changes {
                 sample_entry(TriageState::Deferred),
             ],
         };
-        cairn::provenance::write_to_change(dir.path(), &queue).expect("write");
-        assert!(cairn::provenance::validate_strict("phase-y", dir.path()).is_ok());
+        cairn::suggested_edges::write_to_change(dir.path(), &queue).expect("write");
+        assert!(cairn::suggested_edges::validate_strict("phase-y", dir.path()).is_ok());
     }
 
     /// Cycle 3: corrupt or future-version queues raise CC003 instead of
@@ -245,7 +245,7 @@ mod changes {
         let dir = tempfile::tempdir().expect("temp dir");
         std::fs::write(dir.path().join("suggested-edges.json"), "{not json")
             .expect("write corrupt queue");
-        let err = cairn::provenance::validate_strict("phase-x", dir.path())
+        let err = cairn::suggested_edges::validate_strict("phase-x", dir.path())
             .expect_err("strict must fail on corrupt queue");
         assert_eq!(err.code(), "CC003");
     }
@@ -260,7 +260,7 @@ mod changes {
         })
         .to_string();
         std::fs::write(dir.path().join("suggested-edges.json"), body).expect("write");
-        let err = cairn::provenance::validate_strict("phase-y", dir.path())
+        let err = cairn::suggested_edges::validate_strict("phase-y", dir.path())
             .expect_err("strict must fail on future version");
         assert_eq!(err.code(), "CC003");
     }
@@ -274,12 +274,12 @@ mod changes {
         assert!(result.is_none());
         // read_from_change against a directory with no queue also Ok(None).
         assert!(
-            cairn::provenance::read_from_change(dir.path())
+            cairn::suggested_edges::read_from_change(dir.path())
                 .expect("absent dir must not error")
                 .is_none()
         );
         // validate_strict against an absent queue is success.
-        assert!(cairn::provenance::validate_strict("phase-z", dir.path()).is_ok());
+        assert!(cairn::suggested_edges::validate_strict("phase-z", dir.path()).is_ok());
     }
 
     #[allow(dead_code)]
