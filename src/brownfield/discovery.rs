@@ -191,26 +191,35 @@ fn name_from_path(path: &str) -> String {
 
 fn compute_confidence(file_count: usize) -> f64 {
     if file_count >= 5 {
-        2.0
-    } else if file_count >= 3 {
         1.0
+    } else if file_count >= 3 {
+        0.7
     } else {
-        0.5
+        0.3
     }
 }
 
 /// Infer sibling edges between candidates that share a parent directory.
+///
+/// Sibling relationships are bidirectional: if A and B share a parent,
+/// both A->B and B->A edges are recorded.
 fn infer_edges(candidates: &mut [DiscoveredCandidate]) {
     let n = candidates.len();
     for i in 0..n {
         for j in (i + 1)..n {
             if share_parent(&candidates[i].path, &candidates[j].path) {
-                let edge = DiscoveredEdge {
+                let forward = DiscoveredEdge {
                     target: candidates[j].id.clone(),
                     description: "sibling module".to_owned(),
                     confidence: 1.0,
                 };
-                candidates[i].edges.push(edge);
+                let reverse = DiscoveredEdge {
+                    target: candidates[i].id.clone(),
+                    description: "sibling module".to_owned(),
+                    confidence: 1.0,
+                };
+                candidates[i].edges.push(forward);
+                candidates[j].edges.push(reverse);
             }
         }
     }
@@ -238,9 +247,9 @@ mod tests {
 
     #[test]
     fn confidence_tiers() {
-        assert!((compute_confidence(5) - 2.0).abs() < f64::EPSILON);
-        assert!((compute_confidence(3) - 1.0).abs() < f64::EPSILON);
-        assert!((compute_confidence(2) - 0.5).abs() < f64::EPSILON);
+        assert!((compute_confidence(5) - 1.0).abs() < f64::EPSILON);
+        assert!((compute_confidence(3) - 0.7).abs() < f64::EPSILON);
+        assert!((compute_confidence(2) - 0.3).abs() < f64::EPSILON);
     }
 
     #[test]
