@@ -375,9 +375,16 @@ fn render_loaded_project_command(
 /// Command names not in the query registry but handled by the CLI.
 const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard", "refine"];
 
+/// MCP-only tools that should not appear in CLI command lists.
+const MCP_ONLY_TOOLS: &[&str] = &["init_from_code"];
+
 /// Returns all command names the CLI recognises.
 fn all_command_names() -> Vec<&'static str> {
-    let mut names: Vec<&str> = registry().iter().map(|t| t.cli_name).collect();
+    let mut names: Vec<&str> = registry()
+        .iter()
+        .filter(|t| !MCP_ONLY_TOOLS.contains(&t.cli_name))
+        .map(|t| t.cli_name)
+        .collect();
     for cmd in EXTRA_CLI_COMMANDS {
         if !names.contains(cmd) {
             names.push(cmd);

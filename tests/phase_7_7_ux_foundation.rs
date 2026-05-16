@@ -23,7 +23,6 @@
 use cairn::cflx_planned;
 
 mod cli {
-    use super::cflx_planned;
 
     /// Scenario: Whole-map inspection without arguments.
     #[test]
