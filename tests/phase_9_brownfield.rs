@@ -299,6 +299,125 @@ mod discovery_tests {
     }
 }
 
+mod fixture_integration {
+    use super::{populate_source_dir, temp_repo};
+    use cairn::brownfield::discovery;
+    use std::fs;
+
+    /// Scenario: Mixed-language repo discovers all language dirs.
+    #[test]
+    fn test_discovery__mixed_language_repo_finds_all() {
+        let root = temp_repo("mixed-lang");
+        // Create dirs with files of different extensions.
+        let rs_dir = root.join("src/backend");
+        fs::create_dir_all(&rs_dir).unwrap();
+        for i in 0..4 {
+            fs::write(
+                rs_dir.join(format!("mod{i}.rs")),
+                format!("fn f{i}() {{}}\n"),
+            )
+            .unwrap();
+        }
+        let ts_dir = root.join("src/frontend");
+        fs::create_dir_all(&ts_dir).unwrap();
+        for i in 0..3 {
+            fs::write(
+                ts_dir.join(format!("component{i}.ts")),
+                format!("export const c{i} = {i};\n"),
+            )
+            .unwrap();
+        }
+        let py_dir = root.join("scripts");
+        fs::create_dir_all(&py_dir).unwrap();
+        for i in 0..3 {
+            fs::write(
+                py_dir.join(format!("task{i}.py")),
+                format!("def t{i}(): pass\n"),
+            )
+            .unwrap();
+        }
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(ids.contains(&"src.backend"), "should find .rs dir");
+        assert!(ids.contains(&"src.frontend"), "should find .ts dir");
+        assert!(ids.contains(&"scripts"), "should find .py dir");
+    }
+
+    /// Scenario: Directory with exactly 3 files gets 0.7 confidence.
+    #[test]
+    fn test_discovery__low_confidence_for_three_files() {
+        let root = temp_repo("low-conf");
+        populate_source_dir(&root, "src/small", 3);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let candidate = extraction
+            .candidates
+            .iter()
+            .find(|c| c.id == "src.small")
+            .expect("should discover src.small");
+        assert!(
+            (candidate.confidence - 0.7).abs() < f64::EPSILON,
+            "3-file dir should have confidence 0.7, got {}",
+            candidate.confidence
+        );
+    }
+
+    /// Scenario: Discovery at depth 4 works but depth 5+ is skipped.
+    #[test]
+    fn test_discovery__nested_depth_boundary() {
+        let root = temp_repo("depth-boundary");
+        // depth 4 (a/b/c/d) should be found
+        populate_source_dir(&root, "a/b/c/d", 5);
+        // depth 5 (a/b/c/d/e) should be skipped
+        populate_source_dir(&root, "a/b/c/d/e", 5);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(ids.contains(&"a.b.c.d"), "depth 4 should be found");
+        assert!(
+            !ids.iter().any(|id| id.contains("a.b.c.d.e")),
+            "depth 5 should be skipped"
+        );
+    }
+
+    /// Scenario: Sibling edges are bidirectional for dirs sharing a parent.
+    #[test]
+    fn test_discovery__sibling_edges_bidirectional() {
+        let root = temp_repo("sibling-edges");
+        populate_source_dir(&root, "src/alpha", 4);
+        populate_source_dir(&root, "src/beta", 3);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let alpha = extraction
+            .candidates
+            .iter()
+            .find(|c| c.id == "src.alpha")
+            .expect("should discover src.alpha");
+        let beta = extraction
+            .candidates
+            .iter()
+            .find(|c| c.id == "src.beta")
+            .expect("should discover src.beta");
+
+        // alpha -> beta edge
+        let alpha_to_beta = alpha.edges.iter().any(|e| e.target == "src.beta");
+        assert!(alpha_to_beta, "alpha should have edge to beta");
+
+        // beta -> alpha edge
+        let beta_to_alpha = beta.edges.iter().any(|e| e.target == "src.alpha");
+        assert!(beta_to_alpha, "beta should have edge to alpha");
+    }
+}
+
 mod review {
     use super::cflx_planned;
 

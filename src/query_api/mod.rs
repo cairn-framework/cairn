@@ -35,8 +35,8 @@ mod util;
 use change_queries::dispatch_change_tool;
 use handlers::{
     context_json, contract_json, decisions_response_json, dependency_json, docstring_json,
-    files_json, hook_json, neighbourhood_json, rationale_json, research_response_json,
-    sources_response_json, status_json, todos_response_json,
+    files_json, hook_json, islands_json, neighbourhood_json, rationale_json,
+    research_response_json, sources_response_json, status_json, todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{findings_json, node_json, relevant_rules, requires_valid_map};
@@ -104,6 +104,8 @@ pub enum QueryFlag {
     IncludeDeprecatedDecisions,
     /// Include active change summaries in neighbourhood responses.
     IncludeChanges,
+    /// Force overwrite of existing state.
+    Force,
 }
 
 impl QueryRequest {
@@ -269,6 +271,7 @@ fn execute_data(
         "order" => query::order(&scan_result.graph)
             .map(|response| json!({ "nodes": response.nodes }))
             .map_err(|findings| findings_error(&findings)),
+        "islands" => Ok(islands_json(&scan_result)),
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
             Ok(json!({ "findings": findings_json(&response.findings) }))

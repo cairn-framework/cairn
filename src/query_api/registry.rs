@@ -2,7 +2,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 24] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 27] = [
     tool(
         "get",
         "cairn_get",
@@ -57,6 +57,13 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 24] = [
         "cairn_order",
         "OrderRequest",
         "OrderResponse",
+        SafetyClass::ReadOnly,
+    ),
+    tool(
+        "islands",
+        "cairn_islands",
+        "IslandsRequest",
+        "IslandsResponse",
         SafetyClass::ReadOnly,
     ),
     tool(
@@ -170,6 +177,20 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 24] = [
         "ContextRequest",
         "ContextResponse",
         SafetyClass::ReadOnly,
+    ),
+    tool(
+        "init_from_code",
+        "cairn_init_from_code",
+        "InitFromCodeRequest",
+        "InitFromCodeResponse",
+        SafetyClass::Mutating,
+    ),
+    tool(
+        "refine",
+        "cairn_refine",
+        "RefineRequest",
+        "RefineResponse",
+        SafetyClass::Mutating,
     ),
 ];
 

@@ -418,6 +418,24 @@ pub(super) fn sources_response_json(
     Ok(json!({ "node": node.id, "sources": sources }))
 }
 
+pub(super) fn islands_json(scan_result: &scanner::ScanResult) -> Value {
+    let response = query::islands(&scan_result.graph);
+    let islands: Vec<Value> = response
+        .islands
+        .iter()
+        .map(|island| {
+            json!({
+                "representative": island.representative,
+                "node_count": island.node_count,
+            })
+        })
+        .collect();
+    json!({
+        "schema_version": response.schema_version,
+        "islands": islands,
+    })
+}
+
 pub(super) fn hook_json(
     root: &Path,
     changes_dir: &Path,

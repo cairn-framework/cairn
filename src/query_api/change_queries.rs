@@ -11,6 +11,41 @@ pub(super) fn dispatch_change_tool(
     metadata: ToolMetadata,
 ) -> Option<Result<Value, QueryError>> {
     match metadata.cli_name {
+        "init_from_code" => {
+            let force = request.has(QueryFlag::Force);
+            Some(
+                crate::brownfield::init::run_init_from_code(root, force)
+                    .map(|change_id| {
+                        json!({
+                            "command": "init_from_code",
+                            "status": "ok",
+                            "data": { "change_id": change_id },
+                        })
+                    })
+                    .map_err(|e| QueryError {
+                        code: "CAIRN_COMMAND_FAILED".to_owned(),
+                        message: e.to_string(),
+                        source_span: None,
+                        remediation: None,
+                    }),
+            )
+        }
+        "refine" => Some(
+            crate::brownfield::refine::run_refine(root)
+                .map(|change_id| {
+                    json!({
+                        "command": "refine",
+                        "status": "ok",
+                        "data": { "change_id": change_id },
+                    })
+                })
+                .map_err(|e| QueryError {
+                    code: "CAIRN_COMMAND_FAILED".to_owned(),
+                    message: e.to_string(),
+                    source_span: None,
+                    remediation: None,
+                }),
+        ),
         "archive" => {
             let change = match required(request.change.as_ref(), "change") {
                 Ok(change) => change,
