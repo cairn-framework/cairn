@@ -110,17 +110,30 @@ pub fn run(args: &[String]) -> CliResult {
             .filter(|path| !path.as_os_str().is_empty())
             .unwrap_or_else(|| Path::new("."));
         if parsed.file.ends_with("cairn.blueprint") && root.join("cairn.dsl").exists() {
+            if parsed.json {
+                return ok(format!(
+                    "{{\"command\":\"check\",\"status\":\"error\",\"data\":{{\"findings\":[{}]}}}}\n",
+                    finding_json(&Finding {
+                        code: "CAIRN_COMMAND_FAILED".to_owned(),
+                        severity: FindingSeverity::Error,
+                        message:
+                            "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`"
+                                .to_owned(),
+                        node: None,
+                        path: None,
+                    })
+                ));
+            }
             return error_output(
-                parsed.json,
+                false,
                 "CAIRN_COMMAND_FAILED",
                 "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`",
             );
         }
         if parsed.json {
-            return ok(format!(
-                "{{\"command\":\"check\",\"status\":\"ok\",\"data\":{{\"findings\":[],\"message\":\"{}\"}}}}\n",
-                esc("No cairn.blueprint found. Run `cairn init` to scaffold a blueprint.")
-            ));
+            return ok(
+                "{\"command\":\"check\",\"status\":\"ok\",\"data\":{\"findings\":[]}}\n".to_owned(),
+            );
         }
         return ok(
             "No cairn.blueprint found. Inspection has nothing to look at.\n\

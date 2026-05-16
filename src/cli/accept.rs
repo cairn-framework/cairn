@@ -86,23 +86,28 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
 fn run_step(
     findings: &mut Vec<VerificationFinding>,
     name: &str,
-    runner: impl FnOnce() -> Result<ExitStatus, std::io::Error>,
+    runner: impl FnOnce() -> Result<(ExitStatus, String), std::io::Error>,
     fail_msg: &str,
     block_msg: &str,
 ) {
     match runner() {
-        Ok(status) if status.success() => {
+        Ok((status, _)) if status.success() => {
             findings.push(VerificationFinding {
                 test: name.to_string(),
                 state: VerificationState::Passed,
                 detail: None,
             });
         }
-        Ok(_) => {
+        Ok((_, captured_stderr)) => {
+            let detail = if captured_stderr.is_empty() {
+                fail_msg.to_string()
+            } else {
+                format!("{fail_msg}: {captured_stderr}")
+            };
             findings.push(VerificationFinding {
                 test: name.to_string(),
                 state: VerificationState::Failed,
-                detail: Some(fail_msg.to_string()),
+                detail: Some(detail),
             });
         }
         Err(e) => {
@@ -133,14 +138,28 @@ enum VerificationState {
     Blocked,
 }
 
-fn run_command(cmd: &str, args: &[&str], quiet: bool) -> Result<ExitStatus, std::io::Error> {
+fn run_command(
+    cmd: &str,
+    args: &[&str],
+    quiet: bool,
+) -> Result<(ExitStatus, String), std::io::Error> {
     let mut c = Command::new(cmd);
     c.args(args);
     if quiet {
         c.stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null());
+            .stderr(std::process::Stdio::piped());
+        let output = c.output()?;
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let truncated = if stderr.len() > 512 {
+            format!("{}...", &stderr[..512])
+        } else {
+            stderr.to_string()
+        };
+        Ok((output.status, truncated))
+    } else {
+        let status = c.status()?;
+        Ok((status, String::new()))
     }
-    c.status()
 }
 
 fn state_str(state: &VerificationState) -> &'static str {
@@ -161,7 +180,11 @@ fn format_json(findings: &[VerificationFinding], has_failed: bool, has_blocked: 
     } else {
         "passed"
     };
-    let status = if has_failed { "error" } else { "ok" };
+    let status = if has_failed || has_blocked {
+        "error"
+    } else {
+        "ok"
+    };
     let steps: Vec<String> = findings
         .iter()
         .map(|f| {
@@ -260,7 +283,7 @@ mod tests {
         }];
         let output = format_json(&findings, false, true);
         let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-        assert_eq!(parsed["status"], "ok");
+        assert_eq!(parsed["status"], "error");
         assert_eq!(parsed["data"]["gate_outcome"], "blocked");
     }
 }

@@ -52,10 +52,15 @@ mod cli {
     #[test]
     fn test_check__inspection_supports_json_mode() {
         let result = cairn::cli::run(&["--json".to_owned(), "check".to_owned()]);
+        assert_ne!(result.code, 2, "check --json must not be a usage error");
         let stdout = result.stdout.trim();
         let parsed: serde_json::Value = serde_json::from_str(stdout)
             .expect("cairn check --json must always produce valid JSON");
         assert_eq!(parsed["command"], "check", "envelope must name the command");
+        assert!(
+            parsed["status"] == "ok" || parsed["status"] == "error",
+            "envelope status must be ok or error"
+        );
         assert!(
             parsed["data"]["findings"].is_array(),
             "envelope must contain findings array"

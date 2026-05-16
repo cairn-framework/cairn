@@ -392,4 +392,8 @@ pub(super) fn esc(value: &str) -> String {
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
+        .replace('\u{08}', "\\b")
+        .replace('\u{0C}', "\\f")
 }
