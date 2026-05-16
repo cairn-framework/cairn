@@ -28,7 +28,7 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Lint findings** | `cairn lint` | `--json` (exit 1 on errors) |
 | **Non-blocking lint** | `cairn check [<node>]` | always exit 0 |
 | **Inspect node** | `cairn get <node>` | `--json` |
-| **Node + neighbours** | `cairn neighbourhood <node>` | `--json`, `--include-todos`, `--include-changes` |
+| **Node + neighbours** | `cairn neighbourhood <node>` | `--json`, `--include-todos`, `--include-changes`, `--include-orphans` |
 | **Node files** | `cairn files <node>` | `--json` |
 | **Dependency graph** | `cairn depends <node>` / `cairn dependents <node>` | `--json`, `--transitive` |
 | **Build order** | `cairn order` | `--json` |
@@ -43,6 +43,10 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Active changes** | `cairn changes` | `--json` (required) |
 | **Change details** | `cairn show <change-id>` | `--json` (required) |
 | **Brownfield onboard** | `cairn onboard` | `--json` |
+| **Brownfield extract** | `cairn init --from-code` | `--force` (overwrite existing) |
+| **Brownfield refine** | `cairn refine` | writes timestamped change |
+| **Disconnected islands** | `cairn islands` | `--json` |
+| **Acceptance gate** | `cairn accept [<change-id>]` | `--json` (gate_outcome in data) |
 | **Bootstrap** | `cairn init` | creates blueprint, config, meta dirs |
 | **Web explorer** | `cairn ui` | `--port <N>` |
 
@@ -161,6 +165,28 @@ date: 2026-05-11
 ---
 ```
 
+## Brownfield workflow (existing codebases)
+
+For projects without a blueprint:
+
+```bash
+cairn init --from-code     # Discover modules, generate change proposal
+# Review openspec/changes/brownfield-init/blueprint.delta
+# Review generated contracts in openspec/changes/brownfield-init/contracts/
+cairn scan                 # Verify the new blueprint
+```
+
+For iterative refinement after the initial extraction:
+
+```bash
+cairn refine               # Re-discover, writes timestamped change dir
+cairn islands              # See disconnected components that may need edges
+cairn neighbourhood <node> --include-orphans  # Find files near a node not yet claimed
+cairn onboard              # Group orphaned files by directory with suggestions
+```
+
+The brownfield flow generates proposals (not final state). Review and edit the generated `blueprint.delta` and contracts before accepting.
+
 ## Understanding findings
 
 Findings have three severities:
@@ -211,6 +237,19 @@ The pre-commit hook typically runs `cairn hook structural`. CI can run `cairn ho
 - Don't use `cairn check` to gate commits. Use `cairn hook` which has correct blocking semantics.
 - Don't modify `cairn.blueprint` without running `cairn scan` afterward to verify.
 - Don't add artefact files without ensuring the node declares the artefact directory in its blueprint entry.
+
+## JSON envelope contract
+
+All commands with `--json` produce a consistent envelope:
+
+```json
+{"command":"<name>","status":"ok|error","data":{...}}
+```
+
+- `status: "ok"` means the command succeeded (findings may still exist in data)
+- `status: "error"` means the command failed or verification was incomplete
+- `accept --json` includes `data.gate_outcome` ("passed", "failed", or "blocked")
+- Exit codes: 0 = clean success, 1 = success with findings or operational error, 2 = usage error
 
 ## MCP integration
 
