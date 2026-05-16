@@ -294,36 +294,18 @@ fn render_loaded_project_command(
         }),
         "islands" => {
             let response = query::islands(&scan_result.graph);
-            Ok(if parsed.json {
-                let islands_json: Vec<String> = response
-                    .islands
-                    .iter()
-                    .map(|island| {
-                        format!(
-                            "{{\"representative\":\"{}\",\"node_count\":{}}}",
-                            esc(&island.representative),
-                            island.node_count
-                        )
-                    })
-                    .collect();
-                format!(
-                    "{{\"command\":\"islands\",\"status\":\"ok\",\"data\":{{\"islands\":[{}]}}}}\n",
-                    islands_json.join(",")
-                )
-            } else {
-                let mut out = String::new();
-                for (i, island) in response.islands.iter().enumerate() {
-                    let _ = writeln!(
-                        out,
-                        "Island {}: {} ({} node{})",
-                        i + 1,
-                        island.representative,
-                        island.node_count,
-                        if island.node_count == 1 { "" } else { "s" }
-                    );
-                }
-                out
-            })
+            let mut out = String::new();
+            for (i, island) in response.islands.iter().enumerate() {
+                let _ = writeln!(
+                    out,
+                    "Island {}: {} ({} node{})",
+                    i + 1,
+                    island.representative,
+                    island.node_count,
+                    if island.node_count == 1 { "" } else { "s" }
+                );
+            }
+            Ok(out)
         }
         "order" => match query::order(&scan_result.graph) {
             Ok(response) => Ok(if parsed.json {
@@ -392,7 +374,7 @@ fn render_loaded_project_command(
 }
 
 /// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "islands", "onboard", "refine"];
+const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard", "refine"];
 
 /// Returns all command names the CLI recognises.
 fn all_command_names() -> Vec<&'static str> {

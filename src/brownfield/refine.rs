@@ -20,26 +20,29 @@ use super::write_change;
 /// Returns `CairnError::ChangeDiscovery` when filesystem operations fail.
 pub fn run_refine(root: &Path) -> Result<String, CairnError> {
     let extraction = super::discovery::discover(root)?;
-    let change_id = unique_change_id(root, &timestamp());
+    let change_id = unique_change_id(root, &timestamp())?;
     write_change(root, &change_id, &extraction)?;
     Ok(change_id)
 }
 
 /// Produces a unique change ID by appending a counter suffix when the
 /// directory already exists.
-fn unique_change_id(root: &Path, ts: &str) -> String {
+fn unique_change_id(root: &Path, ts: &str) -> Result<String, CairnError> {
     let base = format!("brownfield-refine-{ts}");
     let changes_dir = root.join("openspec/changes");
     if !changes_dir.join(&base).exists() {
-        return base;
+        return Ok(base);
     }
     for counter in 1..=999u32 {
         let candidate = format!("{base}-{counter}");
         if !changes_dir.join(&candidate).exists() {
-            return candidate;
+            return Ok(candidate);
         }
     }
-    format!("{base}-overflow")
+    Err(CairnError::ChangeDiscovery {
+        path: changes_dir.to_string_lossy().to_string(),
+        detail: format!("could not find unique change ID after 999 attempts for {base}"),
+    })
 }
 
 fn timestamp() -> String {

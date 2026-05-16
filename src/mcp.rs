@@ -202,6 +202,7 @@ fn argument_flags(arguments: &Value) -> BTreeSet<QueryFlag> {
             QueryFlag::IncludeDeprecatedDecisions,
         ),
         ("include_changes", QueryFlag::IncludeChanges),
+        ("force", QueryFlag::Force),
     ];
     for (argument, flag) in pairs {
         if bool_arg(arguments, argument) {
@@ -269,6 +270,13 @@ fn input_schema(schema: &str) -> Value {
         "DocstringRequest" => json!({
             "node": { "type": "string" },
             "language": { "type": "string" },
+        }),
+        "InitFromCodeRequest" => json!({
+            "force": { "type": "boolean" },
+            "mutating": { "type": "boolean" },
+        }),
+        "RefineRequest" => json!({
+            "mutating": { "type": "boolean" },
         }),
         _ => json!({}),
     };

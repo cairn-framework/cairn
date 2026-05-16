@@ -60,11 +60,8 @@ pub(super) fn render_neighbourhood(
             .command_args
             .iter()
             .any(|arg| arg == "--include-orphans");
-        let response = if include_orphans {
-            query::neighbourhood_with_options(&scan_result.graph, node, true)?
-        } else {
-            query::neighbourhood(&scan_result.graph, node)?
-        };
+        let response =
+            query::neighbourhood_with_options(&scan_result.graph, node, include_orphans)?;
         Ok({
             let include_todos = parsed.command_args.iter().any(|arg| arg == "--include-todos");
             let include_research = parsed
