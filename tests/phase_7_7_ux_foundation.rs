@@ -26,17 +26,30 @@ mod cli {
     use super::cflx_planned;
 
     /// Scenario: Whole-map inspection without arguments.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_check__whole_map_inspection_without_arguments() {
-        unimplemented!("awaits phase-7.7: check whole-map inspection without arguments");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "check".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "check always exits zero (non-blocking)");
+        assert!(
+            !result.stdout.is_empty(),
+            "check must produce output for a fixture with findings"
+        );
     }
 
     /// Scenario: Node-scoped inspection with a positional argument.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_check__node_scoped_inspection_with_positional_argument() {
-        unimplemented!("awaits phase-7.7: check node-scoped inspection with positional argument");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "check".to_owned(),
+            "cairn.kernel.parser".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "node-scoped check exits zero");
     }
 
     /// Scenario: Inspection delegates to the same library service as lint.
@@ -76,10 +89,19 @@ mod empty_state {
     use super::cflx_planned;
 
     /// Scenario: No-blueprint invocation renders a CTA.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_empty_state__no_blueprint_invocation_renders_cta() {
-        unimplemented!("awaits phase-7.7: empty-state no-blueprint invocation renders CTA");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "nonexistent/cairn.blueprint".to_owned(),
+            "check".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "no-blueprint check exits zero");
+        assert!(
+            result.stdout.contains("cairn init"),
+            "CTA must mention `cairn init`, got: {}",
+            result.stdout
+        );
     }
 
     /// Scenario: Clean-map result renders a CTA.
@@ -90,10 +112,13 @@ mod empty_state {
     }
 
     /// Scenario: Empty-state copy is free of em-dashes (CLI and webui share copy file).
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_empty_state__copy_has_no_em_dashes() {
-        unimplemented!("awaits phase-7.7: empty-state copy has no em-dashes");
+        let copy_toml = include_str!("../docs/design-system/copy.toml");
+        assert!(
+            !copy_toml.contains('\u{2014}'),
+            "copy.toml must not contain em-dashes (U+2014)"
+        );
     }
 }
 
