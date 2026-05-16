@@ -47,6 +47,7 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Brownfield refine** | `cairn refine` | writes timestamped change |
 | **Disconnected islands** | `cairn islands` | `--json` |
 | **Acceptance gate** | `cairn accept [<change-id>]` | `--json` (gate_outcome in data) |
+| **Export** | `cairn export --format <json\|dot> --output <path>` | full graph export |
 | **Bootstrap** | `cairn init` | creates blueprint, config, meta dirs |
 | **Web explorer** | `cairn ui` | `--port <N>` |
 
@@ -201,12 +202,14 @@ Common finding codes:
 
 | Code | Severity | Meaning |
 |---|---|---|
-| `CAIRN_ORPHANED_FILE` | Error | File exists on disk but no node claims it via `path` |
-| `CAIRN_GHOST_FILE` | Error | Node's `path` references a file that doesn't exist |
+| `CAIRN_RECONCILE_ORPHANED_FILE` | Error | File exists on disk but no node claims it via `path` |
+| `CAIRN_INTEGRITY_DUPLICATE_ID` | Error | Same node ID appears more than once in the blueprint |
+| `CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT` | Error | Edge references a node ID not in the graph |
 | `CAIRN_INTERFACE_HASH_CHANGED` | Error | Module's public interface changed since last scan |
-| `CAIRN_PROVENANCE_NO_DECISION` | Warning | Leaf node has no accepted decision covering it |
+| `CAIRN_ORDER_CYCLE` | Error | Dependency cycle found in the edge graph |
 | `CAIRN_REVIEW_UNKNOWN_NODE` | Error | Review/contract references a node ID not in the graph |
-| `CAIRN_CYCLE_DETECTED` | Error | Dependency cycle found in the edge graph |
+| `CAIRN_PROVENANCE_NO_DECISION` | Warning | Leaf node has no accepted decision covering it |
+| `CAIRN_SOURCE_UNVERIFIED` | Info | Source artefact has not been verified |
 
 Use `cairn lint --json | jq '.findings[] | select(.severity == "error")'` to filter for blockers.
 
@@ -250,6 +253,25 @@ All commands with `--json` produce a consistent envelope:
 - `status: "error"` means the command failed or verification was incomplete
 - `accept --json` includes `data.gate_outcome` ("passed", "failed", or "blocked")
 - Exit codes: 0 = clean success, 1 = success with findings or operational error, 2 = usage error
+
+## User-facing copy
+
+All user-facing CLI strings live in `docs/design-system/copy.toml`. Do not hardcode messages in Rust source.
+
+```rust
+// In src/cli/ code:
+use super::copy;
+let msg = copy::lookup("empty-states.cli-no-blueprint");
+```
+
+Keys use dotted notation matching the TOML table structure. The `lookup()` function returns the key itself as fallback if missing. Finding-code entries use inline tables with `heading`, `body`, and `cta` fields:
+
+```toml
+[findings.codes]
+CAIRN_RECONCILE_ORPHANED_FILE = { heading = "Orphaned file", body = "...", cta = "..." }
+```
+
+When adding new user-facing messages: add the entry to copy.toml first, then wire it via `copy::lookup()`.
 
 ## MCP integration
 
