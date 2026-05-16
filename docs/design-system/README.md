@@ -115,9 +115,45 @@ Numeric aliases (`--ink-1` through `--ink-4`, `--fast`, `--med`, `--slow`) remai
 | New font family or new weight                    | `fonts.css`                        |
 | New component or variant                         | `components.css`                   |
 | Showing a new component in the reference         | `index.html`                       |
+| User-facing CLI or UI strings                    | `copy.toml` (verbal authority)     |
 | Documentation, consumer instructions, conventions | `README.md` (this file)           |
 
 Breaking changes to token names require a coordinated sweep. The safer pattern: add the new name as an alias, migrate consumers, remove the old name later.
+
+## Voice
+
+CAIRN's audience spans career developers and people building with AI tools (including non-devs). User-facing vocabulary should prefer plain, concise English. Accuracy is the floor: do not flatten load-bearing technical taxonomy.
+
+The bar: "would a non-dev feel nervous typing this command or reading this doc?" Not: "what's the simplest possible word."
+
+### Rules
+
+- No em-dashes (U+2014) in any user-facing text. Use period, colon, comma, or parenthesis.
+- One idea per sentence. Short sentences over compound clauses.
+- Commands appear in backtick code spans (`cairn scan`), not quotes.
+- Preserve technical terms that carry distinct meaning: blueprint, map, neighbourhood, reconciler, provenance chain, authority chain, hinge, artefact, drift, ghost, orphaned, synced.
+- Placeholders use `{name}` syntax in copy.toml; rendered with the actual value at display time.
+- Headings use sentence case, not title case.
+
+### Review checklist
+
+- [ ] No em-dashes anywhere in the change.
+- [ ] Every user-facing string lives in `copy.toml`, not inline in source.
+- [ ] Placeholder names match the data field they substitute (e.g. `{node}` for node ID, `{path}` for file path).
+- [ ] Plain English: would a first-time user understand the message without reading the spec?
+- [ ] Technical terms from the load-bearing set are used precisely (not paraphrased or simplified).
+- [ ] CTA (call to action) tells the user what to do next, not just what went wrong.
+
+### Tone registers
+
+Four emotional registers are defined as components (see `components.css` tone cards):
+
+| Register | When | Colour token |
+|----------|------|--------------|
+| Arrival | First load, archive complete, new view | `--prov-2` (amber) |
+| Clarity | Query result, chain trace, contract open | `--auth-2` (verdigris) |
+| Reassurance | Lint clean, drift resolved, scan settles | `--settled` (moss) |
+| Unease | Drift detected, orphan surfaced, cycle found | `--drift` (clay) |
 
 ## Terminology
 

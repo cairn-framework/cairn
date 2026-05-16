@@ -159,11 +159,10 @@ pub fn run(args: &[String]) -> CliResult {
                 "{\"command\":\"check\",\"status\":\"ok\",\"data\":{\"findings\":[]}}\n".to_owned(),
             );
         }
-        return ok(
-            "No cairn.blueprint found. Inspection has nothing to look at.\n\
-             Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.\n"
-                .to_owned(),
-        );
+        return ok(format!(
+            "{}\n",
+            copy::lookup("empty-states.cli-no-blueprint")
+        ));
     }
     run_project_command(&parsed)
 }

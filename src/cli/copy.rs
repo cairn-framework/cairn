@@ -67,4 +67,21 @@ mod tests {
         let value = lookup("empty-states.no-findings");
         assert_eq!(value, "No findings to report.");
     }
+
+    #[test]
+    fn test_lookup_cli_no_blueprint() {
+        let value = lookup("empty-states.cli-no-blueprint");
+        assert!(value.starts_with("No cairn.blueprint"));
+        assert!(
+            value.contains('\n'),
+            "multiline: embedded newline preserved"
+        );
+        assert!(value.contains("cairn init"), "should mention cairn init");
+    }
+
+    #[test]
+    fn test_lookup_finding_code_table() {
+        let value = lookup("findings.codes.CAIRN_RECONCILE_ORPHANED_FILE.heading");
+        assert_eq!(value, "Orphaned file");
+    }
 }

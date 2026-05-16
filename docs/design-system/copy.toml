@@ -9,9 +9,23 @@
 # ── Empty states ──────────────────────────────────────────────────────
 
 [empty-states]
+# Short-form entries (UI surfaces: webui panels, graph explorer)
 no-blueprint = "No cairn.blueprint found. Run `cairn init` to create one."
 no-findings = "No findings to report."
 no-nodes = "No nodes declared in the blueprint."
+node-no-paths = "This node has no source paths declared."
+node-no-contracts = "No contracts are attached to this node."
+node-no-decisions = "No decisions reference this node."
+node-no-todos = "No open tasks for this node."
+node-no-research = "No research artefacts link to this node."
+node-no-sources = "No source artefacts reference this node."
+node-no-outbound = "This node has no outbound dependencies."
+node-no-inbound = "No other nodes depend on this one."
+map-clean = "All nodes reconciled. No drift detected."
+search-no-matches = "No nodes match that query."
+# Long-form entries (CLI output: multi-line with instructions)
+cli-no-blueprint = "No cairn.blueprint found. Inspection has nothing to look at.\nRun `cairn init` to scaffold a blueprint, then re-run `cairn check`."
+cli-clean-map = "Blueprint reconciled cleanly. No findings."
 
 # ── Findings ──────────────────────────────────────────────────────────
 
@@ -29,6 +43,19 @@ missing-edge = "An observed dependency has no declared blueprint edge."
 extra-edge = "A declared edge has no observed source dependency."
 interface-contradiction = "Multiple contracts for the same role have divergent interfaces."
 rationale-tension = "An intentional asymmetry was detected; review the rationale."
+
+[findings.codes]
+CAIRN_RECONCILE_ORPHANED_FILE = { heading = "Orphaned file", body = "The file `{path}` exists on disk but no blueprint node claims its path.", cta = "Add a `path` entry to an existing node, or declare a new node." }
+CAIRN_INTEGRITY_DUPLICATE_ID = { heading = "Duplicate node ID", body = "The ID `{node}` appears more than once in the blueprint.", cta = "Rename one of the duplicates to make every ID unique." }
+CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT = { heading = "Invalid edge endpoint", body = "An edge references `{target}`, which does not exist in the map.", cta = "Check the edge declaration for typos, or declare the missing node." }
+CAIRN_INTEGRITY_PATH_TIE = { heading = "Path ownership conflict", body = "Multiple nodes claim the path `{path}`.", cta = "Narrow one node's path pattern so each file has exactly one owner." }
+CAIRN_INTERFACE_HASH_CHANGED = { heading = "Interface changed", body = "The contract hash for `{node}` no longer matches the last recorded value.", cta = "Run `cairn scan` to accept the new hash, or revert the contract change." }
+CAIRN_ORDER_CYCLE = { heading = "Dependency cycle", body = "A cycle was detected involving `{node}`.", cta = "Break the cycle by removing or reversing one edge." }
+CAIRN_CONTRACT_MISSING = { heading = "Missing contract", body = "Node `{node}` has no contract file.", cta = "Create a contract artefact describing this node's interface." }
+CAIRN_SOURCE_UNVERIFIED = { heading = "Unverified source", body = "Source `{node}` has not been verified against its declared hash.", cta = "Run `cairn scan` to verify, or update the source record." }
+CAIRN_DECISION_ORPHANED = { heading = "Orphaned decision", body = "Decision `{node}` references nodes that no longer exist.", cta = "Update the decision's node references, or archive if no longer relevant." }
+CAIRN_PROVENANCE_NO_DECISION = { heading = "No decision link", body = "Node `{node}` has no decision in its provenance chain.", cta = "Link a decision artefact explaining why this module exists." }
+CAIRN_CONTRACT_MISSING_NODE = { heading = "Contract references unknown node", body = "A contract references `{node}`, which does not exist in the blueprint.", cta = "Fix the node reference in the contract, or declare the missing node." }
 
 # ── Errors ────────────────────────────────────────────────────────────
 
