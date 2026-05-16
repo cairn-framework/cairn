@@ -8,9 +8,9 @@ Atomic-commit groupings: tasks within a numbered section MAY land as separate co
 - [x] 1.2 Define `StageRecord` carrying `model_id` (`Option<String>`), `tokens_in` (`Option<u64>`), `tokens_out` (`Option<u64>`), `latency_ms` (`u64`), `success` (`bool`), `error_message` (`Option<String>`), `started_at` (`String` ISO 8601), `ended_at` (`String` ISO 8601). Derive `Debug`, `Clone`, `PartialEq`, `Eq`, `serde::Serialize`, `serde::Deserialize` per `openspec/conventions.md` §4.
 - [x] 1.3 Implement `TraceSidecar::read(path: &Utf8Path) -> Result<Self, CairnError>` that validates `version` per `openspec/conventions.md` §3 rule 4: a higher version than understood fails with a clear error naming expected and found versions.
 - [x] 1.4 Re-export `TraceSidecar` from `src/lib.rs`. The cairn crate provides the schema and reader; cflx (the workflow runner) provides the writer in a separate codebase.
-- [ ] 1.5 Add the `cflx trace <phase>` CLI subcommand that reads `<archive-root>/<phase>/.cflx-trace.json` and renders human and `--json` output per `openspec/specs/cli/spec.md` requirement "Produce stable human and JSON output".
-- [ ] 1.6 Pin the `--json` output via an `insta` snapshot test against a fixture sidecar.
-- [ ] 1.7 Pin the human output via a separate `insta` snapshot test against the same fixture.
+- [ ] ~~1.5 Add the `cflx trace <phase>` CLI subcommand that reads `<archive-root>/<phase>/.cflx-trace.json` and renders human and `--json` output per `openspec/specs/cli/spec.md` requirement "Produce stable human and JSON output".~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~1.6 Pin the `--json` output via an `insta` snapshot test against a fixture sidecar.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~1.7 Pin the human output via a separate `insta` snapshot test against the same fixture.~~ (Obsolete: cflx retired per decision #105)
 - [x] 1.8 Add a unit test that constructs a sidecar with `version = 99` and asserts `TraceSidecar::read` returns a clear error.
 
 ## 2. Suggested-edges file class, schema, and library API
@@ -31,11 +31,11 @@ Atomic-commit groupings: tasks within a numbered section MAY land as separate co
 
 - [x] 3.1 Allocate `CC002 -- untriaged suggested edges remain in change -- phase-7.6` under the `CC -- Changes` heading in `openspec/registries/error-codes.md`.
 - [x] 3.2 Add or extend a `CairnError` variant `UntriagedSuggestedEdges { change_id: String, pending_count: usize, file_path: Utf8PathBuf }` whose `.code()` returns `"CC002"` and whose `Display` impl names the count and the file path.
-- [ ] 3.3 Extend the `cflx openspec validate <change>` command path to call `SuggestedEdges::read_from_change` on the change directory and surface `count_pending` as a warning when the count is non-zero (without `--strict`).
-- [ ] 3.4 Extend the `--strict` mode of the same command path to fail with `CC002` and a non-zero exit code when `count_pending` is non-zero.
-- [ ] 3.5 Confirm that when `count_pending` is zero or no `suggested-edges.json` file is present, the validate call's behaviour is unchanged.
-- [ ] 3.6 Add an integration test that runs `cflx openspec validate <change> --strict` against a fixture change containing one entry with `triage_state: pending` and asserts the call exits non-zero with `CC002` in the output.
-- [ ] 3.7 Add a parallel integration test against a fixture where every entry has `triage_state: accepted` and asserts the call exits zero.
+- [ ] ~~3.3 Extend the `cflx openspec validate <change>` command path to call `SuggestedEdges::read_from_change` on the change directory and surface `count_pending` as a warning when the count is non-zero (without `--strict`).~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~3.4 Extend the `--strict` mode of the same command path to fail with `CC002` and a non-zero exit code when `count_pending` is non-zero.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~3.5 Confirm that when `count_pending` is zero or no `suggested-edges.json` file is present, the validate call's behaviour is unchanged.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~3.6 Add an integration test that runs `cflx openspec validate <change> --strict` against a fixture change containing one entry with `triage_state: pending` and asserts the call exits non-zero with `CC002` in the output.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~3.7 Add a parallel integration test against a fixture where every entry has `triage_state: accepted` and asserts the call exits zero.~~ (Obsolete: cflx retired per decision #105)
 - [x] 3.8 Add a unit test that constructs the new `CairnError` variant and asserts `.code() == "CC002"`.
 
 ## 4. Architectural islands query, `--include-orphans`, and verb-edge display
@@ -43,10 +43,10 @@ Atomic-commit groupings: tasks within a numbered section MAY land as separate co
 - [x] 4.1 Add an `islands(map: &Map) -> Vec<Island>` query to the query module. `Island` carries `node_count` (integer) and `representative` (`NodeId`, the lexicographically smallest ID in the component for determinism).
 - [x] 4.2 Add an `include_orphans` field on the existing `NeighbourhoodOpts` value with a default of `false`. When `true`, the neighbourhood query includes nodes reachable from the anchor only via reverse-direction edges that the default traversal skips. (Delivered as `neighbourhood_with_options(graph, anchor, include_orphans)` rather than an Opts struct.)
 - [x] 4.3 Share a connected-component traversal helper between the `islands` query and the `--include-orphans` neighbourhood path, internal to the query module.
-- [ ] 4.4 Add the `cairn islands` CLI command that calls the new library query and renders human and `--json` output. The `--json` schema is `{ "schema_version": 1, "islands": [{ "node_count": ..., "representative": "..." }] }`.
-- [ ] 4.5 Extend the `cairn neighbourhood <node>` CLI command with the `--include-orphans` flag that sets `include_orphans: true` on the underlying query.
-- [ ] 4.6 Pin `cairn islands --json` output via an `insta` snapshot test against a fixture map with two disconnected components.
-- [ ] 4.7 Pin `cairn neighbourhood <node> --include-orphans --json` output via an `insta` snapshot test.
+- [x] 4.4 Add the `cairn islands` CLI command that calls the new library query and renders human and `--json` output. The `--json` schema is `{ "schema_version": 1, "islands": [{ "node_count": ..., "representative": "..." }] }`.
+- [x] 4.5 Extend the `cairn neighbourhood <node>` CLI command with the `--include-orphans` flag that sets `include_orphans: true` on the underlying query.
+- [ ] ~~4.6 Pin `cairn islands --json` output via an `insta` snapshot test against a fixture map with two disconnected components.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~4.7 Pin `cairn neighbourhood <node> --include-orphans --json` output via an `insta` snapshot test.~~ (Obsolete: cflx retired per decision #105)
 - [ ] 4.8 Update the graph-explorer renderer in `src/ui_assets/` so the default edge-label rendering shows verb-form labels (e.g., `depends on`, `implements`, `reviews`) instead of label keys. Update any affected explorer fixture snapshots accordingly.
 
 ## 5. Required Verification

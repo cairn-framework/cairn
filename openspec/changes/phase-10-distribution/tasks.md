@@ -2,13 +2,13 @@
 
 ## 1. LSP Server
 
-- [ ] 1.1 Add `cairn-lsp` binary target.
-- [ ] 1.2 Ensure the `cairn-lsp` package is a workspace member with `[lints] workspace = true`.
-- [ ] 1.3 Implement diagnostics from parser, lint, hook, and scan findings.
-- [ ] 1.4 Implement completion for node IDs, artefact IDs, tag names, and delta operation markers.
-- [ ] 1.5 Implement hover for node metadata and artefact summaries.
-- [ ] 1.6 Implement go-to-definition for node IDs and artefact references.
-- [ ] 1.7 Implement document symbols for blueprint declarations and edges.
+- [x] 1.1 Add `cairn-lsp` binary target.
+- [x] 1.2 Ensure the `cairn-lsp` package is a workspace member with `[lints] workspace = true`.
+- [ ] ~~1.3 Implement diagnostics from parser, lint, hook, and scan findings.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~1.4 Implement completion for node IDs, artefact IDs, tag names, and delta operation markers.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~1.5 Implement hover for node metadata and artefact summaries.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~1.6 Implement go-to-definition for node IDs and artefact references.~~ (Obsolete: cflx retired per decision #105)
+- [ ] ~~1.7 Implement document symbols for blueprint declarations and edges.~~ (Obsolete: cflx retired per decision #105)
 
 ## 2. Plugin and Agent Packaging
 
