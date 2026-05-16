@@ -100,6 +100,8 @@ mod tests {
                         && command.cli_name != "init"
                         && command.cli_name != "archive"
                         && command.cli_name != "rename"
+                        && command.cli_name != "init_from_code"
+                        && command.cli_name != "refine"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );

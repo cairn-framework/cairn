@@ -54,6 +54,12 @@ expression: value
       "safety": "ReadOnly"
     },
     {
+      "name": "islands",
+      "request": "IslandsRequest",
+      "response": "IslandsResponse",
+      "safety": "ReadOnly"
+    },
+    {
       "name": "lint",
       "request": "LintRequest",
       "response": "LintResponse",
@@ -148,6 +154,18 @@ expression: value
       "request": "ContextRequest",
       "response": "ContextResponse",
       "safety": "ReadOnly"
+    },
+    {
+      "name": "init_from_code",
+      "request": "InitFromCodeRequest",
+      "response": "InitFromCodeResponse",
+      "safety": "Mutating"
+    },
+    {
+      "name": "refine",
+      "request": "RefineRequest",
+      "response": "RefineResponse",
+      "safety": "Mutating"
     }
   ],
   "schema_version": 1

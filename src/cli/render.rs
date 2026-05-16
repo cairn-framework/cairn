@@ -50,12 +50,22 @@ pub(super) fn render_get(
     })
 }
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn render_neighbourhood(
     parsed: &ParsedArgs,
     scan_result: &scanner::ScanResult,
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
-        query::neighbourhood(&scan_result.graph, node).map(|response| {
+        let include_orphans = parsed
+            .command_args
+            .iter()
+            .any(|arg| arg == "--include-orphans");
+        let response = if include_orphans {
+            query::neighbourhood_with_options(&scan_result.graph, node, true)?
+        } else {
+            query::neighbourhood(&scan_result.graph, node)?
+        };
+        Ok({
             let include_todos = parsed.command_args.iter().any(|arg| arg == "--include-todos");
             let include_research = parsed
                 .command_args

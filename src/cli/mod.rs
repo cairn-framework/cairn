@@ -250,6 +250,7 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     render_loaded_project_command(parsed, root, &scan_result, legacy_warning)
 }
 
+#[allow(clippy::too_many_lines)]
 fn render_loaded_project_command(
     parsed: &ParsedArgs,
     root: &Path,
@@ -291,6 +292,39 @@ fn render_loaded_project_command(
                 format!("Contract for {}:\n{}\n", node.id, body)
             })
         }),
+        "islands" => {
+            let response = query::islands(&scan_result.graph);
+            Ok(if parsed.json {
+                let islands_json: Vec<String> = response
+                    .islands
+                    .iter()
+                    .map(|island| {
+                        format!(
+                            "{{\"representative\":\"{}\",\"node_count\":{}}}",
+                            esc(&island.representative),
+                            island.node_count
+                        )
+                    })
+                    .collect();
+                format!(
+                    "{{\"command\":\"islands\",\"status\":\"ok\",\"data\":{{\"islands\":[{}]}}}}\n",
+                    islands_json.join(",")
+                )
+            } else {
+                let mut out = String::new();
+                for (i, island) in response.islands.iter().enumerate() {
+                    let _ = writeln!(
+                        out,
+                        "Island {}: {} ({} node{})",
+                        i + 1,
+                        island.representative,
+                        island.node_count,
+                        if island.node_count == 1 { "" } else { "s" }
+                    );
+                }
+                out
+            })
+        }
         "order" => match query::order(&scan_result.graph) {
             Ok(response) => Ok(if parsed.json {
                 format!("{{\"nodes\":{}}}\n", string_array_json(&response.nodes))
@@ -358,7 +392,7 @@ fn render_loaded_project_command(
 }
 
 /// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard", "refine"];
+const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "islands", "onboard", "refine"];
 
 /// Returns all command names the CLI recognises.
 fn all_command_names() -> Vec<&'static str> {
@@ -390,6 +424,7 @@ fn command_description(name: &str) -> &'static str {
         "get" => "Inspect a node by ID",
         "hook" => "Run reconciliation hooks",
         "init" => "Scaffold a new cairn project",
+        "islands" => "Show connected components of the map graph",
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
         "onboard" => "Suggest blueprint entries for orphaned files",
@@ -475,6 +510,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "dependents"
             | "depends"
             | "order"
+            | "islands"
             | "lint"
             | "scan"
             | "status"
