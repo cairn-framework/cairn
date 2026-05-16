@@ -1,4 +1,14 @@
 //! Shared error type for the Cairn crate.
+//!
+//! # Process exit codes
+//!
+//! All cairn CLI commands use a consistent exit code scheme:
+//!
+//! | Code | Meaning |
+//! |------|---------|
+//! | 0 | Success (clean, no findings) |
+//! | 1 | Success with advisory findings, or operational error |
+//! | 2 | Argument/usage error (bad args, unknown command) |
 
 use std::fmt;
 

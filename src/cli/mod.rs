@@ -36,8 +36,8 @@ use commands::{
     run_hook_command, run_onboard_command, run_shared_json_command, run_ui_command,
 };
 use format::{
-    err, error_output, esc, finding_output, findings_output, lines, node_arg, ok, render_findings,
-    string_array_json,
+    err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
+    render_findings, string_array_json,
 };
 use render::{
     render_context, render_decisions, render_dependencies, render_files, render_get,
@@ -85,7 +85,7 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "accept" {
         let change_id = parsed.command_args.get(1).map(String::as_str);
-        return crate::cli::accept::run_accept_gate(change_id);
+        return crate::cli::accept::run_accept_gate(change_id, parsed.json);
     }
     if parsed.command == "export" {
         return export::run(
@@ -98,38 +98,49 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "onboard" {
         return run_onboard_command(&parsed);
     }
-    if parsed.command == "check" {
-        if parsed.json {
-            return err(
-                1,
-                "--json: unknown flag for `cairn check`; use `cairn lint --json` for JSON output",
-            );
-        }
-        if !parsed.file.exists() {
-            // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
-            // warning that run_project_command emits at line 145-148.
-            // Without this, a user mid-migration from cairn.dsl to
-            // cairn.blueprint would see "Run `cairn init`" instead of
-            // the rename guidance, and `init` would scaffold over the
-            // existing declaration.
-            let root = parsed
-                .file
-                .parent()
-                .filter(|path| !path.as_os_str().is_empty())
-                .unwrap_or_else(|| Path::new("."));
-            if parsed.file.ends_with("cairn.blueprint") && root.join("cairn.dsl").exists() {
-                return error_output(
-                    parsed.json,
-                    "CAIRN_COMMAND_FAILED",
-                    "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`",
-                );
+    if parsed.command == "check" && !parsed.file.exists() {
+        // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
+        // warning that run_project_command emits at line 145-148.
+        // Without this, a user mid-migration from cairn.dsl to
+        // cairn.blueprint would see "Run `cairn init`" instead of
+        // the rename guidance, and `init` would scaffold over the
+        // existing declaration.
+        let root = parsed
+            .file
+            .parent()
+            .filter(|path| !path.as_os_str().is_empty())
+            .unwrap_or_else(|| Path::new("."));
+        if parsed.file.ends_with("cairn.blueprint") && root.join("cairn.dsl").exists() {
+            if parsed.json {
+                return ok(format!(
+                    "{{\"command\":\"check\",\"status\":\"error\",\"data\":{{\"findings\":[{}]}}}}\n",
+                    finding_json(&Finding {
+                        code: "CAIRN_COMMAND_FAILED".to_owned(),
+                        severity: FindingSeverity::Error,
+                        message:
+                            "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`"
+                                .to_owned(),
+                        node: None,
+                        path: None,
+                    })
+                ));
             }
-            return ok(
-                "No cairn.blueprint found. Inspection has nothing to look at.\n\
-                 Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.\n"
-                    .to_owned(),
+            return error_output(
+                false,
+                "CAIRN_COMMAND_FAILED",
+                "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`",
             );
         }
+        if parsed.json {
+            return ok(
+                "{\"command\":\"check\",\"status\":\"ok\",\"data\":{\"findings\":[]}}\n".to_owned(),
+            );
+        }
+        return ok(
+            "No cairn.blueprint found. Inspection has nothing to look at.\n\
+             Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.\n"
+                .to_owned(),
+        );
     }
     run_project_command(&parsed)
 }
@@ -289,9 +300,24 @@ fn render_loaded_project_command(
                 .filter(|f| target_node.is_none_or(|t| f.node.as_deref().is_some_and(|n| n == t)))
                 .cloned()
                 .collect();
-            let stdout = render_findings(&findings, false);
+            let has_errors = findings
+                .iter()
+                .any(|f| f.severity == FindingSeverity::Error);
+            let stdout = if parsed.json {
+                format!(
+                    "{{\"command\":\"check\",\"status\":\"{}\",\"data\":{{\"findings\":[{}]}}}}\n",
+                    if has_errors { "error" } else { "ok" },
+                    findings
+                        .iter()
+                        .map(finding_json)
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
+            } else {
+                render_findings(&findings, false)
+            };
             return CliResult {
-                code: 0,
+                code: u8::from(has_errors),
                 stdout,
                 stderr: legacy_warning,
             };
@@ -659,7 +685,6 @@ app.api -> app.core "reports"
                 result.stdout.contains("cairn"),
                 "{flag} should show program name"
             );
-            // Verify several command names appear.
             for cmd in &["scan", "get", "lint", "init", "context"] {
                 assert!(
                     result.stdout.contains(cmd),
@@ -718,9 +743,6 @@ app.api -> app.core "reports"
     {
         let root = temp_root("suggest-preserve")?;
         write_project(&root)?;
-        // The existing test at test_cli_change_commands_and_error_paths
-        // checks unknown.code == 2 and stderr contains "unknown command".
-        // Verify the new message still matches.
         let result = run_in(&root, &["unknown"]);
         assert_eq!(result.code, 2);
         assert!(result.stderr.contains("unknown command"));
@@ -735,6 +757,51 @@ app.api -> app.core "reports"
         assert_eq!(edit_distance("scam", "scan"), 1);
         assert_eq!(edit_distance("lint", "init"), 2);
         assert_eq!(edit_distance("abc", "xyz"), 3);
+    }
+
+    #[test]
+    fn test_check_json_output_is_valid_json() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("check-json")?;
+        write_project(&root)?;
+        let result = run_in(&root, &["--json", "check"]);
+        assert_eq!(result.code, 0, "check json stderr: {}", result.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(result.stdout.trim())
+            .unwrap_or_else(|e| panic!("invalid JSON from check --json: {e}\n{}", result.stdout));
+        assert_eq!(parsed["command"], "check");
+        assert_eq!(parsed["status"], "ok");
+        assert!(parsed["data"]["findings"].is_array());
+        Ok(())
+    }
+
+    #[test]
+    fn test_check_json_with_target_node() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("check-json-node")?;
+        write_project(&root)?;
+        let result = run_in(&root, &["--json", "check", "app.api"]);
+        assert_eq!(result.code, 0, "check json stderr: {}", result.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(result.stdout.trim()).unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from check --json app.api: {e}\n{}",
+                    result.stdout
+                )
+            });
+        assert_eq!(parsed["command"], "check");
+        Ok(())
+    }
+
+    #[test]
+    fn test_onboard_json_output_is_valid_json() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("onboard-json")?;
+        write_project(&root)?;
+        let result = run_in(&root, &["--json", "onboard"]);
+        assert_eq!(result.code, 0, "onboard json stderr: {}", result.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(result.stdout.trim())
+            .unwrap_or_else(|e| panic!("invalid JSON from onboard --json: {e}\n{}", result.stdout));
+        assert_eq!(parsed["command"], "onboard");
+        assert_eq!(parsed["status"], "ok");
+        assert!(parsed["data"].is_object());
+        Ok(())
     }
 
     static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));

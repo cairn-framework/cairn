@@ -48,15 +48,26 @@ mod cli {
         let _: fn(&cairn::map::Graph) -> cairn::map::query::LintResponse = cairn::map::query::lint;
     }
 
-    /// Scenario: Inspection has no JSON mode in this phase.
+    /// Scenario: Inspection supports JSON output with command envelope.
     #[test]
-    fn test_check__inspection_has_no_json_mode() {
+    fn test_check__inspection_supports_json_mode() {
         let result = cairn::cli::run(&["--json".to_owned(), "check".to_owned()]);
-        assert_eq!(result.code, 1, "cairn check --json must be rejected");
+        assert_ne!(result.code, 2, "check --json must not be a usage error");
+        let stdout = result.stdout.trim();
+        let parsed: serde_json::Value = serde_json::from_str(stdout)
+            .expect("cairn check --json must always produce valid JSON");
+        assert_eq!(parsed["command"], "check", "envelope must name the command");
         assert!(
-            result.stderr.contains("cairn lint --json"),
-            "rejection must point at `cairn lint --json`, got: {}",
-            result.stderr
+            parsed["status"] == "ok" || parsed["status"] == "error",
+            "envelope status must be ok or error"
+        );
+        assert!(
+            parsed["data"]["findings"].is_array(),
+            "envelope must contain findings array"
+        );
+        assert!(
+            !result.stderr.contains("cairn lint --json"),
+            "check --json is no longer rejected"
         );
     }
 }
