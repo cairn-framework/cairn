@@ -53,61 +53,249 @@ fn fixture_decision_with_obligations_field() {
     unimplemented!("awaits phase-9: fixture_decision_with_obligations_field");
 }
 
+fn temp_repo(name: &str) -> std::path::PathBuf {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let suffix = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let root = std::env::temp_dir().join(format!("cairn-bf-{name}-{suffix}"));
+    std::fs::create_dir_all(&root).unwrap();
+    root
+}
+
+fn populate_source_dir(root: &std::path::Path, rel: &str, count: usize) {
+    let dir = root.join(rel);
+    std::fs::create_dir_all(&dir).unwrap();
+    for i in 0..count {
+        std::fs::write(dir.join(format!("file{i}.rs")), format!("fn f{i}() {{}}\n")).unwrap();
+    }
+}
+
 mod init {
-    use super::cflx_planned;
+    use super::{populate_source_dir, temp_repo};
+    use cairn::brownfield::{discovery, init as bf_init, write_change};
+    use std::fs;
 
     /// Scenario: Discovery does not require an existing blueprint.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_init__discovery_does_not_require_existing_blueprint() {
-        unimplemented!("awaits phase-9: init discovery does not require existing blueprint");
+        let root = temp_repo("no-bp");
+        populate_source_dir(&root, "src/auth", 4);
+        // No cairn.blueprint exists; discovery should still work.
+        let result = discovery::discover(&root);
+        assert!(result.is_ok());
+        let extraction = result.unwrap();
+        assert!(!extraction.candidates.is_empty());
     }
 
     /// Scenario: Candidate heuristics are deterministic.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_init__candidate_heuristics_are_deterministic() {
-        unimplemented!("awaits phase-9: init candidate heuristics are deterministic");
+        let root = temp_repo("deterministic");
+        populate_source_dir(&root, "src/core", 5);
+        populate_source_dir(&root, "src/api", 3);
+        let r1 = discovery::discover(&root).unwrap();
+        let r2 = discovery::discover(&root).unwrap();
+        assert_eq!(r1.candidates.len(), r2.candidates.len());
+        for (a, b) in r1.candidates.iter().zip(r2.candidates.iter()) {
+            assert_eq!(a.id, b.id);
+            assert!((a.confidence - b.confidence).abs() < f64::EPSILON);
+        }
     }
 
     /// Scenario: Init creates a brownfield change directory.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_init__creates_brownfield_change_directory() {
-        unimplemented!("awaits phase-9: init creates brownfield change directory");
+        let root = temp_repo("init-create");
+        populate_source_dir(&root, "src/models", 4);
+        let result = bf_init::run_init_from_code(&root, false);
+        assert!(result.is_ok());
+        let change_id = result.unwrap();
+        let change_dir = root.join("openspec/changes").join(&change_id);
+        assert!(change_dir.exists());
+        assert!(change_dir.join("proposal.md").exists());
+        assert!(change_dir.join("blueprint.delta").exists());
+        assert!(change_dir.join("contracts").exists());
     }
 
     /// Scenario: Existing change protected without --force.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_init__existing_change_protected_without_force() {
-        unimplemented!("awaits phase-9: init existing change protected without --force");
+        let root = temp_repo("init-no-force");
+        populate_source_dir(&root, "src/core", 3);
+        // First init succeeds.
+        let first = bf_init::run_init_from_code(&root, false);
+        assert!(first.is_ok());
+        // Second init without force fails.
+        let second = bf_init::run_init_from_code(&root, false);
+        assert!(second.is_err());
+        let err_msg = format!("{}", second.unwrap_err());
+        assert!(err_msg.contains("already exists"));
     }
 
     /// Scenario: Force replaces existing change.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_init__force_replaces_existing_change() {
-        unimplemented!("awaits phase-9: init --force replaces existing change");
+        let root = temp_repo("init-force");
+        populate_source_dir(&root, "src/core", 3);
+        let first = bf_init::run_init_from_code(&root, false);
+        assert!(first.is_ok());
+        let change_dir = root.join("openspec/changes/brownfield-init");
+        // Write a marker to verify it gets replaced.
+        fs::write(change_dir.join("marker.txt"), "old").unwrap();
+        // Force init replaces the directory.
+        let second = bf_init::run_init_from_code(&root, true);
+        assert!(second.is_ok());
+        assert!(!change_dir.join("marker.txt").exists());
+        assert!(change_dir.join("proposal.md").exists());
+    }
+
+    /// Scenario: `write_change` creates expected artifacts.
+    #[test]
+    fn test_init__write_change_creates_artifacts() {
+        let root = temp_repo("write-change");
+        let extraction = discovery::Extraction {
+            candidates: vec![discovery::DiscoveredCandidate {
+                id: "src.core".to_owned(),
+                name: "core".to_owned(),
+                description: "Core module".to_owned(),
+                path: "src/core".to_owned(),
+                tags: vec![],
+                confidence: 0.8,
+                evidence: vec!["src/core/a.rs".to_owned()],
+                edges: vec![],
+            }],
+            schema_version: 1,
+        };
+        let result = write_change(&root, "test-change", &extraction);
+        assert!(result.is_ok());
+        let dir = root.join("openspec/changes/test-change");
+        assert!(dir.join("proposal.md").exists());
+        assert!(dir.join("blueprint.delta").exists());
+        assert!(dir.join("contracts/src_core.md").exists());
     }
 }
 
 mod refine {
-    use super::cflx_planned;
+    use super::{populate_source_dir, temp_repo};
+    use cairn::brownfield::refine as bf_refine;
 
     /// Scenario: Refine proposes additions for new directories.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_refine__proposes_additions_for_new_directories() {
-        unimplemented!("awaits phase-9: refine proposes additions for new directories");
+        let root = temp_repo("refine-add");
+        populate_source_dir(&root, "src/auth", 4);
+        let result = bf_refine::run_refine(&root);
+        assert!(result.is_ok());
+        let change_id = result.unwrap();
+        assert!(change_id.starts_with("brownfield-refine-"));
+        let change_dir = root.join("openspec/changes").join(&change_id);
+        assert!(change_dir.exists());
+        assert!(change_dir.join("proposal.md").exists());
+        assert!(change_dir.join("blueprint.delta").exists());
     }
 
-    /// Scenario: Refine does not replace current truth.
-    /// NOTE: needs sharpening in phase-9 once change-aware query API exists.
-    #[cflx_planned(phase = 900)]
+    /// Scenario: Refine does not replace current truth (writes to new dir).
     #[test]
     fn test_refine__does_not_replace_current_truth() {
-        unimplemented!("awaits phase-9: refine does not replace current truth");
+        let root = temp_repo("refine-nodup");
+        populate_source_dir(&root, "src/core", 3);
+        let first = bf_refine::run_refine(&root).unwrap();
+        // Add a second source dir and refine again.
+        populate_source_dir(&root, "src/api", 3);
+        let second = bf_refine::run_refine(&root).unwrap();
+        // Each refine creates a separate change directory.
+        assert_ne!(first, second);
+        assert!(root.join("openspec/changes").join(&first).exists());
+        assert!(root.join("openspec/changes").join(&second).exists());
+    }
+}
+
+mod discovery_tests {
+    use super::{populate_source_dir, temp_repo};
+    use cairn::brownfield::discovery;
+    use std::fs;
+
+    /// Scenario: Discovery finds source directories with enough files.
+    #[test]
+    fn test_discovery__finds_source_directories() {
+        let root = temp_repo("discover-find");
+        populate_source_dir(&root, "src/auth", 4);
+        populate_source_dir(&root, "src/db", 3);
+        // Too few files, should not appear.
+        populate_source_dir(&root, "src/tiny", 2);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(ids.contains(&"src.auth"));
+        assert!(ids.contains(&"src.db"));
+        assert!(!ids.contains(&"src.tiny"));
+    }
+
+    /// Scenario: Discovery skips ignored directories.
+    #[test]
+    fn test_discovery__skips_ignored_dirs() {
+        let root = temp_repo("discover-skip");
+        populate_source_dir(&root, "src/core", 5);
+        populate_source_dir(&root, "target/debug", 10);
+        populate_source_dir(&root, "node_modules/pkg", 10);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(ids.contains(&"src.core"));
+        assert!(!ids.iter().any(|id| id.contains("target")));
+        assert!(!ids.iter().any(|id| id.contains("node_modules")));
+    }
+
+    /// Scenario: Discovery respects depth limit.
+    #[test]
+    fn test_discovery__respects_depth_limit() {
+        let root = temp_repo("discover-depth");
+        // depth 1-4: should be found
+        populate_source_dir(&root, "a/b/c/d", 4);
+        // depth 5: should be skipped (MAX_DEPTH=4, so depth>4 is skipped)
+        populate_source_dir(&root, "a/b/c/d/e/f", 4);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(ids.contains(&"a.b.c.d"));
+        // The deeply nested dir at depth 5+ should not appear.
+        assert!(!ids.iter().any(|id| id.contains("a.b.c.d.e.f")));
+    }
+
+    /// Scenario: Discovery supports multiple extensions.
+    #[test]
+    fn test_discovery__supports_multiple_extensions() {
+        let root = temp_repo("discover-exts");
+        let dir = root.join("src/mixed");
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("a.ts"), "export {}").unwrap();
+        fs::write(dir.join("b.js"), "module.exports = {}").unwrap();
+        fs::write(dir.join("c.py"), "pass").unwrap();
+        fs::write(dir.join("d.go"), "package main").unwrap();
+        fs::write(dir.join("readme.md"), "# readme").unwrap();
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        // 4 source files (ts, js, py, go), md is not counted.
+        assert!(ids.contains(&"src.mixed"));
     }
 }
 
@@ -169,23 +357,41 @@ mod heuristics {
     }
 
     /// Scenario: Directory candidate min three files.
-    /// Cycle 3: reverted to `#[cflx_planned]` because asserting the
-    /// constant value tautologically (`assert_eq!(CONST, 3)`) does not
-    /// prove the directory traversal honours the threshold. The real
-    /// behavioural test must call into the (still-pending) traversal
-    /// engine against a fixture repo.
-    #[cairn::cflx_planned(phase = 900)]
+    /// Verified via discovery engine against a fixture repo.
     #[test]
     fn test_heuristics__directory_candidate_min_three_files() {
-        unimplemented!("awaits phase-9: directory traversal honours MIN_CANDIDATE_FILE_COUNT");
+        use cairn::brownfield::discovery;
+        let root = super::temp_repo("minfiles");
+        super::populate_source_dir(&root, "src/small", 2);
+        super::populate_source_dir(&root, "src/enough", 3);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(!ids.contains(&"src.small"));
+        assert!(ids.contains(&"src.enough"));
     }
 
-    /// Scenario: Directory depth limit four. Same rationale as the
-    /// min-three-files test above.
-    #[cairn::cflx_planned(phase = 900)]
+    /// Scenario: Directory depth limit four.
+    /// Verified via discovery engine against a fixture repo.
     #[test]
     fn test_heuristics__directory_depth_limit_four() {
-        unimplemented!("awaits phase-9: directory traversal honours DIRECTORY_DEPTH_LIMIT");
+        use cairn::brownfield::discovery;
+        let root = super::temp_repo("depthlimit");
+        super::populate_source_dir(&root, "a/b/c/d", 4);
+        super::populate_source_dir(&root, "a/b/c/d/e/f", 4);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(ids.contains(&"a.b.c.d"));
+        assert!(!ids.iter().any(|id| id.contains("a.b.c.d.e.f")));
     }
 
     /// Scenario: Edge threshold of two import observations.

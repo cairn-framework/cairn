@@ -77,8 +77,31 @@ pub fn run(args: &[String]) -> CliResult {
         Ok(parsed) => parsed,
         Err(result) => return result,
     };
+    let project_root = parsed
+        .file
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
     if parsed.command == "init" {
+        let from_code = parsed.command_args.iter().any(|a| a == "--from-code");
+        if from_code {
+            let force = parsed.command_args.iter().any(|a| a == "--force");
+            return match crate::brownfield::init::run_init_from_code(project_root, force) {
+                Ok(change_id) => ok(format!(
+                    "brownfield init complete; change written to openspec/changes/{change_id}/\n"
+                )),
+                Err(e) => err(1, &e.to_string()),
+            };
+        }
         return init_project(Path::new("."));
+    }
+    if parsed.command == "refine" {
+        return match crate::brownfield::refine::run_refine(project_root) {
+            Ok(change_id) => ok(format!(
+                "refine complete; change written to openspec/changes/{change_id}/\n"
+            )),
+            Err(e) => err(1, &e.to_string()),
+        };
     }
     if parsed.command == "ui" {
         return run_ui_command(&parsed);
@@ -335,7 +358,7 @@ fn render_loaded_project_command(
 }
 
 /// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard"];
+const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard", "refine"];
 
 /// Returns all command names the CLI recognises.
 fn all_command_names() -> Vec<&'static str> {
@@ -370,6 +393,7 @@ fn command_description(name: &str) -> &'static str {
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
         "onboard" => "Suggest blueprint entries for orphaned files",
+        "refine" => "Re-run brownfield discovery and write a timestamped change",
         "order" => "Topological order of all nodes",
         "rationale" => "Show rationale chain for a node",
         "rename" => "Rename a node ID across the project",
