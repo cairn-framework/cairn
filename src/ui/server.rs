@@ -95,6 +95,7 @@ impl Server {
             "/" | "/index.html" => html(INDEX_HTML),
             "/assets/style.css" => asset("text/css; charset=utf-8", STYLE_CSS.as_str()),
             "/assets/app.js" => asset("application/javascript; charset=utf-8", APP_JS),
+            "/assets/copy.json" => asset("application/json; charset=utf-8", COPY_JSON.as_str()),
             "/vendor/preact.min.js" => {
                 asset("application/javascript; charset=utf-8", VENDOR_PREACT_JS)
             }

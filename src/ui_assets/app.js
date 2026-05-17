@@ -32,6 +32,33 @@
   // Utilities
   // ==========================================================================
 
+  let _copyData = null;
+  async function loadCopy() {
+    try {
+      _copyData = await fetchJson("/assets/copy.json");
+    } catch (e) {
+      console.warn("cairn: copy.json failed to load, using fallback keys", e);
+      _copyData = {};
+    }
+  }
+  function copy(key) {
+    if (!_copyData) return key;
+    const segments = key.split(".");
+    let current = _copyData;
+    for (const seg of segments) {
+      if (current == null || typeof current !== "object") {
+        console.warn("cairn: copy key missing:", key);
+        return key;
+      }
+      current = current[seg];
+    }
+    if (typeof current !== "string") {
+      console.warn("cairn: copy key missing:", key);
+      return key;
+    }
+    return current;
+  }
+
   function clsx(...values) {
     return values.filter(Boolean).join(" ");
   }
@@ -868,7 +895,7 @@
           </div>
           <div class="paths-list">
             ${pathEntries.length === 0
-              ? html`<div class="row-empty">No paths declared on this node.</div>`
+              ? html`<div class="row-empty">${copy("empty-states.node-no-paths")}</div>`
               : pathEntries.map((p) => renderPath(p.path, p.state))}
           </div>
         </div>
@@ -917,13 +944,13 @@
 
         <${Section} label="Contracts" count=${contracts?.length || 0}>
           ${(contracts || []).length === 0
-            ? html`<div class="row-empty">No contracts attached.</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-contracts")}</div>`
             : (contracts || []).map((c) => html`<${ArtefactCard} key=${c.path} artefact=${c}/>`)}
         <//>
 
         <${Section} label="Decisions" count=${decisions?.length || 0} defaultOpen=${sortedDecisions.length > 0}>
           ${sortedDecisions.length === 0
-            ? html`<div class="row-empty">No decisions recorded.</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-decisions")}</div>`
             : sortedDecisions.map((d) => html`
                 <button class=${clsx("artefact", "decision", (d.frontmatter && d.frontmatter.status) || "accepted")}
                   key=${d.path} onClick=${() => onSelectDecision(d)}>
@@ -941,31 +968,31 @@
 
         <${Section} label="Todos" count=${todos?.length || 0}>
           ${(todos || []).length === 0
-            ? html`<div class="row-empty">No open todos.</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-todos")}</div>`
             : (todos || []).map((t) => html`<${ArtefactCard} key=${t.path} artefact=${t}/>`)}
         <//>
 
         <${Section} label="Research" count=${research?.length || 0}>
           ${(research || []).length === 0
-            ? html`<div class="row-empty">No research attached.</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-research")}</div>`
             : (research || []).map((r) => html`<${ArtefactCard} key=${r.path} artefact=${r}/>`)}
         <//>
 
         <${Section} label="Sources" count=${sources?.length || 0}>
           ${(sources || []).length === 0
-            ? html`<div class="row-empty">No sources cited.</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-sources")}</div>`
             : (sources || []).map((s) => html`<${ArtefactCard} key=${s.path} artefact=${s}/>`)}
         <//>
 
         <${Section} label="Depends on" count=${depends?.length || 0}>
           ${(depends || []).length === 0
-            ? html`<div class="row-empty">No outbound dependencies.</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-outbound")}</div>`
             : (depends || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
         <//>
 
         <${Section} label="Dependents" count=${dependents?.length || 0}>
           ${(dependents || []).length === 0
-            ? html`<div class="row-empty">No inbound dependents.</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-inbound")}</div>`
             : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
         <//>
       </section>
@@ -1089,7 +1116,7 @@
                 `)}
               </div>
             </div>`
-          : html`<div class="row-empty">Map is clean. No findings.</div>`}
+          : html`<div class="row-empty">${copy("empty-states.map-clean")}</div>`}
 
         <div class="hint">
           <kbd>⌘</kbd><kbd>K</kbd> query the map. Click any stone to consult it.
@@ -1155,7 +1182,7 @@
               </div>`
             : html`<div class="cmd-palette-results">
                 ${matches.length === 0
-                  ? html`<div class="row-empty" style="padding:var(--s-5)">No matches.</div>`
+                  ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches")}</div>`
                   : html`<${Fragment}>
                       <div class="caps result-group">Nodes</div>
                       ${matches.slice(0, 20).map((n) => html`
@@ -1192,7 +1219,7 @@
         </button>
         ${open
           ? findings.length === 0
-            ? html`<div class="drawer-empty">Map is clean. No findings.</div>`
+            ? html`<div class="drawer-empty">${copy("empty-states.map-clean")}</div>`
             : html`<div class="drawer-body">
                 ${findings.map((f) => html`
                   <button class="change-card"
@@ -1470,5 +1497,5 @@
   }
 
   const root = document.getElementById("root");
-  if (root) render(h(App, {}), root);
+  if (root) loadCopy().then(() => render(h(App, {}), root));
 })();

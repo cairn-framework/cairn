@@ -71,6 +71,14 @@ static STYLE_CSS: LazyLock<String> = LazyLock::new(|| {
     combined
 });
 
+/// Copy data from design-system/copy.toml, served as JSON for the webui.
+static COPY_JSON: LazyLock<String> = LazyLock::new(|| {
+    let table: toml::Table = include_str!("../../docs/design-system/copy.toml")
+        .parse()
+        .expect("copy.toml must be valid TOML");
+    serde_json::to_string(&table).expect("TOML table must serialise to JSON")
+});
+
 const SCHEMA_VERSION: u32 = 1;
 
 /// Runtime options for the graph explorer server.

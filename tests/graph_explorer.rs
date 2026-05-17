@@ -51,6 +51,7 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
 
     let html = get(server.address(), "/")?;
     let js = get(server.address(), "/assets/app.js")?;
+    let copy_json = get(server.address(), "/assets/copy.json")?;
     let preact = get(server.address(), "/vendor/preact.min.js")?;
     let htm = get(server.address(), "/vendor/htm.min.js")?;
 
@@ -66,6 +67,14 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     assert!(js.contains("ModuleInspector"));
     assert!(js.contains("fetchGraph"));
     assert!(js.contains("renderPath"));
+
+    // Copy data served as valid JSON with expected structure.
+    let parsed: serde_json::Value =
+        serde_json::from_str(&copy_json).expect("/assets/copy.json must return valid JSON");
+    assert!(
+        parsed["empty-states"]["no-findings"].is_string(),
+        "copy.json must contain empty-states.no-findings"
+    );
 
     // Vendored runtime delivered alongside static assets.
     assert!(preact.contains("self.preact"));
