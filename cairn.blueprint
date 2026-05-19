@@ -10,6 +10,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/lib.rs"
         path "./src/error.rs"
         path "./src/verification.rs"
+        path "./src/bin/cairn-lsp.rs"
     }
 
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
@@ -72,7 +73,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/provenance"
     }
 
-    Module SuggestedEdges "Suggested-edges queue: mutable triage workflows for AI-suggested graph edges" id "cairn.suggested_edges" {
+    Module SuggestedEdges "Suggested-edges queue: mutable triage workflows for AI-suggested graph edges" id "cairn.suggested-edges" {
         path "./src/suggested_edges"
     }
 
