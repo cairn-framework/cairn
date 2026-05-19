@@ -42,7 +42,10 @@
     }
   }
   function copy(key) {
-    if (!_copyData) return key;
+    if (!_copyData) {
+      console.warn("cairn: copy data not loaded yet, using key:", key);
+      return key;
+    }
     const segments = key.split(".");
     let current = _copyData;
     for (const seg of segments) {

@@ -51,5 +51,5 @@ fn timestamp() -> String {
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    format!("{nanos}")
+    nanos.to_string()
 }

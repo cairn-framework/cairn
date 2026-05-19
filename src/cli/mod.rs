@@ -155,9 +155,16 @@ pub fn run(args: &[String]) -> CliResult {
             );
         }
         if parsed.json {
-            return ok(
-                "{\"command\":\"check\",\"status\":\"ok\",\"data\":{\"findings\":[]}}\n".to_owned(),
-            );
+            return ok(format!(
+                "{{\"command\":\"check\",\"status\":\"error\",\"data\":{{\"findings\":[{}]}}}}\n",
+                finding_json(&Finding {
+                    code: "CAIRN_NO_BLUEPRINT".to_owned(),
+                    severity: FindingSeverity::Info,
+                    message: "no cairn.blueprint found; run `cairn init` to create one".to_owned(),
+                    node: None,
+                    path: None,
+                })
+            ));
         }
         return ok(format!(
             "{}\n",
