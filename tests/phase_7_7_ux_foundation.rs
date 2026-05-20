@@ -125,24 +125,49 @@ mod explorer {
     use super::cflx_planned;
 
     /// Scenario: Component is defined with token-only styling.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__empty_state_component_uses_token_only_styling() {
-        unimplemented!("awaits phase-7.7: explorer empty-state component uses token-only styling");
+        let css = include_str!("../docs/design-system/components.css");
+        assert!(
+            css.contains(".empty-state"),
+            "empty-state component must be defined in design-system components"
+        );
+        let start = css.find(".empty-state").unwrap();
+        let chunk = &css[start..std::cmp::min(start + 800, css.len())];
+        assert!(
+            !chunk.contains('#') || chunk.contains("var(--"),
+            "empty-state rules must use token vars for colors, not hardcoded hex"
+        );
+        assert!(
+            chunk.contains("var(--stone-") || chunk.contains("var(--ink-"),
+            "empty-state must reference design-system color tokens"
+        );
     }
 
     /// Scenario: All ten inline empty-state strings are replaced.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__ten_inline_empty_state_strings_replaced() {
-        unimplemented!("awaits phase-7.7: explorer ten inline empty-state strings replaced");
+        let js = include_str!("../src/ui_assets/app.js");
+        let count = js.matches(r#"copy("empty-states."#).count();
+        assert!(
+            count >= 10,
+            "at least 10 empty-state strings must use copy() system, found: {count}"
+        );
     }
 
     /// Scenario: Missing copy keys surface a console warning.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__missing_copy_keys_surface_console_warning() {
-        unimplemented!("awaits phase-7.7: explorer missing copy keys surface console warning");
+        let js = include_str!("../src/ui_assets/app.js");
+        let copy_start = js.find("function copy(key)").expect("copy() must exist");
+        let copy_end = js[copy_start..]
+            .find("\n  function ")
+            .map_or(js.len(), |i| copy_start + i);
+        let copy_fn = &js[copy_start..copy_end];
+        assert!(
+            copy_fn.contains("console.warn") && copy_fn.contains("missing"),
+            "copy() must log a console.warn for missing keys"
+        );
     }
 
     /// Scenario: Three severity buckets render with count badges.
@@ -303,8 +328,6 @@ mod explorer {
 }
 
 mod reconciliation {
-    use super::cflx_planned;
-
     /// Scenario: Info variant is defined on the kernel enum.
     #[test]
     fn test_reconciliation__info_variant_defined_on_kernel_enum() {
@@ -314,10 +337,19 @@ mod reconciliation {
     }
 
     /// Scenario: Orphaned-file state emits an Info finding.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_reconciliation__orphaned_file_emits_info_finding() {
-        unimplemented!("awaits phase-7.7: reconciliation orphaned-file emits Info finding");
+        let code_rs = include_str!("../src/reconcile/code.rs");
+        assert!(
+            code_rs.contains("CAIRN_RECONCILE_ORPHANED_FILE")
+                && code_rs.contains("FindingSeverity::Info"),
+            "code reconciler must emit CAIRN_RECONCILE_ORPHANED_FILE with Info severity"
+        );
+        let ts_rs = include_str!("../src/reconcile/typescript.rs");
+        assert!(
+            ts_rs.contains("FindingSeverity::Info"),
+            "typescript reconciler must emit orphan findings with Info severity"
+        );
     }
 
     /// Scenario: Unverified-contract state emits an Info finding.
