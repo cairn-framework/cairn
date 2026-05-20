@@ -859,5 +859,30 @@ app.api -> app.core "reports"
         Ok(())
     }
 
+    #[test]
+    fn test_check_output_for_empty_states() -> Result<(), Box<dyn std::error::Error>> {
+        let no_bp_root = temp_root("check-no-blueprint")?;
+        let no_bp = run_in(&no_bp_root, &["check"]);
+        assert_eq!(no_bp.code, 0);
+        insta::assert_snapshot!("check_no_blueprint", no_bp.stdout);
+
+        let clean_root = temp_root("check-clean-map")?;
+        fs::create_dir_all(clean_root.join("src"))?;
+        fs::write(clean_root.join("src/lib.rs"), "pub fn main() {}\n")?;
+        fs::write(
+            clean_root.join("cairn.blueprint"),
+            "System Clean \"clean project\" id \"clean\" {\n    Module Only \"only module\" id \"clean.only\" {\n        path \"./src\"\n    }\n}\n",
+        )?;
+        fs::write(
+            clean_root.join("cairn.config.yaml"),
+            "reconcilers: []\ncontext: \"ctx\"\nrules: {}\n",
+        )?;
+        let clean_result = run_in(&clean_root, &["check"]);
+        assert_eq!(clean_result.code, 0);
+        insta::assert_snapshot!("check_clean_map", clean_result.stdout);
+
+        Ok(())
+    }
+
     static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 }

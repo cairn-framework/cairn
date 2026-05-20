@@ -1,0 +1,6 @@
+---
+source: src/cli/mod.rs
+expression: clean_result.stdout
+---
+Findings:
+No findings to report.

@@ -125,7 +125,8 @@
       <li><a href="#palette">18. Command palette</a></li>
       <li><a href="#drawer">19. Changes drawer</a></li>
       <li><a href="#logo">20. Logo mark</a></li>
-      <li><a href="#glossary">21. Glossary</a></li>
+      <li><a href="#empty-state">21. Empty state</a></li>
+      <li><a href="#glossary">22. Glossary</a></li>
     </ol>
   </aside>
 
@@ -822,8 +823,36 @@ module saas.api.auth {
     </section>
 
     <!-- ======================================================== -->
+    <section class="block" id="empty-state">
+      <div class="section-kicker">21 . Empty state</div>
+      <h2 class="section-title">Empty state</h2>
+      <p class="section-lede">A quiet placeholder when there is nothing to show yet.</p>
+
+      <div class="demo-row">
+        <div class="demo-stage">
+          <div class="empty-state" style="width: 100%; max-width: 420px;">
+            <div class="empty-state-heading">No contracts</div>
+            <div class="empty-state-body">This module has no contracts yet. Contracts define the interface obligations the authority chain enforces.</div>
+            <code class="empty-state-cta">cairn get cairn.kernel</code>
+          </div>
+        </div>
+        <div class="demo-label">Full<span class="code">.empty-state<br>.empty-state-heading<br>.empty-state-body<br>.empty-state-cta</span></div>
+      </div>
+
+      <div class="demo-row">
+        <div class="demo-stage">
+          <div class="empty-state" style="width: 100%; max-width: 420px;">
+            <div class="empty-state-heading">No findings</div>
+            <div class="empty-state-body">The map is clean. All modules reconcile without errors or warnings.</div>
+          </div>
+        </div>
+        <div class="demo-label">Without CTA<span class="code">.empty-state<br>.empty-state-heading<br>.empty-state-body</span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
     <section class="block" id="glossary">
-      <div class="section-kicker">21 . Glossary</div>
+      <div class="section-kicker">22 . Glossary</div>
       <h2 class="section-title">Glossary</h2>
       <p class="section-lede">Load-bearing vocabulary. Never paraphrase these in UI.</p>
 
