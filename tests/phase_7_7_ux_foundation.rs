@@ -222,31 +222,55 @@ mod explorer {
     }
 
     /// Scenario: Banner renders the highest-severity finding's nudge.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__banner_renders_highest_severity_finding_nudge() {
-        unimplemented!("awaits phase-7.7: explorer banner renders highest-severity nudge");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("ProseNudgeBanner"),
+            "ProseNudgeBanner component must exist"
+        );
+        assert!(
+            js.contains("pickNudgeFinding"),
+            "pickNudgeFinding helper must select highest-severity finding"
+        );
+        assert!(
+            js.contains("SEVERITY_RANK") && js.contains("error: 0"),
+            "severity ranking must prioritise error over warning over info"
+        );
     }
 
     /// Scenario: Tie-break by lowest-numbered code.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__banner_tie_break_by_lowest_numbered_code() {
-        unimplemented!("awaits phase-7.7: explorer banner tie-break by lowest-numbered code");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("f.code < best.code"),
+            "tie-break must prefer lowest-numbered (lexicographic) code"
+        );
     }
 
     /// Scenario: Banner CTA is a copy-pasteable CLI snippet.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__banner_cta_is_copy_pasteable_cli_snippet() {
-        unimplemented!("awaits phase-7.7: explorer banner CTA is copy-pasteable CLI snippet");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("prose-nudge-cta"),
+            "banner must render a CTA element"
+        );
+        assert!(
+            js.contains("copyFinding") && js.contains("entry.cta"),
+            "CTA must be sourced from copy.toml findings.codes entries"
+        );
     }
 
     /// Scenario: Banner is hidden when the node has no findings.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__banner_hidden_when_node_has_no_findings() {
-        unimplemented!("awaits phase-7.7: explorer banner hidden when node has no findings");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("if (!nudge) return null"),
+            "banner must return null when no finding matches the node"
+        );
     }
 
     /// Scenario: Structural error indicator (integrity overlay).

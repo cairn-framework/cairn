@@ -62,6 +62,33 @@
     return current;
   }
 
+  function copyFinding(code) {
+    if (!_copyData) return null;
+    const obj = (_copyData.findings || {}).codes || {};
+    const entry = obj[code];
+    if (!entry || typeof entry !== "object") return null;
+    return entry;
+  }
+
+  function substituteCopy(template, vars) {
+    return template.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+  }
+
+  const SEVERITY_RANK = { error: 0, warning: 1, info: 2 };
+
+  function pickNudgeFinding(findings, nodeId) {
+    if (!findings || !nodeId) return null;
+    const nodeFn = findings.filter((f) => f.node === nodeId);
+    if (nodeFn.length === 0) return null;
+    return nodeFn.reduce((best, f) => {
+      const br = SEVERITY_RANK[best.severity] ?? 2;
+      const fr = SEVERITY_RANK[f.severity] ?? 2;
+      if (fr < br) return f;
+      if (fr === br && f.code < best.code) return f;
+      return best;
+    });
+  }
+
   function clsx(...values) {
     return values.filter(Boolean).join(" ");
   }
@@ -842,7 +869,54 @@
     `;
   }
 
-  function ModuleInspector({ node, detail, onSelect, onSelectDecision, onViewBlueprint }) {
+  // Maps a finding severity string to the pill modifier class.
+  // error -> ghost (warm-red), warning -> orphaned (weathered), info -> info (mossy-green).
+  function severityPill(severity) {
+    if (severity === "error") return "ghost";
+    if (severity === "warning") return "orphaned";
+    return "info";
+  }
+
+  // Extracts the code-family prefix used for category filter chips.
+  // For alphanumeric codes (e.g. "CT001"): returns the letter prefix ("CT").
+  // For underscore codes (e.g. "CAIRN_SOURCE_UNVERIFIED"): returns the first segment ("CAIRN").
+  function findingFamily(code) {
+    const match = code.match(/^([A-Z]+)\d/);
+    if (match) return match[1];
+    return code.split("_")[0];
+  }
+
+  function ProseNudgeBanner({ lint, nodeId }) {
+    const nudge = useMemo(() => {
+      if (!lint || !lint.findings) return null;
+      const f = pickNudgeFinding(lint.findings, nodeId);
+      if (!f) return null;
+      const entry = copyFinding(f.code);
+      if (!entry) return null;
+      const vars = { node: f.node || "", path: f.path || "" };
+      return {
+        severity: f.severity,
+        heading: entry.heading || f.code,
+        body: substituteCopy(entry.body || f.message, vars),
+        cta: entry.cta || null,
+      };
+    }, [lint, nodeId]);
+
+    if (!nudge) return null;
+
+    return html`
+      <div class=${clsx("prose-nudge", nudge.severity)}>
+        <div class="prose-nudge-heading">
+          <span class=${clsx("pill", severityPill(nudge.severity))}><span class="dot"></span>${nudge.severity}</span>
+          <strong>${nudge.heading}</strong>
+        </div>
+        <p class="prose-nudge-body">${nudge.body}</p>
+        ${nudge.cta ? html`<code class="prose-nudge-cta">${nudge.cta}</code>` : null}
+      </div>
+    `;
+  }
+
+  function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onViewBlueprint }) {
     const {
       contracts,
       decisions,
@@ -890,6 +964,8 @@
         </div>
 
         <${BlueprintCard} node=${node} onViewSource=${onViewBlueprint}/>
+
+        <${ProseNudgeBanner} lint=${lint} nodeId=${node.id}/>
 
         <div class="paths-block">
           <div class="paths-head">
@@ -1068,23 +1144,6 @@
           : null}
       </section>
     `;
-  }
-
-  // Maps a finding severity string to the pill modifier class.
-  // error -> ghost (warm-red), warning -> orphaned (weathered), info -> info (mossy-green).
-  function severityPill(severity) {
-    if (severity === "error") return "ghost";
-    if (severity === "warning") return "orphaned";
-    return "info";
-  }
-
-  // Extracts the code-family prefix used for category filter chips.
-  // For alphanumeric codes (e.g. "CT001"): returns the letter prefix ("CT").
-  // For underscore codes (e.g. "CAIRN_SOURCE_UNVERIFIED"): returns the first segment ("CAIRN").
-  function findingFamily(code) {
-    const match = code.match(/^([A-Z]+)\d/);
-    if (match) return match[1];
-    return code.split("_")[0];
   }
 
   function EmptyInspector({ graph, status, lint, onSelect, onShowFindings }) {
@@ -1549,6 +1608,7 @@
           ? html`<${ModuleInspector}
               node=${selectedNode}
               detail=${detail}
+              lint=${lint}
               onSelect=${(id) => setSelectionId(id)}
               onSelectDecision=${(d) => setSelectedDecision(d)}
               onViewBlueprint=${openBlueprint}

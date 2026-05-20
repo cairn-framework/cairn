@@ -1824,6 +1824,49 @@ button.path-row:hover {
   color: var(--ink-char);
 }
 
+/* Prose-nudge banner (node-detail inspector) */
+.prose-nudge {
+  margin: var(--s-4) 0;
+  padding: var(--s-3) var(--s-4);
+  border-left: 3px solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  background: var(--stone-2);
+}
+.prose-nudge.error { border-left-color: var(--ghost); }
+.prose-nudge.warning { border-left-color: var(--orphaned); }
+.prose-nudge.info { border-left-color: var(--settled); }
+
+.prose-nudge-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+.prose-nudge-heading strong {
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-char);
+}
+
+.prose-nudge-body {
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-aged);
+  line-height: 1.55;
+  margin: 0 0 var(--s-2) 0;
+}
+
+.prose-nudge-cta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  background: var(--stone-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-edge);
+  white-space: pre-wrap;
+}
+
 /* --------------------------------------------------------------------------
    5. Changes drawer
    -------------------------------------------------------------------------- */
