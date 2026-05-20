@@ -1224,8 +1224,7 @@ fn test_scan_exclusions_suppress_orphan_findings() -> Result<(), Box<dyn std::er
 }
 
 #[test]
-fn test_neighbourhood_renders_with_warning_despite_scan_errors()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_neighbourhood_renders_despite_info_findings() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("neighbourhood-errors")?;
     fs::create_dir_all(root.join("src/auth"))?;
     fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
@@ -1242,8 +1241,12 @@ fn test_neighbourhood_renders_with_warning_despite_scan_errors()
 
     let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
     assert!(
-        result.graph.has_errors(),
-        "fixture should have orphan errors"
+        !result.graph.findings.is_empty(),
+        "fixture should have orphan findings"
+    );
+    assert!(
+        !result.graph.has_errors(),
+        "orphaned-file findings should be Info, not Error"
     );
 
     let text = Command::new(env!("CARGO_BIN_EXE_cairn"))
@@ -1253,13 +1256,9 @@ fn test_neighbourhood_renders_with_warning_despite_scan_errors()
     let stdout = String::from_utf8(text.stdout)?;
     assert!(
         text.status.success(),
-        "neighbourhood should succeed with warnings"
+        "neighbourhood should succeed with info findings"
     );
     assert!(stdout.contains("Node: app.auth"), "should render the node");
-    assert!(
-        stdout.contains("Warning: scan has"),
-        "should include warning"
-    );
 
     let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
         .current_dir(&root)
@@ -1268,13 +1267,9 @@ fn test_neighbourhood_renders_with_warning_despite_scan_errors()
     let json_stdout = String::from_utf8(json.stdout)?;
     assert!(
         json.status.success(),
-        "JSON neighbourhood should succeed with warnings"
+        "JSON neighbourhood should succeed with info findings"
     );
     assert!(json_stdout.contains("\"node\""), "should render node JSON");
-    assert!(
-        json_stdout.contains("\"warnings\""),
-        "JSON output should include warnings field"
-    );
 
     Ok(())
 }
@@ -1728,5 +1723,39 @@ fn test_blueprint_change_gate_fires_on_kind_change() -> Result<(), Box<dyn std::
         "blueprint change gate findings must be Error severity"
     );
 
+    Ok(())
+}
+
+#[test]
+fn test_orphaned_file_produces_info_finding() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("orphan-info")?;
+    fs::create_dir_all(root.join("src/core"))?;
+    fs::write(root.join("src/core/lib.rs"), "pub fn core() {}\n")?;
+    fs::write(root.join("src/stray.rs"), "pub fn stray() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"app\" id \"app\" {\n    Module Core \"core\" id \"app.core\" {\n        path \"./src/core\"\n    }\n}\n",
+    )?;
+    let project = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    let orphan = project
+        .graph
+        .findings
+        .iter()
+        .find(|f| f.code == "CAIRN_RECONCILE_ORPHANED_FILE" && f.message.contains("stray.rs"))
+        .expect("orphaned file should produce a finding");
+    assert_eq!(
+        orphan.severity,
+        cairn::map::graph::FindingSeverity::Info,
+        "orphaned-file findings must be Info severity"
+    );
+
+    let lint = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["lint"])
+        .output()?;
+    assert!(
+        lint.status.success(),
+        "cairn lint should exit 0 when only Info-severity orphan findings exist"
+    );
     Ok(())
 }

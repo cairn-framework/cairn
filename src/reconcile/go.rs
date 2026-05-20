@@ -60,7 +60,7 @@ impl Reconciler for GoReconciler<'_> {
             } else {
                 findings.push(Finding {
                     code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
-                    severity: FindingSeverity::Error,
+                    severity: FindingSeverity::Info,
                     message: format!("Go file `{rel}` is not owned by any eligible node"),
                     node: None,
                     path: Some(rel),

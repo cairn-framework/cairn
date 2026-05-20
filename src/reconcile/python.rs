@@ -54,7 +54,7 @@ impl Reconciler for PythonReconciler<'_> {
             } else {
                 findings.push(Finding {
                     code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
-                    severity: FindingSeverity::Error,
+                    severity: FindingSeverity::Info,
                     message: format!("Python file `{rel}` is not owned by any eligible node"),
                     node: None,
                     path: Some(rel),
