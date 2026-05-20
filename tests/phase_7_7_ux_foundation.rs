@@ -146,38 +146,79 @@ mod explorer {
     }
 
     /// Scenario: Three severity buckets render with count badges.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__three_severity_buckets_render_with_count_badges() {
-        unimplemented!("awaits phase-7.7: explorer three severity buckets render with badges");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("FindingsPanel"),
+            "FindingsPanel component must exist"
+        );
+        assert!(
+            js.contains("findings-buckets"),
+            "severity bucket container must exist"
+        );
+        assert!(
+            js.contains(r#""pill ghost""#)
+                && js.contains(r#""pill orphaned""#)
+                && js.contains(r#""pill info""#),
+            "all three severity pill variants must be rendered"
+        );
     }
 
     /// Scenario: Scope toggle filters to the selected node.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__scope_toggle_filters_to_selected_node() {
-        unimplemented!("awaits phase-7.7: explorer scope toggle filters to selected node");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(js.contains("scope-toggle"), "scope toggle UI must exist");
+        assert!(
+            js.contains(r#"scope === "node""#) && js.contains("f.node === selectionId"),
+            "node scope must filter findings by selectionId"
+        );
     }
 
     /// Scenario: Scope toggle is disabled when no node is selected.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__scope_toggle_disabled_when_no_node_selected() {
-        unimplemented!("awaits phase-7.7: explorer scope toggle disabled when no node selected");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("nodeDisabled = !selectionId") && js.contains("disabled=${nodeDisabled}"),
+            "node scope button must be disabled when no node is selected"
+        );
     }
 
     /// Scenario: Category filter chips derive from the finding stream.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__category_filter_chips_derive_from_finding_stream() {
-        unimplemented!("awaits phase-7.7: explorer category filter chips derive from findings");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("findingFamily"),
+            "findingFamily helper must exist"
+        );
+        assert!(
+            js.contains("category-chips"),
+            "category chip container must exist"
+        );
+        assert!(
+            js.contains("categories.map"),
+            "chips must be derived dynamically from the finding stream"
+        );
     }
 
     /// Scenario: Panel reads only from the query-consumer API.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__panel_reads_only_from_query_consumer_api() {
-        unimplemented!("awaits phase-7.7: explorer panel reads only from query-consumer API");
+        let js = include_str!("../src/ui_assets/app.js");
+        let panel_start = js
+            .find("function FindingsPanel")
+            .expect("FindingsPanel must exist");
+        let panel_end = js[panel_start..]
+            .find("\n  function ")
+            .map_or(js.len(), |i| panel_start + i);
+        let panel_src = &js[panel_start..panel_end];
+        assert!(
+            !panel_src.contains("fetch(") && !panel_src.contains("fetchLint"),
+            "FindingsPanel must not fetch directly; it receives lint as a prop from /api/lint"
+        );
     }
 
     /// Scenario: Banner renders the highest-severity finding's nudge.

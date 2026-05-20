@@ -22,6 +22,7 @@ node-no-sources = "No source artefacts reference this node."
 node-no-outbound = "This node has no outbound dependencies."
 node-no-inbound = "No other nodes depend on this one."
 map-clean = "All nodes reconciled. No drift detected."
+no-filter-matches = "No findings match the current filters."
 search-no-matches = "No nodes match that query."
 # Long-form entries (CLI output: multi-line with instructions)
 cli-no-blueprint = "No cairn.blueprint found. Inspection has nothing to look at.\nRun `cairn init` to scaffold a blueprint, then re-run `cairn check`."

@@ -1070,7 +1070,24 @@
     `;
   }
 
-  function EmptyInspector({ graph, status, lint, onSelect }) {
+  // Maps a finding severity string to the pill modifier class.
+  // error -> ghost (warm-red), warning -> orphaned (weathered), info -> info (mossy-green).
+  function severityPill(severity) {
+    if (severity === "error") return "ghost";
+    if (severity === "warning") return "orphaned";
+    return "info";
+  }
+
+  // Extracts the code-family prefix used for category filter chips.
+  // For alphanumeric codes (e.g. "CT001"): returns the letter prefix ("CT").
+  // For underscore codes (e.g. "CAIRN_SOURCE_UNVERIFIED"): returns the first segment ("CAIRN").
+  function findingFamily(code) {
+    const match = code.match(/^([A-Z]+)\d/);
+    if (match) return match[1];
+    return code.split("_")[0];
+  }
+
+  function EmptyInspector({ graph, status, lint, onSelect, onShowFindings }) {
     const nodes = graph ? graph.nodes : [];
     const modules = nodes.filter((n) => n.kind === "module");
     const total = modules.length;
@@ -1112,17 +1129,102 @@
                     onClick=${() => f.node && onSelect(f.node)}>
                     <span class="r-id">${f.code}</span>
                     <span class="recent-title">${f.message}</span>
-                    <span class=${clsx("pill", f.severity === "error" ? "ghost" : "proposed")}>
+                    <span class=${clsx("pill", severityPill(f.severity))}>
                       <span class="dot"></span>${f.severity}
                     </span>
                   </button>
                 `)}
               </div>
+              <button class="btn-text" style="margin-top:var(--s-2)" onClick=${onShowFindings}>View all findings →</button>
             </div>`
           : html`<div class="row-empty">${copy("empty-states.map-clean")}</div>`}
 
         <div class="hint">
           <kbd>⌘</kbd><kbd>K</kbd> query the map. Click any stone to consult it.
+        </div>
+      </section>
+    `;
+  }
+
+  // ==========================================================================
+  // Findings rollup panel
+  // ==========================================================================
+
+  function FindingsPanel({ lint, selectionId, onSelect, onBack }) {
+    const [scope, setScope] = useState("map");
+    const [activeCategory, setActiveCategory] = useState(null);
+
+    useEffect(() => {
+      if (!selectionId && scope === "node") {
+        setScope("map");
+        setActiveCategory(null);
+      }
+    }, [selectionId]);
+
+    const scopeFiltered = useMemo(() => {
+      if (!lint || !lint.findings) return [];
+      if (scope === "node" && selectionId) return lint.findings.filter((f) => f.node === selectionId);
+      return lint.findings;
+    }, [lint, scope, selectionId]);
+
+    const findings = useMemo(() => {
+      if (!activeCategory) return scopeFiltered;
+      return scopeFiltered.filter((f) => findingFamily(f.code) === activeCategory);
+    }, [scopeFiltered, activeCategory]);
+
+    const buckets = useMemo(() => {
+      const c = { error: 0, warning: 0, info: 0 };
+      for (const f of findings) c[f.severity in c ? f.severity : "info"] += 1;
+      return c;
+    }, [findings]);
+
+    const categories = useMemo(() => {
+      const set = new Set();
+      for (const f of scopeFiltered) set.add(findingFamily(f.code));
+      return [...set].sort();
+    }, [scopeFiltered]);
+
+    const nodeDisabled = !selectionId;
+
+    return html`
+      <section class="inspector findings-panel">
+        <div class="findings-header">
+          <button class="btn-text" onClick=${onBack}>← Map</button>
+          <div class="findings-buckets">
+            <span class="pill ghost"><span class="dot"></span>${buckets.error} error</span>
+            <span class="pill orphaned"><span class="dot"></span>${buckets.warning} warn</span>
+            <span class="pill info"><span class="dot"></span>${buckets.info} info</span>
+          </div>
+        </div>
+
+        <div class="findings-controls">
+          <div class="scope-toggle">
+            <button class=${clsx(scope === "map" && "active")} onClick=${() => { setScope("map"); setActiveCategory(null); }}>Whole map</button>
+            <button class=${clsx(scope === "node" && !nodeDisabled && "active")} onClick=${() => { setScope("node"); setActiveCategory(null); }} disabled=${nodeDisabled}>Selected node</button>
+          </div>
+          ${categories.length > 1
+            ? html`<div class="category-chips">
+                <button class=${clsx("pill", !activeCategory && "synced")} onClick=${() => setActiveCategory(null)}>All</button>
+                ${categories.map((c) => html`
+                  <button class=${clsx("pill", activeCategory === c && "synced")} key=${c} onClick=${() => setActiveCategory(activeCategory === c ? null : c)}>${c}</button>
+                `)}
+              </div>`
+            : null}
+        </div>
+
+        <div class="findings-list">
+          ${findings.length === 0
+            ? html`<div class="row-empty">${(scope !== "map" || activeCategory) && scopeFiltered.length > 0 ? copy("empty-states.no-filter-matches") : copy("empty-states.map-clean")}</div>`
+            : findings.map((f) => html`
+                <button class="recent-row" key=${f.code + (f.node || "") + (f.path || "")}
+                  onClick=${() => f.node && onSelect(f.node)}>
+                  <span class="r-id">${f.code}</span>
+                  <span class="recent-title">${f.message}</span>
+                  <span class=${clsx("pill", severityPill(f.severity))}>
+                    <span class="dot"></span>${f.severity}
+                  </span>
+                </button>
+              `)}
         </div>
       </section>
     `;
@@ -1303,6 +1405,7 @@
     const [blueprintOpen, setBlueprintOpen] = useState(false);
     const [blueprint, setBlueprint] = useState(null);
     const [blueprintFocus, setBlueprintFocus] = useState(null);
+    const [showFindings, setShowFindings] = useState(false);
 
     useEffect(() => {
       let cancelled = false;
@@ -1425,30 +1528,38 @@
 
     const selectedNode = selectionId ? nodesById.get(selectionId) : null;
 
-    const inspector = selectedDecision
-      ? html`<${DecisionDetail}
-          decision=${selectedDecision}
-          node=${selectedNode}
-          onBack=${() => setSelectedDecision(null)}
-          onSelect=${(id) => {
-            setSelectedDecision(null);
-            setSelectionId(id);
-          }}
+    const inspector = showFindings
+      ? html`<${FindingsPanel}
+          lint=${lint}
+          selectionId=${selectionId}
+          onSelect=${(id) => { setShowFindings(false); setSelectionId(id); }}
+          onBack=${() => setShowFindings(false)}
         />`
-      : selectedNode
-        ? html`<${ModuleInspector}
+      : selectedDecision
+        ? html`<${DecisionDetail}
+            decision=${selectedDecision}
             node=${selectedNode}
-            detail=${detail}
-            onSelect=${(id) => setSelectionId(id)}
-            onSelectDecision=${(d) => setSelectedDecision(d)}
-            onViewBlueprint=${openBlueprint}
+            onBack=${() => setSelectedDecision(null)}
+            onSelect=${(id) => {
+              setSelectedDecision(null);
+              setSelectionId(id);
+            }}
           />`
-        : html`<${EmptyInspector}
-            graph=${graph}
-            status=${status}
-            lint=${lint}
-            onSelect=${(id) => setSelectionId(id)}
-          />`;
+        : selectedNode
+          ? html`<${ModuleInspector}
+              node=${selectedNode}
+              detail=${detail}
+              onSelect=${(id) => setSelectionId(id)}
+              onSelectDecision=${(d) => setSelectedDecision(d)}
+              onViewBlueprint=${openBlueprint}
+            />`
+          : html`<${EmptyInspector}
+              graph=${graph}
+              status=${status}
+              lint=${lint}
+              onSelect=${(id) => setSelectionId(id)}
+              onShowFindings=${() => setShowFindings(true)}
+            />`;
 
     return html`
       <${Fragment}>
