@@ -1,0 +1,6 @@
+---
+source: src/cli/mod.rs
+expression: no_bp.stdout
+---
+No cairn.blueprint found. Inspection has nothing to look at.
+Run `cairn init` to scaffold a blueprint, then re-run `cairn check`.

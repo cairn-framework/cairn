@@ -178,9 +178,7 @@ fn is_source_file(path: &Path) -> bool {
 }
 
 fn is_symlink(path: &Path) -> bool {
-    std::fs::symlink_metadata(path)
-        .map(|m| m.file_type().is_symlink())
-        .unwrap_or(false)
+    std::fs::symlink_metadata(path).is_ok_and(|m| m.file_type().is_symlink())
 }
 
 fn is_ignored_dir(path: &Path) -> bool {

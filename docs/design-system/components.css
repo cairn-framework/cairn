@@ -27,6 +27,7 @@
  *   Changes drawer / change card
  *   Drawer handle
  *   Logo mark (.mark)
+ *   Empty state
  */
 
 /* ==============================================================
@@ -1065,6 +1066,43 @@ pre code {
   0%   { transform: translateY(0); }
   30%  { transform: translateY(-1px) rotate(1deg); }
   100% { transform: translateY(0); }
+}
+
+/* ==============================================================
+ * Empty state (placeholder for absent content)
+ * ============================================================== */
+.empty-state {
+  text-align: center;
+  padding: var(--s-5) var(--s-3);
+  background: var(--stone-3);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-large);
+  box-shadow: var(--inset-well), var(--inset-sky);
+}
+.empty-state-heading {
+  font-family: var(--font-serif);
+  font-size: var(--t-title);
+  font-weight: 500;
+  color: var(--ink-char);
+  margin: 0 0 var(--s-2);
+}
+.empty-state-body {
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  color: var(--ink-faded);
+  line-height: 1.55;
+  max-width: 38ch;
+  margin: 0 auto var(--s-3);
+}
+.empty-state-cta {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-mist);
+  background: transparent;
+  padding: var(--s-2) var(--s-5);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-stone);
 }
 
 /* ==============================================================
