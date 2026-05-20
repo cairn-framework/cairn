@@ -939,6 +939,16 @@ kbd {
   background: var(--prov-1);
 }
 
+.pill.info {
+  border-color: var(--settled);
+  color: var(--settled);
+  background: var(--settled-wash);
+}
+
+.pill.info .dot {
+  background: var(--settled);
+}
+
 .pill.deprecated {
   border-color: var(--seam-clear);
   color: var(--ink-faded);
@@ -1737,6 +1747,81 @@ button.path-row:hover {
 
 .back-btn {
   align-self: flex-start;
+}
+
+/* Findings rollup panel (inspector state) */
+.findings-panel .findings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.findings-panel .findings-buckets {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.findings-panel .findings-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+  padding-bottom: var(--s-4);
+  border-bottom: 1px solid var(--seam-faint);
+}
+
+.findings-panel .scope-toggle {
+  display: flex;
+  background: var(--stone-2);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-stone);
+  padding: 2px;
+  width: fit-content;
+}
+
+.findings-panel .scope-toggle button {
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-aged);
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-edge);
+  transition: background var(--dur-quick) var(--ease-settle), color var(--dur-quick) var(--ease-settle);
+}
+
+.findings-panel .scope-toggle button:hover { background: var(--stone-3); color: var(--ink-char); }
+.findings-panel .scope-toggle button.active { background: var(--stone-4); color: var(--ink-char); }
+.findings-panel .scope-toggle button:disabled { opacity: 0.4; cursor: default; }
+.findings-panel .scope-toggle button:disabled:hover { background: transparent; color: var(--ink-aged); }
+
+.findings-panel .category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+
+.findings-panel .findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+/* Text-only button: no border, no background (distinct from design-system .btn-ghost) */
+.btn-text {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  letter-spacing: 0.04em;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-settle);
+}
+
+.btn-text:hover {
+  color: var(--ink-char);
 }
 
 /* --------------------------------------------------------------------------
