@@ -249,7 +249,7 @@ mod tests {
     fn orphan_finding(path: &str) -> Finding {
         Finding {
             code: ORPHAN_CODE.to_owned(),
-            severity: FindingSeverity::Error,
+            severity: FindingSeverity::Info,
             message: format!("Rust file `{path}` is not owned by any eligible node"),
             node: None,
             path: Some(path.to_owned()),

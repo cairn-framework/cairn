@@ -64,7 +64,7 @@ impl Reconciler for RustCodeReconciler<'_> {
             } else {
                 findings.push(Finding {
                     code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
-                    severity: FindingSeverity::Error,
+                    severity: FindingSeverity::Info,
                     message: format!("Rust file `{rel}` is not owned by any eligible node"),
                     node: None,
                     path: Some(rel),
