@@ -7,7 +7,10 @@ mod backend;
 mod request;
 mod store;
 
-pub use backend::{DisabledBackend, SummariserBackend, SummariserBackendError, SummariserMode};
+pub use backend::{
+    DisabledBackend, FakeBackend, LocalCommandBackend, SummariserBackend, SummariserBackendError,
+    SummariserMode,
+};
 pub use request::{NodeContext, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse};
 pub use store::{
     AcceptedDraft, DRAFT_SCHEMA_VERSION, DiscardedDraft, Draft, DraftHeader, DraftStore,
