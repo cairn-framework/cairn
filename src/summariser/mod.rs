@@ -6,6 +6,7 @@
 mod accept;
 mod backend;
 mod generate;
+mod prompt;
 mod request;
 mod store;
 
@@ -15,6 +16,7 @@ pub use backend::{
     SummariserBackend, SummariserBackendError, SummariserMode,
 };
 pub use generate::{GenerateError, generate};
+pub use prompt::{PromptError, build_request};
 pub use request::{CodeSample, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse};
 pub use store::{
     AcceptedDraft, DRAFT_SCHEMA_VERSION, DiscardedDraft, Draft, DraftHeader, DraftStatus,
