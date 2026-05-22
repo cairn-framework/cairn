@@ -203,7 +203,9 @@ fn compute_hash(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::summariser::store::{DiscardedDraft, DraftHeader, DraftStore, PendingDraft};
+    use crate::summariser::store::{
+        AcceptedDraft, DiscardedDraft, DraftHeader, DraftStore, PendingDraft,
+    };
 
     fn temp_project_with_draft(draft: &Draft) -> (tempfile::TempDir, std::path::PathBuf) {
         let dir = tempfile::tempdir().unwrap();
@@ -364,6 +366,52 @@ mod tests {
             reason: None,
         });
         store.write(&discarded).unwrap();
+
+        let blueprint = dir.path().join("cairn.blueprint");
+        std::fs::write(
+            &blueprint,
+            "Module App \"App\" id \"app\" { contract \"c.md\" }",
+        )
+        .unwrap();
+        std::fs::write(dir.path().join("c.md"), "---\nnode: app\n---\n# App\n\nX.").unwrap();
+
+        let result = accept(dir.path(), "draft-001", &blueprint, false);
+        assert!(
+            matches!(result, Err(AcceptError::InvalidTransition(_))),
+            "expected InvalidTransition, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_accept_records_interface_hash() {
+        let draft_text = "---\nnode: app\n---\n# App\n\nUpdated contract.";
+        let (dir, blueprint) = temp_project_with_draft(&sample_draft(draft_text));
+        let _result = accept(dir.path(), "draft-001", &blueprint, false).unwrap();
+
+        let store = DraftStore::new(dir.path().join(".cairn/state/summariser"));
+        let draft = store.read("draft-001").unwrap();
+        if let Draft::Accepted(accepted) = draft {
+            assert!(!accepted.accepted_interface_hash().is_empty());
+        } else {
+            panic!("expected Accepted draft, got {draft:?}");
+        }
+    }
+
+    #[test]
+    fn test_accept_already_accepted_draft_is_rejected() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = DraftStore::new(dir.path().join(".cairn/state/summariser"));
+        let header = DraftHeader {
+            id: "draft-001".to_owned(),
+            node_id: "app".to_owned(),
+            artefact_type: "contract".to_owned(),
+            draft_text: "---\nnode: app\n---\n# App\n\nText.".to_owned(),
+            created_at: "2024-01-15T10:30:00Z".to_owned(),
+            transitions: Vec::new(),
+            metadata: None,
+        };
+        let accepted = AcceptedDraft::new(header, "abc123".to_owned()).unwrap();
+        store.write(&Draft::Accepted(accepted)).unwrap();
 
         let blueprint = dir.path().join("cairn.blueprint");
         std::fs::write(

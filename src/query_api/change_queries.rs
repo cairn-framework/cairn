@@ -407,6 +407,22 @@ mod tests {
         })
     }
 
+    fn sample_discarded_draft(id: &str, node_id: &str, text: &str) -> Draft {
+        use crate::summariser::DiscardedDraft;
+        Draft::Discarded(DiscardedDraft {
+            header: DraftHeader {
+                id: id.to_owned(),
+                node_id: node_id.to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: text.to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+            reason: None,
+        })
+    }
+
     #[test]
     fn test_list_drafts_empty_store() {
         let dir = tempfile::tempdir().unwrap();
@@ -540,5 +556,131 @@ mod tests {
         };
         let result = accept_draft(dir.path(), dir.path(), &req);
         assert!(result.is_err(), "expected error for missing draft");
+    }
+
+    #[test]
+    fn test_discard_already_discarded_draft_is_rejected() {
+        let root = temp_root_with_drafts(&[sample_discarded_draft(
+            "draft-007",
+            "app.api",
+            "api contract",
+        )]);
+        let result = discard_draft(&root, Some(&"draft-007".to_owned()));
+        assert!(
+            result.is_err(),
+            "expected error for discarding already-discarded draft"
+        );
+        let err = result.unwrap_err();
+        assert!(err.message.contains("invalid transition"));
+    }
+
+    #[test]
+    fn test_discard_already_accepted_draft_is_rejected() {
+        use crate::summariser::AcceptedDraft;
+        let header = DraftHeader {
+            id: "draft-008".to_owned(),
+            node_id: "app.api".to_owned(),
+            artefact_type: "contract".to_owned(),
+            draft_text: "api contract".to_owned(),
+            created_at: "2024-01-15T10:30:00Z".to_owned(),
+            transitions: Vec::new(),
+            metadata: None,
+        };
+        let accepted = Draft::Accepted(AcceptedDraft::new(header, "hash123".to_owned()).unwrap());
+        let root = temp_root_with_drafts(&[accepted]);
+        let result = discard_draft(&root, Some(&"draft-008".to_owned()));
+        assert!(
+            result.is_err(),
+            "expected error for discarding already-accepted draft"
+        );
+        let err = result.unwrap_err();
+        assert!(err.message.contains("invalid transition"));
+    }
+
+    #[test]
+    fn test_discard_records_transition() {
+        let root =
+            temp_root_with_drafts(&[sample_pending_draft("draft-009", "app.api", "api contract")]);
+        discard_draft(&root, Some(&"draft-009".to_owned())).unwrap();
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        let draft = store.read("draft-009").unwrap();
+        match draft {
+            Draft::Discarded(d) => {
+                assert_eq!(d.header.transitions.len(), 1);
+                assert_eq!(
+                    d.header.transitions[0].from,
+                    crate::summariser::DraftStatus::Pending
+                );
+                assert_eq!(
+                    d.header.transitions[0].to,
+                    crate::summariser::DraftStatus::Discarded
+                );
+            }
+            other => panic!("expected Discarded draft, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_edit_accepted_draft_is_rejected() {
+        use crate::summariser::AcceptedDraft;
+        let header = DraftHeader {
+            id: "draft-010".to_owned(),
+            node_id: "app.api".to_owned(),
+            artefact_type: "contract".to_owned(),
+            draft_text: "api contract".to_owned(),
+            created_at: "2024-01-15T10:30:00Z".to_owned(),
+            transitions: Vec::new(),
+            metadata: None,
+        };
+        let accepted = Draft::Accepted(AcceptedDraft::new(header, "hash456".to_owned()).unwrap());
+        let root = temp_root_with_drafts(&[accepted]);
+        let result = edit_draft(&root, Some(&"draft-010".to_owned()));
+        assert!(
+            result.is_err(),
+            "expected error for editing already-accepted draft"
+        );
+        let err = result.unwrap_err();
+        assert!(err.message.contains("invalid transition"));
+    }
+
+    #[test]
+    fn test_edit_discarded_draft_is_rejected() {
+        let root = temp_root_with_drafts(&[sample_discarded_draft(
+            "draft-011",
+            "app.api",
+            "api contract",
+        )]);
+        let result = edit_draft(&root, Some(&"draft-011".to_owned()));
+        assert!(
+            result.is_err(),
+            "expected error for editing discarded draft"
+        );
+        let err = result.unwrap_err();
+        assert!(err.message.contains("invalid transition"));
+    }
+
+    #[test]
+    fn test_edit_records_transition() {
+        let root =
+            temp_root_with_drafts(&[sample_pending_draft("draft-012", "app.api", "api contract")]);
+        edit_draft(&root, Some(&"draft-012".to_owned())).unwrap();
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        let draft = store.read("draft-012").unwrap();
+        match draft {
+            Draft::Editable(d) => {
+                assert_eq!(d.header.transitions.len(), 1);
+                assert_eq!(
+                    d.header.transitions[0].from,
+                    crate::summariser::DraftStatus::Pending
+                );
+                assert_eq!(
+                    d.header.transitions[0].to,
+                    crate::summariser::DraftStatus::Editable
+                );
+            }
+            other => panic!("expected Editable draft, got {other:?}"),
+        }
     }
 }
