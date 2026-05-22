@@ -2,7 +2,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 29] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 30] = [
     tool(
         "get",
         "cairn_get",
@@ -206,6 +206,13 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 29] = [
         "DraftShowResponse",
         SafetyClass::ReadOnly,
     ),
+    tool(
+        "draft_discard",
+        "cairn_draft_discard",
+        "DraftDiscardRequest",
+        "DraftDiscardResponse",
+        SafetyClass::Mutating,
+    ),
 ];
 
 pub(super) const fn tool(
@@ -274,7 +281,19 @@ mod tests {
     }
 
     #[test]
+    fn test_registry_contains_draft_discard() {
+        assert!(metadata_for_tool("draft_discard").is_some());
+        assert!(metadata_for_tool("cairn_draft_discard").is_some());
+    }
+
+    #[test]
+    fn test_draft_discard_is_mutating() {
+        assert!(!is_readonly("draft_discard"));
+        assert!(is_mutating("draft_discard"));
+    }
+
+    #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 29);
+        assert_eq!(TOOL_REGISTRY.len(), 30);
     }
 }

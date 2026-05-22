@@ -85,6 +85,7 @@ pub(super) fn dispatch_change_tool(
         "show" => Some(show_change(root, request.change.as_ref())),
         "drafts" => Some(list_drafts(root)),
         "draft_show" => Some(show_draft(root, request.node.as_ref())),
+        "draft_discard" => Some(discard_draft(root, request.node.as_ref())),
         _ => None,
     }
 }
@@ -174,6 +175,34 @@ fn show_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryErro
         remediation: None,
     })?;
     Ok(draft_detail_json(&draft))
+}
+
+fn discard_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryError> {
+    let id = required(draft_id, "node")?;
+    let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
+    let draft = store.read(id).map_err(|e| QueryError {
+        code: "CAIRN_DRAFT_NOT_FOUND".to_owned(),
+        message: e.to_string(),
+        source_span: None,
+        remediation: None,
+    })?;
+    let header = match &draft {
+        crate::summariser::Draft::Pending(d) => d.header.clone(),
+        crate::summariser::Draft::Editable(d) => d.header.clone(),
+        crate::summariser::Draft::Accepted(d) => d.header().clone(),
+        crate::summariser::Draft::Discarded(d) => d.header.clone(),
+    };
+    let discarded = crate::summariser::Draft::Discarded(crate::summariser::DiscardedDraft {
+        header,
+        reason: None,
+    });
+    store
+        .overwrite(&discarded)
+        .map_err(|e| command_error(e.to_string()))?;
+    Ok(json!({
+        "id": id,
+        "status": "discarded",
+    }))
 }
 
 fn draft_summary_json(draft: &crate::summariser::Draft) -> Value {
@@ -329,6 +358,34 @@ mod tests {
     fn test_show_draft_not_found_errors() {
         let dir = tempfile::tempdir().unwrap();
         let result = show_draft(dir.path(), Some(&"missing".to_owned()));
+        assert!(result.is_err(), "expected error for missing draft");
+    }
+
+    #[test]
+    fn test_discard_draft_transitions_to_discarded() {
+        let root =
+            temp_root_with_drafts(&[sample_pending_draft("draft-005", "app.api", "api contract")]);
+        let result = discard_draft(&root, Some(&"draft-005".to_owned())).unwrap();
+        assert_eq!(result.get("id").unwrap().as_str().unwrap(), "draft-005");
+        assert_eq!(result.get("status").unwrap().as_str().unwrap(), "discarded");
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        let draft = store.read("draft-005").unwrap();
+        assert!(matches!(draft, Draft::Discarded(_)));
+        assert_eq!(draft.id(), "draft-005");
+    }
+
+    #[test]
+    fn test_discard_draft_missing_id_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = discard_draft(dir.path(), None);
+        assert!(result.is_err(), "expected error for missing draft id");
+    }
+
+    #[test]
+    fn test_discard_draft_not_found_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = discard_draft(dir.path(), Some(&"missing".to_owned()));
         assert!(result.is_err(), "expected error for missing draft");
     }
 }
