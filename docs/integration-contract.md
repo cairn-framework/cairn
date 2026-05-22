@@ -93,15 +93,13 @@ Error responses from the MCP/query path:
 | `tension` | Never (advisory) | Surface warnings post-merge |
 | `all` | All error-severity findings | CI gate |
 
-## Subscription primitive (planned)
+## Subscription primitive
 
-Future: `cairn watch` will emit newline-delimited JSON events on finding changes. Schema:
+`cairn watch` emits newline-delimited JSON events on finding changes. Schema:
 
 ```json
 {"event":"finding_added|finding_resolved","timestamp":"...","finding":{...}}
 ```
-
-Not yet implemented. Track via the distribution epic.
 
 ## Integration patterns
 

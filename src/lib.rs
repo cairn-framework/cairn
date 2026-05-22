@@ -47,6 +47,8 @@ pub mod suggested_edges;
 pub mod summariser;
 /// Embedded graph explorer server and query bridge.
 pub mod ui;
+/// Watch mode: periodic scan with finding-change events.
+pub mod watch;
 
 /// Verification state types.
 pub mod verification;

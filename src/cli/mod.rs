@@ -34,7 +34,7 @@ mod render;
 use commands::{
     init_project, legacy_blueprint_warning, requires_valid_map, run_archive_command,
     run_change_apply, run_change_new, run_change_tasks, run_hook_command, run_import_openspec,
-    run_onboard_command, run_shared_json_command, run_ui_command,
+    run_onboard_command, run_shared_json_command, run_ui_command, run_watch_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -127,6 +127,9 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "onboard" {
         return run_onboard_command(&parsed);
+    }
+    if parsed.command == "watch" {
+        return run_watch_command(project_root);
     }
 
     if parsed.command == "change" {
@@ -441,6 +444,7 @@ const EXTRA_CLI_COMMANDS: &[&str] = &[
     "import-openspec",
     "onboard",
     "refine",
+    "watch",
 ];
 
 /// MCP-only tools that should not appear in CLI command lists.
@@ -503,6 +507,7 @@ fn command_description(name: &str) -> &'static str {
         "draft_accept" => "Accept a draft and apply it",
         "todos" => "List todos linked to a node",
         "ui" => "Launch the web UI",
+        "watch" => "Watch for finding changes and emit events",
         _ => "",
     }
 }

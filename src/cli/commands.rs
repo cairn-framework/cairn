@@ -524,3 +524,57 @@ fn copy_dir_all(source: impl AsRef<Path>, target: impl AsRef<Path>) -> std::io::
     }
     Ok(())
 }
+
+/// Watch for finding changes and emit newline-delimited JSON events.
+pub(super) fn run_watch_command(root: &Path) -> CliResult {
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    let stop = Arc::new(AtomicBool::new(false));
+    let shutdown = Arc::clone(&stop);
+    if let Err(error) = ctrlc::set_handler(move || {
+        shutdown.store(true, Ordering::SeqCst);
+    }) {
+        return err(1, &format!("failed to set Ctrl-C handler: {error}"));
+    }
+
+    let blueprint = root.join("cairn.blueprint");
+
+    // Initial scan.
+    let mut previous = match crate::scanner::scan(root, &blueprint) {
+        Ok(result) => result.graph.findings,
+        Err(error) => {
+            return err(1, &format!("initial scan failed: {error}"));
+        }
+    };
+
+    let interval = std::time::Duration::from_secs(5);
+
+    while !stop.load(Ordering::SeqCst) {
+        std::thread::sleep(interval);
+
+        if stop.load(Ordering::SeqCst) {
+            break;
+        }
+
+        let current = match crate::scanner::scan(root, &blueprint) {
+            Ok(result) => result.graph.findings,
+            Err(error) => {
+                eprintln!("scan error: {error}");
+                continue;
+            }
+        };
+
+        let events = crate::watch::diff_findings(&previous, &current);
+        for event in events {
+            match serde_json::to_string(&event) {
+                Ok(line) => println!("{line}"),
+                Err(error) => eprintln!("json error: {error}"),
+            }
+        }
+
+        previous = current;
+    }
+
+    ok("watch stopped\n".to_owned())
+}
