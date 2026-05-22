@@ -203,10 +203,11 @@ fn argument_flags(arguments: &Value) -> BTreeSet<QueryFlag> {
         ),
         ("include_changes", QueryFlag::IncludeChanges),
         ("force", QueryFlag::Force),
+        ("edited", QueryFlag::Edited),
     ];
-    for (argument, flag) in pairs {
+    for (argument, flag) in &pairs {
         if bool_arg(arguments, argument) {
-            flags.insert(flag);
+            flags.insert(*flag);
         }
     }
     flags
@@ -276,6 +277,22 @@ fn input_schema(schema: &str) -> Value {
             "mutating": { "type": "boolean" },
         }),
         "RefineRequest" => json!({
+            "mutating": { "type": "boolean" },
+        }),
+        "DraftShowRequest" => json!({
+            "id": { "type": "string" },
+        }),
+        "DraftDiscardRequest" | "DraftEditRequest" => json!({
+            "id": { "type": "string" },
+            "mutating": { "type": "boolean" },
+        }),
+        "DraftAcceptRequest" => json!({
+            "id": { "type": "string" },
+            "edited": { "type": "boolean" },
+            "mutating": { "type": "boolean" },
+        }),
+        "SummariseRequest" => json!({
+            "node": { "type": "string" },
             "mutating": { "type": "boolean" },
         }),
         _ => json!({}),

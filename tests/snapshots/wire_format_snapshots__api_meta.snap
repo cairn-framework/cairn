@@ -196,6 +196,12 @@ expression: value
       "request": "DraftAcceptRequest",
       "response": "DraftAcceptResponse",
       "safety": "Mutating"
+    },
+    {
+      "name": "summarise",
+      "request": "SummariseRequest",
+      "response": "SummariseResponse",
+      "safety": "Mutating"
     }
   ],
   "schema_version": 1

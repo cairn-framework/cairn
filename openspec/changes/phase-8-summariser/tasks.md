@@ -28,7 +28,7 @@
 ## 4. CLI and Documentation
 
 - [x] 4.1 Implement `summarise`, `drafts`, `draft show`, `draft accept`, `draft accept --edited`, `draft edit`, and `draft discard`.
-- [ ] 4.2 Add JSON schemas and output snapshots.
+- [x] 4.2 Add JSON schemas and output snapshots.
 - [x] 4.3 Register summariser and draft commands in the shared MCP query tool registry with correct read-only versus mutating safety classes.
 - [ ] 4.4 Document backend configuration, safety model, MCP exposure, and resolution actions.
 
@@ -38,5 +38,5 @@
 - [x] 5.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
 - [x] 5.3 `cargo fmt --check` passes.
 - [x] 5.4 `cargo test` passes.
-- [ ] 5.5 `cargo test --locked` passes.
-- [ ] 5.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-8-summariser --strict` passes.
+- [x] 5.5 `cargo test --locked` passes.
+- [x] 5.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-8-summariser --strict` passes.

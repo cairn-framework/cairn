@@ -283,3 +283,38 @@ fn mcp_config(root: &Path) -> cairn::mcp::ServerConfig {
         allow_mutating_tools: false,
     }
 }
+
+#[test]
+fn mcp_draft_accept_input_schema_includes_edited() {
+    let config = cairn::mcp::ServerConfig {
+        allow_mutating_tools: true,
+        ..cairn::mcp::ServerConfig::default()
+    };
+    let response =
+        cairn::mcp::handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#, &config);
+    let tools = response["result"]["tools"].as_array().expect("tools array");
+
+    let draft_accept = tools
+        .iter()
+        .find(|t| t["name"] == "cairn_draft_accept")
+        .expect("cairn_draft_accept in list");
+    let schema = &draft_accept["inputSchema"];
+    assert!(
+        schema["properties"].get("edited").is_some(),
+        "cairn_draft_accept schema must include edited property"
+    );
+    assert_eq!(
+        schema["properties"]["edited"]["type"], "boolean",
+        "edited must be a boolean"
+    );
+
+    let summarise = tools
+        .iter()
+        .find(|t| t["name"] == "cairn_summarise")
+        .expect("cairn_summarise in list");
+    let schema = &summarise["inputSchema"];
+    assert!(
+        schema["properties"].get("node").is_some(),
+        "cairn_summarise schema must include node property"
+    );
+}
