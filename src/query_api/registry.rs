@@ -2,7 +2,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 33] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 34] = [
     tool(
         "get",
         "cairn_get",
@@ -234,6 +234,13 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 33] = [
         "SummariseResponse",
         SafetyClass::Mutating,
     ),
+    tool(
+        "watch",
+        "cairn_watch",
+        "WatchRequest",
+        "WatchResponse",
+        SafetyClass::ReadOnly,
+    ),
 ];
 
 pub(super) const fn tool(
@@ -339,6 +346,6 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 33);
+        assert_eq!(TOOL_REGISTRY.len(), 34);
     }
 }

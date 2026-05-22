@@ -381,6 +381,11 @@ fn execute_data(
             })?;
             Ok(json!({ "id": result, "status": "pending" }))
         }
+
+        "watch" => {
+            let events = crate::watch::diff_findings(&[], &scan_result.graph.findings);
+            Ok(json!({ "events": events }))
+        }
         _ => Err(QueryError {
             code: "CAIRN_QUERY_UNIMPLEMENTED_TOOL".to_owned(),
             message: format!("tool `{}` is registered but not implemented", request.tool),
@@ -475,6 +480,55 @@ mod tests {
             result.is_ok(),
             "execute must succeed for valid request: {result:?}"
         );
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn test_registry_includes_watch_tool() {
+        let tools = registry();
+        let watch = tools.iter().find(|t| t.cli_name == "watch");
+        assert!(watch.is_some(), "registry must include watch tool");
+        let watch = watch.unwrap();
+        assert_eq!(watch.mcp_name, "cairn_watch");
+        assert_eq!(watch.safety, SafetyClass::ReadOnly);
+    }
+
+    #[test]
+    fn test_execute_watch_returns_finding_added_events() {
+        let tmp = std::env::temp_dir().join(format!("cairn-watch-test-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&tmp);
+        // Blueprint referencing a missing contract produces a finding.
+        let _ = std::fs::write(
+            tmp.join("cairn.blueprint"),
+            "System Test \"T\" id \"t\" {\n    Module M \"M\" id \"t.m\" {\n        contract \"meta/contracts/m.md\"\n    }\n}\n",
+        );
+        let request = QueryRequest {
+            tool: "watch".to_owned(),
+            ..QueryRequest::default()
+        };
+        let result = execute(
+            &tmp,
+            &tmp.join("cairn.blueprint"),
+            &tmp.join("meta/changes"),
+            &request,
+        );
+        assert!(result.is_ok(), "watch execute must succeed: {result:?}");
+        let response = result.unwrap();
+        let events = response
+            .data
+            .get("events")
+            .expect("response must have events array");
+        assert!(events.is_array(), "events must be an array");
+        let arr = events.as_array().unwrap();
+        assert!(
+            !arr.is_empty(),
+            "watch should emit at least one finding_added event"
+        );
+        for ev in arr {
+            assert_eq!(ev.get("event").unwrap().as_str(), Some("finding_added"));
+            assert!(ev.get("timestamp").is_some());
+            assert!(ev.get("finding").is_some());
+        }
         let _ = std::fs::remove_dir_all(&tmp);
     }
 }

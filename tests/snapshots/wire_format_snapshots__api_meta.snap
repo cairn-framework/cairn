@@ -202,6 +202,12 @@ expression: value
       "request": "SummariseRequest",
       "response": "SummariseResponse",
       "safety": "Mutating"
+    },
+    {
+      "name": "watch",
+      "request": "WatchRequest",
+      "response": "WatchResponse",
+      "safety": "ReadOnly"
     }
   ],
   "schema_version": 1
