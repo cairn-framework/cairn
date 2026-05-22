@@ -43,7 +43,10 @@ pub(super) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
             .map(ToOwned::to_owned),
         language: flag_value(&parsed.command_args, "--language").map(ToOwned::to_owned),
         flags: shared_flags(&parsed.command_args),
-        mutating: matches!(parsed.command.as_str(), "scan" | "rename"),
+        mutating: matches!(
+            parsed.command.as_str(),
+            "scan" | "rename" | "draft_discard" | "draft_edit" | "draft_accept"
+        ),
     }
 }
 
@@ -68,6 +71,7 @@ pub(super) fn shared_flags(args: &[String]) -> BTreeSet<crate::query_api::QueryF
             "--include-changes",
             crate::query_api::QueryFlag::IncludeChanges,
         ),
+        ("--edited", crate::query_api::QueryFlag::Edited),
     ];
     for (argument, flag) in pairs {
         if args.iter().any(|value| value == argument) {

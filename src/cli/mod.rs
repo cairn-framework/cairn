@@ -275,7 +275,8 @@ fn render_loaded_project_command(
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
-        "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" => {
+        "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
+        | "draft_edit" | "draft_accept" => {
             return err(2, "this command currently requires --json");
         }
         "dependents" | "depends" => render_dependencies(parsed, scan_result),
@@ -521,6 +522,9 @@ fn uses_shared_json(command: &str) -> bool {
             | "context"
             | "drafts"
             | "draft_show"
+            | "draft_discard"
+            | "draft_edit"
+            | "draft_accept"
     )
 }
 
@@ -927,6 +931,129 @@ app.api -> app.core "reports"
             });
         assert_eq!(parsed["id"], "draft-001");
         assert_eq!(parsed["status"], "pending");
+
+        Ok(())
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)] // Reason: test covers four related commands in one logical flow
+    fn test_cli_draft_mutating_commands_json() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::summariser::{Draft, DraftHeader, DraftStore, PendingDraft};
+
+        let root = temp_root("draft-mutating-commands")?;
+        write_project(&root)?;
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+
+        // draft_discard
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-001".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        let discard = run_in(&root, &["--json", "draft_discard", "draft-001"]);
+        assert_eq!(
+            discard.code, 0,
+            "draft_discard json stderr: {}",
+            discard.stderr
+        );
+        let parsed: serde_json::Value =
+            serde_json::from_str(discard.stdout.trim()).unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from draft_discard --json: {e}\n{}",
+                    discard.stdout
+                )
+            });
+        assert_eq!(parsed["id"], "draft-001");
+        assert_eq!(parsed["status"], "discarded");
+
+        // draft_edit
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-002".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        let edit = run_in(&root, &["--json", "draft_edit", "draft-002"]);
+        assert_eq!(edit.code, 0, "draft_edit json stderr: {}", edit.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(edit.stdout.trim()).unwrap_or_else(|e| {
+                panic!("invalid JSON from draft_edit --json: {e}\n{}", edit.stdout)
+            });
+        assert_eq!(parsed["id"], "draft-002");
+        assert_eq!(parsed["status"], "editable");
+
+        // draft_accept
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-003".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Accepted Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        let accept = run_in(&root, &["--json", "draft_accept", "draft-003"]);
+        assert_eq!(
+            accept.code, 0,
+            "draft_accept json stderr: {}",
+            accept.stderr
+        );
+        let parsed: serde_json::Value =
+            serde_json::from_str(accept.stdout.trim()).unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from draft_accept --json: {e}\n{}",
+                    accept.stdout
+                )
+            });
+        assert_eq!(parsed["id"], "draft-003");
+        assert_eq!(parsed["status"], "accepted");
+
+        // draft_accept --edited
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-004".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Generated".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        std::fs::create_dir_all(root.join(".cairn/state/summariser/editable"))?;
+        std::fs::write(
+            store.editable_path("draft-004", "contract"),
+            "---\nnode: app.api\n---\n# Edited Draft",
+        )?;
+        let accept_edited = run_in(&root, &["--json", "draft_accept", "draft-004", "--edited"]);
+        assert_eq!(
+            accept_edited.code, 0,
+            "draft_accept --edited json stderr: {}",
+            accept_edited.stderr
+        );
+        let parsed: serde_json::Value = serde_json::from_str(accept_edited.stdout.trim())
+            .unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from draft_accept --edited: {e}\n{}",
+                    accept_edited.stdout
+                )
+            });
+        assert_eq!(parsed["id"], "draft-004");
+        assert_eq!(parsed["status"], "accepted");
 
         Ok(())
     }
