@@ -236,6 +236,7 @@ mod tests {
                 draft_text: text.to_owned(),
                 created_at: "2024-01-15T10:30:00Z".to_owned(),
                 transitions: Vec::new(),
+                metadata: None,
             },
         })
     }
@@ -358,6 +359,7 @@ mod tests {
                 draft_text: "---\nnode: app\n---\n# App\n\nText.".to_owned(),
                 created_at: "2024-01-15T10:30:00Z".to_owned(),
                 transitions: Vec::new(),
+                metadata: None,
             },
             reason: None,
         });

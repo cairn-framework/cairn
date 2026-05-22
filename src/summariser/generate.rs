@@ -69,6 +69,7 @@ pub fn generate(
             draft_text: response.draft_text,
             created_at: created_at.to_owned(),
             transitions: Vec::new(),
+            metadata: response.metadata.clone(),
         },
     });
     store.write(&draft)?;
@@ -250,5 +251,103 @@ mod tests {
         )
         .expect("should succeed");
         assert_eq!(draft_id, "draft-005");
+    }
+    #[test]
+    fn test_generate_stores_metadata_from_response() {
+        let response = SummariserResponse {
+            schema_version: SUMMARISER_SCHEMA_VERSION,
+            draft_text: "with metadata".to_owned(),
+            summary: None,
+            metadata: Some(serde_json::json!({"tokens_in": 100, "model": "gpt-4"})),
+        };
+        let backend = FakeBackend::ok(response);
+        let store = temp_store();
+        generate(
+            &backend,
+            &sample_request(),
+            Duration::from_secs(1),
+            &store,
+            "draft-006",
+            "2024-01-15T10:30:00Z",
+        )
+        .unwrap();
+
+        let draft = read_draft(&store.pending_dir().join("draft-006.json")).unwrap();
+        match draft {
+            Draft::Pending(d) => {
+                assert_eq!(
+                    d.header.metadata,
+                    Some(serde_json::json!({"tokens_in": 100, "model": "gpt-4"}))
+                );
+            }
+            other => panic!("expected Pending draft, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_generate_none_metadata_stored_as_none() {
+        let response = SummariserResponse {
+            schema_version: SUMMARISER_SCHEMA_VERSION,
+            draft_text: "no metadata".to_owned(),
+            summary: None,
+            metadata: None,
+        };
+        let backend = FakeBackend::ok(response);
+        let store = temp_store();
+        generate(
+            &backend,
+            &sample_request(),
+            Duration::from_secs(1),
+            &store,
+            "draft-007",
+            "2024-01-15T10:30:00Z",
+        )
+        .unwrap();
+
+        let draft = read_draft(&store.pending_dir().join("draft-007.json")).unwrap();
+        match draft {
+            Draft::Pending(d) => {
+                assert!(d.header.metadata.is_none());
+            }
+            other => panic!("expected Pending draft, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_draft_header_omits_none_metadata_from_json() {
+        let header = DraftHeader {
+            id: "draft-008".to_owned(),
+            node_id: "app.auth".to_owned(),
+            artefact_type: "contract".to_owned(),
+            draft_text: "body".to_owned(),
+            created_at: "2024-01-15T10:30:00Z".to_owned(),
+            transitions: Vec::new(),
+            metadata: None,
+        };
+        let json = serde_json::to_string(&header).expect("serialise");
+        assert!(!json.contains("metadata"), "None metadata must be omitted");
+    }
+
+    #[test]
+    fn test_draft_header_metadata_round_trips_through_serde() {
+        let header = DraftHeader {
+            id: "draft-009".to_owned(),
+            node_id: "app.auth".to_owned(),
+            artefact_type: "contract".to_owned(),
+            draft_text: "body".to_owned(),
+            created_at: "2024-01-15T10:30:00Z".to_owned(),
+            transitions: Vec::new(),
+            metadata: Some(serde_json::json!({"tokens_in": 200})),
+        };
+        let json = serde_json::to_string(&header).expect("serialise");
+        let back: DraftHeader = serde_json::from_str(&json).expect("deserialise");
+        assert_eq!(back.metadata, Some(serde_json::json!({"tokens_in": 200})));
+    }
+
+    #[test]
+    fn test_draft_header_deserialises_without_metadata_field() {
+        let json = r#"{"id":"draft-010","node_id":"app.auth","artefact_type":"contract","draft_text":"body","created_at":"2024-01-15T10:30:00Z","transitions":[]}"#;
+        let header: DraftHeader = serde_json::from_str(json).expect("deserialise");
+        assert!(header.metadata.is_none());
     }
 }

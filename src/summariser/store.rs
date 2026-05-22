@@ -123,6 +123,9 @@ pub struct DraftHeader {
     /// Recorded status transitions.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub transitions: Vec<TransitionRecord>,
+    /// Optional backend audit metadata (token counts, model id, etc.).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
 }
 
 /// A draft awaiting resolution.
@@ -481,6 +484,7 @@ mod tests {
             draft_text: "# Auth\n\nReturns user.".to_owned(),
             created_at: "2026-05-07T12:00:00Z".to_owned(),
             transitions: Vec::new(),
+            metadata: None,
         }
     }
 

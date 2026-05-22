@@ -43,6 +43,7 @@ mod backend_and_config {
                 draft_text: "# Auth\n\nReturns user.".to_owned(),
                 created_at: "2026-05-07T12:00:00Z".to_owned(),
                 transitions: Vec::new(),
+                metadata: None,
             },
         })
     }
@@ -123,6 +124,7 @@ mod resolution_actions {
             draft_text: "# Auth\n\nReturns user.".to_owned(),
             created_at: "2026-05-07T12:00:00Z".to_owned(),
             transitions: Vec::new(),
+            metadata: None,
         }
     }
 
