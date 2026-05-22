@@ -320,19 +320,21 @@ impl SummariserBackend for HostedBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::summariser::request::{NodeContext, SUMMARISER_SCHEMA_VERSION};
+    use crate::summariser::request::SUMMARISER_SCHEMA_VERSION;
 
     fn sample_request() -> SummariserRequest {
         SummariserRequest {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            artefact_type: "contract".to_owned(),
-            node: NodeContext {
-                node_id: "node-a".to_owned(),
-                name: "Auth".to_owned(),
-                description: String::new(),
-                contract: None,
-                contradiction: None,
-            },
+            request_id: "req-a".to_owned(),
+            draft_type: "contract".to_owned(),
+            target_node: "node-a".to_owned(),
+            map_facts: Vec::new(),
+            contract_excerpt: None,
+            interface_findings: Vec::new(),
+            docstring_findings: Vec::new(),
+            project_context: String::new(),
+            rules: Vec::new(),
+            code_samples: Vec::new(),
         }
     }
 
@@ -379,7 +381,8 @@ mod tests {
     fn test_fake_backend_ok_returns_configured_response() {
         let response = SummariserResponse {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            summary: "fake summary".to_owned(),
+            draft_text: "fake draft text".to_owned(),
+            summary: None,
             metadata: None,
         };
         let backend = FakeBackend::ok(response.clone());
@@ -398,18 +401,14 @@ mod tests {
     fn test_fake_backend_different_requests_returns_same_response() {
         let response = SummariserResponse {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            summary: "deterministic".to_owned(),
+            draft_text: "deterministic".to_owned(),
+            summary: None,
             metadata: None,
         };
         let backend = FakeBackend::ok(response);
         let req1 = sample_request();
-        let req2 = SummariserRequest {
-            node: NodeContext {
-                node_id: "different".to_owned(),
-                ..req1.node.clone()
-            },
-            ..req1.clone()
-        };
+        let mut req2 = req1.clone();
+        req2.target_node = "different".to_owned();
         let out1 = backend.invoke(&req1, Duration::from_millis(100)).unwrap();
         let out2 = backend.invoke(&req2, Duration::from_secs(10)).unwrap();
         assert_eq!(out1, out2);
@@ -419,7 +418,8 @@ mod tests {
     fn test_local_command_backend_echoes_valid_response() {
         let expected = SummariserResponse {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            summary: "from shell".to_owned(),
+            draft_text: "from shell".to_owned(),
+            summary: None,
             metadata: None,
         };
         let json = serde_json::to_string(&expected).unwrap();
@@ -428,7 +428,7 @@ mod tests {
         let result = backend
             .invoke(&sample_request(), Duration::from_secs(5))
             .expect("should succeed");
-        assert_eq!(result.summary, expected.summary);
+        assert_eq!(result.draft_text, expected.draft_text);
     }
 
     #[test]

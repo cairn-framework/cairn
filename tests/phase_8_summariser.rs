@@ -11,11 +11,9 @@
 //! stay skipped under `cargo test`; they fail with `unimplemented!`
 //! under `cargo test -- --ignored`.
 
-use cairn::cflx_planned;
-
 mod backend_and_config {
     use cairn::summariser::{
-        DisabledBackend, Draft, DraftStore, NodeContext, PendingDraft, SUMMARISER_SCHEMA_VERSION,
+        DisabledBackend, Draft, DraftStore, PendingDraft, SUMMARISER_SCHEMA_VERSION,
         SummariserBackend, SummariserBackendError, SummariserMode, SummariserRequest,
     };
     use std::time::Duration;
@@ -23,14 +21,16 @@ mod backend_and_config {
     fn sample_request() -> SummariserRequest {
         SummariserRequest {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            artefact_type: "contract".to_owned(),
-            node: NodeContext {
-                node_id: "node-a".to_owned(),
-                name: "Auth".to_owned(),
-                description: String::new(),
-                contract: None,
-                contradiction: Some("interface drift".to_owned()),
-            },
+            request_id: "req-a".to_owned(),
+            draft_type: "contract".to_owned(),
+            target_node: "node-a".to_owned(),
+            map_facts: Vec::new(),
+            contract_excerpt: None,
+            interface_findings: Vec::new(),
+            docstring_findings: Vec::new(),
+            project_context: String::new(),
+            rules: Vec::new(),
+            code_samples: Vec::new(),
         }
     }
 
@@ -68,21 +68,22 @@ mod backend_and_config {
         assert!(matches!(back, Draft::Pending(_)));
     }
 
-    /// Scenario: Local command receives one request and stores `summary` only.
+    /// Scenario: Local command receives one request and stores `draft_text` only.
     /// Wire protocol assertion: `SummariserRequest` serialises with the
-    /// design.md field names (`schema_version`, `artefact_type`, `node`)
-    /// and `SummariserResponse` parses with `summary` as the canonical text
-    /// payload (renamed from `draft_text` per phase-8 reforge cycle 1).
+    /// design.doc field names (`schema_version`, `request_id`, `draft_type`,
+    /// `target_node`, etc.) and `SummariserResponse` parses with `draft_text`
+    /// as the canonical text payload.
     #[test]
-    fn test_local_command_receives_request_and_stores_summary_only() {
+    fn test_local_command_receives_request_and_stores_draft_text_only() {
         let req = sample_request();
         let json = serde_json::to_string(&req).expect("serialise");
         assert!(json.contains("\"schema_version\""));
-        assert!(json.contains("\"artefact_type\""));
-        assert!(json.contains("\"node\""));
+        assert!(json.contains("\"request_id\""));
+        assert!(json.contains("\"draft_type\""));
+        assert!(json.contains("\"target_node\""));
         let resp: cairn::summariser::SummariserResponse =
-            serde_json::from_str(r#"{"schema_version":1,"summary":"hi"}"#).expect("parse");
-        assert_eq!(resp.summary, "hi");
+            serde_json::from_str(r#"{"schema_version":1,"draft_text":"hi"}"#).expect("parse");
+        assert_eq!(resp.draft_text, "hi");
     }
 
     /// Scenario: Backend failure does not create or modify a draft.
@@ -100,7 +101,7 @@ mod backend_and_config {
     /// Wire protocol drift is caught early: response with unknown field rejected.
     #[test]
     fn test_response_rejects_unknown_fields_per_design() {
-        let bad = r#"{"schema_version":1,"summary":"hi","rationale":"no"}"#;
+        let bad = r#"{"schema_version":1,"draft_text":"hi","rationale":"no"}"#;
         let result: Result<cairn::summariser::SummariserResponse, _> = serde_json::from_str(bad);
         assert!(result.is_err());
     }
@@ -224,17 +225,16 @@ mod resolution_actions {
 }
 
 mod mcp_exposure {
-    use super::cflx_planned;
 
     /// Scenario: Read-only summariser tools listed in default mode.
-    #[cflx_planned(phase = 800)]
+    #[cairn::cflx_planned(phase = 800)]
     #[test]
     fn test_read_only_tools_listed_in_default_mode() {
         unimplemented!("awaits phase-8: cairn_drafts and cairn_draft_show MCP tool registration");
     }
 
     /// Scenario: Mutating summariser tools absent in default mode.
-    #[cflx_planned(phase = 800)]
+    #[cairn::cflx_planned(phase = 800)]
     #[test]
     fn test_mutating_tools_absent_in_default_mode() {
         unimplemented!("awaits phase-8: mutating MCP tool registry filtering");

@@ -64,9 +64,9 @@ pub fn generate(
     let draft = Draft::Pending(PendingDraft {
         header: DraftHeader {
             id: draft_id.to_owned(),
-            node_id: request.node.node_id.clone(),
-            artefact_type: request.artefact_type.clone(),
-            draft_text: response.summary,
+            node_id: request.target_node.clone(),
+            artefact_type: request.draft_type.clone(),
+            draft_text: response.draft_text,
             created_at: created_at.to_owned(),
         },
     });
@@ -79,21 +79,23 @@ mod tests {
     use super::*;
     use crate::summariser::{
         backend::FakeBackend,
-        request::{NodeContext, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse},
+        request::{CodeSample, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse},
         store::read_draft,
     };
 
     fn sample_request() -> SummariserRequest {
         SummariserRequest {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            artefact_type: "contract".to_owned(),
-            node: NodeContext {
-                node_id: "app.auth".to_owned(),
-                name: "Auth".to_owned(),
-                description: String::new(),
-                contract: None,
-                contradiction: None,
-            },
+            request_id: "req-auth".to_owned(),
+            draft_type: "contract".to_owned(),
+            target_node: "app.auth".to_owned(),
+            map_facts: Vec::new(),
+            contract_excerpt: None,
+            interface_findings: Vec::new(),
+            docstring_findings: Vec::new(),
+            project_context: String::new(),
+            rules: Vec::new(),
+            code_samples: Vec::new(),
         }
     }
 
@@ -106,7 +108,8 @@ mod tests {
     fn test_generate_creates_pending_draft() {
         let response = SummariserResponse {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            summary: "generated contract".to_owned(),
+            draft_text: "generated contract".to_owned(),
+            summary: None,
             metadata: None,
         };
         let backend = FakeBackend::ok(response);
@@ -150,7 +153,8 @@ mod tests {
     fn test_generate_returns_store_conflict() {
         let response = SummariserResponse {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            summary: "first".to_owned(),
+            draft_text: "first".to_owned(),
+            summary: None,
             metadata: None,
         };
         let backend = FakeBackend::ok(response);
@@ -167,7 +171,8 @@ mod tests {
 
         let response2 = SummariserResponse {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            summary: "second".to_owned(),
+            draft_text: "second".to_owned(),
+            summary: None,
             metadata: None,
         };
         let backend2 = FakeBackend::ok(response2);
@@ -192,7 +197,8 @@ mod tests {
     fn test_generate_draft_contains_node_id() {
         let response = SummariserResponse {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            summary: "draft body".to_owned(),
+            draft_text: "draft body".to_owned(),
+            summary: None,
             metadata: None,
         };
         let backend = FakeBackend::ok(response);
@@ -216,5 +222,32 @@ mod tests {
             }
             other => panic!("expected Pending draft, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn test_generate_preserves_code_samples_in_request() {
+        let mut req = sample_request();
+        req.code_samples = vec![CodeSample {
+            path: "src/main.rs".to_owned(),
+            content: "fn main() {}".to_owned(),
+        }];
+        let response = SummariserResponse {
+            schema_version: SUMMARISER_SCHEMA_VERSION,
+            draft_text: "with samples".to_owned(),
+            summary: None,
+            metadata: None,
+        };
+        let backend = FakeBackend::ok(response);
+        let store = temp_store();
+        let draft_id = generate(
+            &backend,
+            &req,
+            Duration::from_secs(1),
+            &store,
+            "draft-005",
+            "2024-01-15T10:30:00Z",
+        )
+        .expect("should succeed");
+        assert_eq!(draft_id, "draft-005");
     }
 }

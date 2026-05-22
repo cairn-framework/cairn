@@ -166,6 +166,36 @@ expression: value
       "request": "RefineRequest",
       "response": "RefineResponse",
       "safety": "Mutating"
+    },
+    {
+      "name": "drafts",
+      "request": "DraftsRequest",
+      "response": "DraftsResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "draft_show",
+      "request": "DraftShowRequest",
+      "response": "DraftShowResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "draft_discard",
+      "request": "DraftDiscardRequest",
+      "response": "DraftDiscardResponse",
+      "safety": "Mutating"
+    },
+    {
+      "name": "draft_edit",
+      "request": "DraftEditRequest",
+      "response": "DraftEditResponse",
+      "safety": "Mutating"
+    },
+    {
+      "name": "draft_accept",
+      "request": "DraftAcceptRequest",
+      "response": "DraftAcceptResponse",
+      "safety": "Mutating"
     }
   ],
   "schema_version": 1
