@@ -424,3 +424,103 @@ pub(super) fn run_change_apply(root: &Path, change_id: &str) -> CliResult {
         Err(error) => err(1, &format!("failed to claim change: {error}")),
     }
 }
+
+/// Migrate openspec changes to the meta/changes directory.
+pub(super) fn run_import_openspec(root: &Path, json: bool) -> CliResult {
+    let openspec_dir = root.join("openspec/changes");
+    let meta_dir = root.join("meta/changes");
+
+    if !openspec_dir.exists() {
+        return err(1, "no openspec/changes directory found");
+    }
+
+    if let Err(error) = fs::create_dir_all(&meta_dir) {
+        return err(1, &format!("failed to create meta/changes: {error}"));
+    }
+
+    let mut migrated = Vec::new();
+    let mut copied_archive = false;
+
+    let entries = match fs::read_dir(&openspec_dir) {
+        Ok(entries) => entries,
+        Err(error) => return err(1, &format!("failed to read openspec/changes: {error}")),
+    };
+
+    for entry in entries {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(error) => {
+                eprintln!("warning: failed to read directory entry: {error}");
+                continue;
+            }
+        };
+
+        let name = entry.file_name();
+        let name_str = name.to_string_lossy();
+
+        // Skip hidden files and the archive directory (handled separately).
+        if name_str.starts_with('.') || name_str == "archive" {
+            continue;
+        }
+
+        let source = entry.path();
+        let target = meta_dir.join(&name);
+
+        if !source.is_dir() {
+            continue;
+        }
+
+        // Copy directory recursively.
+        if let Err(error) = copy_dir_all(&source, &target) {
+            return err(1, &format!("failed to copy {name_str}: {error}"));
+        }
+
+        migrated.push(name_str.into_owned());
+    }
+
+    // Copy archive directory if it exists.
+    let archive_source = openspec_dir.join("archive");
+    if archive_source.exists() {
+        let archive_target = meta_dir.join("archive");
+        if let Err(error) = copy_dir_all(&archive_source, &archive_target) {
+            return err(1, &format!("failed to copy archive: {error}"));
+        }
+        copied_archive = true;
+    }
+
+    if json {
+        let response = serde_json::json!({
+            "command": "import-openspec",
+            "status": "ok",
+            "data": {
+                "migrated": migrated,
+                "archive_copied": copied_archive,
+            }
+        });
+        return ok(format!("{response}\n"));
+    }
+
+    let mut out = format!("migrated {} phase(s)\n", migrated.len());
+    for name in &migrated {
+        let _ = std::fmt::Write::write_str(&mut out, &format!("  {name}\n"));
+    }
+    if copied_archive {
+        let _ = std::fmt::Write::write_str(&mut out, "archive copied\n");
+    }
+    ok(out)
+}
+
+fn copy_dir_all(source: impl AsRef<Path>, target: impl AsRef<Path>) -> std::io::Result<()> {
+    fs::create_dir_all(&target)?;
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        let target_path = target.as_ref().join(entry.file_name());
+        if ty.is_dir() {
+            copy_dir_all(entry.path(), &target_path)?;
+        } else {
+            fs::copy(entry.path(), &target_path)?;
+        }
+    }
+    Ok(())
+}

@@ -33,8 +33,8 @@ mod render;
 
 use commands::{
     init_project, legacy_blueprint_warning, requires_valid_map, run_archive_command,
-    run_change_apply, run_change_new, run_change_tasks, run_hook_command, run_onboard_command,
-    run_shared_json_command, run_ui_command,
+    run_change_apply, run_change_new, run_change_tasks, run_hook_command, run_import_openspec,
+    run_onboard_command, run_shared_json_command, run_ui_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -98,6 +98,9 @@ pub fn run(args: &[String]) -> CliResult {
             };
         }
         return init_project(Path::new("."));
+    }
+    if parsed.command == "import-openspec" {
+        return run_import_openspec(project_root, parsed.json);
     }
     if parsed.command == "refine" {
         return match crate::brownfield::refine::run_refine(project_root) {
@@ -430,7 +433,15 @@ fn render_loaded_project_command(
 }
 
 /// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "change", "check", "export", "onboard", "refine"];
+const EXTRA_CLI_COMMANDS: &[&str] = &[
+    "accept",
+    "change",
+    "check",
+    "export",
+    "import-openspec",
+    "onboard",
+    "refine",
+];
 
 /// MCP-only tools that should not appear in CLI command lists.
 const MCP_ONLY_TOOLS: &[&str] = &["init_from_code"];
@@ -471,6 +482,7 @@ fn command_description(name: &str) -> &'static str {
         "hook" => "Run reconciliation hooks",
         "init" => "Scaffold a new cairn project",
         "islands" => "Show connected components of the map graph",
+        "import-openspec" => "Migrate openspec changes to meta/changes",
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
         "onboard" => "Suggest blueprint entries for orphaned files",
@@ -1127,6 +1139,57 @@ app.api -> app.core "reports"
                 panic!("invalid JSON from summarise --json: {e}\n{}", result.stdout)
             });
         assert_eq!(parsed["error"]["code"], "CAIRN_SUMMARISER_DISABLED");
+
+        Ok(())
+    }
+    #[test]
+    fn test_cli_import_openspec_migrates_phases() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("import-openspec")?;
+        write_project(&root)?;
+
+        // Set up openspec changes with two phases and archive.
+        let openspec = root.join("openspec/changes");
+        fs::create_dir_all(openspec.join("phase-7-test"))?;
+        fs::write(
+            openspec.join("phase-7-test/proposal.md"),
+            "# Proposal: Phase 7 Test\n",
+        )?;
+        fs::write(
+            openspec.join("phase-7-test/design.md"),
+            "# Design: Phase 7 Test\n",
+        )?;
+        fs::write(openspec.join("phase-7-test/tasks.md"), "- [ ] Task one\n")?;
+        fs::create_dir_all(openspec.join("phase-7-test/specs"))?;
+        fs::write(openspec.join("phase-7-test/specs/spec.md"), "# Spec\n")?;
+        fs::create_dir_all(openspec.join("phase-8-test"))?;
+        fs::write(
+            openspec.join("phase-8-test/proposal.md"),
+            "# Proposal: Phase 8 Test\n",
+        )?;
+        fs::create_dir_all(openspec.join("archive/old-phase"))?;
+        fs::write(
+            openspec.join("archive/old-phase/proposal.md"),
+            "# Proposal: Old Phase\n",
+        )?;
+
+        let result = run_in(&root, &["--json", "import-openspec"]);
+        assert_eq!(result.code, 0, "import-openspec stderr: {}", result.stderr);
+
+        // Verify phases migrated.
+        assert!(root.join("meta/changes/phase-7-test/proposal.md").exists());
+        assert!(root.join("meta/changes/phase-7-test/design.md").exists());
+        assert!(root.join("meta/changes/phase-7-test/tasks.md").exists());
+        assert!(
+            root.join("meta/changes/phase-7-test/specs/spec.md")
+                .exists()
+        );
+        assert!(root.join("meta/changes/phase-8-test/proposal.md").exists());
+
+        // Verify archive copied.
+        assert!(
+            root.join("meta/changes/archive/old-phase/proposal.md")
+                .exists()
+        );
 
         Ok(())
     }
