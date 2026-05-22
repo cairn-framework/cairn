@@ -377,3 +377,51 @@ fn test_example_project_exercises_core_capabilities() {
         "example project must have a README"
     );
 }
+
+/// Scenario: Gas City reference adapter pack has required structure.
+#[test]
+fn test_gas_city_adapter_pack_structure() {
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let pack_dir = root.join("adapters/gascity");
+    assert!(pack_dir.exists(), "adapters/gascity/ directory must exist");
+
+    // pack.toml with metadata.
+    let pack_toml = pack_dir.join("pack.toml");
+    assert!(pack_toml.exists(), "pack.toml must exist");
+    let pack_content = std::fs::read_to_string(&pack_toml).expect("read pack.toml");
+    assert!(pack_content.contains("name"), "pack.toml must have a name");
+    assert!(
+        pack_content.contains("cairn"),
+        "pack.toml must reference cairn"
+    );
+
+    // README with install steps.
+    let readme = pack_dir.join("README.md");
+    assert!(readme.exists(), "README.md must exist");
+    let readme_content = std::fs::read_to_string(&readme).expect("read README");
+    assert!(
+        readme_content.contains("install"),
+        "README must mention install steps"
+    );
+
+    // Required formula files.
+    let formulas = [
+        "cairn-reconcile.formula.toml",
+        "cairn-lint.formula.toml",
+        "cairn-drift-gate.formula.toml",
+        "cairn-onboard.formula.toml",
+    ];
+    for name in formulas {
+        let path = pack_dir.join("formulas").join(name);
+        assert!(path.exists(), "formula {name} must exist");
+        let content = std::fs::read_to_string(&path).expect("read formula");
+        assert!(
+            content.contains("formula = "),
+            "formula {name} must declare formula name"
+        );
+        assert!(
+            content.contains("[[steps]]"),
+            "formula {name} must have at least one step"
+        );
+    }
+}

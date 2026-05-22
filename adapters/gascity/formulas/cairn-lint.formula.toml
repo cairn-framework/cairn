@@ -1,0 +1,6 @@
+formula = "cairn-lint"
+description = "Lint the CAIRN blueprint and contracts."
+
+[[steps]]
+id = "lint"
+description = "Run: cairn lint --json"

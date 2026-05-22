@@ -1,0 +1,6 @@
+formula = "cairn-onboard"
+description = "Suggest blueprint entries for orphaned source files."
+
+[[steps]]
+id = "onboard"
+description = "Run: cairn onboard --json"

@@ -1,0 +1,6 @@
+formula = "cairn-reconcile"
+description = "Run CAIRN reconcilers and report findings."
+
+[[steps]]
+id = "reconcile"
+description = "Run: cairn scan --json"

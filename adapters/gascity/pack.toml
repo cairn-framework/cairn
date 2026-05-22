@@ -1,0 +1,9 @@
+name = "cairn-governance"
+description = "CAIRN governance formulas for Gas City — reconcile, lint, drift-gate, and onboard."
+version = "0.1.0"
+
+[formulas]
+reconcile = "formulas/cairn-reconcile.formula.toml"
+lint = "formulas/cairn-lint.formula.toml"
+drift_gate = "formulas/cairn-drift-gate.formula.toml"
+onboard = "formulas/cairn-onboard.formula.toml"

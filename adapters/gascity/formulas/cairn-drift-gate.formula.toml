@@ -1,0 +1,6 @@
+formula = "cairn-drift-gate"
+description = "Strict CAIRN scan; fails on any warning or error finding."
+
+[[steps]]
+id = "scan-strict"
+description = "Run: cairn scan --strict --json"
