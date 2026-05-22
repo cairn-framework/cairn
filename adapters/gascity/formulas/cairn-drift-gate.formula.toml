@@ -1,6 +1,16 @@
 formula = "cairn-drift-gate"
-description = "Strict CAIRN scan; fails on any warning or error finding."
+description = "Strict CAIRN scan used as a CI gate; fails on any warning or error finding."
 
 [[steps]]
 id = "scan-strict"
-description = "Run: cairn scan --strict --json"
+description = "Run: cairn scan --strict --json; execute reconcilers and apply strict severity policy"
+
+[[steps]]
+id = "evaluate"
+needs = ["scan-strict"]
+description = "Parse the findings JSON; count errors and warnings separately"
+
+[[steps]]
+id = "gate"
+needs = ["evaluate"]
+description = "Exit 1 if error_count > 0 or warning_count > 0; emit findings as structured JSON for CI annotation"

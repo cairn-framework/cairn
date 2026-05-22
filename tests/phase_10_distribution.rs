@@ -425,3 +425,95 @@ fn test_gas_city_adapter_pack_structure() {
         );
     }
 }
+
+/// Scenario: Every formula TOML file has multi-step structure with dependency edges.
+///
+/// Each formula must have at least 2 steps. Every step must carry `id` and
+/// `description`. At least one step must declare `needs` to represent ordering.
+/// New formula additions are validated here automatically via directory walk.
+#[test]
+fn test_formula_steps_have_required_fields_and_deps() {
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let formulas_dir = root.join("adapters/gascity/formulas");
+    assert!(
+        formulas_dir.exists(),
+        "adapters/gascity/formulas/ must exist"
+    );
+
+    // Required formula files (6 total: 4 existing + 2 new).
+    let expected = [
+        "cairn-reconcile.formula.toml",
+        "cairn-lint.formula.toml",
+        "cairn-drift-gate.formula.toml",
+        "cairn-onboard.formula.toml",
+        "cairn-propose-node.formula.toml",
+        "cairn-wave-dispatch.formula.toml",
+    ];
+    for name in expected {
+        assert!(
+            formulas_dir.join(name).exists(),
+            "formula file {name} must exist"
+        );
+    }
+
+    // Walk all formula files and validate structure.
+    let entries = std::fs::read_dir(&formulas_dir).expect("read formulas dir");
+    let mut checked = 0usize;
+    for entry in entries {
+        let path = entry.expect("dir entry").path();
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if !name.ends_with(".formula.toml") {
+            continue;
+        }
+        let content = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {name}: {e}"));
+        let doc: toml::Value =
+            toml::from_str(&content).unwrap_or_else(|e| panic!("{name} is not valid TOML: {e}"));
+
+        // Top-level fields.
+        assert!(
+            doc.get("formula").and_then(toml::Value::as_str).is_some(),
+            "{name}: missing string field `formula`"
+        );
+        assert!(
+            doc.get("description")
+                .and_then(toml::Value::as_str)
+                .is_some(),
+            "{name}: missing string field `description`"
+        );
+
+        // Steps array: at least 2 entries.
+        let steps = doc
+            .get("steps")
+            .and_then(toml::Value::as_array)
+            .unwrap_or_else(|| panic!("{name}: missing `[[steps]]` array"));
+        assert!(
+            steps.len() >= 2,
+            "{name}: need ≥2 steps, found {}",
+            steps.len()
+        );
+
+        // Each step: id + description required; at least one step has needs.
+        let mut any_needs = false;
+        for (i, step) in steps.iter().enumerate() {
+            assert!(
+                step.get("id").and_then(toml::Value::as_str).is_some(),
+                "{name} step[{i}]: missing string field `id`"
+            );
+            assert!(
+                step.get("description")
+                    .and_then(toml::Value::as_str)
+                    .is_some(),
+                "{name} step[{i}]: missing string field `description`"
+            );
+            if step.get("needs").is_some() {
+                any_needs = true;
+            }
+        }
+        assert!(any_needs, "{name}: at least one step must declare `needs`");
+
+        checked += 1;
+    }
+    assert!(checked >= 6, "expected ≥6 formula files, found {checked}");
+}

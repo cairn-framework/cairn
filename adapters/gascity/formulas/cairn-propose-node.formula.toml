@@ -1,0 +1,26 @@
+formula = "cairn-propose-node"
+description = "Interactive wizard to add a new node to the CAIRN blueprint under an active change."
+
+[[steps]]
+id = "pick-type"
+description = "Ask the user which node type to create: Module, Contract, Decision, Todo, Research, Review, or Source"
+
+[[steps]]
+id = "template"
+needs = ["pick-type"]
+description = "Run: cairn node template --type={{type}} --json; display required and optional fields for the chosen type"
+
+[[steps]]
+id = "fill-fields"
+needs = ["template"]
+description = "Prompt for each required field one at a time; surface field descriptions from the template"
+
+[[steps]]
+id = "validate"
+needs = ["fill-fields"]
+description = "Run: cairn lint --json on the draft node; loop back to fill-fields on errors with the finding list shown"
+
+[[steps]]
+id = "commit"
+needs = ["validate"]
+description = "Run: cairn change add-node --change={{change}} --file={{tmpfile}}; confirm the node appears in cairn scan output"

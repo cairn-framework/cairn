@@ -1,6 +1,21 @@
 formula = "cairn-onboard"
-description = "Suggest blueprint entries for orphaned source files."
+description = "Discover and onboard an existing codebase into CAIRN."
 
 [[steps]]
-id = "onboard"
-description = "Run: cairn onboard --json"
+id = "discover"
+description = "Run: cairn onboard --json; analyse the source tree and suggest blueprint entries for unmapped modules"
+
+[[steps]]
+id = "review"
+needs = ["discover"]
+description = "Present the suggested node list to the user; ask them to approve, edit, or reject each entry"
+
+[[steps]]
+id = "init"
+needs = ["review"]
+description = "Run: cairn init-from-code --json; write approved blueprint entries to cairn.blueprint"
+
+[[steps]]
+id = "verify"
+needs = ["init"]
+description = "Run: cairn scan --json; confirm no import errors or dangling edges after blueprint initialisation"

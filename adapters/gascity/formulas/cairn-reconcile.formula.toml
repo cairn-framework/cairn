@@ -1,6 +1,21 @@
 formula = "cairn-reconcile"
-description = "Run CAIRN reconcilers and report findings."
+description = "Run CAIRN reconcilers against the codebase and report contract drift."
 
 [[steps]]
-id = "reconcile"
-description = "Run: cairn scan --json"
+id = "scan"
+description = "Run: cairn scan --json; load the graph and execute all language reconcilers"
+
+[[steps]]
+id = "diff"
+needs = ["scan"]
+description = "Compare reconciler findings against the baseline stored in the active change; identify regressions"
+
+[[steps]]
+id = "report"
+needs = ["diff"]
+description = "Annotate affected nodes with new findings; create a task bead for each regression that needs attention"
+
+[[steps]]
+id = "gate"
+needs = ["report"]
+description = "Exit 1 if regressions exceed the configured threshold; emit the full finding list as JSON"

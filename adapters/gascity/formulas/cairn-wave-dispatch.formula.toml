@@ -1,0 +1,21 @@
+formula = "cairn-wave-dispatch"
+description = "Walk the CAIRN graph for an active change and dispatch ready work items as parallel waves."
+
+[[steps]]
+id = "get-ready"
+description = "Run: cairn change tasks --change={{change}} --json; identify items with no unresolved dependencies"
+
+[[steps]]
+id = "group-waves"
+needs = ["get-ready"]
+description = "Group ready tasks by topological depth using needs-edge resolution; tasks at the same depth form one parallel wave"
+
+[[steps]]
+id = "dispatch-wave"
+needs = ["group-waves"]
+description = "For each task in the current wave, create or activate an agent session bound to that task bead"
+
+[[steps]]
+id = "await-and-advance"
+needs = ["dispatch-wave"]
+description = "Poll task status via bd ready; when all wave tasks close, re-run get-ready to start the next wave or complete"
