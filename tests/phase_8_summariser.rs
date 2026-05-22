@@ -42,6 +42,7 @@ mod backend_and_config {
                 artefact_type: "contract".to_owned(),
                 draft_text: "# Auth\n\nReturns user.".to_owned(),
                 created_at: "2026-05-07T12:00:00Z".to_owned(),
+                transitions: Vec::new(),
             },
         })
     }
@@ -121,6 +122,7 @@ mod resolution_actions {
             artefact_type: "contract".to_owned(),
             draft_text: "# Auth\n\nReturns user.".to_owned(),
             created_at: "2026-05-07T12:00:00Z".to_owned(),
+            transitions: Vec::new(),
         }
     }
 

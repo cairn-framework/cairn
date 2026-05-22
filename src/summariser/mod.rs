@@ -17,8 +17,9 @@ pub use backend::{
 pub use generate::{GenerateError, generate};
 pub use request::{CodeSample, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse};
 pub use store::{
-    AcceptedDraft, DRAFT_SCHEMA_VERSION, DiscardedDraft, Draft, DraftHeader, DraftStore,
-    DraftStoreError, EditableDraft, EmptyInterfaceHash, PendingDraft, read_draft,
+    AcceptedDraft, DRAFT_SCHEMA_VERSION, DiscardedDraft, Draft, DraftHeader, DraftStatus,
+    DraftStore, DraftStoreError, DraftTransitionError, EditableDraft, EmptyInterfaceHash,
+    PendingDraft, TransitionRecord, read_draft, validate_transition,
 };
 
 /// Safety assertion: every mutating draft tool has a corresponding

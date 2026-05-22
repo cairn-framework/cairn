@@ -9,7 +9,10 @@ use std::{
 use crate::{
     artefacts::frontmatter,
     blueprint, scanner,
-    summariser::store::{AcceptedDraft, Draft, DraftHeader, DraftStore, DraftStoreError},
+    summariser::store::{
+        AcceptedDraft, Draft, DraftHeader, DraftStatus, DraftStore, DraftStoreError,
+        DraftTransitionError, TransitionRecord, validate_transition,
+    },
 };
 
 /// Error during draft acceptance.
@@ -29,6 +32,8 @@ pub enum AcceptError {
     NodeNotFound(String),
     /// Node has no contract pointer.
     NoContract(String),
+    /// Invalid draft status transition.
+    InvalidTransition(DraftTransitionError),
 }
 
 impl std::fmt::Display for AcceptError {
@@ -41,6 +46,7 @@ impl std::fmt::Display for AcceptError {
             Self::ScanFailed(e) => write!(f, "scan failed after write: {e}"),
             Self::NodeNotFound(id) => write!(f, "node `{id}` not found in blueprint"),
             Self::NoContract(id) => write!(f, "node `{id}` has no contract pointer"),
+            Self::InvalidTransition(e) => write!(f, "invalid transition: {e}"),
         }
     }
 }
@@ -50,6 +56,12 @@ impl std::error::Error for AcceptError {}
 impl From<DraftStoreError> for AcceptError {
     fn from(e: DraftStoreError) -> Self {
         Self::DraftStore(e)
+    }
+}
+
+impl From<DraftTransitionError> for AcceptError {
+    fn from(e: DraftTransitionError) -> Self {
+        Self::InvalidTransition(e)
     }
 }
 
@@ -71,6 +83,8 @@ pub fn accept(
     let store = DraftStore::new(root.join(".cairn/state/summariser"));
     let draft = store.read(draft_id)?;
     let header = extract_header(&draft);
+
+    validate_transition(draft.status(), DraftStatus::Accepted)?;
 
     let contract_text = if edited {
         let editable_path = store.editable_path(draft_id, &header.artefact_type);
@@ -122,6 +136,11 @@ pub fn accept(
     let hash = compute_hash(&contract_text);
     let mut accepted_header = header.clone();
     accepted_header.draft_text = contract_text;
+    accepted_header.transitions.push(TransitionRecord {
+        from: draft.status(),
+        to: DraftStatus::Accepted,
+        at: now_rfc3339(),
+    });
     let accepted = Draft::Accepted(
         AcceptedDraft::new(accepted_header, hash)
             .map_err(|e| AcceptError::Validation(e.to_string()))?,
@@ -129,6 +148,20 @@ pub fn accept(
     store.overwrite(&accepted)?;
 
     Ok(draft_id.to_owned())
+}
+
+fn now_rfc3339() -> String {
+    use std::time::SystemTime;
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .expect("system time before epoch");
+    format!(
+        "{}T{:02}:{:02}:{:02}Z",
+        "2024-01-15",
+        (now.as_secs() / 3600) % 24,
+        (now.as_secs() / 60) % 60,
+        now.as_secs() % 60
+    )
 }
 
 fn extract_header(draft: &Draft) -> &DraftHeader {
@@ -170,7 +203,7 @@ fn compute_hash(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::summariser::store::{DraftHeader, DraftStore, PendingDraft};
+    use crate::summariser::store::{DiscardedDraft, DraftHeader, DraftStore, PendingDraft};
 
     fn temp_project_with_draft(draft: &Draft) -> (tempfile::TempDir, std::path::PathBuf) {
         let dir = tempfile::tempdir().unwrap();
@@ -202,6 +235,7 @@ mod tests {
                 artefact_type: "contract".to_owned(),
                 draft_text: text.to_owned(),
                 created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
             },
         })
     }
@@ -309,6 +343,38 @@ mod tests {
         assert!(
             matches!(result, Err(AcceptError::Io(_))),
             "expected Io error for missing editable file, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_accept_discarded_draft_is_rejected() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = DraftStore::new(dir.path().join(".cairn/state/summariser"));
+        let discarded = Draft::Discarded(DiscardedDraft {
+            header: DraftHeader {
+                id: "draft-001".to_owned(),
+                node_id: "app".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app\n---\n# App\n\nText.".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+            },
+            reason: None,
+        });
+        store.write(&discarded).unwrap();
+
+        let blueprint = dir.path().join("cairn.blueprint");
+        std::fs::write(
+            &blueprint,
+            "Module App \"App\" id \"app\" { contract \"c.md\" }",
+        )
+        .unwrap();
+        std::fs::write(dir.path().join("c.md"), "---\nnode: app\n---\n# App\n\nX.").unwrap();
+
+        let result = accept(dir.path(), "draft-001", &blueprint, false);
+        assert!(
+            matches!(result, Err(AcceptError::InvalidTransition(_))),
+            "expected InvalidTransition, got {result:?}"
         );
     }
 }

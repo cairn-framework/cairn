@@ -188,12 +188,29 @@ fn discard_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryE
         source_span: None,
         remediation: None,
     })?;
-    let header = match &draft {
+    crate::summariser::validate_transition(
+        draft.status(),
+        crate::summariser::DraftStatus::Discarded,
+    )
+    .map_err(|e| QueryError {
+        code: "CAIRN_DRAFT_INVALID_TRANSITION".to_owned(),
+        message: e.to_string(),
+        source_span: None,
+        remediation: None,
+    })?;
+    let mut header = match &draft {
         crate::summariser::Draft::Pending(d) => d.header.clone(),
         crate::summariser::Draft::Editable(d) => d.header.clone(),
         crate::summariser::Draft::Accepted(d) => d.header().clone(),
         crate::summariser::Draft::Discarded(d) => d.header.clone(),
     };
+    header
+        .transitions
+        .push(crate::summariser::TransitionRecord {
+            from: draft.status(),
+            to: crate::summariser::DraftStatus::Discarded,
+            at: now_rfc3339(),
+        });
     let discarded = crate::summariser::Draft::Discarded(crate::summariser::DiscardedDraft {
         header,
         reason: None,
@@ -216,15 +233,32 @@ fn edit_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryErro
         source_span: None,
         remediation: None,
     })?;
+    crate::summariser::validate_transition(
+        draft.status(),
+        crate::summariser::DraftStatus::Editable,
+    )
+    .map_err(|e| QueryError {
+        code: "CAIRN_DRAFT_INVALID_TRANSITION".to_owned(),
+        message: e.to_string(),
+        source_span: None,
+        remediation: None,
+    })?;
     let editable_path = store
         .write_editable(&draft)
         .map_err(|e| command_error(e.to_string()))?;
-    let header = match &draft {
+    let mut header = match &draft {
         crate::summariser::Draft::Pending(d) => d.header.clone(),
         crate::summariser::Draft::Editable(d) => d.header.clone(),
         crate::summariser::Draft::Accepted(d) => d.header().clone(),
         crate::summariser::Draft::Discarded(d) => d.header.clone(),
     };
+    header
+        .transitions
+        .push(crate::summariser::TransitionRecord {
+            from: draft.status(),
+            to: crate::summariser::DraftStatus::Editable,
+            at: now_rfc3339(),
+        });
     let editable = crate::summariser::Draft::Editable(crate::summariser::EditableDraft {
         header,
         editable_path: editable_path.to_string_lossy().to_string(),
@@ -256,6 +290,20 @@ fn accept_draft(
         "id": id,
         "status": "accepted",
     }))
+}
+
+fn now_rfc3339() -> String {
+    use std::time::SystemTime;
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .expect("system time before epoch");
+    format!(
+        "{}T{:02}:{:02}:{:02}Z",
+        "2024-01-15",
+        (now.as_secs() / 3600) % 24,
+        (now.as_secs() / 60) % 60,
+        now.as_secs() % 60
+    )
 }
 
 fn draft_summary_json(draft: &crate::summariser::Draft) -> Value {
@@ -353,6 +401,7 @@ mod tests {
                 artefact_type: "contract".to_owned(),
                 draft_text: text.to_owned(),
                 created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
             },
         })
     }

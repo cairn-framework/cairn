@@ -68,6 +68,7 @@ pub fn generate(
             artefact_type: request.draft_type.clone(),
             draft_text: response.draft_text,
             created_at: created_at.to_owned(),
+            transitions: Vec::new(),
         },
     });
     store.write(&draft)?;
