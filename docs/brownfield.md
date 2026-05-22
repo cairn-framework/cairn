@@ -111,3 +111,74 @@ Both brownfield commands are registered as mutating MCP tools:
 - `cairn_refine`
 
 They are hidden unless the MCP server starts with `--allow-mutating-tools` and the caller passes `"mutating": true`.
+
+## Suggest engine
+
+Both `cairn init --from-code` and `cairn refine` run the suggest engine after deterministic extraction. The engine looks for candidate pairs that share at least one tag but do not already have a deterministic edge. Each match produces bidirectional `related_to` suggestions.
+
+### Queue file contract
+
+Suggested edges are written to `openspec/changes/<change>/suggested-edges.json` using the phase-7.6 queue schema:
+
+- `version`: always `1`.
+- `entries`: array of `SuggestedEdgeEntry` values.
+
+Every entry carries:
+- `source` and `target`: node IDs.
+- `relation`: the suggested relation verb (currently always `related_to`).
+- `triage_state`: always `"pending"` at emission time. The engine never auto-accepts.
+- `confidence`: the lower of the two candidate confidence scores.
+- `provenance.trace_phase`: `"phase-9-brownfield"`.
+- `provenance.stage`: `"propose"`.
+
+### Archive gate
+
+A brownfield change with pending entries blocks `cflx openspec validate <change> --strict` with error code `CC002`. Archive is not allowed until every entry is triaged to `accepted`, `rejected`, or `deferred`.
+
+## Interview runner
+
+The interview runner supports multi-round elicitation for brownfield onboarding sessions.
+
+### Session file
+
+A session is persisted at `openspec/changes/<change>/research/interview-session.json` while in progress. It contains:
+
+- `version`: schema version (currently `1`).
+- `change_id`: the change this session belongs to.
+- `turns`: ordered Q/A pairs.
+- `cursor`: index of the next unanswered question.
+- `complete`: `true` when all questions have been answered.
+
+### Resume semantics
+
+If `interview-session.json` exists and `complete` is `false`, the runner resumes at the cursor. It does not restart. This lets a human suspend and resume an interview across multiple invocations without losing progress.
+
+### Genesis transcript
+
+When the session completes, the runner writes `openspec/changes/<change>/research/genesis.md` and removes the transient session file. The genesis transcript carries the user-visible Q/A turns plus the final premise. System prompts and intermediate session state stay out.
+
+## Templated authoring
+
+Organisations can declare contract templates that the brownfield generator consumes when drafting stubs.
+
+### Template declaration
+
+A `ContractTemplate` has three fields:
+
+- `name`: a unique identifier for diagnostics.
+- `match_rules`: a list of `MatchRule` values evaluated in order. A template matches when ANY rule succeeds.
+  - `Path(substring)`: matches when the candidate's path contains the substring.
+  - `HasTag(tag)`: matches when the candidate carries the tag.
+- `body`: a template string with `{id}`, `{name}`, and `{description}` placeholders.
+
+### Resolution order
+
+The generator resolves templates in declared order. The first matching template wins. If no template matches, the generator falls back to the built-in stub.
+
+### Precedence rule
+
+Template body provides structure (headers, required sections). Summariser output provides content (names, descriptions, suggested tags). Where both supply text for a section, summariser content takes precedence and template text becomes a guidance comment in the draft.
+
+### Error handling
+
+A failed-to-parse template is skipped with a warning. It never blocks authoring. An empty template list is valid and simply means every candidate uses the built-in stub.

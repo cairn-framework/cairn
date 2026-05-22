@@ -14,10 +14,18 @@ pub mod discovery;
 mod heuristics;
 /// Brownfield init: cold-start extraction from existing code.
 pub mod init;
+/// Brownfield interview runner: multi-round elicitation session.
+pub mod interview;
 /// Brownfield onboarding: orphan grouping and classification.
 pub mod onboard;
 /// Brownfield refine: periodic re-discovery with timestamped changes.
 pub mod refine;
+/// Brownfield suggest engine: cross-cutting edge inference.
+pub mod suggest;
+/// Brownfield summariser integration: builds bounded inputs from candidates.
+pub mod summarise;
+/// Brownfield templated authoring: contract template resolution.
+pub mod templates;
 
 pub use heuristics::{
     CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, Candidate, CandidateConfidence, DIRECTORY_DEPTH_LIMIT,
@@ -64,6 +72,8 @@ pub fn write_change(
         let file_name = format!("{}.md", candidate.id.replace('.', "_"));
         write_file(&change_dir.join("contracts").join(file_name), &contract)?;
     }
+
+    suggest::write_suggested_edges(&change_dir, extraction, "phase-9-brownfield", "propose")?;
 
     Ok(())
 }

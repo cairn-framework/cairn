@@ -64,8 +64,8 @@ mod tests {
 
     #[test]
     fn test_lookup_empty_states() {
-        let value = lookup("empty-states.no-findings");
-        assert_eq!(value, "No findings to report.");
+        let value = lookup("empty-states.cli-clean-map");
+        assert_eq!(value, "Blueprint reconciled cleanly. No findings.");
     }
 
     #[test]

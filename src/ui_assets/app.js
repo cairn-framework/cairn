@@ -354,6 +354,21 @@
     const midY = fy + (ty - fy) * 0.55;
     return `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
   }
+  // Approximate midpoint of an ownership bezier curve for label placement.
+  function edgeMidpoint(from, to) {
+    const fx = from.x;
+    const fy = from.y + from.height / 2;
+    const tx = to.x;
+    const ty = to.y - to.height / 2;
+    const midY = fy + (ty - fy) * 0.55;
+    // Cubic bezier at t=0.5:
+    // x = 0.5*fx + 0.5*tx
+    // y = 0.125*fy + 0.75*midY + 0.125*ty
+    return {
+      x: (fx + tx) / 2,
+      y: 0.125 * fy + 0.75 * midY + 0.125 * ty,
+    };
+  }
 
   // ==========================================================================
   // Brand mark (stacked stones SVG, matches design-system landing)
@@ -449,15 +464,24 @@
   // Graph canvas
   // ==========================================================================
 
-  function SystemNode({ node, selected, onSelect, dimmed }) {
+  function SystemNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     const d = node.data;
+    const strokeColor = selected
+      ? "var(--seam-carved)"
+      : findingSeverity === "error"
+        ? "var(--ghost)"
+        : findingSeverity === "warning"
+          ? "var(--orphaned)"
+          : findingSeverity === "info"
+            ? "var(--settled)"
+            : "var(--seam-thin)";
     return html`
       <g class=${clsx("canvas-node", dimmed && "dimmed")}
          transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
          onClick=${() => onSelect(node)} data-kind="system">
         <rect width=${node.width} height=${node.height} rx="6"
               fill="var(--stone-3)"
-              stroke=${selected ? "var(--seam-carved)" : "var(--seam-thin)"}
+              stroke=${strokeColor}
               stroke-width=${selected ? 1.5 : 1}/>
         <rect width=${node.width} height="1" fill="rgba(255,245,220,0.08)"/>
         <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
@@ -471,15 +495,24 @@
     `;
   }
 
-  function ContainerNode({ node, selected, onSelect, dimmed }) {
+  function ContainerNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     const d = node.data;
+    const strokeColor = selected
+      ? "var(--seam-carved)"
+      : findingSeverity === "error"
+        ? "var(--ghost)"
+        : findingSeverity === "warning"
+          ? "var(--orphaned)"
+          : findingSeverity === "info"
+            ? "var(--settled)"
+            : "var(--seam-thin)";
     return html`
       <g class=${clsx("canvas-node", dimmed && "dimmed")}
          transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
          onClick=${() => onSelect(node)} data-kind="container">
         <rect width=${node.width} height=${node.height} rx="6"
               fill="var(--stone-3)"
-              stroke=${selected ? "var(--seam-carved)" : "var(--seam-thin)"}
+              stroke=${strokeColor}
               stroke-width=${selected ? 1.5 : 1}/>
         <rect width=${node.width} height="1" fill="rgba(255,245,220,0.08)"/>
         <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
@@ -493,7 +526,7 @@
     `;
   }
 
-  function ModuleNode({ node, selected, hovered, dimmed, onSelect, onHover, dependentCount }) {
+  function ModuleNode({ node, selected, hovered, dimmed, findingSeverity, onSelect, onHover, dependentCount }) {
     const d = node.data;
     const recon = d.state || "synced";
     const breath = recon !== "synced";
@@ -505,11 +538,17 @@
           : "var(--synced)";
     const strokeColor = selected
       ? "var(--seam-carved)"
-      : recon === "ghost"
+      : findingSeverity === "error"
         ? "var(--ghost)"
-        : recon === "orphaned"
+        : findingSeverity === "warning"
           ? "var(--orphaned)"
-          : "var(--seam-thin)";
+          : findingSeverity === "info"
+            ? "var(--settled)"
+            : recon === "ghost"
+              ? "var(--ghost)"
+              : recon === "orphaned"
+                ? "var(--orphaned)"
+                : "var(--seam-thin)";
 
     const counts = node.counts || { provenance: 0, authority: 0, decisions: 0, contracts: 0 };
     const provStrength = Math.max(0.15, balanceFromCount(counts.provenance) / 5);
@@ -543,6 +582,10 @@
               <animate attributeName="r" values="4;8;4" dur="2.4s" repeatCount="indefinite"/>
               <animate attributeName="opacity" values="0.5;0;0.5" dur="2.4s" repeatCount="indefinite"/>
             </circle>`
+          : null}
+        ${findingSeverity
+          ? html`<rect x=${node.width - 10} y="8" width="6" height="6" rx="1.5"
+                fill=${findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : "var(--settled)"}/>`
           : null}
         <text x="14" y="46" font-size="17" font-family="var(--font-serif)"
               fill="var(--ink-char)" font-weight="500" letter-spacing="-0.3"
@@ -596,6 +639,7 @@
     layoutData,
     selection,
     hoveredId,
+    lint,
     onSelect,
     onHover,
     edgeTrace,
@@ -603,6 +647,7 @@
     const svgRef = useRef(null);
     const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
     const [panState, setPanState] = useState(null);
+    const nodeSeverity = useMemo(() => nodeSeverityById(lint), [lint]);
 
     const { nodes, totalHeight } = layoutData;
     const nodesById = useMemo(() => {
@@ -722,16 +767,38 @@
               <path key=${`d-${i}`} class=${clsx("edge dependency", isTraced(e) && "traced", isDimmed(e) && "dimmed")}
                     d=${e.d}/>
             `)}
+            ${ownershipEdges.map((e, i) => {
+              const m = edgeMidpoint(e.from, e.to);
+              return html`
+                <g key=${`ol-${i}`} class=${clsx("edge-label", isDimmed(e) && "dimmed")}
+                   transform=${`translate(${m.x}, ${m.y})`}
+                   opacity=${isTraced(e) || !edgeTrace ? 1 : 0.3}>
+                  <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-ghost)"
+                        text-anchor="middle" dy="-4">${e.description || ""}</text>
+                </g>`;
+            })}
+            ${dependencyEdges.map((e, i) => {
+              const m = edgeMidpoint(e.from, e.to);
+              return html`
+                <g key=${`dl-${i}`} class=${clsx("edge-label", isDimmed(e) && "dimmed")}
+                   transform=${`translate(${m.x}, ${m.y})`}
+                   opacity=${isTraced(e) || !edgeTrace ? 1 : 0.3}>
+                  <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-ghost)"
+                        text-anchor="middle" dy="-4">${e.description || ""}</text>
+                </g>`;
+            })}
             ${nodes.map((n) => {
               const isSelected = selection && selection.id === n.id;
               const isHovered = hoveredId === n.id;
+              const findingSeverity = nodeSeverity.get(n.id) || null;
               if (n.kind === "system") return html`<${SystemNode} key=${n.id} node=${n}
-                selected=${isSelected} onSelect=${(nd) => onSelect(nd.id)}/>`;
+                selected=${isSelected} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
               if (n.kind === "container") return html`<${ContainerNode} key=${n.id} node=${n}
-                selected=${isSelected} onSelect=${(nd) => onSelect(nd.id)}/>`;
+                selected=${isSelected} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
               if (n.kind === "divider") return html`<${DividerNode} key=${n.id} node=${n}/>`;
               return html`<${ModuleNode} key=${n.id} node=${n}
                 selected=${isSelected} hovered=${isHovered}
+                findingSeverity=${findingSeverity}
                 onSelect=${(nd) => onSelect(nd.id)}
                 onHover=${onHover}
                 dependentCount=${dependentCountById.get(n.id) || 0}/>`;
@@ -875,6 +942,22 @@
     if (severity === "error") return "ghost";
     if (severity === "warning") return "orphaned";
     return "info";
+  }
+  // Computes a map of node-id -> highest severity finding for that node.
+  // Structural errors, interface contradictions, rationale tensions, and
+  // info observations all surface through this unified overlay.
+  function nodeSeverityById(lint) {
+    const map = new Map();
+    if (!lint || !lint.findings) return map;
+    const rank = { error: 0, warning: 1, info: 2 };
+    for (const f of lint.findings) {
+      if (!f.node) continue;
+      const current = map.get(f.node);
+      if (!current || (rank[f.severity] ?? 2) < (rank[current] ?? 2)) {
+        map.set(f.node, f.severity);
+      }
+    }
+    return map;
   }
 
   // Extracts the code-family prefix used for category filter chips.
@@ -1640,6 +1723,7 @@
             layoutData=${layoutData}
             selection=${selectionId ? { id: selectionId } : null}
             hoveredId=${hoveredId}
+            lint=${lint}
             onSelect=${(id) => setSelectionId(id)}
             onHover=${setHoveredId}
             edgeTrace=${hoveredId}

@@ -20,8 +20,6 @@
 //! `#[cflx_planned]` and replaces stub bodies with real assertions
 //! group-by-group as code lands.
 
-use cairn::cflx_planned;
-
 mod cli {
 
     /// Scenario: Whole-map inspection without arguments.
@@ -85,7 +83,6 @@ mod cli {
 }
 
 mod empty_state {
-    use super::cflx_planned;
 
     /// Scenario: No-blueprint invocation renders a CTA.
     #[test]
@@ -104,10 +101,19 @@ mod empty_state {
     }
 
     /// Scenario: Clean-map result renders a CTA.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_empty_state__clean_map_result_renders_cta() {
-        unimplemented!("awaits phase-7.7: empty-state clean-map result renders CTA");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "/tmp/clean.blueprint".to_owned(),
+            "check".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "clean-map check exits zero");
+        assert!(
+            result.stdout.contains("Blueprint reconciled cleanly"),
+            "clean-map output must use cli-clean-map copy, got: {}",
+            result.stdout
+        );
     }
 
     /// Scenario: Empty-state copy is free of em-dashes (CLI and webui share copy file).
@@ -122,7 +128,6 @@ mod empty_state {
 }
 
 mod explorer {
-    use super::cflx_planned;
 
     /// Scenario: Component is defined with token-only styling.
     #[test]
@@ -299,31 +304,67 @@ mod explorer {
     }
 
     /// Scenario: Structural error indicator (integrity overlay).
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__structural_error_indicator() {
-        unimplemented!("awaits phase-7.7: explorer structural error indicator");
+        let js = include_str!("../src/ui_assets/app.js");
+        let copy = include_str!("../docs/design-system/copy.toml");
+        assert!(
+            js.contains("nodeSeverityById"),
+            "integrity overlay must compute node severity from lint findings"
+        );
+        assert!(
+            copy.contains("CAIRN_INTEGRITY_DUPLICATE_ID")
+                || copy.contains("CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT")
+                || copy.contains("CAIRN_INTEGRITY_PATH_TIE"),
+            "copy.toml must define structural error finding codes"
+        );
     }
 
     /// Scenario: Interface contradiction indicator (integrity overlay).
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__interface_contradiction_indicator() {
-        unimplemented!("awaits phase-7.7: explorer interface contradiction indicator");
+        let js = include_str!("../src/ui_assets/app.js");
+        let copy = include_str!("../docs/design-system/copy.toml");
+        assert!(
+            js.contains("findingSeverity"),
+            "node components must receive findingSeverity prop"
+        );
+        assert!(
+            copy.contains("CAIRN_INTERFACE_HASH_CHANGED")
+                || copy.contains("CAIRN_CONTRACT_MISSING"),
+            "copy.toml must define interface contradiction finding codes"
+        );
     }
 
     /// Scenario: Rationale tension indicator (integrity overlay).
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__rationale_tension_indicator() {
-        unimplemented!("awaits phase-7.7: explorer rationale tension indicator");
+        let js = include_str!("../src/ui_assets/app.js");
+        let copy = include_str!("../docs/design-system/copy.toml");
+        assert!(
+            js.contains("var(--settled)"),
+            "overlay must use settled color token for info-severity indicators"
+        );
+        assert!(
+            copy.contains("CAIRN_DECISION_ORPHANED")
+                || copy.contains("CAIRN_PROVENANCE_NO_DECISION")
+                || copy.contains("CAIRN_SOURCE_UNVERIFIED"),
+            "copy.toml must define rationale tension finding codes"
+        );
     }
 
     /// Scenario: Info-severity findings appear in the overlay.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__info_severity_findings_appear_in_overlay() {
-        unimplemented!("awaits phase-7.7: explorer info-severity findings appear in overlay");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains(r#"findingSeverity === "info""#),
+            "overlay must render info-severity indicators in node components"
+        );
+        assert!(
+            js.contains("info: 2"),
+            "nodeSeverityById must rank info severity"
+        );
     }
 }
 
@@ -401,5 +442,115 @@ mod reconciliation {
         );
         let back: cairn::map::graph::Finding = serde_json::from_str(&json).expect("deserialise");
         assert_eq!(back, finding);
+    }
+}
+
+mod check_findings {
+    use std::fs;
+
+    /// Scenario: Check renders Error, Warning, and Info findings.
+    #[test]
+    fn test_check__renders_all_three_severity_levels() {
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        fs::write(
+            &bp,
+            r#"System Test "Test" id "test" {
+    Module Auth "Auth" id "test.auth" {
+        path "./src/auth"
+        todos "./meta/todos"
+    }
+}
+test.auth -> test.nonexistent "Bad edge"
+"#,
+        )
+        .expect("write blueprint");
+
+        fs::create_dir_all(root.path().join("src/auth")).expect("create auth dir");
+        fs::write(root.path().join("src/auth/lib.rs"), "pub fn login() {}")
+            .expect("write auth file");
+        fs::write(root.path().join("src/orphan.rs"), "pub fn orphan() {}")
+            .expect("write orphan file");
+
+        fs::create_dir_all(root.path().join("meta/todos")).expect("create todo dir");
+        fs::write(
+            root.path().join("meta/todos/todo.md"),
+            "---\nnode: test.unknown\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
+        )
+        .expect("write todo file");
+
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            bp.to_string_lossy().to_string(),
+            "check".to_owned(),
+        ]);
+
+        assert!(
+            result.stdout.contains("Error"),
+            "check must render Error findings, got: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("Warning"),
+            "check must render Warning findings, got: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("Info"),
+            "check must render Info findings, got: {}",
+            result.stdout
+        );
+    }
+
+    /// Scenario: Node-scoped check filters to findings on that node.
+    #[test]
+    fn test_check__node_scoped_filters_findings() {
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        fs::write(
+            &bp,
+            r#"System Test "Test" id "test" {
+    Module Auth "Auth" id "test.auth" {
+        path "./src/auth"
+        todos "./meta/todos"
+    }
+}
+test.auth -> test.nonexistent "Bad edge"
+"#,
+        )
+        .expect("write blueprint");
+
+        fs::create_dir_all(root.path().join("src/auth")).expect("create auth dir");
+        fs::write(root.path().join("src/auth/lib.rs"), "pub fn login() {}")
+            .expect("write auth file");
+        fs::write(root.path().join("src/orphan.rs"), "pub fn orphan() {}")
+            .expect("write orphan file");
+
+        fs::create_dir_all(root.path().join("meta/todos")).expect("create todo dir");
+        fs::write(
+            root.path().join("meta/todos/todo.md"),
+            "---\nnode: test.unknown\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
+        )
+        .expect("write todo file");
+
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            bp.to_string_lossy().to_string(),
+            "check".to_owned(),
+            "test.unknown".to_owned(),
+        ]);
+
+        assert!(
+            result.stdout.contains("CAIRN_TODO_ORPHAN_NODE"),
+            "node-scoped check must show findings on test.unknown, got: {}",
+            result.stdout
+        );
+        assert!(
+            !result
+                .stdout
+                .contains("CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT"),
+            "node-scoped check must NOT show findings on other nodes, got: {}",
+            result.stdout
+        );
     }
 }

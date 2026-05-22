@@ -89,6 +89,13 @@ fn write_refine_change(
         super::write_file(&change_dir.join("contracts").join(file_name), &contract)?;
     }
 
+    super::suggest::write_suggested_edges(
+        &change_dir,
+        extraction,
+        "phase-9-brownfield",
+        "propose",
+    )?;
+
     Ok(())
 }
 

@@ -6,8 +6,6 @@
 //! the cflx workflow runner (`cflx trace`) remain `#[cflx_planned]` since
 //! the cflx runner is external to this repository.
 
-use cairn::cflx_planned;
-
 mod provenance_foundation {
     use cairn::provenance::{
         StageRecord, TRACE_SIDECAR_VERSION, TraceError, TraceSidecar, TraceStage, read_sidecar,
@@ -296,29 +294,64 @@ mod changes {
 }
 
 mod cli {
-    use super::cflx_planned;
 
     /// Scenario: Islands command returns whole-graph component breakdown.
     /// Library exposes islands; cairn CLI surface for `islands` lands when
     /// the Phase 7.6 CLI command is wired up alongside the spec.
-    #[cflx_planned(phase = 706)]
     #[test]
     fn test_islands_returns_component_breakdown() {
-        unimplemented!("awaits phase-7.6: cairn islands CLI command wiring");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "islands".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "islands exits zero");
+        assert!(
+            result.stdout.contains("Island"),
+            "output must contain 'Island' label, got: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("node"),
+            "output must contain node count, got: {}",
+            result.stdout
+        );
     }
 
     /// Scenario: Islands JSON output is versioned.
-    #[cflx_planned(phase = 706)]
     #[test]
     fn test_islands_json_output_is_versioned() {
-        unimplemented!("awaits phase-7.6: cairn islands JSON CLI output wiring");
+        let response = cairn::map::query::islands(&cairn::map::Graph {
+            nodes: std::collections::BTreeMap::new(),
+            names: std::collections::BTreeMap::new(),
+            outbound: std::collections::BTreeMap::new(),
+            inbound: std::collections::BTreeMap::new(),
+            findings: Vec::new(),
+        });
+        let json = serde_json::to_string(&response).expect("serialises");
+        assert!(json.contains("schema_version"),);
+        assert!(
+            json.contains(&format!("{}", cairn::map::query::ISLANDS_SCHEMA_VERSION)),
+            "schema_version should match the declared constant"
+        );
     }
 
     /// Scenario: Neighbourhood with --include-orphans surfaces reverse-only nodes.
-    #[cflx_planned(phase = 706)]
     #[test]
     fn test_neighbourhood_include_orphans_surfaces_reverse_only() {
-        unimplemented!("awaits phase-7.6: --include-orphans CLI flag wiring");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "neighbourhood".to_owned(),
+            "cairn.kernel.parser".to_owned(),
+            "--include-orphans".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "neighbourhood exits zero");
+        assert!(
+            result.stdout.contains("cairn.kernel.scanner"),
+            "output must include inbound neighbour cairn.kernel.scanner with --include-orphans, got: {}",
+            result.stdout
+        );
     }
 
     /// Scenario: Both forms (CLI and MCP) delegate to the library query.

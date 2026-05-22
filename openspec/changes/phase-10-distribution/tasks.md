@@ -18,22 +18,22 @@
 
 ## 3. Extension API
 
-- [ ] 3.1 Document the reconciler extension trait and registration flow.
-- [ ] 3.2 Add a fixture non-code reconciler.
-- [ ] 3.3 Add tests proving fixture reconciler reports flow through map, queries, and diagnostics.
+- [x] 3.1 Document the reconciler extension trait and registration flow.
+- [x] 3.2 Add a fixture non-code reconciler (test-only) demonstrating registration and observation reporting.
+- [x] 3.3 Add tests proving fixture reconciler reports flow through map, queries, and diagnostics.
 
 ## 4. Release Packaging
 
-- [ ] 4.1 Add release checks for CLI, MCP, and LSP binaries.
+- [x] 4.1 Add release checks for CLI, MCP, and LSP binaries.
 - [ ] 4.2 Generate command reference documentation.
 - [ ] 4.3 Add an example project exercising blueprint parse, artefacts, changes, hooks, MCP, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and non-code reconciler fixture observations.
 - [ ] 4.4 Add tests for packaging metadata and documented commands.
 
 ## 5. Required Verification
 
-- [ ] 5.1 `cargo build` passes with zero warnings.
-- [ ] 5.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
-- [ ] 5.3 `cargo fmt --check` passes.
-- [ ] 5.4 `cargo test` passes.
-- [ ] 5.5 `cargo test --locked` passes.
-- [ ] 5.6 `python3 .agents/skills/cflx-proposal/scripts/cflx.py validate phase-10-distribution --strict` passes.
+- [x] 5.1 `cargo build` passes with zero warnings.
+- [x] 5.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
+- [x] 5.3 `cargo fmt --check` passes.
+- [x] 5.4 `cargo test` passes.
+- [x] 5.5 `cargo test --locked` passes.
+- [x] 5.6 `python3 .claude/skills/cflx-proposal/scripts/cflx.py validate phase-10-distribution --strict` passes.

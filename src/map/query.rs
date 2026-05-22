@@ -88,16 +88,16 @@ pub struct LintResponse {
 }
 
 /// One connected component of the map graph.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct IslandResponse {
-    /// Lexicographically smallest node ID in the component.
+    /// Representative node ID (lexicographically smallest in component).
     pub representative: String,
-    /// Total number of nodes in the component.
+    /// Number of nodes in this component.
     pub node_count: usize,
 }
 
 /// Islands query result.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct IslandsResponse {
     /// Wire schema version.
     pub schema_version: u32,

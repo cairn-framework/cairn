@@ -759,6 +759,13 @@ kbd {
 .edge.dimmed {
   opacity: 0.2;
 }
+.edge-label {
+  pointer-events: none;
+  transition: opacity var(--dur-quick) var(--ease-settle);
+}
+.edge-label.dimmed {
+  opacity: 0.2;
+}
 
 /* Nodes on the canvas use a g[data-kind] wrapper so state + hover cascade */
 .canvas-node {

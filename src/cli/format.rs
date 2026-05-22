@@ -36,7 +36,7 @@ pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
     } else if findings.is_empty() {
         format!(
             "Findings:\n{}\n",
-            super::copy::lookup("empty-states.no-findings")
+            super::copy::lookup("empty-states.cli-clean-map")
         )
     } else {
         format!(
