@@ -276,7 +276,7 @@ fn render_loaded_project_command(
         "context" => Ok(render_context(scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
-        | "draft_edit" | "draft_accept" => {
+        | "draft_edit" | "draft_accept" | "summarise" => {
             return err(2, "this command currently requires --json");
         }
         "dependents" | "depends" => render_dependencies(parsed, scan_result),
@@ -525,6 +525,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "draft_discard"
             | "draft_edit"
             | "draft_accept"
+            | "summarise"
     )
 }
 
@@ -1054,6 +1055,22 @@ app.api -> app.core "reports"
             });
         assert_eq!(parsed["id"], "draft-004");
         assert_eq!(parsed["status"], "accepted");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_summarise_disabled_by_default() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("summarise-disabled")?;
+        write_project(&root)?;
+
+        let result = run_in(&root, &["--json", "summarise", "app.api"]);
+        assert_eq!(result.code, 1, "summarise json stderr: {}", result.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(result.stdout.trim()).unwrap_or_else(|e| {
+                panic!("invalid JSON from summarise --json: {e}\n{}", result.stdout)
+            });
+        assert_eq!(parsed["error"]["code"], "CAIRN_SUMMARISER_DISABLED");
 
         Ok(())
     }

@@ -5,6 +5,7 @@
 
 mod accept;
 mod backend;
+mod config;
 mod generate;
 mod prompt;
 mod request;
@@ -15,6 +16,7 @@ pub use backend::{
     DisabledBackend, FakeBackend, HostedBackend, HostedConfig, LocalCommandBackend,
     SummariserBackend, SummariserBackendError, SummariserMode,
 };
+pub use config::SummariserSettings;
 pub use generate::{GenerateError, generate};
 pub use prompt::{PromptError, build_request};
 pub use request::{CodeSample, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse};

@@ -105,6 +105,7 @@ mod tests {
                         && command.cli_name != "draft_discard"
                         && command.cli_name != "draft_edit"
                         && command.cli_name != "draft_accept"
+                        && command.cli_name != "summarise"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );

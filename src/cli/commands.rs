@@ -45,7 +45,7 @@ pub(super) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
         flags: shared_flags(&parsed.command_args),
         mutating: matches!(
             parsed.command.as_str(),
-            "scan" | "rename" | "draft_discard" | "draft_edit" | "draft_accept"
+            "scan" | "rename" | "draft_discard" | "draft_edit" | "draft_accept" | "summarise"
         ),
     }
 }

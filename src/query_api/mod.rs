@@ -241,6 +241,7 @@ pub fn error_json(error: &QueryError) -> Value {
         "remediation": error.remediation,
     })
 }
+#[allow(clippy::too_many_lines)] // Reason: query dispatch hub for many tools
 fn execute_data(
     root: &Path,
     blueprint_path: &Path,
@@ -288,6 +289,98 @@ fn execute_data(
         }
         "sources" => sources_response_json(&scan_result, required(request.node.as_ref(), "node")?),
         "hook" => hook_json(root, changes_dir, &scan_result, request),
+        "summarise" => {
+            let node_id = required(request.node.as_ref(), "node")?;
+            let settings =
+                crate::summariser::SummariserSettings::load(root).map_err(|e| QueryError {
+                    code: "CAIRN_SUMMARISER_CONFIG_ERROR".to_owned(),
+                    message: e,
+                    source_span: None,
+                    remediation: None,
+                })?;
+            let backend: Box<dyn crate::summariser::SummariserBackend> = match &settings.mode {
+                crate::summariser::SummariserMode::Disabled => {
+                    return Err(QueryError {
+                        code: "CAIRN_SUMMARISER_DISABLED".to_owned(),
+                        message: "summariser is disabled in cairn.config.yaml".to_owned(),
+                        source_span: None,
+                        remediation: Some(
+                            "set summariser.mode to local_command or hosted_api".to_owned(),
+                        ),
+                    });
+                }
+                crate::summariser::SummariserMode::LocalCommand { command, args, .. } => Box::new(
+                    crate::summariser::LocalCommandBackend::new(command.clone(), args.clone()),
+                ),
+                crate::summariser::SummariserMode::Hosted { adapter } => {
+                    let config = crate::summariser::HostedConfig {
+                        adapter: adapter.clone(),
+                        base_url: None,
+                        timeout_ms: None,
+                    };
+                    Box::new(crate::summariser::HostedBackend::new(config))
+                }
+            };
+            let prompt_request = crate::summariser::build_request(
+                node_id,
+                "contract",
+                &format!(
+                    "draft-{}",
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_nanos()
+                ),
+                &scan_result.graph,
+                loaded_config,
+                root,
+                &scan_result.contracts,
+                settings.max_prompt_bytes,
+                settings.max_sample_bytes_per_file,
+            )
+            .map_err(|e| QueryError {
+                code: "CAIRN_SUMMARISER_PROMPT_ERROR".to_owned(),
+                message: e.to_string(),
+                source_span: None,
+                remediation: None,
+            })?;
+            let timeout = std::time::Duration::from_millis(settings.timeout_ms);
+            let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
+            let draft_id = format!(
+                "draft-{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            );
+            let created_at = {
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap();
+                format!(
+                    "{}T{:02}:{:02}:{:02}Z",
+                    "2024-01-15",
+                    (now.as_secs() / 3600) % 24,
+                    (now.as_secs() / 60) % 60,
+                    now.as_secs() % 60
+                )
+            };
+            let result = crate::summariser::generate(
+                backend.as_ref(),
+                &prompt_request,
+                timeout,
+                &store,
+                &draft_id,
+                &created_at,
+            )
+            .map_err(|e| QueryError {
+                code: "CAIRN_SUMMARISER_GENERATION_FAILED".to_owned(),
+                message: e.to_string(),
+                source_span: None,
+                remediation: None,
+            })?;
+            Ok(json!({ "id": result, "status": "pending" }))
+        }
         _ => Err(QueryError {
             code: "CAIRN_QUERY_UNIMPLEMENTED_TOOL".to_owned(),
             message: format!("tool `{}` is registered but not implemented", request.tool),
