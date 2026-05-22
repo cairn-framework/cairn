@@ -4,6 +4,7 @@
 //! future commits.
 
 mod backend;
+mod generate;
 mod request;
 mod store;
 
@@ -11,6 +12,7 @@ pub use backend::{
     DisabledBackend, FakeBackend, HostedBackend, HostedConfig, LocalCommandBackend,
     SummariserBackend, SummariserBackendError, SummariserMode,
 };
+pub use generate::{GenerateError, generate};
 pub use request::{NodeContext, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse};
 pub use store::{
     AcceptedDraft, DRAFT_SCHEMA_VERSION, DiscardedDraft, Draft, DraftHeader, DraftStore,
