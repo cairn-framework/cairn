@@ -431,20 +431,52 @@ mod review {
 }
 
 mod mcp {
-    use super::cflx_planned;
+    use serde_json::Value;
+
+    fn tool_names(response: &Value) -> Vec<&str> {
+        response["result"]["tools"]
+            .as_array()
+            .expect("tools array")
+            .iter()
+            .map(|t| t["name"].as_str().expect("tool name"))
+            .collect()
+    }
 
     /// Scenario: Brownfield tools absent in default (read-only) MCP mode.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_mcp__brownfield_tools_absent_in_default_mode() {
-        unimplemented!("awaits phase-9: mcp brownfield tools absent in default mode");
+        let config = cairn::mcp::ServerConfig::default();
+        let response =
+            cairn::mcp::handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#, &config);
+        let names = tool_names(&response);
+        assert!(
+            !names.contains(&"cairn_init_from_code"),
+            "cairn_init_from_code must not be listed in default mode"
+        );
+        assert!(
+            !names.contains(&"cairn_refine"),
+            "cairn_refine must not be listed in default mode"
+        );
     }
 
     /// Scenario: Brownfield tools present in mutating MCP mode.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_mcp__brownfield_tools_present_in_mutating_mode() {
-        unimplemented!("awaits phase-9: mcp brownfield tools present in mutating mode");
+        let config = cairn::mcp::ServerConfig {
+            allow_mutating_tools: true,
+            ..cairn::mcp::ServerConfig::default()
+        };
+        let response =
+            cairn::mcp::handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#, &config);
+        let names = tool_names(&response);
+        assert!(
+            names.contains(&"cairn_init_from_code"),
+            "cairn_init_from_code must be listed in mutating mode"
+        );
+        assert!(
+            names.contains(&"cairn_refine"),
+            "cairn_refine must be listed in mutating mode"
+        );
     }
 }
 
