@@ -2323,6 +2323,79 @@ button.path-row:hover {
   }
 }
 
+@media (max-width: 480px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .inspector-wrap {
+    position: fixed;
+    inset: auto 0 0 0;
+    max-height: 65vh;
+    border-top: 1px solid var(--seam-thin);
+    border-left: 0;
+    z-index: 50;
+    transform: translateY(0);
+    transition: transform var(--dur-quick) var(--ease-settle);
+  }
+
+  .inspector-wrap[aria-hidden="true"] {
+    transform: translateY(100%);
+  }
+
+  .topbar {
+    min-height: 48px;
+  }
+
+  .tool-btn,
+  .graph-zoom button,
+  .drawer-handle,
+  .graph-sort select,
+  .ins-section-head,
+  .pill,
+  .dep-row,
+  .artefact,
+  .path-row,
+  .recent-row,
+  .result-row,
+  .change-card {
+    min-height: 44px;
+  }
+
+  .graph-zoom {
+    gap: var(--s-2);
+  }
+
+  .graph-zoom button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--s-2);
+  }
+
+  .cmd-trigger {
+    height: 44px;
+  }
+
+  .findings-panel .findings-controls {
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+
+  .findings-panel .scope-toggle button {
+    min-height: 36px;
+    padding: var(--s-2) var(--s-3);
+  }
+
+  .modal-scrim {
+    padding: var(--s-3);
+  }
+
+  .cmd-palette {
+    max-height: 90vh;
+  }
+}
+
 /* --------------------------------------------------------------------------
    8. Motion rules (reduced motion)
    tokens.css already zeroes --dur-*, this guards keyframe animations that
