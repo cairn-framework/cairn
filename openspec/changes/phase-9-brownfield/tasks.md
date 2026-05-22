@@ -27,8 +27,8 @@
 
 - [x] 4.1 Implement `cairn refine` against an existing blueprint.
 - [x] 4.2 Generate delta operations instead of a full blueprint replacement.
-- [ ] 4.3 Detect likely renames from path and similarity evidence.
-- [ ] 4.4 Add tests for additions, removals, modifications, and renames.
+- [x] 4.3 Detect likely renames from path and similarity evidence.
+- [x] 4.4 Add tests for additions, removals, modifications, and renames.
 
 ## 5. Suggest Engine (Wave 4 rescope, absorbs C8.c)
 

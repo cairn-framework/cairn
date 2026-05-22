@@ -210,6 +210,40 @@ mod refine {
         assert!(root.join("openspec/changes").join(&first).exists());
         assert!(root.join("openspec/changes").join(&second).exists());
     }
+
+    /// Scenario: Refine detects a renamed directory.
+    #[test]
+    fn test_refine__detects_renamed_directory() {
+        let root = temp_repo("refine-rename");
+        populate_source_dir(&root, "src/core", 3);
+
+        // Create a minimal blueprint with a node for src/core.
+        let blueprint = r#"System App "App" id "app" {
+    Module Core "Core" id "app.core" {
+        path "src/core"
+    }
+}"#;
+        std::fs::write(root.join("cairn.blueprint"), blueprint).unwrap();
+
+        // Rename the directory on disk.
+        std::fs::rename(root.join("src/core"), root.join("src/kernel")).unwrap();
+        populate_source_dir(&root, "src/kernel", 3);
+
+        let result = bf_refine::run_refine(&root);
+        assert!(result.is_ok(), "refine failed: {result:?}");
+        let change_id = result.unwrap();
+        let delta_path = root
+            .join("openspec/changes")
+            .join(&change_id)
+            .join("blueprint.delta");
+        let delta = std::fs::read_to_string(&delta_path).expect("read delta");
+
+        // The delta should mention the rename from app.core to src.kernel.
+        assert!(
+            delta.contains("app.core") && delta.contains("src.kernel"),
+            "delta should detect rename from app.core to src.kernel, got:\n{delta}"
+        );
+    }
 }
 
 mod discovery_tests {
