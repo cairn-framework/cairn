@@ -129,7 +129,17 @@ pub fn run(args: &[String]) -> CliResult {
         return run_onboard_command(&parsed);
     }
     if parsed.command == "watch" {
-        return run_watch_command(project_root);
+        let opts = match crate::watch::WatchOpts::from_args(&parsed.command_args) {
+            Ok(o) => o,
+            Err(e) => {
+                return CliResult {
+                    code: 1,
+                    stdout: String::new(),
+                    stderr: format!("watch: {e}"),
+                };
+            }
+        };
+        return run_watch_command(project_root, &opts);
     }
 
     if parsed.command == "change" {

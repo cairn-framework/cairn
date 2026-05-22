@@ -6,6 +6,58 @@
 use crate::map::graph::Finding;
 use serde::Serialize;
 use std::collections::BTreeMap;
+/// Configuration for the watch loop.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WatchOpts {
+    /// Seconds between scans.
+    pub interval_secs: u64,
+    /// Run one scan and exit instead of looping.
+    pub once: bool,
+}
+
+impl Default for WatchOpts {
+    fn default() -> Self {
+        Self {
+            interval_secs: 5,
+            once: false,
+        }
+    }
+}
+
+impl WatchOpts {
+    /// Parse watch options from raw CLI arguments.
+    ///
+    /// # Errors
+    ///
+    /// Returns a descriptive string on invalid `--interval` values.
+    pub fn from_args(args: &[String]) -> Result<Self, String> {
+        let mut opts = Self::default();
+        let mut i = 0;
+        while i < args.len() {
+            match args[i].as_str() {
+                "--interval" => {
+                    let value = args.get(i + 1).ok_or("--interval requires a value")?;
+                    let secs: u64 = value
+                        .parse()
+                        .map_err(|_| format!("invalid interval: {value}"))?;
+                    if secs == 0 {
+                        return Err("interval must be at least 1 second".to_owned());
+                    }
+                    opts.interval_secs = secs;
+                    i += 2;
+                }
+                "--once" => {
+                    opts.once = true;
+                    i += 1;
+                }
+                _ => {
+                    i += 1;
+                }
+            }
+        }
+        Ok(opts)
+    }
+}
 
 /// Event emitted when the finding set changes between scans.
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -231,5 +283,53 @@ mod tests {
         // Days from 1970-01-01 to 2026-01-01 = 20454
         let secs = 20454 * 86400;
         assert_eq!(unix_to_datetime(secs), (2026, 1, 1, 0, 0, 0));
+    }
+
+    #[test]
+    fn watch_opts_defaults() {
+        let opts = WatchOpts::from_args(&[]).unwrap();
+        assert_eq!(opts.interval_secs, 5);
+        assert!(!opts.once);
+    }
+
+    #[test]
+    fn watch_opts_interval() {
+        let opts = WatchOpts::from_args(&["--interval".to_owned(), "10".to_owned()]).unwrap();
+        assert_eq!(opts.interval_secs, 10);
+        assert!(!opts.once);
+    }
+
+    #[test]
+    fn watch_opts_once() {
+        let opts = WatchOpts::from_args(&["--once".to_owned()]).unwrap();
+        assert_eq!(opts.interval_secs, 5);
+        assert!(opts.once);
+    }
+
+    #[test]
+    fn watch_opts_interval_and_once() {
+        let opts =
+            WatchOpts::from_args(&["--interval".to_owned(), "3".to_owned(), "--once".to_owned()])
+                .unwrap();
+        assert_eq!(opts.interval_secs, 3);
+        assert!(opts.once);
+    }
+
+    #[test]
+    fn watch_opts_rejects_zero_interval() {
+        let err = WatchOpts::from_args(&["--interval".to_owned(), "0".to_owned()]).unwrap_err();
+        assert!(err.contains("at least 1 second"));
+    }
+
+    #[test]
+    fn watch_opts_rejects_invalid_interval() {
+        let err = WatchOpts::from_args(&["--interval".to_owned(), "abc".to_owned()]).unwrap_err();
+        assert!(err.contains("invalid interval"));
+    }
+
+    #[test]
+    fn watch_opts_rejects_missing_interval_value() {
+        let err = WatchOpts::from_args(&["--interval".to_owned()]).unwrap_err();
+        assert!(err.contains("requires a value"));
     }
 }
