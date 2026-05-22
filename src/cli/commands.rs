@@ -158,6 +158,7 @@ pub(super) fn parse_hook_kind(value: &str) -> Option<HookKind> {
         "structural" => Some(HookKind::Structural),
         "interface" => Some(HookKind::Interface),
         "tension" => Some(HookKind::Tension),
+        "architecture-decision" => Some(HookKind::ArchitectureDecision),
         "all" => Some(HookKind::All),
         _ => None,
     }

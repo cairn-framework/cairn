@@ -232,6 +232,7 @@ pub(super) const fn hook_kind_name(kind: HookKind) -> &'static str {
         HookKind::Structural => "structural",
         HookKind::Interface => "interface",
         HookKind::Tension => "tension",
+        HookKind::ArchitectureDecision => "architecture-decision",
         HookKind::All => "all",
     }
 }

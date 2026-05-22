@@ -29,6 +29,24 @@ Reports: orphan sources, research not linked from decisions, decision cite chain
 **Exit codes:**
 - `0`: always (tensions are advisory, not blocking)
 
+
+### `cairn hook architecture-decision`
+
+Blocks on blueprint architectural mutations that lack a paired decision artefact.
+Fires when a commit adds a module, removes a module, or reassigns a module
+across containers without a decision in `meta/decisions/` referencing the
+changed node ID in `affects:` frontmatter.
+
+Ignored changes (non-events): path renames within the same container,
+reordering modules, casing fixes.
+
+Escape hatch: add `# decision: trivial` as a comment line in
+`cairn.blueprint` to bypass the gate for genuinely trivial changes.
+
+**Exit codes:**
+- `0`: no unpaired architectural mutations
+- `1`: one or more mutations lack a paired decision (blocks commit)
+
 ### `cairn hook all`
 
 Combined semantics. Runs structural and interface checks. Reports tensions.
@@ -98,6 +116,7 @@ The script `scripts/cairn-hook.sh` is provided for environments where `cairn` ma
 | `cairn hook structural` | No structural errors | Structural errors found |
 | `cairn hook interface` | No interface contradictions | Interface contradictions found |
 | `cairn hook tension` | Always (advisory only) | Never |
+| `cairn hook architecture-decision` | No unpaired mutations | Mutations lack paired decision |
 | `cairn hook all` | No errors or contradictions | Errors or contradictions found |
 
 ## Output format

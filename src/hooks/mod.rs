@@ -7,6 +7,7 @@ use std::{
     time::Instant,
 };
 
+mod architecture;
 mod render;
 
 pub use render::{render_human, render_json};
@@ -25,6 +26,8 @@ pub enum HookKind {
     Interface,
     /// Reports rationale tensions without blocking.
     Tension,
+    /// Blocks on blueprint architectural mutations lacking paired decisions.
+    ArchitectureDecision,
     /// Runs all hook classes with combined blocking semantics.
     All,
 }
@@ -80,6 +83,7 @@ pub fn run(
     let interface = interface_findings(root, &scan_result.target_hashes);
     let tensions = tension_findings(&lint_findings);
     let conflict_findings = detect_active_change_conflicts(changes_dir);
+    let architecture = architecture::architecture_findings_from_project(root);
     let findings = match kind {
         HookKind::Structural => structural
             .iter()
@@ -88,20 +92,26 @@ pub fn run(
             .collect(),
         HookKind::Interface => interface.clone(),
         HookKind::Tension => tensions.clone(),
+        HookKind::ArchitectureDecision => architecture.clone(),
         HookKind::All => structural
             .iter()
             .cloned()
             .chain(interface.iter().cloned())
             .chain(tensions.iter().cloned())
             .chain(conflict_findings.iter().cloned())
+            .chain(architecture.iter().cloned())
             .collect(),
     };
     let blocks = match kind {
         HookKind::Structural => !structural.is_empty() || !conflict_findings.is_empty(),
         HookKind::Interface => !interface.is_empty(),
         HookKind::Tension => false,
+        HookKind::ArchitectureDecision => !architecture.is_empty(),
         HookKind::All => {
-            !structural.is_empty() || !interface.is_empty() || !conflict_findings.is_empty()
+            !structural.is_empty()
+                || !interface.is_empty()
+                || !conflict_findings.is_empty()
+                || !architecture.is_empty()
         }
     };
     HookReport {

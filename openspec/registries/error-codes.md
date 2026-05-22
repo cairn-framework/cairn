@@ -57,7 +57,7 @@ _No codes allocated yet._
 
 ## CH -- Hooks
 
-_No codes allocated yet._
+- CH001 -- blueprint architectural mutation lacks paired decision artefact -- issue #68
 
 ## CE -- Edges
 

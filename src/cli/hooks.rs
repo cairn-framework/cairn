@@ -213,6 +213,13 @@ pub fn determine_exit_decision(
             }
         }
         HookKind::Tension => ExitDecision::Pass,
+        HookKind::ArchitectureDecision => {
+            if has_errors {
+                ExitDecision::Fail
+            } else {
+                ExitDecision::Pass
+            }
+        }
         HookKind::All => {
             if has_errors || has_conflicts {
                 ExitDecision::Fail
