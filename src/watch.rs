@@ -51,7 +51,7 @@ impl WatchOpts {
                     i += 1;
                 }
                 _ => {
-                    i += 1;
+                    return Err(format!("unknown flag: {}", args[i]));
                 }
             }
         }
@@ -331,5 +331,14 @@ mod tests {
     fn watch_opts_rejects_missing_interval_value() {
         let err = WatchOpts::from_args(&["--interval".to_owned()]).unwrap_err();
         assert!(err.contains("requires a value"));
+    }
+
+    #[test]
+    fn watch_opts_rejects_unknown_flags() {
+        let err = WatchOpts::from_args(&["--interavl".to_owned(), "10".to_owned()]).unwrap_err();
+        assert!(
+            err.contains("unknown flag"),
+            "error should mention unknown flag, got: {err}"
+        );
     }
 }
