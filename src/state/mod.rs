@@ -985,29 +985,43 @@ mod tests {
         assert_eq!(loaded.unwrap().id, "x");
         backend.remove(&key).unwrap();
     }
+    /// Initialise a throw-away beads database in a temporary directory.
+    ///
+    /// The returned `TempDir` keeps the directory alive for the duration of
+    /// the test; it is deleted automatically on drop, so no manual `bd delete`
+    /// cleanup is needed.
+    fn temp_beads_root() -> (BeadsStateBackend, tempfile::TempDir) {
+        let dir = tempfile::TempDir::new().expect("create temp dir");
+        let status = std::process::Command::new("bd")
+            .current_dir(dir.path())
+            .arg("init")
+            .arg("--non-interactive")
+            .arg("--prefix")
+            .arg("cairn")
+            .arg("--skip-agents")
+            .arg("--skip-hooks")
+            .status()
+            .expect("bd init failed to launch");
+        assert!(status.success(), "bd init must succeed in temp dir");
+        let backend = BeadsStateBackend::new(dir.path().to_path_buf());
+        (backend, dir)
+    }
+
     #[test]
     fn beads_create_change_epic_returns_bead_id() {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let backend = BeadsStateBackend::new(root);
-        let change_id = format!("test-epic-{}", std::process::id());
-        let bead_id = backend.create_change_epic(&change_id).unwrap();
+        let (backend, _dir) = temp_beads_root();
+        let bead_id = backend.create_change_epic("my-change").unwrap();
         assert!(!bead_id.is_empty(), "bead ID must not be empty");
         assert!(
             bead_id.starts_with("cairn-"),
             "bead ID should start with cairn- prefix, got: {bead_id}"
         );
-        let _ = std::process::Command::new("bd")
-            .arg("delete")
-            .arg(&bead_id)
-            .arg("--force")
-            .output();
     }
+
     #[test]
     fn beads_create_task_beads_returns_bead_ids() {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let backend = BeadsStateBackend::new(root);
-        let change_id = format!("test-tasks-{}", std::process::id());
-        let epic_id = backend.create_change_epic(&change_id).unwrap();
+        let (backend, _dir) = temp_beads_root();
+        let epic_id = backend.create_change_epic("my-change").unwrap();
         let task_ids = backend
             .create_task_beads(&epic_id, &["First task", "Second task"])
             .unwrap();
@@ -1018,66 +1032,26 @@ mod tests {
                 "task bead ID should start with cairn-"
             );
         }
-        for id in task_ids {
-            let _ = std::process::Command::new("bd")
-                .arg("delete")
-                .arg(&id)
-                .arg("--force")
-                .output();
-        }
-        let _ = std::process::Command::new("bd")
-            .arg("delete")
-            .arg(&epic_id)
-            .arg("--force")
-            .output();
     }
 
     #[test]
     fn beads_list_child_tasks_returns_task_titles() {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let backend = BeadsStateBackend::new(root);
-        let change_id = format!("test-list-{}", std::process::id());
-        let epic_id = backend.create_change_epic(&change_id).unwrap();
-        let task_ids = backend
+        let (backend, _dir) = temp_beads_root();
+        let epic_id = backend.create_change_epic("my-change").unwrap();
+        backend
             .create_task_beads(&epic_id, &["Alpha", "Beta"])
             .unwrap();
         let tasks = backend.list_child_tasks(&epic_id).unwrap();
         assert_eq!(tasks.len(), 2, "expected 2 child tasks");
-        for id in task_ids {
-            let _ = std::process::Command::new("bd")
-                .arg("delete")
-                .arg(&id)
-                .arg("--force")
-                .output();
-        }
-        let _ = std::process::Command::new("bd")
-            .arg("delete")
-            .arg(&epic_id)
-            .arg("--force")
-            .output();
     }
 
     #[test]
     fn beads_claim_change_succeeds() {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let backend = BeadsStateBackend::new(root);
-        let change_id = format!("test-claim-{}", std::process::id());
-        let epic_id = backend.create_change_epic(&change_id).unwrap();
-        let task_ids = backend
+        let (backend, _dir) = temp_beads_root();
+        let epic_id = backend.create_change_epic("my-change").unwrap();
+        backend
             .create_task_beads(&epic_id, &["One", "Two"])
             .unwrap();
         backend.claim_change(&epic_id).unwrap();
-        for id in task_ids {
-            let _ = std::process::Command::new("bd")
-                .arg("delete")
-                .arg(&id)
-                .arg("--force")
-                .output();
-        }
-        let _ = std::process::Command::new("bd")
-            .arg("delete")
-            .arg(&epic_id)
-            .arg("--force")
-            .output();
     }
 }
