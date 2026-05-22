@@ -61,10 +61,10 @@
 
 ## 9. Documentation
 
-- [ ] 9.1 Document human review workflow for generated brownfield changes.
-- [ ] 9.2 Document confidence scores and evidence paths.
+- [x] 9.1 Document human review workflow for generated brownfield changes.
+- [x] 9.2 Document confidence scores and evidence paths.
 - [x] 9.3 Register `init --from-code` and `refine` in the shared MCP query tool registry as mutating tools.
-- [ ] 9.4 Document limitations of architecture inference.
+- [x] 9.4 Document limitations of architecture inference.
 - [ ] 9.5 Document the suggest engine's queue-file contract, the interview runner's resume semantics, and the templated authoring precedence rule.
 
 ## 10. Required Verification
