@@ -83,6 +83,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn hook interface` | Run interface verification hook |
 | `cairn hook tension` | Run tension verification hook (advisory) |
 | `cairn hook all` | Run all verification hooks |
+| `cairn hook architecture-decision` | Run architecture decision gate |
 
 ### Summariser and drafts (JSON-only)
 

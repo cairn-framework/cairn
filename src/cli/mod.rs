@@ -640,6 +640,7 @@ mod tests {
             ("sources", vec!["sources", "app.api"]),
             ("rationale", vec!["rationale", "app.api"]),
             ("status", vec!["status"]),
+            ("context", vec!["context"]),
             ("dependents", vec!["dependents", "app.api"]),
             ("depends", vec!["depends", "app.api"]),
             ("contract", vec!["contract", "app.api"]),

@@ -91,6 +91,7 @@ Error responses from the MCP/query path:
 | `structural` | Orphaned files, ghost files, missing paths | Pre-commit |
 | `interface` | Interface hash changes | Pre-commit for API-sensitive repos |
 | `tension` | Never (advisory) | Surface warnings post-merge |
+| `architecture-decision` | Blueprint mutations without paired decisions | Pre-commit for architecture changes |
 | `all` | All error-severity findings | CI gate |
 
 ## Subscription primitive
