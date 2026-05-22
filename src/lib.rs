@@ -37,6 +37,8 @@ pub mod query_api;
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
+/// SSE event consumer for orchestrator integration spikes.
+pub mod sse;
 /// Pluggable state persistence backend.
 pub mod state;
 /// Suggested-edges queue: mutable triage workflows for AI-suggested graph edges.
