@@ -42,8 +42,16 @@ Mutation-capable tools are hidden unless `--allow-mutating-tools` is passed:
 - `cairn_scan`
 - `cairn_archive`
 - `cairn_rename`
+- `cairn_init_from_code`
+- `cairn_refine`
+- `cairn_summarise`
+- `cairn_draft_accept`
+- `cairn_draft_edit`
+- `cairn_draft_discard`
 
-Mutating tool calls must also pass `"mutating": true` in their arguments.
+Mutating tool calls must also pass `"mutating": true` in their arguments. Some tools accept additional flags:
+
+- `cairn_draft_accept` accepts `"edited": true` to apply the editable draft file instead of the generated text.
 
 ## Response Schema
 

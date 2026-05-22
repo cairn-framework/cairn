@@ -30,7 +30,7 @@
 - [x] 4.1 Implement `summarise`, `drafts`, `draft show`, `draft accept`, `draft accept --edited`, `draft edit`, and `draft discard`.
 - [x] 4.2 Add JSON schemas and output snapshots.
 - [x] 4.3 Register summariser and draft commands in the shared MCP query tool registry with correct read-only versus mutating safety classes.
-- [ ] 4.4 Document backend configuration, safety model, MCP exposure, and resolution actions.
+- [x] 4.4 Document backend configuration, safety model, MCP exposure, and resolution actions.
 
 ## 5. Required Verification
 
