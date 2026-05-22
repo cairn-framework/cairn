@@ -71,11 +71,11 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     // Copy data served as valid JSON with expected structure.
     let parsed: serde_json::Value =
         serde_json::from_str(&copy_json).expect("/assets/copy.json must return valid JSON");
-    assert!(
-        parsed["empty-states"]["no-findings"].is_string(),
-        "copy.json must contain empty-states.no-findings"
-    );
 
+    assert!(
+        parsed["empty-states"]["no-findings"]["body"].is_string(),
+        "copy.json must contain empty-states.no-findings.body"
+    );
     // Vendored runtime delivered alongside static assets.
     assert!(preact.contains("self.preact"));
     assert!(htm.contains("self.htm"));

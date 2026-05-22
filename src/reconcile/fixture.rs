@@ -36,6 +36,7 @@ impl Reconciler for FixtureReconciler {
             severity: FindingSeverity::Info,
             message: format!("Fixture reconciler '{}' observed state", self.id),
             node: Some("fixture.observation".to_owned()),
+            target: None,
             path: None,
         }];
 

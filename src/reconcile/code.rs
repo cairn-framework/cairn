@@ -67,6 +67,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                     severity: FindingSeverity::Info,
                     message: format!("Rust file `{rel}` is not owned by any eligible node"),
                     node: None,
+                    target: None,
                     path: Some(rel),
                 });
             }

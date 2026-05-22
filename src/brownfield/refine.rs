@@ -24,7 +24,8 @@ const CHANGE_ID_PREFIX: &str = "brownfield-refine";
 pub fn run_refine(root: &Path) -> Result<String, CairnError> {
     let extraction = super::discovery::discover(root)?;
     let change_id = unique_change_id(root, &timestamp())?;
-    write_refine_change(root, &change_id, &extraction)?;
+    let templates = super::templates::load_templates(root);
+    write_refine_change(root, &change_id, &extraction, &templates)?;
     Ok(change_id)
 }
 
@@ -68,6 +69,7 @@ fn write_refine_change(
     root: &Path,
     change_id: &str,
     extraction: &Extraction,
+    templates: &[super::templates::ContractTemplate],
 ) -> Result<(), CairnError> {
     let change_dir = root.join("openspec/changes").join(change_id);
     super::create_dir(&change_dir)?;
@@ -84,7 +86,7 @@ fn write_refine_change(
     super::write_file(&change_dir.join("blueprint.delta"), &delta)?;
 
     for candidate in &extraction.candidates {
-        let contract = super::stub_contract(candidate);
+        let contract = super::templates::render_stub(candidate, templates);
         let file_name = format!("{}.md", candidate.id.replace('.', "_"));
         super::write_file(&change_dir.join("contracts").join(file_name), &contract)?;
     }

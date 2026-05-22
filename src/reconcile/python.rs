@@ -57,6 +57,7 @@ impl Reconciler for PythonReconciler<'_> {
                     severity: FindingSeverity::Info,
                     message: format!("Python file `{rel}` is not owned by any eligible node"),
                     node: None,
+                    target: None,
                     path: Some(rel),
                 });
             }

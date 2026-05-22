@@ -33,7 +33,7 @@ mod render;
 
 use commands::{
     init_project, legacy_blueprint_warning, requires_valid_map, run_archive_command,
-    run_hook_command, run_onboard_command, run_shared_json_command, run_ui_command,
+    run_change_new, run_hook_command, run_onboard_command, run_shared_json_command, run_ui_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -66,6 +66,9 @@ pub const fn registry() -> &'static [CommandMetadata] {
 
 /// Executes CLI arguments.
 #[must_use]
+// Reason: CLI dispatch hub for many subcommands; natural seam is per-command
+// modules which already exist for newer commands.
+#[allow(clippy::too_many_lines)]
 pub fn run(args: &[String]) -> CliResult {
     if args == ["--version"] {
         return ok(format!("{}\n", version_label()));
@@ -121,6 +124,10 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "onboard" {
         return run_onboard_command(&parsed);
     }
+
+    if parsed.command == "change" {
+        return run_change_command(&parsed, project_root);
+    }
     if parsed.command == "check" && !parsed.file.exists() {
         // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
         // warning that run_project_command emits at line 145-148.
@@ -144,6 +151,7 @@ pub fn run(args: &[String]) -> CliResult {
                             "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`"
                                 .to_owned(),
                         node: None,
+                        target: None,
                         path: None,
                     })
                 ));
@@ -156,26 +164,41 @@ pub fn run(args: &[String]) -> CliResult {
         }
         if parsed.json {
             return ok(format!(
-                "{{\"command\":\"check\",\"status\":\"error\",\"data\":{{\"findings\":[{}]}}}}\n",
+                "{{\"command\":\"check\",\"status\":\"ok\",\"data\":{{\"findings\":[{}]}}}}\n",
                 finding_json(&Finding {
                     code: "CAIRN_NO_BLUEPRINT".to_owned(),
                     severity: FindingSeverity::Info,
                     message: "no cairn.blueprint found; run `cairn init` to create one".to_owned(),
                     node: None,
+                    target: None,
                     path: None,
                 })
             ));
         }
-        return ok(format!(
-            "{}\n",
-            copy::lookup("empty-states.cli-no-blueprint")
-        ));
+
+        let body = copy::lookup("empty-states.cli-no-blueprint.body");
+        let cta = copy::lookup("empty-states.cli-no-blueprint.cta");
+        return ok(format!("{body}\n{cta}\n"));
     }
     run_project_command(&parsed)
 }
 
+fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
+    let subcommand = parsed.command_args.get(1).map(String::as_str);
+    let change_id = parsed.command_args.get(2).map(String::as_str);
+    match subcommand {
+        Some("new") => {
+            let Some(id) = change_id else {
+                return err(1, "usage: cairn change new <change-id>");
+            };
+            run_change_new(project_root, id)
+        }
+        _ => err(1, "usage: cairn change new <change-id>"),
+    }
+}
 struct ParsedArgs {
     json: bool,
+    strict: bool,
     file: PathBuf,
     changes_dir: PathBuf,
     command: String,
@@ -184,13 +207,17 @@ struct ParsedArgs {
 
 fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let mut json = false;
+
+    let mut strict = false;
     let mut file = PathBuf::from("cairn.blueprint");
     let mut changes_dir = PathBuf::from("meta/changes");
     let mut command_args = Vec::new();
     let mut iter = args.iter();
+
     while let Some(arg) = iter.next() {
         match arg.as_str() {
             "--json" => json = true,
+            "--strict" => strict = true,
             "--file" => {
                 let Some(value) = iter.next() else {
                     return Err(err(2, "--file requires a path"));
@@ -209,15 +236,16 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let Some(command) = command_args.first().map(String::as_str) else {
         return Err(err(2, copy::lookup("errors.usage")));
     };
+
     Ok(ParsedArgs {
         json,
+        strict,
         file,
         changes_dir,
         command: command.to_owned(),
         command_args,
     })
 }
-
 fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     let root = parsed
         .file
@@ -322,14 +350,22 @@ fn render_loaded_project_command(
             }),
             Err(findings) => return findings_output(parsed.json, &findings),
         },
+
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
-            let code = u8::from(
-                response
-                    .findings
-                    .iter()
-                    .any(|finding| finding.severity == FindingSeverity::Error),
-            );
+            let has_error = response
+                .findings
+                .iter()
+                .any(|finding| finding.severity == FindingSeverity::Error);
+            let has_warning = response
+                .findings
+                .iter()
+                .any(|finding| finding.severity == FindingSeverity::Warning);
+            let code = if parsed.strict {
+                u8::from(has_error || has_warning)
+            } else {
+                u8::from(has_error)
+            };
             let stdout = render_findings(&response.findings, parsed.json);
             return CliResult {
                 code,
@@ -381,7 +417,7 @@ fn render_loaded_project_command(
 }
 
 /// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard", "refine"];
+const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "change", "check", "export", "onboard", "refine"];
 
 /// MCP-only tools that should not appear in CLI command lists.
 const MCP_ONLY_TOOLS: &[&str] = &["init_from_code"];
@@ -407,6 +443,7 @@ fn command_description(name: &str) -> &'static str {
     match name {
         "accept" => "Run acceptance gate for a change",
         "archive" => "Archive a completed change",
+        "change" => "Scaffold a new change directory",
         "changes" => "List active changes",
         "check" => "Inspect findings for a node or project",
         "context" => "Structured project overview for agents",
@@ -433,6 +470,12 @@ fn command_description(name: &str) -> &'static str {
         "show" => "Show details of a change",
         "sources" => "List sources linked to a node",
         "status" => "Show project status summary",
+        "summarise" => "Generate a contract summary for a node",
+        "drafts" => "List pending draft proposals",
+        "draft_show" => "Show a draft proposal",
+        "draft_discard" => "Discard a draft proposal",
+        "draft_edit" => "Open a draft in your editor",
+        "draft_accept" => "Accept a draft and apply it",
         "todos" => "List todos linked to a node",
         "ui" => "Launch the web UI",
         _ => "",

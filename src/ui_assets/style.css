@@ -1874,6 +1874,17 @@ button.path-row:hover {
   white-space: pre-wrap;
 }
 
+.prose-nudge-cta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.copy-btn {
+  flex-shrink: 0;
+  padding: 2px var(--s-2);
+  font-size: var(--t-micro);
+}
+
 /* --------------------------------------------------------------------------
    5. Changes drawer
    -------------------------------------------------------------------------- */

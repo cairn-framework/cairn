@@ -46,6 +46,7 @@ pub fn run_init_from_code(root: &Path, force: bool) -> Result<String, CairnError
         })?;
     }
     let extraction = super::discovery::discover(root)?;
-    write_change(root, CHANGE_ID, &extraction)?;
+    let templates = super::templates::load_templates(root);
+    write_change(root, CHANGE_ID, &extraction, &templates)?;
     Ok(CHANGE_ID.to_owned())
 }

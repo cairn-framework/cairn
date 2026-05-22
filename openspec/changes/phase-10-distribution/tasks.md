@@ -12,8 +12,8 @@
 
 ## 2. Plugin and Agent Packaging
 
-- [ ] 2.1 Document Claude Code integration using CLI and MCP.
-- [ ] 2.2 Add example agent prompts grounded in Cairn queries.
+- [x] 2.1 Document Claude Code integration using CLI and MCP.
+- [x] 2.2 Add example agent prompts grounded in Cairn queries.
 - [ ] 2.3 Document installation and startup for `cairn`, `cairn-mcp`, and `cairn-lsp`.
 
 ## 3. Extension API
@@ -25,9 +25,9 @@
 ## 4. Release Packaging
 
 - [x] 4.1 Add release checks for CLI, MCP, and LSP binaries.
-- [ ] 4.2 Generate command reference documentation.
-- [ ] 4.3 Add an example project exercising blueprint parse, artefacts, changes, hooks, MCP, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and non-code reconciler fixture observations.
-- [ ] 4.4 Add tests for packaging metadata and documented commands.
+- [x] 4.2 Generate command reference documentation.
+- [x] 4.3 Add an example project exercising blueprint parse, artefacts, changes, hooks, MCP, summariser disabled/default behavior, brownfield fixture generation, LSP diagnostics, and non-code reconciler fixture observations.
+- [x] 4.4 Add tests for packaging metadata and documented commands.
 
 ## 5. Required Verification
 

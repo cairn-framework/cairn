@@ -272,6 +272,7 @@ pub(super) fn project_finding(message: String) -> Finding {
         severity: FindingSeverity::Error,
         message,
         node: None,
+        target: None,
         path: None,
     }
 }

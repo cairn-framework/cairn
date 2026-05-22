@@ -26,6 +26,15 @@ fn scan_warning_count(scan_result: &scanner::ScanResult) -> usize {
         .count()
 }
 
+fn scan_info_count(scan_result: &scanner::ScanResult) -> usize {
+    scan_result
+        .graph
+        .findings
+        .iter()
+        .filter(|finding| finding.severity == FindingSeverity::Info)
+        .count()
+}
+
 fn scan_error_warning(error_count: usize, json: bool) -> String {
     if error_count == 0 {
         return String::new();
@@ -438,15 +447,17 @@ pub(super) fn render_context(scan_result: &scanner::ScanResult) -> String {
     let edge_count: usize = scan_result.graph.outbound.values().map(Vec::len).sum();
     let errors = scan_error_count(scan_result);
     let warnings = scan_warning_count(scan_result);
+    let infos = scan_info_count(scan_result);
 
     let mut out = format!(
-        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings\n\nModules:\n",
+        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings, {} info\n\nModules:\n",
         system_name,
         scan_result.graph.nodes.len(),
         edge_count,
         system_desc,
         errors,
         warnings,
+        infos,
     );
 
     for node in scan_result.graph.nodes.values() {

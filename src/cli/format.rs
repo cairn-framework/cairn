@@ -8,6 +8,7 @@ pub(super) fn node_arg(args: &[String]) -> Result<&str, Finding> {
         severity: FindingSeverity::Error,
         message: "node argument is required".to_owned(),
         node: None,
+        target: None,
         path: None,
     })
 }
@@ -36,7 +37,7 @@ pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
     } else if findings.is_empty() {
         format!(
             "Findings:\n{}\n",
-            super::copy::lookup("empty-states.cli-clean-map")
+            super::copy::lookup("empty-states.cli-clean-map.body")
         )
     } else {
         format!(
@@ -339,6 +340,7 @@ pub(super) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
         severity: FindingSeverity::Error,
         message: message.to_owned(),
         node: None,
+        target: None,
         path: None,
     };
     finding_output(json, finding)

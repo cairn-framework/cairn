@@ -64,19 +64,21 @@ mod tests {
 
     #[test]
     fn test_lookup_empty_states() {
-        let value = lookup("empty-states.cli-clean-map");
+        let value = lookup("empty-states.cli-clean-map.body");
         assert_eq!(value, "Blueprint reconciled cleanly. No findings.");
     }
 
     #[test]
     fn test_lookup_cli_no_blueprint() {
-        let value = lookup("empty-states.cli-no-blueprint");
-        assert!(value.starts_with("No cairn.blueprint"));
+        let heading = lookup("empty-states.cli-no-blueprint.heading");
+        let body = lookup("empty-states.cli-no-blueprint.body");
+        let cta = lookup("empty-states.cli-no-blueprint.cta");
+        assert_eq!(heading, "No blueprint found");
         assert!(
-            value.contains('\n'),
-            "multiline: embedded newline preserved"
+            body.contains("cairn.blueprint"),
+            "body should mention cairn.blueprint"
         );
-        assert!(value.contains("cairn init"), "should mention cairn init");
+        assert!(cta.contains("cairn init"), "cta should mention cairn init");
     }
 
     #[test]

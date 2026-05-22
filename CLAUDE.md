@@ -38,6 +38,8 @@ The framework's role (spec §3.4): *"a fence around the authority chain and a na
 This repo dogfoods cairn. The root `cairn.blueprint` describes the module graph. Prefer cairn CLI over grep/find for navigating architecture:
 
 - `cairn scan` before committing: check for orphaned files or drift.
+
+- `cairn scan --strict` for CI/agent verification gates (exits non-zero on Error or Warning findings).
 - `cairn get <id>` to inspect a module (e.g. `cairn get cairn.kernel.scanner`).
 - `cairn neighbourhood <id>` to see a module's dependencies and dependents.
 - `cairn context` for a structured project overview (start here as an agent entry point).
@@ -88,6 +90,8 @@ Use `blueprint` / `map` / `map.md` in all new prose, code identifiers, and spec 
 CAIRN's audience is broadening from career developers to "people building with AI tools," including non-devs. User-facing vocabulary should prefer plain concise English. But accuracy is the floor: do not flatten load-bearing technical taxonomy (see above). The bar is *"would a non-dev feel nervous typing this command or reading this doc?"*, not *"what's the simplest possible word."*
 
 Em-dashes are banned in user-facing copy. Replace with period, colon, comma, or parenthesis as context dictates. Applies to spec prose, marketing copy, and this file.
+
+See also `docs/design-system/README.md` "Voice" section for the full review checklist and tone registers.
 
 ## UI and visual work
 

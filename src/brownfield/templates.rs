@@ -5,10 +5,14 @@
 //! by path or tag; the first matching template wins.  If no template
 //! matches, the generator falls back to the built-in stub.
 
+use std::path::Path;
+
+use serde::Deserialize;
+
 use super::discovery::DiscoveredCandidate;
 
 /// One match rule for a contract template.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub enum MatchRule {
     /// Matches when the candidate's path contains the given substring.
     Path(String),
@@ -17,7 +21,7 @@ pub enum MatchRule {
 }
 
 /// A contract template declaration.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ContractTemplate {
     /// Unique template name (for diagnostics).
     pub name: String,
@@ -71,6 +75,30 @@ fn apply_template(candidate: &DiscoveredCandidate, body: &str) -> String {
     body.replace("{id}", &candidate.id)
         .replace("{name}", &candidate.name)
         .replace("{description}", &candidate.description)
+}
+
+/// Load contract templates from `meta/templates.toml` in the project root.
+///
+/// Returns an empty vector when the file does not exist. Returns an error
+/// only when the file is present but malformed.
+#[must_use]
+pub fn load_templates(root: &Path) -> Vec<ContractTemplate> {
+    let path = root.join("meta/templates.toml");
+    if !path.exists() {
+        return Vec::new();
+    }
+    let Ok(source) = std::fs::read_to_string(&path) else {
+        return Vec::new();
+    };
+    match toml::from_str::<TomlRoot>(&source) {
+        Ok(root) => root.template,
+        Err(_) => Vec::new(),
+    }
+}
+
+#[derive(Deserialize)]
+struct TomlRoot {
+    template: Vec<ContractTemplate>,
 }
 
 #[cfg(test)]

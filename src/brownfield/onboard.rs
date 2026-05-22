@@ -252,6 +252,7 @@ mod tests {
             severity: FindingSeverity::Info,
             message: format!("Rust file `{path}` is not owned by any eligible node"),
             node: None,
+            target: None,
             path: Some(path.to_owned()),
         }
     }

@@ -10,30 +10,30 @@
 ## 2. Centralised copy file
 
 - [x] 2.1 Create `docs/design-system/copy.toml` with the two top-level sections `[empty-states]` and `[findings]`.
-- [ ] 2.2 Populate `[empty-states]` with the keys `node-no-paths`, `node-no-contracts`, `node-no-decisions`, `node-no-todos`, `node-no-research`, `node-no-sources`, `node-no-outbound`, `node-no-inbound`, `map-clean`, `search-no-matches`, `cli-no-blueprint`, `cli-clean-map`. Each entry has `heading`, `body`, and `cta` fields written in plain English without em-dashes.
-- [ ] 2.3 Populate `[findings]` with entries for `CE001` through `CE010`, `CT001`, and `CT002`. Each entry has `heading`, `body`, and `cta` fields and supports the `{node}` and `{target}` placeholders where relevant.
+- [x] 2.2 Populate `[empty-states]` with the keys `node-no-paths`, `node-no-contracts`, `node-no-decisions`, `node-no-todos`, `node-no-research`, `node-no-sources`, `node-no-outbound`, `node-no-inbound`, `map-clean`, `search-no-matches`, `cli-no-blueprint`, `cli-clean-map`. Each entry has `heading`, `body`, and `cta` fields written in plain English without em-dashes.
+- [x] 2.3 Populate `[findings]` with entries for `CE001` through `CE010`, `CT001`, and `CT002`. Each entry has `heading`, `body`, and `cta` fields and supports the `{node}` and `{target}` placeholders where relevant.
 - [x] 2.4 Add a copy-lookup helper module (location: `src/cli/copy.rs` or a shared crate module) that reads the file via `include_str!` and returns `{heading, body, cta}` for a given key, with a console-warning fallback for missing keys.
-- [ ] 2.5 Update `docs/design-system/README.md` "When to update each file" table to add the new file as the verbal-language authority.
+- [x] 2.5 Update `docs/design-system/README.md` "When to update each file" table to add the new file as the verbal-language authority.
 
 ## 3. Voice section and review checklist
 
-- [ ] 3.1 Add a "Voice" section to `docs/design-system/README.md` covering the em-dash ban, the plain-English bar, the taxonomy preservation rule, and the audience target.
-- [ ] 3.2 Append a voice review checklist under the same section as a bulleted list, with at least the six bullets listed in `design.md`.
-- [ ] 3.3 Add a brief reference from `CLAUDE.md`'s voice section to the new design-system Voice section so the two locations stay aligned.
+- [x] 3.1 Add a "Voice" section to `docs/design-system/README.md` covering the em-dash ban, the plain-English bar, the taxonomy preservation rule, and the audience target.
+- [x] 3.2 Append a voice review checklist under the same section as a bulleted list, with at least the six bullets listed in `design.md`.
+- [x] 3.3 Add a brief reference from `CLAUDE.md`'s voice section to the new design-system Voice section so the two locations stay aligned.
 
 ## 4. CLI: cairn check subcommand
 
 - [x] 4.1 Add the `cairn check` subcommand to the CLI definition in `src/cli/mod.rs` accepting an optional positional `node` argument.
 - [x] 4.2 Implement `cairn check` to call `query::lint(graph)` and render results through the existing `src/cli/format.rs` rendering layer with inspection semantics (always exits zero).
 - [x] 4.3 When a node argument is supplied, filter the finding stream to findings whose `node` field equals the requested node ID before rendering.
-- [ ] 4.4 Add an integration test under `tests/check.rs` that runs `cairn check` over a fixture map containing one Error, one Warning, and one Info finding, asserting that all three are rendered, the exit code is zero, and the rendered text is stable.
-- [ ] 4.5 Add an integration test that runs `cairn check <node>` over the same fixture, asserting that only findings on that node are rendered.
+- [x] 4.4 Add an integration test under `tests/check.rs` that runs `cairn check` over a fixture map containing one Error, one Warning, and one Info finding, asserting that all three are rendered, the exit code is zero, and the rendered text is stable.
+- [x] 4.5 Add an integration test that runs `cairn check <node>` over the same fixture, asserting that only findings on that node are rendered.
 
 ## 5. Empty-state component
 
-- [ ] 5.1 Add a new empty-state component class to `docs/design-system/components.css` consuming only existing tokens (`--stone-3`, `--seam-thin`, `--font-serif`, `--font-sans`, `--font-mono`, `--t-title`, `--t-body`, `--t-small`, `--ink-char`, `--ink-aged`, `--ink-faded`, `--ink-mist`, `--s-2`, `--s-3`, `--s-5`, `--r-large`, `--r-stone`, `--inset-sky`, `--inset-well`).
-- [ ] 5.2 Add a section to `docs/design-system/index.html` showing the component using the same token consumption rules.
-- [ ] 5.3 Update `docs/design-system/README.md` "When to update each file" table entry as required by the component addition.
+- [x] 5.1 Add a new empty-state component class to `docs/design-system/components.css` consuming only existing tokens (`--stone-3`, `--seam-thin`, `--font-serif`, `--font-sans`, `--font-mono`, `--t-title`, `--t-body`, `--t-small`, `--ink-char`, `--ink-aged`, `--ink-faded`, `--ink-mist`, `--s-2`, `--s-3`, `--s-5`, `--r-large`, `--r-stone`, `--inset-sky`, `--inset-well`).
+- [x] 5.2 Add a section to `docs/design-system/index.html` showing the component using the same token consumption rules.
+- [x] 5.3 Update `docs/design-system/README.md` "When to update each file" table entry as required by the component addition.
 - [x] 5.4 Replace the ten inline empty-state strings in `src/ui_assets/app.js` with empty-state component instances reading copy from `docs/design-system/copy.toml` by surface-state key.
 - [x] 5.5 Add a JS-side copy-lookup helper in `src/ui_assets/app.js` (or an adjacent helper file) that resolves surface-state keys to `{heading, body, cta}` and logs a console warning when a key is missing.
 - [x] 5.6 Update `src/cli/mod.rs` no-args path so it renders the `[empty-states.cli-no-blueprint]` content when no blueprint file is present in the working directory, preserving the existing legacy `.dsl` migration warning behaviour.
@@ -53,10 +53,10 @@
 
 - [x] 7.1 Add the prose-nudge banner at the top of the node-detail panel in `src/ui_assets/app.js`. The banner appears when the selected node has at least one finding.
 - [x] 7.2 Look up the highest-severity finding's copy entry from the `[findings]` section of the centralised copy file using the finding's `code` as the key.
-- [ ] 7.3 Substitute `{node}` and `{target}` placeholders in the body field at render time using a small helper that falls through unknown placeholders unchanged.
-- [ ] 7.4 Render the call-to-action snippet in a code block using `--font-mono` and a copy button reusing existing pill or button components from `components.css`.
+- [x] 7.3 Substitute `{node}` and `{target}` placeholders in the body field at render time using a small helper that falls through unknown placeholders unchanged.
+- [x] 7.4 Render the call-to-action snippet in a code block using `--font-mono` and a copy button reusing existing pill or button components from `components.css`.
 - [x] 7.5 When multiple findings on a node share the same highest severity, render the lowest-numbered code's nudge (deterministic ordering).
-- [ ] 7.6 Add a UI smoke test asserting that a node with `CE001` plus `CT001` findings renders the `CE001` nudge (Error severity wins) with the substituted node name in the body.
+- [x] 7.6 Add a UI smoke test asserting that a node with `CE001` plus `CT001` findings renders the `CE001` nudge (Error severity wins) with the substituted node name in the body.
 
 ## 8. Spec deltas
 
@@ -71,6 +71,6 @@
 - [x] 9.3 `cargo fmt --check` passes.
 - [x] 9.4 `cargo test` passes.
 - [x] 9.5 `cargo test --locked` passes.
-- [ ] 9.6 `cflx openspec validate phase-7.7-ux-foundation --strict` passes.
-- [ ] 9.7 No em-dashes (U+2014) in any file authored or edited by this phase. Verified by running `grep -rEn` against the same Unicode codepoint over the change directory and the touched design-system files.
-- [ ] 9.8 No hardcoded hex values introduced in `docs/design-system/components.css`. Verified by `grep -c '#[0-9a-fA-F]\{6\}' docs/design-system/components.css` returning the same count as before this phase.
+- [x] 9.6 `cflx openspec validate phase-7.7-ux-foundation --strict` passes.
+- [x] 9.7 No em-dashes (U+2014) in any file authored or edited by this phase. Verified by running `grep -rEn` against the same Unicode codepoint over the change directory and the touched design-system files.
+- [x] 9.8 No hardcoded hex values introduced in `docs/design-system/components.css`. Verified by `grep -c '#[0-9a-fA-F]\{6\}' docs/design-system/components.css` returning the same count as before this phase.

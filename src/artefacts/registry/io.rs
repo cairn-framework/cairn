@@ -141,6 +141,7 @@ pub(super) fn error(
         severity: FindingSeverity::Error,
         message,
         node,
+        target: None,
         path,
     }
 }
@@ -156,6 +157,7 @@ pub(super) fn warning(
         severity: FindingSeverity::Warning,
         message,
         node,
+        target: None,
         path,
     }
 }
@@ -175,6 +177,7 @@ pub(super) fn info(
         severity: FindingSeverity::Info,
         message,
         node,
+        target: None,
         path,
     }
 }

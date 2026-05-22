@@ -168,7 +168,7 @@ mod init {
             }],
             schema_version: 1,
         };
-        let result = write_change(&root, "test-change", &extraction);
+        let result = write_change(&root, "test-change", &extraction, &[]);
         assert!(result.is_ok());
         let dir = root.join("openspec/changes/test-change");
         assert!(dir.join("proposal.md").exists());
@@ -1215,6 +1215,35 @@ mod templates {
     }
 }
 
+/// Scenario: Templates loaded from meta/templates.toml guide contract authoring.
+#[test]
+fn test_templates__loaded_from_file_guide_contract_authoring() {
+    let root = temp_repo("templates-from-file");
+    populate_source_dir(&root, "src/auth", 3);
+
+    std::fs::create_dir_all(root.join("meta")).unwrap();
+    std::fs::write(
+        root.join("meta/templates.toml"),
+        r#"
+[[template]]
+name = "auth-module"
+match_rules = [{ Path = "auth" }]
+body = "---\nnode: {id}\n---\n\n# Auth Contract for {name}\n\nThis module handles authentication."
+"#,
+    )
+    .unwrap();
+
+    let result = cairn::brownfield::init::run_init_from_code(&root, false);
+    assert!(result.is_ok(), "init should succeed: {result:?}");
+
+    let contract_path = root.join("openspec/changes/brownfield-init/contracts/src_auth.md");
+    let contract = std::fs::read_to_string(&contract_path).unwrap();
+    assert!(
+        contract.contains("Auth Contract for auth"),
+        "contract should use template, got: {contract}"
+    );
+}
+
 mod obligations {
     use super::cflx_planned;
 
@@ -1390,6 +1419,235 @@ mod summarise {
         assert_eq!(
             enriched.contract_prose,
             cairn::brownfield::stub_contract(&candidate)
+        );
+    }
+}
+
+mod change_new {
+    /// Scenario: change new scaffolds a change directory with templates.
+    #[test]
+    fn test_change_new__scaffolds_change_directory_with_templates() {
+        let root = super::temp_repo("change-new");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_eq!(
+            result.code, 0,
+            "change new must exit zero, got stderr: {}",
+            result.stderr
+        );
+
+        let change_dir = root.join("meta/changes/test-change");
+        assert!(
+            change_dir.exists(),
+            "change directory must be created at meta/changes/test-change"
+        );
+
+        let proposal = change_dir.join("proposal.md");
+        assert!(proposal.exists(), "proposal.md must be created");
+        let proposal_content = std::fs::read_to_string(&proposal).unwrap();
+        assert!(
+            proposal_content.contains("# Proposal"),
+            "proposal.md must contain a proposal heading"
+        );
+
+        let design = change_dir.join("design.md");
+        assert!(design.exists(), "design.md must be created");
+        let design_content = std::fs::read_to_string(&design).unwrap();
+        assert!(
+            design_content.contains("# Design"),
+            "design.md must contain a design heading"
+        );
+
+        let tasks = change_dir.join("tasks.md");
+        assert!(tasks.exists(), "tasks.md must be created");
+        let tasks_content = std::fs::read_to_string(&tasks).unwrap();
+        assert!(
+            tasks_content.contains("# Tasks"),
+            "tasks.md must contain a tasks heading"
+        );
+
+        assert!(
+            change_dir.join("specs").exists(),
+            "specs directory must be created"
+        );
+    }
+
+    /// Scenario: change new refuses to overwrite an existing change directory.
+    #[test]
+    fn test_change_new__refuses_to_overwrite_existing_change() {
+        let root = super::temp_repo("change-new-dup");
+        let change_dir = root.join("meta/changes/existing-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+        std::fs::write(change_dir.join("proposal.md"), "# Existing").unwrap();
+
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "existing-change".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change directory already exists"
+        );
+    }
+
+    /// Scenario: change new rejects invalid change IDs.
+    #[test]
+    fn test_change_new__rejects_invalid_change_id() {
+        let root = super::temp_repo("change-new-invalid");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "invalid id".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID contains spaces"
+        );
+    }
+
+    /// Scenario: change new rejects uppercase change IDs.
+    #[test]
+    fn test_change_new__rejects_uppercase_change_id() {
+        let root = super::temp_repo("change-new-upper");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "UpperCase".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID contains uppercase letters"
+        );
+    }
+
+    /// Scenario: change new rejects special characters in change IDs.
+    #[test]
+    fn test_change_new__rejects_special_characters() {
+        let root = super::temp_repo("change-new-special");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "special@chars!".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID contains special characters"
+        );
+    }
+
+    /// Scenario: change new rejects empty change IDs.
+    #[test]
+    fn test_change_new__rejects_empty_change_id() {
+        let root = super::temp_repo("change-new-empty");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            String::new(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID is empty"
+        );
+    }
+}
+
+mod cc002_gate {
+    /// Scenario: Accept is blocked when suggested edges are pending.
+    #[test]
+    fn test_cc002__accept_blocked_when_suggested_edges_pending() {
+        let root = super::temp_repo("cc002-pending");
+        let change_dir = root.join("meta/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+        std::fs::write(change_dir.join("proposal.md"), "# Proposal\n").unwrap();
+
+        // Write a suggested-edges queue with one pending entry.
+        let queue = cairn::suggested_edges::SuggestedEdgesQueue {
+            version: 1,
+            entries: vec![cairn::suggested_edges::SuggestedEdgeEntry {
+                source: "a".to_owned(),
+                target: "b".to_owned(),
+                relation: "related_to".to_owned(),
+                triage_state: cairn::suggested_edges::TriageState::Pending,
+                confidence: Some(0.8),
+                provenance: Some(cairn::suggested_edges::EdgeProvenance {
+                    trace_phase: "phase-9-brownfield".to_owned(),
+                    stage: "propose".to_owned(),
+                }),
+                triage_note: None,
+            }],
+        };
+        cairn::suggested_edges::write_to_change(&change_dir, &queue).unwrap();
+
+        let result = cairn::suggested_edges::validate_strict("test-change", &change_dir);
+        assert!(
+            result.is_err(),
+            "validate_strict must fail when pending edges exist"
+        );
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(
+            err_msg.contains("CC002") || err_msg.contains("pending"),
+            "error must mention pending suggested edges, got: {err_msg}"
+        );
+    }
+
+    /// Scenario: Accept passes when all suggested edges are triaged.
+    #[test]
+    fn test_cc002__accept_passes_when_all_edges_triaged() {
+        let root = super::temp_repo("cc002-triaged");
+        let change_dir = root.join("meta/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        let queue = cairn::suggested_edges::SuggestedEdgesQueue {
+            version: 1,
+            entries: vec![cairn::suggested_edges::SuggestedEdgeEntry {
+                source: "a".to_owned(),
+                target: "b".to_owned(),
+                relation: "related_to".to_owned(),
+                triage_state: cairn::suggested_edges::TriageState::Accepted,
+                confidence: Some(0.8),
+                provenance: Some(cairn::suggested_edges::EdgeProvenance {
+                    trace_phase: "phase-9-brownfield".to_owned(),
+                    stage: "propose".to_owned(),
+                }),
+                triage_note: None,
+            }],
+        };
+        cairn::suggested_edges::write_to_change(&change_dir, &queue).unwrap();
+
+        let result = cairn::suggested_edges::validate_strict("test-change", &change_dir);
+        assert!(
+            result.is_ok(),
+            "validate_strict must pass when all edges are triaged, got: {result:?}"
+        );
+    }
+
+    /// Scenario: Accept passes when no suggested-edges file exists.
+    #[test]
+    fn test_cc002__accept_passes_when_no_queue_file() {
+        let root = super::temp_repo("cc002-no-queue");
+        let change_dir = root.join("meta/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        let result = cairn::suggested_edges::validate_strict("test-change", &change_dir);
+        assert!(
+            result.is_ok(),
+            "validate_strict must pass when no queue file exists, got: {result:?}"
         );
     }
 }

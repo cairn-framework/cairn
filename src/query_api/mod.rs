@@ -455,16 +455,26 @@ mod tests {
 
     #[test]
     fn test_execute_returns_node_json_for_valid_request() {
+        let tmp = std::env::temp_dir().join(format!("cairn-test-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&tmp);
+        let _ = std::fs::write(
+            tmp.join("cairn.blueprint"),
+            "System Test \"T\" id \"t\" {\n}\n",
+        );
         let request = QueryRequest {
             tool: "status".to_owned(),
             ..QueryRequest::default()
         };
         let result = execute(
-            Path::new("."),
-            Path::new("cairn.blueprint"),
-            Path::new("meta/changes"),
+            &tmp,
+            &tmp.join("cairn.blueprint"),
+            &tmp.join("meta/changes"),
             &request,
         );
-        assert!(result.is_ok());
+        assert!(
+            result.is_ok(),
+            "execute must succeed for valid request: {result:?}"
+        );
+        let _ = std::fs::remove_dir_all(&tmp);
     }
 }

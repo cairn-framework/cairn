@@ -74,6 +74,33 @@
     return template.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
   }
 
+  function CopyButton({ text }) {
+    const [copied, setCopied] = useState(false);
+    const onClick = useCallback(() => {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        });
+      } else {
+        // Fallback: create a temporary textarea
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      }
+    }, [text]);
+    return html`
+      <button class="btn ghost copy-btn" onClick=${onClick}>
+        ${copied ? "Copied" : "Copy"}
+      </button>
+    `;
+  }
+
   const SEVERITY_RANK = { error: 0, warning: 1, info: 2 };
 
   function pickNudgeFinding(findings, nodeId) {
@@ -976,7 +1003,7 @@
       if (!f) return null;
       const entry = copyFinding(f.code);
       if (!entry) return null;
-      const vars = { node: f.node || "", path: f.path || "" };
+      const vars = { node: f.node || "", path: f.path || "", target: f.target || "" };
       return {
         severity: f.severity,
         heading: entry.heading || f.code,
@@ -994,7 +1021,12 @@
           <strong>${nudge.heading}</strong>
         </div>
         <p class="prose-nudge-body">${nudge.body}</p>
-        ${nudge.cta ? html`<code class="prose-nudge-cta">${nudge.cta}</code>` : null}
+        ${nudge.cta
+          ? html`<div class="prose-nudge-cta-row">
+              <code class="prose-nudge-cta">${nudge.cta}</code>
+              <${CopyButton} text=${nudge.cta} />
+            </div>`
+          : null}
       </div>
     `;
   }
@@ -1057,7 +1089,7 @@
           </div>
           <div class="paths-list">
             ${pathEntries.length === 0
-              ? html`<div class="row-empty">${copy("empty-states.node-no-paths")}</div>`
+              ? html`<div class="row-empty">${copy("empty-states.node-no-paths.body")}</div>`
               : pathEntries.map((p) => renderPath(p.path, p.state))}
           </div>
         </div>
@@ -1106,13 +1138,13 @@
 
         <${Section} label="Contracts" count=${contracts?.length || 0}>
           ${(contracts || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-contracts")}</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-contracts.body")}</div>`
             : (contracts || []).map((c) => html`<${ArtefactCard} key=${c.path} artefact=${c}/>`)}
         <//>
 
         <${Section} label="Decisions" count=${decisions?.length || 0} defaultOpen=${sortedDecisions.length > 0}>
           ${sortedDecisions.length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-decisions")}</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-decisions.body")}</div>`
             : sortedDecisions.map((d) => html`
                 <button class=${clsx("artefact", "decision", (d.frontmatter && d.frontmatter.status) || "accepted")}
                   key=${d.path} onClick=${() => onSelectDecision(d)}>
@@ -1130,31 +1162,31 @@
 
         <${Section} label="Todos" count=${todos?.length || 0}>
           ${(todos || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-todos")}</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-todos.body")}</div>`
             : (todos || []).map((t) => html`<${ArtefactCard} key=${t.path} artefact=${t}/>`)}
         <//>
 
         <${Section} label="Research" count=${research?.length || 0}>
           ${(research || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-research")}</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-research.body")}</div>`
             : (research || []).map((r) => html`<${ArtefactCard} key=${r.path} artefact=${r}/>`)}
         <//>
 
         <${Section} label="Sources" count=${sources?.length || 0}>
           ${(sources || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-sources")}</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-sources.body")}</div>`
             : (sources || []).map((s) => html`<${ArtefactCard} key=${s.path} artefact=${s}/>`)}
         <//>
 
         <${Section} label="Depends on" count=${depends?.length || 0}>
           ${(depends || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-outbound")}</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-outbound.body")}</div>`
             : (depends || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
         <//>
 
         <${Section} label="Dependents" count=${dependents?.length || 0}>
           ${(dependents || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-inbound")}</div>`
+            ? html`<div class="row-empty">${copy("empty-states.node-no-inbound.body")}</div>`
             : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
         <//>
       </section>
@@ -1279,7 +1311,7 @@
               </div>
               <button class="btn-text" style="margin-top:var(--s-2)" onClick=${onShowFindings}>View all findings →</button>
             </div>`
-          : html`<div class="row-empty">${copy("empty-states.map-clean")}</div>`}
+          : html`<div class="row-empty">${copy("empty-states.map-clean.body")}</div>`}
 
         <div class="hint">
           <kbd>⌘</kbd><kbd>K</kbd> query the map. Click any stone to consult it.
@@ -1356,7 +1388,7 @@
 
         <div class="findings-list">
           ${findings.length === 0
-            ? html`<div class="row-empty">${(scope !== "map" || activeCategory) && scopeFiltered.length > 0 ? copy("empty-states.no-filter-matches") : copy("empty-states.map-clean")}</div>`
+            ? html`<div class="row-empty">${(scope !== "map" || activeCategory) && scopeFiltered.length > 0 ? copy("empty-states.no-filter-matches.body") : copy("empty-states.map-clean.body")}</div>`
             : findings.map((f) => html`
                 <button class="recent-row" key=${f.code + (f.node || "") + (f.path || "")}
                   onClick=${() => f.node && onSelect(f.node)}>
@@ -1429,7 +1461,7 @@
               </div>`
             : html`<div class="cmd-palette-results">
                 ${matches.length === 0
-                  ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches")}</div>`
+                  ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches.body")}</div>`
                   : html`<${Fragment}>
                       <div class="caps result-group">Nodes</div>
                       ${matches.slice(0, 20).map((n) => html`
@@ -1466,7 +1498,7 @@
         </button>
         ${open
           ? findings.length === 0
-            ? html`<div class="drawer-empty">${copy("empty-states.map-clean")}</div>`
+            ? html`<div class="drawer-empty">${copy("empty-states.map-clean.body")}</div>`
             : html`<div class="drawer-body">
                 ${findings.map((f) => html`
                   <button class="change-card"

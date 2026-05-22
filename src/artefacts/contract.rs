@@ -51,6 +51,7 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                         severity: FindingSeverity::Error,
                         message: format!("contract `{pointer}` lacks node frontmatter"),
                         node: Some(node_id.clone()),
+                        target: None,
                         path: Some(pointer.clone()),
                     });
                     continue;
@@ -63,17 +64,20 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                             "contract `{pointer}` references unknown node `{contract_node}`"
                         ),
                         node: Some(contract_node.clone()),
+                        target: None,
                         path: Some(pointer.clone()),
                     });
                 }
                 if contract_node != node_id {
                     set.findings.push(Finding {
+
                         code: "CAIRN_CONTRACT_WRONG_NODE".to_owned(),
                         severity: FindingSeverity::Error,
                         message: format!(
                             "contract `{pointer}` declared by `{node_id}` references `{contract_node}`"
                         ),
                         node: Some(node_id.clone()),
+                        target: None,
                         path: Some(pointer.clone()),
                     });
                 }
@@ -93,6 +97,7 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                 severity: FindingSeverity::Error,
                 message: format!("failed to read contract `{pointer}`: {error}"),
                 node: Some(node_id),
+                target: None,
                 path: Some(pointer),
             }),
         }

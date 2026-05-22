@@ -23,6 +23,7 @@ pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
                         severity: FindingSeverity::Error,
                         message: format!("dependency cycle: {}", cycle.join(" -> ")),
                         node: Some(start.clone()),
+                        target: None,
                         path: None,
                     });
                     return findings;

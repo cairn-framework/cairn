@@ -164,6 +164,16 @@ fn reconcile_targets(
     (reports, all_findings)
 }
 
+/// Deduplicate findings that share the same code, node, and message.
+/// Preserves the first occurrence and order.
+fn dedup_findings(findings: &mut Vec<crate::map::graph::Finding>) {
+    let mut seen = std::collections::HashSet::new();
+    findings.retain(|f| {
+        let key = (f.code.clone(), f.node.clone(), f.message.clone());
+        seen.insert(key)
+    });
+}
+
 fn detect_divergence(
     reports: &[TargetReport],
     targets: &[Target],
@@ -217,16 +227,19 @@ fn detect_divergence(
                         node_id, role, asymmetry.reason
                     ),
                     node: Some(node_id.clone()),
+                    target: Some(role.clone()),
                     path: None,
                 });
             } else {
                 findings.push(crate::map::graph::Finding {
+
                     code: "CT001".to_owned(),
                     severity: crate::map::graph::FindingSeverity::Error,
                     message: format!(
                         "Interface contradiction: targets for `{node_id}` with contract role `{role}` have divergent interfaces"
                     ),
                     node: Some(node_id.clone()),
+                    target: Some(role.clone()),
                     path: None,
                 });
             }
@@ -246,6 +259,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     let ast = blueprint::parse_file(blueprint_path).map_err(|error| error.to_string())?;
     let contracts = load_contracts(root, &ast);
     let artefacts = load_artefacts(root, &ast, contracts.clone());
+
     let targets = build_targets(&ast, &config);
     let (target_reports, reconcile_findings) =
         reconcile_targets(&targets, root, &config.ignores, &ast, &config);
@@ -253,6 +267,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     let mut all_findings = contracts.findings.clone();
     all_findings.extend(artefacts.findings.clone());
     all_findings.extend(reconcile_findings);
+    dedup_findings(&mut all_findings);
     for report in &target_reports {
         let key = format!(
             "{}:{}",
@@ -374,12 +389,14 @@ fn check_blueprint_change_decisions(
     let mut emit = |node_id: &str| {
         if !covered.contains(node_id) {
             graph.findings.push(crate::map::graph::Finding {
+
                 code: "CAIRN_BLUEPRINT_CHANGE_NO_DECISION".to_owned(),
                 severity: crate::map::graph::FindingSeverity::Error,
                 message: format!(
                     "blueprint shape changed for node `{node_id}` but no decision artefact covers it"
                 ),
                 node: Some(node_id.to_owned()),
+                target: None,
                 path: None,
             });
         }
@@ -426,6 +443,7 @@ fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactSet) {
                     node.id
                 ),
                 node: Some(node.id.clone()),
+                target: None,
                 path: None,
             });
         }

@@ -61,6 +61,11 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
             "validation failed",
             "could not run validation",
         );
+        check_suggested_edges(
+            &mut findings,
+            id,
+            &std::env::current_dir().unwrap_or_default(),
+        );
     }
 
     let has_failed = findings
@@ -115,6 +120,43 @@ fn run_step(
                 test: name.to_string(),
                 state: VerificationState::Blocked,
                 detail: Some(format!("{block_msg}: {e}")),
+            });
+        }
+    }
+}
+
+fn check_suggested_edges(
+    findings: &mut Vec<VerificationFinding>,
+    change_id: &str,
+    root: &std::path::Path,
+) {
+    let change_dir = root.join("meta/changes").join(change_id);
+    match crate::suggested_edges::validate_strict(change_id, &change_dir) {
+        Ok(()) => {
+            findings.push(VerificationFinding {
+                test: "suggested edges triaged".to_string(),
+                state: VerificationState::Passed,
+                detail: None,
+            });
+        }
+        Err(crate::error::CairnError::UntriagedSuggestedEdges {
+            pending_count,
+            file_path,
+            ..
+        }) => {
+            findings.push(VerificationFinding {
+                test: "suggested edges triaged".to_string(),
+                state: VerificationState::Failed,
+                detail: Some(format!(
+                    "CC002: {pending_count} pending suggested edge(s) in {file_path}"
+                )),
+            });
+        }
+        Err(e) => {
+            findings.push(VerificationFinding {
+                test: "suggested edges triaged".to_string(),
+                state: VerificationState::Blocked,
+                detail: Some(format!("could not read suggested-edges queue: {e}")),
             });
         }
     }

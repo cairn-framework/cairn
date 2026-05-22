@@ -63,6 +63,7 @@ fn insert_node(
             severity: FindingSeverity::Error,
             message: format!("duplicate node id `{}`", node.id),
             node: Some(node.id.clone()),
+            target: None,
             path: None,
         });
         return;
@@ -106,6 +107,7 @@ fn validate_edges(graph: &mut Graph, edges: &[Edge]) {
                     edge.from, edge.to
                 ),
                 node: None,
+                target: None,
                 path: None,
             });
             continue;
@@ -139,6 +141,7 @@ fn validate_ids(graph: &mut Graph) {
                 severity: FindingSeverity::Error,
                 message: format!("node id `{id}` must be lowercase dotted identifier"),
                 node: Some(id.clone()),
+                target: None,
                 path: None,
             });
         }
@@ -164,6 +167,7 @@ fn validate_path_ties(graph: &mut Graph) {
                     ids.join(", ")
                 ),
                 node: None,
+                target: None,
                 path: Some(path),
             });
         }
@@ -179,6 +183,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
                 severity: FindingSeverity::Error,
                 message: format!("contract references unknown node `{}`", contract.node),
                 node: Some(contract.node.clone()),
+                target: None,
                 path: Some(contract.path.clone()),
             });
         }
@@ -197,6 +202,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
                     },
                     message: format!("contract pointer `{pointer}` is missing for `{}`", node.id),
                     node: Some(node.id.clone()),
+                    target: None,
                     path: Some(pointer.clone()),
                 });
             }

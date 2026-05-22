@@ -197,6 +197,7 @@ fn interface_findings(root: &Path, current: &scanner::state::TargetHashes) -> Ve
             severity: FindingSeverity::Error,
             message: "current interface hash differs from recorded state".to_owned(),
             node: None,
+            target: None,
             path: Some(path_string(&state_path)),
         }]
     }
@@ -428,6 +429,7 @@ fn detect_duplicate_targets<'a>(
             severity: FindingSeverity::Error,
             message: format!("{label} `{target}` is claimed by active changes: {ids}"),
             node: None,
+            target: None,
             path: Some(path_string(&changes[0].path)),
         });
     }

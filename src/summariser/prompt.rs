@@ -446,6 +446,7 @@ mod tests {
             severity: FindingSeverity::Error,
             message: "Interface contradiction".to_owned(),
             node: Some("app.auth".to_owned()),
+            target: None,
             path: None,
         });
         graph.findings.push(Finding {
@@ -453,6 +454,7 @@ mod tests {
             severity: FindingSeverity::Warning,
             message: "Other node issue".to_owned(),
             node: Some("app.db".to_owned()),
+            target: None,
             path: None,
         });
 

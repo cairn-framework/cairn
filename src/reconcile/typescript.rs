@@ -65,6 +65,7 @@ impl Reconciler for TypeScriptReconciler<'_> {
                     severity: FindingSeverity::Info,
                     message: format!("TypeScript file `{rel}` is not owned by any eligible node"),
                     node: None,
+                    target: None,
                     path: Some(rel),
                 });
             }

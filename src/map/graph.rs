@@ -59,6 +59,9 @@ pub struct Finding {
     pub message: String,
     /// Optional node ID.
     pub node: Option<String>,
+    /// Optional target node ID or contract role.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<String>,
     /// Optional file path.
     pub path: Option<String>,
 }
@@ -154,6 +157,7 @@ impl Graph {
             severity: FindingSeverity::Error,
             message: format!("node `{value}` was not found{suffix}"),
             node: None,
+            target: None,
             path: None,
         })
     }

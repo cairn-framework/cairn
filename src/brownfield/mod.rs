@@ -54,6 +54,7 @@ pub fn write_change(
     root: &std::path::Path,
     change_id: &str,
     extraction: &Extraction,
+    templates: &[templates::ContractTemplate],
 ) -> Result<(), CairnError> {
     let change_dir = root.join("openspec/changes").join(change_id);
     create_dir(&change_dir)?;
@@ -68,7 +69,7 @@ pub fn write_change(
     write_file(&change_dir.join("blueprint.delta"), &delta)?;
 
     for candidate in &extraction.candidates {
-        let contract = stub_contract(candidate);
+        let contract = templates::render_stub(candidate, templates);
         let file_name = format!("{}.md", candidate.id.replace('.', "_"));
         write_file(&change_dir.join("contracts").join(file_name), &contract)?;
     }

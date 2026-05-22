@@ -25,7 +25,7 @@ Atomic-commit groupings: tasks within a numbered section MAY land as separate co
 - [x] 2.8 Implement `SuggestedEdges::count_pending(&self) -> usize` for the gate in section 3.
 - [x] 2.9 Re-export `SuggestedEdges`, `SuggestedEdge`, `EdgeProvenance`, and `TriageState` from `src/lib.rs`.
 - [x] 2.10 Add unit tests covering: round-trip serialisation of a queue with one entry per `TriageState` value; `count_pending` with mixed states; schema-version mismatch error path; `read_from_change` returning `Ok(None)` for an absent file.
-- [ ] 2.11 Pin a representative queue file via an `insta` JSON snapshot test against a fixture.
+- [x] 2.11 Pin a representative queue file via an `insta` JSON snapshot test against a fixture.
 
 ## 3. Validate-strict accept gate untriaged-block
 
@@ -47,13 +47,13 @@ Atomic-commit groupings: tasks within a numbered section MAY land as separate co
 - [x] 4.5 Extend the `cairn neighbourhood <node>` CLI command with the `--include-orphans` flag that sets `include_orphans: true` on the underlying query.
 - [ ] ~~4.6 Pin `cairn islands --json` output via an `insta` snapshot test against a fixture map with two disconnected components.~~ (Obsolete: cflx retired per decision #105)
 - [ ] ~~4.7 Pin `cairn neighbourhood <node> --include-orphans --json` output via an `insta` snapshot test.~~ (Obsolete: cflx retired per decision #105)
-- [ ] 4.8 Update the graph-explorer renderer in `src/ui_assets/` so the default edge-label rendering shows verb-form labels (e.g., `depends on`, `implements`, `reviews`) instead of label keys. Update any affected explorer fixture snapshots accordingly.
+- [x] 4.8 Update the graph-explorer renderer in `src/ui_assets/` so the default edge-label rendering shows verb-form labels (e.g., `depends on`, `implements`, `reviews`) instead of label keys. Update any affected explorer fixture snapshots accordingly.
 
 ## 5. Required Verification
 
-- [ ] 5.1 `cargo build` passes with zero warnings.
-- [ ] 5.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
-- [ ] 5.3 `cargo fmt --check` passes.
-- [ ] 5.4 `cargo test` passes.
-- [ ] 5.5 `cargo test --locked` passes.
-- [ ] 5.6 `cflx openspec validate phase-7.6-ai-provenance-foundation --strict` passes.
+- [x] 5.1 `cargo build` passes with zero warnings.
+- [x] 5.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
+- [x] 5.3 `cargo fmt --check` passes.
+- [x] 5.4 `cargo test` passes.
+- [x] 5.5 `cargo test --locked` passes.
+- [x] 5.6 `cflx openspec validate phase-7.6-ai-provenance-foundation --strict` passes.

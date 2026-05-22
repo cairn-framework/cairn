@@ -291,6 +291,44 @@ mod changes {
         fs::write(&path, serde_json::to_string(&queue).unwrap()).unwrap();
         read_queue(&path).map(Option::unwrap_or_default)
     }
+    /// Scenario: Representative queue file is stable JSON.
+    #[test]
+    fn test_representative_queue_file_snapshot() {
+        use cairn::suggested_edges::{
+            EdgeProvenance, SuggestedEdgeEntry, SuggestedEdgesQueue, TriageState,
+        };
+        let queue = SuggestedEdgesQueue {
+            version: 1,
+            entries: vec![
+                SuggestedEdgeEntry {
+                    source: "src.auth".to_owned(),
+                    target: "src.identity".to_owned(),
+                    relation: "related_to".to_owned(),
+                    triage_state: TriageState::Pending,
+                    confidence: Some(0.85),
+                    provenance: Some(EdgeProvenance {
+                        trace_phase: "phase-9-brownfield".to_owned(),
+                        stage: "propose".to_owned(),
+                    }),
+                    triage_note: None,
+                },
+                SuggestedEdgeEntry {
+                    source: "src.identity".to_owned(),
+                    target: "src.auth".to_owned(),
+                    relation: "related_to".to_owned(),
+                    triage_state: TriageState::Pending,
+                    confidence: Some(0.85),
+                    provenance: Some(EdgeProvenance {
+                        trace_phase: "phase-9-brownfield".to_owned(),
+                        stage: "propose".to_owned(),
+                    }),
+                    triage_note: None,
+                },
+            ],
+        };
+        let json = serde_json::to_value(&queue).expect("serialise");
+        insta::assert_json_snapshot!("suggested_edges_queue", json);
+    }
 }
 
 mod cli {

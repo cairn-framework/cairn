@@ -63,6 +63,7 @@ impl Reconciler for GoReconciler<'_> {
                     severity: FindingSeverity::Info,
                     message: format!("Go file `{rel}` is not owned by any eligible node"),
                     node: None,
+                    target: None,
                     path: Some(rel),
                 });
             }
