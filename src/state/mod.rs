@@ -511,6 +511,38 @@ impl BeadsStateBackend {
         }
         Ok(results)
     }
+    /// Create an epic bead for a change and return its bead ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed output or bd errors.
+    pub fn create_change_epic(&self, change_id: &str) -> Result<String, StateError> {
+        let title = format!("Change: {change_id}");
+        let output = std::process::Command::new("bd")
+            .arg("-C")
+            .arg(&self.root)
+            .arg("create")
+            .arg(&title)
+            .arg("--type")
+            .arg("epic")
+            .arg("--silent")
+            .output()
+            .map_err(StateError::Io)?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(StateError::Serialization(format!(
+                "bd create epic failed: {stderr}"
+            )));
+        }
+        let bead_id = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+        if bead_id.is_empty() {
+            return Err(StateError::Serialization(
+                "bd create epic returned empty bead ID".to_owned(),
+            ));
+        }
+        Ok(bead_id)
+    }
 }
 /// Create a state backend from a backend name and root path.
 ///
@@ -813,5 +845,22 @@ mod tests {
         let loaded: Option<TestRecord> = backend.load(&key).unwrap();
         assert_eq!(loaded.unwrap().id, "x");
         backend.remove(&key).unwrap();
+    }
+    #[test]
+    fn beads_create_change_epic_returns_bead_id() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let backend = BeadsStateBackend::new(root);
+        let change_id = format!("test-epic-{}", std::process::id());
+        let bead_id = backend.create_change_epic(&change_id).unwrap();
+        assert!(!bead_id.is_empty(), "bead ID must not be empty");
+        assert!(
+            bead_id.starts_with("cairn-"),
+            "bead ID should start with cairn- prefix, got: {bead_id}"
+        );
+        let _ = std::process::Command::new("bd")
+            .arg("delete")
+            .arg(&bead_id)
+            .arg("--force")
+            .output();
     }
 }

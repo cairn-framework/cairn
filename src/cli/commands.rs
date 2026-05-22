@@ -333,6 +333,20 @@ pub(super) fn run_change_new(root: &Path, change_id: &str) -> CliResult {
         return err(1, &format!("failed to create specs directory: {error}"));
     }
 
+    if let Ok(config) = crate::scanner::config::load(root)
+        && config.state_backend == "beads"
+    {
+        let beads = crate::state::BeadsStateBackend::new(root.to_path_buf());
+        match beads.create_change_epic(change_id) {
+            Ok(bead_id) => {
+                let _ = fs::write(change_dir.join(".bead-id"), &bead_id);
+            }
+            Err(error) => {
+                eprintln!("warning: failed to create beads epic: {error}");
+            }
+        }
+    }
+
     ok(format!(
         "created change directory at meta/changes/{change_id}/\n"
     ))
