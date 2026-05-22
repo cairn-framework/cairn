@@ -270,6 +270,25 @@ fn test_command_reference_doc_lists_all_commands() {
             "command reference must mention cairn {cmd}"
         );
     }
+    // Verify watch command.
+    assert!(
+        doc.contains("cairn watch"),
+        "command reference must mention cairn watch"
+    );
+    // Verify change subcommands.
+    assert!(
+        doc.contains("cairn change tasks"),
+        "command reference must mention cairn change tasks"
+    );
+    assert!(
+        doc.contains("cairn change apply"),
+        "command reference must mention cairn change apply"
+    );
+    // Verify migration command.
+    assert!(
+        doc.contains("cairn import-openspec"),
+        "command reference must mention cairn import-openspec"
+    );
     // Verify change lifecycle commands.
     assert!(
         doc.contains("cairn change new"),

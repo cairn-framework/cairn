@@ -60,6 +60,8 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn changes` | List active changes |
 | `cairn change new <change-id>` | Scaffold a new change directory |
+| `cairn change tasks <change-id>` | List task beads for a change |
+| `cairn change apply <change-id>` | Claim a change and all its open tasks |
 | `cairn show <change-id>` | Show details of a change |
 | `cairn accept [<change-id>]` | Run acceptance gate for a change |
 | `cairn archive <change-id>` | Archive a completed change |
@@ -102,6 +104,8 @@ These commands require the `--json` flag.
 | `cairn export` | Export project data |
 | `cairn ui` | Launch the web UI |
 | `cairn rename <old-id> <new-id>` | Rename a node ID across the project |
+| `cairn watch` | Watch for finding changes and emit JSON events |
+| `cairn import-openspec` | Migrate openspec changes to meta/changes/ |
 | `cairn docstring <node>` | Generate a docstring for a node |
 
 ## Exit codes
