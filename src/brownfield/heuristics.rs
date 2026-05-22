@@ -120,6 +120,8 @@ pub(crate) fn path_derived_id(directory: &str) -> String {
 /// boundary. The +1 offset avoids division by zero and rewards
 /// candidates with internal cohesion even when import totals are small.
 #[must_use]
+// Reason: usize counts are always small (file/import counts) so f64
+// precision loss is bounded and acceptable for a heuristic score.
 #[allow(clippy::cast_precision_loss)]
 pub fn coupling_score(internal_imports: usize, external_imports: usize) -> f64 {
     let numerator = (internal_imports + 1) as f64;

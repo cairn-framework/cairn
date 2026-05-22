@@ -747,6 +747,8 @@ fn test_hook_interface_blocks_changed_interface_hash() -> Result<(), Box<dyn std
     Ok(())
 }
 
+// Reason: test uses multiple r#"..."# literals for cross-file comparison;
+// hashes are intentional for visual symmetry.
 #[allow(clippy::needless_raw_string_hashes)]
 #[test]
 fn test_hash_stable_across_comments_and_formatting() -> Result<(), Box<dyn std::error::Error>> {

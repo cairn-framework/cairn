@@ -59,6 +59,8 @@ pub(super) fn render_get(
     })
 }
 
+// Reason: neighbourhood rendering spans human + JSON branches for many node
+// fields; extracting each branch would fragment the output logic.
 #[allow(clippy::too_many_lines)]
 pub(super) fn render_neighbourhood(
     parsed: &ParsedArgs,

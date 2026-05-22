@@ -18,36 +18,44 @@ use cairn::cflx_planned;
 
 // Fixture helpers. Phase 9 supplies real implementations; the pre-phase
 // keeps thin placeholders so test bodies referencing them compile.
+// Reason: fixture stubs referenced by pre-phase test bodies; dead until phase 9
+// implementations land.
 #[allow(dead_code)]
 fn fixture_repo_without_blueprint() {
     unimplemented!("awaits phase-9: fixture_repo_without_blueprint");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_repo_with_blueprint() {
     unimplemented!("awaits phase-9: fixture_repo_with_blueprint");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_repo_with_brownfield_change() {
     unimplemented!("awaits phase-9: fixture_repo_with_brownfield_change");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_repo_with_pending_suggested_edges() {
     unimplemented!("awaits phase-9: fixture_repo_with_pending_suggested_edges");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_change_with_partial_interview_state() {
     unimplemented!("awaits phase-9: fixture_change_with_partial_interview_state");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_project_config_with_contract_template() {
     unimplemented!("awaits phase-9: fixture_project_config_with_contract_template");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_decision_with_obligations_field() {
     unimplemented!("awaits phase-9: fixture_decision_with_obligations_field");

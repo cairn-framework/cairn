@@ -313,6 +313,8 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     render_loaded_project_command(parsed, root, &scan_result, legacy_warning)
 }
 
+// Reason: project-loaded command routing has many one-liner arms; each is
+// already delegated to its own render function.
 #[allow(clippy::too_many_lines)]
 fn render_loaded_project_command(
     parsed: &ParsedArgs,

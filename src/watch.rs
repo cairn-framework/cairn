@@ -188,6 +188,8 @@ fn unix_to_datetime(mut secs: u64) -> (u32, u32, u32, u32, u32, u32) {
     (year, month, day, hh, mm, ss)
 }
 
+// Reason: leap-year predicate is a tight integer-modulo expression that is
+// cheaper to inline at every call site than to pay a function call for.
 #[allow(clippy::inline_always)]
 #[inline(always)]
 const fn is_leap_year(y: u32) -> bool {

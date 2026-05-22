@@ -149,6 +149,8 @@ fn load_ignore_file(path: &Path) -> Result<Vec<String>, ConfigError> {
         .collect())
 }
 
+// Reason: config parser is a single-pass state machine with many small
+// transitions; extracting every arm would obscure the linear flow.
 #[allow(clippy::collapsible_if, clippy::too_many_lines)]
 fn parse_config(source: &str, config: &mut Config) {
     let mut in_ignore = false;

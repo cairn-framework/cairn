@@ -41,6 +41,8 @@ impl std::error::Error for PromptError {}
 /// # Panics
 ///
 /// Never panics.
+// Reason: prompt construction needs graph, config, contracts, and metadata
+// that are all required to build the context; splitting would not improve clarity.
 #[allow(clippy::too_many_arguments)]
 pub fn build_request(
     node_id: &str,

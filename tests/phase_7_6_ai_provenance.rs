@@ -280,6 +280,7 @@ mod changes {
         assert!(cairn::suggested_edges::validate_strict("phase-z", dir.path()).is_ok());
     }
 
+    // Reason: smoke helper kept for manual inspection; not wired to CI yet.
     #[allow(dead_code)]
     fn _round_trip_smoke() -> Result<SuggestedEdgesQueue, QueueError> {
         let dir = tempfile::tempdir().expect("temp dir");
