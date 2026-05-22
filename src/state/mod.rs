@@ -67,6 +67,8 @@ pub trait StateRecord: DeserializeOwned {
 pub enum StateBackend {
     /// Filesystem-backed JSON store.
     Filesystem(FilesystemStateBackend),
+    /// Beads key-value store backend.
+    Beads(BeadsStateBackend),
 }
 
 impl StateBackend {
@@ -79,6 +81,7 @@ impl StateBackend {
     pub fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError> {
         match self {
             Self::Filesystem(fs) => fs.load(key),
+            Self::Beads(b) => b.load(key),
         }
     }
 
@@ -91,6 +94,7 @@ impl StateBackend {
     pub fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError> {
         match self {
             Self::Filesystem(fs) => fs.save(key, value),
+            Self::Beads(b) => b.save(key, value),
         }
     }
 
@@ -102,6 +106,7 @@ impl StateBackend {
     pub fn list(&self) -> Result<Vec<String>, StateError> {
         match self {
             Self::Filesystem(fs) => fs.list(),
+            Self::Beads(b) => b.list(),
         }
     }
 
@@ -114,6 +119,7 @@ impl StateBackend {
     pub fn remove(&self, key: &str) -> Result<(), StateError> {
         match self {
             Self::Filesystem(fs) => fs.remove(key),
+            Self::Beads(b) => b.remove(key),
         }
     }
 
@@ -129,6 +135,7 @@ impl StateBackend {
     ) -> Result<Vec<(String, T)>, StateError> {
         match self {
             Self::Filesystem(fs) => fs.query_by_type(record_type),
+            Self::Beads(b) => b.query_by_type(record_type),
         }
     }
 
@@ -144,6 +151,7 @@ impl StateBackend {
     ) -> Result<Vec<(String, T)>, StateError> {
         match self {
             Self::Filesystem(fs) => fs.query_by_label(label),
+            Self::Beads(b) => b.query_by_label(label),
         }
     }
 
@@ -159,6 +167,7 @@ impl StateBackend {
     ) -> Result<Vec<(String, T)>, StateError> {
         match self {
             Self::Filesystem(fs) => fs.query_by_dependency(dependency),
+            Self::Beads(b) => b.query_by_dependency(dependency),
         }
     }
 }
@@ -316,6 +325,198 @@ impl FilesystemStateBackend {
 ///
 /// Supported backends:
 /// - `filesystem` (default): JSON files under the root directory.
+/// - `beads`: Beads key-value store.
+///
+/// # Errors
+///
+/// Returns `StateError::Serialization` for unknown backend names.
+/// Beads-backed state store. Records are stored as JSON strings in the beads
+/// key-value store, keyed with a `cairn:state:` prefix.
+#[derive(Clone, Debug)]
+pub struct BeadsStateBackend {
+    root: PathBuf,
+    prefix: String,
+}
+
+impl BeadsStateBackend {
+    /// Create a new beads backend rooted at the given project directory.
+    #[must_use]
+    pub fn new(root: PathBuf) -> Self {
+        Self {
+            root,
+            prefix: "cairn:state:".to_owned(),
+        }
+    }
+
+    fn full_key(&self, key: &str) -> String {
+        format!("{}{}", self.prefix, key)
+    }
+
+    fn bd_kv_output(&self, args: &[&str]) -> Result<std::process::Output, StateError> {
+        std::process::Command::new("bd")
+            .arg("-C")
+            .arg(&self.root)
+            .arg("kv")
+            .args(args)
+            .output()
+            .map_err(StateError::Io)
+    }
+
+    /// Load a record by key. Returns `Ok(None)` when the record does not exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed JSON or bd errors.
+    pub fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError> {
+        let output = self.bd_kv_output(&["get", &self.full_key(key)])?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        if !output.status.success() && stdout.contains("(not set)") {
+            return Ok(None);
+        }
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(StateError::Serialization(format!(
+                "bd kv get failed: {stderr}"
+            )));
+        }
+        let trimmed = stdout.trim();
+        if trimmed.is_empty() {
+            return Ok(None);
+        }
+        let value =
+            serde_json::from_str(trimmed).map_err(|e| StateError::Serialization(e.to_string()))?;
+        Ok(Some(value))
+    }
+
+    /// Save a record by key. Overwrites existing records.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on serialization or bd errors.
+    pub fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError> {
+        let json =
+            serde_json::to_string(value).map_err(|e| StateError::Serialization(e.to_string()))?;
+        let output = self.bd_kv_output(&["set", &self.full_key(key), &json])?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(StateError::Serialization(format!(
+                "bd kv set failed: {stderr}"
+            )));
+        }
+        Ok(())
+    }
+
+    /// List all record keys.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed JSON or bd errors.
+    pub fn list(&self) -> Result<Vec<String>, StateError> {
+        let output = self.bd_kv_output(&["list", "--json"])?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(StateError::Serialization(format!(
+                "bd kv list failed: {stderr}"
+            )));
+        }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let trimmed = stdout.trim();
+        if trimmed.is_empty() {
+            return Ok(Vec::new());
+        }
+        let map: std::collections::BTreeMap<String, serde_json::Value> =
+            serde_json::from_str(trimmed).map_err(|e| StateError::Serialization(e.to_string()))?;
+        let mut keys = Vec::new();
+        for key in map.keys() {
+            if let Some(stem) = key.strip_prefix(&self.prefix) {
+                keys.push(stem.to_owned());
+            }
+        }
+        Ok(keys)
+    }
+
+    /// Remove a record by key. Idempotent: succeeds when the record does not
+    /// exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures.
+    pub fn remove(&self, key: &str) -> Result<(), StateError> {
+        let _ = self.bd_kv_output(&["clear", &self.full_key(key)])?;
+        Ok(())
+    }
+
+    /// Query records by type. Returns matching (key, record) pairs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed JSON or bd errors.
+    pub fn query_by_type<T: StateRecord>(
+        &self,
+        record_type: &str,
+    ) -> Result<Vec<(String, T)>, StateError> {
+        let mut results = Vec::new();
+        for key in self.list()? {
+            if let Some(record) = self.load::<T>(&key)?
+                && record.record_type() == record_type
+            {
+                results.push((key, record));
+            }
+        }
+        Ok(results)
+    }
+
+    /// Query records by label. Returns matching (key, record) pairs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed JSON or bd errors.
+    pub fn query_by_label<T: StateRecord>(
+        &self,
+        label: &str,
+    ) -> Result<Vec<(String, T)>, StateError> {
+        let mut results = Vec::new();
+        for key in self.list()? {
+            if let Some(record) = self.load::<T>(&key)?
+                && record.labels().contains(&label.to_owned())
+            {
+                results.push((key, record));
+            }
+        }
+        Ok(results)
+    }
+
+    /// Query records by dependency. Returns matching (key, record) pairs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed JSON or bd errors.
+    pub fn query_by_dependency<T: StateRecord>(
+        &self,
+        dependency: &str,
+    ) -> Result<Vec<(String, T)>, StateError> {
+        let mut results = Vec::new();
+        for key in self.list()? {
+            if let Some(record) = self.load::<T>(&key)?
+                && record.dependencies().contains(&dependency.to_owned())
+            {
+                results.push((key, record));
+            }
+        }
+        Ok(results)
+    }
+}
+/// Create a state backend from a backend name and root path.
+///
+/// Supported backends:
+/// - `filesystem` (default): JSON files under the root directory.
+/// - `beads`: Beads key-value store.
 ///
 /// # Errors
 ///
@@ -323,6 +524,7 @@ impl FilesystemStateBackend {
 pub fn storage_backend(name: &str, root: PathBuf) -> Result<StateBackend, StateError> {
     match name {
         "filesystem" => Ok(StateBackend::Filesystem(FilesystemStateBackend::new(root))),
+        "beads" => Ok(StateBackend::Beads(BeadsStateBackend::new(root))),
         _ => Err(StateError::Serialization(format!(
             "unknown state backend: {name}"
         ))),
@@ -588,10 +790,28 @@ mod tests {
     #[test]
     fn storage_backend_unknown_returns_error() {
         let dir = std::env::temp_dir().join("cairn-state-be-unknown");
-        let result = storage_backend("beads", dir);
+        let result = storage_backend("s3", dir);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(err.contains("unknown state backend"));
-        assert!(err.contains("beads"));
+        assert!(err.contains("s3"));
+    }
+    #[test]
+    fn storage_backend_beads_returns_working_backend() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let backend = storage_backend("beads", root).unwrap();
+        let key = format!("test-{}", std::process::id());
+        backend
+            .save(
+                &key,
+                &TestRecord {
+                    id: "x".to_owned(),
+                    count: 1,
+                },
+            )
+            .unwrap();
+        let loaded: Option<TestRecord> = backend.load(&key).unwrap();
+        assert_eq!(loaded.unwrap().id, "x");
+        backend.remove(&key).unwrap();
     }
 }
