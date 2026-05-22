@@ -2,11 +2,11 @@
 
 ## 1. Candidate Extraction
 
-- [ ] 1.1 Add repository-wide discovery mode that extracts source roots and module-like directories without requiring an existing `cairn.blueprint`.
-- [ ] 1.2 Cluster files by path ownership and observed dependency density.
-- [ ] 1.3 Produce candidate nodes, paths, edges, confidence scores, and evidence paths.
-- [x] 1.4 Implement deterministic fallback heuristics for minimum file counts, max depth, coupling score bands, observed edge thresholds, and sample byte limits. (Partial: src/brownfield/heuristics.rs ships the coupling-score formula and threshold constants matching design.md; the directory-traversal enforcement landing on top remains.)
-- [ ] 1.5 Add fixture tests for simple, nested, mixed-language, low-confidence, and high-coupling repositories.
+- [x] 1.1 Add repository-wide discovery mode that extracts source roots and module-like directories without requiring an existing `cairn.blueprint`.
+- [x] 1.2 Cluster files by path ownership and observed dependency density.
+- [x] 1.3 Produce candidate nodes, paths, edges, confidence scores, and evidence paths.
+- [x] 1.4 Implement deterministic fallback heuristics for minimum file counts, max depth, coupling score bands, observed edge thresholds, and sample byte limits.
+- [x] 1.5 Add fixture tests for simple, nested, mixed-language, low-confidence, and high-coupling repositories.
 
 ## 2. Summariser Integration
 
@@ -17,16 +17,16 @@
 
 ## 3. Init from Code
 
-- [ ] 3.1 Implement `cairn init --from-code`.
-- [ ] 3.2 Generate `openspec/changes/brownfield-init/proposal.md`.
-- [ ] 3.3 Generate `blueprint.delta` with added nodes and edges.
-- [ ] 3.4 Generate stub contracts in the change directory.
-- [ ] 3.5 Fail safely when the target change exists unless `--force` is provided.
+- [x] 3.1 Implement `cairn init --from-code`.
+- [x] 3.2 Generate `openspec/changes/brownfield-init/proposal.md`.
+- [x] 3.3 Generate `blueprint.delta` with added nodes and edges.
+- [x] 3.4 Generate stub contracts in the change directory.
+- [x] 3.5 Fail safely when the target change exists unless `--force` is provided.
 
 ## 4. Refine
 
-- [ ] 4.1 Implement `cairn refine` against an existing blueprint.
-- [ ] 4.2 Generate delta operations instead of a full blueprint replacement.
+- [x] 4.1 Implement `cairn refine` against an existing blueprint.
+- [x] 4.2 Generate delta operations instead of a full blueprint replacement.
 - [ ] 4.3 Detect likely renames from path and similarity evidence.
 - [ ] 4.4 Add tests for additions, removals, modifications, and renames.
 
@@ -63,15 +63,15 @@
 
 - [ ] 9.1 Document human review workflow for generated brownfield changes.
 - [ ] 9.2 Document confidence scores and evidence paths.
-- [ ] 9.3 Register `init --from-code` and `refine` in the shared MCP query tool registry as mutating tools.
+- [x] 9.3 Register `init --from-code` and `refine` in the shared MCP query tool registry as mutating tools.
 - [ ] 9.4 Document limitations of architecture inference.
 - [ ] 9.5 Document the suggest engine's queue-file contract, the interview runner's resume semantics, and the templated authoring precedence rule.
 
 ## 10. Required Verification
 
-- [ ] 10.1 `cargo build` passes with zero warnings.
-- [ ] 10.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
-- [ ] 10.3 `cargo fmt --check` passes.
-- [ ] 10.4 `cargo test` passes.
-- [ ] 10.5 `cargo test --locked` passes.
+- [x] 10.1 `cargo build` passes with zero warnings.
+- [x] 10.2 `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features` passes.
+- [x] 10.3 `cargo fmt --check` passes.
+- [x] 10.4 `cargo test` passes.
+- [x] 10.5 `cargo test --locked` passes.
 - [ ] 10.6 `python3 .claude/skills/cflx-proposal/scripts/cflx.py validate phase-9-brownfield --strict` passes.

@@ -481,6 +481,7 @@ mod mcp {
 }
 
 mod heuristics {
+    use cairn::brownfield::discovery;
     use cairn::brownfield::{CandidateConfidence, classify_score, coupling_score};
 
     /// Scenario: Coupling score (3+1)/(1+1)=2.0 maps to high confidence.
@@ -556,16 +557,30 @@ mod heuristics {
     }
 
     /// Scenario: Summariser disabled uses path-derived names.
-    /// Cycle 3: reverted to `#[cflx_planned]` because the prior
-    /// assertion only confirmed a hand-constructed Candidate had a
-    /// non-empty id, not that the disabled-summariser path actually
-    /// derives names from filesystem paths.
-    #[cairn::cflx_planned(phase = 900)]
+    /// When no summariser backend is configured, discovery derives
+    /// candidate IDs and names directly from filesystem paths.
     #[test]
     fn test_heuristics__summariser_disabled_uses_path_derived_names() {
-        unimplemented!(
-            "awaits phase-9: disabled-summariser fallback constructor derives id from path"
-        );
+        let root = super::temp_repo("disabled-names");
+        super::populate_source_dir(&root, "src/auth", 4);
+        super::populate_source_dir(&root, "src/store", 3);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let auth = extraction
+            .candidates
+            .iter()
+            .find(|c| c.path == "src/auth")
+            .expect("should discover src/auth");
+        assert_eq!(auth.id, "src.auth", "id must be path-derived");
+        assert_eq!(auth.name, "auth", "name must be path-derived");
+
+        let store = extraction
+            .candidates
+            .iter()
+            .find(|c| c.path == "src/store")
+            .expect("should discover src/store");
+        assert_eq!(store.id, "src.store", "id must be path-derived");
+        assert_eq!(store.name, "store", "name must be path-derived");
     }
 }
 
