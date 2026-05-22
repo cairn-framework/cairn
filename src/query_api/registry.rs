@@ -2,7 +2,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 31] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 32] = [
     tool(
         "get",
         "cairn_get",
@@ -220,6 +220,13 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 31] = [
         "DraftEditResponse",
         SafetyClass::Mutating,
     ),
+    tool(
+        "draft_accept",
+        "cairn_draft_accept",
+        "DraftAcceptRequest",
+        "DraftAcceptResponse",
+        SafetyClass::Mutating,
+    ),
 ];
 
 pub(super) const fn tool(
@@ -312,7 +319,19 @@ mod tests {
     }
 
     #[test]
+    fn test_registry_contains_draft_accept() {
+        assert!(metadata_for_tool("draft_accept").is_some());
+        assert!(metadata_for_tool("cairn_draft_accept").is_some());
+    }
+
+    #[test]
+    fn test_draft_accept_is_mutating() {
+        assert!(!is_readonly("draft_accept"));
+        assert!(is_mutating("draft_accept"));
+    }
+
+    #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 31);
+        assert_eq!(TOOL_REGISTRY.len(), 32);
     }
 }

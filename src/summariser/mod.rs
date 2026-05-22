@@ -3,11 +3,13 @@
 //! the framework; specific local_command and hosted backends land in
 //! future commits.
 
+mod accept;
 mod backend;
 mod generate;
 mod request;
 mod store;
 
+pub use accept::{AcceptError, accept};
 pub use backend::{
     DisabledBackend, FakeBackend, HostedBackend, HostedConfig, LocalCommandBackend,
     SummariserBackend, SummariserBackendError, SummariserMode,

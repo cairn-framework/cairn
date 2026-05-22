@@ -87,6 +87,7 @@ pub(super) fn dispatch_change_tool(
         "draft_show" => Some(show_draft(root, request.node.as_ref())),
         "draft_discard" => Some(discard_draft(root, request.node.as_ref())),
         "draft_edit" => Some(edit_draft(root, request.node.as_ref())),
+        "draft_accept" => Some(accept_draft(root, blueprint_path, request)),
         _ => None,
     }
 }
@@ -235,6 +236,25 @@ fn edit_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryErro
         "id": id,
         "status": "editable",
         "editable_path": editable_path,
+    }))
+}
+
+fn accept_draft(
+    root: &Path,
+    blueprint_path: &Path,
+    request: &QueryRequest,
+) -> Result<Value, QueryError> {
+    let id = required(request.node.as_ref(), "node")?;
+    let edited = request.has(QueryFlag::Edited);
+    crate::summariser::accept(root, id, blueprint_path, edited).map_err(|e| QueryError {
+        code: "CAIRN_DRAFT_ACCEPT_FAILED".to_owned(),
+        message: e.to_string(),
+        source_span: None,
+        remediation: None,
+    })?;
+    Ok(json!({
+        "id": id,
+        "status": "accepted",
     }))
 }
 
@@ -450,6 +470,25 @@ mod tests {
     fn test_edit_draft_not_found_errors() {
         let dir = tempfile::tempdir().unwrap();
         let result = edit_draft(dir.path(), Some(&"missing".to_owned()));
+        assert!(result.is_err(), "expected error for missing draft");
+    }
+
+    #[test]
+    fn test_accept_draft_missing_id_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let req = QueryRequest::default();
+        let result = accept_draft(dir.path(), dir.path(), &req);
+        assert!(result.is_err(), "expected error for missing draft id");
+    }
+
+    #[test]
+    fn test_accept_draft_not_found_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let req = QueryRequest {
+            node: Some("missing".to_owned()),
+            ..QueryRequest::default()
+        };
+        let result = accept_draft(dir.path(), dir.path(), &req);
         assert!(result.is_err(), "expected error for missing draft");
     }
 }
