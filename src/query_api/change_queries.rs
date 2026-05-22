@@ -86,6 +86,7 @@ pub(super) fn dispatch_change_tool(
         "drafts" => Some(list_drafts(root)),
         "draft_show" => Some(show_draft(root, request.node.as_ref())),
         "draft_discard" => Some(discard_draft(root, request.node.as_ref())),
+        "draft_edit" => Some(edit_draft(root, request.node.as_ref())),
         _ => None,
     }
 }
@@ -202,6 +203,38 @@ fn discard_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryE
     Ok(json!({
         "id": id,
         "status": "discarded",
+    }))
+}
+
+fn edit_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryError> {
+    let id = required(draft_id, "node")?;
+    let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
+    let draft = store.read(id).map_err(|e| QueryError {
+        code: "CAIRN_DRAFT_NOT_FOUND".to_owned(),
+        message: e.to_string(),
+        source_span: None,
+        remediation: None,
+    })?;
+    let editable_path = store
+        .write_editable(&draft)
+        .map_err(|e| command_error(e.to_string()))?;
+    let header = match &draft {
+        crate::summariser::Draft::Pending(d) => d.header.clone(),
+        crate::summariser::Draft::Editable(d) => d.header.clone(),
+        crate::summariser::Draft::Accepted(d) => d.header().clone(),
+        crate::summariser::Draft::Discarded(d) => d.header.clone(),
+    };
+    let editable = crate::summariser::Draft::Editable(crate::summariser::EditableDraft {
+        header,
+        editable_path: editable_path.to_string_lossy().to_string(),
+    });
+    store
+        .overwrite(&editable)
+        .map_err(|e| command_error(e.to_string()))?;
+    Ok(json!({
+        "id": id,
+        "status": "editable",
+        "editable_path": editable_path,
     }))
 }
 
@@ -386,6 +419,37 @@ mod tests {
     fn test_discard_draft_not_found_errors() {
         let dir = tempfile::tempdir().unwrap();
         let result = discard_draft(dir.path(), Some(&"missing".to_owned()));
+        assert!(result.is_err(), "expected error for missing draft");
+    }
+
+    #[test]
+    fn test_edit_draft_writes_editable_file() {
+        let root =
+            temp_root_with_drafts(&[sample_pending_draft("draft-006", "app.db", "db contract")]);
+        let result = edit_draft(&root, Some(&"draft-006".to_owned())).unwrap();
+        assert_eq!(result.get("id").unwrap().as_str().unwrap(), "draft-006");
+        assert_eq!(result.get("status").unwrap().as_str().unwrap(), "editable");
+        let path = result.get("editable_path").unwrap().as_str().unwrap();
+        assert!(path.ends_with("draft-006.md"));
+        assert!(std::path::Path::new(path).exists());
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        let draft = store.read("draft-006").unwrap();
+        assert!(matches!(draft, Draft::Editable(_)));
+        assert_eq!(draft.id(), "draft-006");
+    }
+
+    #[test]
+    fn test_edit_draft_missing_id_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = edit_draft(dir.path(), None);
+        assert!(result.is_err(), "expected error for missing draft id");
+    }
+
+    #[test]
+    fn test_edit_draft_not_found_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = edit_draft(dir.path(), Some(&"missing".to_owned()));
         assert!(result.is_err(), "expected error for missing draft");
     }
 }

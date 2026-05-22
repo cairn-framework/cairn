@@ -103,6 +103,7 @@ mod tests {
                         && command.cli_name != "init_from_code"
                         && command.cli_name != "refine"
                         && command.cli_name != "draft_discard"
+                        && command.cli_name != "draft_edit"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );
