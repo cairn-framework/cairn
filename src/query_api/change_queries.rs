@@ -83,6 +83,8 @@ pub(super) fn dispatch_change_tool(
         }
         "changes" => Some(discover_changes(root)),
         "show" => Some(show_change(root, request.change.as_ref())),
+        "drafts" => Some(list_drafts(root)),
+        "draft_show" => Some(show_draft(root, request.node.as_ref())),
         _ => None,
     }
 }
@@ -147,4 +149,186 @@ pub(super) fn change_json(change: &changes::Change) -> Value {
             })
         }).collect::<Vec<_>>(),
     })
+}
+
+fn list_drafts(root: &Path) -> Result<Value, QueryError> {
+    let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
+    let drafts = store.list().map_err(|e| QueryError {
+        code: "CAIRN_DRAFTS_LIST_FAILED".to_owned(),
+        message: e.to_string(),
+        source_span: None,
+        remediation: None,
+    })?;
+    Ok(json!({
+        "drafts": drafts.iter().map(draft_summary_json).collect::<Vec<_>>(),
+    }))
+}
+
+fn show_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryError> {
+    let id = required(draft_id, "node")?;
+    let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
+    let draft = store.read(id).map_err(|e| QueryError {
+        code: "CAIRN_DRAFT_NOT_FOUND".to_owned(),
+        message: e.to_string(),
+        source_span: None,
+        remediation: None,
+    })?;
+    Ok(draft_detail_json(&draft))
+}
+
+fn draft_summary_json(draft: &crate::summariser::Draft) -> Value {
+    let (status, node_id, created_at) = match draft {
+        crate::summariser::Draft::Pending(d) => (
+            "pending",
+            d.header.node_id.clone(),
+            d.header.created_at.clone(),
+        ),
+        crate::summariser::Draft::Editable(d) => (
+            "editable",
+            d.header.node_id.clone(),
+            d.header.created_at.clone(),
+        ),
+        crate::summariser::Draft::Accepted(d) => (
+            "accepted",
+            d.header().node_id.clone(),
+            d.header().created_at.clone(),
+        ),
+        crate::summariser::Draft::Discarded(d) => (
+            "discarded",
+            d.header.node_id.clone(),
+            d.header.created_at.clone(),
+        ),
+    };
+    json!({
+        "id": draft.id(),
+        "status": status,
+        "node_id": node_id,
+        "created_at": created_at,
+    })
+}
+
+fn draft_detail_json(draft: &crate::summariser::Draft) -> Value {
+    match draft {
+        crate::summariser::Draft::Pending(d) => json!({
+            "id": d.header.id,
+            "status": "pending",
+            "node_id": d.header.node_id,
+            "artefact_type": d.header.artefact_type,
+            "draft_text": d.header.draft_text,
+            "created_at": d.header.created_at,
+        }),
+        crate::summariser::Draft::Editable(d) => json!({
+            "id": d.header.id,
+            "status": "editable",
+            "node_id": d.header.node_id,
+            "artefact_type": d.header.artefact_type,
+            "draft_text": d.header.draft_text,
+            "created_at": d.header.created_at,
+            "editable_path": d.editable_path,
+        }),
+        crate::summariser::Draft::Accepted(d) => json!({
+            "id": d.header().id,
+            "status": "accepted",
+            "node_id": d.header().node_id,
+            "artefact_type": d.header().artefact_type,
+            "draft_text": d.header().draft_text,
+            "created_at": d.header().created_at,
+            "accepted_interface_hash": d.accepted_interface_hash(),
+        }),
+        crate::summariser::Draft::Discarded(d) => json!({
+            "id": d.header.id,
+            "status": "discarded",
+            "node_id": d.header.node_id,
+            "artefact_type": d.header.artefact_type,
+            "draft_text": d.header.draft_text,
+            "created_at": d.header.created_at,
+            "reason": d.reason,
+        }),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::summariser::{Draft, DraftHeader, DraftStore, PendingDraft};
+
+    fn temp_root_with_drafts(drafts: &[Draft]) -> std::path::PathBuf {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().to_path_buf();
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        for draft in drafts {
+            store.write(draft).unwrap();
+        }
+        std::mem::forget(dir);
+        root
+    }
+
+    fn sample_pending_draft(id: &str, node_id: &str, text: &str) -> Draft {
+        Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: id.to_owned(),
+                node_id: node_id.to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: text.to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+            },
+        })
+    }
+
+    #[test]
+    fn test_list_drafts_empty_store() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = list_drafts(dir.path()).unwrap();
+        let drafts = result.get("drafts").unwrap().as_array().unwrap();
+        assert!(drafts.is_empty());
+    }
+
+    #[test]
+    fn test_list_drafts_returns_summaries() {
+        let root = temp_root_with_drafts(&[
+            sample_pending_draft("draft-001", "app.auth", "auth contract"),
+            sample_pending_draft("draft-002", "app.core", "core contract"),
+        ]);
+        let result = list_drafts(&root).unwrap();
+        let drafts = result.get("drafts").unwrap().as_array().unwrap();
+        assert_eq!(drafts.len(), 2);
+        assert_eq!(drafts[0].get("id").unwrap().as_str().unwrap(), "draft-001");
+        assert_eq!(
+            drafts[0].get("status").unwrap().as_str().unwrap(),
+            "pending"
+        );
+        assert_eq!(
+            drafts[0].get("node_id").unwrap().as_str().unwrap(),
+            "app.auth"
+        );
+        assert_eq!(drafts[1].get("id").unwrap().as_str().unwrap(), "draft-002");
+    }
+
+    #[test]
+    fn test_show_draft_returns_full_draft() {
+        let root =
+            temp_root_with_drafts(&[sample_pending_draft("draft-003", "app.ui", "ui contract")]);
+        let result = show_draft(&root, Some(&"draft-003".to_owned())).unwrap();
+        assert_eq!(result.get("id").unwrap().as_str().unwrap(), "draft-003");
+        assert_eq!(result.get("status").unwrap().as_str().unwrap(), "pending");
+        assert_eq!(
+            result.get("draft_text").unwrap().as_str().unwrap(),
+            "ui contract"
+        );
+        assert_eq!(result.get("node_id").unwrap().as_str().unwrap(), "app.ui");
+    }
+
+    #[test]
+    fn test_show_draft_missing_id_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = show_draft(dir.path(), None);
+        assert!(result.is_err(), "expected error for missing draft id");
+    }
+
+    #[test]
+    fn test_show_draft_not_found_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = show_draft(dir.path(), Some(&"missing".to_owned()));
+        assert!(result.is_err(), "expected error for missing draft");
+    }
 }
