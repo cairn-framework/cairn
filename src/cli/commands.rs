@@ -368,3 +368,59 @@ pub(super) fn run_change_new(root: &Path, change_id: &str) -> CliResult {
         "created change directory at meta/changes/{change_id}/\n"
     ))
 }
+/// List tasks for a change backed by beads.
+pub(super) fn run_change_tasks(root: &Path, change_id: &str) -> CliResult {
+    let change_dir = root.join("meta/changes").join(change_id);
+    if !change_dir.exists() {
+        return err(
+            1,
+            &format!("change directory not found: {}", change_dir.display()),
+        );
+    }
+    let bead_id_path = change_dir.join(".bead-id");
+    if !bead_id_path.exists() {
+        return err(1, "change has no beads backing; tasks are in tasks.md only");
+    }
+    let bead_id = match fs::read_to_string(&bead_id_path) {
+        Ok(id) => id.trim().to_owned(),
+        Err(error) => return err(1, &format!("failed to read .bead-id: {error}")),
+    };
+    let beads = crate::state::BeadsStateBackend::new(root.to_path_buf());
+    match beads.list_child_tasks(&bead_id) {
+        Ok(tasks) => {
+            if tasks.is_empty() {
+                return ok("no tasks found\n".to_owned());
+            }
+            let mut out = String::new();
+            for (id, title) in tasks {
+                let _ = std::fmt::Write::write_fmt(&mut out, format_args!("{id}: {title}\n"));
+            }
+            ok(out)
+        }
+        Err(error) => err(1, &format!("failed to list tasks: {error}")),
+    }
+}
+
+/// Claim a change and all its open tasks.
+pub(super) fn run_change_apply(root: &Path, change_id: &str) -> CliResult {
+    let change_dir = root.join("meta/changes").join(change_id);
+    if !change_dir.exists() {
+        return err(
+            1,
+            &format!("change directory not found: {}", change_dir.display()),
+        );
+    }
+    let bead_id_path = change_dir.join(".bead-id");
+    if !bead_id_path.exists() {
+        return err(1, "change has no beads backing; apply is not supported");
+    }
+    let bead_id = match fs::read_to_string(&bead_id_path) {
+        Ok(id) => id.trim().to_owned(),
+        Err(error) => return err(1, &format!("failed to read .bead-id: {error}")),
+    };
+    let beads = crate::state::BeadsStateBackend::new(root.to_path_buf());
+    match beads.claim_change(&bead_id) {
+        Ok(()) => ok(format!("claimed change {change_id} and its tasks\n")),
+        Err(error) => err(1, &format!("failed to claim change: {error}")),
+    }
+}

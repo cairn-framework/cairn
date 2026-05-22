@@ -33,7 +33,8 @@ mod render;
 
 use commands::{
     init_project, legacy_blueprint_warning, requires_valid_map, run_archive_command,
-    run_change_new, run_hook_command, run_onboard_command, run_shared_json_command, run_ui_command,
+    run_change_apply, run_change_new, run_change_tasks, run_hook_command, run_onboard_command,
+    run_shared_json_command, run_ui_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -193,7 +194,19 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
             };
             run_change_new(project_root, id)
         }
-        _ => err(1, "usage: cairn change new <change-id>"),
+        Some("tasks") => {
+            let Some(id) = change_id else {
+                return err(1, "usage: cairn change tasks <change-id>");
+            };
+            run_change_tasks(project_root, id)
+        }
+        Some("apply") => {
+            let Some(id) = change_id else {
+                return err(1, "usage: cairn change apply <change-id>");
+            };
+            run_change_apply(project_root, id)
+        }
+        _ => err(1, "usage: cairn change <new|tasks|apply> <change-id>"),
     }
 }
 struct ParsedArgs {

@@ -602,6 +602,86 @@ impl BeadsStateBackend {
         }
         Ok(task_ids)
     }
+    /// List child task beads of an epic.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed output or bd errors.
+    pub fn list_child_tasks(&self, epic_id: &str) -> Result<Vec<(String, String)>, StateError> {
+        let output = std::process::Command::new("bd")
+            .arg("-C")
+            .arg(&self.root)
+            .arg("children")
+            .arg(epic_id)
+            .arg("--json")
+            .output()
+            .map_err(StateError::Io)?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(StateError::Serialization(format!(
+                "bd children failed: {stderr}"
+            )));
+        }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let trimmed = stdout.trim();
+        if trimmed.is_empty() || trimmed == "[]" {
+            return Ok(Vec::new());
+        }
+        let children: Vec<serde_json::Value> =
+            serde_json::from_str(trimmed).map_err(|e| StateError::Serialization(e.to_string()))?;
+        let mut tasks = Vec::new();
+        for child in children {
+            if let (Some(id), Some(title)) = (
+                child.get("id").and_then(|v| v.as_str()),
+                child.get("title").and_then(|v| v.as_str()),
+            ) {
+                tasks.push((id.to_owned(), title.to_owned()));
+            }
+        }
+        Ok(tasks)
+    }
+
+    /// Claim an epic and all its open child tasks.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed output or bd errors.
+    pub fn claim_change(&self, epic_id: &str) -> Result<(), StateError> {
+        let epic_output = std::process::Command::new("bd")
+            .arg("-C")
+            .arg(&self.root)
+            .arg("update")
+            .arg(epic_id)
+            .arg("--claim")
+            .output()
+            .map_err(StateError::Io)?;
+        if !epic_output.status.success() {
+            let stderr = String::from_utf8_lossy(&epic_output.stderr);
+            return Err(StateError::Serialization(format!(
+                "bd claim epic failed: {stderr}"
+            )));
+        }
+        let children = self.list_child_tasks(epic_id)?;
+        for (child_id, _) in children {
+            let child_output = std::process::Command::new("bd")
+                .arg("-C")
+                .arg(&self.root)
+                .arg("update")
+                .arg(&child_id)
+                .arg("--claim")
+                .output()
+                .map_err(StateError::Io)?;
+            if !child_output.status.success() {
+                let stderr = String::from_utf8_lossy(&child_output.stderr);
+                return Err(StateError::Serialization(format!(
+                    "bd claim task {child_id} failed: {stderr}"
+                )));
+            }
+        }
+        Ok(())
+    }
 }
 /// Create a state backend from a backend name and root path.
 ///
@@ -938,6 +1018,55 @@ mod tests {
                 "task bead ID should start with cairn-"
             );
         }
+        for id in task_ids {
+            let _ = std::process::Command::new("bd")
+                .arg("delete")
+                .arg(&id)
+                .arg("--force")
+                .output();
+        }
+        let _ = std::process::Command::new("bd")
+            .arg("delete")
+            .arg(&epic_id)
+            .arg("--force")
+            .output();
+    }
+
+    #[test]
+    fn beads_list_child_tasks_returns_task_titles() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let backend = BeadsStateBackend::new(root);
+        let change_id = format!("test-list-{}", std::process::id());
+        let epic_id = backend.create_change_epic(&change_id).unwrap();
+        let task_ids = backend
+            .create_task_beads(&epic_id, &["Alpha", "Beta"])
+            .unwrap();
+        let tasks = backend.list_child_tasks(&epic_id).unwrap();
+        assert_eq!(tasks.len(), 2, "expected 2 child tasks");
+        for id in task_ids {
+            let _ = std::process::Command::new("bd")
+                .arg("delete")
+                .arg(&id)
+                .arg("--force")
+                .output();
+        }
+        let _ = std::process::Command::new("bd")
+            .arg("delete")
+            .arg(&epic_id)
+            .arg("--force")
+            .output();
+    }
+
+    #[test]
+    fn beads_claim_change_succeeds() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let backend = BeadsStateBackend::new(root);
+        let change_id = format!("test-claim-{}", std::process::id());
+        let epic_id = backend.create_change_epic(&change_id).unwrap();
+        let task_ids = backend
+            .create_task_beads(&epic_id, &["One", "Two"])
+            .unwrap();
+        backend.claim_change(&epic_id).unwrap();
         for id in task_ids {
             let _ = std::process::Command::new("bd")
                 .arg("delete")
