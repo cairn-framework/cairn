@@ -318,3 +318,63 @@ fn mcp_draft_accept_input_schema_includes_edited() {
         "cairn_summarise schema must include node property"
     );
 }
+
+/// End-to-end stdio transport test for the cairn-mcp binary.
+///
+/// Spawns the binary, sends a JSON-RPC tools/list request, and asserts the
+/// response is well-formed JSON-RPC with a non-empty tools array.
+#[test]
+fn mcp_binary_stdio_tools_list() {
+    use std::io::{BufRead, Write};
+    use std::process::{Command, Stdio};
+
+    let root = temp_root("mcp-stdio").expect("temp_root");
+    std::fs::write(root.join("cairn.blueprint"), "System T \"T\" id \"t\" {}\n").unwrap();
+
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cairn-mcp"))
+        .arg("--root")
+        .arg(&root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn cairn-mcp");
+
+    let stdin = child.stdin.take().expect("stdin pipe");
+    let stdout = child.stdout.take().expect("stdout pipe");
+
+    let request = serde_json::json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list",
+        "params": {}
+    });
+
+    {
+        let mut writer = stdin;
+        writeln!(writer, "{request}").expect("write request");
+        // Drop writer to close stdin so the child exits after processing.
+    }
+
+    let reader = std::io::BufReader::new(stdout);
+    let mut lines = reader.lines();
+    let line = lines
+        .next()
+        .expect("at least one response line")
+        .expect("valid UTF-8 line");
+
+    let response: Value = serde_json::from_str(&line).expect("response is valid JSON");
+    assert_eq!(response.get("jsonrpc").unwrap().as_str(), Some("2.0"));
+    assert_eq!(response.get("id").unwrap().as_i64(), Some(1));
+
+    let result = response.get("result").expect("response must have result");
+    let tools = result.get("tools").expect("result must have tools");
+    assert!(tools.is_array(), "tools must be an array");
+    assert!(
+        !tools.as_array().unwrap().is_empty(),
+        "tools array must not be empty"
+    );
+
+    // Clean up child.
+    let _ = child.wait();
+}
