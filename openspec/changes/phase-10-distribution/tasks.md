@@ -14,7 +14,7 @@
 
 - [x] 2.1 Document Claude Code integration using CLI and MCP.
 - [x] 2.2 Add example agent prompts grounded in Cairn queries.
-- [ ] 2.3 Document installation and startup for `cairn`, `cairn-mcp`, and `cairn-lsp`.
+- [x] 2.3 Document installation and startup for `cairn`, `cairn-mcp`, and `cairn-lsp`.
 
 ## 3. Extension API
 
