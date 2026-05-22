@@ -8,8 +8,8 @@ mod request;
 mod store;
 
 pub use backend::{
-    DisabledBackend, FakeBackend, LocalCommandBackend, SummariserBackend, SummariserBackendError,
-    SummariserMode,
+    DisabledBackend, FakeBackend, HostedBackend, HostedConfig, LocalCommandBackend,
+    SummariserBackend, SummariserBackendError, SummariserMode,
 };
 pub use request::{NodeContext, SUMMARISER_SCHEMA_VERSION, SummariserRequest, SummariserResponse};
 pub use store::{

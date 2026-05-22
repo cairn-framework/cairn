@@ -271,6 +271,52 @@ impl SummariserBackend for LocalCommandBackend {
     }
 }
 
+/// Configuration for a hosted API backend.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct HostedConfig {
+    /// Adapter identifier (e.g. "openai", "anthropic").
+    pub adapter: String,
+    /// Base URL for the hosted API.
+    #[serde(default)]
+    pub base_url: Option<String>,
+    /// Per-invocation timeout in milliseconds.
+    #[serde(default)]
+    pub timeout_ms: Option<u64>,
+}
+
+/// Hosted API backend placeholder.
+///
+/// Parses and stores configuration but returns an unsupported-backend
+/// error on every invocation. A concrete provider adapter will replace
+/// this behaviour in a future phase.
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[allow(dead_code)] // Reason: placeholder until concrete provider adapter lands
+pub struct HostedBackend {
+    config: HostedConfig,
+}
+
+#[allow(dead_code)] // Reason: same as struct; placeholder until adapter lands
+impl HostedBackend {
+    /// Creates a hosted backend from parsed configuration.
+    #[must_use]
+    pub const fn new(config: HostedConfig) -> Self {
+        Self { config }
+    }
+}
+
+impl SummariserBackend for HostedBackend {
+    fn invoke(
+        &self,
+        _request: &SummariserRequest,
+        _timeout: Duration,
+    ) -> Result<SummariserResponse, SummariserBackendError> {
+        Err(SummariserBackendError::Io(format!(
+            "unsupported hosted backend: {}",
+            self.config.adapter
+        )))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -428,5 +474,43 @@ mod tests {
             matches!(result, Err(SummariserBackendError::Timeout { .. })),
             "expected Timeout error, got {result:?}"
         );
+    }
+
+    #[test]
+    fn test_hosted_backend_returns_unsupported_error() {
+        let config = HostedConfig {
+            adapter: "openai".to_owned(),
+            base_url: Some("https://api.openai.com".to_owned()),
+            timeout_ms: Some(30_000),
+        };
+        let backend = HostedBackend::new(config);
+        let result = backend.invoke(&sample_request(), Duration::from_secs(5));
+        match result {
+            Err(SummariserBackendError::Io(msg)) => {
+                assert_eq!(msg, "unsupported hosted backend: openai");
+            }
+            other => panic!("expected Io error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_hosted_config_round_trips_through_serde() {
+        let config = HostedConfig {
+            adapter: "anthropic".to_owned(),
+            base_url: Some("https://api.anthropic.com".to_owned()),
+            timeout_ms: Some(60_000),
+        };
+        let json = serde_json::to_string(&config).expect("serialise");
+        let back: HostedConfig = serde_json::from_str(&json).expect("deserialise");
+        assert_eq!(back, config);
+    }
+
+    #[test]
+    fn test_hosted_config_with_defaults_parses() {
+        let json = r#"{"adapter":"test"}"#;
+        let config: HostedConfig = serde_json::from_str(json).expect("parse");
+        assert_eq!(config.adapter, "test");
+        assert!(config.base_url.is_none());
+        assert!(config.timeout_ms.is_none());
     }
 }
