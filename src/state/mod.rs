@@ -543,6 +543,65 @@ impl BeadsStateBackend {
         }
         Ok(bead_id)
     }
+    /// Create task beads as children of an epic with sequential needs edges.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on subprocess failures and `StateError::Serialization`
+    /// on malformed output or bd errors.
+    pub fn create_task_beads(
+        &self,
+        epic_id: &str,
+        tasks: &[&str],
+    ) -> Result<Vec<String>, StateError> {
+        let mut task_ids = Vec::new();
+        for (idx, task) in tasks.iter().enumerate() {
+            let title = format!("Task {idx}: {task}");
+            let output = std::process::Command::new("bd")
+                .arg("-C")
+                .arg(&self.root)
+                .arg("create")
+                .arg(&title)
+                .arg("--type")
+                .arg("task")
+                .arg("--parent")
+                .arg(epic_id)
+                .arg("--silent")
+                .output()
+                .map_err(StateError::Io)?;
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                return Err(StateError::Serialization(format!(
+                    "bd create task failed: {stderr}"
+                )));
+            }
+            let bead_id = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+            if bead_id.is_empty() {
+                return Err(StateError::Serialization(
+                    "bd create task returned empty bead ID".to_owned(),
+                ));
+            }
+            if let Some(prev) = task_ids.last() {
+                let dep_output = std::process::Command::new("bd")
+                    .arg("-C")
+                    .arg(&self.root)
+                    .arg("dep")
+                    .arg("add")
+                    .arg(&bead_id)
+                    .arg(prev)
+                    .output()
+                    .map_err(StateError::Io)?;
+                if !dep_output.status.success() {
+                    let stderr = String::from_utf8_lossy(&dep_output.stderr);
+                    return Err(StateError::Serialization(format!(
+                        "bd dep add failed: {stderr}"
+                    )));
+                }
+            }
+            task_ids.push(bead_id);
+        }
+        Ok(task_ids)
+    }
 }
 /// Create a state backend from a backend name and root path.
 ///
@@ -860,6 +919,35 @@ mod tests {
         let _ = std::process::Command::new("bd")
             .arg("delete")
             .arg(&bead_id)
+            .arg("--force")
+            .output();
+    }
+    #[test]
+    fn beads_create_task_beads_returns_bead_ids() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let backend = BeadsStateBackend::new(root);
+        let change_id = format!("test-tasks-{}", std::process::id());
+        let epic_id = backend.create_change_epic(&change_id).unwrap();
+        let task_ids = backend
+            .create_task_beads(&epic_id, &["First task", "Second task"])
+            .unwrap();
+        assert_eq!(task_ids.len(), 2, "expected 2 task beads");
+        for id in &task_ids {
+            assert!(
+                id.starts_with("cairn-"),
+                "task bead ID should start with cairn-"
+            );
+        }
+        for id in task_ids {
+            let _ = std::process::Command::new("bd")
+                .arg("delete")
+                .arg(&id)
+                .arg("--force")
+                .output();
+        }
+        let _ = std::process::Command::new("bd")
+            .arg("delete")
+            .arg(&epic_id)
             .arg("--force")
             .output();
     }

@@ -340,6 +340,23 @@ pub(super) fn run_change_new(root: &Path, change_id: &str) -> CliResult {
         match beads.create_change_epic(change_id) {
             Ok(bead_id) => {
                 let _ = fs::write(change_dir.join(".bead-id"), &bead_id);
+                let tasks_content =
+                    fs::read_to_string(change_dir.join("tasks.md")).unwrap_or_default();
+                let task_lines: Vec<&str> = tasks_content
+                    .lines()
+                    .filter_map(|line| line.strip_prefix("- [ ] "))
+                    .collect();
+                if !task_lines.is_empty() {
+                    match beads.create_task_beads(&bead_id, &task_lines) {
+                        Ok(task_ids) => {
+                            let _ =
+                                fs::write(change_dir.join(".task-bead-ids"), task_ids.join("\n"));
+                        }
+                        Err(error) => {
+                            eprintln!("warning: failed to create task beads: {error}");
+                        }
+                    }
+                }
             }
             Err(error) => {
                 eprintln!("warning: failed to create beads epic: {error}");
