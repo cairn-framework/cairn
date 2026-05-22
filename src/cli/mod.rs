@@ -275,7 +275,7 @@ fn render_loaded_project_command(
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
-        "changes" | "show" | "docstring" | "rename" => {
+        "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" => {
             return err(2, "this command currently requires --json");
         }
         "dependents" | "depends" => render_dependencies(parsed, scan_result),
@@ -519,6 +519,8 @@ fn uses_shared_json(command: &str) -> bool {
             | "hook"
             | "rename"
             | "context"
+            | "drafts"
+            | "draft_show"
     )
 }
 
@@ -885,4 +887,47 @@ app.api -> app.core "reports"
     }
 
     static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+
+    #[test]
+    fn test_cli_drafts_and_draft_show_json() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::summariser::{Draft, DraftHeader, DraftStore, PendingDraft};
+
+        let root = temp_root("draft-commands")?;
+        write_project(&root)?;
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-001".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+
+        let drafts = run_in(&root, &["--json", "drafts"]);
+        assert_eq!(drafts.code, 0, "drafts json stderr: {}", drafts.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(drafts.stdout.trim())
+            .unwrap_or_else(|e| panic!("invalid JSON from drafts --json: {e}\n{}", drafts.stdout));
+        let draft_array = parsed
+            .get("drafts")
+            .and_then(|v| v.as_array())
+            .expect("drafts array");
+        assert_eq!(draft_array.len(), 1);
+        assert_eq!(draft_array[0]["id"], "draft-001");
+
+        let show = run_in(&root, &["--json", "draft_show", "draft-001"]);
+        assert_eq!(show.code, 0, "draft_show json stderr: {}", show.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(show.stdout.trim()).unwrap_or_else(|e| {
+                panic!("invalid JSON from draft_show --json: {e}\n{}", show.stdout)
+            });
+        assert_eq!(parsed["id"], "draft-001");
+        assert_eq!(parsed["status"], "pending");
+
+        Ok(())
+    }
 }
