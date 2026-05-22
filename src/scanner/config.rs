@@ -31,7 +31,7 @@ pub struct IntentionalAsymmetry {
 }
 
 /// Loaded configuration.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Config {
     /// Combined ignore patterns.
     pub ignores: Vec<String>,
@@ -45,6 +45,21 @@ pub struct Config {
     pub targets: Vec<TargetConfig>,
     /// Intentional asymmetry entries.
     pub intentional_asymmetries: Vec<IntentionalAsymmetry>,
+    /// Selected state backend (e.g., "filesystem", "beads").
+    pub state_backend: String,
+}
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            ignores: Vec::new(),
+            context: String::new(),
+            rules: BTreeMap::new(),
+            artefact_types: String::new(),
+            targets: Vec::new(),
+            intentional_asymmetries: Vec::new(),
+            state_backend: "filesystem".to_owned(),
+        }
+    }
 }
 
 /// Config load error.
@@ -149,6 +164,13 @@ fn parse_config(source: &str, config: &mut Config) {
         let trimmed = line.trim();
         if trimmed.starts_with("context:") {
             config.context = value_after_colon(trimmed);
+            in_rules = false;
+            in_ignore = false;
+            in_artefacts = false;
+            in_targets = false;
+            in_asymmetry = false;
+        } else if trimmed.starts_with("state_backend:") {
+            config.state_backend = value_after_colon(trimmed);
             in_rules = false;
             in_ignore = false;
             in_artefacts = false;

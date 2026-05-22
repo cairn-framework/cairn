@@ -112,6 +112,35 @@ fn test_config_ignore_layers_and_protected_paths() -> Result<(), Box<dyn std::er
 
     Ok(())
 }
+#[test]
+fn test_config_state_backend_parsing() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("config-state-backend")?;
+    fs::write(
+        root.join("cairn.config.yaml"),
+        "state_backend: beads\ncontext: \"ctx\"\nrules: {}\n",
+    )?;
+
+    let config = scanner::config::load(&root)?;
+
+    assert_eq!(config.state_backend, "beads");
+
+    Ok(())
+}
+
+#[test]
+fn test_config_state_backend_defaults_to_filesystem() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("config-state-backend-default")?;
+    fs::write(
+        root.join("cairn.config.yaml"),
+        "context: \"ctx\"\nrules: {}\n",
+    )?;
+
+    let config = scanner::config::load(&root)?;
+
+    assert_eq!(config.state_backend, "filesystem");
+
+    Ok(())
+}
 
 #[test]
 fn test_graph_indexes_integrity_and_cycles() -> Result<(), Box<dyn std::error::Error>> {

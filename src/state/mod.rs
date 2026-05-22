@@ -1,6 +1,6 @@
 //! Pluggable state persistence backend.
 //!
-//! The `StateBackend` trait abstracts artefact state storage (status, claim,
+//! The `StateBackend` enum abstracts artefact state storage (status, claim,
 //! ready-queries) from the filesystem default. Content (markdown bodies,
 //! blueprint text) stays as files unconditionally.
 
@@ -40,6 +40,12 @@ impl From<io::Error> for StateError {
     }
 }
 
+impl From<serde_json::Error> for StateError {
+    fn from(e: serde_json::Error) -> Self {
+        StateError::Serialization(e.to_string())
+    }
+}
+
 /// Record metadata required for querying.
 pub trait StateRecord: DeserializeOwned {
     /// The logical type of this record (e.g., "draft", "snapshot").
@@ -57,14 +63,24 @@ pub trait StateRecord: DeserializeOwned {
 }
 
 /// Pluggable backend for artefact state persistence.
-pub trait StateBackend {
+#[derive(Clone, Debug)]
+pub enum StateBackend {
+    /// Filesystem-backed JSON store.
+    Filesystem(FilesystemStateBackend),
+}
+
+impl StateBackend {
     /// Load a record by key. Returns `Ok(None)` when the record does not exist.
     ///
     /// # Errors
     ///
     /// Returns `StateError::Io` on read failures and `StateError::Serialization`
     /// on malformed JSON.
-    fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError>;
+    pub fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError> {
+        match self {
+            Self::Filesystem(fs) => fs.load(key),
+        }
+    }
 
     /// Save a record by key. Overwrites existing records.
     ///
@@ -72,14 +88,22 @@ pub trait StateBackend {
     ///
     /// Returns `StateError::Io` on write failures and `StateError::Serialization`
     /// on serialization failures.
-    fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError>;
+    pub fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError> {
+        match self {
+            Self::Filesystem(fs) => fs.save(key, value),
+        }
+    }
 
     /// List all record keys.
     ///
     /// # Errors
     ///
     /// Returns `StateError::Io` on directory read failures.
-    fn list(&self) -> Result<Vec<String>, StateError>;
+    pub fn list(&self) -> Result<Vec<String>, StateError> {
+        match self {
+            Self::Filesystem(fs) => fs.list(),
+        }
+    }
 
     /// Remove a record by key. Idempotent: succeeds when the record does not
     /// exist.
@@ -87,30 +111,25 @@ pub trait StateBackend {
     /// # Errors
     ///
     /// Returns `StateError::Io` on deletion failures.
-    fn remove(&self, key: &str) -> Result<(), StateError>;
+    pub fn remove(&self, key: &str) -> Result<(), StateError> {
+        match self {
+            Self::Filesystem(fs) => fs.remove(key),
+        }
+    }
 
     /// Query records by type. Returns matching (key, record) pairs.
-    ///
-    /// Default implementation iterates over all records; backends MAY override
-    /// with indexed queries.
     ///
     /// # Errors
     ///
     /// Returns `StateError::Io` on directory read failures and
     /// `StateError::Serialization` on malformed JSON.
-    fn query_by_type<T: StateRecord>(
+    pub fn query_by_type<T: StateRecord>(
         &self,
         record_type: &str,
     ) -> Result<Vec<(String, T)>, StateError> {
-        let mut results = Vec::new();
-        for key in self.list()? {
-            if let Some(record) = self.load::<T>(&key)?
-                && record.record_type() == record_type
-            {
-                results.push((key, record));
-            }
+        match self {
+            Self::Filesystem(fs) => fs.query_by_type(record_type),
         }
-        Ok(results)
     }
 
     /// Query records by label. Returns matching (key, record) pairs.
@@ -119,16 +138,13 @@ pub trait StateBackend {
     ///
     /// Returns `StateError::Io` on directory read failures and
     /// `StateError::Serialization` on malformed JSON.
-    fn query_by_label<T: StateRecord>(&self, label: &str) -> Result<Vec<(String, T)>, StateError> {
-        let mut results = Vec::new();
-        for key in self.list()? {
-            if let Some(record) = self.load::<T>(&key)?
-                && record.labels().contains(&label.to_owned())
-            {
-                results.push((key, record));
-            }
+    pub fn query_by_label<T: StateRecord>(
+        &self,
+        label: &str,
+    ) -> Result<Vec<(String, T)>, StateError> {
+        match self {
+            Self::Filesystem(fs) => fs.query_by_label(label),
         }
-        Ok(results)
     }
 
     /// Query records by dependency. Returns matching (key, record) pairs.
@@ -137,19 +153,13 @@ pub trait StateBackend {
     ///
     /// Returns `StateError::Io` on directory read failures and
     /// `StateError::Serialization` on malformed JSON.
-    fn query_by_dependency<T: StateRecord>(
+    pub fn query_by_dependency<T: StateRecord>(
         &self,
         dependency: &str,
     ) -> Result<Vec<(String, T)>, StateError> {
-        let mut results = Vec::new();
-        for key in self.list()? {
-            if let Some(record) = self.load::<T>(&key)?
-                && record.dependencies().contains(&dependency.to_owned())
-            {
-                results.push((key, record));
-            }
+        match self {
+            Self::Filesystem(fs) => fs.query_by_dependency(dependency),
         }
-        Ok(results)
     }
 }
 
@@ -170,10 +180,14 @@ impl FilesystemStateBackend {
     fn path_for(&self, key: &str) -> PathBuf {
         self.root.join(format!("{key}.json"))
     }
-}
 
-impl StateBackend for FilesystemStateBackend {
-    fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError> {
+    /// Load a record by key. Returns `Ok(None)` when the record does not exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on read failures and `StateError::Serialization`
+    /// on malformed JSON.
+    pub fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError> {
         let path = self.path_for(key);
         if !path.exists() {
             return Ok(None);
@@ -184,7 +198,13 @@ impl StateBackend for FilesystemStateBackend {
         Ok(Some(value))
     }
 
-    fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError> {
+    /// Save a record by key. Overwrites existing records.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on write failures and `StateError::Serialization`
+    /// on serialization failures.
+    pub fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError> {
         std::fs::create_dir_all(&self.root)?;
         let path = self.path_for(key);
         let json = serde_json::to_string_pretty(value)
@@ -193,7 +213,12 @@ impl StateBackend for FilesystemStateBackend {
         Ok(())
     }
 
-    fn list(&self) -> Result<Vec<String>, StateError> {
+    /// List all record keys.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on directory read failures.
+    pub fn list(&self) -> Result<Vec<String>, StateError> {
         if !self.root.exists() {
             return Ok(Vec::new());
         }
@@ -209,12 +234,98 @@ impl StateBackend for FilesystemStateBackend {
         Ok(keys)
     }
 
-    fn remove(&self, key: &str) -> Result<(), StateError> {
+    /// Remove a record by key. Idempotent: succeeds when the record does not
+    /// exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on deletion failures.
+    pub fn remove(&self, key: &str) -> Result<(), StateError> {
         let path = self.path_for(key);
         if path.exists() {
             std::fs::remove_file(&path)?;
         }
         Ok(())
+    }
+
+    /// Query records by type. Returns matching (key, record) pairs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on directory read failures and
+    /// `StateError::Serialization` on malformed JSON.
+    pub fn query_by_type<T: StateRecord>(
+        &self,
+        record_type: &str,
+    ) -> Result<Vec<(String, T)>, StateError> {
+        let mut results = Vec::new();
+        for key in self.list()? {
+            if let Some(record) = self.load::<T>(&key)?
+                && record.record_type() == record_type
+            {
+                results.push((key, record));
+            }
+        }
+        Ok(results)
+    }
+
+    /// Query records by label. Returns matching (key, record) pairs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on directory read failures and
+    /// `StateError::Serialization` on malformed JSON.
+    pub fn query_by_label<T: StateRecord>(
+        &self,
+        label: &str,
+    ) -> Result<Vec<(String, T)>, StateError> {
+        let mut results = Vec::new();
+        for key in self.list()? {
+            if let Some(record) = self.load::<T>(&key)?
+                && record.labels().contains(&label.to_owned())
+            {
+                results.push((key, record));
+            }
+        }
+        Ok(results)
+    }
+
+    /// Query records by dependency. Returns matching (key, record) pairs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StateError::Io` on directory read failures and
+    /// `StateError::Serialization` on malformed JSON.
+    pub fn query_by_dependency<T: StateRecord>(
+        &self,
+        dependency: &str,
+    ) -> Result<Vec<(String, T)>, StateError> {
+        let mut results = Vec::new();
+        for key in self.list()? {
+            if let Some(record) = self.load::<T>(&key)?
+                && record.dependencies().contains(&dependency.to_owned())
+            {
+                results.push((key, record));
+            }
+        }
+        Ok(results)
+    }
+}
+
+/// Create a state backend from a backend name and root path.
+///
+/// Supported backends:
+/// - `filesystem` (default): JSON files under the root directory.
+///
+/// # Errors
+///
+/// Returns `StateError::Serialization` for unknown backend names.
+pub fn storage_backend(name: &str, root: PathBuf) -> Result<StateBackend, StateError> {
+    match name {
+        "filesystem" => Ok(StateBackend::Filesystem(FilesystemStateBackend::new(root))),
+        _ => Err(StateError::Serialization(format!(
+            "unknown state backend: {name}"
+        ))),
     }
 }
 
@@ -450,5 +561,37 @@ mod tests {
         let results: Vec<(String, QueryableRecord)> = backend.query_by_dependency("db").unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].0, "rec1");
+    }
+
+    #[test]
+    fn storage_backend_filesystem_returns_working_backend() {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static COUNTER: AtomicU64 = AtomicU64::new(0);
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let dir =
+            std::env::temp_dir().join(format!("cairn-state-be-test-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let backend = storage_backend("filesystem", dir.clone()).unwrap();
+        backend
+            .save(
+                "key",
+                &TestRecord {
+                    id: "x".to_owned(),
+                    count: 1,
+                },
+            )
+            .unwrap();
+        let loaded: Option<TestRecord> = backend.load("key").unwrap();
+        assert_eq!(loaded.unwrap().id, "x");
+    }
+
+    #[test]
+    fn storage_backend_unknown_returns_error() {
+        let dir = std::env::temp_dir().join("cairn-state-be-unknown");
+        let result = storage_backend("beads", dir);
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("unknown state backend"));
+        assert!(err.contains("beads"));
     }
 }
