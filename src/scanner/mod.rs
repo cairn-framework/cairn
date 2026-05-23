@@ -164,12 +164,19 @@ fn reconcile_targets(
     (reports, all_findings)
 }
 
-/// Deduplicate findings that share the same code, node, and message.
+/// Deduplicate findings that share the same semantic identity:
+/// `(code, node, path, target)`. Two findings with identical identity but
+/// different messages are still the same issue — the message is display-only.
 /// Preserves the first occurrence and order.
 fn dedup_findings(findings: &mut Vec<crate::map::graph::Finding>) {
     let mut seen = std::collections::HashSet::new();
     findings.retain(|f| {
-        let key = (f.code.clone(), f.node.clone(), f.message.clone());
+        let key = (
+            f.code.clone(),
+            f.node.clone(),
+            f.path.clone(),
+            f.target.clone(),
+        );
         seen.insert(key)
     });
 }
@@ -536,5 +543,139 @@ fn visit_nodes<F: FnMut(&blueprint::Node)>(nodes: &[blueprint::Node], f: &mut F)
     for node in nodes {
         f(node);
         visit_nodes(&node.children, f);
+    }
+}
+#[cfg(test)]
+mod tests {
+    use crate::map::graph::{Finding, FindingSeverity};
+
+    use super::dedup_findings;
+
+    fn finding(
+        code: &str,
+        node: Option<&str>,
+        path: Option<&str>,
+        target: Option<&str>,
+        message: &str,
+    ) -> Finding {
+        Finding {
+            code: code.to_owned(),
+            severity: FindingSeverity::Warning,
+            message: message.to_owned(),
+            node: node.map(str::to_owned),
+            path: path.map(str::to_owned),
+            target: target.map(str::to_owned),
+        }
+    }
+
+    #[test]
+    fn test_dedup_drops_exact_duplicate() {
+        let mut findings = vec![
+            finding("CC001", Some("app.api"), None, None, "msg"),
+            finding("CC001", Some("app.api"), None, None, "msg"),
+        ];
+        dedup_findings(&mut findings);
+        assert_eq!(findings.len(), 1, "exact duplicate must be dropped");
+    }
+
+    #[test]
+    fn test_dedup_keeps_different_targets() {
+        // Same code, node, path, message — but different dependency target.
+        // Previously these were incorrectly collapsed because the key was
+        // (code, node, message) and did not include `target`.
+        let mut findings = vec![
+            finding("CC002", Some("app.api"), None, Some("db"), "missing edge"),
+            finding(
+                "CC002",
+                Some("app.api"),
+                None,
+                Some("cache"),
+                "missing edge",
+            ),
+        ];
+        dedup_findings(&mut findings);
+        assert_eq!(
+            findings.len(),
+            2,
+            "findings for different targets must both be kept"
+        );
+    }
+
+    #[test]
+    fn test_dedup_keeps_different_paths() {
+        let mut findings = vec![
+            finding(
+                "CAIRN_RECONCILE_ORPHANED_FILE",
+                Some("app.api"),
+                Some("src/a.rs"),
+                None,
+                "msg",
+            ),
+            finding(
+                "CAIRN_RECONCILE_ORPHANED_FILE",
+                Some("app.api"),
+                Some("src/b.rs"),
+                None,
+                "msg",
+            ),
+        ];
+        dedup_findings(&mut findings);
+        assert_eq!(
+            findings.len(),
+            2,
+            "findings for different file paths must both be kept"
+        );
+    }
+
+    #[test]
+    fn test_dedup_merges_same_issue_different_message() {
+        // Same issue (code + node + path + target) with a different message text
+        // — the second is redundant; the first occurrence is preserved.
+        let mut findings = vec![
+            finding(
+                "CC001",
+                Some("app.api"),
+                Some("src/lib.rs"),
+                None,
+                "first message",
+            ),
+            finding(
+                "CC001",
+                Some("app.api"),
+                Some("src/lib.rs"),
+                None,
+                "second message",
+            ),
+        ];
+        dedup_findings(&mut findings);
+        assert_eq!(
+            findings.len(),
+            1,
+            "same issue with different message texts must be deduplicated"
+        );
+        assert_eq!(
+            findings[0].message, "first message",
+            "first occurrence must be kept"
+        );
+    }
+
+    #[test]
+    fn test_dedup_preserves_order_and_first_occurrence() {
+        let mut findings = vec![
+            finding("CC001", Some("app.api"), None, None, "alpha"),
+            finding("CC002", Some("app.db"), None, None, "beta"),
+            finding("CC001", Some("app.api"), None, None, "alpha"),
+        ];
+        dedup_findings(&mut findings);
+        assert_eq!(findings.len(), 2);
+        assert_eq!(findings[0].code, "CC001");
+        assert_eq!(findings[1].code, "CC002");
+    }
+
+    #[test]
+    fn test_dedup_empty_is_noop() {
+        let mut findings: Vec<Finding> = Vec::new();
+        dedup_findings(&mut findings);
+        assert!(findings.is_empty());
     }
 }
