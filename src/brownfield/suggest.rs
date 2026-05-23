@@ -131,7 +131,7 @@ fn has_deterministic_edge(
     a: &super::discovery::DiscoveredCandidate,
     b: &super::discovery::DiscoveredCandidate,
 ) -> bool {
-    a.edges.iter().any(|e| e.target == b.id)
+    a.edges.iter().any(|e| e.target == b.id) || b.edges.iter().any(|e| e.target == a.id)
 }
 
 #[cfg(test)]
@@ -223,6 +223,106 @@ mod tests {
             entries
                 .iter()
                 .any(|e| e.source == "src.identity" && e.target == "src.auth")
+        );
+    }
+
+    fn make_candidate(id: &str, tags: &[&str], edges_to: &[&str]) -> DiscoveredCandidate {
+        DiscoveredCandidate {
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            path: id.replace('.', "/"),
+            tags: tags.iter().map(ToString::to_string).collect(),
+            confidence: 0.9,
+            evidence: Vec::new(),
+            edges: edges_to
+                .iter()
+                .map(|t| DiscoveredEdge {
+                    target: t.to_string(),
+                    description: "dep".to_owned(),
+                    confidence: 0.5,
+                })
+                .collect(),
+        }
+    }
+
+    fn extraction(candidates: Vec<DiscoveredCandidate>) -> Extraction {
+        Extraction {
+            candidates,
+            schema_version: 1,
+        }
+    }
+
+    #[test]
+    fn test_suggest_edges_skips_when_reverse_edge_exists() {
+        // has_deterministic_edge only checked a.edges; it missed b → a.
+        // A pair where b already points to a must not generate suggestions.
+        let a = make_candidate("src.a", &["shared"], &[]); // no edge from a
+        let b = make_candidate("src.b", &["shared"], &["src.a"]); // b → a exists
+        let entries = suggest_edges(&extraction(vec![a, b]), "p9", "propose");
+        assert!(
+            entries.is_empty(),
+            "reverse deterministic edge must suppress suggestions, got: {entries:?}"
+        );
+    }
+
+    #[test]
+    fn test_suggest_edges_confidence_uses_minimum_of_pair() {
+        let mut a = make_candidate("x.auth", &["sec"], &[]);
+        let mut b = make_candidate("x.identity", &["sec"], &[]);
+        a.confidence = 0.9;
+        b.confidence = 0.6;
+        let entries = suggest_edges(&extraction(vec![a, b]), "p9", "propose");
+        for e in &entries {
+            assert!(
+                (e.confidence.unwrap() - 0.6).abs() < 1e-9,
+                "confidence must be min(0.9, 0.6) = 0.6, got {:?}",
+                e.confidence
+            );
+        }
+    }
+
+    #[test]
+    fn test_suggest_edges_multiple_shared_tags_one_entry_per_direction() {
+        // Two shared tags must still produce exactly one entry per direction,
+        // not one per tag. The suggestion carries the relationship, not each tag.
+        let a = make_candidate("x.a", &["alpha", "beta"], &[]);
+        let b = make_candidate("x.b", &["alpha", "beta"], &[]);
+        let entries = suggest_edges(&extraction(vec![a, b]), "p9", "propose");
+        assert_eq!(
+            entries.len(),
+            2,
+            "two shared tags must produce 2 entries (one per direction), got {entries:?}"
+        );
+    }
+
+    #[test]
+    fn test_suggest_edges_provenance_fields_are_set() {
+        let a = make_candidate("x.a", &["tag"], &[]);
+        let b = make_candidate("x.b", &["tag"], &[]);
+        let entries = suggest_edges(&extraction(vec![a, b]), "phase-9", "review");
+        for e in &entries {
+            let prov = e.provenance.as_ref().expect("provenance must be set");
+            assert_eq!(prov.trace_phase, "phase-9");
+            assert_eq!(prov.stage, "review");
+        }
+    }
+
+    #[test]
+    fn test_suggest_edges_single_candidate_is_empty() {
+        let a = make_candidate("x.a", &["shared"], &[]);
+        let entries = suggest_edges(&extraction(vec![a]), "p9", "propose");
+        assert!(entries.is_empty(), "single candidate cannot form a pair");
+    }
+
+    #[test]
+    fn test_suggest_edges_no_shared_tags_is_empty() {
+        let a = make_candidate("x.a", &["foo"], &[]);
+        let b = make_candidate("x.b", &["bar"], &[]);
+        let entries = suggest_edges(&extraction(vec![a, b]), "p9", "propose");
+        assert!(
+            entries.is_empty(),
+            "no shared tags must produce no suggestions"
         );
     }
 }
