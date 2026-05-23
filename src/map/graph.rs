@@ -178,3 +178,214 @@ impl fmt::Display for Finding {
 }
 
 impl Error for Finding {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blueprint::{NodeKind, Span};
+    use std::collections::BTreeMap;
+
+    fn bare_node(id: &str) -> NodeRecord {
+        NodeRecord {
+            kind: NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files: Vec::new(),
+            span: Span::point("test", 1, 1),
+        }
+    }
+
+    fn one_node_graph(id: &str) -> Graph {
+        let mut nodes = BTreeMap::new();
+        nodes.insert(id.to_owned(), bare_node(id));
+        Graph {
+            nodes,
+            names: BTreeMap::new(),
+            outbound: BTreeMap::new(),
+            inbound: BTreeMap::new(),
+            findings: Vec::new(),
+        }
+    }
+
+    // ── FindingSeverity::name ──────────────────────────────────────────────────
+
+    #[test]
+    fn test_severity_name_error() {
+        assert_eq!(FindingSeverity::Error.name(), "error");
+    }
+
+    #[test]
+    fn test_severity_name_warning() {
+        assert_eq!(FindingSeverity::Warning.name(), "warning");
+    }
+
+    #[test]
+    fn test_severity_name_info() {
+        assert_eq!(FindingSeverity::Info.name(), "info");
+    }
+
+    // ── Finding: Display ──────────────────────────────────────────────────────
+
+    #[test]
+    fn test_finding_display_format() {
+        let f = Finding {
+            code: "CAIRN_TEST".to_owned(),
+            severity: FindingSeverity::Warning,
+            message: "something went wrong".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+        };
+        assert_eq!(f.to_string(), "CAIRN_TEST: something went wrong");
+    }
+
+    // ── Graph::has_errors ─────────────────────────────────────────────────────
+
+    #[test]
+    fn test_has_errors_empty_findings_returns_false() {
+        let g = one_node_graph("a");
+        assert!(!g.has_errors());
+    }
+
+    #[test]
+    fn test_has_errors_warning_only_returns_false() {
+        let mut g = one_node_graph("a");
+        g.findings.push(Finding {
+            code: "W".to_owned(),
+            severity: FindingSeverity::Warning,
+            message: "warn".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+        });
+        assert!(!g.has_errors(), "warning alone must not count as error");
+    }
+
+    #[test]
+    fn test_has_errors_error_finding_returns_true() {
+        let mut g = one_node_graph("a");
+        g.findings.push(Finding {
+            code: "E".to_owned(),
+            severity: FindingSeverity::Error,
+            message: "err".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+        });
+        assert!(g.has_errors());
+    }
+
+    // ── Graph::resolve — exact ID ─────────────────────────────────────────────
+
+    #[test]
+    fn test_resolve_exact_id_returns_node() {
+        let g = one_node_graph("app.api");
+        let node = g.resolve("app.api").expect("should resolve");
+        assert_eq!(node.id, "app.api");
+    }
+
+    #[test]
+    fn test_resolve_unknown_id_returns_not_found_finding() {
+        let g = one_node_graph("app.api");
+        let err = g.resolve("missing").unwrap_err();
+        assert_eq!(err.code, "CAIRN_QUERY_NODE_NOT_FOUND");
+    }
+
+    #[test]
+    fn test_resolve_unknown_id_error_is_error_severity() {
+        let g = one_node_graph("app.api");
+        let err = g.resolve("missing").unwrap_err();
+        assert_eq!(err.severity, FindingSeverity::Error);
+    }
+
+    // ── Graph::resolve — name lookup ──────────────────────────────────────────
+
+    #[test]
+    fn test_resolve_by_unique_name_returns_node() {
+        let mut g = one_node_graph("app.api");
+        // "Api" is an alias for the node with id "app.api".
+        g.names.insert("Api".to_owned(), vec!["app.api".to_owned()]);
+        let node = g.resolve("Api").expect("should resolve by name");
+        assert_eq!(node.id, "app.api");
+    }
+
+    #[test]
+    fn test_resolve_ambiguous_name_falls_through_to_error() {
+        // Two nodes share the name "Api". The [id] destructure fails for 2 elements,
+        // so resolve must return an error, not silently pick one.
+        let mut g = one_node_graph("app.api");
+        g.nodes.insert("test.api".to_owned(), bare_node("test.api"));
+        g.names.insert(
+            "Api".to_owned(),
+            vec!["app.api".to_owned(), "test.api".to_owned()],
+        );
+        let err = g.resolve("Api").unwrap_err();
+        assert_eq!(
+            err.code, "CAIRN_QUERY_NODE_NOT_FOUND",
+            "ambiguous name must produce not-found error, not silently pick one node"
+        );
+    }
+
+    // ── Graph::resolve — suggestions ──────────────────────────────────────────
+
+    #[test]
+    fn test_resolve_unknown_with_partial_match_includes_suggestion() {
+        // Searching for "api" when "app.api" exists — "app.api" contains "api".
+        let g = one_node_graph("app.api");
+        let err = g.resolve("api").unwrap_err();
+        assert!(
+            err.message.contains("suggestion"),
+            "message must include 'suggestion' when a partial match exists: {}",
+            err.message
+        );
+        assert!(
+            err.message.contains("app.api"),
+            "message must name the matching node: {}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn test_resolve_unknown_with_no_partial_match_has_no_suggestion() {
+        let g = one_node_graph("app.api");
+        let err = g.resolve("zzz").unwrap_err();
+        assert!(
+            !err.message.contains("suggestion"),
+            "no partial match must produce no suggestion: {}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn test_resolve_suggestions_capped_at_three() {
+        // Four nodes all matching the search term; suggestions must be <= 3.
+        let mut g = Graph {
+            nodes: BTreeMap::new(),
+            names: BTreeMap::new(),
+            outbound: BTreeMap::new(),
+            inbound: BTreeMap::new(),
+            findings: Vec::new(),
+        };
+        for id in &["x.a", "x.b", "x.c", "x.d"] {
+            g.nodes.insert((*id).to_owned(), bare_node(id));
+        }
+        let err = g.resolve("x").unwrap_err();
+        // All four nodes contain "x", but take(3) limits to 3 suggestions.
+        // Count commas in the suggestions section: 2 commas means 3 items.
+        let suggestions_part = err.message.split("suggestions: ").nth(1).unwrap_or("");
+        let suggestion_count = suggestions_part.split(", ").count();
+        assert!(
+            suggestion_count <= 3,
+            "suggestions must be capped at 3, got {suggestion_count}: {}",
+            err.message
+        );
+    }
+}
