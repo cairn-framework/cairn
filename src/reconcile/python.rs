@@ -97,7 +97,9 @@ fn collect_owner(node: &Node, owners: &mut Vec<(String, String)>) {
 fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String> {
     owners
         .iter()
-        .filter(|(_, path)| file == path || file.starts_with(&format!("{path}/")))
+        .filter(|(_, path)| {
+            path.is_empty() || path == "." || file == path || file.starts_with(&format!("{path}/"))
+        })
         .max_by_key(|(_, path)| path.len())
         .map(|(id, _)| id.clone())
 }
