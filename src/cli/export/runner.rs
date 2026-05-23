@@ -14,7 +14,7 @@ use crate::{
     error::CairnError,
 };
 
-use super::{ExportEnvelope, build_export, render_json, render_markdown};
+use super::{ExportEnvelope, build_export, render_json, render_markdown, render_mermaid};
 
 /// Entrypoint for the `cairn export` command.
 ///
@@ -46,6 +46,7 @@ fn render(envelope: &ExportEnvelope, format: ExportFormat) -> String {
     match format {
         ExportFormat::Json => render_json(envelope),
         ExportFormat::Markdown => render_markdown(envelope),
+        ExportFormat::Mermaid => render_mermaid(envelope),
     }
 }
 
@@ -60,6 +61,7 @@ fn write_output(path: &Path, body: &str) -> Result<(), CairnError> {
 enum ExportFormat {
     Json,
     Markdown,
+    Mermaid,
 }
 
 struct ExportArgs {
@@ -100,9 +102,10 @@ fn parse_format(value: &str) -> Result<ExportFormat, CliResult> {
     match value {
         "json" => Ok(ExportFormat::Json),
         "md" | "markdown" => Ok(ExportFormat::Markdown),
+        "mermaid" => Ok(ExportFormat::Mermaid),
         other => Err(err(
             1,
-            &format!("--format value '{other}' is not 'json' or 'md'"),
+            &format!("--format value '{other}' is not 'json', 'md', or 'mermaid'"),
         )),
     }
 }
