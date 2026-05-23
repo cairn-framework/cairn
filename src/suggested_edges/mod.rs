@@ -242,4 +242,124 @@ mod tests {
         let back: EdgeProvenance = serde_json::from_str(&json).expect("deserialise");
         assert_eq!(back, prov);
     }
+
+    // ── write_to_change ───────────────────────────────────────────────────────
+
+    #[test]
+    fn write_to_change_creates_directory_and_file() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let change_dir = dir.path().join("change-xyz");
+        let queue = SuggestedEdgesQueue {
+            version: SUGGESTED_EDGES_QUEUE_VERSION,
+            entries: vec![sample_entry(TriageState::Pending)],
+        };
+        write_to_change(&change_dir, &queue).expect("write must succeed");
+        let path = queue_path_for_change(&change_dir);
+        assert!(path.exists(), "queue file must exist after write");
+    }
+
+    #[test]
+    fn write_to_change_round_trips_content() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let change_dir = dir.path().join("change-abc");
+        let queue = SuggestedEdgesQueue {
+            version: SUGGESTED_EDGES_QUEUE_VERSION,
+            entries: vec![
+                sample_entry(TriageState::Pending),
+                sample_entry(TriageState::Accepted),
+            ],
+        };
+        write_to_change(&change_dir, &queue).expect("write");
+        let back = read_from_change(&change_dir)
+            .expect("read")
+            .expect("present");
+        assert_eq!(back, queue);
+    }
+
+    #[test]
+    fn write_to_change_is_idempotent_on_overwrite() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let change_dir = dir.path().join("change-ow");
+        let queue_v1 = SuggestedEdgesQueue {
+            version: SUGGESTED_EDGES_QUEUE_VERSION,
+            entries: vec![sample_entry(TriageState::Pending)],
+        };
+        let queue_v2 = SuggestedEdgesQueue {
+            version: SUGGESTED_EDGES_QUEUE_VERSION,
+            entries: vec![sample_entry(TriageState::Accepted)],
+        };
+        write_to_change(&change_dir, &queue_v1).expect("first write");
+        write_to_change(&change_dir, &queue_v2).expect("second write");
+        let back = read_from_change(&change_dir)
+            .expect("read")
+            .expect("present");
+        assert_eq!(back, queue_v2, "second write must overwrite the first");
+    }
+
+    // ── validate_strict ───────────────────────────────────────────────────────
+
+    #[test]
+    fn validate_strict_absent_queue_returns_ok() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let result = validate_strict("change-1", dir.path());
+        assert!(result.is_ok(), "absent queue must not block archive");
+    }
+
+    #[test]
+    fn validate_strict_zero_pending_returns_ok() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let queue = SuggestedEdgesQueue {
+            version: SUGGESTED_EDGES_QUEUE_VERSION,
+            entries: vec![
+                sample_entry(TriageState::Accepted),
+                sample_entry(TriageState::Rejected),
+            ],
+        };
+        write_to_change(dir.path(), &queue).expect("write");
+        let result = validate_strict("change-1", dir.path());
+        assert!(
+            result.is_ok(),
+            "all-triaged queue must not block archive: {result:?}"
+        );
+    }
+
+    #[test]
+    fn validate_strict_pending_entries_returns_cc002() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let queue = SuggestedEdgesQueue {
+            version: SUGGESTED_EDGES_QUEUE_VERSION,
+            entries: vec![
+                sample_entry(TriageState::Accepted),
+                sample_entry(TriageState::Pending),
+                sample_entry(TriageState::Pending),
+            ],
+        };
+        write_to_change(dir.path(), &queue).expect("write");
+        let err = validate_strict("my-change", dir.path()).unwrap_err();
+        // Must be the CC002 error variant with the correct change id and count.
+        match &err {
+            crate::error::CairnError::UntriagedSuggestedEdges {
+                change_id,
+                pending_count,
+                ..
+            } => {
+                assert_eq!(change_id, "my-change");
+                assert_eq!(*pending_count, 2);
+            }
+            other => panic!("expected UntriagedSuggestedEdges, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn validate_strict_malformed_file_returns_cc003() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        // Write invalid JSON to the queue path so the reader returns a parse error.
+        let path = queue_path_for_change(dir.path());
+        fs::write(&path, "not valid json").expect("write");
+        let err = validate_strict("change-err", dir.path()).unwrap_err();
+        assert!(
+            matches!(err, crate::error::CairnError::ChangeDiscovery { .. }),
+            "parse failure must produce CC003 ChangeDiscovery, got {err:?}"
+        );
+    }
 }
