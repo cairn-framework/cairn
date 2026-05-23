@@ -293,6 +293,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     }
     let mut graph = build_graph(&ast, root, &contracts, &claimed_files, all_findings);
     check_provenance_coverage(&mut graph, &artefacts);
+    check_claims(&mut graph, &artefacts, root);
     let current_snapshot = compute_blueprint_snapshot(&ast);
     let previous_snapshot =
         state::read_blueprint_snapshot(root).map_err(|error| error.to_string())?;
@@ -445,6 +446,64 @@ fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactSet) {
                 node: Some(node.id.clone()),
                 target: None,
                 path: None,
+            });
+        }
+    }
+}
+
+fn check_claims(graph: &mut Graph, artefacts: &ArtefactSet, root: &Path) {
+    use std::collections::BTreeSet;
+    for decision in &artefacts.decisions {
+        let Some(claims) = &decision.claims else {
+            continue;
+        };
+        if !matches!(claims.mode, crate::artefacts::ClaimsMode::Exhaustive) {
+            continue;
+        }
+        let folder = root.join(&claims.folder);
+        let actual: BTreeSet<String> = if let Ok(entries) = std::fs::read_dir(&folder) {
+            entries
+                .flatten()
+                .filter(|e| e.file_type().is_ok_and(|ft| ft.is_file()))
+                .map(|e| e.file_name().to_string_lossy().into_owned())
+                .collect()
+        } else {
+            graph.findings.push(crate::map::graph::Finding {
+                code: "CA003".to_owned(),
+                severity: crate::map::graph::FindingSeverity::Error,
+                message: format!(
+                    "decision `{}` claims exhaustive file list for folder `{}` which does not exist or is unreadable",
+                    decision.id, claims.folder
+                ),
+                node: Some(decision.nodes.first().cloned().unwrap_or_default()),
+                target: None,
+                path: Some(decision.path.clone()),
+            });
+            continue;
+        };
+        let claimed: BTreeSet<String> = claims.items.iter().cloned().collect();
+        let missing: Vec<_> = actual.difference(&claimed).cloned().collect();
+        let extra: Vec<_> = claimed.difference(&actual).cloned().collect();
+        if !missing.is_empty() || !extra.is_empty() {
+            let mut parts = Vec::new();
+            if !missing.is_empty() {
+                parts.push(format!("missing from claim: {}", missing.join(", ")));
+            }
+            if !extra.is_empty() {
+                parts.push(format!("extra in claim: {}", extra.join(", ")));
+            }
+            graph.findings.push(crate::map::graph::Finding {
+                code: "CA003".to_owned(),
+                severity: crate::map::graph::FindingSeverity::Error,
+                message: format!(
+                    "decision `{}` exhaustive file claim for `{}` does not match actual contents: {}",
+                    decision.id,
+                    claims.folder,
+                    parts.join("; ")
+                ),
+                node: Some(decision.nodes.first().cloned().unwrap_or_default()),
+                target: None,
+                path: Some(decision.path.clone()),
             });
         }
     }

@@ -12,7 +12,8 @@ use super::{contract::ContractSet, frontmatter};
 mod io;
 mod parse;
 mod sha256;
-mod types;
+/// Artefact type definitions.
+pub mod types;
 mod validate;
 
 use io::list;
@@ -99,6 +100,8 @@ fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
                     orphaned: optional(&parsed.values, "orphaned")
                         .is_some_and(|value| value == "true"),
                     orphan_reason: optional(&parsed.values, "orphan_reason"),
+
+                    claims: parse_claims(&parsed.values, &parsed.lists, &path),
                     body: parsed.body,
                 });
             }
@@ -106,6 +109,24 @@ fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
     }
 }
 
+fn parse_claims(
+    values: &std::collections::BTreeMap<String, String>,
+    lists: &std::collections::BTreeMap<String, Vec<String>>,
+    _path: &std::path::Path,
+) -> Option<crate::artefacts::Claims> {
+    let folder = values.get("claims_folder")?;
+    let mode = match values.get("claims_mode").map(String::as_str) {
+        Some("exhaustive") => crate::artefacts::ClaimsMode::Exhaustive,
+        Some("illustrative") => crate::artefacts::ClaimsMode::Illustrative,
+        _ => return None,
+    };
+    let items = lists.get("claims_items")?.clone();
+    Some(crate::artefacts::Claims {
+        folder: folder.clone(),
+        mode,
+        items,
+    })
+}
 fn load_reviews(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
     for pointer in pointers(ast, "reviews") {
         for path in markdown_paths(root, &pointer, set) {
