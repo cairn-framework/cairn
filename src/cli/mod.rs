@@ -540,8 +540,13 @@ fn help_text() -> String {
     out.push_str("  --file <path>         Blueprint file (default: cairn.blueprint)\n");
     out.push_str("  --changes-dir <path>  Changes directory (default: meta/changes)\n");
     out.push_str("  --json                Output in JSON format\n");
+    out.push_str("  --strict              Exit 1 on Warning findings (scan/lint)\n");
     out.push_str("  --version             Print version\n");
     out.push_str("  -h, --help            Print this help\n");
+    out.push_str("\nExit codes:\n");
+    out.push_str("  0  Success; no blocking findings\n");
+    out.push_str("  1  Blocking findings, or command failed\n");
+    out.push_str("  2  Usage error (unknown command, missing argument)\n");
     out
 }
 
@@ -854,6 +859,33 @@ app.api -> app.core "reports"
         let result = run(&[]);
         assert_eq!(result.code, 0, "no args should show help");
         assert!(result.stdout.contains("Usage:"));
+    }
+
+    #[test]
+    fn test_help_documents_exit_codes() {
+        let result = run(&["--help".to_string()]);
+        assert!(
+            result.stdout.contains("Exit codes"),
+            "--help must document exit codes; got:\n{}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains('0'),
+            "--help must document exit code 0"
+        );
+        assert!(
+            result.stdout.contains('1'),
+            "--help must document exit code 1"
+        );
+    }
+
+    #[test]
+    fn test_help_documents_strict_flag() {
+        let result = run(&["--help".to_string()]);
+        assert!(
+            result.stdout.contains("--strict"),
+            "--help must document --strict flag"
+        );
     }
 
     #[test]
