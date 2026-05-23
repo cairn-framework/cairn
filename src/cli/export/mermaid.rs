@@ -1,13 +1,22 @@
 //! Mermaid diagram renderer for the export envelope.
 //!
 //! Produces a `graph TD` diagram from the node and edge lists in the
-//! envelope. Node IDs are quoted because they contain dots.
+//! envelope. Node IDs containing dots or hyphens are sanitized to
+//! underscores so they are valid unquoted Mermaid identifiers; the
+//! original ID is preserved in the node label.
 
 use std::fmt::Write as _;
 
 use crate::blueprint::NodeKind;
 
 use super::ExportEnvelope;
+
+/// Sanitizes a CAIRN node ID (e.g. `cairn.kernel.map`) into a valid
+/// Mermaid identifier (e.g. `cairn_kernel_map`) by replacing `.` and
+/// `-` with `_`. All other characters are left as-is.
+fn mermaid_id(id: &str) -> String {
+    id.replace(['.', '-'], "_")
+}
 
 fn kind_label(kind: NodeKind) -> &'static str {
     match kind {
@@ -20,25 +29,28 @@ fn kind_label(kind: NodeKind) -> &'static str {
 
 /// Renders the envelope as a Mermaid `graph TD` diagram.
 ///
-/// Each node becomes a labelled rectangle. Each edge becomes a `-->` arrow.
-/// The output is valid Mermaid syntax suitable for embedding in markdown
-/// fences or piping to a Mermaid CLI renderer.
+/// Each node becomes a labelled rectangle using a sanitized Mermaid ID
+/// with the original dotted ID in the label. Each edge becomes a `-->`
+/// arrow between sanitized IDs. The output is valid Mermaid syntax
+/// suitable for embedding in markdown fences or piping to mermaid-cli.
 #[must_use]
 pub fn render_mermaid(envelope: &ExportEnvelope) -> String {
     let mut out = String::from("graph TD\n");
 
     for node in &envelope.nodes {
-        // Quote the ID (dots are not valid unquoted Mermaid identifiers).
+        let mid = mermaid_id(&node.id);
         let label = if node.name.is_empty() || node.name == node.id {
-            node.id.clone()
+            format!("{} ({})", node.id, kind_label(node.kind))
         } else {
-            format!("{} ({})", node.name, kind_label(node.kind))
+            format!("{} ({}, {})", node.name, node.id, kind_label(node.kind))
         };
-        writeln!(out, "    [\"{}\"][\"{label}\"]", node.id).unwrap();
+        writeln!(out, "    {mid}[\"{label}\"]").unwrap();
     }
 
     for edge in &envelope.edges {
-        writeln!(out, "    [\"{}\"] --> [\"{}\"]", edge.from, edge.to).unwrap();
+        let from = mermaid_id(&edge.from);
+        let to = mermaid_id(&edge.to);
+        writeln!(out, "    {from} --> {to}").unwrap();
     }
 
     out
@@ -69,16 +81,23 @@ mod tests {
     }
 
     #[test]
-    fn edge_produces_arrow_line() {
+    fn mermaid_id_sanitizes_dots_and_hyphens() {
+        assert_eq!(mermaid_id("cairn.kernel.map"), "cairn_kernel_map");
+        assert_eq!(mermaid_id("my-node"), "my_node");
+        assert_eq!(mermaid_id("plain"), "plain");
+    }
+
+    #[test]
+    fn edge_produces_arrow_line_with_sanitized_ids() {
         let mut env = empty();
         env.edges.push(EdgeEntry {
-            from: "a".to_owned(),
-            to: "b".to_owned(),
+            from: "a.b".to_owned(),
+            to: "c.d".to_owned(),
             verb: "calls".to_owned(),
         });
         let out = render_mermaid(&env);
         assert!(out.contains("-->"), "must contain arrow");
-        assert!(out.contains("\"a\""), "must quote from");
-        assert!(out.contains("\"b\""), "must quote to");
+        assert!(out.contains("a_b"), "from id must be sanitized");
+        assert!(out.contains("c_d"), "to id must be sanitized");
     }
 }

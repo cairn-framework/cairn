@@ -283,8 +283,8 @@ fn test_mermaid_output_contains_edge_declarations() {
     });
     let out = export::render_mermaid(&env);
     assert!(
-        out.contains("node-a") && out.contains("node-b"),
-        "mermaid must include both edge endpoints"
+        out.contains("node_a") && out.contains("node_b"),
+        "mermaid must include sanitized edge endpoint IDs"
     );
     assert!(out.contains("-->"), "mermaid must use --> for edges");
 }
@@ -306,4 +306,65 @@ fn test_mermaid_format_flag_accepted() {
     );
     // Will fail because blueprint doesn't exist, but must NOT fail with "unknown format".
     assert_ne!(result.stderr, "unknown export format: mermaid");
+}
+
+/// Scenario: Mermaid node IDs are valid unquoted Mermaid identifiers.
+/// Node IDs with dots (e.g. "app.api") must be sanitized to `app_api`
+/// so renderers can parse them. The original id appears in the label.
+#[test]
+fn test_mermaid_node_ids_are_sanitized() {
+    use cairn::blueprint::{NodeKind, Span};
+    use cairn::map::graph::{NodeRecord, NodeState};
+    let mut env = empty_envelope();
+    env.nodes.push(NodeRecord {
+        id: "app.api".to_owned(),
+        name: "App API".to_owned(),
+        kind: NodeKind::Module,
+        parent: None,
+        description: String::new(),
+        state: NodeState::Synced,
+        paths: Vec::new(),
+        tags: Vec::new(),
+        children: Vec::new(),
+        owns_files: false,
+        contracts: Vec::new(),
+        files: Vec::new(),
+        span: Span::point("", 0, 0),
+    });
+    let out = export::render_mermaid(&env);
+    // The sanitized ID must appear without surrounding quotes as a Mermaid id.
+    assert!(
+        out.contains("app_api"),
+        "mermaid must sanitize dots to underscores in node id: {out}"
+    );
+    // The original dotted id must appear in the label, not as a bare id.
+    assert!(
+        out.contains("\"app.api\"") || out.contains("app.api"),
+        "mermaid must preserve original id in the label"
+    );
+    // Must NOT use quoted-string syntax as the node id: ["app.api"][...]
+    assert!(
+        !out.contains("[\"app.api\"]"),
+        "mermaid must not use a quoted string as a node id"
+    );
+}
+
+/// Scenario: Mermaid edges use sanitized IDs.
+#[test]
+fn test_mermaid_edge_ids_are_sanitized() {
+    let mut env = empty_envelope();
+    env.edges.push(EdgeEntry {
+        from: "cairn.kernel".to_owned(),
+        to: "cairn.ui".to_owned(),
+        verb: "uses".to_owned(),
+    });
+    let out = export::render_mermaid(&env);
+    assert!(
+        out.contains("cairn_kernel") && out.contains("cairn_ui"),
+        "mermaid edges must use sanitized IDs: {out}"
+    );
+    assert!(
+        !out.contains("[\"cairn.kernel\"]"),
+        "mermaid edges must not quote dotted IDs"
+    );
 }
