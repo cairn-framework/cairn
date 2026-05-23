@@ -370,6 +370,20 @@ const fn edge_kind_name(kind: GraphEdgeKind) -> &'static str {
 }
 
 fn collect(graph: &Graph, id: &str, transitive: bool, outbound: bool) -> Vec<String> {
+    // Seed the visited set with the start node so transitive cycles never
+    // re-enqueue `id` and never include it in its own dependency list.
+    let mut visited = std::collections::BTreeSet::new();
+    visited.insert(id.to_owned());
+    collect_inner(graph, id, transitive, outbound, &mut visited)
+}
+
+fn collect_inner(
+    graph: &Graph,
+    id: &str,
+    transitive: bool,
+    outbound: bool,
+    visited: &mut std::collections::BTreeSet<String>,
+) -> Vec<String> {
     let edges = if outbound {
         graph.outbound.get(id)
     } else {
@@ -379,9 +393,13 @@ fn collect(graph: &Graph, id: &str, transitive: bool, outbound: bool) -> Vec<Str
     if let Some(edges) = edges {
         for edge in edges {
             let next = if outbound { &edge.to } else { &edge.from };
+            if visited.contains(next.as_str()) {
+                continue;
+            }
             nodes.push(next.clone());
             if transitive {
-                nodes.extend(collect(graph, next, true, outbound));
+                visited.insert(next.clone());
+                nodes.extend(collect_inner(graph, next, true, outbound, visited));
             }
         }
     }
@@ -826,5 +844,48 @@ mod tests {
             !resp.findings.is_empty(),
             "lint on cyclic graph must return findings"
         );
+    }
+
+    #[test]
+    fn test_depends_transitive_cyclic_graph_terminates_and_excludes_start() {
+        // [RED→GREEN] Before fix: collect() had no visited guard; a → b → a
+        // recursed infinitely → SIGABRT.
+        // After fix: collect seeds visited with the start node, preventing
+        // re-enqueueing; the start node is also excluded from its own result.
+        let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
+        let resp = depends(&g, "a", true).expect("must resolve");
+        // "a" must not appear in its own transitive dependency list.
+        assert!(
+            !resp.nodes.contains(&"a".to_owned()),
+            "start node must not be in result"
+        );
+        assert!(
+            resp.nodes.contains(&"b".to_owned()),
+            "direct dep must be in result"
+        );
+    }
+
+    #[test]
+    fn test_dependents_transitive_cyclic_graph_terminates_and_excludes_start() {
+        // Same invariant for the reverse direction (inbound traversal).
+        let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
+        let resp = dependents(&g, "a", true).expect("must resolve");
+        assert!(
+            !resp.nodes.contains(&"a".to_owned()),
+            "start node must not be in result"
+        );
+        assert!(
+            resp.nodes.contains(&"b".to_owned()),
+            "direct dependent must be in result"
+        );
+    }
+
+    #[test]
+    fn test_depends_transitive_self_loop_excluded_from_result() {
+        // A → A self-loop: "a" depends transitively on itself.
+        // collect seeds visited with "a" so the self-edge is skipped entirely.
+        let g = make_graph(&["a"], &[("a", "a")]);
+        let resp = depends(&g, "a", true).expect("must resolve");
+        assert!(resp.nodes.is_empty(), "self-loop must produce empty result");
     }
 }
