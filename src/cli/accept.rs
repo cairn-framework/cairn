@@ -180,6 +180,20 @@ enum VerificationState {
     Blocked,
 }
 
+/// Truncate `s` to at most `max_bytes` bytes, respecting UTF-8 char boundaries.
+///
+/// Appends `"..."` when truncation occurs. Never panics on multi-byte characters.
+fn truncate_stderr(s: &str, max_bytes: usize) -> String {
+    if s.len() <= max_bytes {
+        return s.to_owned();
+    }
+    let mut end = max_bytes;
+    while end > 0 && !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    format!("{}...", &s[..end])
+}
+
 fn run_command(
     cmd: &str,
     args: &[&str],
@@ -192,11 +206,7 @@ fn run_command(
             .stderr(std::process::Stdio::piped());
         let output = c.output()?;
         let stderr = String::from_utf8_lossy(&output.stderr);
-        let truncated = if stderr.len() > 512 {
-            format!("{}...", &stderr[..512])
-        } else {
-            stderr.to_string()
-        };
+        let truncated = truncate_stderr(&stderr, 512);
         Ok((output.status, truncated))
     } else {
         let status = c.status()?;
@@ -327,5 +337,123 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
         assert_eq!(parsed["status"], "error");
         assert_eq!(parsed["data"]["gate_outcome"], "blocked");
+    }
+
+    // ── truncate_stderr ───────────────────────────────────────────────────────
+
+    #[test]
+    fn test_truncate_stderr_multibyte_chars_do_not_panic() {
+        // U+2192 RIGHTWARDS ARROW is 3 UTF-8 bytes (0xE2 0x86 0x92).
+        // 170 arrows = 510 bytes; byte 512 falls inside the 171st arrow
+        // (a continuation byte), which is NOT a char boundary.
+        // &s[..512] on this input panics in the original code.
+        let long = "→".repeat(200); // 600 bytes
+        assert_eq!(long.len(), 600);
+        assert!(
+            !long.is_char_boundary(512),
+            "byte 512 must not be a char boundary"
+        );
+        let result = truncate_stderr(&long, 512);
+        assert!(
+            result.ends_with("..."),
+            "truncated output must end with '...'"
+        );
+        assert!(result.len() < long.len(), "must be shorter than input");
+    }
+
+    #[test]
+    fn test_truncate_stderr_ascii_truncates_at_exact_limit() {
+        let long = "x".repeat(600);
+        let result = truncate_stderr(&long, 512);
+        assert_eq!(result, format!("{}...", "x".repeat(512)));
+    }
+
+    #[test]
+    fn test_truncate_stderr_short_string_returned_unchanged() {
+        assert_eq!(truncate_stderr("hello", 512), "hello");
+    }
+
+    #[test]
+    fn test_truncate_stderr_exactly_at_limit_not_truncated() {
+        let exactly = "x".repeat(512);
+        assert_eq!(truncate_stderr(&exactly, 512), exactly);
+    }
+
+    // ── state_str ─────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_state_str_all_variants() {
+        assert_eq!(state_str(&VerificationState::Draft), "draft");
+        assert_eq!(state_str(&VerificationState::Planned), "planned");
+        assert_eq!(state_str(&VerificationState::Passed), "passed");
+        assert_eq!(state_str(&VerificationState::Failed), "failed");
+        assert_eq!(state_str(&VerificationState::Blocked), "blocked");
+    }
+
+    // ── format_findings ───────────────────────────────────────────────────────
+
+    #[test]
+    fn test_format_findings_single_passed_step() {
+        let findings = vec![VerificationFinding {
+            test: "cargo build".to_string(),
+            state: VerificationState::Passed,
+            detail: None,
+        }];
+        let out = format_findings(&findings, false);
+        assert!(out.contains("Verification Battery Results:"));
+        assert!(out.contains("[PASSED] cargo build"));
+        assert!(out.ends_with('\n'));
+    }
+
+    #[test]
+    fn test_format_findings_detail_in_parentheses() {
+        let findings = vec![VerificationFinding {
+            test: "cargo test".to_string(),
+            state: VerificationState::Failed,
+            detail: Some("3 tests failed".to_string()),
+        }];
+        let out = format_findings(&findings, false);
+        assert!(out.contains("[FAILED] cargo test (3 tests failed)"));
+    }
+
+    #[test]
+    fn test_format_findings_blocked_note_appended() {
+        let findings = vec![VerificationFinding {
+            test: "cargo clippy".to_string(),
+            state: VerificationState::Blocked,
+            detail: None,
+        }];
+        let out = format_findings(&findings, true);
+        assert!(out.contains("Note: Blocked outcomes do not fail the gate"));
+    }
+
+    #[test]
+    fn test_format_findings_no_blocked_note_when_false() {
+        let findings = vec![VerificationFinding {
+            test: "cargo build".to_string(),
+            state: VerificationState::Passed,
+            detail: None,
+        }];
+        let out = format_findings(&findings, false);
+        assert!(
+            !out.contains("Note:"),
+            "blocked note must not appear when has_blocked is false"
+        );
+    }
+
+    // ── format_json gaps ──────────────────────────────────────────────────────
+
+    #[test]
+    fn test_format_json_failed_wins_over_blocked() {
+        // When both has_failed and has_blocked are true, gate_outcome must be
+        // "failed" — failed takes precedence in the if-else chain.
+        let findings = vec![VerificationFinding {
+            test: "cargo test".to_string(),
+            state: VerificationState::Failed,
+            detail: None,
+        }];
+        let out = format_json(&findings, true, true);
+        let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+        assert_eq!(parsed["data"]["gate_outcome"], "failed");
     }
 }
