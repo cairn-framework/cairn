@@ -19,10 +19,13 @@ use super::{
 
 const GO_EXPORTABLE_KINDS: &[&str] = &[
     "function_declaration",
-    "type_declaration",
+    // type_spec / const_spec / var_spec are the actual named nodes that carry
+    // the `name` field in the tree-sitter-go grammar; their parent
+    // *_declaration nodes have no `name` field directly.
+    "type_spec",
     "method_declaration",
-    "const_declaration",
-    "var_declaration",
+    "const_spec",
+    "var_spec",
 ];
 
 /// Go source reconciler.

@@ -185,9 +185,10 @@ fn is_public_item(node: tree_sitter::Node<'_>, source: &[u8], has_all: bool) -> 
     if has_all {
         return true;
     }
+    // function_definition and class_definition use `name`; assignment uses `left`.
     let name = node
         .child_by_field_name("name")
-        .or_else(|| node.child_by_field_name("name"))
+        .or_else(|| node.child_by_field_name("left"))
         .and_then(|n| n.utf8_text(source).ok());
     name.is_some_and(|n| !n.starts_with('_'))
 }
@@ -195,8 +196,10 @@ fn is_public_item(node: tree_sitter::Node<'_>, source: &[u8], has_all: bool) -> 
 #[must_use]
 fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
     let kind = node.kind();
+    // assignment nodes have no `name` field; fall back to `left` (the target).
     let name = node
         .child_by_field_name("name")
+        .or_else(|| node.child_by_field_name("left"))
         .and_then(|n| n.utf8_text(source).ok())
         .map_or_else(
             || node.utf8_text(source).unwrap_or("").to_owned(),
