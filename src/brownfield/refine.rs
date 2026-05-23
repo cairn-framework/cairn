@@ -203,3 +203,208 @@ fn blueprint_delta_with_renames(
 
     lines.join("\n")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blueprint::{NodeKind, Span};
+    use crate::brownfield::discovery::{DiscoveredCandidate, DiscoveredEdge, Extraction};
+
+    fn span() -> Span {
+        Span::point("test", 1, 1)
+    }
+
+    fn bare_node(id: &str, paths: &[&str]) -> crate::blueprint::Node {
+        crate::blueprint::Node {
+            kind: NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            paths: paths.iter().map(|s| (*s).to_owned()).collect(),
+            owns_files: false,
+            contracts: Vec::new(),
+            raw_fields: Vec::new(),
+            children: Vec::new(),
+            span: span(),
+        }
+    }
+
+    fn candidate(id: &str, path: &str) -> DiscoveredCandidate {
+        DiscoveredCandidate {
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            path: path.to_owned(),
+            tags: Vec::new(),
+            confidence: 1.0,
+            evidence: Vec::new(),
+            edges: Vec::new(),
+        }
+    }
+
+    fn empty_extraction() -> Extraction {
+        Extraction {
+            candidates: Vec::new(),
+            schema_version: 1,
+        }
+    }
+
+    // ── flatten_nodes ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_flatten_nodes_empty_list_returns_empty() {
+        assert!(flatten_nodes(&[]).is_empty());
+    }
+
+    #[test]
+    fn test_flatten_nodes_node_with_path_included() {
+        let node = bare_node("app.api", &["src/api"]);
+        let result = flatten_nodes(&[node]);
+        assert_eq!(result, vec![("app.api".to_owned(), "src/api".to_owned())]);
+    }
+
+    #[test]
+    fn test_flatten_nodes_node_without_path_skipped() {
+        let node = bare_node("app.api", &[]);
+        let result = flatten_nodes(&[node]);
+        assert!(result.is_empty(), "node with no paths must be skipped");
+    }
+
+    #[test]
+    fn test_flatten_nodes_multiple_paths_uses_only_first() {
+        let node = bare_node("app.api", &["src/api", "src/api/v2"]);
+        let result = flatten_nodes(&[node]);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].1, "src/api", "only the first path must be used");
+    }
+
+    #[test]
+    fn test_flatten_nodes_includes_children_recursively() {
+        let mut parent = bare_node("app", &["src"]);
+        parent.children = vec![bare_node("app.api", &["src/api"])];
+        let result = flatten_nodes(&[parent]);
+        assert_eq!(result.len(), 2);
+        let ids: Vec<&str> = result.iter().map(|(id, _)| id.as_str()).collect();
+        assert!(ids.contains(&"app"), "parent must be included");
+        assert!(ids.contains(&"app.api"), "child must be included");
+    }
+
+    // ── blueprint_delta_with_renames ──────────────────────────────────────────
+
+    #[test]
+    fn test_delta_empty_extraction_produces_only_header() {
+        let out = blueprint_delta_with_renames(&empty_extraction(), &[], &[]);
+        assert!(
+            out.starts_with("# Blueprint delta"),
+            "must start with header: {out:?}"
+        );
+        // No candidate sections.
+        assert!(
+            !out.contains("+ "),
+            "no candidate lines for empty extraction: {out:?}"
+        );
+    }
+
+    #[test]
+    fn test_delta_rename_produces_tilde_line() {
+        let out = blueprint_delta_with_renames(
+            &empty_extraction(),
+            &[("old.node".to_owned(), "new.node".to_owned())],
+            &[],
+        );
+        assert!(
+            out.contains("~ old.node -> new.node"),
+            "rename line: {out:?}"
+        );
+    }
+
+    #[test]
+    fn test_delta_removal_produces_dash_line() {
+        let out = blueprint_delta_with_renames(&empty_extraction(), &[], &["dead.node".to_owned()]);
+        assert!(out.contains("- dead.node"), "removal line: {out:?}");
+    }
+
+    #[test]
+    fn test_delta_candidate_produces_plus_section() {
+        let mut ext = empty_extraction();
+        ext.candidates = vec![candidate("src.api", "src/api")];
+        let out = blueprint_delta_with_renames(&ext, &[], &[]);
+        assert!(
+            out.contains("+ "),
+            "candidate section must start with +: {out:?}"
+        );
+        assert!(
+            out.contains(r#"id "src.api""#),
+            "candidate id quoted: {out:?}"
+        );
+        assert!(out.contains(r#"path "src/api""#), "path line: {out:?}");
+    }
+
+    #[test]
+    fn test_delta_candidate_with_api_segment_is_container() {
+        // A path containing the segment "api" must produce "Container" kind.
+        // Any other path must produce "Module".
+        let mut ext = empty_extraction();
+        ext.candidates = vec![candidate("src.api", "src/api")];
+        let out = blueprint_delta_with_renames(&ext, &[], &[]);
+        assert!(out.contains("+ Container"), "api-path → Container: {out:?}");
+
+        let mut ext2 = empty_extraction();
+        ext2.candidates = vec![candidate("src.worker", "src/worker")];
+        let out2 = blueprint_delta_with_renames(&ext2, &[], &[]);
+        assert!(out2.contains("+ Module"), "non-api-path → Module: {out2:?}");
+    }
+
+    #[test]
+    fn test_delta_candidate_with_edge_produces_edge_line() {
+        let mut cand = candidate("src.a", "src/a");
+        cand.edges = vec![DiscoveredEdge {
+            target: "src.b".to_owned(),
+            description: "sibling module".to_owned(),
+            confidence: 1.0,
+        }];
+        let mut ext = empty_extraction();
+        ext.candidates = vec![cand];
+        let out = blueprint_delta_with_renames(&ext, &[], &[]);
+        assert!(
+            out.contains(r#"edge -> src.b "sibling module""#),
+            "edge line: {out:?}"
+        );
+    }
+
+    // ── unique_change_id ──────────────────────────────────────────────────────
+
+    #[test]
+    fn test_unique_change_id_returns_base_when_no_collision() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let root = dir.path();
+        // Don't create openspec/changes/ at all — base must not exist.
+        let result = unique_change_id(root, "99999").expect("must succeed");
+        assert_eq!(result, format!("{CHANGE_ID_PREFIX}-99999"));
+    }
+
+    #[test]
+    fn test_unique_change_id_appends_1_when_base_exists() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let root = dir.path();
+        let ts = "12345";
+        let base = format!("{CHANGE_ID_PREFIX}-{ts}");
+        std::fs::create_dir_all(root.join("openspec/changes").join(&base)).unwrap();
+        let result = unique_change_id(root, ts).expect("must succeed");
+        assert_eq!(result, format!("{base}-1"));
+    }
+
+    #[test]
+    fn test_unique_change_id_skips_to_2_when_base_and_1_both_exist() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let root = dir.path();
+        let ts = "67890";
+        let base = format!("{CHANGE_ID_PREFIX}-{ts}");
+        let changes = root.join("openspec/changes");
+        std::fs::create_dir_all(changes.join(&base)).unwrap();
+        std::fs::create_dir_all(changes.join(format!("{base}-1"))).unwrap();
+        let result = unique_change_id(root, ts).expect("must succeed");
+        assert_eq!(result, format!("{base}-2"));
+    }
+}
