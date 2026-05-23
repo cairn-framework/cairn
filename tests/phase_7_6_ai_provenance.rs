@@ -2,9 +2,8 @@
 //!
 //! Tests covering the cairn library schema and reader contracts for the
 //! trace sidecar, the suggested-edges queue, the islands query, and
-//! neighbourhood `--include-orphans`. CLI-level scenarios that bind to
-//! the cflx workflow runner (`cflx trace`) remain `#[cflx_planned]` since
-//! the cflx runner is external to this repository.
+//! neighbourhood `--include-orphans`. CLI-level trace rendering scenarios
+//! were retired along with the cflx workflow runner per decision #105.
 
 mod provenance_foundation {
     use cairn::provenance::{
@@ -95,22 +94,6 @@ mod provenance_foundation {
             }
             other => panic!("expected UnsupportedVersion, got {other:?}"),
         }
-    }
-
-    /// Scenario: Default human output is labelled per stage.
-    /// The cflx workflow runner owns CLI rendering; cairn library only
-    /// exposes the schema and reader.
-    #[cairn::cflx_planned(phase = 706)]
-    #[test]
-    fn test_trace_human_output_labels_each_stage() {
-        unimplemented!("cflx trace human output is rendered by cflx, not cairn library");
-    }
-
-    /// Scenario: JSON output is the schema with promoted version.
-    #[cairn::cflx_planned(phase = 706)]
-    #[test]
-    fn test_trace_json_output_is_schema_with_version() {
-        unimplemented!("cflx trace JSON output is rendered by cflx, not cairn library");
     }
 
     /// Scenario: Missing sidecar exits cleanly.
