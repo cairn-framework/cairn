@@ -294,6 +294,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     let mut graph = build_graph(&ast, root, &contracts, &claimed_files, all_findings);
     check_provenance_coverage(&mut graph, &artefacts);
     check_claims(&mut graph, &artefacts, root);
+    check_gitignored_paths(&mut graph, &ast, &config.ignores);
     let current_snapshot = compute_blueprint_snapshot(&ast);
     let previous_snapshot =
         state::read_blueprint_snapshot(root).map_err(|error| error.to_string())?;
@@ -506,5 +507,34 @@ fn check_claims(graph: &mut Graph, artefacts: &ArtefactSet, root: &Path) {
                 path: Some(decision.path.clone()),
             });
         }
+    }
+}
+
+fn check_gitignored_paths(graph: &mut Graph, ast: &blueprint::Ast, ignores: &[String]) {
+    let mut emit_for = |node: &blueprint::Node| {
+        for path in &node.paths {
+            let rel = path.trim_start_matches("./").trim_start_matches('/');
+            if config::is_ignored(rel, ignores) {
+                graph.findings.push(crate::map::graph::Finding {
+                    code: "CAIRN_PATH_GITIGNORED".to_owned(),
+                    severity: crate::map::graph::FindingSeverity::Warning,
+                    message: format!(
+                        "node `{}` declares path `{path}` which matches a .gitignore pattern; will appear as a Ghost node",
+                        node.id
+                    ),
+                    node: Some(node.id.clone()),
+                    target: None,
+                    path: Some(path.clone()),
+                });
+            }
+        }
+    };
+    visit_nodes(&ast.nodes, &mut emit_for);
+}
+
+fn visit_nodes<F: FnMut(&blueprint::Node)>(nodes: &[blueprint::Node], f: &mut F) {
+    for node in nodes {
+        f(node);
+        visit_nodes(&node.children, f);
     }
 }

@@ -43,6 +43,7 @@ _No codes allocated yet._
 ## CK -- Kernel/Map
 
 - CK001 -- scanner failed to load project -- phase-7.8 reforge
+- CK002 -- blueprint path matches a .gitignore pattern (CAIRN_PATH_GITIGNORED) -- issue #45
 
 ## CA -- Artefacts
 
