@@ -87,11 +87,8 @@ Use `blueprint` / `map` / `map.md` in all new prose, code identifiers, and spec 
 
 ## Voice and audience
 
-CAIRN's audience is broadening from career developers to "people building with AI tools," including non-devs. User-facing vocabulary should prefer plain concise English. But accuracy is the floor: do not flatten load-bearing technical taxonomy (see above). The bar is *"would a non-dev feel nervous typing this command or reading this doc?"*, not *"what's the simplest possible word."*
-
-Em-dashes are banned in user-facing copy. Replace with period, colon, comma, or parenthesis as context dictates. Applies to spec prose, marketing copy, and this file.
-
-See also `docs/design-system/README.md` "Voice" section for the full review checklist and tone registers.
+Em-dashes are banned in user-facing copy. Replace with period, colon, comma, or
+parenthesis as context dictates. Full guidance: `docs/agent/voice.md`.
 
 ## UI and visual work
 
@@ -99,26 +96,15 @@ All UI changes (webui at `src/ui_assets/`, landing at `docs/landing/`, any new s
 
 ## Workflow: cflx (Conflux)
 
-Phases execute via `cflx` (Conflux). Lifecycle: **apply → accept → archive**. cflx runs in a worktree with a codex-driven implementation. Verification happens before merge; intermediate broken states on a feature branch are acceptable. When a phase specifies atomic-commit groupings (e.g., phase 2.6 task 2.1–2.5 + 3.1 together), the codex agent enforces that boundary with no special action needed from the orchestrator.
-
-Pre-commit hook runs `cargo fmt --check`. Verification gate battery for every phase: `cargo build` (zero warnings), `cargo clippy --all-targets --all-features` with `-D warnings`, `cargo fmt --check`, `cargo test`, `cargo test --locked`, plus `cflx.py validate <phase> --strict`.
+Pre-commit hook runs `cargo fmt --check`. Verification gates: `cargo build` (zero
+warnings), `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test`.
+cflx is retired per decision #105; existing `openspec/` phases are historical record.
 
 ## Workflow: Graphite (gt)
 
-This repo uses Graphite (the `gt` CLI) for stacked PRs. The graphite-pr skill activates whenever you work in this repo. `gt` owns branch state. Every branch, commit, and push goes through `gt create` / `gt modify` / `gt submit`. Plain `git status`, `git log`, `git diff`, `git add`, `git reset`, `git stash` stay fine. Raw `git commit`, `git push`, `git checkout -b`, `git branch -D` bypass Graphite's metadata and corrupt the stack.
-
-The 90% loop:
-
-```bash
-gt sync --no-interactive --force                     # Sync trunk
-git add <files-for-this-unit>                        # Stage selectively
-gt create -m "<type>(<scope>): <subject>"            # New branch + commit
-gt submit --stack --publish --no-interactive         # Publish (auto-review fires)
-```
-
-Amend on review: `git add <files>; gt modify -a; gt submit --publish --no-interactive`. New scope on top: `git add <files>; gt create -m "..."`. After submit and review, run `~/.claude/skills/graphite-pr/scripts/gt-merge-cascade.sh` to merge with review-thread gating.
-
-Sizing: one commit equals one logical unit, target under 250 lines added+removed, hard cap 400. See `~/.claude/skills/graphite-pr/SKILL.md` for full rules.
+Full workflow in `docs/agent/graphite.md` (load when using `gt` or doing PR work).
+Quick reference: `gt create -m "..."` to commit, `gt submit --stack --publish` to push.
+Raw `git commit`, `git push`, `git checkout -b` bypass Graphite's metadata — use `gt`.
 
 ## Pre-submit review: mandatory
 
@@ -150,13 +136,9 @@ forced decision line, not a hedge.
 
 ## What cairn is, positively
 
-Three principles, complementary to the negative-space "What to avoid" list below:
-
-1. **Typed artefacts encode obligations, not labels.** Each direct type (`contract`, `decision`, `todo`, `research`, `review`, `source`) has a different role in the two-chain topology. The kernel's enforcement value comes from those role differences. Treating types as decorative labels (or proposing a flat schema) is the same mistake as flattening the two chains into a six-layer stack.
-2. **Authoring guidance is template-driven and tag-extensible, never closed-enum.** Domain-specific vocabulary belongs in project config (`artefact_types`) or in tag conventions, both of which are extensible. The kernel speaks taxonomy; the project speaks domain.
-3. **AI assists authoring; AI does not substitute for the reconciler.** AI may propose edges, draft contracts, suggest narrative summaries, all reviewable through the change-isolation primitive. AI may not produce the deterministic reality fingerprint that drift detection compares against. The enforcement layer stays mechanically checkable.
-
-These three are the positive form of the rejections in "What to avoid." Stated in spec.md §3.5 with rationale.
+Three principles in `docs/agent/principles.md` (load for architecture decisions).
+Summary: typed artefacts encode obligations; authoring is template-driven and
+tag-extensible; AI assists but the reconciler owns deterministic enforcement.
 
 ## What to avoid
 

@@ -229,3 +229,79 @@ fn test_tui_graph_viewer_design_note_exists_and_covers_questions() {
         "design note must cover pros and cons"
     );
 }
+
+// ---------- issue #70: CLAUDE.md progressive disclosure split ----------
+
+#[test]
+fn test_agent_graphite_doc_exists_with_gt_content() {
+    let content = fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/docs/agent/graphite.md"
+    ))
+    .unwrap();
+    assert!(
+        content.contains("gt"),
+        "graphite.md must contain gt commands"
+    );
+    assert!(
+        content.contains("gt create") || content.contains("gt submit"),
+        "graphite.md must describe the commit loop"
+    );
+}
+
+#[test]
+fn test_agent_voice_doc_exists() {
+    let content =
+        fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/docs/agent/voice.md")).unwrap();
+    assert!(
+        content.contains("em-dash") || content.contains("audience"),
+        "voice.md must cover voice and audience guidance"
+    );
+}
+
+#[test]
+fn test_agent_principles_doc_exists() {
+    let content = fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/docs/agent/principles.md"
+    ))
+    .unwrap();
+    assert!(
+        content.contains("artefact") || content.contains("provenance"),
+        "principles.md must cover CAIRN positive principles"
+    );
+}
+
+#[test]
+fn test_claude_md_has_pointers_to_agent_subdocs() {
+    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/CLAUDE.md")).unwrap();
+    assert!(
+        content.contains("docs/agent/graphite.md"),
+        "CLAUDE.md must point to docs/agent/graphite.md"
+    );
+    assert!(
+        content.contains("docs/agent/voice.md"),
+        "CLAUDE.md must point to docs/agent/voice.md"
+    );
+    assert!(
+        content.contains("docs/agent/principles.md"),
+        "CLAUDE.md must point to docs/agent/principles.md"
+    );
+}
+
+#[test]
+fn test_claude_md_preserves_load_bearing_rules() {
+    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/CLAUDE.md")).unwrap();
+    assert!(
+        content.contains("em-dash") || content.contains("Em-dash"),
+        "CLAUDE.md must still contain the em-dash ban"
+    );
+    assert!(
+        content.contains("no-verify"),
+        "CLAUDE.md must still contain the hook-skip ban"
+    );
+    assert!(
+        content.contains("What to avoid"),
+        "CLAUDE.md must still contain the What to avoid section"
+    );
+}
