@@ -244,6 +244,7 @@ pub(super) fn requires_valid_map(command: &str) -> bool {
     matches!(
         command,
         "get"
+            | "neighbourhood"
             | "files"
             | "dependents"
             | "depends"
@@ -596,4 +597,182 @@ pub(super) fn run_watch_command(root: &Path, opts: &crate::watch::WatchOpts) -> 
     }
 
     ok("watch stopped\n".to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::query_api::QueryFlag;
+
+    // ── requires_valid_map ────────────────────────────────────────────────────
+
+    #[test]
+    fn test_requires_valid_map_neighbourhood_is_missing() {
+        // "neighbourhood" queries node neighbours from the graph — identical in
+        // graph-dependency to "get" and "depends", both of which ARE in the
+        // requires_valid_map list.  Omitting it means a broken graph produces
+        // a confusing "node not found" error instead of "map has integrity errors".
+        assert!(
+            requires_valid_map("neighbourhood"),
+            "neighbourhood queries graph neighbours and must require a valid map"
+        );
+    }
+
+    #[test]
+    fn test_requires_valid_map_all_listed_commands_return_true() {
+        for cmd in &[
+            "get",
+            "files",
+            "dependents",
+            "depends",
+            "contract",
+            "order",
+            "todos",
+            "decisions",
+            "research",
+            "sources",
+            "rationale",
+            "status",
+        ] {
+            assert!(
+                requires_valid_map(cmd),
+                "expected requires_valid_map({cmd:?}) to be true"
+            );
+        }
+    }
+
+    #[test]
+    fn test_requires_valid_map_non_query_commands_return_false() {
+        for cmd in &["scan", "lint", "init", "onboard", "watch", "hook", "export"] {
+            assert!(
+                !requires_valid_map(cmd),
+                "expected requires_valid_map({cmd:?}) to be false"
+            );
+        }
+    }
+
+    // ── parse_hook_kind ───────────────────────────────────────────────────────
+
+    #[test]
+    fn test_parse_hook_kind_all_valid_strings() {
+        use crate::hooks::HookKind;
+        assert_eq!(parse_hook_kind("structural"), Some(HookKind::Structural));
+        assert_eq!(parse_hook_kind("interface"), Some(HookKind::Interface));
+        assert_eq!(parse_hook_kind("tension"), Some(HookKind::Tension));
+        assert_eq!(
+            parse_hook_kind("architecture-decision"),
+            Some(HookKind::ArchitectureDecision)
+        );
+        assert_eq!(parse_hook_kind("all"), Some(HookKind::All));
+    }
+
+    #[test]
+    fn test_parse_hook_kind_unknown_returns_none() {
+        assert!(parse_hook_kind("unknown").is_none());
+        assert!(parse_hook_kind("Structural").is_none()); // case-sensitive
+        assert!(parse_hook_kind("").is_none());
+    }
+
+    // ── legacy_blueprint_warning ──────────────────────────────────────────────
+
+    #[test]
+    fn test_legacy_blueprint_warning_both_files_warns() {
+        let dir = std::env::temp_dir().join(format!(
+            "cairn-cmd-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |d| d.as_nanos())
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("cairn.blueprint"), "").unwrap();
+        std::fs::write(dir.join("cairn.dsl"), "").unwrap();
+        let warn = legacy_blueprint_warning(&dir);
+        assert!(
+            !warn.is_empty(),
+            "both files present must produce a warning"
+        );
+        assert!(warn.contains("cairn.dsl"));
+    }
+
+    #[test]
+    fn test_legacy_blueprint_warning_blueprint_only_no_warning() {
+        let dir = std::env::temp_dir().join(format!(
+            "cairn-cmd-test-bonly-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |d| d.as_nanos())
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("cairn.blueprint"), "").unwrap();
+        assert!(
+            legacy_blueprint_warning(&dir).is_empty(),
+            "only cairn.blueprint must produce no warning"
+        );
+    }
+
+    // ── shared_exit_code ──────────────────────────────────────────────────────
+
+    #[test]
+    fn test_shared_exit_code_non_lint_always_zero() {
+        let data = serde_json::json!({"findings": [{"severity": "error"}]});
+        assert_eq!(shared_exit_code("get", &data), 0);
+        assert_eq!(shared_exit_code("neighbourhood", &data), 0);
+        assert_eq!(shared_exit_code("export", &data), 0);
+    }
+
+    #[test]
+    fn test_shared_exit_code_lint_with_error_severity_returns_one() {
+        let data = serde_json::json!({
+            "findings": [{"severity": "error"}, {"severity": "warning"}]
+        });
+        assert_eq!(shared_exit_code("lint", &data), 1);
+        assert_eq!(shared_exit_code("scan", &data), 1);
+        assert_eq!(shared_exit_code("hook", &data), 1);
+    }
+
+    #[test]
+    fn test_shared_exit_code_lint_with_warnings_only_returns_zero() {
+        let data = serde_json::json!({
+            "findings": [{"severity": "warning"}, {"severity": "info"}]
+        });
+        assert_eq!(shared_exit_code("lint", &data), 0);
+    }
+
+    #[test]
+    fn test_shared_exit_code_uppercase_error_severity_not_counted() {
+        // Wire format uses lowercase "error"; "Error" (PascalCase) is legacy.
+        // The function checks lowercase only — a legacy client sending "Error"
+        // would get exit code 0, not 1.  This is documented behavior.
+        let data = serde_json::json!({"findings": [{"severity": "Error"}]});
+        assert_eq!(shared_exit_code("lint", &data), 0);
+    }
+
+    // ── shared_flags ──────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_shared_flags_known_flag_sets_correct_flag() {
+        let args: Vec<String> = vec!["--transitive".to_owned(), "app.api".to_owned()];
+        let flags = shared_flags(&args);
+        assert!(flags.contains(&QueryFlag::Transitive));
+    }
+
+    #[test]
+    fn test_shared_flags_unknown_arg_produces_empty_set() {
+        let args: Vec<String> = vec!["--unknown-flag".to_owned()];
+        let flags = shared_flags(&args);
+        assert!(flags.is_empty());
+    }
+
+    #[test]
+    fn test_shared_flags_multiple_flags_all_set() {
+        let args: Vec<String> = vec![
+            "--transitive".to_owned(),
+            "--include-todos".to_owned(),
+            "app.api".to_owned(),
+        ];
+        let flags = shared_flags(&args);
+        assert!(flags.contains(&QueryFlag::Transitive));
+        assert!(flags.contains(&QueryFlag::IncludeTodos));
+        assert_eq!(flags.len(), 2);
+    }
 }
