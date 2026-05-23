@@ -202,3 +202,30 @@ fn test_integration_contract_exit_codes_match_cli() {
         "integration contract must document --strict flag"
     );
 }
+
+#[test]
+fn test_tui_graph_viewer_design_note_exists_and_covers_questions() {
+    let content = fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/docs/research/tui-graph-viewer.md"
+    ))
+    .unwrap();
+    assert!(
+        content.contains("Compatibility") || content.contains("terminal"),
+        "design note must cover terminal compatibility"
+    );
+    assert!(
+        content.contains("Library") || content.contains("ratatui") || content.contains("mermaid"),
+        "design note must cover library choice"
+    );
+    assert!(
+        content.contains("Scope")
+            || content.contains("full-fidelity")
+            || content.contains("neighbour"),
+        "design note must cover scope"
+    );
+    assert!(
+        content.contains("Pros") || content.contains("Cons"),
+        "design note must cover pros and cons"
+    );
+}
