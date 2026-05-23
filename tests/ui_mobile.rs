@@ -35,17 +35,15 @@ fn test_css_has_minimum_tap_target_size() {
 
 #[test]
 fn test_inspector_has_close_affordance_on_mobile() {
-    let css = css_content();
     let app =
         fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/ui_assets/app.js")).unwrap();
-    // Either a close button class in CSS or a close handler in JS within inspector context.
-    let has_close_in_css = css.contains("inspector-close") || css.contains("close-inspector");
-    let has_close_in_js = app.contains("inspector-close")
-        || app.contains("close-inspector")
-        || app.contains("onClose") && app.contains("inspector");
+    // The ModuleInspector must expose an onClose prop so the parent can clear selection.
+    let has_close_prop = app.contains("onClose") && app.contains("ModuleInspector");
+    // And the rendered inspector must contain a close button that calls it.
+    let has_close_button = app.contains("ins-close") || app.contains("close-inspector");
     assert!(
-        has_close_in_css || has_close_in_js,
-        "mobile inspector must have a close affordance"
+        has_close_prop && has_close_button,
+        "mobile inspector must have a close button wired to clear selection"
     );
 }
 

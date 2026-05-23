@@ -1031,7 +1031,7 @@
     `;
   }
 
-  function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onViewBlueprint }) {
+  function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onViewBlueprint, onClose }) {
     const {
       contracts,
       decisions,
@@ -1064,7 +1064,10 @@
 
     return html`
       <section class="inspector">
-        <div class="ins-eyebrow">${eyebrowLabel}</div>
+        <div class="ins-header">
+          <div class="ins-eyebrow">${eyebrowLabel}</div>
+          <button class="ins-close" onClick=${onClose} aria-label="Close inspector">×</button>
+        </div>
         <h2 class="ins-title">${node.name || node.id}</h2>
         <div class="ins-slug">${node.id}</div>
         ${node.description
@@ -1727,6 +1730,7 @@
               onSelect=${(id) => setSelectionId(id)}
               onSelectDecision=${(d) => setSelectedDecision(d)}
               onViewBlueprint=${openBlueprint}
+              onClose=${() => setSelectionId(null)}
             />`
           : html`<${EmptyInspector}
               graph=${graph}

@@ -828,6 +828,35 @@ kbd {
   align-items: center;
   gap: var(--s-2);
 }
+.ins-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.ins-close {
+  background: transparent;
+  border: none;
+  color: var(--ink-mist);
+  font-size: var(--t-h3);
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--s-2) var(--s-3);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-instant) var(--ease-settle),
+    background var(--dur-instant) var(--ease-settle);
+}
+
+.ins-close:hover {
+  color: var(--ink-char);
+  background: var(--seam-thick);
+}
 
 .ins-eyebrow::before {
   content: "";
