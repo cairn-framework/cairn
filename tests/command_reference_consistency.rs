@@ -164,3 +164,18 @@ fn test_all_registered_commands_in_integration_contract() {
         "registered commands missing from integration-contract.md: {missing:?}"
     );
 }
+
+#[test]
+fn test_claude_md_documents_debate_format() {
+    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/CLAUDE.md")).unwrap();
+    assert!(
+        content.contains("Debate format"),
+        "CLAUDE.md must document the debate format convention"
+    );
+    assert!(
+        content.contains("**For**")
+            && content.contains("**Against**")
+            && content.contains("**Verdict**"),
+        "Debate format must include bold For, Against, and Verdict markers"
+    );
+}

@@ -132,6 +132,22 @@ Before submitting any PR (via `gt submit` or `/forge-pr`), run both `/reforge` a
 
 This applies to every PR in a stack, not just the top. Skip only if the PR is a single-line documentation change.
 
+
+## Debate format
+
+When the user asks for a `/debate` or when a sign-off question merits one,
+structure the response as three paragraphs:
+
+**For** (one perspective). Steel-man the strongest argument in favour.
+
+**Against** (the rival perspective). Steel-man the strongest counter-argument.
+
+**Verdict** (decision plus reasoning). State the decision explicitly and
+explain why it outweighs the opposing view.
+
+Each paragraph should be self-contained. The Verdict paragraph must end with a
+forced decision line, not a hedge.
+
 ## What cairn is, positively
 
 Three principles, complementary to the negative-space "What to avoid" list below:
