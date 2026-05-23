@@ -179,3 +179,26 @@ fn test_claude_md_documents_debate_format() {
         "Debate format must include bold For, Against, and Verdict markers"
     );
 }
+
+#[test]
+fn test_integration_contract_exit_codes_match_cli() {
+    let content = fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/docs/integration-contract.md"
+    ))
+    .unwrap();
+    // Exit code 1 must be described as blocking (not advisory).
+    let exit1_idx = content
+        .find("| 1 |")
+        .expect("exit code 1 must be documented");
+    let exit1_line = content[exit1_idx..exit1_idx + 120].lines().next().unwrap();
+    assert!(
+        exit1_line.contains("blocking") || exit1_line.contains("Error"),
+        "integration contract must describe exit 1 as blocking findings, not advisory: {exit1_line}"
+    );
+    // --strict must be mentioned.
+    assert!(
+        content.contains("--strict"),
+        "integration contract must document --strict flag"
+    );
+}

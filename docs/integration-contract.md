@@ -36,9 +36,11 @@ Error responses from the MCP/query path:
 
 | Code | Meaning | Action |
 |---|---|---|
-| 0 | Success, no findings | Proceed |
-| 1 | Success with advisory findings, or operational error | Inspect findings, may proceed |
+| 0 | Success, no blocking findings | Proceed |
+| 1 | Blocking findings (Error severity), or command failed | Inspect and resolve before proceeding |
 | 2 | Usage error (bad arguments, unknown command) | Fix invocation |
+
+`--strict` extends exit 1 to Warning findings as well as Error.
 
 ## Command taxonomy
 
