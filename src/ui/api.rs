@@ -220,7 +220,7 @@ pub(super) fn collect_artefacts_from_dir(
             continue;
         };
         let parsed = frontmatter::parse(&source);
-        if !frontmatter_mentions_node(&parsed.values, node) {
+        if !frontmatter_mentions_node(&parsed.values, &parsed.lists, node) {
             continue;
         }
         let relative = path
@@ -237,11 +237,23 @@ pub(super) fn collect_artefacts_from_dir(
     }
 }
 
-pub(super) fn frontmatter_mentions_node(values: &BTreeMap<String, String>, node: &str) -> bool {
-    ["node", "nodes"]
-        .iter()
-        .filter_map(|key| values.get(*key))
-        .any(|value| value.contains(node))
+pub(super) fn frontmatter_mentions_node(
+    values: &BTreeMap<String, String>,
+    lists: &BTreeMap<String, Vec<String>>,
+    node: &str,
+) -> bool {
+    for key in ["node", "nodes"] {
+        if values.get(key).is_some_and(|v| v == node) {
+            return true;
+        }
+        if lists
+            .get(key)
+            .is_some_and(|items| items.iter().any(|id| id == node))
+        {
+            return true;
+        }
+    }
+    false
 }
 
 pub(super) fn artefact_json(kind: &str, artefact: &Artefact) -> String {
@@ -284,4 +296,86 @@ pub(super) fn title_from_body(body: &str, fallback: &str) -> String {
         .filter(|line| !line.is_empty())
         .unwrap_or(fallback)
         .to_owned()
+}
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use super::frontmatter_mentions_node;
+    use crate::artefacts::frontmatter;
+
+    // ── frontmatter_mentions_node ────────────────────────────────────────────
+
+    #[test]
+    fn test_fmn_exact_scalar_node_key_matches() {
+        let fm = frontmatter::parse("---\nnode: app.api\n---\n");
+        assert!(frontmatter_mentions_node(&fm.values, &fm.lists, "app.api"));
+    }
+
+    #[test]
+    fn test_fmn_prefix_node_key_does_not_match_child() {
+        // "app" must NOT match a file with `node: app.api`.
+        // This was the false-positive bug: "app.api".contains("app") == true.
+        let fm = frontmatter::parse("---\nnode: app.api\n---\n");
+        assert!(!frontmatter_mentions_node(&fm.values, &fm.lists, "app"));
+    }
+
+    #[test]
+    fn test_fmn_prefix_nodes_inline_list_does_not_false_positive() {
+        // "app" must NOT match `nodes: [app.api, app.db]`.
+        let fm = frontmatter::parse("---\nnodes: [app.api, app.db]\n---\n");
+        assert!(!frontmatter_mentions_node(&fm.values, &fm.lists, "app"));
+    }
+
+    #[test]
+    fn test_fmn_inline_list_exact_match() {
+        // "app.api" MUST match `nodes: [app.api, app.db]`.
+        let fm = frontmatter::parse("---\nnodes: [app.api, app.db]\n---\n");
+        assert!(frontmatter_mentions_node(&fm.values, &fm.lists, "app.api"));
+    }
+
+    #[test]
+    fn test_fmn_block_list_is_matched() {
+        // Block-form YAML list is stored only in `lists`, not `values`.
+        // The old code only checked `values` and silently missed these.
+        let fm = frontmatter::parse("---\nnodes:\n  - app.api\n  - app.db\n---\n");
+        assert!(frontmatter_mentions_node(&fm.values, &fm.lists, "app.api"));
+    }
+
+    #[test]
+    fn test_fmn_block_list_no_false_positive_for_prefix() {
+        let fm = frontmatter::parse("---\nnodes:\n  - app.api\n  - app.db\n---\n");
+        assert!(!frontmatter_mentions_node(&fm.values, &fm.lists, "app"));
+    }
+
+    #[test]
+    fn test_fmn_absent_node_key_returns_false() {
+        let mut values = BTreeMap::new();
+        values.insert("title".to_owned(), "something".to_owned());
+        assert!(!frontmatter_mentions_node(
+            &values,
+            &BTreeMap::new(),
+            "app.api"
+        ));
+    }
+
+    // ── title_from_body ──────────────────────────────────────────────────────
+
+    #[test]
+    fn test_title_from_body_extracts_h1() {
+        use super::title_from_body;
+        assert_eq!(title_from_body("# My Title\nbody", "fallback"), "My Title");
+    }
+
+    #[test]
+    fn test_title_from_body_uses_fallback_when_no_h1() {
+        use super::title_from_body;
+        assert_eq!(title_from_body("just body text", "fallback"), "fallback");
+    }
+
+    #[test]
+    fn test_title_from_body_empty_h1_uses_fallback() {
+        use super::title_from_body;
+        assert_eq!(title_from_body("# \nbody", "fallback"), "fallback");
+    }
 }
