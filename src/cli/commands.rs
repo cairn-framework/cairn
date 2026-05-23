@@ -239,26 +239,6 @@ pub(super) fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
         Err(message) => err(2, &message),
     }
 }
-
-pub(super) fn requires_valid_map(command: &str) -> bool {
-    matches!(
-        command,
-        "get"
-            | "neighbourhood"
-            | "files"
-            | "dependents"
-            | "depends"
-            | "contract"
-            | "order"
-            | "todos"
-            | "decisions"
-            | "research"
-            | "sources"
-            | "rationale"
-            | "status"
-    )
-}
-
 pub(super) fn init_project(root: &Path) -> CliResult {
     let writes = [
         (
@@ -603,6 +583,7 @@ pub(super) fn run_watch_command(root: &Path, opts: &crate::watch::WatchOpts) -> 
 mod tests {
     use super::*;
     use crate::query_api::QueryFlag;
+    use crate::query_api::requires_valid_map;
 
     // ── requires_valid_map ────────────────────────────────────────────────────
 
@@ -622,10 +603,12 @@ mod tests {
     fn test_requires_valid_map_all_listed_commands_return_true() {
         for cmd in &[
             "get",
+            "neighbourhood",
             "files",
             "dependents",
             "depends",
             "contract",
+            "docstring",
             "order",
             "todos",
             "decisions",

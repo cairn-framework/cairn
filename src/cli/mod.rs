@@ -22,6 +22,7 @@ use crate::{
 };
 
 pub use crate::query_api::SafetyClass;
+use crate::query_api::requires_valid_map;
 
 /// Command metadata.
 mod accept;
@@ -32,9 +33,9 @@ mod format;
 mod render;
 
 use commands::{
-    init_project, legacy_blueprint_warning, requires_valid_map, run_archive_command,
-    run_change_apply, run_change_new, run_change_tasks, run_hook_command, run_import_openspec,
-    run_onboard_command, run_shared_json_command, run_ui_command, run_watch_command,
+    init_project, legacy_blueprint_warning, run_archive_command, run_change_apply, run_change_new,
+    run_change_tasks, run_hook_command, run_import_openspec, run_onboard_command,
+    run_shared_json_command, run_ui_command, run_watch_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,

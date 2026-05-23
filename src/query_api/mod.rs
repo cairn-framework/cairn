@@ -39,7 +39,7 @@ use handlers::{
     research_response_json, sources_response_json, status_json, todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
-use serialise::{findings_json, node_json, relevant_rules, requires_valid_map};
+use serialise::{findings_json, node_json, relevant_rules};
 use util::{finding_error, findings_error, load_for, required};
 
 /// Tool safety class.
@@ -155,6 +155,13 @@ impl Error for QueryError {}
 pub const fn registry() -> &'static [ToolMetadata] {
     registry_slice()
 }
+
+/// Returns whether `command` requires a clean, error-free graph before running.
+///
+/// Used by both the CLI dispatch loop and the MCP query-API path.
+/// Canonical list lives in `serialise`; this re-export makes it accessible
+/// from `crate::query_api::requires_valid_map`.
+pub(crate) use serialise::requires_valid_map;
 
 /// Returns tools visible for a server configuration.
 #[must_use]
@@ -530,5 +537,18 @@ mod tests {
             assert!(ev.get("finding").is_some());
         }
         let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    // ── requires_valid_map (serialise path) ───────────────────────────────────
+
+    #[test]
+    fn test_requires_valid_map_neighbourhood_missing_from_mcp_path() {
+        // serialise::requires_valid_map is the gate used by the MCP/query_api
+        // path.  It was missing "neighbourhood" even after the CLI path was
+        // fixed — the two parallel copies diverged.
+        assert!(
+            requires_valid_map("neighbourhood"),
+            "neighbourhood must require a valid map on the MCP path too"
+        );
     }
 }
