@@ -146,3 +146,21 @@ fn test_command_reference_doc_up_to_date() {
         "docs/commands.md command list diverges from CLI registry"
     );
 }
+
+#[test]
+fn test_all_registered_commands_in_integration_contract() {
+    let content = fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/docs/integration-contract.md"
+    ))
+    .unwrap();
+    let missing: Vec<_> = registered_commands()
+        .iter()
+        .filter(|cmd| !content.contains(&format!("`{cmd}")))
+        .cloned()
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "registered commands missing from integration-contract.md: {missing:?}"
+    );
+}
