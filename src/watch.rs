@@ -124,6 +124,22 @@ pub fn diff_findings(old: &[Finding], new: &[Finding]) -> Vec<WatchEvent> {
         }
     }
 
+    // Changed: present in both but severity or message differ.
+    for (k, new_f) in &new_map {
+        if let Some(old_f) = old_map.get(k)
+            && *old_f != *new_f
+        {
+            events.push(WatchEvent::FindingResolved {
+                timestamp: now.clone(),
+                finding: (*old_f).clone(),
+            });
+            events.push(WatchEvent::FindingAdded {
+                timestamp: now.clone(),
+                finding: (*new_f).clone(),
+            });
+        }
+    }
+
     events
 }
 
@@ -266,12 +282,38 @@ mod tests {
 
     #[test]
     fn test_diff_same_key_different_severity() {
+        // Doc: "A finding that changes severity … is treated as a resolution of
+        // the old one plus addition of the new one."
+        // Before fix: events were empty (docstring–implementation mismatch).
         let old = vec![finding("CA001", "msg", FindingSeverity::Warning)];
         let new = vec![finding("CA001", "msg", FindingSeverity::Error)];
         let events = diff_findings(&old, &new);
-        // Same key means the finding is still present; severity changes are
-        // not surfaced by the simple added/resolved contract.
-        assert!(events.is_empty());
+        assert_eq!(
+            events.len(),
+            2,
+            "severity escalation must emit resolved+added"
+        );
+        assert!(
+            events.iter().any(
+                |e| matches!(e, WatchEvent::FindingResolved { finding, .. } if finding.severity == FindingSeverity::Warning)
+            ),
+            "old Warning must be resolved"
+        );
+        assert!(
+            events.iter().any(
+                |e| matches!(e, WatchEvent::FindingAdded { finding, .. } if finding.severity == FindingSeverity::Error)
+            ),
+            "new Error must be added"
+        );
+    }
+
+    #[test]
+    fn test_diff_same_key_different_message_emits_resolved_and_added() {
+        // Message changes (same code/node/target/path) must also be surfaced.
+        let old = vec![finding("CA001", "old message", FindingSeverity::Warning)];
+        let new = vec![finding("CA001", "new message", FindingSeverity::Warning)];
+        let events = diff_findings(&old, &new);
+        assert_eq!(events.len(), 2, "message change must emit resolved+added");
     }
 
     #[test]
