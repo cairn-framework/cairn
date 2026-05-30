@@ -187,9 +187,18 @@ mod empty_state {
     /// Scenario: Clean-map result renders a CTA.
     #[test]
     fn test_empty_state__clean_map_result_renders_cta() {
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        std::fs::write(
+            &bp,
+            r#"System Test "Test system" id "test" {
+}
+"#,
+        )
+        .expect("write blueprint");
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "/tmp/clean.blueprint".to_owned(),
+            bp.to_string_lossy().to_string(),
             "check".to_owned(),
         ]);
         assert_eq!(result.code, 0, "clean-map check exits zero");
