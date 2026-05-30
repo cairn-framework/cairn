@@ -203,9 +203,14 @@ impl SummariserBackend for LocalCommandBackend {
             .stdin
             .take()
             .ok_or_else(|| SummariserBackendError::Io("failed to open stdin".to_owned()))?;
-        stdin
-            .write_all(json.as_bytes())
-            .map_err(|e| SummariserBackendError::Io(e.to_string()))?;
+        if let Err(e) = stdin.write_all(json.as_bytes()) {
+            // Reason: the command may exit before reading stdin (e.g. echo
+            // that never reads).  We still need stdout, stderr and exit
+            // status; only propagate non-broken-pipe errors.
+            if e.kind() != std::io::ErrorKind::BrokenPipe {
+                return Err(SummariserBackendError::Io(e.to_string()));
+            }
+        }
         drop(stdin);
 
         let mut stdout_pipe = child
