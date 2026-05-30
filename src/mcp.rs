@@ -548,7 +548,7 @@ mod tests {
 
     /// `WatchRequest` is a no-argument schema — properties MUST be a present
     /// (possibly empty) object, not absent. All registered schemas must resolve
-    /// to a non-null object from input_schema (the `_` wildcard returning `{}`
+    /// to a non-null object from `input_schema` (the `_` wildcard returning `{}`
     /// is correct only for zero-argument tools).
     #[test]
     fn test_input_schema_returns_object_for_every_registered_schema() {
