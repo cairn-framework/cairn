@@ -171,9 +171,7 @@ fn build_code_samples(
 
 fn enforce_max_prompt_bytes(request: &mut SummariserRequest, max_prompt_bytes: usize) {
     let over_limit = |req: &SummariserRequest| {
-        serde_json::to_string(req)
-            .map(|s| s.len() > max_prompt_bytes)
-            .unwrap_or(true)
+        serde_json::to_string(req).map_or(true, |s| s.len() > max_prompt_bytes)
     };
 
     // Drop samples one-by-one (largest first) until the JSON fits.

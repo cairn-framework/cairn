@@ -306,7 +306,7 @@ pub(super) fn run_change_new(root: &Path, change_id: &str) -> CliResult {
     }
 
     let tasks =
-        format!("# Tasks: {change_id}\n\n- [ ] Task one\n- [ ] Task two\n- [ ] Task three\n",);
+        format!("# Tasks: {change_id}\n\n- [ ] Task one\n- [ ] Task two\n- [ ] Task three\n");
     if let Err(error) = fs::write(change_dir.join("tasks.md"), tasks) {
         return err(1, &format!("failed to write tasks.md: {error}"));
     }
