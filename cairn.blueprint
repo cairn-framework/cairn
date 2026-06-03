@@ -12,7 +12,17 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/verification.rs"
         path "./src/bin/cairn-lsp.rs"
     }
+    Module SSE "Minimal SSE consumer for Gas City integration" id "cairn.sse" {
+        path "./src/sse.rs"
+    }
 
+    Module State "Pluggable state persistence backend" id "cairn.state" {
+        path "./src/state"
+    }
+
+    Module Watch "Watch mode: periodic scan with finding-change events" id "cairn.watch" {
+        path "./src/watch.rs"
+    }
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
 
         Module Blueprint "Parses .blueprint files into AST node graph" id "cairn.kernel.blueprint" {

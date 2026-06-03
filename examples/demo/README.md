@@ -46,3 +46,21 @@ cairn mcp
 - **Hooks**: run `cairn lint` while a change is active to trigger hook checks.
 - **MCP**: run `cairn mcp` to expose the map as an MCP server.
 - **Summariser**: configured as disabled by default; set `[summariser] enabled = true` to enable.
+
+## MAS Orchestration
+
+Use `cairn health` and `cairn remediate` to guide a multi-agent system from a dirty state to clean:
+
+```bash
+# Assess project health
+cairn health --json
+
+# Get remediation plan
+cairn remediate --json
+
+# Example loop (run by an agent):
+# 1. cairn health → check clean flag
+# 2. cairn remediate → get next action
+# 3. Execute action (e.g., cairn refine)
+# 4. Repeat until clean=true
+```

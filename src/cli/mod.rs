@@ -336,7 +336,7 @@ fn render_loaded_project_command(
         "context" => Ok(render_context(scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
-        | "draft_edit" | "draft_accept" | "summarise" => {
+        | "draft_edit" | "draft_accept" | "summarise" | "health" | "remediate" => {
             return err(2, "this command currently requires --json");
         }
         "dependents" | "depends" => render_dependencies(parsed, scan_result),
@@ -617,6 +617,8 @@ fn uses_shared_json(command: &str) -> bool {
             | "draft_edit"
             | "draft_accept"
             | "summarise"
+            | "health"
+            | "remediate"
     )
 }
 

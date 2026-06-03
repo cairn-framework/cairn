@@ -57,6 +57,8 @@ Error responses from the MCP/query path:
 | `order` | `cairn_order` | Topological sort of all nodes |
 | `islands` | `cairn_islands` | Disconnected graph components |
 | `lint` | `cairn_lint` | All findings (errors + warnings + info) |
+| `health` | `cairn_health` | Comprehensive health assessment (clean flag, counts, findings) |
+| `remediate` | `cairn_remediate` | Ordered action plan from current findings |
 | `status` | `cairn_status` | Project summary (node count, finding count, etc.) |
 | `rationale <node>` | `cairn_rationale` | Provenance chain (decisions, research, sources) |
 | `todos <node>` | `cairn_todos` | Todo artefacts linked to the node |

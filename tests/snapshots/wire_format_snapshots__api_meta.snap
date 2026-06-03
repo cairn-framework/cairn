@@ -120,6 +120,18 @@ expression: value
       "safety": "ReadOnly"
     },
     {
+      "name": "health",
+      "request": "HealthRequest",
+      "response": "HealthResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "remediate",
+      "request": "RemediateRequest",
+      "response": "RemediateResponse",
+      "safety": "ReadOnly"
+    },
+    {
       "name": "ui",
       "request": "UiRequest",
       "response": "UiServerResponse",

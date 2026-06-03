@@ -95,3 +95,30 @@ Use the cairn_context MCP tool to get the project overview, then use
 cairn_neighbourhood with node_id "<node>" to understand the scope around
 the module I'm about to edit.
 ```
+
+## MAS Orchestration (health → remediate → action loop)
+
+### Assess project health
+
+```
+Use the cairn_health MCP tool. Report: is the project clean? How many errors,
+warnings, and info findings exist? How many modules are synced, ghost, or orphaned?
+```
+
+### Get remediation plan
+
+```
+Use the cairn_remediate MCP tool. Report the ordered list of actions:
+priority, command, and description for each. Execute the highest-priority action.
+```
+
+### Full clean-state loop
+
+```
+Repeat until cairn_health returns clean=true:
+1. Call cairn_health to assess state.
+2. If not clean, call cairn_remediate for the next action.
+3. Execute the action (CLI command or file edit).
+4. Re-run cairn_health to verify improvement.
+5. Stop only when clean is true with zero total_errors.
+```
