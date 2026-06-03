@@ -1,0 +1,2 @@
+# Demo example is a self-contained cairn project; ignore it during root scans.
+examples/demo
