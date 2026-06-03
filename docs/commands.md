@@ -110,6 +110,36 @@ These commands require the `--json` flag.
 | `cairn import-openspec` | Migrate openspec changes to meta/changes/ |
 | `cairn docstring <node>` | Generate a docstring for a node |
 
+### MAS orchestration
+| Command | Description |
+|---------|-------------|
+| `cairn health` | Report project health (JSON only) |
+| `cairn remediate` | Suggest remediation actions for findings (JSON only) |
+
+The `health` command produces a comprehensive health report combining lint findings, hook results, and module state counts. Use it to verify the project is in a clean state before merging.
+
+The `remediate` command analyzes findings and produces a prioritized list of actions. Run it when `cairn scan` or `cairn lint` reports issues. The actions guide you toward a clean state:
+
+1. `fix_blueprint` - Parse or integrity errors must be fixed manually first.
+2. `init_from_code` or `refine` - Reconcile blueprint drift with code.
+3. `summarise` - Update contracts after interface changes.
+4. `add_decision` - Record decisions for blueprint changes.
+#### Clean-state workflow
+
+```bash
+# 1. Check current health
+cairn health --json
+# 2. If not clean, get remediation actions
+cairn remediate --json
+# 3. Execute suggested actions (e.g., refine, summarise)
+cairn refine
+# 4. Verify clean state
+cairn health --json
+
+```
+
+A project is considered clean when `health` reports `clean: true` (zero errors, warnings, and hook pass).
+
 ## Exit codes
 
 | Code | Meaning |
