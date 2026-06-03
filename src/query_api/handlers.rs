@@ -446,13 +446,16 @@ pub(super) fn hook_json(
         "structural" => HookKind::Structural,
         "interface" => HookKind::Interface,
         "tension" => HookKind::Tension,
+        "architecture-decision" => HookKind::ArchitectureDecision,
         "all" => HookKind::All,
         other => {
             return Err(QueryError {
                 code: "CAIRN_QUERY_INVALID_HOOK_KIND".to_owned(),
                 message: format!("unknown hook kind `{other}`"),
                 source_span: None,
-                remediation: Some("Use structural, interface, tension, or all.".to_owned()),
+                remediation: Some(
+                    "Use structural, interface, tension, architecture-decision, or all.".to_owned(),
+                ),
             });
         }
     };

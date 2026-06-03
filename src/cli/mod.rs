@@ -22,6 +22,7 @@ use crate::{
 };
 
 pub use crate::query_api::SafetyClass;
+use crate::query_api::requires_valid_map;
 
 /// Command metadata.
 mod accept;
@@ -32,8 +33,9 @@ mod format;
 mod render;
 
 use commands::{
-    init_project, legacy_blueprint_warning, requires_valid_map, run_archive_command,
-    run_hook_command, run_onboard_command, run_shared_json_command, run_ui_command,
+    init_project, legacy_blueprint_warning, run_archive_command, run_change_apply, run_change_new,
+    run_change_tasks, run_hook_command, run_import_openspec, run_onboard_command,
+    run_shared_json_command, run_ui_command, run_watch_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -66,6 +68,9 @@ pub const fn registry() -> &'static [CommandMetadata] {
 
 /// Executes CLI arguments.
 #[must_use]
+// Reason: CLI dispatch hub for many subcommands; natural seam is per-command
+// modules which already exist for newer commands.
+#[allow(clippy::too_many_lines)]
 pub fn run(args: &[String]) -> CliResult {
     if args == ["--version"] {
         return ok(format!("{}\n", version_label()));
@@ -95,6 +100,9 @@ pub fn run(args: &[String]) -> CliResult {
         }
         return init_project(Path::new("."));
     }
+    if parsed.command == "import-openspec" {
+        return run_import_openspec(project_root, parsed.json);
+    }
     if parsed.command == "refine" {
         return match crate::brownfield::refine::run_refine(project_root) {
             Ok(change_id) => ok(format!(
@@ -121,6 +129,23 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "onboard" {
         return run_onboard_command(&parsed);
     }
+    if parsed.command == "watch" {
+        let opts = match crate::watch::WatchOpts::from_args(&parsed.command_args[1..]) {
+            Err(e) => {
+                return CliResult {
+                    code: 1,
+                    stdout: String::new(),
+                    stderr: format!("watch: {e}"),
+                };
+            }
+            Ok(o) => o,
+        };
+        return run_watch_command(project_root, &opts);
+    }
+
+    if parsed.command == "change" {
+        return run_change_command(&parsed, project_root);
+    }
     if parsed.command == "check" && !parsed.file.exists() {
         // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
         // warning that run_project_command emits at line 145-148.
@@ -144,6 +169,7 @@ pub fn run(args: &[String]) -> CliResult {
                             "no blueprint file was found; rename `cairn.dsl` to `cairn.blueprint`"
                                 .to_owned(),
                         node: None,
+                        target: None,
                         path: None,
                     })
                 ));
@@ -156,26 +182,53 @@ pub fn run(args: &[String]) -> CliResult {
         }
         if parsed.json {
             return ok(format!(
-                "{{\"command\":\"check\",\"status\":\"error\",\"data\":{{\"findings\":[{}]}}}}\n",
+                "{{\"command\":\"check\",\"status\":\"ok\",\"data\":{{\"findings\":[{}]}}}}\n",
                 finding_json(&Finding {
                     code: "CAIRN_NO_BLUEPRINT".to_owned(),
                     severity: FindingSeverity::Info,
                     message: "no cairn.blueprint found; run `cairn init` to create one".to_owned(),
                     node: None,
+                    target: None,
                     path: None,
                 })
             ));
         }
-        return ok(format!(
-            "{}\n",
-            copy::lookup("empty-states.cli-no-blueprint")
-        ));
+
+        let body = copy::lookup("empty-states.cli-no-blueprint.body");
+        let cta = copy::lookup("empty-states.cli-no-blueprint.cta");
+        return ok(format!("{body}\n{cta}\n"));
     }
     run_project_command(&parsed)
 }
 
+fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
+    let subcommand = parsed.command_args.get(1).map(String::as_str);
+    let change_id = parsed.command_args.get(2).map(String::as_str);
+    match subcommand {
+        Some("new") => {
+            let Some(id) = change_id else {
+                return err(1, "usage: cairn change new <change-id>");
+            };
+            run_change_new(project_root, id)
+        }
+        Some("tasks") => {
+            let Some(id) = change_id else {
+                return err(1, "usage: cairn change tasks <change-id>");
+            };
+            run_change_tasks(project_root, id)
+        }
+        Some("apply") => {
+            let Some(id) = change_id else {
+                return err(1, "usage: cairn change apply <change-id>");
+            };
+            run_change_apply(project_root, id)
+        }
+        _ => err(1, "usage: cairn change <new|tasks|apply> <change-id>"),
+    }
+}
 struct ParsedArgs {
     json: bool,
+    strict: bool,
     file: PathBuf,
     changes_dir: PathBuf,
     command: String,
@@ -184,13 +237,17 @@ struct ParsedArgs {
 
 fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let mut json = false;
+
+    let mut strict = false;
     let mut file = PathBuf::from("cairn.blueprint");
     let mut changes_dir = PathBuf::from("meta/changes");
     let mut command_args = Vec::new();
     let mut iter = args.iter();
+
     while let Some(arg) = iter.next() {
         match arg.as_str() {
             "--json" => json = true,
+            "--strict" => strict = true,
             "--file" => {
                 let Some(value) = iter.next() else {
                     return Err(err(2, "--file requires a path"));
@@ -209,15 +266,16 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let Some(command) = command_args.first().map(String::as_str) else {
         return Err(err(2, copy::lookup("errors.usage")));
     };
+
     Ok(ParsedArgs {
         json,
+        strict,
         file,
         changes_dir,
         command: command.to_owned(),
         command_args,
     })
 }
-
 fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     let root = parsed
         .file
@@ -256,6 +314,8 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     render_loaded_project_command(parsed, root, &scan_result, legacy_warning)
 }
 
+// Reason: project-loaded command routing has many one-liner arms; each is
+// already delegated to its own render function.
 #[allow(clippy::too_many_lines)]
 fn render_loaded_project_command(
     parsed: &ParsedArgs,
@@ -275,7 +335,8 @@ fn render_loaded_project_command(
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
-        "changes" | "show" | "docstring" | "rename" => {
+        "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
+        | "draft_edit" | "draft_accept" | "summarise" => {
             return err(2, "this command currently requires --json");
         }
         "dependents" | "depends" => render_dependencies(parsed, scan_result),
@@ -321,14 +382,22 @@ fn render_loaded_project_command(
             }),
             Err(findings) => return findings_output(parsed.json, &findings),
         },
+
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
-            let code = u8::from(
-                response
-                    .findings
-                    .iter()
-                    .any(|finding| finding.severity == FindingSeverity::Error),
-            );
+            let has_error = response
+                .findings
+                .iter()
+                .any(|finding| finding.severity == FindingSeverity::Error);
+            let has_warning = response
+                .findings
+                .iter()
+                .any(|finding| finding.severity == FindingSeverity::Warning);
+            let code = if parsed.strict {
+                u8::from(has_error || has_warning)
+            } else {
+                u8::from(has_error)
+            };
             let stdout = render_findings(&response.findings, parsed.json);
             return CliResult {
                 code,
@@ -380,7 +449,16 @@ fn render_loaded_project_command(
 }
 
 /// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &["accept", "check", "export", "onboard", "refine"];
+const EXTRA_CLI_COMMANDS: &[&str] = &[
+    "accept",
+    "change",
+    "check",
+    "export",
+    "import-openspec",
+    "onboard",
+    "refine",
+    "watch",
+];
 
 /// MCP-only tools that should not appear in CLI command lists.
 const MCP_ONLY_TOOLS: &[&str] = &["init_from_code"];
@@ -406,6 +484,7 @@ fn command_description(name: &str) -> &'static str {
     match name {
         "accept" => "Run acceptance gate for a change",
         "archive" => "Archive a completed change",
+        "change" => "Scaffold a new change directory",
         "changes" => "List active changes",
         "check" => "Inspect findings for a node or project",
         "context" => "Structured project overview for agents",
@@ -420,6 +499,7 @@ fn command_description(name: &str) -> &'static str {
         "hook" => "Run reconciliation hooks",
         "init" => "Scaffold a new cairn project",
         "islands" => "Show connected components of the map graph",
+        "import-openspec" => "Migrate openspec changes to meta/changes",
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
         "onboard" => "Suggest blueprint entries for orphaned files",
@@ -432,8 +512,15 @@ fn command_description(name: &str) -> &'static str {
         "show" => "Show details of a change",
         "sources" => "List sources linked to a node",
         "status" => "Show project status summary",
+        "summarise" => "Generate a contract summary for a node",
+        "drafts" => "List pending draft proposals",
+        "draft_show" => "Show a draft proposal",
+        "draft_discard" => "Discard a draft proposal",
+        "draft_edit" => "Open a draft in your editor",
+        "draft_accept" => "Accept a draft and apply it",
         "todos" => "List todos linked to a node",
         "ui" => "Launch the web UI",
+        "watch" => "Watch for finding changes and emit events",
         _ => "",
     }
 }
@@ -454,8 +541,13 @@ fn help_text() -> String {
     out.push_str("  --file <path>         Blueprint file (default: cairn.blueprint)\n");
     out.push_str("  --changes-dir <path>  Changes directory (default: meta/changes)\n");
     out.push_str("  --json                Output in JSON format\n");
+    out.push_str("  --strict              Exit 1 on Warning findings (scan/lint)\n");
     out.push_str("  --version             Print version\n");
     out.push_str("  -h, --help            Print this help\n");
+    out.push_str("\nExit codes:\n");
+    out.push_str("  0  Success; no blocking findings\n");
+    out.push_str("  1  Blocking findings, or command failed\n");
+    out.push_str("  2  Usage error (unknown command, missing argument)\n");
     out
 }
 
@@ -519,6 +611,12 @@ fn uses_shared_json(command: &str) -> bool {
             | "hook"
             | "rename"
             | "context"
+            | "drafts"
+            | "draft_show"
+            | "draft_discard"
+            | "draft_edit"
+            | "draft_accept"
+            | "summarise"
     )
 }
 
@@ -548,6 +646,7 @@ mod tests {
             ("sources", vec!["sources", "app.api"]),
             ("rationale", vec!["rationale", "app.api"]),
             ("status", vec!["status"]),
+            ("context", vec!["context"]),
             ("dependents", vec!["dependents", "app.api"]),
             ("depends", vec!["depends", "app.api"]),
             ("contract", vec!["contract", "app.api"]),
@@ -764,6 +863,33 @@ app.api -> app.core "reports"
     }
 
     #[test]
+    fn test_help_documents_exit_codes() {
+        let result = run(&["--help".to_string()]);
+        assert!(
+            result.stdout.contains("Exit codes"),
+            "--help must document exit codes; got:\n{}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains('0'),
+            "--help must document exit code 0"
+        );
+        assert!(
+            result.stdout.contains('1'),
+            "--help must document exit code 1"
+        );
+    }
+
+    #[test]
+    fn test_help_documents_strict_flag() {
+        let result = run(&["--help".to_string()]);
+        assert!(
+            result.stdout.contains("--strict"),
+            "--help must document --strict flag"
+        );
+    }
+
+    #[test]
     fn test_unknown_command_suggests_close_match() -> Result<(), Box<dyn std::error::Error>> {
         let root = temp_root("suggest-close")?;
         write_project(&root)?;
@@ -885,4 +1011,237 @@ app.api -> app.core "reports"
     }
 
     static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+
+    #[test]
+    fn test_cli_drafts_and_draft_show_json() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::summariser::{Draft, DraftHeader, DraftStore, PendingDraft};
+
+        let root = temp_root("draft-commands")?;
+        write_project(&root)?;
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-001".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+
+        let drafts = run_in(&root, &["--json", "drafts"]);
+        assert_eq!(drafts.code, 0, "drafts json stderr: {}", drafts.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(drafts.stdout.trim())
+            .unwrap_or_else(|e| panic!("invalid JSON from drafts --json: {e}\n{}", drafts.stdout));
+        let draft_array = parsed
+            .get("drafts")
+            .and_then(|v| v.as_array())
+            .expect("drafts array");
+        assert_eq!(draft_array.len(), 1);
+        assert_eq!(draft_array[0]["id"], "draft-001");
+
+        let show = run_in(&root, &["--json", "draft_show", "draft-001"]);
+        assert_eq!(show.code, 0, "draft_show json stderr: {}", show.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(show.stdout.trim()).unwrap_or_else(|e| {
+                panic!("invalid JSON from draft_show --json: {e}\n{}", show.stdout)
+            });
+        assert_eq!(parsed["id"], "draft-001");
+        assert_eq!(parsed["status"], "pending");
+
+        Ok(())
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)] // Reason: test covers four related commands in one logical flow
+    fn test_cli_draft_mutating_commands_json() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::summariser::{Draft, DraftHeader, DraftStore, PendingDraft};
+
+        let root = temp_root("draft-mutating-commands")?;
+        write_project(&root)?;
+
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+
+        // draft_discard
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-001".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        let discard = run_in(&root, &["--json", "draft_discard", "draft-001"]);
+        assert_eq!(
+            discard.code, 0,
+            "draft_discard json stderr: {}",
+            discard.stderr
+        );
+        let parsed: serde_json::Value =
+            serde_json::from_str(discard.stdout.trim()).unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from draft_discard --json: {e}\n{}",
+                    discard.stdout
+                )
+            });
+        assert_eq!(parsed["id"], "draft-001");
+        assert_eq!(parsed["status"], "discarded");
+
+        // draft_edit
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-002".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        let edit = run_in(&root, &["--json", "draft_edit", "draft-002"]);
+        assert_eq!(edit.code, 0, "draft_edit json stderr: {}", edit.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(edit.stdout.trim()).unwrap_or_else(|e| {
+                panic!("invalid JSON from draft_edit --json: {e}\n{}", edit.stdout)
+            });
+        assert_eq!(parsed["id"], "draft-002");
+        assert_eq!(parsed["status"], "editable");
+
+        // draft_accept
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-003".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Accepted Draft".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        let accept = run_in(&root, &["--json", "draft_accept", "draft-003"]);
+        assert_eq!(
+            accept.code, 0,
+            "draft_accept json stderr: {}",
+            accept.stderr
+        );
+        let parsed: serde_json::Value =
+            serde_json::from_str(accept.stdout.trim()).unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from draft_accept --json: {e}\n{}",
+                    accept.stdout
+                )
+            });
+        assert_eq!(parsed["id"], "draft-003");
+        assert_eq!(parsed["status"], "accepted");
+
+        // draft_accept --edited
+        store.write(&Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-004".to_owned(),
+                node_id: "app.api".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: "---\nnode: app.api\n---\n# Generated".to_owned(),
+                created_at: "2024-01-15T10:30:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        }))?;
+        std::fs::create_dir_all(root.join(".cairn/state/summariser/editable"))?;
+        std::fs::write(
+            store.editable_path("draft-004", "contract"),
+            "---\nnode: app.api\n---\n# Edited Draft",
+        )?;
+        let accept_edited = run_in(&root, &["--json", "draft_accept", "draft-004", "--edited"]);
+        assert_eq!(
+            accept_edited.code, 0,
+            "draft_accept --edited json stderr: {}",
+            accept_edited.stderr
+        );
+        let parsed: serde_json::Value = serde_json::from_str(accept_edited.stdout.trim())
+            .unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from draft_accept --edited: {e}\n{}",
+                    accept_edited.stdout
+                )
+            });
+        assert_eq!(parsed["id"], "draft-004");
+        assert_eq!(parsed["status"], "accepted");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_summarise_disabled_by_default() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("summarise-disabled")?;
+        write_project(&root)?;
+
+        let result = run_in(&root, &["--json", "summarise", "app.api"]);
+        assert_eq!(result.code, 1, "summarise json stderr: {}", result.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(result.stdout.trim()).unwrap_or_else(|e| {
+                panic!("invalid JSON from summarise --json: {e}\n{}", result.stdout)
+            });
+        assert_eq!(parsed["error"]["code"], "CAIRN_SUMMARISER_DISABLED");
+
+        Ok(())
+    }
+    #[test]
+    fn test_cli_import_openspec_migrates_phases() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("import-openspec")?;
+        write_project(&root)?;
+
+        // Set up openspec changes with two phases and archive.
+        let openspec = root.join("openspec/changes");
+        fs::create_dir_all(openspec.join("phase-7-test"))?;
+        fs::write(
+            openspec.join("phase-7-test/proposal.md"),
+            "# Proposal: Phase 7 Test\n",
+        )?;
+        fs::write(
+            openspec.join("phase-7-test/design.md"),
+            "# Design: Phase 7 Test\n",
+        )?;
+        fs::write(openspec.join("phase-7-test/tasks.md"), "- [ ] Task one\n")?;
+        fs::create_dir_all(openspec.join("phase-7-test/specs"))?;
+        fs::write(openspec.join("phase-7-test/specs/spec.md"), "# Spec\n")?;
+        fs::create_dir_all(openspec.join("phase-8-test"))?;
+        fs::write(
+            openspec.join("phase-8-test/proposal.md"),
+            "# Proposal: Phase 8 Test\n",
+        )?;
+        fs::create_dir_all(openspec.join("archive/old-phase"))?;
+        fs::write(
+            openspec.join("archive/old-phase/proposal.md"),
+            "# Proposal: Old Phase\n",
+        )?;
+
+        let result = run_in(&root, &["--json", "import-openspec"]);
+        assert_eq!(result.code, 0, "import-openspec stderr: {}", result.stderr);
+
+        // Verify phases migrated.
+        assert!(root.join("meta/changes/phase-7-test/proposal.md").exists());
+        assert!(root.join("meta/changes/phase-7-test/design.md").exists());
+        assert!(root.join("meta/changes/phase-7-test/tasks.md").exists());
+        assert!(
+            root.join("meta/changes/phase-7-test/specs/spec.md")
+                .exists()
+        );
+        assert!(root.join("meta/changes/phase-8-test/proposal.md").exists());
+
+        // Verify archive copied.
+        assert!(
+            root.join("meta/changes/archive/old-phase/proposal.md")
+                .exists()
+        );
+
+        Ok(())
+    }
 }

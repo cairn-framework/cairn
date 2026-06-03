@@ -12,7 +12,8 @@ use super::{contract::ContractSet, frontmatter};
 mod io;
 mod parse;
 mod sha256;
-mod types;
+/// Artefact type definitions.
+pub mod types;
 mod validate;
 
 use io::list;
@@ -99,6 +100,8 @@ fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
                     orphaned: optional(&parsed.values, "orphaned")
                         .is_some_and(|value| value == "true"),
                     orphan_reason: optional(&parsed.values, "orphan_reason"),
+
+                    claims: parse_claims(&parsed.values, &parsed.lists, &path),
                     body: parsed.body,
                 });
             }
@@ -106,6 +109,24 @@ fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
     }
 }
 
+fn parse_claims(
+    values: &std::collections::BTreeMap<String, String>,
+    lists: &std::collections::BTreeMap<String, Vec<String>>,
+    _path: &std::path::Path,
+) -> Option<crate::artefacts::Claims> {
+    let folder = values.get("claims_folder")?;
+    let mode = match values.get("claims_mode").map(String::as_str) {
+        Some("exhaustive") => crate::artefacts::ClaimsMode::Exhaustive,
+        Some("illustrative") => crate::artefacts::ClaimsMode::Illustrative,
+        _ => return None,
+    };
+    let items = lists.get("claims_items").cloned().unwrap_or_default();
+    Some(crate::artefacts::Claims {
+        folder: folder.clone(),
+        mode,
+        items,
+    })
+}
 fn load_reviews(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
     for pointer in pointers(ast, "reviews") {
         for path in markdown_paths(root, &pointer, set) {
@@ -338,5 +359,102 @@ mod tests {
         let root = std::env::temp_dir().join(format!("cairn-artefacts-tests-{name}-{suffix}"));
         fs::create_dir_all(&root)?;
         Ok(root)
+    }
+
+    // ── parse_claims ──────────────────────────────────────────────────────────
+
+    fn claims_values(folder: &str, mode: &str) -> std::collections::BTreeMap<String, String> {
+        let mut m = std::collections::BTreeMap::new();
+        m.insert("claims_folder".to_owned(), folder.to_owned());
+        m.insert("claims_mode".to_owned(), mode.to_owned());
+        m
+    }
+
+    fn claims_lists(items: &[&str]) -> std::collections::BTreeMap<String, Vec<String>> {
+        let mut m = std::collections::BTreeMap::new();
+        m.insert(
+            "claims_items".to_owned(),
+            items.iter().map(ToString::to_string).collect(),
+        );
+        m
+    }
+
+    fn no_lists() -> std::collections::BTreeMap<String, Vec<String>> {
+        std::collections::BTreeMap::new()
+    }
+
+    #[test]
+    fn test_parse_claims_absent_when_no_folder_key() {
+        let result = parse_claims(
+            &std::collections::BTreeMap::new(),
+            &no_lists(),
+            Path::new("test.md"),
+        );
+        assert!(result.is_none(), "no claims_folder → None");
+    }
+
+    #[test]
+    fn test_parse_claims_exhaustive_with_items_returns_some() {
+        let result = parse_claims(
+            &claims_values("meta/decisions", "exhaustive"),
+            &claims_lists(&["a.md", "b.md"]),
+            Path::new("test.md"),
+        );
+        let claims = result.expect("exhaustive + items must return Some");
+        assert_eq!(claims.folder, "meta/decisions");
+        assert!(matches!(
+            claims.mode,
+            crate::artefacts::ClaimsMode::Exhaustive
+        ));
+        assert_eq!(claims.items, vec!["a.md", "b.md"]);
+    }
+
+    #[test]
+    fn test_parse_claims_illustrative_mode_returns_some() {
+        let result = parse_claims(
+            &claims_values("meta/decisions", "illustrative"),
+            &claims_lists(&["a.md"]),
+            Path::new("test.md"),
+        );
+        let claims = result.expect("illustrative + items must return Some");
+        assert!(matches!(
+            claims.mode,
+            crate::artefacts::ClaimsMode::Illustrative
+        ));
+    }
+
+    #[test]
+    fn test_parse_claims_unknown_mode_returns_none() {
+        // Unknown mode silently returns None (documents the current behavior;
+        // a future improvement could emit an error finding instead).
+        let result = parse_claims(
+            &claims_values("meta/decisions", "Exhaustive"), // wrong case
+            &claims_lists(&["a.md"]),
+            Path::new("test.md"),
+        );
+        assert!(result.is_none(), "unknown mode must return None");
+    }
+
+    #[test]
+    fn test_parse_claims_missing_items_defaults_to_empty_not_none() {
+        // When claims_folder and a valid claims_mode are present but
+        // claims_items is absent, the CA003 check should still run —
+        // an exhaustive claim with no listed files means every file in
+        // the folder is "missing from claim". Returning None silently
+        // disables the check entirely.
+        let result = parse_claims(
+            &claims_values("meta/decisions", "exhaustive"),
+            &no_lists(), // no claims_items key at all
+            Path::new("test.md"),
+        );
+        assert!(
+            result.is_some(),
+            "missing claims_items must not disable claims checking; got None"
+        );
+        assert_eq!(
+            result.unwrap().items,
+            Vec::<String>::new(),
+            "absent claims_items must default to empty list"
+        );
     }
 }

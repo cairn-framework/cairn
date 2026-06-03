@@ -1,6 +1,10 @@
 //! Summariser backend trait and the default disabled implementation.
 
-use std::time::Duration;
+use std::{
+    io::{Read, Write},
+    process::{Command, Stdio},
+    time::Duration,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -121,22 +125,221 @@ impl SummariserBackend for DisabledBackend {
     }
 }
 
+/// Deterministic fake backend for tests.
+///
+/// Returns a pre-configured response on every invocation,
+/// ignoring the request payload and timeout. This makes tests
+/// deterministic and removes the need for real LLM backends
+/// during development.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FakeBackend {
+    response: Result<SummariserResponse, SummariserBackendError>,
+}
+
+impl FakeBackend {
+    /// Creates a fake that always returns `response`.
+    #[must_use]
+    pub const fn ok(response: SummariserResponse) -> Self {
+        Self {
+            response: Ok(response),
+        }
+    }
+
+    /// Creates a fake that always returns `error`.
+    #[must_use]
+    pub const fn err(error: SummariserBackendError) -> Self {
+        Self {
+            response: Err(error),
+        }
+    }
+}
+
+impl SummariserBackend for FakeBackend {
+    fn invoke(
+        &self,
+        _request: &SummariserRequest,
+        _timeout: Duration,
+    ) -> Result<SummariserResponse, SummariserBackendError> {
+        self.response.clone()
+    }
+}
+
+/// Local command backend: spawns a subprocess, sends JSON on stdin,
+/// reads JSON from stdout, and enforces a per-call timeout.
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[allow(dead_code)] // Reason: will be constructed by CLI wiring in upcoming task 4.1
+pub struct LocalCommandBackend {
+    command: String,
+    args: Vec<String>,
+}
+
+#[allow(dead_code)] // Reason: same as struct; used by CLI wiring in task 4.1
+impl LocalCommandBackend {
+    /// Creates a backend from a command path and argument list.
+    #[must_use]
+    pub const fn new(command: String, args: Vec<String>) -> Self {
+        Self { command, args }
+    }
+}
+
+impl SummariserBackend for LocalCommandBackend {
+    fn invoke(
+        &self,
+        request: &SummariserRequest,
+        timeout: Duration,
+    ) -> Result<SummariserResponse, SummariserBackendError> {
+        let json = serde_json::to_string(request)
+            .map_err(|e| SummariserBackendError::Io(format!("failed to serialise request: {e}")))?;
+
+        let mut child = Command::new(&self.command)
+            .args(&self.args)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(|e| SummariserBackendError::Io(e.to_string()))?;
+
+        let mut stdin = child
+            .stdin
+            .take()
+            .ok_or_else(|| SummariserBackendError::Io("failed to open stdin".to_owned()))?;
+        if let Err(e) = stdin.write_all(json.as_bytes()) {
+            // Reason: the command may exit before reading stdin (e.g. echo
+            // that never reads).  We still need stdout, stderr and exit
+            // status; only propagate non-broken-pipe errors.
+            if e.kind() != std::io::ErrorKind::BrokenPipe {
+                return Err(SummariserBackendError::Io(e.to_string()));
+            }
+        }
+        drop(stdin);
+
+        let mut stdout_pipe = child
+            .stdout
+            .take()
+            .ok_or_else(|| SummariserBackendError::Io("failed to open stdout".to_owned()))?;
+        let mut stderr_pipe = child
+            .stderr
+            .take()
+            .ok_or_else(|| SummariserBackendError::Io("failed to open stderr".to_owned()))?;
+
+        let stdout_thread = std::thread::spawn(move || {
+            let mut buf = String::new();
+            let _ = stdout_pipe.read_to_string(&mut buf);
+            buf
+        });
+        let stderr_thread = std::thread::spawn(move || {
+            let mut buf = String::new();
+            let _ = stderr_pipe.read_to_string(&mut buf);
+            buf
+        });
+
+        let start = std::time::Instant::now();
+        let status = loop {
+            match child.try_wait() {
+                Ok(Some(st)) => break st,
+                Ok(None) => {
+                    if start.elapsed() >= timeout {
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        let _ = stdout_thread.join();
+                        let _ = stderr_thread.join();
+                        return Err(SummariserBackendError::Timeout {
+                            timeout_ms: u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX),
+                        });
+                    }
+                    std::thread::sleep(Duration::from_millis(10));
+                }
+                Err(e) => {
+                    let _ = child.kill();
+                    let _ = stdout_thread.join();
+                    let _ = stderr_thread.join();
+                    return Err(SummariserBackendError::Io(e.to_string()));
+                }
+            }
+        };
+
+        let stdout = stdout_thread
+            .join()
+            .map_err(|e| SummariserBackendError::Io(format!("stdout thread panicked: {e:?}")))?;
+        let stderr = stderr_thread
+            .join()
+            .map_err(|e| SummariserBackendError::Io(format!("stderr thread panicked: {e:?}")))?;
+
+        if !status.success() {
+            return Err(SummariserBackendError::NonZeroExit {
+                code: status.code().unwrap_or(-1),
+                stderr,
+            });
+        }
+
+        serde_json::from_str(&stdout).map_err(|e| SummariserBackendError::Parse(e.to_string()))
+    }
+}
+
+/// Configuration for a hosted API backend.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct HostedConfig {
+    /// Adapter identifier (e.g. "openai", "anthropic").
+    pub adapter: String,
+    /// Base URL for the hosted API.
+    #[serde(default)]
+    pub base_url: Option<String>,
+    /// Per-invocation timeout in milliseconds.
+    #[serde(default)]
+    pub timeout_ms: Option<u64>,
+}
+
+/// Hosted API backend placeholder.
+///
+/// Parses and stores configuration but returns an unsupported-backend
+/// error on every invocation. A concrete provider adapter will replace
+/// this behaviour in a future phase.
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[allow(dead_code)] // Reason: placeholder until concrete provider adapter lands
+pub struct HostedBackend {
+    config: HostedConfig,
+}
+
+#[allow(dead_code)] // Reason: same as struct; placeholder until adapter lands
+impl HostedBackend {
+    /// Creates a hosted backend from parsed configuration.
+    #[must_use]
+    pub const fn new(config: HostedConfig) -> Self {
+        Self { config }
+    }
+}
+
+impl SummariserBackend for HostedBackend {
+    fn invoke(
+        &self,
+        _request: &SummariserRequest,
+        _timeout: Duration,
+    ) -> Result<SummariserResponse, SummariserBackendError> {
+        Err(SummariserBackendError::Io(format!(
+            "unsupported hosted backend: {}",
+            self.config.adapter
+        )))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::summariser::request::{NodeContext, SUMMARISER_SCHEMA_VERSION};
+    use crate::summariser::request::SUMMARISER_SCHEMA_VERSION;
 
     fn sample_request() -> SummariserRequest {
         SummariserRequest {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            artefact_type: "contract".to_owned(),
-            node: NodeContext {
-                node_id: "node-a".to_owned(),
-                name: "Auth".to_owned(),
-                description: String::new(),
-                contract: None,
-                contradiction: None,
-            },
+            request_id: "req-a".to_owned(),
+            draft_type: "contract".to_owned(),
+            target_node: "node-a".to_owned(),
+            map_facts: Vec::new(),
+            contract_excerpt: None,
+            interface_findings: Vec::new(),
+            docstring_findings: Vec::new(),
+            project_context: String::new(),
+            rules: Vec::new(),
+            code_samples: Vec::new(),
         }
     }
 
@@ -177,5 +380,142 @@ mod tests {
         let json = serde_json::to_string(&mode).expect("serialise");
         let back: SummariserMode = serde_json::from_str(&json).expect("deserialise");
         assert_eq!(back, mode);
+    }
+
+    #[test]
+    fn test_fake_backend_ok_returns_configured_response() {
+        let response = SummariserResponse {
+            schema_version: SUMMARISER_SCHEMA_VERSION,
+            draft_text: "fake draft text".to_owned(),
+            summary: None,
+            metadata: None,
+        };
+        let backend = FakeBackend::ok(response.clone());
+        let result = backend.invoke(&sample_request(), Duration::from_secs(1));
+        assert_eq!(result.unwrap(), response);
+    }
+
+    #[test]
+    fn test_fake_backend_err_returns_configured_error() {
+        let backend = FakeBackend::err(SummariserBackendError::Disabled);
+        let result = backend.invoke(&sample_request(), Duration::from_secs(1));
+        assert!(matches!(result, Err(SummariserBackendError::Disabled)));
+    }
+
+    #[test]
+    fn test_fake_backend_different_requests_returns_same_response() {
+        let response = SummariserResponse {
+            schema_version: SUMMARISER_SCHEMA_VERSION,
+            draft_text: "deterministic".to_owned(),
+            summary: None,
+            metadata: None,
+        };
+        let backend = FakeBackend::ok(response);
+        let req1 = sample_request();
+        let mut req2 = req1.clone();
+        req2.target_node = "different".to_owned();
+        let out1 = backend.invoke(&req1, Duration::from_millis(100)).unwrap();
+        let out2 = backend.invoke(&req2, Duration::from_secs(10)).unwrap();
+        assert_eq!(out1, out2);
+    }
+
+    #[test]
+    fn test_local_command_backend_echoes_valid_response() {
+        let expected = SummariserResponse {
+            schema_version: SUMMARISER_SCHEMA_VERSION,
+            draft_text: "from shell".to_owned(),
+            summary: None,
+            metadata: None,
+        };
+        let json = serde_json::to_string(&expected).unwrap();
+        let script = format!("printf '%s\\n' '{json}'");
+        let backend = LocalCommandBackend::new("/bin/sh".to_owned(), vec!["-c".to_owned(), script]);
+        let result = backend
+            .invoke(&sample_request(), Duration::from_secs(5))
+            .expect("should succeed");
+        assert_eq!(result.draft_text, expected.draft_text);
+    }
+
+    #[test]
+    fn test_local_command_backend_non_zero_exit_returns_error() {
+        let backend = LocalCommandBackend::new(
+            "/bin/sh".to_owned(),
+            vec!["-c".to_owned(), "echo 'bad' >&2; exit 1".to_owned()],
+        );
+        let result = backend.invoke(&sample_request(), Duration::from_secs(5));
+        match result {
+            Err(SummariserBackendError::NonZeroExit { code, stderr }) => {
+                assert_eq!(code, 1);
+                assert!(
+                    stderr.contains("bad"),
+                    "stderr should contain 'bad', got: {stderr}"
+                );
+            }
+            other => panic!("expected NonZeroExit, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_local_command_backend_invalid_json_returns_parse_error() {
+        let backend = LocalCommandBackend::new(
+            "/bin/sh".to_owned(),
+            vec!["-c".to_owned(), "echo 'not json'".to_owned()],
+        );
+        let result = backend.invoke(&sample_request(), Duration::from_secs(5));
+        assert!(
+            matches!(result, Err(SummariserBackendError::Parse(_))),
+            "expected Parse error for invalid JSON, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_local_command_backend_timeout_returns_timeout_error() {
+        let backend = LocalCommandBackend::new(
+            "/bin/sh".to_owned(),
+            vec!["-c".to_owned(), "sleep 10".to_owned()],
+        );
+        let result = backend.invoke(&sample_request(), Duration::from_millis(100));
+        assert!(
+            matches!(result, Err(SummariserBackendError::Timeout { .. })),
+            "expected Timeout error, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_hosted_backend_returns_unsupported_error() {
+        let config = HostedConfig {
+            adapter: "openai".to_owned(),
+            base_url: Some("https://api.openai.com".to_owned()),
+            timeout_ms: Some(30_000),
+        };
+        let backend = HostedBackend::new(config);
+        let result = backend.invoke(&sample_request(), Duration::from_secs(5));
+        match result {
+            Err(SummariserBackendError::Io(msg)) => {
+                assert_eq!(msg, "unsupported hosted backend: openai");
+            }
+            other => panic!("expected Io error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_hosted_config_round_trips_through_serde() {
+        let config = HostedConfig {
+            adapter: "anthropic".to_owned(),
+            base_url: Some("https://api.anthropic.com".to_owned()),
+            timeout_ms: Some(60_000),
+        };
+        let json = serde_json::to_string(&config).expect("serialise");
+        let back: HostedConfig = serde_json::from_str(&json).expect("deserialise");
+        assert_eq!(back, config);
+    }
+
+    #[test]
+    fn test_hosted_config_with_defaults_parses() {
+        let json = r#"{"adapter":"test"}"#;
+        let config: HostedConfig = serde_json::from_str(json).expect("parse");
+        assert_eq!(config.adapter, "test");
+        assert!(config.base_url.is_none());
+        assert!(config.timeout_ms.is_none());
     }
 }

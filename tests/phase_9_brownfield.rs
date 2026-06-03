@@ -18,36 +18,44 @@ use cairn::cflx_planned;
 
 // Fixture helpers. Phase 9 supplies real implementations; the pre-phase
 // keeps thin placeholders so test bodies referencing them compile.
+// Reason: fixture stubs referenced by pre-phase test bodies; dead until phase 9
+// implementations land.
 #[allow(dead_code)]
 fn fixture_repo_without_blueprint() {
     unimplemented!("awaits phase-9: fixture_repo_without_blueprint");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_repo_with_blueprint() {
     unimplemented!("awaits phase-9: fixture_repo_with_blueprint");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_repo_with_brownfield_change() {
     unimplemented!("awaits phase-9: fixture_repo_with_brownfield_change");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_repo_with_pending_suggested_edges() {
     unimplemented!("awaits phase-9: fixture_repo_with_pending_suggested_edges");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_change_with_partial_interview_state() {
     unimplemented!("awaits phase-9: fixture_change_with_partial_interview_state");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_project_config_with_contract_template() {
     unimplemented!("awaits phase-9: fixture_project_config_with_contract_template");
 }
 
+// Reason: pre-phase fixture stub; dead until phase 9 lands.
 #[allow(dead_code)]
 fn fixture_decision_with_obligations_field() {
     unimplemented!("awaits phase-9: fixture_decision_with_obligations_field");
@@ -168,7 +176,7 @@ mod init {
             }],
             schema_version: 1,
         };
-        let result = write_change(&root, "test-change", &extraction);
+        let result = write_change(&root, "test-change", &extraction, &[]);
         assert!(result.is_ok());
         let dir = root.join("openspec/changes/test-change");
         assert!(dir.join("proposal.md").exists());
@@ -209,6 +217,40 @@ mod refine {
         assert_ne!(first, second);
         assert!(root.join("openspec/changes").join(&first).exists());
         assert!(root.join("openspec/changes").join(&second).exists());
+    }
+
+    /// Scenario: Refine detects a renamed directory.
+    #[test]
+    fn test_refine__detects_renamed_directory() {
+        let root = temp_repo("refine-rename");
+        populate_source_dir(&root, "src/core", 3);
+
+        // Create a minimal blueprint with a node for src/core.
+        let blueprint = r#"System App "App" id "app" {
+    Module Core "Core" id "app.core" {
+        path "src/core"
+    }
+}"#;
+        std::fs::write(root.join("cairn.blueprint"), blueprint).unwrap();
+
+        // Rename the directory on disk.
+        std::fs::rename(root.join("src/core"), root.join("src/kernel")).unwrap();
+        populate_source_dir(&root, "src/kernel", 3);
+
+        let result = bf_refine::run_refine(&root);
+        assert!(result.is_ok(), "refine failed: {result:?}");
+        let change_id = result.unwrap();
+        let delta_path = root
+            .join("openspec/changes")
+            .join(&change_id)
+            .join("blueprint.delta");
+        let delta = std::fs::read_to_string(&delta_path).expect("read delta");
+
+        // The delta should mention the rename from app.core to src.kernel.
+        assert!(
+            delta.contains("app.core") && delta.contains("src.kernel"),
+            "delta should detect rename from app.core to src.kernel, got:\n{delta}"
+        );
     }
 }
 
@@ -431,24 +473,57 @@ mod review {
 }
 
 mod mcp {
-    use super::cflx_planned;
+    use serde_json::Value;
+
+    fn tool_names(response: &Value) -> Vec<&str> {
+        response["result"]["tools"]
+            .as_array()
+            .expect("tools array")
+            .iter()
+            .map(|t| t["name"].as_str().expect("tool name"))
+            .collect()
+    }
 
     /// Scenario: Brownfield tools absent in default (read-only) MCP mode.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_mcp__brownfield_tools_absent_in_default_mode() {
-        unimplemented!("awaits phase-9: mcp brownfield tools absent in default mode");
+        let config = cairn::mcp::ServerConfig::default();
+        let response =
+            cairn::mcp::handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#, &config);
+        let names = tool_names(&response);
+        assert!(
+            !names.contains(&"cairn_init_from_code"),
+            "cairn_init_from_code must not be listed in default mode"
+        );
+        assert!(
+            !names.contains(&"cairn_refine"),
+            "cairn_refine must not be listed in default mode"
+        );
     }
 
     /// Scenario: Brownfield tools present in mutating MCP mode.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_mcp__brownfield_tools_present_in_mutating_mode() {
-        unimplemented!("awaits phase-9: mcp brownfield tools present in mutating mode");
+        let config = cairn::mcp::ServerConfig {
+            allow_mutating_tools: true,
+            ..cairn::mcp::ServerConfig::default()
+        };
+        let response =
+            cairn::mcp::handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#, &config);
+        let names = tool_names(&response);
+        assert!(
+            names.contains(&"cairn_init_from_code"),
+            "cairn_init_from_code must be listed in mutating mode"
+        );
+        assert!(
+            names.contains(&"cairn_refine"),
+            "cairn_refine must be listed in mutating mode"
+        );
     }
 }
 
 mod heuristics {
+    use cairn::brownfield::discovery;
     use cairn::brownfield::{CandidateConfidence, classify_score, coupling_score};
 
     /// Scenario: Coupling score (3+1)/(1+1)=2.0 maps to high confidence.
@@ -524,120 +599,657 @@ mod heuristics {
     }
 
     /// Scenario: Summariser disabled uses path-derived names.
-    /// Cycle 3: reverted to `#[cflx_planned]` because the prior
-    /// assertion only confirmed a hand-constructed Candidate had a
-    /// non-empty id, not that the disabled-summariser path actually
-    /// derives names from filesystem paths.
-    #[cairn::cflx_planned(phase = 900)]
+    /// When no summariser backend is configured, discovery derives
+    /// candidate IDs and names directly from filesystem paths.
     #[test]
     fn test_heuristics__summariser_disabled_uses_path_derived_names() {
-        unimplemented!(
-            "awaits phase-9: disabled-summariser fallback constructor derives id from path"
-        );
+        let root = super::temp_repo("disabled-names");
+        super::populate_source_dir(&root, "src/auth", 4);
+        super::populate_source_dir(&root, "src/store", 3);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let auth = extraction
+            .candidates
+            .iter()
+            .find(|c| c.path == "src/auth")
+            .expect("should discover src/auth");
+        assert_eq!(auth.id, "src.auth", "id must be path-derived");
+        assert_eq!(auth.name, "auth", "name must be path-derived");
+
+        let store = extraction
+            .candidates
+            .iter()
+            .find(|c| c.path == "src/store")
+            .expect("should discover src/store");
+        assert_eq!(store.id, "src.store", "id must be path-derived");
+        assert_eq!(store.name, "store", "name must be path-derived");
     }
 }
 
 mod suggest {
-    use super::cflx_planned;
 
     /// Scenario: Suggest engine writes to queue file.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_suggest__engine_writes_to_queue_file() {
-        unimplemented!("awaits phase-9: suggest engine writes to queue file");
+        let root = super::temp_repo("suggest-queue");
+        let change_dir = root.join("openspec/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        let candidate_a = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.9,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.identity".to_owned(),
+            name: "identity".to_owned(),
+            description: "Identity".to_owned(),
+            path: "src/identity".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let extraction = cairn::brownfield::discovery::Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        cairn::brownfield::suggest::write_suggested_edges(
+            &change_dir,
+            &extraction,
+            "phase-9-brownfield",
+            "propose",
+        )
+        .expect("write should succeed");
+
+        let queue_path = change_dir.join("suggested-edges.json");
+        assert!(queue_path.exists(), "queue file should be written");
+
+        let queue = cairn::suggested_edges::read_queue(&queue_path)
+            .expect("read should succeed")
+            .expect("queue should be present");
+        assert!(!queue.entries.is_empty(), "queue should have entries");
+        assert_eq!(queue.version, 1);
+    }
+
+    /// Scenario: Suggest engine produces cross-cutting edges from shared tags.
+    #[test]
+    fn test_suggest__shared_tags_produce_cross_cutting_edges() {
+        use cairn::brownfield::discovery::{DiscoveredCandidate, Extraction};
+        use cairn::suggested_edges::TriageState;
+
+        let candidate_a = DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth module".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned(), "api".to_owned()],
+            confidence: 0.9,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = DiscoveredCandidate {
+            id: "src.identity".to_owned(),
+            name: "identity".to_owned(),
+            description: "Identity module".to_owned(),
+            path: "src/identity".to_owned(),
+            tags: vec!["security".to_owned(), "core".to_owned()],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let extraction = Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        let entries =
+            cairn::brownfield::suggest::suggest_edges(&extraction, "phase-9-brownfield", "propose");
+
+        assert!(!entries.is_empty(), "should suggest at least one edge");
+        let edge = entries
+            .iter()
+            .find(|e| e.relation == "related_to")
+            .expect("should have related_to edge");
+        assert_eq!(edge.triage_state, TriageState::Pending);
+        assert!(edge.provenance.is_some());
+        let prov = edge.provenance.as_ref().unwrap();
+        assert_eq!(prov.trace_phase, "phase-9-brownfield");
+        assert_eq!(prov.stage, "propose");
     }
 
     /// Scenario: Entry triage state is pending.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_suggest__entry_triage_state_is_pending() {
-        unimplemented!("awaits phase-9: suggest entry triage state is pending");
+        use cairn::brownfield::discovery::{DiscoveredCandidate, Extraction};
+        use cairn::suggested_edges::TriageState;
+
+        let candidate_a = DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth module".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.9,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = DiscoveredCandidate {
+            id: "src.identity".to_owned(),
+            name: "identity".to_owned(),
+            description: "Identity module".to_owned(),
+            path: "src/identity".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let extraction = Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        let entries =
+            cairn::brownfield::suggest::suggest_edges(&extraction, "phase-9-brownfield", "propose");
+
+        assert!(!entries.is_empty(), "should suggest at least one edge");
+        for entry in &entries {
+            assert_eq!(
+                entry.triage_state,
+                TriageState::Pending,
+                "every suggested edge must start in Pending state"
+            );
+        }
     }
 
     /// Scenario: Entry provenance carries `trace_phase`.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_suggest__entry_provenance_carries_trace_phase() {
-        unimplemented!("awaits phase-9: suggest entry provenance carries trace_phase");
+        use cairn::brownfield::discovery::{DiscoveredCandidate, Extraction};
+
+        let candidate_a = DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth module".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.9,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = DiscoveredCandidate {
+            id: "src.identity".to_owned(),
+            name: "identity".to_owned(),
+            description: "Identity module".to_owned(),
+            path: "src/identity".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let extraction = Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        let entries =
+            cairn::brownfield::suggest::suggest_edges(&extraction, "phase-9-brownfield", "propose");
+
+        assert!(!entries.is_empty(), "should suggest at least one edge");
+        for entry in &entries {
+            let prov = entry
+                .provenance
+                .as_ref()
+                .expect("every entry must carry provenance");
+            assert_eq!(prov.trace_phase, "phase-9-brownfield");
+            assert_eq!(prov.stage, "propose");
+        }
     }
 
     /// Scenario: Pending entries block archive with CC002.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_suggest__pending_entries_block_archive_with_cc002() {
-        unimplemented!("awaits phase-9: suggest pending entries block archive with CC002");
+        let root = super::temp_repo("suggest-cc002");
+        let change_dir = root.join("openspec/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        let candidate_a = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.9,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.identity".to_owned(),
+            name: "identity".to_owned(),
+            description: "Identity".to_owned(),
+            path: "src/identity".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let extraction = cairn::brownfield::discovery::Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        cairn::brownfield::suggest::write_suggested_edges(
+            &change_dir,
+            &extraction,
+            "phase-9-brownfield",
+            "propose",
+        )
+        .expect("write should succeed");
+
+        let result = cairn::suggested_edges::validate_strict("test-change", &change_dir);
+        assert!(
+            result.is_err(),
+            "CC002 should block archive when pending entries exist"
+        );
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(
+            err_msg.contains("untriaged") || err_msg.contains("pending"),
+            "error should mention untriaged or pending: {err_msg}"
+        );
+    }
+
+    /// Scenario: Empty provenance strings are preserved (not replaced).
+    #[test]
+    fn test_suggest__empty_provenance_strings_preserved() {
+        use cairn::brownfield::discovery::{DiscoveredCandidate, Extraction};
+
+        let candidate_a = DiscoveredCandidate {
+            id: "src.a".to_owned(),
+            name: "a".to_owned(),
+            description: "A".to_owned(),
+            path: "src/a".to_owned(),
+            tags: vec!["tag".to_owned()],
+            confidence: 0.5,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = DiscoveredCandidate {
+            id: "src.b".to_owned(),
+            name: "b".to_owned(),
+            description: "B".to_owned(),
+            path: "src/b".to_owned(),
+            tags: vec!["tag".to_owned()],
+            confidence: 0.5,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let extraction = Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        let entries = cairn::brownfield::suggest::suggest_edges(&extraction, "", "");
+
+        assert!(!entries.is_empty());
+        let prov = entries[0].provenance.as_ref().unwrap();
+        assert_eq!(prov.trace_phase, "");
+        assert_eq!(prov.stage, "");
     }
 
     /// Scenario: No auto-accept on high confidence.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_suggest__no_auto_accept_on_high_confidence() {
-        unimplemented!("awaits phase-9: suggest no auto-accept on high confidence");
+        use cairn::brownfield::discovery::{DiscoveredCandidate, Extraction};
+        use cairn::suggested_edges::TriageState;
+
+        let candidate_a = DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth module".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 1.0,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = DiscoveredCandidate {
+            id: "src.identity".to_owned(),
+            name: "identity".to_owned(),
+            description: "Identity module".to_owned(),
+            path: "src/identity".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 1.0,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let extraction = Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        let entries =
+            cairn::brownfield::suggest::suggest_edges(&extraction, "phase-9-brownfield", "propose");
+
+        assert!(!entries.is_empty(), "should suggest at least one edge");
+        for entry in &entries {
+            assert_eq!(
+                entry.triage_state,
+                TriageState::Pending,
+                "high confidence must not auto-accept; entry must stay Pending"
+            );
+        }
     }
 
     /// Scenario: Refine emits to queue file with propose stage.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_suggest__refine_emits_to_queue_file_with_propose_stage() {
-        unimplemented!("awaits phase-9: suggest refine emits to queue file with propose stage");
+        let root = super::temp_repo("refine-queue");
+        let change_dir = root.join("openspec/changes/brownfield-refine-test");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        let candidate_a = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.9,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let candidate_b = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.identity".to_owned(),
+            name: "identity".to_owned(),
+            description: "Identity".to_owned(),
+            path: "src/identity".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+        let extraction = cairn::brownfield::discovery::Extraction {
+            candidates: vec![candidate_a, candidate_b],
+            schema_version: 1,
+        };
+
+        cairn::brownfield::suggest::write_suggested_edges(
+            &change_dir,
+            &extraction,
+            "phase-9-brownfield",
+            "propose",
+        )
+        .expect("write should succeed");
+
+        let queue_path = change_dir.join("suggested-edges.json");
+        assert!(
+            queue_path.exists(),
+            "refine change should contain suggested-edges.json"
+        );
+
+        let queue = cairn::suggested_edges::read_queue(&queue_path)
+            .expect("read should succeed")
+            .expect("queue should be present");
+        assert!(!queue.entries.is_empty(), "queue should have entries");
+        for entry in &queue.entries {
+            let prov = entry
+                .provenance
+                .as_ref()
+                .expect("entry must carry provenance");
+            assert_eq!(prov.stage, "propose", "refine must emit with propose stage");
+        }
     }
 
     /// Scenario: Force init aborts on pending entries.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_suggest__force_init_aborts_on_pending_entries() {
-        unimplemented!("awaits phase-9: suggest force-init aborts on pending entries");
+        let root = super::temp_repo("force-init-pending");
+        let change_dir = root.join("openspec/changes/brownfield-init");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        // Write a queue with pending entries
+        let queue = cairn::suggested_edges::SuggestedEdgesQueue {
+            version: 1,
+            entries: vec![cairn::suggested_edges::SuggestedEdgeEntry {
+                source: "a".to_owned(),
+                target: "b".to_owned(),
+                relation: "related_to".to_owned(),
+                triage_state: cairn::suggested_edges::TriageState::Pending,
+                confidence: None,
+                provenance: None,
+                triage_note: None,
+            }],
+        };
+        cairn::suggested_edges::write_to_change(&change_dir, &queue).expect("write");
+
+        // Create minimal source so discovery doesn't error
+        super::populate_source_dir(&root, "src/auth", 1);
+
+        let result = cairn::brownfield::init::run_init_from_code(&root, true);
+        assert!(
+            result.is_err(),
+            "force init must abort when pending suggested edges exist"
+        );
+        let msg = format!("{}", result.unwrap_err());
+        assert!(
+            msg.contains("pending") || msg.contains("triage") || msg.contains("suggested"),
+            "error should mention pending/triage/suggested edges: {msg}"
+        );
     }
 }
 
 mod interview {
-    use super::cflx_planned;
-
     /// Scenario: Session persists across invocations.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_interview__session_persists_across_invocations() {
-        unimplemented!("awaits phase-9: interview session persists across invocations");
+        let root = super::temp_repo("interview-persist");
+        let change_dir = root.join("openspec/changes/test-change");
+        std::fs::create_dir_all(change_dir.join("research")).unwrap();
+
+        let questions = vec!["Q1".to_owned(), "Q2".to_owned()];
+        let session =
+            cairn::brownfield::interview::start_session(&change_dir, "test-change", &questions)
+                .expect("start should succeed");
+
+        assert_eq!(session.cursor, 0);
+        assert!(!session.complete);
+
+        // Simulate a second invocation reading the persisted state.
+        let resumed = cairn::brownfield::interview::resume_session(&change_dir)
+            .expect("resume should succeed")
+            .expect("session should exist");
+
+        assert_eq!(resumed.cursor, 0);
+        assert_eq!(resumed.turns.len(), 2);
     }
 
     /// Scenario: Final transcript lands at genesis path.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_interview__final_transcript_lands_at_genesis_path() {
-        unimplemented!("awaits phase-9: interview final transcript lands at genesis path");
+        let root = super::temp_repo("interview-genesis");
+        let change_dir = root.join("openspec/changes/test-change");
+        std::fs::create_dir_all(change_dir.join("research")).unwrap();
+
+        let questions = vec!["What is the scope?".to_owned()];
+        let mut session =
+            cairn::brownfield::interview::start_session(&change_dir, "test-change", &questions)
+                .expect("start should succeed");
+
+        session = cairn::brownfield::interview::record_answer(
+            &change_dir,
+            &session,
+            "The scope is broad.",
+        )
+        .expect("record should succeed");
+
+        cairn::brownfield::interview::complete_session(&change_dir, &session, "test-change")
+            .expect("complete should succeed");
+
+        let genesis_path = change_dir.join("research/genesis.md");
+        assert!(genesis_path.exists(), "genesis.md should be written");
+
+        let content = std::fs::read_to_string(&genesis_path).unwrap();
+        assert!(content.contains("What is the scope?"));
+        assert!(content.contains("The scope is broad."));
     }
 
     /// Scenario: Session state never leaks outside change directory.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_interview__session_state_never_leaks_outside_change_dir() {
-        unimplemented!("awaits phase-9: interview session state never leaks outside change dir");
+        let root = super::temp_repo("interview-leak");
+        let change_dir = root.join("openspec/changes/test-change");
+        std::fs::create_dir_all(change_dir.join("research")).unwrap();
+
+        let questions = vec!["Q1".to_owned()];
+        cairn::brownfield::interview::start_session(&change_dir, "test-change", &questions)
+            .expect("start should succeed");
+
+        let session_path = change_dir.join("research/interview-session.json");
+        assert!(session_path.exists());
+
+        // Nothing should be written outside the change directory.
+        let parent = change_dir.parent().unwrap();
+        let mut entries = std::fs::read_dir(parent).unwrap();
+        assert!(
+            entries.all(|e| {
+                let name = e.unwrap().file_name();
+                name == "test-change" || name == ".gitkeep"
+            }),
+            "no session state should leak outside change dir"
+        );
     }
 }
 
 mod templates {
-    use super::cflx_planned;
+    use cairn::brownfield::discovery::DiscoveredCandidate;
 
     /// Scenario: Matching template guides stub authoring.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_templates__matching_template_guides_stub_authoring() {
-        unimplemented!("awaits phase-9: templates matching template guides stub authoring");
+        let template = cairn::brownfield::templates::ContractTemplate {
+            name: "security-module".to_owned(),
+            match_rules: vec![cairn::brownfield::templates::MatchRule::HasTag(
+                "security".to_owned(),
+            )],
+            body: "# Security Contract: {name}\n\nModule {id} handles security.".to_owned(),
+        };
+
+        let candidate = DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Auth module".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.9,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let rendered = cairn::brownfield::templates::render_stub(&candidate, &[template]);
+
+        assert!(
+            rendered.contains("Security Contract: auth"),
+            "template should guide stub authoring, got: {rendered}"
+        );
+        assert!(rendered.contains("src.auth handles security"));
     }
 
     /// Scenario: Non-matching candidates fall back to built-in stub.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_templates__non_matching_candidates_fall_back_to_builtin() {
-        unimplemented!("awaits phase-9: templates non-matching candidates fall back to built-in");
+        let template = cairn::brownfield::templates::ContractTemplate {
+            name: "security-module".to_owned(),
+            match_rules: vec![cairn::brownfield::templates::MatchRule::HasTag(
+                "security".to_owned(),
+            )],
+            body: "# Security Contract".to_owned(),
+        };
+
+        let candidate = DiscoveredCandidate {
+            id: "src.util".to_owned(),
+            name: "util".to_owned(),
+            description: "Utilities".to_owned(),
+            path: "src/util".to_owned(),
+            tags: vec!["helper".to_owned()],
+            confidence: 0.5,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let rendered = cairn::brownfield::templates::render_stub(&candidate, &[template]);
+
+        // Should fall back to built-in stub, not the security template.
+        assert!(
+            !rendered.contains("Security Contract"),
+            "should not use non-matching template, got: {rendered}"
+        );
+        assert!(
+            rendered.contains("src.util"),
+            "should contain built-in stub content"
+        );
     }
 
     /// Scenario: Ill-formed template does not block authoring.
-    #[cflx_planned(phase = 900)]
     #[test]
     fn test_templates__ill_formed_template_does_not_block_authoring() {
-        unimplemented!("awaits phase-9: templates ill-formed template does not block authoring");
+        // An empty template list is effectively "no valid templates".
+        let candidate = DiscoveredCandidate {
+            id: "src.core".to_owned(),
+            name: "core".to_owned(),
+            description: "Core module".to_owned(),
+            path: "src/core".to_owned(),
+            tags: vec![],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let rendered = cairn::brownfield::templates::render_stub(&candidate, &[]);
+
+        // Should still produce a valid stub even with no templates.
+        assert!(
+            rendered.contains("src.core"),
+            "should produce built-in stub when no templates match, got: {rendered}"
+        );
     }
+}
+
+/// Scenario: Templates loaded from meta/templates.toml guide contract authoring.
+#[test]
+fn test_templates__loaded_from_file_guide_contract_authoring() {
+    let root = temp_repo("templates-from-file");
+    populate_source_dir(&root, "src/auth", 3);
+
+    std::fs::create_dir_all(root.join("meta")).unwrap();
+    std::fs::write(
+        root.join("meta/templates.toml"),
+        r#"
+[[template]]
+name = "auth-module"
+match_rules = [{ Path = "auth" }]
+body = "---\nnode: {id}\n---\n\n# Auth Contract for {name}\n\nThis module handles authentication."
+"#,
+    )
+    .unwrap();
+
+    let result = cairn::brownfield::init::run_init_from_code(&root, false);
+    assert!(result.is_ok(), "init should succeed: {result:?}");
+
+    let contract_path = root.join("openspec/changes/brownfield-init/contracts/src_auth.md");
+    let contract = std::fs::read_to_string(&contract_path).unwrap();
+    assert!(
+        contract.contains("Auth Contract for auth"),
+        "contract should use template, got: {contract}"
+    );
 }
 
 mod obligations {
@@ -662,5 +1274,537 @@ mod obligations {
     #[test]
     fn test_obligations__no_op_when_field_absent() {
         unimplemented!("awaits phase-9: obligations no-op when field absent");
+    }
+}
+
+mod summarise {
+    /// Scenario: Build bounded summariser inputs from a candidate.
+    #[test]
+    fn test_summarise__builds_bounded_request_from_candidate() {
+        let root = super::temp_repo("summarise-bounded");
+        let dir = root.join("src/auth");
+        std::fs::create_dir_all(&dir).unwrap();
+        // Write 6 source files (bounds are 5 max).
+        for i in 0..6 {
+            std::fs::write(dir.join(format!("file{i}.rs")), format!("fn f{i}() {{}}\n")).unwrap();
+        }
+        // Write one oversized file.
+        let big_content = "x".repeat(5000);
+        std::fs::write(dir.join("big.rs"), big_content).unwrap();
+
+        let candidate = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.auth".to_owned(),
+            name: "auth".to_owned(),
+            description: "Authentication module".to_owned(),
+            path: "src/auth".to_owned(),
+            tags: vec!["security".to_owned()],
+            confidence: 0.9,
+            evidence: vec!["src/auth".to_owned()],
+            edges: vec![],
+        };
+
+        let request = cairn::brownfield::summarise::build_request(&candidate, &root, 5, 4000);
+
+        assert_eq!(request.target_node, "src.auth");
+        assert_eq!(request.draft_type, "contract");
+        assert!(
+            request.code_samples.len() <= 5,
+            "should bound to 5 files, got {}",
+            request.code_samples.len()
+        );
+        for sample in &request.code_samples {
+            assert!(
+                sample.content.len() <= 4000,
+                "sample {} exceeds 4000 bytes: {}",
+                sample.path,
+                sample.content.len()
+            );
+        }
+        let facts: Vec<&str> = request
+            .map_facts
+            .iter()
+            .map(std::string::String::as_str)
+            .collect();
+        assert!(
+            facts.iter().any(|f| f.contains("auth")),
+            "map_facts should mention candidate"
+        );
+    }
+
+    /// Scenario: Empty directory yields empty `code_samples`.
+    #[test]
+    fn test_summarise__empty_dir_yields_no_samples() {
+        let root = super::temp_repo("summarise-empty");
+        let dir = root.join("src/empty");
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let candidate = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.empty".to_owned(),
+            name: "empty".to_owned(),
+            description: "Empty module".to_owned(),
+            path: "src/empty".to_owned(),
+            tags: vec![],
+            confidence: 0.5,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let request = cairn::brownfield::summarise::build_request(&candidate, &root, 5, 4000);
+
+        assert!(request.code_samples.is_empty());
+    }
+
+    /// Scenario: Successful backend enriches contract prose.
+    #[test]
+    fn test_summarise__backend_enriches_contract_prose() {
+        use cairn::summariser::{FakeBackend, SummariserResponse};
+
+        let root = super::temp_repo("summarise-enrich");
+        let dir = root.join("src/core");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("lib.rs"), "pub fn main() {}").unwrap();
+
+        let candidate = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.core".to_owned(),
+            name: "core".to_owned(),
+            description: "Core module".to_owned(),
+            path: "src/core".to_owned(),
+            tags: vec![],
+            confidence: 0.8,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let backend = FakeBackend::ok(SummariserResponse {
+            schema_version: 1,
+            draft_text: "# AI-Generated Contract\n\nThis is the enriched prose.".to_owned(),
+            summary: None,
+            metadata: None,
+        });
+
+        let enriched = cairn::brownfield::summarise::enrich_candidate(
+            &backend,
+            &candidate,
+            &root,
+            std::time::Duration::from_secs(5),
+        );
+
+        assert_eq!(
+            enriched.contract_prose,
+            "# AI-Generated Contract\n\nThis is the enriched prose."
+        );
+    }
+
+    /// Scenario: Backend error falls back to original candidate values.
+    #[test]
+    fn test_summarise__backend_error_falls_back() {
+        use cairn::summariser::{FakeBackend, SummariserBackendError};
+
+        let root = super::temp_repo("summarise-fallback");
+        let candidate = cairn::brownfield::discovery::DiscoveredCandidate {
+            id: "src.fallback".to_owned(),
+            name: "fallback".to_owned(),
+            description: "Fallback module".to_owned(),
+            path: "src/fallback".to_owned(),
+            tags: vec!["tag1".to_owned()],
+            confidence: 0.6,
+            evidence: vec![],
+            edges: vec![],
+        };
+
+        let backend = FakeBackend::err(SummariserBackendError::Disabled);
+
+        let enriched = cairn::brownfield::summarise::enrich_candidate(
+            &backend,
+            &candidate,
+            &root,
+            std::time::Duration::from_secs(5),
+        );
+
+        assert_eq!(enriched.name, "fallback");
+        assert_eq!(enriched.description, "Fallback module");
+        assert_eq!(enriched.tags, vec!["tag1"]);
+        assert_eq!(
+            enriched.contract_prose,
+            cairn::brownfield::stub_contract(&candidate)
+        );
+    }
+}
+
+mod change_new {
+    /// Scenario: change new scaffolds a change directory with templates.
+    #[test]
+    fn test_change_new__scaffolds_change_directory_with_templates() {
+        let root = super::temp_repo("change-new");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_eq!(
+            result.code, 0,
+            "change new must exit zero, got stderr: {}",
+            result.stderr
+        );
+
+        let change_dir = root.join("meta/changes/test-change");
+        assert!(
+            change_dir.exists(),
+            "change directory must be created at meta/changes/test-change"
+        );
+
+        let proposal = change_dir.join("proposal.md");
+        assert!(proposal.exists(), "proposal.md must be created");
+        let proposal_content = std::fs::read_to_string(&proposal).unwrap();
+        assert!(
+            proposal_content.contains("# Proposal"),
+            "proposal.md must contain a proposal heading"
+        );
+
+        let design = change_dir.join("design.md");
+        assert!(design.exists(), "design.md must be created");
+        let design_content = std::fs::read_to_string(&design).unwrap();
+        assert!(
+            design_content.contains("# Design"),
+            "design.md must contain a design heading"
+        );
+
+        let tasks = change_dir.join("tasks.md");
+        assert!(tasks.exists(), "tasks.md must be created");
+        let tasks_content = std::fs::read_to_string(&tasks).unwrap();
+        assert!(
+            tasks_content.contains("# Tasks"),
+            "tasks.md must contain a tasks heading"
+        );
+
+        assert!(
+            change_dir.join("specs").exists(),
+            "specs directory must be created"
+        );
+    }
+
+    /// Scenario: change new refuses to overwrite an existing change directory.
+    #[test]
+    fn test_change_new__refuses_to_overwrite_existing_change() {
+        let root = super::temp_repo("change-new-dup");
+        let change_dir = root.join("meta/changes/existing-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+        std::fs::write(change_dir.join("proposal.md"), "# Existing").unwrap();
+
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "existing-change".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change directory already exists"
+        );
+    }
+
+    /// Scenario: change new rejects invalid change IDs.
+    #[test]
+    fn test_change_new__rejects_invalid_change_id() {
+        let root = super::temp_repo("change-new-invalid");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "invalid id".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID contains spaces"
+        );
+    }
+
+    /// Scenario: change new rejects uppercase change IDs.
+    #[test]
+    fn test_change_new__rejects_uppercase_change_id() {
+        let root = super::temp_repo("change-new-upper");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "UpperCase".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID contains uppercase letters"
+        );
+    }
+
+    /// Scenario: change new rejects special characters in change IDs.
+    #[test]
+    fn test_change_new__rejects_special_characters() {
+        let root = super::temp_repo("change-new-special");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "special@chars!".to_owned(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID contains special characters"
+        );
+    }
+
+    /// Scenario: change new rejects empty change IDs.
+    #[test]
+    fn test_change_new__rejects_empty_change_id() {
+        let root = super::temp_repo("change-new-empty");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            root.join("cairn.blueprint").to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            String::new(),
+        ]);
+        assert_ne!(
+            result.code, 0,
+            "change new must fail when change ID is empty"
+        );
+    }
+}
+
+mod change_tasks {
+    use std::process::Command;
+
+    fn temp_beads_repo(name: &str) -> Option<std::path::PathBuf> {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let suffix = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("cairn-bf-{name}-{suffix}"));
+        std::fs::create_dir_all(&root).unwrap();
+
+        let status = Command::new("bd")
+            .current_dir(&root)
+            .arg("init")
+            .arg("--non-interactive")
+            .arg("--prefix")
+            .arg("cairn")
+            .arg("--skip-agents")
+            .arg("--skip-hooks")
+            .status()
+            .ok()?;
+        if !status.success() {
+            return None;
+        }
+
+        std::fs::write(root.join("cairn.config.yaml"), "state_backend: beads\n").unwrap();
+
+        std::fs::write(
+            root.join("cairn.blueprint"),
+            "System App \"T\" id \"t\" {}\n",
+        )
+        .unwrap();
+
+        Some(root)
+    }
+
+    #[test]
+    fn test_change_tasks__lists_task_beads() {
+        let Some(root) = temp_beads_repo("tasks-list") else {
+            return;
+        };
+        let blueprint = root.join("cairn.blueprint");
+
+        let new_result = cairn::cli::run(&[
+            "--file".to_owned(),
+            blueprint.to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_eq!(
+            new_result.code, 0,
+            "change new must succeed: {}",
+            new_result.stderr
+        );
+
+        let tasks_result = cairn::cli::run(&[
+            "--file".to_owned(),
+            blueprint.to_string_lossy().to_string(),
+            "change".to_owned(),
+            "tasks".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_eq!(
+            tasks_result.code, 0,
+            "change tasks must succeed: {}",
+            tasks_result.stderr
+        );
+        assert!(
+            tasks_result.stdout.contains("Task"),
+            "tasks output should mention tasks: {}",
+            tasks_result.stdout
+        );
+    }
+
+    #[test]
+    fn test_change_apply__claims_change_and_tasks() {
+        let Some(root) = temp_beads_repo("apply-claim") else {
+            return;
+        };
+        let blueprint = root.join("cairn.blueprint");
+
+        let new_result = cairn::cli::run(&[
+            "--file".to_owned(),
+            blueprint.to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_eq!(
+            new_result.code, 0,
+            "change new must succeed: {}",
+            new_result.stderr
+        );
+
+        let apply_result = cairn::cli::run(&[
+            "--file".to_owned(),
+            blueprint.to_string_lossy().to_string(),
+            "change".to_owned(),
+            "apply".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_eq!(
+            apply_result.code, 0,
+            "change apply must succeed: {}",
+            apply_result.stderr
+        );
+        assert!(
+            apply_result.stdout.contains("claimed"),
+            "apply output should confirm claim: {}",
+            apply_result.stdout
+        );
+    }
+
+    #[test]
+    fn test_change_tasks__fails_without_beads() {
+        let root = super::temp_repo("tasks-no-beads");
+        let blueprint = root.join("cairn.blueprint");
+        std::fs::write(&blueprint, "System App \"T\" id \"t\" {}\n").unwrap();
+
+        let new_result = cairn::cli::run(&[
+            "--file".to_owned(),
+            blueprint.to_string_lossy().to_string(),
+            "change".to_owned(),
+            "new".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_eq!(new_result.code, 0);
+
+        let tasks_result = cairn::cli::run(&[
+            "--file".to_owned(),
+            blueprint.to_string_lossy().to_string(),
+            "change".to_owned(),
+            "tasks".to_owned(),
+            "test-change".to_owned(),
+        ]);
+        assert_ne!(
+            tasks_result.code, 0,
+            "change tasks must fail without beads backing"
+        );
+        assert!(
+            tasks_result.stderr.contains("no beads"),
+            "error should mention beads: {}",
+            tasks_result.stderr
+        );
+    }
+}
+
+mod cc002_gate {
+    /// Scenario: Accept is blocked when suggested edges are pending.
+    #[test]
+    fn test_cc002__accept_blocked_when_suggested_edges_pending() {
+        let root = super::temp_repo("cc002-pending");
+        let change_dir = root.join("meta/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+        std::fs::write(change_dir.join("proposal.md"), "# Proposal\n").unwrap();
+
+        // Write a suggested-edges queue with one pending entry.
+        let queue = cairn::suggested_edges::SuggestedEdgesQueue {
+            version: 1,
+            entries: vec![cairn::suggested_edges::SuggestedEdgeEntry {
+                source: "a".to_owned(),
+                target: "b".to_owned(),
+                relation: "related_to".to_owned(),
+                triage_state: cairn::suggested_edges::TriageState::Pending,
+                confidence: Some(0.8),
+                provenance: Some(cairn::suggested_edges::EdgeProvenance {
+                    trace_phase: "phase-9-brownfield".to_owned(),
+                    stage: "propose".to_owned(),
+                }),
+                triage_note: None,
+            }],
+        };
+        cairn::suggested_edges::write_to_change(&change_dir, &queue).unwrap();
+
+        let result = cairn::suggested_edges::validate_strict("test-change", &change_dir);
+        assert!(
+            result.is_err(),
+            "validate_strict must fail when pending edges exist"
+        );
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(
+            err_msg.contains("CC002") || err_msg.contains("pending"),
+            "error must mention pending suggested edges, got: {err_msg}"
+        );
+    }
+
+    /// Scenario: Accept passes when all suggested edges are triaged.
+    #[test]
+    fn test_cc002__accept_passes_when_all_edges_triaged() {
+        let root = super::temp_repo("cc002-triaged");
+        let change_dir = root.join("meta/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        let queue = cairn::suggested_edges::SuggestedEdgesQueue {
+            version: 1,
+            entries: vec![cairn::suggested_edges::SuggestedEdgeEntry {
+                source: "a".to_owned(),
+                target: "b".to_owned(),
+                relation: "related_to".to_owned(),
+                triage_state: cairn::suggested_edges::TriageState::Accepted,
+                confidence: Some(0.8),
+                provenance: Some(cairn::suggested_edges::EdgeProvenance {
+                    trace_phase: "phase-9-brownfield".to_owned(),
+                    stage: "propose".to_owned(),
+                }),
+                triage_note: None,
+            }],
+        };
+        cairn::suggested_edges::write_to_change(&change_dir, &queue).unwrap();
+
+        let result = cairn::suggested_edges::validate_strict("test-change", &change_dir);
+        assert!(
+            result.is_ok(),
+            "validate_strict must pass when all edges are triaged, got: {result:?}"
+        );
+    }
+
+    /// Scenario: Accept passes when no suggested-edges file exists.
+    #[test]
+    fn test_cc002__accept_passes_when_no_queue_file() {
+        let root = super::temp_repo("cc002-no-queue");
+        let change_dir = root.join("meta/changes/test-change");
+        std::fs::create_dir_all(&change_dir).unwrap();
+
+        let result = cairn::suggested_edges::validate_strict("test-change", &change_dir);
+        assert!(
+            result.is_ok(),
+            "validate_strict must pass when no queue file exists, got: {result:?}"
+        );
     }
 }

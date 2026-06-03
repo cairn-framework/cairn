@@ -276,4 +276,198 @@ mod tests {
         assert!(share_parent("src/a", "src/b"));
         assert!(!share_parent("src/a", "lib/b"));
     }
+
+    // ── is_source_file ────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_is_source_file_accepts_known_extensions() {
+        for ext in &["rs", "ts", "js", "py", "go"] {
+            let path = PathBuf::from(format!("foo.{ext}"));
+            assert!(
+                is_source_file(&path),
+                ".{ext} must be recognised as a source file"
+            );
+        }
+    }
+
+    #[test]
+    fn test_is_source_file_rejects_unknown_extensions() {
+        for ext in &["md", "json", "toml", "txt", "tsx"] {
+            let path = PathBuf::from(format!("foo.{ext}"));
+            assert!(
+                !is_source_file(&path),
+                ".{ext} must not be recognised as a source file"
+            );
+        }
+    }
+
+    #[test]
+    fn test_is_source_file_rejects_no_extension() {
+        assert!(!is_source_file(Path::new("Makefile")));
+        assert!(!is_source_file(Path::new("Dockerfile")));
+    }
+
+    // ── name_from_path ────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_name_from_path_converts_hyphens_to_spaces() {
+        assert_eq!(name_from_path("src/user-auth"), "user auth");
+    }
+
+    #[test]
+    fn test_name_from_path_single_segment_no_separator() {
+        assert_eq!(name_from_path("auth"), "auth");
+    }
+
+    // ── infer_edges ───────────────────────────────────────────────────────────
+
+    fn make_candidate(id: &str, path: &str) -> DiscoveredCandidate {
+        DiscoveredCandidate {
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            path: path.to_owned(),
+            tags: Vec::new(),
+            confidence: 1.0,
+            evidence: Vec::new(),
+            edges: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn test_infer_edges_bidirectional_for_siblings() {
+        let mut candidates = vec![
+            make_candidate("src.a", "src/a"),
+            make_candidate("src.b", "src/b"),
+        ];
+        infer_edges(&mut candidates);
+        assert_eq!(candidates[0].edges.len(), 1, "a must have one edge");
+        assert_eq!(candidates[0].edges[0].target, "src.b");
+        assert_eq!(candidates[1].edges.len(), 1, "b must have one edge");
+        assert_eq!(candidates[1].edges[0].target, "src.a");
+    }
+
+    #[test]
+    fn test_infer_edges_no_edge_for_non_siblings() {
+        let mut candidates = vec![
+            make_candidate("src.a", "src/a"),
+            make_candidate("lib.b", "lib/b"),
+        ];
+        infer_edges(&mut candidates);
+        assert!(candidates[0].edges.is_empty(), "different parents: no edge");
+        assert!(candidates[1].edges.is_empty(), "different parents: no edge");
+    }
+
+    #[test]
+    fn test_infer_edges_three_siblings_form_complete_graph() {
+        // A, B, C all under "src/". Each pair is a sibling → 2 edges each.
+        let mut candidates = vec![
+            make_candidate("src.a", "src/a"),
+            make_candidate("src.b", "src/b"),
+            make_candidate("src.c", "src/c"),
+        ];
+        infer_edges(&mut candidates);
+        assert_eq!(candidates[0].edges.len(), 2, "a should link to b and c");
+        assert_eq!(candidates[1].edges.len(), 2, "b should link to a and c");
+        assert_eq!(candidates[2].edges.len(), 2, "c should link to a and b");
+    }
+
+    #[test]
+    fn test_infer_edges_single_candidate_no_edges() {
+        let mut candidates = vec![make_candidate("src.a", "src/a")];
+        infer_edges(&mut candidates);
+        assert!(candidates[0].edges.is_empty());
+    }
+
+    // ── discover() ────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_discover_creates_candidate_for_directory_with_enough_source_files() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        for name in &["a.rs", "b.rs", "c.rs"] {
+            std::fs::write(src.join(name), "// test").unwrap();
+        }
+        let result = discover(dir.path()).expect("discover");
+        assert_eq!(result.candidates.len(), 1);
+        assert_eq!(result.candidates[0].id, "src");
+    }
+
+    #[test]
+    fn test_discover_skips_directory_with_too_few_source_files() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        // Only 2 files — below MIN_FILES threshold of 3.
+        for name in &["a.rs", "b.rs"] {
+            std::fs::write(src.join(name), "// test").unwrap();
+        }
+        let result = discover(dir.path()).expect("discover");
+        assert!(
+            result.candidates.is_empty(),
+            "2 source files must not produce a candidate"
+        );
+    }
+
+    #[test]
+    fn test_discover_ignores_target_directory() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let target = dir.path().join("target");
+        std::fs::create_dir(&target).unwrap();
+        for name in &["a.rs", "b.rs", "c.rs", "d.rs"] {
+            std::fs::write(target.join(name), "// test").unwrap();
+        }
+        let result = discover(dir.path()).expect("discover");
+        assert!(
+            result.candidates.is_empty(),
+            "target/ must be excluded even with enough source files"
+        );
+    }
+
+    #[test]
+    fn test_discover_sibling_directories_get_bidirectional_edges() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let web = dir.path().join("web");
+        let api = dir.path().join("api");
+        std::fs::create_dir(&web).unwrap();
+        std::fs::create_dir(&api).unwrap();
+        for name in &["a.rs", "b.rs", "c.rs"] {
+            std::fs::write(web.join(name), "").unwrap();
+            std::fs::write(api.join(name), "").unwrap();
+        }
+        let result = discover(dir.path()).expect("discover");
+        assert_eq!(result.candidates.len(), 2);
+        // Both candidates must carry exactly one sibling edge pointing to the other.
+        let web_cand = result
+            .candidates
+            .iter()
+            .find(|c| c.id == "web")
+            .expect("web candidate");
+        let api_cand = result
+            .candidates
+            .iter()
+            .find(|c| c.id == "api")
+            .expect("api candidate");
+        assert_eq!(web_cand.edges.len(), 1, "web must have one edge");
+        assert_eq!(api_cand.edges.len(), 1, "api must have one edge");
+        assert_eq!(web_cand.edges[0].target, "api");
+        assert_eq!(api_cand.edges[0].target, "web");
+    }
+
+    #[test]
+    fn test_discover_non_source_files_do_not_count_toward_threshold() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let src = dir.path().join("docs");
+        std::fs::create_dir(&src).unwrap();
+        // 5 markdown files — none are source files.
+        for name in &["a.md", "b.md", "c.md", "d.md", "e.md"] {
+            std::fs::write(src.join(name), "# doc").unwrap();
+        }
+        let result = discover(dir.path()).expect("discover");
+        assert!(
+            result.candidates.is_empty(),
+            "non-source files must not trigger candidate creation"
+        );
+    }
 }

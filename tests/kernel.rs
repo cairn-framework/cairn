@@ -112,6 +112,35 @@ fn test_config_ignore_layers_and_protected_paths() -> Result<(), Box<dyn std::er
 
     Ok(())
 }
+#[test]
+fn test_config_state_backend_parsing() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("config-state-backend")?;
+    fs::write(
+        root.join("cairn.config.yaml"),
+        "state_backend: beads\ncontext: \"ctx\"\nrules: {}\n",
+    )?;
+
+    let config = scanner::config::load(&root)?;
+
+    assert_eq!(config.state_backend, "beads");
+
+    Ok(())
+}
+
+#[test]
+fn test_config_state_backend_defaults_to_filesystem() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("config-state-backend-default")?;
+    fs::write(
+        root.join("cairn.config.yaml"),
+        "context: \"ctx\"\nrules: {}\n",
+    )?;
+
+    let config = scanner::config::load(&root)?;
+
+    assert_eq!(config.state_backend, "filesystem");
+
+    Ok(())
+}
 
 #[test]
 fn test_graph_indexes_integrity_and_cycles() -> Result<(), Box<dyn std::error::Error>> {
@@ -718,6 +747,8 @@ fn test_hook_interface_blocks_changed_interface_hash() -> Result<(), Box<dyn std
     Ok(())
 }
 
+// Reason: test uses multiple r#"..."# literals for cross-file comparison;
+// hashes are intentional for visual symmetry.
 #[allow(clippy::needless_raw_string_hashes)]
 #[test]
 fn test_hash_stable_across_comments_and_formatting() -> Result<(), Box<dyn std::error::Error>> {
@@ -877,6 +908,11 @@ fn test_divergence_contradiction_ct001() -> Result<(), Box<dyn std::error::Error
     assert!(
         ct001.unwrap().severity == cairn::map::FindingSeverity::Error,
         "CT001 should be an Error severity"
+    );
+
+    assert!(
+        ct001.unwrap().target.is_some(),
+        "CT001 must carry the contract role in target field"
     );
 
     Ok(())
@@ -1051,6 +1087,11 @@ multi_target:
     assert!(
         ct002.unwrap().message.contains("intentionally exposes"),
         "CT002 message should contain the reason"
+    );
+
+    assert!(
+        ct002.unwrap().target.is_some(),
+        "CT002 must carry the contract role in target field"
     );
 
     let ct001 = result.graph.findings.iter().find(|f| f.code == "CT001");
@@ -1756,6 +1797,51 @@ fn test_orphaned_file_produces_info_finding() -> Result<(), Box<dyn std::error::
     assert!(
         lint.status.success(),
         "cairn lint should exit 0 when only Info-severity orphan findings exist"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_reconciler_dedups_duplicate_orphan_findings() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("reconciler-dedup")?;
+    fs::create_dir_all(root.join("src/auth"))?;
+    fs::create_dir_all(root.join("src/identity"))?;
+    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
+    fs::write(root.join("src/identity/lib.rs"), "pub fn whoami() {}\n")?;
+    // Orphaned file: not claimed by any node
+    fs::write(root.join("src/orphan.rs"), "pub fn orphan() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "desc" id "app" {
+    Module Auth "auth" id "app.auth" {
+        path "./src/auth"
+    }
+    Module Identity "identity" id "app.identity" {
+        path "./src/identity"
+    }
+}
+"#,
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+    let orphan_findings: Vec<_> = result
+        .graph
+        .findings
+        .iter()
+        .filter(|f| f.code == "CAIRN_RECONCILE_ORPHANED_FILE")
+        .collect();
+    assert!(
+        !orphan_findings.is_empty(),
+        "orphaned file should produce at least one finding"
+    );
+    // The Rust reconciler runs once per Rust target. Without dedup the
+    // same orphaned file would be reported once per node with a Rust path.
+    assert_eq!(
+        orphan_findings.len(),
+        1,
+        "duplicate orphan findings from multiple reconciler passes must be deduplicated; got {} findings: {:?}",
+        orphan_findings.len(),
+        orphan_findings
     );
     Ok(())
 }

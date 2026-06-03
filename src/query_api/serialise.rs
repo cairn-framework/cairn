@@ -162,10 +162,11 @@ pub(super) fn relevant_rules(
         .collect()
 }
 
-pub(super) fn requires_valid_map(command: &str) -> bool {
+pub(crate) fn requires_valid_map(command: &str) -> bool {
     matches!(
         command,
         "get"
+            | "neighbourhood"
             | "files"
             | "dependents"
             | "depends"
@@ -232,6 +233,7 @@ pub(super) const fn hook_kind_name(kind: HookKind) -> &'static str {
         HookKind::Structural => "structural",
         HookKind::Interface => "interface",
         HookKind::Tension => "tension",
+        HookKind::ArchitectureDecision => "architecture-decision",
         HookKind::All => "all",
     }
 }

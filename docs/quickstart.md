@@ -23,7 +23,11 @@ Cairn is not yet published on crates.io. Install from the GitHub repository usin
 cargo install --git https://github.com/George-RD/cairn.git
 ```
 
-This builds the release binary and places it in `~/.cargo/bin/`, which is on your `PATH` if you installed Rust through rustup.
+This builds three release binaries and places them in `~/.cargo/bin/`, which is on your `PATH` if you installed Rust through rustup:
+
+- `cairn` -- the main CLI (scan, lint, check, ui, etc.)
+- `cairn-mcp` -- MCP server for agent integration
+- `cairn-lsp` -- language server protocol support (stub)
 
 ### Manual build
 
@@ -33,17 +37,19 @@ cd cairn
 cargo build --release
 ```
 
-Then copy (or symlink) the binary to a directory on your `PATH`:
-
+When installing manually, copy (or symlink) the binaries you need:
 ```sh
 cp target/release/cairn /usr/local/bin/
+cp target/release/cairn-mcp /usr/local/bin/
+cp target/release/cairn-lsp /usr/local/bin/
 ```
 
 ### Verify the installation
 
 ```sh
 cairn --version
-# cairn 0.1.0
+cairn-mcp --help
+cairn-lsp --help
 ```
 
 ## First-run walkthrough
@@ -138,3 +144,24 @@ Open `http://localhost:3000` in a browser to explore the reconciled graph intera
 - Read the [specification](spec.md) for the conceptual model (two chains, artefact types, reconciliation).
 - Run `cairn scan` before each commit to catch drift early. See [hooks](hooks.md) for Git hook integration.
 - Use `cairn context` as an entry point for AI coding agents working in your repo.
+
+## Other binaries
+
+### cairn-mcp
+
+The MCP server exposes Cairn's query API to agents:
+
+```sh
+cairn-mcp
+```
+
+See [docs/mcp.md](mcp.md) for the full tool list and configuration.
+
+### cairn-lsp
+
+Language server protocol support is planned but not yet fully implemented.
+Start the stub to verify installation:
+
+```sh
+cairn-lsp
+```

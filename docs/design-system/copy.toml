@@ -6,29 +6,89 @@
 #   - Plain, concise English accessible to non-developers.
 #   - Placeholders use {name} syntax (expanded by callers, not by the lookup helper).
 
-# ── Empty states ──────────────────────────────────────────────────────
+# -- Empty states -------------------------------------------------------
 
-[empty-states]
-# Short-form entries (UI surfaces: webui panels, graph explorer)
-no-blueprint = "No cairn.blueprint found. Run `cairn init` to create one."
-no-findings = "No findings to report."
-no-nodes = "No nodes declared in the blueprint."
-node-no-paths = "This node has no source paths declared."
-node-no-contracts = "No contracts are attached to this node."
-node-no-decisions = "No decisions reference this node."
-node-no-todos = "No open tasks for this node."
-node-no-research = "No research artefacts link to this node."
-node-no-sources = "No source artefacts reference this node."
-node-no-outbound = "This node has no outbound dependencies."
-node-no-inbound = "No other nodes depend on this one."
-map-clean = "All nodes reconciled. No drift detected."
-no-filter-matches = "No findings match the current filters."
-search-no-matches = "No nodes match that query."
-# Long-form entries (CLI output: multi-line with instructions)
-cli-no-blueprint = "No cairn.blueprint found. Inspection has nothing to look at.\nRun `cairn init` to scaffold a blueprint, then re-run `cairn check`."
-cli-clean-map = "Blueprint reconciled cleanly. No findings."
+[empty-states.no-blueprint]
+heading = "No blueprint found"
+body = "No cairn.blueprint found. Run `cairn init` to create one."
+cta = "cairn init"
 
-# ── Findings ──────────────────────────────────────────────────────────
+[empty-states.no-findings]
+heading = "No findings"
+body = "No findings to report."
+cta = "cairn scan"
+
+[empty-states.no-nodes]
+heading = "No nodes"
+body = "No nodes declared in the blueprint."
+cta = "cairn init"
+
+[empty-states.node-no-paths]
+heading = "No paths declared"
+body = "This node has no source paths declared."
+cta = "cairn get <node>"
+
+[empty-states.node-no-contracts]
+heading = "No contracts"
+body = "No contracts are attached to this node."
+cta = "cairn contract <node>"
+
+[empty-states.node-no-decisions]
+heading = "No decisions"
+body = "No decisions reference this node."
+cta = "cairn decisions <node>"
+
+[empty-states.node-no-todos]
+heading = "No tasks"
+body = "No open tasks for this node."
+cta = "cairn todos <node>"
+
+[empty-states.node-no-research]
+heading = "No research"
+body = "No research artefacts link to this node."
+cta = "cairn research <node>"
+
+[empty-states.node-no-sources]
+heading = "No sources"
+body = "No source artefacts reference this node."
+cta = "cairn sources <node>"
+
+[empty-states.node-no-outbound]
+heading = "No outbound dependencies"
+body = "This node has no outbound dependencies."
+cta = "cairn depends <node>"
+
+[empty-states.node-no-inbound]
+heading = "No inbound dependencies"
+body = "No other nodes depend on this one."
+cta = "cairn dependents <node>"
+
+[empty-states.map-clean]
+heading = "Map clean"
+body = "All nodes reconciled. No drift detected."
+cta = "cairn scan"
+
+[empty-states.no-filter-matches]
+heading = "No matches"
+body = "No findings match the current filters."
+cta = ""
+
+[empty-states.search-no-matches]
+heading = "No matches"
+body = "No nodes match that query."
+cta = ""
+
+[empty-states.cli-no-blueprint]
+heading = "No blueprint found"
+body = "No cairn.blueprint found. Inspection has nothing to look at."
+cta = "Run `cairn init` to scaffold a blueprint, then re-run `cairn check`."
+
+[empty-states.cli-clean-map]
+heading = "Blueprint clean"
+body = "Blueprint reconciled cleanly. No findings."
+cta = ""
+
+# -- Findings -----------------------------------------------------------
 
 [findings]
 
@@ -58,7 +118,10 @@ CAIRN_DECISION_ORPHANED = { heading = "Orphaned decision", body = "Decision `{no
 CAIRN_PROVENANCE_NO_DECISION = { heading = "No decision link", body = "Node `{node}` has no decision in its provenance chain.", cta = "Link a decision artefact explaining why this module exists." }
 CAIRN_CONTRACT_MISSING_NODE = { heading = "Contract references unknown node", body = "A contract references `{node}`, which does not exist in the blueprint.", cta = "Fix the node reference in the contract, or declare the missing node." }
 
-# ── Errors ────────────────────────────────────────────────────────────
+
+CT001 = { heading = "Interface contradiction", body = "Targets for `{node}` with the same contract role have divergent interfaces.", cta = "Review the contract and reconcile the interface shapes." }
+CT002 = { heading = "Intentional asymmetry", body = "An intentional asymmetry was detected in `{node}` for contract role `{target}`.", cta = "Review the rationale to confirm the asymmetry is still correct." }
+# -- Errors -------------------------------------------------------------
 
 [errors]
 usage = "usage: cairn <command> [--file path] [--json]"

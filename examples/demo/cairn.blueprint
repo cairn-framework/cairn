@@ -1,0 +1,31 @@
+# Demo project for Cairn
+# A minimal task-manager API demonstrating blueprint structure,
+# contracts, artefacts, changes, and reconciler observations.
+
+System Tasks "Task Manager API" id "tasks" {
+
+    Module API "HTTP API surface" id "tasks.api" {
+        path "./src/api"
+        contract  "./meta/contracts/api.md"
+        decisions "./meta/decisions/api/"
+        sources   "./meta/sources/"
+        todos     "./meta/todos/"
+    }
+
+    Module DB "Data layer" id "tasks.db" {
+        path "./src/db"
+        contract  "./meta/contracts/db.md"
+        research  "./meta/research/db/"
+    }
+
+    Module Auth "Authentication" id "tasks.auth" {
+        path "./src/auth"
+        contract "./meta/contracts/auth.md"
+    }
+
+}
+
+# Edges
+tasks.api  -> tasks.db   "Reads and writes tasks"
+tasks.api  -> tasks.auth "Validates requests"
+tasks.auth -> tasks.db   "Looks up credentials"

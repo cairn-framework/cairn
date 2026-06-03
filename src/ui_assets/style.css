@@ -759,6 +759,13 @@ kbd {
 .edge.dimmed {
   opacity: 0.2;
 }
+.edge-label {
+  pointer-events: none;
+  transition: opacity var(--dur-quick) var(--ease-settle);
+}
+.edge-label.dimmed {
+  opacity: 0.2;
+}
 
 /* Nodes on the canvas use a g[data-kind] wrapper so state + hover cascade */
 .canvas-node {
@@ -820,6 +827,35 @@ kbd {
   display: flex;
   align-items: center;
   gap: var(--s-2);
+}
+.ins-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.ins-close {
+  background: transparent;
+  border: none;
+  color: var(--ink-mist);
+  font-size: var(--t-h3);
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--s-2) var(--s-3);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-instant) var(--ease-settle),
+    background var(--dur-instant) var(--ease-settle);
+}
+
+.ins-close:hover {
+  color: var(--ink-char);
+  background: var(--seam-thick);
 }
 
 .ins-eyebrow::before {
@@ -1867,6 +1903,17 @@ button.path-row:hover {
   white-space: pre-wrap;
 }
 
+.prose-nudge-cta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.copy-btn {
+  flex-shrink: 0;
+  padding: 2px var(--s-2);
+  font-size: var(--t-micro);
+}
+
 /* --------------------------------------------------------------------------
    5. Changes drawer
    -------------------------------------------------------------------------- */
@@ -2302,6 +2349,79 @@ button.path-row:hover {
 
   .graph-legend {
     right: var(--s-4);
+  }
+}
+
+@media (max-width: 480px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .inspector-wrap {
+    position: fixed;
+    inset: auto 0 0 0;
+    max-height: 65vh;
+    border-top: 1px solid var(--seam-thin);
+    border-left: 0;
+    z-index: 50;
+    transform: translateY(0);
+    transition: transform var(--dur-quick) var(--ease-settle);
+  }
+
+  .inspector-wrap[aria-hidden="true"] {
+    transform: translateY(100%);
+  }
+
+  .topbar {
+    min-height: 48px;
+  }
+
+  .tool-btn,
+  .graph-zoom button,
+  .drawer-handle,
+  .graph-sort select,
+  .ins-section-head,
+  .pill,
+  .dep-row,
+  .artefact,
+  .path-row,
+  .recent-row,
+  .result-row,
+  .change-card {
+    min-height: 44px;
+  }
+
+  .graph-zoom {
+    gap: var(--s-2);
+  }
+
+  .graph-zoom button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--s-2);
+  }
+
+  .cmd-trigger {
+    height: 44px;
+  }
+
+  .findings-panel .findings-controls {
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+
+  .findings-panel .scope-toggle button {
+    min-height: 36px;
+    padding: var(--s-2) var(--s-3);
+  }
+
+  .modal-scrim {
+    padding: var(--s-3);
+  }
+
+  .cmd-palette {
+    max-height: 90vh;
   }
 }
 

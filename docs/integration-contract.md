@@ -36,9 +36,11 @@ Error responses from the MCP/query path:
 
 | Code | Meaning | Action |
 |---|---|---|
-| 0 | Success, no findings | Proceed |
-| 1 | Success with advisory findings, or operational error | Inspect findings, may proceed |
+| 0 | Success, no blocking findings | Proceed |
+| 1 | Blocking findings (Error severity), or command failed | Inspect and resolve before proceeding |
 | 2 | Usage error (bad arguments, unknown command) | Fix invocation |
+
+`--strict` extends exit 1 to Warning findings as well as Error.
 
 ## Command taxonomy
 
@@ -64,6 +66,12 @@ Error responses from the MCP/query path:
 | `changes` | `cairn_changes` | Active change directories |
 | `show <change>` | `cairn_show_change` | Change details (proposal, delta, contracts) |
 | `context` | `cairn_context` | Full structured project overview |
+| `docstring <node>` | `cairn_docstring` | Generate a docstring for a node |
+| `export` | `cairn_export` | Export project data (JSON or Markdown) |
+| `onboard` | `cairn_onboard` | Suggest blueprint entries for orphaned files |
+| `summarise <node>` | `cairn_summarise` | Generate a contract summary for a node |
+| `ui` | — | Launch the web UI server |
+| `watch` | `cairn_watch` | Watch for finding changes and emit events |
 
 ### Mutating commands (modify filesystem)
 
@@ -75,6 +83,17 @@ Error responses from the MCP/query path:
 | `init` | `cairn_init` | Scaffold new cairn project |
 | `init --from-code` | `cairn_init_from_code` | Brownfield extraction from existing code |
 | `refine` | `cairn_refine` | Re-run brownfield discovery |
+| `import-openspec` | `cairn_import_openspec` | Migrate openspec changes to meta/changes |
+
+### Draft lifecycle (semi-stable)
+
+| CLI | MCP tool | Effect |
+|---|---|---|
+| `drafts` | `cairn_drafts` | List pending draft proposals |
+| `draft_show <draft>` | `cairn_draft_show` | Show a draft proposal |
+| `draft_edit <draft>` | `cairn_draft_edit` | Open a draft in your editor |
+| `draft_discard <draft>` | `cairn_draft_discard` | Discard a draft proposal |
+| `draft_accept <draft>` | `cairn_draft_accept` | Accept a draft and apply it |
 
 ### Gate commands
 
@@ -91,17 +110,16 @@ Error responses from the MCP/query path:
 | `structural` | Orphaned files, ghost files, missing paths | Pre-commit |
 | `interface` | Interface hash changes | Pre-commit for API-sensitive repos |
 | `tension` | Never (advisory) | Surface warnings post-merge |
+| `architecture-decision` | Blueprint mutations without paired decisions | Pre-commit for architecture changes |
 | `all` | All error-severity findings | CI gate |
 
-## Subscription primitive (planned)
+## Subscription primitive
 
-Future: `cairn watch` will emit newline-delimited JSON events on finding changes. Schema:
+`cairn watch` emits newline-delimited JSON events on finding changes. Schema:
 
 ```json
 {"event":"finding_added|finding_resolved","timestamp":"...","finding":{...}}
 ```
-
-Not yet implemented. Track via the distribution epic.
 
 ## Integration patterns
 

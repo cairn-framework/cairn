@@ -2,11 +2,8 @@
 //!
 //! Tests covering the cairn library schema and reader contracts for the
 //! trace sidecar, the suggested-edges queue, the islands query, and
-//! neighbourhood `--include-orphans`. CLI-level scenarios that bind to
-//! the cflx workflow runner (`cflx trace`) remain `#[cflx_planned]` since
-//! the cflx runner is external to this repository.
-
-use cairn::cflx_planned;
+//! neighbourhood `--include-orphans`. CLI-level trace rendering scenarios
+//! were retired along with the cflx workflow runner per decision #105.
 
 mod provenance_foundation {
     use cairn::provenance::{
@@ -97,22 +94,6 @@ mod provenance_foundation {
             }
             other => panic!("expected UnsupportedVersion, got {other:?}"),
         }
-    }
-
-    /// Scenario: Default human output is labelled per stage.
-    /// The cflx workflow runner owns CLI rendering; cairn library only
-    /// exposes the schema and reader.
-    #[cairn::cflx_planned(phase = 706)]
-    #[test]
-    fn test_trace_human_output_labels_each_stage() {
-        unimplemented!("cflx trace human output is rendered by cflx, not cairn library");
-    }
-
-    /// Scenario: JSON output is the schema with promoted version.
-    #[cairn::cflx_planned(phase = 706)]
-    #[test]
-    fn test_trace_json_output_is_schema_with_version() {
-        unimplemented!("cflx trace JSON output is rendered by cflx, not cairn library");
     }
 
     /// Scenario: Missing sidecar exits cleanly.
@@ -282,6 +263,7 @@ mod changes {
         assert!(cairn::suggested_edges::validate_strict("phase-z", dir.path()).is_ok());
     }
 
+    // Reason: smoke helper kept for manual inspection; not wired to CI yet.
     #[allow(dead_code)]
     fn _round_trip_smoke() -> Result<SuggestedEdgesQueue, QueueError> {
         let dir = tempfile::tempdir().expect("temp dir");
@@ -293,32 +275,105 @@ mod changes {
         fs::write(&path, serde_json::to_string(&queue).unwrap()).unwrap();
         read_queue(&path).map(Option::unwrap_or_default)
     }
+    /// Scenario: Representative queue file is stable JSON.
+    #[test]
+    fn test_representative_queue_file_snapshot() {
+        use cairn::suggested_edges::{
+            EdgeProvenance, SuggestedEdgeEntry, SuggestedEdgesQueue, TriageState,
+        };
+        let queue = SuggestedEdgesQueue {
+            version: 1,
+            entries: vec![
+                SuggestedEdgeEntry {
+                    source: "src.auth".to_owned(),
+                    target: "src.identity".to_owned(),
+                    relation: "related_to".to_owned(),
+                    triage_state: TriageState::Pending,
+                    confidence: Some(0.85),
+                    provenance: Some(EdgeProvenance {
+                        trace_phase: "phase-9-brownfield".to_owned(),
+                        stage: "propose".to_owned(),
+                    }),
+                    triage_note: None,
+                },
+                SuggestedEdgeEntry {
+                    source: "src.identity".to_owned(),
+                    target: "src.auth".to_owned(),
+                    relation: "related_to".to_owned(),
+                    triage_state: TriageState::Pending,
+                    confidence: Some(0.85),
+                    provenance: Some(EdgeProvenance {
+                        trace_phase: "phase-9-brownfield".to_owned(),
+                        stage: "propose".to_owned(),
+                    }),
+                    triage_note: None,
+                },
+            ],
+        };
+        let json = serde_json::to_value(&queue).expect("serialise");
+        insta::assert_json_snapshot!("suggested_edges_queue", json);
+    }
 }
 
 mod cli {
-    use super::cflx_planned;
 
     /// Scenario: Islands command returns whole-graph component breakdown.
     /// Library exposes islands; cairn CLI surface for `islands` lands when
     /// the Phase 7.6 CLI command is wired up alongside the spec.
-    #[cflx_planned(phase = 706)]
     #[test]
     fn test_islands_returns_component_breakdown() {
-        unimplemented!("awaits phase-7.6: cairn islands CLI command wiring");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "islands".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "islands exits zero");
+        assert!(
+            result.stdout.contains("Island"),
+            "output must contain 'Island' label, got: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("node"),
+            "output must contain node count, got: {}",
+            result.stdout
+        );
     }
 
     /// Scenario: Islands JSON output is versioned.
-    #[cflx_planned(phase = 706)]
     #[test]
     fn test_islands_json_output_is_versioned() {
-        unimplemented!("awaits phase-7.6: cairn islands JSON CLI output wiring");
+        let response = cairn::map::query::islands(&cairn::map::Graph {
+            nodes: std::collections::BTreeMap::new(),
+            names: std::collections::BTreeMap::new(),
+            outbound: std::collections::BTreeMap::new(),
+            inbound: std::collections::BTreeMap::new(),
+            findings: Vec::new(),
+        });
+        let json = serde_json::to_string(&response).expect("serialises");
+        assert!(json.contains("schema_version"),);
+        assert!(
+            json.contains(&format!("{}", cairn::map::query::ISLANDS_SCHEMA_VERSION)),
+            "schema_version should match the declared constant"
+        );
     }
 
     /// Scenario: Neighbourhood with --include-orphans surfaces reverse-only nodes.
-    #[cflx_planned(phase = 706)]
     #[test]
     fn test_neighbourhood_include_orphans_surfaces_reverse_only() {
-        unimplemented!("awaits phase-7.6: --include-orphans CLI flag wiring");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "neighbourhood".to_owned(),
+            "cairn.kernel.parser".to_owned(),
+            "--include-orphans".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "neighbourhood exits zero");
+        assert!(
+            result.stdout.contains("cairn.kernel.scanner"),
+            "output must include inbound neighbour cairn.kernel.scanner with --include-orphans, got: {}",
+            result.stdout
+        );
     }
 
     /// Scenario: Both forms (CLI and MCP) delegate to the library query.

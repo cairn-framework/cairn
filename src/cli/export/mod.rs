@@ -1,6 +1,6 @@
 //! Phase 7.8 cairn export command. Renders a single envelope over current
-//! map state, edges, artefacts, and active changes, in either JSON or
-//! Markdown form.
+//! map state, edges, artefacts, and active changes, in JSON, Markdown,
+//! or Mermaid form.
 
 use std::path::{Path, PathBuf};
 
@@ -9,11 +9,13 @@ use crate::{artefacts::registry::ArtefactType, map::graph::NodeRecord};
 mod builder;
 mod json;
 mod markdown;
+mod mermaid;
 mod runner;
 
 pub use builder::build_export;
 pub use json::render_json;
 pub use markdown::render_markdown;
+pub use mermaid::render_mermaid;
 pub use runner::run;
 
 /// Wire schema version for the export envelope.

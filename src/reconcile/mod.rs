@@ -7,6 +7,9 @@ pub mod python;
 pub mod target;
 pub mod typescript;
 
+/// Fixture reconciler demonstrating the extension API.
+pub mod fixture;
+
 use std::{error::Error, fmt, path::Path};
 
 use crate::map::graph::Finding;

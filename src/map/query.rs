@@ -88,16 +88,16 @@ pub struct LintResponse {
 }
 
 /// One connected component of the map graph.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct IslandResponse {
-    /// Lexicographically smallest node ID in the component.
+    /// Representative node ID (lexicographically smallest in component).
     pub representative: String,
-    /// Total number of nodes in the component.
+    /// Number of nodes in this component.
     pub node_count: usize,
 }
 
 /// Islands query result.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct IslandsResponse {
     /// Wire schema version.
     pub schema_version: u32,
@@ -370,6 +370,20 @@ const fn edge_kind_name(kind: GraphEdgeKind) -> &'static str {
 }
 
 fn collect(graph: &Graph, id: &str, transitive: bool, outbound: bool) -> Vec<String> {
+    // Seed the visited set with the start node so transitive cycles never
+    // re-enqueue `id` and never include it in its own dependency list.
+    let mut visited = std::collections::BTreeSet::new();
+    visited.insert(id.to_owned());
+    collect_inner(graph, id, transitive, outbound, &mut visited)
+}
+
+fn collect_inner(
+    graph: &Graph,
+    id: &str,
+    transitive: bool,
+    outbound: bool,
+    visited: &mut std::collections::BTreeSet<String>,
+) -> Vec<String> {
     let edges = if outbound {
         graph.outbound.get(id)
     } else {
@@ -379,9 +393,13 @@ fn collect(graph: &Graph, id: &str, transitive: bool, outbound: bool) -> Vec<Str
     if let Some(edges) = edges {
         for edge in edges {
             let next = if outbound { &edge.to } else { &edge.from };
+            if visited.contains(next.as_str()) {
+                continue;
+            }
             nodes.push(next.clone());
             if transitive {
-                nodes.extend(collect(graph, next, true, outbound));
+                visited.insert(next.clone());
+                nodes.extend(collect_inner(graph, next, true, outbound, visited));
             }
         }
     }
@@ -394,7 +412,7 @@ fn collect(graph: &Graph, id: &str, transitive: bool, outbound: bool) -> Vec<Str
 mod tests {
     use super::*;
     use crate::blueprint::{NodeKind, Span};
-    use crate::map::graph::{EdgeRef, NodeRecord, NodeState};
+    use crate::map::graph::{EdgeRef, FindingSeverity, NodeRecord, NodeState};
     use std::collections::BTreeMap;
 
     fn node(id: &str, parent: Option<&str>, children: &[&str]) -> NodeRecord {
@@ -564,5 +582,310 @@ mod tests {
         let no_orphans = neighbourhood_with_options(&graph, "anchor", false).expect("no orphans");
         assert!(no_orphans.inbound.is_empty());
         assert_eq!(no_orphans.outbound, default.outbound);
+    }
+
+    // ── graph builder helpers ─────────────────────────────────────────────────
+
+    fn edge(from: &str, to: &str, desc: &str) -> EdgeRef {
+        EdgeRef {
+            from: from.to_owned(),
+            to: to.to_owned(),
+            description: desc.to_owned(),
+        }
+    }
+
+    /// Build a simple graph from a node-id list and directed edge pairs.
+    /// Parent/children are derived from the ownership edges.
+    fn make_graph(node_ids: &[&str], dep_edges: &[(&str, &str)]) -> Graph {
+        let mut nodes: BTreeMap<String, NodeRecord> = node_ids
+            .iter()
+            .map(|id| ((*id).to_owned(), node(id, None, &[])))
+            .collect();
+        let mut outbound: BTreeMap<String, Vec<EdgeRef>> = BTreeMap::new();
+        let mut inbound: BTreeMap<String, Vec<EdgeRef>> = BTreeMap::new();
+        for (from, to) in dep_edges {
+            let e = edge(from, to, "dep");
+            outbound
+                .entry((*from).to_owned())
+                .or_default()
+                .push(e.clone());
+            inbound.entry((*to).to_owned()).or_default().push(e);
+        }
+        // Wire parent/children for ownership semantics (not used by dep queries,
+        // but needed for graph() ownership-edge rendering).
+        for (id, node_rec) in &mut nodes {
+            if let Some(edges) = outbound.get(id) {
+                node_rec.children = edges.iter().map(|e| e.to.clone()).collect();
+            }
+        }
+        for (id, edges) in &inbound {
+            if let (Some(node_rec), Some(e)) = (nodes.get_mut(id), edges.first()) {
+                node_rec.parent = Some(e.from.clone());
+            }
+        }
+        Graph {
+            nodes,
+            names: BTreeMap::new(),
+            outbound,
+            inbound,
+            findings: Vec::new(),
+        }
+    }
+
+    // ── get ───────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_get_returns_node_for_known_id() {
+        let g = make_graph(&["app.api"], &[]);
+        let resp = get(&g, "app.api").expect("should resolve");
+        assert_eq!(resp.node.id, "app.api");
+    }
+
+    #[test]
+    fn test_get_unknown_id_returns_query_finding() {
+        let g = make_graph(&[], &[]);
+        let err = get(&g, "missing").unwrap_err();
+        assert_eq!(err.code, "CAIRN_QUERY_NODE_NOT_FOUND");
+    }
+
+    // ── neighbourhood ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_neighbourhood_isolated_node_has_empty_edge_lists() {
+        let g = make_graph(&["a"], &[]);
+        let resp = neighbourhood(&g, "a").expect("resolve");
+        assert!(resp.inbound.is_empty());
+        assert!(resp.outbound.is_empty());
+    }
+
+    #[test]
+    fn test_neighbourhood_includes_outbound_and_inbound() {
+        // a → b ← c
+        let g = make_graph(&["a", "b", "c"], &[("a", "b"), ("c", "b")]);
+        let resp = neighbourhood(&g, "b").expect("resolve");
+        // b has two inbound (a, c) and no outbound
+        let mut inbound = resp.inbound.clone();
+        inbound.sort();
+        assert_eq!(inbound, vec!["a", "c"]);
+        assert!(resp.outbound.is_empty());
+    }
+
+    #[test]
+    fn test_neighbourhood_node_id_returned_on_response() {
+        let g = make_graph(&["x"], &[]);
+        let resp = neighbourhood(&g, "x").expect("resolve");
+        assert_eq!(resp.node.id, "x");
+    }
+
+    // ── files ─────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_files_returns_empty_list_for_node_with_no_claims() {
+        let g = make_graph(&["a"], &[]);
+        let resp = files(&g, "a").expect("resolve");
+        assert_eq!(resp.node, "a");
+        assert!(resp.files.is_empty());
+    }
+
+    // ── depends ───────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_depends_direct_returns_immediate_neighbours_only() {
+        // a → b → c  — direct query on 'a' returns only 'b', not 'c'.
+        let g = make_graph(&["a", "b", "c"], &[("a", "b"), ("b", "c")]);
+        let resp = depends(&g, "a", false).expect("resolve");
+        assert_eq!(resp.nodes, vec!["b"]);
+    }
+
+    #[test]
+    fn test_depends_transitive_chain() {
+        // a → b → c — transitive from 'a' includes both b and c.
+        let g = make_graph(&["a", "b", "c"], &[("a", "b"), ("b", "c")]);
+        let resp = depends(&g, "a", true).expect("resolve");
+        assert_eq!(resp.nodes, vec!["b", "c"]);
+    }
+
+    #[test]
+    fn test_depends_transitive_diamond_deduplicates() {
+        // a → b → d
+        // a → c → d
+        // Transitive from 'a': should list d exactly once, not twice.
+        let g = make_graph(
+            &["a", "b", "c", "d"],
+            &[("a", "b"), ("a", "c"), ("b", "d"), ("c", "d")],
+        );
+        let resp = depends(&g, "a", true).expect("resolve");
+        // Sorted + deduped: b, c, d — d must appear exactly once.
+        assert_eq!(resp.nodes, vec!["b", "c", "d"]);
+    }
+
+    #[test]
+    fn test_depends_no_outbound_edges_returns_empty() {
+        let g = make_graph(&["a"], &[]);
+        let resp = depends(&g, "a", true).expect("resolve");
+        assert!(resp.nodes.is_empty());
+    }
+
+    #[test]
+    fn test_depends_unknown_node_returns_error() {
+        let g = make_graph(&[], &[]);
+        let err = depends(&g, "x", false).unwrap_err();
+        assert_eq!(err.code, "CAIRN_QUERY_NODE_NOT_FOUND");
+    }
+
+    // ── dependents ────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_dependents_direct_returns_immediate_callers_only() {
+        // a → b  — direct dependents of 'b' is ['a'], not transitively more.
+        let g = make_graph(&["a", "b", "c"], &[("a", "b"), ("b", "c")]);
+        let resp = dependents(&g, "b", false).expect("resolve");
+        assert_eq!(resp.nodes, vec!["a"]);
+    }
+
+    #[test]
+    fn test_dependents_transitive_chain() {
+        // a → b → c  — transitive dependents of 'c' are a and b.
+        let g = make_graph(&["a", "b", "c"], &[("a", "b"), ("b", "c")]);
+        let resp = dependents(&g, "c", true).expect("resolve");
+        assert_eq!(resp.nodes, vec!["a", "b"]);
+    }
+
+    #[test]
+    fn test_dependents_leaf_node_has_no_dependents() {
+        let g = make_graph(&["a", "b"], &[("a", "b")]);
+        let resp = dependents(&g, "a", true).expect("resolve");
+        assert!(resp.nodes.is_empty());
+    }
+
+    // ── graph ─────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_graph_query_includes_dependency_edges() {
+        let g = make_graph(&["a", "b"], &[("a", "b")]);
+        let resp = graph(&g);
+        let dep_edges: Vec<_> = resp
+            .edges
+            .iter()
+            .filter(|e| e.kind == GraphEdgeKind::Dependency)
+            .collect();
+        assert_eq!(dep_edges.len(), 1);
+        assert_eq!(dep_edges[0].from, "a");
+        assert_eq!(dep_edges[0].to, "b");
+    }
+
+    #[test]
+    fn test_graph_query_edges_sorted_deterministically() {
+        // Two edges: a→c and a→b. After sort they must appear in (a,b) then (a,c) order.
+        let g = make_graph(&["a", "b", "c"], &[("a", "c"), ("a", "b")]);
+        let resp = graph(&g);
+        let dep_edges: Vec<_> = resp
+            .edges
+            .iter()
+            .filter(|e| e.kind == GraphEdgeKind::Dependency)
+            .collect();
+        assert_eq!(dep_edges.len(), 2);
+        assert_eq!(dep_edges[0].to, "b");
+        assert_eq!(dep_edges[1].to, "c");
+    }
+
+    // ── order ─────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_order_linear_chain_returns_topological_order() {
+        // a → b → c (a depends on b, b depends on c).
+        // order() returns build-order: dependencies come first.
+        // So c must appear before b, and b before a.
+        let g = make_graph(&["a", "b", "c"], &[("a", "b"), ("b", "c")]);
+        let resp = order(&g).expect("acyclic graph must order");
+        let pos = |id: &str| resp.nodes.iter().position(|n| n == id).unwrap();
+        assert!(
+            pos("c") < pos("b"),
+            "leaf must precede its caller in build order"
+        );
+        assert!(pos("b") < pos("a"), "b must precede a in build order");
+    }
+
+    #[test]
+    fn test_order_cycle_returns_error() {
+        // a → b → a — must return Err, not hang.
+        let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
+        let result = order(&g);
+        assert!(result.is_err(), "cyclic graph must return Err from order()");
+    }
+
+    // ── lint ─────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_lint_includes_existing_graph_findings() {
+        let mut g = make_graph(&["a"], &[]);
+        g.findings.push(Finding {
+            code: "TEST_FINDING".to_owned(),
+            severity: FindingSeverity::Warning,
+            message: "test".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+        });
+        let resp = lint(&g);
+        assert!(
+            resp.findings.iter().any(|f| f.code == "TEST_FINDING"),
+            "lint must include pre-existing graph findings"
+        );
+    }
+
+    #[test]
+    fn test_lint_detects_cycles_via_cycle_findings() {
+        // a → b → a — lint must add cycle findings (no CAIRN_CYCLE_* finding from
+        // order alone; lint calls cycle_findings which does).
+        let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
+        let resp = lint(&g);
+        assert!(
+            !resp.findings.is_empty(),
+            "lint on cyclic graph must return findings"
+        );
+    }
+
+    #[test]
+    fn test_depends_transitive_cyclic_graph_terminates_and_excludes_start() {
+        // [RED→GREEN] Before fix: collect() had no visited guard; a → b → a
+        // recursed infinitely → SIGABRT.
+        // After fix: collect seeds visited with the start node, preventing
+        // re-enqueueing; the start node is also excluded from its own result.
+        let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
+        let resp = depends(&g, "a", true).expect("must resolve");
+        // "a" must not appear in its own transitive dependency list.
+        assert!(
+            !resp.nodes.contains(&"a".to_owned()),
+            "start node must not be in result"
+        );
+        assert!(
+            resp.nodes.contains(&"b".to_owned()),
+            "direct dep must be in result"
+        );
+    }
+
+    #[test]
+    fn test_dependents_transitive_cyclic_graph_terminates_and_excludes_start() {
+        // Same invariant for the reverse direction (inbound traversal).
+        let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
+        let resp = dependents(&g, "a", true).expect("must resolve");
+        assert!(
+            !resp.nodes.contains(&"a".to_owned()),
+            "start node must not be in result"
+        );
+        assert!(
+            resp.nodes.contains(&"b".to_owned()),
+            "direct dependent must be in result"
+        );
+    }
+
+    #[test]
+    fn test_depends_transitive_self_loop_excluded_from_result() {
+        // A → A self-loop: "a" depends transitively on itself.
+        // collect seeds visited with "a" so the self-edge is skipped entirely.
+        let g = make_graph(&["a"], &[("a", "a")]);
+        let resp = depends(&g, "a", true).expect("must resolve");
+        assert!(resp.nodes.is_empty(), "self-loop must produce empty result");
     }
 }

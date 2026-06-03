@@ -106,10 +106,11 @@ impl Candidate {
 }
 
 pub(crate) fn path_derived_id(directory: &str) -> String {
-    directory
-        .trim_start_matches("./")
-        .trim_start_matches('/')
-        .replace(['/', '\\'], ".")
+    let trimmed = directory.trim_start_matches("./").trim_start_matches('/');
+    if trimmed.is_empty() || trimmed == "." {
+        return "root".to_owned();
+    }
+    trimmed.replace(['/', '\\'], ".")
 }
 
 /// Computes the coupling score for a candidate per design.md:
@@ -120,6 +121,8 @@ pub(crate) fn path_derived_id(directory: &str) -> String {
 /// boundary. The +1 offset avoids division by zero and rewards
 /// candidates with internal cohesion even when import totals are small.
 #[must_use]
+// Reason: usize counts are always small (file/import counts) so f64
+// precision loss is bounded and acceptable for a heuristic score.
 #[allow(clippy::cast_precision_loss)]
 pub fn coupling_score(internal_imports: usize, external_imports: usize) -> f64 {
     let numerator = (internal_imports + 1) as f64;
@@ -215,5 +218,19 @@ mod tests {
         assert_eq!(path_derived_id("a/b/c"), "a.b.c");
         assert_eq!(path_derived_id("./a/b"), "a.b");
         assert_eq!(path_derived_id("a"), "a");
+    }
+
+    #[test]
+    fn test_path_derived_id_bare_dot_returns_root() {
+        // path_derived_id(".") returned "." because trim_start_matches("./")
+        // does not strip a bare dot — only the two-char sequence "." + "/".
+        // A bare-dot id renders as `id "."` in blueprint output which is
+        // syntactically ambiguous and useless as a node identifier.
+        assert_eq!(path_derived_id("."), "root");
+    }
+
+    #[test]
+    fn test_path_derived_id_empty_string_returns_root() {
+        assert_eq!(path_derived_id(""), "root");
     }
 }

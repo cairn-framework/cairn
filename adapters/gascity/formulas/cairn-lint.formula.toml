@@ -1,0 +1,21 @@
+formula = "cairn-lint"
+description = "Lint the CAIRN blueprint and contracts, report findings, and annotate the change with errors."
+
+[[steps]]
+id = "scan"
+description = "Run: cairn scan --json; load the graph and surface any blueprint parse errors"
+
+[[steps]]
+id = "lint"
+needs = ["scan"]
+description = "Run: cairn lint --json; evaluate all invariants: dangling edges, missing contracts, duplicate IDs"
+
+[[steps]]
+id = "check-severity"
+needs = ["lint"]
+description = "Parse the findings JSON; separate errors from warnings; exit 1 if any errors are present"
+
+[[steps]]
+id = "report"
+needs = ["check-severity"]
+description = "Annotate the active change bead with a summary of findings; surface errors as bead comments"

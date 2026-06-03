@@ -1,4 +1,11 @@
 //! Cairn kernel library.
+
+#![allow(clippy::result_large_err)]
+// Reason: Finding is the primary error type across the query API and CLI.
+// It carries multiple Option<String> fields for diagnostic context (code,
+// message, node, target, path). Boxing it would add allocation overhead
+// at every error path without meaningful performance benefit for this
+// CLI tool.
 //!
 //! The library exposes the typed parser, map, scanner, and query services
 //! used by the CLI. Command wrappers render these responses but do not own the
@@ -30,12 +37,18 @@ pub mod query_api;
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
+/// SSE event consumer for orchestrator integration spikes.
+pub mod sse;
+/// Pluggable state persistence backend.
+pub mod state;
 /// Suggested-edges queue: mutable triage workflows for AI-suggested graph edges.
 pub mod suggested_edges;
 /// Phase 8 summariser: pluggable backends and draft store.
 pub mod summariser;
 /// Embedded graph explorer server and query bridge.
 pub mod ui;
+/// Watch mode: periodic scan with finding-change events.
+pub mod watch;
 
 /// Verification state types.
 pub mod verification;
@@ -102,6 +115,10 @@ mod tests {
                         && command.cli_name != "rename"
                         && command.cli_name != "init_from_code"
                         && command.cli_name != "refine"
+                        && command.cli_name != "draft_discard"
+                        && command.cli_name != "draft_edit"
+                        && command.cli_name != "draft_accept"
+                        && command.cli_name != "summarise"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );

@@ -11,11 +11,9 @@
 //! stay skipped under `cargo test`; they fail with `unimplemented!`
 //! under `cargo test -- --ignored`.
 
-use cairn::cflx_planned;
-
 mod backend_and_config {
     use cairn::summariser::{
-        DisabledBackend, Draft, DraftStore, NodeContext, PendingDraft, SUMMARISER_SCHEMA_VERSION,
+        DisabledBackend, Draft, DraftStore, PendingDraft, SUMMARISER_SCHEMA_VERSION,
         SummariserBackend, SummariserBackendError, SummariserMode, SummariserRequest,
     };
     use std::time::Duration;
@@ -23,14 +21,16 @@ mod backend_and_config {
     fn sample_request() -> SummariserRequest {
         SummariserRequest {
             schema_version: SUMMARISER_SCHEMA_VERSION,
-            artefact_type: "contract".to_owned(),
-            node: NodeContext {
-                node_id: "node-a".to_owned(),
-                name: "Auth".to_owned(),
-                description: String::new(),
-                contract: None,
-                contradiction: Some("interface drift".to_owned()),
-            },
+            request_id: "req-a".to_owned(),
+            draft_type: "contract".to_owned(),
+            target_node: "node-a".to_owned(),
+            map_facts: Vec::new(),
+            contract_excerpt: None,
+            interface_findings: Vec::new(),
+            docstring_findings: Vec::new(),
+            project_context: String::new(),
+            rules: Vec::new(),
+            code_samples: Vec::new(),
         }
     }
 
@@ -42,6 +42,8 @@ mod backend_and_config {
                 artefact_type: "contract".to_owned(),
                 draft_text: "# Auth\n\nReturns user.".to_owned(),
                 created_at: "2026-05-07T12:00:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
             },
         })
     }
@@ -68,21 +70,22 @@ mod backend_and_config {
         assert!(matches!(back, Draft::Pending(_)));
     }
 
-    /// Scenario: Local command receives one request and stores `summary` only.
+    /// Scenario: Local command receives one request and stores `draft_text` only.
     /// Wire protocol assertion: `SummariserRequest` serialises with the
-    /// design.md field names (`schema_version`, `artefact_type`, `node`)
-    /// and `SummariserResponse` parses with `summary` as the canonical text
-    /// payload (renamed from `draft_text` per phase-8 reforge cycle 1).
+    /// design.doc field names (`schema_version`, `request_id`, `draft_type`,
+    /// `target_node`, etc.) and `SummariserResponse` parses with `draft_text`
+    /// as the canonical text payload.
     #[test]
-    fn test_local_command_receives_request_and_stores_summary_only() {
+    fn test_local_command_receives_request_and_stores_draft_text_only() {
         let req = sample_request();
         let json = serde_json::to_string(&req).expect("serialise");
         assert!(json.contains("\"schema_version\""));
-        assert!(json.contains("\"artefact_type\""));
-        assert!(json.contains("\"node\""));
+        assert!(json.contains("\"request_id\""));
+        assert!(json.contains("\"draft_type\""));
+        assert!(json.contains("\"target_node\""));
         let resp: cairn::summariser::SummariserResponse =
-            serde_json::from_str(r#"{"schema_version":1,"summary":"hi"}"#).expect("parse");
-        assert_eq!(resp.summary, "hi");
+            serde_json::from_str(r#"{"schema_version":1,"draft_text":"hi"}"#).expect("parse");
+        assert_eq!(resp.draft_text, "hi");
     }
 
     /// Scenario: Backend failure does not create or modify a draft.
@@ -100,13 +103,14 @@ mod backend_and_config {
     /// Wire protocol drift is caught early: response with unknown field rejected.
     #[test]
     fn test_response_rejects_unknown_fields_per_design() {
-        let bad = r#"{"schema_version":1,"summary":"hi","rationale":"no"}"#;
+        let bad = r#"{"schema_version":1,"draft_text":"hi","rationale":"no"}"#;
         let result: Result<cairn::summariser::SummariserResponse, _> = serde_json::from_str(bad);
         assert!(result.is_err());
     }
 }
 
 mod resolution_actions {
+    use cairn::summariser::{AcceptError, accept};
     use cairn::summariser::{
         AcceptedDraft, DiscardedDraft, Draft, DraftHeader, DraftStore, DraftStoreError,
         PendingDraft,
@@ -120,6 +124,8 @@ mod resolution_actions {
             artefact_type: "contract".to_owned(),
             draft_text: "# Auth\n\nReturns user.".to_owned(),
             created_at: "2026-05-07T12:00:00Z".to_owned(),
+            transitions: Vec::new(),
+            metadata: None,
         }
     }
 
@@ -129,11 +135,68 @@ mod resolution_actions {
         })
     }
 
+    fn auth_draft(text: &str) -> Draft {
+        Draft::Pending(PendingDraft {
+            header: DraftHeader {
+                id: "draft-001".to_owned(),
+                node_id: "app.auth".to_owned(),
+                artefact_type: "contract".to_owned(),
+                draft_text: text.to_owned(),
+                created_at: "2026-05-07T12:00:00Z".to_owned(),
+                transitions: Vec::new(),
+                metadata: None,
+            },
+        })
+    }
+
+    fn temp_project() -> (tempfile::TempDir, std::path::PathBuf) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let root = dir.path();
+
+        let blueprint = r#"System App "App" id "app" {
+    Module Auth "Auth" id "app.auth" {
+        contract "meta/contracts/auth.md"
+    }
+}"#;
+        let blueprint_path = root.join("cairn.blueprint");
+        fs::create_dir_all(root.join("meta/contracts")).unwrap();
+        fs::write(&blueprint_path, blueprint).unwrap();
+        fs::write(
+            root.join("meta/contracts/auth.md"),
+            "---\nnode: app.auth\n---\n# Auth\n\nOriginal.",
+        )
+        .unwrap();
+
+        (dir, blueprint_path)
+    }
+
     /// Scenario: draft accept replaces target contract and records hash.
-    #[cairn::cflx_planned(phase = 800)]
     #[test]
     fn test_draft_accept_replaces_contract_and_records_hash() {
-        unimplemented!("awaits phase-8: cairn draft accept CLI command wiring");
+        let (dir, blueprint) = temp_project();
+        let root = dir.path();
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        let draft_text = "---\nnode: app.auth\n---\n# Auth\n\nUpdated.";
+        store.write(&auth_draft(draft_text)).expect("write draft");
+
+        let result = accept(root, "draft-001", &blueprint, false).expect("accept");
+        assert_eq!(result, "draft-001");
+
+        let written =
+            fs::read_to_string(root.join("meta/contracts/auth.md")).expect("read contract");
+        assert_eq!(written, draft_text);
+
+        let draft = store.read("draft-001").expect("read draft");
+        assert!(
+            matches!(draft, Draft::Accepted(_)),
+            "draft must be Accepted, got {draft:?}"
+        );
+        if let Draft::Accepted(a) = draft {
+            assert!(
+                !a.accepted_interface_hash().is_empty(),
+                "accepted draft must record non-empty hash"
+            );
+        }
     }
 
     /// Scenario: Accepted variant carries non-empty interface hash by construction.
@@ -180,17 +243,57 @@ mod resolution_actions {
     }
 
     /// Scenario: draft accept --edited applies the editable file.
-    #[cairn::cflx_planned(phase = 800)]
     #[test]
     fn test_draft_accept_edited_applies_editable_file() {
-        unimplemented!("awaits phase-8: cairn draft accept --edited CLI wiring");
+        let (dir, blueprint) = temp_project();
+        let root = dir.path();
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        let draft_text = "---\nnode: app.auth\n---\n# Auth\n\nGenerated.";
+        store.write(&auth_draft(draft_text)).expect("write draft");
+
+        let edited_text = "---\nnode: app.auth\n---\n# Auth\n\nEdited version.";
+        fs::create_dir_all(root.join(".cairn/state/summariser/editable")).unwrap();
+        fs::write(store.editable_path("draft-001", "contract"), edited_text).unwrap();
+
+        let result = accept(root, "draft-001", &blueprint, true).expect("accept edited");
+        assert_eq!(result, "draft-001");
+
+        let written =
+            fs::read_to_string(root.join("meta/contracts/auth.md")).expect("read contract");
+        assert_eq!(written, edited_text);
+
+        let draft = store.read("draft-001").expect("read draft");
+        assert!(
+            matches!(draft, Draft::Accepted(_)),
+            "draft must be Accepted after edited accept, got {draft:?}"
+        );
     }
 
     /// Scenario: Accepting a draft with invalid frontmatter exits 1 and restores contract.
-    #[cairn::cflx_planned(phase = 800)]
     #[test]
     fn test_draft_accept_invalid_frontmatter_exits_one_restores_contract() {
-        unimplemented!("awaits phase-8: contract validation + rollback wiring");
+        let (dir, blueprint) = temp_project();
+        let root = dir.path();
+        let store = DraftStore::new(root.join(".cairn/state/summariser"));
+        let original = fs::read_to_string(root.join("meta/contracts/auth.md")).unwrap();
+        store
+            .write(&auth_draft("no frontmatter here"))
+            .expect("write draft");
+
+        let result = accept(root, "draft-001", &blueprint, false);
+        assert!(
+            matches!(result, Err(AcceptError::Validation(_))),
+            "expected Validation error, got {result:?}"
+        );
+
+        let restored = fs::read_to_string(root.join("meta/contracts/auth.md")).unwrap();
+        assert_eq!(restored, original, "contract must remain unchanged");
+
+        let draft = store.read("draft-001").expect("read draft");
+        assert!(
+            matches!(draft, Draft::Pending(_)),
+            "draft must stay pending, got {draft:?}"
+        );
     }
 
     /// Scenario: draft discard marks the draft discarded.
@@ -224,19 +327,56 @@ mod resolution_actions {
 }
 
 mod mcp_exposure {
-    use super::cflx_planned;
+    use serde_json::Value;
+
+    fn tool_names(response: &Value) -> Vec<&str> {
+        response["result"]["tools"]
+            .as_array()
+            .expect("tools array")
+            .iter()
+            .map(|t| t["name"].as_str().expect("tool name"))
+            .collect()
+    }
 
     /// Scenario: Read-only summariser tools listed in default mode.
-    #[cflx_planned(phase = 800)]
     #[test]
     fn test_read_only_tools_listed_in_default_mode() {
-        unimplemented!("awaits phase-8: cairn_drafts and cairn_draft_show MCP tool registration");
+        let config = cairn::mcp::ServerConfig::default();
+        let response =
+            cairn::mcp::handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#, &config);
+        let names = tool_names(&response);
+        assert!(
+            names.contains(&"cairn_drafts"),
+            "cairn_drafts must be listed"
+        );
+        assert!(
+            names.contains(&"cairn_draft_show"),
+            "cairn_draft_show must be listed"
+        );
     }
 
     /// Scenario: Mutating summariser tools absent in default mode.
-    #[cflx_planned(phase = 800)]
     #[test]
     fn test_mutating_tools_absent_in_default_mode() {
-        unimplemented!("awaits phase-8: mutating MCP tool registry filtering");
+        let config = cairn::mcp::ServerConfig::default();
+        let response =
+            cairn::mcp::handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#, &config);
+        let names = tool_names(&response);
+        assert!(
+            !names.contains(&"cairn_summarise"),
+            "cairn_summarise must not be listed in default mode"
+        );
+        assert!(
+            !names.contains(&"cairn_draft_accept"),
+            "cairn_draft_accept must not be listed in default mode"
+        );
+        assert!(
+            !names.contains(&"cairn_draft_edit"),
+            "cairn_draft_edit must not be listed in default mode"
+        );
+        assert!(
+            !names.contains(&"cairn_draft_discard"),
+            "cairn_draft_discard must not be listed in default mode"
+        );
     }
 }

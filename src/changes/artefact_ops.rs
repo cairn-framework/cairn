@@ -93,3 +93,27 @@ pub(super) fn parse_operation(value: &str) -> Option<ChangeOperation> {
         _ => None,
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_operation_all_variants() {
+        assert_eq!(parse_operation("added"), Some(ChangeOperation::Added));
+        assert_eq!(parse_operation("modified"), Some(ChangeOperation::Modified));
+        assert_eq!(parse_operation("removed"), Some(ChangeOperation::Removed));
+        assert_eq!(parse_operation("renamed"), Some(ChangeOperation::Renamed));
+    }
+
+    #[test]
+    fn test_parse_operation_unknown_is_none() {
+        assert_eq!(parse_operation("created"), None);
+        assert_eq!(parse_operation("deleted"), None);
+        assert_eq!(
+            parse_operation("ADDED"),
+            None,
+            "case-sensitive: uppercase must not match"
+        );
+        assert_eq!(parse_operation(""), None);
+    }
+}

@@ -65,6 +65,7 @@ impl Reconciler for TypeScriptReconciler<'_> {
                     severity: FindingSeverity::Info,
                     message: format!("TypeScript file `{rel}` is not owned by any eligible node"),
                     node: None,
+                    target: None,
                     path: Some(rel),
                 });
             }
@@ -104,7 +105,10 @@ fn collect_owner(node: &Node, owners: &mut Vec<(String, String)>) {
 fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String> {
     owners
         .iter()
-        .filter(|(_, path)| file == path || file.starts_with(&format!("{path}/")))
+        .filter(|(_, path)| {
+            // An empty path or "." is a root-level claim that matches any file.
+            path.is_empty() || path == "." || file == path || file.starts_with(&format!("{path}/"))
+        })
         .max_by_key(|(_, path)| path.len())
         .map(|(id, _)| id.clone())
 }

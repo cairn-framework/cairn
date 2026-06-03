@@ -43,10 +43,12 @@ _No codes allocated yet._
 ## CK -- Kernel/Map
 
 - CK001 -- scanner failed to load project -- phase-7.8 reforge
+- CK002 -- blueprint path matches a .gitignore pattern (CAIRN_PATH_GITIGNORED) -- issue #45
 
 ## CA -- Artefacts
 
 - CA001 -- leaf node has no decision artefact (CAIRN_PROVENANCE_NO_DECISION) -- issue #46
+- CA003 -- decision artefact exhaustive file claim does not match folder contents -- issue #67
 - CA002 -- blueprint shape changed for node but no decision artefact covers it (CAIRN_BLUEPRINT_CHANGE_NO_DECISION) -- issue #68
 
 ## CC -- Changes
@@ -57,7 +59,7 @@ _No codes allocated yet._
 
 ## CH -- Hooks
 
-_No codes allocated yet._
+- CH001 -- blueprint architectural mutation lacks paired decision artefact -- issue #68
 
 ## CE -- Edges
 

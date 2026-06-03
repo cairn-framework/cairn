@@ -19,6 +19,73 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+/// Lifecycle state of a draft.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DraftStatus {
+    /// Awaiting human resolution.
+    Pending,
+    /// Editable copy was written but not yet applied.
+    Editable,
+    /// Draft was applied to the target contract.
+    Accepted,
+    /// Terminal: the user discarded this draft.
+    Discarded,
+}
+
+/// Record of a single status transition.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct TransitionRecord {
+    /// Status before the transition.
+    pub from: DraftStatus,
+    /// Status after the transition.
+    pub to: DraftStatus,
+    /// RFC 3339 UTC timestamp when the transition occurred.
+    pub at: String,
+}
+
+/// Error returned when a draft transition is invalid.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum DraftTransitionError {
+    /// Attempted to transition from a terminal state.
+    InvalidTransition {
+        /// Source status.
+        from: DraftStatus,
+        /// Target status.
+        to: DraftStatus,
+    },
+}
+
+impl std::fmt::Display for DraftTransitionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidTransition { from, to } => {
+                write!(f, "invalid transition from {from:?} to {to:?}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for DraftTransitionError {}
+
+/// Validates whether a transition from `from` to `to` is allowed.
+///
+/// `Accepted` and `Discarded` are terminal states; no outgoing
+/// transitions are permitted.
+///
+/// # Errors
+///
+/// Returns `DraftTransitionError::InvalidTransition` when `from` is a
+/// terminal state.
+pub fn validate_transition(from: DraftStatus, to: DraftStatus) -> Result<(), DraftTransitionError> {
+    match from {
+        DraftStatus::Accepted | DraftStatus::Discarded => {
+            Err(DraftTransitionError::InvalidTransition { from, to })
+        }
+        _ => Ok(()),
+    }
+}
+
 /// Wire schema version for serialised draft state.
 pub const DRAFT_SCHEMA_VERSION: u32 = 1;
 
@@ -53,6 +120,12 @@ pub struct DraftHeader {
     pub draft_text: String,
     /// RFC 3339 UTC timestamp when the draft was created.
     pub created_at: String,
+    /// Recorded status transitions.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub transitions: Vec<TransitionRecord>,
+    /// Optional backend audit metadata (token counts, model id, etc.).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
 }
 
 /// A draft awaiting resolution.
@@ -178,6 +251,17 @@ impl Draft {
             Self::Editable(d) => &d.header.id,
             Self::Accepted(d) => &d.header.id,
             Self::Discarded(d) => &d.header.id,
+        }
+    }
+
+    /// Returns the current lifecycle status.
+    #[must_use]
+    pub fn status(&self) -> DraftStatus {
+        match self {
+            Self::Pending(_) => DraftStatus::Pending,
+            Self::Editable(_) => DraftStatus::Editable,
+            Self::Accepted(_) => DraftStatus::Accepted,
+            Self::Discarded(_) => DraftStatus::Discarded,
         }
     }
 }
@@ -399,6 +483,8 @@ mod tests {
             artefact_type: "contract".to_owned(),
             draft_text: "# Auth\n\nReturns user.".to_owned(),
             created_at: "2026-05-07T12:00:00Z".to_owned(),
+            transitions: Vec::new(),
+            metadata: None,
         }
     }
 
@@ -509,5 +595,133 @@ mod tests {
     fn editable_extension_falls_back_to_txt_for_unknown() {
         assert_eq!(editable_extension("contract"), "md");
         assert_eq!(editable_extension("custom-type"), "txt");
+    }
+
+    // --- Transition tests ---
+
+    #[test]
+    fn draft_status_returns_correct_variant() {
+        assert_eq!(pending().status(), DraftStatus::Pending);
+        let editable = Draft::Editable(EditableDraft {
+            header: sample_header(),
+            editable_path: "/tmp/draft-001.md".to_owned(),
+        });
+        assert_eq!(editable.status(), DraftStatus::Editable);
+        let accepted =
+            Draft::Accepted(AcceptedDraft::new(sample_header(), "h".to_owned()).unwrap());
+        assert_eq!(accepted.status(), DraftStatus::Accepted);
+        let discarded = Draft::Discarded(DiscardedDraft {
+            header: sample_header(),
+            reason: None,
+        });
+        assert_eq!(discarded.status(), DraftStatus::Discarded);
+    }
+
+    #[test]
+    fn transition_pending_to_editable_is_valid() {
+        assert!(validate_transition(DraftStatus::Pending, DraftStatus::Editable).is_ok());
+    }
+
+    #[test]
+    fn transition_pending_to_accepted_is_valid() {
+        assert!(validate_transition(DraftStatus::Pending, DraftStatus::Accepted).is_ok());
+    }
+
+    #[test]
+    fn transition_pending_to_discarded_is_valid() {
+        assert!(validate_transition(DraftStatus::Pending, DraftStatus::Discarded).is_ok());
+    }
+
+    #[test]
+    fn transition_editable_to_accepted_is_valid() {
+        assert!(validate_transition(DraftStatus::Editable, DraftStatus::Accepted).is_ok());
+    }
+
+    #[test]
+    fn transition_editable_to_discarded_is_valid() {
+        assert!(validate_transition(DraftStatus::Editable, DraftStatus::Discarded).is_ok());
+    }
+
+    #[test]
+    fn transition_accepted_to_any_is_invalid() {
+        for to in [
+            DraftStatus::Pending,
+            DraftStatus::Editable,
+            DraftStatus::Accepted,
+            DraftStatus::Discarded,
+        ] {
+            let result = validate_transition(DraftStatus::Accepted, to);
+            assert!(
+                matches!(
+                    result,
+                    Err(DraftTransitionError::InvalidTransition {
+                        from: DraftStatus::Accepted,
+                        ..
+                    })
+                ),
+                "Accepted -> {to:?} should be invalid"
+            );
+        }
+    }
+
+    #[test]
+    fn transition_discarded_to_any_is_invalid() {
+        for to in [
+            DraftStatus::Pending,
+            DraftStatus::Editable,
+            DraftStatus::Accepted,
+            DraftStatus::Discarded,
+        ] {
+            let result = validate_transition(DraftStatus::Discarded, to);
+            assert!(
+                matches!(
+                    result,
+                    Err(DraftTransitionError::InvalidTransition {
+                        from: DraftStatus::Discarded,
+                        ..
+                    })
+                ),
+                "Discarded -> {to:?} should be invalid"
+            );
+        }
+    }
+
+    #[test]
+    fn draft_without_transitions_omits_field_in_json() {
+        let draft = pending();
+        let json = serde_json::to_string(&draft).expect("serialise");
+        assert!(
+            !json.contains("transitions"),
+            "empty transitions should be omitted; got: {json}"
+        );
+    }
+
+    #[test]
+    fn draft_with_transitions_serialises_them() {
+        let mut header = sample_header();
+        header.transitions = vec![TransitionRecord {
+            from: DraftStatus::Pending,
+            to: DraftStatus::Editable,
+            at: "2024-01-15T10:30:00Z".to_owned(),
+        }];
+        let draft = Draft::Editable(EditableDraft {
+            header,
+            editable_path: "/tmp/d.md".to_owned(),
+        });
+        let json = serde_json::to_string(&draft).expect("serialise");
+        assert!(json.contains("\"transitions\""));
+        assert!(json.contains("\"from\":\"pending\""));
+        assert!(json.contains("\"to\":\"editable\""));
+    }
+
+    #[test]
+    fn deserialise_draft_without_transitions_field() {
+        let json = r#"{"status":"pending","id":"d1","node_id":"n","artefact_type":"contract","draft_text":"x","created_at":"t"}"#;
+        let draft: Draft = serde_json::from_str(json).expect("parse");
+        assert_eq!(draft.status(), DraftStatus::Pending);
+        match draft {
+            Draft::Pending(d) => assert!(d.header.transitions.is_empty()),
+            _ => panic!("expected Pending"),
+        }
     }
 }

@@ -252,6 +252,7 @@ mod tests {
             severity: FindingSeverity::Info,
             message: format!("Rust file `{path}` is not owned by any eligible node"),
             node: None,
+            target: None,
             path: Some(path.to_owned()),
         }
     }
@@ -348,5 +349,136 @@ mod tests {
         let findings = vec![orphan_finding("stray.rs")];
         let report = analyze(&findings);
         assert_eq!(report.clusters[0].directory, ".");
+    }
+
+    // ── classify ─────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_classify_root_dir_node_id_is_not_bare_dot() {
+        // After path_derived_id fix: "." must map to "root", not ".".
+        let ClusterSuggestion::Node { id } = classify(".") else {
+            panic!("root dir must produce Node suggestion, not Ignore");
+        };
+        assert_ne!(id, ".", "classify(\".\") must not produce id \".\"");
+        assert_eq!(id, "root");
+    }
+
+    #[test]
+    fn test_classify_case_insensitive_for_ignore_patterns() {
+        // IGNORE_PATTERNS stores lowercase; segments are lowercased before compare.
+        let ClusterSuggestion::Ignore(glob) = classify("DIST") else {
+            panic!("DIST must be classified as Ignore");
+        };
+        assert_eq!(glob, "DIST");
+    }
+
+    #[test]
+    fn test_classify_nested_ignore_segment_truncates_to_pattern() {
+        // "src/node_modules/lodash" — "node_modules" is the ignore segment;
+        // the returned glob should be "src/node_modules", not the full path.
+        let ClusterSuggestion::Ignore(glob) = classify("src/node_modules/lodash") else {
+            panic!("node_modules path must be classified as Ignore");
+        };
+        assert_eq!(glob, "src/node_modules");
+    }
+
+    // ── parent_dir ────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_parent_dir_nested_path() {
+        assert_eq!(parent_dir("a/b/c.rs"), "a/b");
+    }
+
+    #[test]
+    fn test_parent_dir_single_segment_returns_dot() {
+        assert_eq!(parent_dir("stray.rs"), ".");
+    }
+
+    // ── capitalize ───────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_capitalize_empty_string() {
+        assert_eq!(capitalize(""), "");
+    }
+
+    #[test]
+    fn test_capitalize_lowercase_first_char() {
+        assert_eq!(capitalize("auth"), "Auth");
+    }
+
+    #[test]
+    fn test_capitalize_already_uppercase_unchanged() {
+        // capitalize only changes the first char; rest is preserved verbatim.
+        assert_eq!(capitalize("AUTH"), "AUTH");
+    }
+
+    // ── analyze ───────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_analyze_filters_out_non_orphan_code_findings() {
+        let findings = vec![
+            orphan_finding("src/auth/login.rs"),
+            Finding {
+                code: "CAIRN_OTHER_CODE".to_owned(),
+                severity: FindingSeverity::Warning,
+                message: "other".to_owned(),
+                node: None,
+                target: None,
+                path: Some("src/other/file.rs".to_owned()),
+            },
+        ];
+        let report = analyze(&findings);
+        assert_eq!(
+            report.total_orphaned_files, 1,
+            "non-orphan finding must be excluded"
+        );
+        assert_eq!(report.clusters.len(), 1);
+    }
+
+    #[test]
+    fn test_analyze_deduplicates_same_path() {
+        // Two findings with the same path must count as one orphaned file.
+        let findings = vec![
+            orphan_finding("src/auth/login.rs"),
+            orphan_finding("src/auth/login.rs"),
+        ];
+        let report = analyze(&findings);
+        assert_eq!(report.total_orphaned_files, 1);
+        assert_eq!(report.clusters[0].files.len(), 1);
+    }
+
+    // ── render_human ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_render_human_empty_report_message() {
+        let report = OnboardReport {
+            clusters: vec![],
+            total_orphaned_files: 0,
+        };
+        let text = render_human(&report);
+        assert!(
+            text.contains("No orphaned files found"),
+            "empty report must produce no-orphans message: {text:?}"
+        );
+        assert!(text.ends_with('\n'));
+    }
+
+    #[test]
+    fn test_render_human_header_shows_cluster_and_file_counts() {
+        let findings = vec![
+            orphan_finding("src/auth/login.rs"),
+            orphan_finding("src/auth/session.rs"),
+            orphan_finding("src/db/pool.rs"),
+        ];
+        let report = analyze(&findings);
+        let text = render_human(&report);
+        assert!(
+            text.contains("2 directories"),
+            "header must show cluster count: {text:?}"
+        );
+        assert!(
+            text.contains("3 files"),
+            "header must show total file count: {text:?}"
+        );
     }
 }

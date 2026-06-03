@@ -20,8 +20,6 @@
 //! `#[cflx_planned]` and replaces stub bodies with real assertions
 //! group-by-group as code lands.
 
-use cairn::cflx_planned;
-
 mod cli {
 
     /// Scenario: Whole-map inspection without arguments.
@@ -82,10 +80,93 @@ mod cli {
             "check --json is no longer rejected"
         );
     }
+
+    /// Scenario: No-blueprint JSON response uses status 'ok' because the
+    /// finding is non-blocking Info severity.
+    #[test]
+    fn test_check__json_no_blueprint_uses_ok_status_for_info_severity() {
+        let result = cairn::cli::run(&[
+            "--json".to_owned(),
+            "--file".to_owned(),
+            "/nonexistent/cairn.blueprint".to_owned(),
+            "check".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "check always exits zero (non-blocking)");
+        let stdout = result.stdout.trim();
+        let parsed: serde_json::Value = serde_json::from_str(stdout)
+            .expect("cairn check --json must always produce valid JSON");
+        assert_eq!(parsed["command"], "check", "envelope must name the command");
+        let findings = parsed["data"]["findings"]
+            .as_array()
+            .expect("envelope must contain findings array");
+        let f = findings
+            .iter()
+            .find(|f| f["code"] == "CAIRN_NO_BLUEPRINT")
+            .expect("no-blueprint finding must be present");
+        assert_eq!(
+            parsed["status"], "ok",
+            "no-blueprint response with Info severity must have status 'ok', not 'error'"
+        );
+        assert_eq!(
+            f["severity"], "info",
+            "no-blueprint finding must have Info severity"
+        );
+    }
+
+    /// Scenario: Context summary includes Info-severity finding count.
+    #[test]
+    fn test_context__summary_includes_info_severity_count() {
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "context".to_owned(),
+        ]);
+        assert_eq!(result.code, 0);
+        assert!(
+            result.stdout.contains("Findings:"),
+            "context must include findings summary line"
+        );
+        // The summary should mention info count alongside errors and warnings.
+        assert!(
+            result.stdout.contains("info") || result.stdout.contains("infos"),
+            "context findings summary must include Info count; got: {}",
+            result.stdout
+        );
+    }
+
+    /// Scenario: Scan --strict exits non-zero on Warning findings.
+    #[test]
+    fn test_scan__strict_exits_non_zero_on_warning_findings() {
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "scan".to_owned(),
+            "--strict".to_owned(),
+        ]);
+        // The bootstrap fixture has warnings (ghost nodes) so strict must fail.
+        assert!(
+            result.code != 0,
+            "scan --strict must exit non-zero when warnings exist; got code: {}",
+            result.code
+        );
+    }
+
+    /// Scenario: Scan without --strict exits zero on Warning-only findings.
+    #[test]
+    fn test_scan__non_strict_exits_zero_on_warning_only_findings() {
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "scan".to_owned(),
+        ]);
+        assert_eq!(
+            result.code, 0,
+            "scan without --strict must exit zero when only warnings exist"
+        );
+    }
 }
 
 mod empty_state {
-    use super::cflx_planned;
 
     /// Scenario: No-blueprint invocation renders a CTA.
     #[test]
@@ -104,10 +185,28 @@ mod empty_state {
     }
 
     /// Scenario: Clean-map result renders a CTA.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_empty_state__clean_map_result_renders_cta() {
-        unimplemented!("awaits phase-7.7: empty-state clean-map result renders CTA");
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        std::fs::write(
+            &bp,
+            r#"System Test "Test system" id "test" {
+}
+"#,
+        )
+        .expect("write blueprint");
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            bp.to_string_lossy().to_string(),
+            "check".to_owned(),
+        ]);
+        assert_eq!(result.code, 0, "clean-map check exits zero");
+        assert!(
+            result.stdout.contains("Blueprint reconciled cleanly"),
+            "clean-map output must use cli-clean-map copy, got: {}",
+            result.stdout
+        );
     }
 
     /// Scenario: Empty-state copy is free of em-dashes (CLI and webui share copy file).
@@ -119,10 +218,53 @@ mod empty_state {
             "copy.toml must not contain em-dashes (U+2014)"
         );
     }
+
+    /// Scenario: Empty-state entries have heading, body, and cta fields.
+    #[test]
+    fn test_empty_state__entries_have_heading_body_cta() {
+        let copy_toml = include_str!("../docs/design-system/copy.toml");
+        let table: toml::Table = copy_toml.parse().expect("copy.toml must be valid TOML");
+        let empty_states = table
+            .get("empty-states")
+            .expect("empty-states section must exist");
+        let cli_no_bp = empty_states
+            .get("cli-no-blueprint")
+            .expect("cli-no-blueprint must exist");
+        assert!(
+            cli_no_bp.get("heading").is_some(),
+            "cli-no-blueprint must have a heading field"
+        );
+        assert!(
+            cli_no_bp.get("body").is_some(),
+            "cli-no-blueprint must have a body field"
+        );
+        assert!(
+            cli_no_bp.get("cta").is_some(),
+            "cli-no-blueprint must have a cta field"
+        );
+    }
+
+    /// Scenario: CT001 and CT002 findings have copy entries.
+    #[test]
+    fn test_explorer__ct001_ct002_have_copy_entries() {
+        let copy_toml = include_str!("../docs/design-system/copy.toml");
+        let table: toml::Table = copy_toml.parse().expect("copy.toml must be valid TOML");
+        let codes = table
+            .get("findings")
+            .and_then(|f| f.get("codes"))
+            .expect("findings.codes section must exist");
+        assert!(
+            codes.get("CT001").is_some(),
+            "CT001 must have a copy entry with heading, body, cta"
+        );
+        assert!(
+            codes.get("CT002").is_some(),
+            "CT002 must have a copy entry with heading, body, cta"
+        );
+    }
 }
 
 mod explorer {
-    use super::cflx_planned;
 
     /// Scenario: Component is defined with token-only styling.
     #[test]
@@ -146,6 +288,7 @@ mod explorer {
 
     /// Scenario: All ten inline empty-state strings are replaced.
     #[test]
+
     fn test_explorer__ten_inline_empty_state_strings_replaced() {
         let js = include_str!("../src/ui_assets/app.js");
         let count = js.matches(r#"copy("empty-states."#).count();
@@ -298,32 +441,114 @@ mod explorer {
         );
     }
 
+    /// Scenario: Node with CE001 + CT001 renders CE001 nudge with substituted node name.
+    #[test]
+    fn test_explorer__banner_substitutes_node_name_in_nudge_body() {
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("substituteCopy") && js.contains("{ node: f.node || \"\""),
+            "ProseNudgeBanner must substitute {{node}} placeholder from finding node"
+        );
+        assert!(
+            js.contains("SEVERITY_RANK")
+                && js.contains("error: 0")
+                && js.contains("warning: 1")
+                && js.contains("info: 2"),
+            "severity ranking must place error < warning < info so CE001 (Error) wins over CT001"
+        );
+    }
+
+    /// Scenario: Copy button is wired to the CTA snippet.
+    #[test]
+    fn test_explorer__banner_cta_has_copy_button() {
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("CopyButton"),
+            "ProseNudgeBanner must include a CopyButton component"
+        );
+        assert!(
+            js.contains("prose-nudge-cta-row"),
+            "CTA must be wrapped in a row container for the copy button"
+        );
+
+        assert!(
+            js.contains("navigator.clipboard") || js.contains("document.execCommand"),
+            "CopyButton must use clipboard API or fallback"
+        );
+    }
+
+    /// Scenario: Prose-nudge substitutes {target} placeholder from finding target.
+    #[test]
+    fn test_explorer__banner_substitutes_target_placeholder() {
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains("target: f.target || \"\""),
+            "ProseNudgeBanner vars must include target from finding"
+        );
+    }
+
     /// Scenario: Structural error indicator (integrity overlay).
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__structural_error_indicator() {
-        unimplemented!("awaits phase-7.7: explorer structural error indicator");
+        let js = include_str!("../src/ui_assets/app.js");
+        let copy = include_str!("../docs/design-system/copy.toml");
+        assert!(
+            js.contains("nodeSeverityById"),
+            "integrity overlay must compute node severity from lint findings"
+        );
+        assert!(
+            copy.contains("CAIRN_INTEGRITY_DUPLICATE_ID")
+                || copy.contains("CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT")
+                || copy.contains("CAIRN_INTEGRITY_PATH_TIE"),
+            "copy.toml must define structural error finding codes"
+        );
     }
 
     /// Scenario: Interface contradiction indicator (integrity overlay).
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__interface_contradiction_indicator() {
-        unimplemented!("awaits phase-7.7: explorer interface contradiction indicator");
+        let js = include_str!("../src/ui_assets/app.js");
+        let copy = include_str!("../docs/design-system/copy.toml");
+        assert!(
+            js.contains("findingSeverity"),
+            "node components must receive findingSeverity prop"
+        );
+        assert!(
+            copy.contains("CAIRN_INTERFACE_HASH_CHANGED")
+                || copy.contains("CAIRN_CONTRACT_MISSING"),
+            "copy.toml must define interface contradiction finding codes"
+        );
     }
 
     /// Scenario: Rationale tension indicator (integrity overlay).
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__rationale_tension_indicator() {
-        unimplemented!("awaits phase-7.7: explorer rationale tension indicator");
+        let js = include_str!("../src/ui_assets/app.js");
+        let copy = include_str!("../docs/design-system/copy.toml");
+        assert!(
+            js.contains("var(--settled)"),
+            "overlay must use settled color token for info-severity indicators"
+        );
+        assert!(
+            copy.contains("CAIRN_DECISION_ORPHANED")
+                || copy.contains("CAIRN_PROVENANCE_NO_DECISION")
+                || copy.contains("CAIRN_SOURCE_UNVERIFIED"),
+            "copy.toml must define rationale tension finding codes"
+        );
     }
 
     /// Scenario: Info-severity findings appear in the overlay.
-    #[cflx_planned(phase = 707)]
     #[test]
     fn test_explorer__info_severity_findings_appear_in_overlay() {
-        unimplemented!("awaits phase-7.7: explorer info-severity findings appear in overlay");
+        let js = include_str!("../src/ui_assets/app.js");
+        assert!(
+            js.contains(r#"findingSeverity === "info""#),
+            "overlay must render info-severity indicators in node components"
+        );
+        assert!(
+            js.contains("info: 2"),
+            "nodeSeverityById must rank info severity"
+        );
     }
 }
 
@@ -363,6 +588,7 @@ mod reconciliation {
             severity: cairn::map::FindingSeverity::Info,
             message: "source `s1` is unverified".to_owned(),
             node: None,
+            target: None,
             path: Some("openspec/sources/s1.md".to_owned()),
         };
         assert_eq!(finding.severity, cairn::map::FindingSeverity::Info);
@@ -392,6 +618,7 @@ mod reconciliation {
             severity: cairn::map::FindingSeverity::Info,
             message: "advisory".to_owned(),
             node: Some("node-a".to_owned()),
+            target: Some("public_api".to_owned()),
             path: None,
         };
         let json = serde_json::to_string(&finding).expect("serialise");
@@ -399,7 +626,122 @@ mod reconciliation {
             json.contains("\"severity\":\"info\""),
             "severity must serde-render lowercase to match /api/lint wire format, got: {json}"
         );
+
+        assert!(
+            json.contains("\"target\":\"public_api\""),
+            "target field must appear in JSON, got: {json}"
+        );
         let back: cairn::map::graph::Finding = serde_json::from_str(&json).expect("deserialise");
         assert_eq!(back, finding);
+    }
+}
+
+mod check_findings {
+    use std::fs;
+
+    /// Scenario: Check renders Error, Warning, and Info findings.
+    #[test]
+    fn test_check__renders_all_three_severity_levels() {
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        fs::write(
+            &bp,
+            r#"System Test "Test" id "test" {
+    Module Auth "Auth" id "test.auth" {
+        path "./src/auth"
+        todos "./meta/todos"
+    }
+}
+test.auth -> test.nonexistent "Bad edge"
+"#,
+        )
+        .expect("write blueprint");
+
+        fs::create_dir_all(root.path().join("src/auth")).expect("create auth dir");
+        fs::write(root.path().join("src/auth/lib.rs"), "pub fn login() {}")
+            .expect("write auth file");
+        fs::write(root.path().join("src/orphan.rs"), "pub fn orphan() {}")
+            .expect("write orphan file");
+
+        fs::create_dir_all(root.path().join("meta/todos")).expect("create todo dir");
+        fs::write(
+            root.path().join("meta/todos/todo.md"),
+            "---\nnode: test.unknown\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
+        )
+        .expect("write todo file");
+
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            bp.to_string_lossy().to_string(),
+            "check".to_owned(),
+        ]);
+
+        assert!(
+            result.stdout.contains("Error"),
+            "check must render Error findings, got: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("Warning"),
+            "check must render Warning findings, got: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("Info"),
+            "check must render Info findings, got: {}",
+            result.stdout
+        );
+    }
+
+    /// Scenario: Node-scoped check filters to findings on that node.
+    #[test]
+    fn test_check__node_scoped_filters_findings() {
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        fs::write(
+            &bp,
+            r#"System Test "Test" id "test" {
+    Module Auth "Auth" id "test.auth" {
+        path "./src/auth"
+        todos "./meta/todos"
+    }
+}
+test.auth -> test.nonexistent "Bad edge"
+"#,
+        )
+        .expect("write blueprint");
+
+        fs::create_dir_all(root.path().join("src/auth")).expect("create auth dir");
+        fs::write(root.path().join("src/auth/lib.rs"), "pub fn login() {}")
+            .expect("write auth file");
+        fs::write(root.path().join("src/orphan.rs"), "pub fn orphan() {}")
+            .expect("write orphan file");
+
+        fs::create_dir_all(root.path().join("meta/todos")).expect("create todo dir");
+        fs::write(
+            root.path().join("meta/todos/todo.md"),
+            "---\nnode: test.unknown\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
+        )
+        .expect("write todo file");
+
+        let result = cairn::cli::run(&[
+            "--file".to_owned(),
+            bp.to_string_lossy().to_string(),
+            "check".to_owned(),
+            "test.unknown".to_owned(),
+        ]);
+
+        assert!(
+            result.stdout.contains("CAIRN_TODO_ORPHAN_NODE"),
+            "node-scoped check must show findings on test.unknown, got: {}",
+            result.stdout
+        );
+        assert!(
+            !result
+                .stdout
+                .contains("CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT"),
+            "node-scoped check must NOT show findings on other nodes, got: {}",
+            result.stdout
+        );
     }
 }

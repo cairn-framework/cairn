@@ -1,0 +1,33 @@
+---
+source: tests/phase_7_6_ai_provenance.rs
+expression: json
+---
+{
+  "entries": [
+    {
+      "confidence": 0.85,
+      "provenance": {
+        "stage": "propose",
+        "trace_phase": "phase-9-brownfield"
+      },
+      "relation": "related_to",
+      "source": "src.auth",
+      "target": "src.identity",
+      "triage_note": null,
+      "triage_state": "pending"
+    },
+    {
+      "confidence": 0.85,
+      "provenance": {
+        "stage": "propose",
+        "trace_phase": "phase-9-brownfield"
+      },
+      "relation": "related_to",
+      "source": "src.identity",
+      "target": "src.auth",
+      "triage_note": null,
+      "triage_state": "pending"
+    }
+  ],
+  "version": 1
+}

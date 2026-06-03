@@ -98,6 +98,26 @@ pub enum DecisionStatus {
     Superseded,
 }
 
+/// Claims mode for folder enumeration in decision artefacts.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ClaimsMode {
+    /// Every file in the folder must match the claimed list exactly.
+    Exhaustive,
+    /// The claimed list is illustrative only; no drift check is performed.
+    Illustrative,
+}
+
+/// Parsed claims block from a decision artefact frontmatter.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Claims {
+    /// Folder path the claim refers to, relative to project root.
+    pub folder: String,
+    /// Claim mode.
+    pub mode: ClaimsMode,
+    /// Claimed file names (not paths).
+    pub items: Vec<String>,
+}
+
 /// Parsed decision.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Decision {
@@ -127,6 +147,9 @@ pub struct Decision {
     pub orphaned: bool,
     /// Orphan reason.
     pub orphan_reason: Option<String>,
+
+    /// Optional folder-enumeration claims.
+    pub claims: Option<Claims>,
     /// Markdown body.
     pub body: String,
 }

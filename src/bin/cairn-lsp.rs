@@ -12,6 +12,16 @@ fn main() {
         println!("{}", cairn::version_label());
         process::exit(0);
     }
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{}", cairn::version_label());
+        println!();
+        println!("Usage: cairn-lsp [options]");
+        println!();
+        println!("Options:");
+        println!("  --version  Print version");
+        println!("  --help     Print this help");
+        process::exit(0);
+    }
     eprintln!("cairn-lsp: Language server protocol support is not yet fully implemented.");
     eprintln!(
         "Planned features: diagnostics, completion, hover, go-to-definition, document symbols."

@@ -67,6 +67,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                     severity: FindingSeverity::Info,
                     message: format!("Rust file `{rel}` is not owned by any eligible node"),
                     node: None,
+                    target: None,
                     path: Some(rel),
                 });
             }
@@ -106,7 +107,9 @@ fn collect_owner(node: &Node, owners: &mut Vec<(String, String)>) {
 fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String> {
     owners
         .iter()
-        .filter(|(_, path)| file == path || file.starts_with(&format!("{path}/")))
+        .filter(|(_, path)| {
+            path.is_empty() || path == "." || file == path || file.starts_with(&format!("{path}/"))
+        })
         .max_by_key(|(_, path)| path.len())
         .map(|(id, _)| id.clone())
 }
@@ -209,15 +212,18 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
         if matches!(
             kind,
             "visibility_modifier"
-                | "struct_kw"
-                | "enum_kw"
-                | "trait_kw"
-                | "fn_kw"
-                | "mod_kw"
-                | "use_kw"
-                | "type_kw"
-                | "const_kw"
-                | "static_kw"
+                // tree-sitter-rust uses the bare keyword string as the anonymous
+                // node kind — not "const_kw", "fn_kw", etc.
+                | "struct"
+                | "enum"
+                | "trait"
+                | "fn"
+                | "mod"
+                | "use"
+                | "type"
+                | "const"
+                | "static"
+                | "union"
                 | "name"
                 | "identifier"
                 | "primitive_type"

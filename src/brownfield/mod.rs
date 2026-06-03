@@ -14,10 +14,18 @@ pub mod discovery;
 mod heuristics;
 /// Brownfield init: cold-start extraction from existing code.
 pub mod init;
+/// Brownfield interview runner: multi-round elicitation session.
+pub mod interview;
 /// Brownfield onboarding: orphan grouping and classification.
 pub mod onboard;
 /// Brownfield refine: periodic re-discovery with timestamped changes.
 pub mod refine;
+/// Brownfield suggest engine: cross-cutting edge inference.
+pub mod suggest;
+/// Brownfield summariser integration: builds bounded inputs from candidates.
+pub mod summarise;
+/// Brownfield templated authoring: contract template resolution.
+pub mod templates;
 
 pub use heuristics::{
     CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, Candidate, CandidateConfidence, DIRECTORY_DEPTH_LIMIT,
@@ -31,8 +39,10 @@ use discovery::{DiscoveredCandidate, Extraction};
 #[must_use]
 pub fn stub_contract(candidate: &DiscoveredCandidate) -> String {
     format!(
-        "---\nnode: {}\n---\n# {}\n\n{}",
-        candidate.id, candidate.name, candidate.description
+        "---\nnode: {}\n---\n# {}\n\n{}\n",
+        candidate.id,
+        candidate.name,
+        candidate.description.trim_end()
     )
 }
 
@@ -46,6 +56,7 @@ pub fn write_change(
     root: &std::path::Path,
     change_id: &str,
     extraction: &Extraction,
+    templates: &[templates::ContractTemplate],
 ) -> Result<(), CairnError> {
     let change_dir = root.join("openspec/changes").join(change_id);
     create_dir(&change_dir)?;
@@ -60,10 +71,12 @@ pub fn write_change(
     write_file(&change_dir.join("blueprint.delta"), &delta)?;
 
     for candidate in &extraction.candidates {
-        let contract = stub_contract(candidate);
+        let contract = templates::render_stub(candidate, templates);
         let file_name = format!("{}.md", candidate.id.replace('.', "_"));
         write_file(&change_dir.join("contracts").join(file_name), &contract)?;
     }
+
+    suggest::write_suggested_edges(&change_dir, extraction, "phase-9-brownfield", "propose")?;
 
     Ok(())
 }
@@ -112,4 +125,161 @@ fn write_file(path: &std::path::Path, content: &str) -> Result<(), CairnError> {
         path: path.to_string_lossy().to_string(),
         detail: e.to_string(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use discovery::{DiscoveredCandidate, DiscoveredEdge, Extraction};
+
+    fn candidate(id: &str, name: &str, path: &str) -> DiscoveredCandidate {
+        DiscoveredCandidate {
+            id: id.to_owned(),
+            name: name.to_owned(),
+            description: "Handles payments".to_owned(),
+            path: path.to_owned(),
+            tags: Vec::new(),
+            confidence: 0.9,
+            evidence: Vec::new(),
+            edges: Vec::new(),
+        }
+    }
+
+    fn extraction(candidates: Vec<DiscoveredCandidate>) -> Extraction {
+        Extraction {
+            candidates,
+            schema_version: 1,
+        }
+    }
+
+    // ── stub_contract ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_stub_contract_ends_with_newline() {
+        // Without a trailing \n the written file would fail POSIX convention
+        // and could cause the frontmatter parser to drop the last line.
+        let c = candidate("app.payments", "Payments", "payments/");
+        let contract = stub_contract(&c);
+        assert!(
+            contract.ends_with('\n'),
+            "stub_contract output must end with newline, got: {contract:?}"
+        );
+    }
+
+    #[test]
+    fn test_stub_contract_frontmatter_contains_node_id() {
+        let c = candidate("app.payments", "Payments", "payments/");
+        let contract = stub_contract(&c);
+        assert!(
+            contract.contains("node: app.payments"),
+            "frontmatter must have node id: {contract:?}"
+        );
+    }
+
+    #[test]
+    fn test_stub_contract_body_has_h1_name() {
+        let c = candidate("app.payments", "Payments", "payments/");
+        let contract = stub_contract(&c);
+        assert!(
+            contract.contains("# Payments"),
+            "body must contain H1 node name: {contract:?}"
+        );
+    }
+
+    #[test]
+    fn test_stub_contract_body_contains_description() {
+        let mut c = candidate("app.payments", "Payments", "payments/");
+        c.description = "Handles payment processing".to_owned();
+        let contract = stub_contract(&c);
+        assert!(
+            contract.contains("Handles payment processing"),
+            "body must contain description: {contract:?}"
+        );
+    }
+
+    // ── node_kind_from_path ───────────────────────────────────────────────────
+
+    #[test]
+    fn test_node_kind_api_segment_is_container() {
+        assert_eq!(node_kind_from_path("src/api"), "Container");
+    }
+
+    #[test]
+    fn test_node_kind_service_segment_is_container() {
+        assert_eq!(node_kind_from_path("service/auth"), "Container");
+    }
+
+    #[test]
+    fn test_node_kind_api_alone_is_container() {
+        assert_eq!(node_kind_from_path("api"), "Container");
+    }
+
+    #[test]
+    fn test_node_kind_apigateway_is_module_not_container() {
+        // "apigateway" is a single segment that does not equal "api";
+        // node_kind_from_path checks exact segment equality only.
+        assert_eq!(node_kind_from_path("apigateway"), "Module");
+    }
+
+    #[test]
+    fn test_node_kind_regular_path_is_module() {
+        assert_eq!(node_kind_from_path("src/payments"), "Module");
+    }
+
+    #[test]
+    fn test_node_kind_backslash_path_api_is_container() {
+        assert_eq!(node_kind_from_path("src\\api"), "Container");
+    }
+
+    // ── blueprint_delta ───────────────────────────────────────────────────────
+
+    #[test]
+    fn test_blueprint_delta_empty_extraction_is_just_header() {
+        let delta = blueprint_delta(&extraction(vec![]));
+        assert!(
+            delta.starts_with("# Blueprint delta"),
+            "delta must start with header: {delta:?}"
+        );
+        assert!(
+            !delta.contains("+ "),
+            "empty extraction must have no node entries"
+        );
+    }
+
+    #[test]
+    fn test_blueprint_delta_single_candidate_no_edges() {
+        let c = candidate("app.payments", "Payments", "payments/");
+        let delta = blueprint_delta(&extraction(vec![c]));
+        assert!(
+            delta.contains(r#"id "app.payments""#),
+            "must contain node id"
+        );
+        assert!(delta.contains(r#"path "payments/""#), "must contain path");
+        assert!(!delta.contains("edge"), "no edges expected");
+    }
+
+    #[test]
+    fn test_blueprint_delta_edge_appears_in_output() {
+        let mut c = candidate("app.payments", "Payments", "payments/");
+        c.edges.push(DiscoveredEdge {
+            target: "app.auth".to_owned(),
+            description: "auth dep".to_owned(),
+            confidence: 0.8,
+        });
+        let delta = blueprint_delta(&extraction(vec![c]));
+        assert!(
+            delta.contains("edge -> app.auth"),
+            "edge must appear in delta: {delta:?}"
+        );
+    }
+
+    #[test]
+    fn test_blueprint_delta_api_path_uses_container_kind() {
+        let c = candidate("app.api", "Api", "src/api");
+        let delta = blueprint_delta(&extraction(vec![c]));
+        assert!(
+            delta.contains("+ Container"),
+            "api path must produce Container kind: {delta:?}"
+        );
+    }
 }

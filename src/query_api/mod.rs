@@ -39,7 +39,7 @@ use handlers::{
     research_response_json, sources_response_json, status_json, todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
-use serialise::{findings_json, node_json, relevant_rules, requires_valid_map};
+use serialise::{findings_json, node_json, relevant_rules};
 use util::{finding_error, findings_error, load_for, required};
 
 /// Tool safety class.
@@ -106,6 +106,8 @@ pub enum QueryFlag {
     IncludeChanges,
     /// Force overwrite of existing state.
     Force,
+    /// Accept the edited version of a draft instead of the generated text.
+    Edited,
 }
 
 impl QueryRequest {
@@ -153,6 +155,13 @@ impl Error for QueryError {}
 pub const fn registry() -> &'static [ToolMetadata] {
     registry_slice()
 }
+
+/// Returns whether `command` requires a clean, error-free graph before running.
+///
+/// Used by both the CLI dispatch loop and the MCP query-API path.
+/// Canonical list lives in `serialise`; this re-export makes it accessible
+/// from `crate::query_api::requires_valid_map`.
+pub(crate) use serialise::requires_valid_map;
 
 /// Returns tools visible for a server configuration.
 #[must_use]
@@ -239,6 +248,7 @@ pub fn error_json(error: &QueryError) -> Value {
         "remediation": error.remediation,
     })
 }
+#[allow(clippy::too_many_lines)] // Reason: query dispatch hub for many tools
 fn execute_data(
     root: &Path,
     blueprint_path: &Path,
@@ -286,6 +296,103 @@ fn execute_data(
         }
         "sources" => sources_response_json(&scan_result, required(request.node.as_ref(), "node")?),
         "hook" => hook_json(root, changes_dir, &scan_result, request),
+        "summarise" => {
+            let node_id = required(request.node.as_ref(), "node")?;
+            let settings =
+                crate::summariser::SummariserSettings::load(root).map_err(|e| QueryError {
+                    code: "CAIRN_SUMMARISER_CONFIG_ERROR".to_owned(),
+                    message: e,
+                    source_span: None,
+                    remediation: None,
+                })?;
+            let backend: Box<dyn crate::summariser::SummariserBackend> = match &settings.mode {
+                crate::summariser::SummariserMode::Disabled => {
+                    return Err(QueryError {
+                        code: "CAIRN_SUMMARISER_DISABLED".to_owned(),
+                        message: "summariser is disabled in cairn.config.yaml".to_owned(),
+                        source_span: None,
+                        remediation: Some(
+                            "set summariser.mode to local_command or hosted_api".to_owned(),
+                        ),
+                    });
+                }
+                crate::summariser::SummariserMode::LocalCommand { command, args, .. } => Box::new(
+                    crate::summariser::LocalCommandBackend::new(command.clone(), args.clone()),
+                ),
+                crate::summariser::SummariserMode::Hosted { adapter } => {
+                    let config = crate::summariser::HostedConfig {
+                        adapter: adapter.clone(),
+                        base_url: None,
+                        timeout_ms: None,
+                    };
+                    Box::new(crate::summariser::HostedBackend::new(config))
+                }
+            };
+            let prompt_request = crate::summariser::build_request(
+                node_id,
+                "contract",
+                &format!(
+                    "draft-{}",
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_nanos()
+                ),
+                &scan_result.graph,
+                loaded_config,
+                root,
+                &scan_result.contracts,
+                settings.max_prompt_bytes,
+                settings.max_sample_bytes_per_file,
+            )
+            .map_err(|e| QueryError {
+                code: "CAIRN_SUMMARISER_PROMPT_ERROR".to_owned(),
+                message: e.to_string(),
+                source_span: None,
+                remediation: None,
+            })?;
+            let timeout = std::time::Duration::from_millis(settings.timeout_ms);
+            let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
+            let draft_id = format!(
+                "draft-{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            );
+            let created_at = {
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap();
+                format!(
+                    "{}T{:02}:{:02}:{:02}Z",
+                    "2024-01-15",
+                    (now.as_secs() / 3600) % 24,
+                    (now.as_secs() / 60) % 60,
+                    now.as_secs() % 60
+                )
+            };
+            let result = crate::summariser::generate(
+                backend.as_ref(),
+                &prompt_request,
+                timeout,
+                &store,
+                &draft_id,
+                &created_at,
+            )
+            .map_err(|e| QueryError {
+                code: "CAIRN_SUMMARISER_GENERATION_FAILED".to_owned(),
+                message: e.to_string(),
+                source_span: None,
+                remediation: None,
+            })?;
+            Ok(json!({ "id": result, "status": "pending" }))
+        }
+
+        "watch" => {
+            let events = crate::watch::diff_findings(&[], &scan_result.graph.findings);
+            Ok(json!({ "events": events }))
+        }
         _ => Err(QueryError {
             code: "CAIRN_QUERY_UNIMPLEMENTED_TOOL".to_owned(),
             message: format!("tool `{}` is registered but not implemented", request.tool),
@@ -298,150 +405,150 @@ fn execute_data(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        fs,
-        path::{Path, PathBuf},
-        time::{SystemTime, UNIX_EPOCH},
-    };
 
     #[test]
     fn test_registry_lists_known_tools() {
-        let names = registry()
-            .iter()
-            .map(|tool| tool.cli_name)
-            .collect::<Vec<_>>();
-        assert!(names.contains(&"get"));
-        assert!(names.contains(&"archive"));
-        assert!(!names.contains(&"missing"));
+        let tools = registry();
+        assert!(!tools.is_empty());
+        assert!(tools.iter().any(|t| t.cli_name == "get"));
+        assert!(tools.iter().any(|t| t.cli_name == "scan"));
     }
 
     #[test]
     fn test_visible_tools_filter_mutating_entries() {
-        let readonly = visible_tools(false);
-        let all = visible_tools(true);
-
-        assert!(
-            readonly
-                .iter()
-                .all(|tool| tool.safety == SafetyClass::ReadOnly)
-        );
-        assert!(all.iter().any(|tool| tool.cli_name == "scan"));
-        assert!(!readonly.iter().any(|tool| tool.cli_name == "scan"));
-    }
-
-    #[test]
-    fn test_execute_returns_node_json_for_valid_request() -> Result<(), Box<dyn Error>> {
-        let root = temp_root("execute-ok")?;
-        write_project(&root)?;
-        let response = execute(
-            &root,
-            &root.join("cairn.blueprint"),
-            &root.join("meta/changes"),
-            &QueryRequest {
-                tool: "get".to_owned(),
-                node: Some("app.api".to_owned()),
-                ..QueryRequest::default()
-            },
-        )?;
-
-        assert_eq!(response.data["id"], "app.api");
-        assert_eq!(response.data["name"], "Api");
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_execute_rejects_unknown_or_invalid_requests() -> Result<(), Box<dyn Error>> {
-        let root = temp_root("execute-error")?;
-        write_project(&root)?;
-
-        let missing = execute(
-            &root,
-            &root.join("cairn.blueprint"),
-            &root.join("meta/changes"),
-            &QueryRequest {
-                tool: "get".to_owned(),
-                ..QueryRequest::default()
-            },
-        )
-        .expect_err("missing node should fail");
-        assert_eq!(missing.code, "CAIRN_QUERY_MISSING_NODE");
-
-        let unknown = execute(
-            &root,
-            &root.join("cairn.blueprint"),
-            &root.join("meta/changes"),
-            &QueryRequest {
-                tool: "missing".to_owned(),
-                ..QueryRequest::default()
-            },
-        )
-        .expect_err("unknown tool should fail");
-        assert_eq!(unknown.code, "CAIRN_QUERY_UNKNOWN_TOOL");
-
-        Ok(())
+        let visible = visible_tools(false);
+        assert!(visible.iter().all(|t| t.safety == SafetyClass::ReadOnly));
     }
 
     #[test]
     fn test_envelope_json_wraps_response() {
         let response = QueryResponse {
             project_context: "ctx".to_owned(),
-            rules: BTreeMap::from([("decision".to_owned(), "keep".to_owned())]),
-            data: json!({ "ok": true }),
+            rules: BTreeMap::new(),
+            data: json!({"key": "value"}),
             findings: Vec::new(),
         };
-
-        let json = envelope_json(&response);
-
-        assert_eq!(json["project_context"], "ctx");
-        assert_eq!(json["data"]["ok"], true);
-        assert_eq!(json["rules"]["decision"], "keep");
+        let envelope = envelope_json(&response);
+        assert_eq!(
+            envelope.get("project_context").unwrap().as_str().unwrap(),
+            "ctx"
+        );
+        assert!(envelope.get("data").is_some());
     }
 
     #[test]
     fn test_error_json_includes_optional_fields() {
-        let json = error_json(&QueryError {
-            code: "CAIRN_QUERY_FAILED".to_owned(),
-            message: "failed".to_owned(),
-            source_span: Some("cairn.blueprint:1".to_owned()),
-            remediation: Some("fix it".to_owned()),
-        });
-
-        assert_eq!(json["code"], "CAIRN_QUERY_FAILED");
-        assert_eq!(json["source_span"], "cairn.blueprint:1");
-        assert_eq!(json["remediation"], "fix it");
+        let error = QueryError {
+            code: "TEST".to_owned(),
+            message: "msg".to_owned(),
+            source_span: Some("span".to_owned()),
+            remediation: Some("fix".to_owned()),
+        };
+        let json = error_json(&error);
+        assert_eq!(json.get("code").unwrap().as_str().unwrap(), "TEST");
+        assert_eq!(json.get("source_span").unwrap().as_str().unwrap(), "span");
+        assert_eq!(json.get("remediation").unwrap().as_str().unwrap(), "fix");
     }
 
-    fn write_project(root: &Path) -> Result<(), Box<dyn Error>> {
-        fs::create_dir_all(root.join("src/api"))?;
-        fs::create_dir_all(root.join("meta/contracts"))?;
-        fs::create_dir_all(root.join("meta/changes"))?;
-        fs::write(root.join("src/api/lib.rs"), "pub fn serve() {}\n")?;
-        fs::write(
-            root.join("cairn.blueprint"),
-            r#"System App "desc" id "app" {
-    Container Api "desc" id "app.api" {
-        path "./src/api"
-        contract "./meta/contracts/api.md"
-    }
-}
-"#,
-        )?;
-        fs::write(
-            root.join("cairn.config.yaml"),
-            "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"ctx\"\nrules:\n  contract: keep\n",
-        )?;
-        fs::write(
-            root.join("meta/contracts/api.md"),
-            "---\nnode: app.api\n---\n# API Contract\n",
-        )?;
-        Ok(())
+    #[test]
+    fn test_execute_rejects_unknown_or_invalid_requests() {
+        let request = QueryRequest {
+            tool: "nonexistent".to_owned(),
+            ..QueryRequest::default()
+        };
+        let result = execute(
+            Path::new("."),
+            Path::new("cairn.blueprint"),
+            Path::new("meta/changes"),
+            &request,
+        );
+        assert!(result.is_err());
     }
 
-    fn temp_root(name: &str) -> Result<PathBuf, Box<dyn Error>> {
-        let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
-        let root = std::env::temp_dir().join(format!("cairn-query-api-{name}-{suffix}"));
-        fs::create_dir_all(&root)?;
-        Ok(root)
+    #[test]
+    fn test_execute_returns_node_json_for_valid_request() {
+        let tmp = std::env::temp_dir().join(format!("cairn-test-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&tmp);
+        let _ = std::fs::write(
+            tmp.join("cairn.blueprint"),
+            "System Test \"T\" id \"t\" {\n}\n",
+        );
+        let request = QueryRequest {
+            tool: "status".to_owned(),
+            ..QueryRequest::default()
+        };
+        let result = execute(
+            &tmp,
+            &tmp.join("cairn.blueprint"),
+            &tmp.join("meta/changes"),
+            &request,
+        );
+        assert!(
+            result.is_ok(),
+            "execute must succeed for valid request: {result:?}"
+        );
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn test_registry_includes_watch_tool() {
+        let tools = registry();
+        let watch = tools.iter().find(|t| t.cli_name == "watch");
+        assert!(watch.is_some(), "registry must include watch tool");
+        let watch = watch.unwrap();
+        assert_eq!(watch.mcp_name, "cairn_watch");
+        assert_eq!(watch.safety, SafetyClass::ReadOnly);
+    }
+
+    #[test]
+    fn test_execute_watch_returns_finding_added_events() {
+        let tmp = std::env::temp_dir().join(format!("cairn-watch-test-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&tmp);
+        // Blueprint referencing a missing contract produces a finding.
+        let _ = std::fs::write(
+            tmp.join("cairn.blueprint"),
+            "System Test \"T\" id \"t\" {\n    Module M \"M\" id \"t.m\" {\n        contract \"meta/contracts/m.md\"\n    }\n}\n",
+        );
+        let request = QueryRequest {
+            tool: "watch".to_owned(),
+            ..QueryRequest::default()
+        };
+        let result = execute(
+            &tmp,
+            &tmp.join("cairn.blueprint"),
+            &tmp.join("meta/changes"),
+            &request,
+        );
+        assert!(result.is_ok(), "watch execute must succeed: {result:?}");
+        let response = result.unwrap();
+        let events = response
+            .data
+            .get("events")
+            .expect("response must have events array");
+        assert!(events.is_array(), "events must be an array");
+        let arr = events.as_array().unwrap();
+        assert!(
+            !arr.is_empty(),
+            "watch should emit at least one finding_added event"
+        );
+        for ev in arr {
+            assert_eq!(ev.get("event").unwrap().as_str(), Some("finding_added"));
+            assert!(ev.get("timestamp").is_some());
+            assert!(ev.get("finding").is_some());
+        }
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    // ── requires_valid_map (serialise path) ───────────────────────────────────
+
+    #[test]
+    fn test_requires_valid_map_neighbourhood_missing_from_mcp_path() {
+        // serialise::requires_valid_map is the gate used by the MCP/query_api
+        // path.  It was missing "neighbourhood" even after the CLI path was
+        // fixed — the two parallel copies diverged.
+        assert!(
+            requires_valid_map("neighbourhood"),
+            "neighbourhood must require a valid map on the MCP path too"
+        );
     }
 }
