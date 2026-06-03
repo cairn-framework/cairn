@@ -113,50 +113,63 @@ fn reconcile_targets(
             .or_default()
             .push(target);
     }
+    // Each language reconciler scans the entire project root; calling it
+    // once per target produces duplicate orphaned-file findings. Cache
+    // results by language so each reconciler runs exactly once.
+    let mut reconciler_cache: BTreeMap<Language, crate::reconcile::ReconcileReport> =
+        BTreeMap::new();
     for (node_id, node_targets) in by_node {
         let mut node_reports = Vec::new();
         let mut aggregated_files = BTreeMap::<String, Vec<String>>::new();
         let mut aggregated_symbols = Vec::new();
         for target in node_targets {
-            let request = ReconcileRequest { root, ignores };
-            let result = match target.language {
-                Language::Rust => rust_reconciler.reconcile(request),
-                Language::TypeScript => {
-                    let reconciler = crate::reconcile::typescript::TypeScriptReconciler::new(ast);
-                    reconciler.reconcile(request)
+            let report = reconciler_cache.entry(target.language).or_insert_with(|| {
+                let req = ReconcileRequest { root, ignores };
+                match target.language {
+                    Language::Rust => rust_reconciler.reconcile(req).unwrap(),
+                    Language::TypeScript => {
+                        let reconciler =
+                            crate::reconcile::typescript::TypeScriptReconciler::new(ast);
+                        reconciler.reconcile(req).unwrap()
+                    }
+                    Language::Python => {
+                        let reconciler = crate::reconcile::python::PythonReconciler::new(ast);
+                        reconciler.reconcile(req).unwrap()
+                    }
+                    Language::Go => {
+                        let reconciler = crate::reconcile::go::GoReconciler::new(ast);
+                        reconciler.reconcile(req).unwrap()
+                    }
                 }
-                Language::Python => {
-                    let reconciler = crate::reconcile::python::PythonReconciler::new(ast);
-                    reconciler.reconcile(request)
-                }
-                Language::Go => {
-                    let reconciler = crate::reconcile::go::GoReconciler::new(ast);
-                    reconciler.reconcile(request)
-                }
-            };
-            if let Ok(report) = result {
-                let hash = report.fingerprint.hash.clone();
-                let owned_files = report
-                    .claimed_files
-                    .get(&node_id)
-                    .cloned()
-                    .unwrap_or_default();
-                let owned_symbols = report.symbols.clone();
-                for (owner, files) in report.claimed_files {
-                    aggregated_files.entry(owner).or_default().extend(files);
-                }
-                aggregated_symbols.extend(report.symbols);
-                all_findings.extend(report.findings);
-                node_reports.push(TargetReport {
-                    target_id: target.id.clone(),
-                    language: target.language,
-                    reconciler_id: target.reconciler_id.clone(),
-                    claimed_files: owned_files,
-                    symbols: owned_symbols,
-                    hash,
-                });
+            });
+            let hash = report.fingerprint.hash.clone();
+            let owned_files = report
+                .claimed_files
+                .get(&node_id)
+                .cloned()
+                .unwrap_or_default();
+            let owned_symbols = report.symbols.clone();
+            for (owner, files) in &report.claimed_files {
+                aggregated_files
+                    .entry(owner.clone())
+                    .or_default()
+                    .extend(files.clone());
             }
+            aggregated_symbols.extend(report.symbols.clone());
+            node_reports.push(TargetReport {
+                target_id: target.id.clone(),
+                language: target.language,
+                reconciler_id: target.reconciler_id.clone(),
+                claimed_files: owned_files,
+                symbols: owned_symbols,
+                hash,
+            });
         }
+        // Collect findings only once per cached reconciler run, not per target.
+        for report in reconciler_cache.values() {
+            all_findings.extend(report.findings.clone());
+        }
+        reconciler_cache.clear();
         reports.extend(node_reports);
     }
     let divergence_findings = detect_divergence(&reports, targets, config);
