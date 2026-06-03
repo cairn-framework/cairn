@@ -127,7 +127,7 @@ pub fn is_ignored(path: &str, ignores: &[String]) -> bool {
 }
 
 fn built_in_ignores() -> Vec<String> {
-    [".git", "target", "node_modules", ".DS_Store"]
+    [".git", "target", "node_modules", ".DS_Store", ".claude"]
         .iter()
         .map(ToString::to_string)
         .collect()
