@@ -6,12 +6,15 @@ use api::{
     lint_json, meta_json, node_json, project_finding, rationale_json, status_json,
 };
 use serialise::{esc, percent_decode};
+use std::{cell::RefCell, time::SystemTime};
 
 pub(super) struct Server {
     pub(super) options: UiOptions,
     root: PathBuf,
     listener: TcpListener,
     pub(super) address: SocketAddr,
+    cached_scan: RefCell<Option<scanner::ScanResult>>,
+    cached_mtime: RefCell<Option<SystemTime>>,
 }
 
 impl Server {
@@ -34,6 +37,8 @@ impl Server {
             root,
             listener,
             address,
+            cached_scan: RefCell::new(None),
+            cached_mtime: RefCell::new(None),
         })
     }
 
@@ -184,7 +189,24 @@ impl Server {
     }
 
     fn load_project(&self) -> Result<scanner::ScanResult, UiError> {
-        scanner::load_project(&self.root, &self.options.blueprint_path).map_err(UiError::Project)
+        let blueprint_path = &self.options.blueprint_path;
+        let current_mtime = fs::metadata(blueprint_path).and_then(|m| m.modified()).ok();
+
+        let should_reload = {
+            let cached_mtime = *self.cached_mtime.borrow();
+            match (cached_mtime, current_mtime) {
+                (Some(c), Some(m)) => c != m,
+                _ => true,
+            }
+        };
+
+        if !should_reload && let Some(scan) = self.cached_scan.borrow().as_ref() {
+            return Ok(scan.clone());
+        }
+        let scan = scanner::load_project(&self.root, blueprint_path).map_err(UiError::Project)?;
+        *self.cached_mtime.borrow_mut() = current_mtime;
+        *self.cached_scan.borrow_mut() = Some(scan.clone());
+        Ok(scan)
     }
 }
 

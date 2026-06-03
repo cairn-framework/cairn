@@ -35,8 +35,9 @@ mod util;
 use change_queries::dispatch_change_tool;
 use handlers::{
     context_json, contract_json, decisions_response_json, dependency_json, docstring_json,
-    files_json, hook_json, islands_json, neighbourhood_json, rationale_json,
-    research_response_json, sources_response_json, status_json, todos_response_json,
+    files_json, health_json, hook_json, islands_json, neighbourhood_json, rationale_json,
+    remediate_json, research_response_json, sources_response_json, status_json,
+    todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{findings_json, node_json, relevant_rules};
@@ -296,6 +297,8 @@ fn execute_data(
         }
         "sources" => sources_response_json(&scan_result, required(request.node.as_ref(), "node")?),
         "hook" => hook_json(root, changes_dir, &scan_result, request),
+        "health" => Ok(health_json(root, changes_dir, &scan_result)),
+        "remediate" => Ok(remediate_json(root, changes_dir, &scan_result)),
         "summarise" => {
             let node_id = required(request.node.as_ref(), "node")?;
             let settings =
@@ -536,6 +539,78 @@ mod tests {
             assert!(ev.get("timestamp").is_some());
             assert!(ev.get("finding").is_some());
         }
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn test_registry_includes_health_tool() {
+        let tools = registry();
+        let health = tools.iter().find(|t| t.cli_name == "health");
+        assert!(health.is_some(), "registry must include health tool");
+        let health = health.unwrap();
+        assert_eq!(health.mcp_name, "cairn_health");
+        assert_eq!(health.safety, SafetyClass::ReadOnly);
+    }
+
+    #[test]
+    fn test_execute_health_returns_structured_response() {
+        let tmp = std::env::temp_dir().join(format!("cairn-health-test-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&tmp);
+        let _ = std::fs::write(
+            tmp.join("cairn.blueprint"),
+            "System Test \"T\" id \"t\" {\n}\n",
+        );
+        let request = QueryRequest {
+            tool: "health".to_owned(),
+            ..QueryRequest::default()
+        };
+        let result = execute(
+            &tmp,
+            &tmp.join("cairn.blueprint"),
+            &tmp.join("meta/changes"),
+            &request,
+        );
+        assert!(result.is_ok(), "health execute must succeed: {result:?}");
+        let response = result.unwrap();
+        assert!(response.data.get("clean").is_some());
+        assert!(response.data.get("summary").is_some());
+        assert!(response.data.get("lint").is_some());
+        assert!(response.data.get("hooks").is_some());
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn test_registry_includes_remediate_tool() {
+        let tools = registry();
+        let remediate = tools.iter().find(|t| t.cli_name == "remediate");
+        assert!(remediate.is_some(), "registry must include remediate tool");
+        let remediate = remediate.unwrap();
+        assert_eq!(remediate.mcp_name, "cairn_remediate");
+        assert_eq!(remediate.safety, SafetyClass::ReadOnly);
+    }
+
+    #[test]
+    fn test_execute_remediate_returns_action_plan() {
+        let tmp = std::env::temp_dir().join(format!("cairn-remediate-test-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&tmp);
+        let _ = std::fs::write(
+            tmp.join("cairn.blueprint"),
+            "System Test \"T\" id \"t\" {\n}\n",
+        );
+        let request = QueryRequest {
+            tool: "remediate".to_owned(),
+            ..QueryRequest::default()
+        };
+        let result = execute(
+            &tmp,
+            &tmp.join("cairn.blueprint"),
+            &tmp.join("meta/changes"),
+            &request,
+        );
+        assert!(result.is_ok(), "remediate execute must succeed: {result:?}");
+        let response = result.unwrap();
+        assert!(response.data.get("actions").is_some());
+        assert!(response.data.get("total_actions").is_some());
         let _ = std::fs::remove_dir_all(&tmp);
     }
 

@@ -467,3 +467,169 @@ pub(super) fn hook_json(
         "exit_code": report.exit_code(),
     }))
 }
+pub(super) fn health_json(
+    root: &Path,
+    changes_dir: &Path,
+    scan_result: &scanner::ScanResult,
+) -> Value {
+    let lint_response = query::lint(&scan_result.graph);
+    let (lint_errors, lint_warnings, lint_info) = count_findings(&lint_response.findings);
+    let hook_report =
+        crate::hooks::run(crate::hooks::HookKind::All, root, changes_dir, scan_result);
+    let (hook_errors, hook_warnings, hook_info) = count_findings(&hook_report.findings);
+    let total_errors = lint_errors + hook_errors;
+    let total_warnings = lint_warnings + hook_warnings;
+    let total_info = lint_info + hook_info;
+    let clean = total_errors == 0 && hook_report.decision == crate::hooks::ExitDecision::Pass;
+    let mut synced = 0usize;
+    let mut ghost = 0usize;
+    let mut orphaned = 0usize;
+    for node in scan_result.graph.nodes.values() {
+        match node.state {
+            crate::map::NodeState::Synced => synced += 1,
+            crate::map::NodeState::Ghost => ghost += 1,
+            crate::map::NodeState::Orphaned => orphaned += 1,
+        }
+    }
+    json!({
+        "clean": clean,
+        "summary": {
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "total_info": total_info,
+            "modules": {
+                "synced": synced,
+                "ghost": ghost,
+                "orphaned": orphaned,
+            },
+        },
+        "lint": {
+            "errors": lint_errors,
+            "warnings": lint_warnings,
+            "info": lint_info,
+            "findings": findings_json(&lint_response.findings),
+        },
+        "hooks": {
+            "decision": hook_decision_name(hook_report.decision),
+            "errors": hook_errors,
+            "warnings": hook_warnings,
+            "info": hook_info,
+            "findings": findings_json(&hook_report.findings),
+        },
+    })
+}
+pub(super) fn remediate_json(
+    root: &Path,
+    changes_dir: &Path,
+    scan_result: &scanner::ScanResult,
+) -> Value {
+    let lint_response = query::lint(&scan_result.graph);
+    let hook_report =
+        crate::hooks::run(crate::hooks::HookKind::All, root, changes_dir, scan_result);
+    let mut actions: Vec<Value> = Vec::new();
+    let mut has_orphans = false;
+    let mut has_ghosts = false;
+    let mut has_interface_changes = false;
+    let mut has_missing_decisions = false;
+    let mut has_parse_errors = false;
+    for finding in &lint_response.findings {
+        match finding.code.as_str() {
+            "CAIRN_RECONCILE_ORPHANED_FILE" => has_orphans = true,
+            "CAIRN_INTEGRITY_DUPLICATE_ID"
+            | "CAIRN_INTEGRITY_INVALID_ID"
+            | "CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT"
+            | "CAIRN_INTEGRITY_PATH_TIE"
+            | "CAIRN_PARSE_UNEXPECTED_TOKEN"
+            | "CAIRN_PARSE_UNTERMINATED_STRING"
+            | "CAIRN_IO_READ_BLUEPRINT"
+            | "CAIRN_BLUEPRINT_LEGACY_EXTENSION" => has_parse_errors = true,
+            "CAIRN_CONTRACT_MISSING"
+            | "CAIRN_CONTRACT_MISSING_NODE"
+            | "CAIRN_CONTRACT_UNKNOWN_NODE" => {
+                has_orphans = true;
+            }
+            _ => {}
+        }
+    }
+
+    for finding in &hook_report.findings {
+        match finding.code.as_str() {
+            "CAIRN_INTERFACE_HASH_CHANGED" => has_interface_changes = true,
+            "CAIRN_BLUEPRINT_CHANGE_NO_DECISION" | "CAIRN_PROVENANCE_NO_DECISION" => {
+                has_missing_decisions = true;
+            }
+            _ => {}
+        }
+    }
+
+    for node in scan_result.graph.nodes.values() {
+        match node.state {
+            crate::map::NodeState::Ghost => has_ghosts = true,
+            crate::map::NodeState::Orphaned => has_orphans = true,
+            crate::map::NodeState::Synced => {}
+        }
+    }
+
+    if has_parse_errors {
+        actions.push(json!({
+            "priority": 1,
+            "action": "fix_blueprint",
+            "command": "cairn lint",
+            "description": "The blueprint has parse errors or integrity issues that must be fixed manually before other actions can succeed.",
+        }));
+    }
+
+    if has_orphans && scan_result.graph.nodes.is_empty() {
+        actions.push(json!({
+            "priority": 2,
+            "action": "init_from_code",
+            "command": "cairn init --from-code",
+            "description": "No blueprint structure exists but source files were found. Generate an initial blueprint from the existing code.",
+        }));
+    } else if has_orphans || has_ghosts {
+        actions.push(json!({
+            "priority": 2,
+            "action": "refine",
+            "command": "cairn refine",
+            "description": "The blueprint has drifted from the code (ghost or orphaned modules). Generate a delta to reconcile the differences.",
+        }));
+    }
+
+    if has_interface_changes {
+        actions.push(json!({
+            "priority": 3,
+            "action": "summarise",
+            "command": "cairn summarise <node-id>",
+            "description": "Interface hashes have changed. Run the summariser on affected nodes to update contracts.",
+        }));
+    }
+
+    if has_missing_decisions {
+        actions.push(json!({
+            "priority": 3,
+            "action": "add_decision",
+            "command": "cairn change new <change-id>",
+            "description": "Blueprint changes require a recorded decision. Create a change directory with a decision artefact.",
+        }));
+    }
+
+    if actions.is_empty() {
+        actions.push(json!({
+            "priority": 0,
+            "action": "none",
+            "command": "",
+            "description": "No remediation actions are required. The project is in good shape.",
+        }));
+    }
+
+    actions.sort_by_key(|a| {
+        a.get("priority")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(99)
+    });
+
+    json!({
+        "actions": actions,
+        "total_actions": actions.len(),
+    })
+}

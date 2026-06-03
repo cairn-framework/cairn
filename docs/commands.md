@@ -27,10 +27,11 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn context` | Structured project overview for agents |
 | `cairn status` | Show project status summary |
+| `cairn health` | Comprehensive health check: lint, hooks, and module state |
+| `cairn remediate` | Generate an ordered action plan from current findings |
 | `cairn scan` | Scan the project and report findings |
 | `cairn check [<node>]` | Inspect findings for a node or project (non-blocking) |
 | `cairn lint` | Lint the blueprint and report findings (blocking) |
-
 ### Node inspection
 
 | Command | Description |

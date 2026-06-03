@@ -28,6 +28,8 @@ Default read-only tools:
 - `cairn_depends`
 - `cairn_order`
 - `cairn_lint`
+- `cairn_health`
+- `cairn_remediate`
 - `cairn_status`
 - `cairn_rationale`
 - `cairn_todos`
@@ -79,4 +81,25 @@ Errors are JSON-RPC errors whose `data` contains:
   "source_span": null,
   "remediation": null
 }
+
+## MAS Orchestration Loop
+
+Cairn can guide a multi-agent system (MAS) from a dirty state to a clean state using two tools:
+
+1. **`cairn_health`** — Returns a single authoritative assessment: `clean` (boolean), summary counts, and detailed findings from both lint and hooks. Use this to determine whether work remains.
+2. **`cairn_remediate`** — Returns an ordered list of recommended actions based on current findings. Each action includes a priority, a CLI command, and a description.
+
+### Recommended agent loop
+
+```text
+1. Call `cairn_health` to assess current state.
+2. If `clean` is true, stop.
+3. Call `cairn_remediate` to get the next action.
+4. Execute the highest-priority action (CLI command or file edit).
+5. Re-run `cairn_health` to verify progress.
+6. Repeat until `clean` is true.
 ```
+
+### Example agent prompt fragment
+
+> You are working in a codebase tracked by Cairn. Before making changes, run `cairn_health`. If the project is not clean, run `cairn_remediate` and execute the highest-priority action. After every edit, re-run `cairn_health` to confirm progress. Do not declare the task complete until `clean` is true.
