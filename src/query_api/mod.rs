@@ -35,10 +35,10 @@ mod util;
 use change_queries::dispatch_change_tool;
 use handlers::{
     context_json, contract_json, decisions_response_json, dependency_json, docstring_json,
-    files_json, health_json, hook_json, islands_json, neighbourhood_json, rationale_json,
-    remediate_json, research_response_json, sources_response_json, status_json,
-    todos_response_json,
+    files_json, hook_json, islands_json, neighbourhood_json, rationale_json,
+    research_response_json, sources_response_json, status_json, todos_response_json,
 };
+pub(crate) use handlers::{health_json, remediate_json};
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{findings_json, node_json, relevant_rules};
 use util::{finding_error, findings_error, load_for, required};

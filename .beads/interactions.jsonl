@@ -22,3 +22,10 @@
 {"id":"int-e15cebe0","kind":"field_change","created_at":"2026-05-22T20:16:21.309378Z","actor":"George-RD","issue_id":"cairn-6wx","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
 {"id":"int-81f7b239","kind":"field_change","created_at":"2026-05-22T20:23:50.48826Z","actor":"George-RD","issue_id":"cairn-2ve","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
 {"id":"int-779bc107","kind":"field_change","created_at":"2026-05-22T20:29:58.069592Z","actor":"George-RD","issue_id":"cairn-5bu","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-348e6947","kind":"field_change","created_at":"2026-06-03T18:00:46.153551Z","actor":"George-RD","issue_id":"cairn-s9r","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
+{"id":"int-087f9323","kind":"field_change","created_at":"2026-06-03T18:36:03.580798Z","actor":"George-RD","issue_id":"cairn-ce6","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-9f294096","kind":"field_change","created_at":"2026-06-03T18:36:13.859161Z","actor":"George-RD","issue_id":"cairn-42m","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-ca7038bb","kind":"field_change","created_at":"2026-06-03T18:36:14.58043Z","actor":"George-RD","issue_id":"cairn-95q","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
+{"id":"int-2aa6f9c7","kind":"field_change","created_at":"2026-06-03T18:36:47.883391Z","actor":"George-RD","issue_id":"cairn-42m","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-be0d77bf","kind":"field_change","created_at":"2026-06-03T18:36:48.622803Z","actor":"George-RD","issue_id":"cairn-95q","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
+{"id":"int-62366f48","kind":"field_change","created_at":"2026-06-03T18:37:22.44073Z","actor":"George-RD","issue_id":"cairn-42m","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}

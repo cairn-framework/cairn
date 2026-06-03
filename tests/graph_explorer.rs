@@ -32,10 +32,28 @@ fn test_ui_port_zero_starts_and_serves_graph_api() -> Result<(), Box<dyn std::er
     assert!(graph.contains("\"edges\""));
     assert!(graph.contains("\"kind\":\"ownership\""));
     assert!(graph.contains("\"kind\":\"dependency\""));
+    assert!(graph.contains("\"kind\":\"module\""));
+    assert!(graph.contains("\"id\":\"app.api.lib\""));
     assert!(meta.contains("\"schema_version\":1"));
     assert!(meta.contains("\"name\":\"ui\""));
     assert!(node.contains("\"id\":\"app.api\""));
-
+    Ok(())
+}
+#[test]
+fn test_ui_status_and_lint_endpoints_return_two_hundred() -> Result<(), Box<dyn std::error::Error>>
+{
+    let root = temp_root("ui-status-lint")?;
+    write_project(&root)?;
+    let server = ui::start_background(UiOptions {
+        port: 0,
+        no_open: true,
+        blueprint_path: root.join("cairn.blueprint"),
+    })?;
+    let status = get(server.address(), "/api/status")?;
+    let lint = get(server.address(), "/api/lint")?;
+    server.stop();
+    assert!(status.contains("\"nodes\""));
+    assert!(lint.contains("\"findings\""));
     Ok(())
 }
 
@@ -175,7 +193,9 @@ fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
         root.join("cairn.blueprint"),
         r#"System App "desc" id "app" @product {
     Container Api "api" id "app.api" @backend {
-        path "./src/api"
+        Module Lib "lib" id "app.api.lib" {
+            path "./src/api/lib.rs"
+        }
         contract "./meta/contracts/api.md"
     }
 }

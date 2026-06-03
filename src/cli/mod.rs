@@ -42,9 +42,9 @@ use format::{
     render_findings, string_array_json,
 };
 use render::{
-    render_context, render_decisions, render_dependencies, render_files, render_get,
-    render_neighbourhood, render_rationale, render_research, render_sources, render_status,
-    render_todos,
+    render_context, render_decisions, render_dependencies, render_files, render_get, render_health,
+    render_neighbourhood, render_next, render_rationale, render_remediate, render_research,
+    render_sources, render_status, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -335,11 +335,13 @@ fn render_loaded_project_command(
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
+        "health" => Ok(render_health(parsed, root, scan_result)),
+        "remediate" => Ok(render_remediate(parsed, root, scan_result)),
+        "next" => Ok(render_next(parsed, root, scan_result)),
         "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
-        | "draft_edit" | "draft_accept" | "summarise" | "health" | "remediate" => {
+        | "draft_edit" | "draft_accept" | "summarise" => {
             return err(2, "this command currently requires --json");
         }
-        "dependents" | "depends" => render_dependencies(parsed, scan_result),
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
             let node = scan_result.graph.resolve(node)?;
             let body = node
@@ -382,7 +384,7 @@ fn render_loaded_project_command(
             }),
             Err(findings) => return findings_output(parsed.json, &findings),
         },
-
+        "dependents" | "depends" => render_dependencies(parsed, scan_result),
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
             let has_error = response
@@ -619,6 +621,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "summarise"
             | "health"
             | "remediate"
+            | "next"
     )
 }
 

@@ -582,7 +582,7 @@
     const authStrength = Math.max(0.15, balanceFromCount(counts.authority) / 5);
 
     return html`
-      <g class=${clsx("canvas-node", breath && "breathing", "settling", dimmed && "dimmed")}
+      <g class=${clsx("canvas-node", breath && "breathing", dimmed && "dimmed")}
          transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
          onClick=${() => onSelect(node)}
          onMouseEnter=${() => onHover(node.id)}
