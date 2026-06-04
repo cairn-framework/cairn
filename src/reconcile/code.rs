@@ -63,10 +63,7 @@ impl Reconciler for RustCodeReconciler<'_> {
         for file in rust_files {
             let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
             if let Some(owner) = most_specific_owner(&owners, &rel) {
-                claimed_files
-                    .entry(owner.clone())
-                    .or_default()
-                    .push(rel.clone());
+                claimed_files.entry(owner).or_default().push(rel);
                 symbols.extend(public_symbols(&mut parser, &file)?);
             } else {
                 findings.push(Finding {
