@@ -281,11 +281,12 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     all_findings.extend(reconcile_findings);
     dedup_findings(&mut all_findings);
     for report in &target_reports {
-        let key = format!(
-            "{}:{}",
-            report.target_id.node_id,
-            report.target_id.path.display()
+        let mut key = String::with_capacity(
+            report.target_id.node_id.len() + 1 + report.target_id.path.as_os_str().len(),
         );
+        key.push_str(&report.target_id.node_id);
+        key.push(':');
+        key.push_str(&report.target_id.path.to_string_lossy());
         target_hashes.insert(key, report.hash.clone());
     }
     let interface_hash = target_reports
