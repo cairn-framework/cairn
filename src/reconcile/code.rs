@@ -268,7 +268,7 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
             parts.push(text.trim());
         }
     }
-    normalize_symbol(&parts.join(" "))
+    parts.join(" ")
 }
 
 fn normalize_symbol(text: &str) -> String {
