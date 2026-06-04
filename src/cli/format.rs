@@ -398,16 +398,28 @@ pub(super) fn lines(values: &[String]) -> String {
         out
     }
 }
-
-pub(super) fn esc(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
-        .replace('\u{08}', "\\b")
-        .replace('\u{0C}', "\\f")
+pub(super) fn esc(value: &str) -> std::borrow::Cow<'_, str> {
+    if value.bytes().all(|b| {
+        b != b'\\'
+            && b != b'"'
+            && b != b'\n'
+            && b != b'\r'
+            && b != b'\t'
+            && b != b'\x08'
+            && b != b'\x0C'
+    }) {
+        return std::borrow::Cow::Borrowed(value);
+    }
+    std::borrow::Cow::Owned(
+        value
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('\n', "\\n")
+            .replace('\r', "\\r")
+            .replace('\t', "\\t")
+            .replace('\u{08}', "\\b")
+            .replace('\u{0C}', "\\f"),
+    )
 }
 
 #[cfg(test)]
