@@ -118,6 +118,7 @@ fn eligible_owners(ast: &Ast) -> Vec<(String, String)> {
     for node in &ast.nodes {
         collect_owner(node, &mut owners);
     }
+    owners.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
     owners
 }
 
@@ -132,19 +133,18 @@ fn collect_owner(node: &Node, owners: &mut Vec<(String, String)>) {
         collect_owner(child, owners);
     }
 }
-
 fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String> {
-    owners
-        .iter()
-        .filter(|(_, path)| {
-            // An empty path or "." is a root-level claim that matches any file.
-            path.is_empty()
-                || path == "."
-                || file == path
-                || (file.starts_with(path) && file.as_bytes().get(path.len()) == Some(&b'/'))
-        })
-        .max_by_key(|(_, path)| path.len())
-        .map(|(id, _)| id.clone())
+    for (id, path) in owners {
+        // An empty path or "." is a root-level claim that matches any file.
+        if path.is_empty()
+            || path == "."
+            || file == path
+            || (file.starts_with(path) && file.as_bytes().get(path.len()) == Some(&b'/'))
+        {
+            return Some(id.clone());
+        }
+    }
+    None
 }
 
 fn discover_ts_files(root: &Path, ignores: &[String]) -> Result<Vec<PathBuf>, ReconcileError> {
