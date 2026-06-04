@@ -193,10 +193,10 @@ fn detect_divergence(
     config: &config::Config,
 ) -> Vec<crate::map::graph::Finding> {
     let mut findings = Vec::new();
-    let mut by_node: BTreeMap<String, Vec<&TargetReport>> = BTreeMap::new();
+    let mut by_node: BTreeMap<&str, Vec<&TargetReport>> = BTreeMap::new();
     for report in reports {
         by_node
-            .entry(report.target_id.node_id.clone())
+            .entry(report.target_id.node_id.as_str())
             .or_default()
             .push(report);
     }
@@ -231,7 +231,7 @@ fn detect_divergence(
                 continue;
             }
 
-            if let Some(asymmetry) = config.is_intentional_asymmetry(&node_id, &role, &paths) {
+            if let Some(asymmetry) = config.is_intentional_asymmetry(node_id, &role, &paths) {
                 findings.push(crate::map::graph::Finding {
                     code: "CT002".to_owned(),
                     severity: crate::map::graph::FindingSeverity::Warning,
@@ -239,7 +239,7 @@ fn detect_divergence(
                         "Intentional asymmetry in `{}` for contract role `{}`: {}",
                         node_id, role, asymmetry.reason
                     ),
-                    node: Some(node_id.clone()),
+                    node: Some(node_id.to_owned()),
                     target: Some(role.clone()),
                     path: None,
                 });
@@ -251,7 +251,7 @@ fn detect_divergence(
                     message: format!(
                         "Interface contradiction: targets for `{node_id}` with contract role `{role}` have divergent interfaces"
                     ),
-                    node: Some(node_id.clone()),
+                    node: Some(node_id.to_owned()),
                     target: Some(role.clone()),
                     path: None,
                 });
