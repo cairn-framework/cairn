@@ -162,7 +162,7 @@ app.api.auth -> app.api "cycle"
         &ast,
         &root,
         &contract::ContractSet::default(),
-        &BTreeMap::default(),
+        &mut BTreeMap::default(),
         Vec::new(),
     );
 

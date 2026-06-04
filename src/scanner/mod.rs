@@ -315,7 +315,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         files.sort();
         files.dedup();
     }
-    let mut graph = build_graph(&ast, root, &contracts, &claimed_files, all_findings);
+    let mut graph = build_graph(&ast, root, &contracts, &mut claimed_files, all_findings);
     check_provenance_coverage(&mut graph, &artefacts);
     check_claims(&mut graph, &artefacts, root);
     check_gitignored_paths(&mut graph, &ast, &config.ignores);

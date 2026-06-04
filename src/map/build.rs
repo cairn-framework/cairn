@@ -14,7 +14,7 @@ pub fn build_graph(
     ast: &Ast,
     root: &Path,
     contracts: &ContractSet,
-    claimed_files: &BTreeMap<String, Vec<String>>,
+    claimed_files: &mut BTreeMap<String, Vec<String>>,
     external_findings: Vec<Finding>,
 ) -> Graph {
     let mut graph = Graph {
@@ -39,11 +39,11 @@ fn insert_node(
     node: &Node,
     parent: Option<&str>,
     root: &Path,
-    claimed_files: &BTreeMap<String, Vec<String>>,
+    claimed_files: &mut BTreeMap<String, Vec<String>>,
 ) {
     let is_internal = !node.children.is_empty();
     let owns_files = !is_internal || node.owns_files;
-    let files = claimed_files.get(&node.id).cloned().unwrap_or_default();
+    let files = claimed_files.remove(&node.id).unwrap_or_default();
     let state = if node.paths.is_empty()
         || node.paths.iter().any(|path| root.join(path).exists())
         || !files.is_empty()
@@ -256,7 +256,7 @@ mod tests {
             ast,
             Path::new("/nonexistent"),
             &ContractSet::default(),
-            &BTreeMap::new(),
+            &mut BTreeMap::new(),
             Vec::new(),
         )
     }
@@ -464,7 +464,7 @@ mod tests {
             &a,
             Path::new("/nonexistent"),
             &ContractSet::default(),
-            &BTreeMap::new(),
+            &mut BTreeMap::new(),
             vec![external],
         );
         assert!(
