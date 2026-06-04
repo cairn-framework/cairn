@@ -203,7 +203,7 @@ fn detect_divergence(
         }
         let mut by_role: BTreeMap<String, Vec<&PathBuf>> = BTreeMap::new();
         let mut hash_by_path: BTreeMap<PathBuf, String> = BTreeMap::new();
-        for report in &node_reports.clone() {
+        for report in &node_reports {
             let target = targets.iter().find(|t| {
                 t.id.node_id == report.target_id.node_id && t.id.path == report.target_id.path
             });
