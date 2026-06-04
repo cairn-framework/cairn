@@ -389,8 +389,11 @@ pub(super) fn lines(values: &[String]) -> String {
         "None".to_owned()
     } else {
         let mut out = String::new();
-        for value in values {
-            let _ = writeln!(out, "- {value}");
+        for (i, value) in values.iter().enumerate() {
+            if i > 0 {
+                out.push('\n');
+            }
+            let _ = write!(out, "- {value}");
         }
         out
     }
