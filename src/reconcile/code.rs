@@ -211,25 +211,21 @@ fn collect_public_symbols(
     source: &[u8],
     symbols: &mut Vec<String>,
 ) -> Result<(), ReconcileError> {
-    if is_public_item(node) {
-        symbols.push(interface_symbol(node, source));
-    }
+    let kind = node.kind();
+    let is_target = PUBLIC_ITEM_KINDS.contains(&kind);
+    let mut has_pub = false;
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
+        if is_target && child.kind() == "visibility_modifier" {
+            has_pub = true;
+        }
         collect_public_symbols(child, source, symbols)?;
+    }
+    if is_target && has_pub {
+        symbols.push(interface_symbol(node, source));
     }
     Ok(())
 }
-
-fn is_public_item(node: tree_sitter::Node<'_>) -> bool {
-    if !PUBLIC_ITEM_KINDS.contains(&node.kind()) {
-        return false;
-    }
-    let mut cursor = node.walk();
-    node.children(&mut cursor)
-        .any(|child| child.kind() == "visibility_modifier")
-}
-
 fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
     let signature = node
         .child_by_field_name("body")
