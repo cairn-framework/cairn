@@ -114,7 +114,10 @@ fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String
     owners
         .iter()
         .filter(|(_, path)| {
-            path.is_empty() || path == "." || file == path || file.starts_with(&format!("{path}/"))
+            path.is_empty()
+                || path == "."
+                || file == path
+                || (file.starts_with(path) && file.as_bytes().get(path.len()) == Some(&b'/'))
         })
         .max_by_key(|(_, path)| path.len())
         .map(|(id, _)| id.clone())
