@@ -34,7 +34,13 @@ pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
             if i > 0 {
                 out.push(',');
             }
-            out.push_str(&finding_json(finding));
+            out.push_str("{\"code\":\"");
+            out.push_str(&esc(&finding.code));
+            out.push_str("\",\"severity\":\"");
+            out.push_str(finding.severity.name());
+            out.push_str("\",\"message\":\"");
+            out.push_str(&esc(&finding.message));
+            out.push_str("\"}");
         }
         out.push_str("]}\n");
         out
