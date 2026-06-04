@@ -172,16 +172,31 @@ fn reconcile_targets(
 /// different messages are still the same issue — the message is display-only.
 /// Preserves the first occurrence and order.
 fn dedup_findings(findings: &mut Vec<crate::map::graph::Finding>) {
-    let mut seen = std::collections::HashSet::new();
-    findings.retain(|f| {
-        let key = (
-            f.code.clone(),
-            f.node.clone(),
-            f.path.clone(),
-            f.target.clone(),
-        );
-        seen.insert(key)
-    });
+    let keep: Vec<bool> = {
+        let mut seen = std::collections::HashSet::new();
+        findings
+            .iter()
+            .map(|f| {
+                let key = (
+                    f.code.as_str(),
+                    f.node.as_deref(),
+                    f.path.as_deref(),
+                    f.target.as_deref(),
+                );
+                seen.insert(key)
+            })
+            .collect()
+    };
+    let mut write_idx = 0;
+    for (read_idx, should_keep) in keep.into_iter().enumerate() {
+        if should_keep {
+            if write_idx != read_idx {
+                findings.swap(write_idx, read_idx);
+            }
+            write_idx += 1;
+        }
+    }
+    findings.truncate(write_idx);
 }
 
 fn detect_divergence(
@@ -267,15 +282,14 @@ fn detect_divergence(
 pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     let config = config::load(root).map_err(|error| error.message)?;
     let ast = blueprint::parse_file(blueprint_path).map_err(|error| error.to_string())?;
-    let contracts = load_contracts(root, &ast);
-    let artefacts = load_artefacts(root, &ast, contracts.clone());
-
+    let mut contracts = load_contracts(root, &ast);
+    let mut artefacts = load_artefacts(root, &ast, contracts.clone());
     let targets = build_targets(&ast, &config);
     let (target_reports, reconcile_findings) =
         reconcile_targets(&targets, root, &config.ignores, &ast, &config);
     let mut target_hashes = state::TargetHashes::new();
-    let mut all_findings = contracts.findings.clone();
-    all_findings.extend(artefacts.findings.clone());
+    let mut all_findings = std::mem::take(&mut contracts.findings);
+    all_findings.extend(std::mem::take(&mut artefacts.findings));
     all_findings.extend(reconcile_findings);
     dedup_findings(&mut all_findings);
     for report in &target_reports {
