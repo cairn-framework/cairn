@@ -62,6 +62,7 @@ impl Reconciler for RustCodeReconciler<'_> {
             let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
             let mut findings = Vec::new();
             let mut symbols = Vec::new();
+            let mut source = String::new();
             for file in rust_files {
                 let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
                 if let Some(owner) = most_specific_owner(&owners, &rel) {
@@ -69,7 +70,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                         .entry(owner)
                         .or_default()
                         .push(rel.into_owned());
-                    symbols.extend(public_symbols(&mut parser, &file)?);
+                    symbols.extend(public_symbols(&mut parser, &file, &mut source)?);
                 } else {
                     findings.push(Finding {
                         code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
@@ -108,6 +109,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                     let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
                     let mut findings = Vec::new();
                     let mut symbols = Vec::new();
+                    let mut source = String::new();
                     for file in chunk {
                         let rel = normalize(file.strip_prefix(request.root).unwrap_or(file));
                         if let Some(owner) = most_specific_owner(owners_ref, &rel) {
@@ -115,7 +117,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                                 .entry(owner)
                                 .or_default()
                                 .push(rel.into_owned());
-                            symbols.extend(public_symbols(&mut parser, file)?);
+                            symbols.extend(public_symbols(&mut parser, file, &mut source)?);
                         } else {
                             findings.push(Finding {
                                 code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
@@ -227,15 +229,23 @@ fn walk(
 fn public_symbols(
     parser: &mut tree_sitter::Parser,
     path: &Path,
+    source: &mut String,
 ) -> Result<Vec<String>, ReconcileError> {
-    let source = fs::read_to_string(path).map_err(|error| ReconcileError {
+    source.clear();
+    let mut file = fs::File::open(path).map_err(|error| ReconcileError {
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
         message: format!("failed to read `{}`: {error}", path.display()),
     })?;
-    let tree = parser.parse(&source, None).ok_or_else(|| ReconcileError {
-        code: "CAIRN_RECONCILE_PARSE_RUST".to_owned(),
-        message: format!("failed to parse `{}`", path.display()),
+    std::io::Read::read_to_string(&mut file, source).map_err(|error| ReconcileError {
+        code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
+        message: format!("failed to read `{}`: {error}", path.display()),
     })?;
+    let tree = parser
+        .parse(source.as_bytes(), None)
+        .ok_or_else(|| ReconcileError {
+            code: "CAIRN_RECONCILE_PARSE_RUST".to_owned(),
+            message: format!("failed to parse `{}`", path.display()),
+        })?;
     let mut symbols = Vec::new();
     collect_public_symbols(tree.root_node(), source.as_bytes(), &mut symbols)?;
     Ok(symbols)
