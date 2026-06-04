@@ -287,5 +287,10 @@ fn trim_dot(path: &str) -> String {
     path.trim_start_matches("./").to_owned()
 }
 fn normalize(path: &Path) -> String {
-    path.to_string_lossy().replace('\\', "/")
+    let s = path.to_string_lossy();
+    if s.contains('\\') {
+        s.replace('\\', "/")
+    } else {
+        s.into_owned()
+    }
 }
