@@ -372,25 +372,27 @@ pub(super) fn err(code: u8, message: &str) -> CliResult {
 }
 
 pub(super) fn string_array_json(values: &[String]) -> String {
-    format!(
-        "[{}]",
-        values
-            .iter()
-            .map(|value| format!("\"{}\"", esc(value)))
-            .collect::<Vec<_>>()
-            .join(",")
-    )
+    let mut out = String::from('[');
+    for (i, value) in values.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        out.push('"');
+        out.push_str(&esc(value));
+        out.push('"');
+    }
+    out.push(']');
+    out
 }
-
 pub(super) fn lines(values: &[String]) -> String {
     if values.is_empty() {
         "None".to_owned()
     } else {
-        values
-            .iter()
-            .map(|value| format!("- {value}"))
-            .collect::<Vec<_>>()
-            .join("\n")
+        let mut out = String::new();
+        for value in values {
+            let _ = writeln!(out, "- {value}");
+        }
+        out
     }
 }
 
