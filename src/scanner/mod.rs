@@ -300,7 +300,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
             .extend(report.claimed_files.clone());
     }
     for files in claimed_files.values_mut() {
-        files.sort();
+        files.sort_unstable();
         files.dedup();
     }
     let mut graph = build_graph(&ast, root, &contracts, &mut claimed_files, all_findings);
@@ -372,7 +372,7 @@ fn walk_blueprint_nodes(
 ) {
     for node in nodes {
         let mut paths = node.paths.clone();
-        paths.sort();
+        paths.sort_unstable();
         snapshot.nodes.insert(
             node.id.clone(),
             state::NodeFingerprint {

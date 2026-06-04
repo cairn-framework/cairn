@@ -95,7 +95,7 @@ impl Reconciler for PythonReconciler<'_> {
                 all_findings.extend(findings);
                 all_symbols.extend(symbols);
             }
-            all_symbols.sort();
+            all_symbols.sort_unstable();
             Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_sorted(&all_symbols),
                 claimed_files: all_claimed,
@@ -142,7 +142,7 @@ fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String
 fn discover_py_files(root: &Path, ignores: &[String]) -> Result<Vec<PathBuf>, ReconcileError> {
     let mut files = Vec::new();
     walk(root, root, ignores, &mut files)?;
-    files.sort();
+    files.sort_unstable();
     Ok(files)
 }
 
