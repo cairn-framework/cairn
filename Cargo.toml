@@ -64,7 +64,6 @@ serde_yaml = "0.9.34"
 lto = "thin"
 strip = true
 panic = "abort"
-
 [dev-dependencies]
 insta = { version = "1", features = ["json", "yaml", "redactions"] }
 tempfile = "3"
