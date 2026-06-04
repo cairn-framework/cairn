@@ -73,7 +73,10 @@ impl Reconciler for RustCodeReconciler<'_> {
                     for file in chunk {
                         let rel = normalize(file.strip_prefix(request.root).unwrap_or(file));
                         if let Some(owner) = most_specific_owner(owners_ref, &rel) {
-                            claimed_files.entry(owner).or_default().push(rel);
+                            claimed_files
+                                .entry(owner)
+                                .or_default()
+                                .push(rel.into_owned());
                             symbols.extend(public_symbols(&mut parser, file)?);
                         } else {
                             findings.push(Finding {
@@ -84,7 +87,7 @@ impl Reconciler for RustCodeReconciler<'_> {
                                 ),
                                 node: None,
                                 target: None,
-                                path: Some(rel),
+                                path: Some(rel.into_owned()),
                             });
                         }
                     }
@@ -286,11 +289,11 @@ fn normalize_symbol(text: &str) -> String {
 fn trim_dot(path: &str) -> String {
     path.trim_start_matches("./").to_owned()
 }
-fn normalize(path: &Path) -> String {
+fn normalize(path: &Path) -> std::borrow::Cow<'_, str> {
     let s = path.to_string_lossy();
     if s.contains('\\') {
-        s.replace('\\', "/")
+        std::borrow::Cow::Owned(s.replace('\\', "/"))
     } else {
-        s.into_owned()
+        s
     }
 }
