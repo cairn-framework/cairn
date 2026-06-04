@@ -29,31 +29,30 @@ pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
         if findings.is_empty() {
             return "{\"findings\":[]}\n".to_owned();
         }
-        format!(
-            "{{\"findings\":[{}]}}\n",
-            findings
-                .iter()
-                .map(finding_json)
-                .collect::<Vec<_>>()
-                .join(",")
-        )
+        let mut out = String::from("{\"findings\":[");
+        for (i, finding) in findings.iter().enumerate() {
+            if i > 0 {
+                out.push(',');
+            }
+            out.push_str(&finding_json(finding));
+        }
+        out.push_str("]}\n");
+        out
     } else if findings.is_empty() {
         format!(
             "Findings:\n{}\n",
             super::copy::lookup("empty-states.cli-clean-map.body")
         )
     } else {
-        format!(
-            "Findings:\n{}\n",
-            findings
-                .iter()
-                .map(|finding| format!(
-                    "{:?}: {} {}",
-                    finding.severity, finding.code, finding.message
-                ))
-                .collect::<Vec<_>>()
-                .join("\n")
-        )
+        let mut out = String::from("Findings:\n");
+        for finding in findings {
+            let _ = writeln!(
+                out,
+                "{:?}: {} {}",
+                finding.severity, finding.code, finding.message
+            );
+        }
+        out
     }
 }
 
