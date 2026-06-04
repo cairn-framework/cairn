@@ -119,7 +119,6 @@ fn reconcile_targets(
     let mut reconciler_cache: BTreeMap<Language, crate::reconcile::ReconcileReport> =
         BTreeMap::new();
     for (node_id, node_targets) in by_node {
-        let mut node_reports = Vec::new();
         for target in node_targets {
             let report = reconciler_cache.entry(target.language).or_insert_with(|| {
                 let req = ReconcileRequest { root, ignores };
@@ -147,7 +146,7 @@ fn reconcile_targets(
                 .cloned()
                 .unwrap_or_default();
             let owned_symbols = report.symbols.clone();
-            node_reports.push(TargetReport {
+            reports.push(TargetReport {
                 target_id: target.id.clone(),
                 language: target.language,
                 reconciler_id: target.reconciler_id.clone(),
@@ -156,7 +155,6 @@ fn reconcile_targets(
                 hash,
             });
         }
-        reports.extend(node_reports);
     }
     // Collect findings once per cached reconciler run, not per target or node.
     for (_, report) in reconciler_cache {
