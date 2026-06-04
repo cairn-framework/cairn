@@ -1,14 +1,10 @@
 //! Map graph builder.
 
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    path::Path,
-};
-
 use crate::{
     artefacts::contract::ContractSet,
     blueprint::{Ast, Edge, Node},
 };
+use std::{collections::BTreeMap, path::Path};
 
 use super::graph::{EdgeRef, Finding, FindingSeverity, Graph, NodeRecord, NodeState};
 
@@ -175,9 +171,8 @@ fn validate_path_ties(graph: &mut Graph) {
 }
 
 fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
-    let ids = graph.nodes.keys().cloned().collect::<BTreeSet<_>>();
     for contract in contracts.contracts.values() {
-        if !ids.contains(&contract.node) {
+        if !graph.nodes.contains_key(&contract.node) {
             graph.findings.push(Finding {
                 code: "CAIRN_CONTRACT_UNKNOWN_NODE".to_owned(),
                 severity: FindingSeverity::Error,
@@ -188,8 +183,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
             });
         }
     }
-    let nodes = graph.nodes.values().cloned().collect::<Vec<_>>();
-    for node in nodes {
+    for node in graph.nodes.values() {
         for pointer in &node.contracts {
             let full = root.join(pointer);
             if !full.exists() {
