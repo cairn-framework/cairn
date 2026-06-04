@@ -50,40 +50,67 @@ impl Reconciler for RustCodeReconciler<'_> {
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
         let rust_files = discover_rust_files(request.root, request.ignores)?;
-        let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
-        let mut findings = Vec::new();
-        let mut symbols = Vec::new();
-        let mut parser = tree_sitter::Parser::new();
-        parser
-            .set_language(&tree_sitter_rust::LANGUAGE.into())
-            .map_err(|error| ReconcileError {
-                code: "CAIRN_RECONCILE_RUST_LANGUAGE".to_owned(),
-                message: error.to_string(),
-            })?;
-        for file in rust_files {
-            let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
-            if let Some(owner) = most_specific_owner(&owners, &rel) {
-                claimed_files.entry(owner).or_default().push(rel);
-                symbols.extend(public_symbols(&mut parser, &file)?);
-            } else {
-                findings.push(Finding {
-                    code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
-                    severity: FindingSeverity::Info,
-                    message: format!("Rust file `{rel}` is not owned by any eligible node"),
-                    node: None,
-                    target: None,
-                    path: Some(rel),
-                });
+        let thread_count = std::thread::available_parallelism()
+            .map(usize::from)
+            .unwrap_or(2);
+        let chunk_size = (rust_files.len() / thread_count).max(1);
+        let chunks: Vec<_> = rust_files.chunks(chunk_size).collect();
+        std::thread::scope(|s| {
+            let owners_ref = &owners;
+            let mut handles = Vec::with_capacity(chunks.len());
+            for chunk in chunks {
+                handles.push(s.spawn(move || {
+                    let mut parser = tree_sitter::Parser::new();
+                    parser
+                        .set_language(&tree_sitter_rust::LANGUAGE.into())
+                        .map_err(|error| ReconcileError {
+                            code: "CAIRN_RECONCILE_RUST_LANGUAGE".to_owned(),
+                            message: error.to_string(),
+                        })?;
+                    let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
+                    let mut findings = Vec::new();
+                    let mut symbols = Vec::new();
+                    for file in chunk {
+                        let rel = normalize(file.strip_prefix(request.root).unwrap_or(file));
+                        if let Some(owner) = most_specific_owner(owners_ref, &rel) {
+                            claimed_files.entry(owner).or_default().push(rel);
+                            symbols.extend(public_symbols(&mut parser, file)?);
+                        } else {
+                            findings.push(Finding {
+                                code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
+                                severity: FindingSeverity::Info,
+                                message: format!(
+                                    "Rust file `{rel}` is not owned by any eligible node"
+                                ),
+                                node: None,
+                                target: None,
+                                path: Some(rel),
+                            });
+                        }
+                    }
+                    Ok::<_, ReconcileError>((claimed_files, findings, symbols))
+                }));
             }
-        }
-        for files in claimed_files.values_mut() {
-            files.sort();
-        }
-        Ok(ReconcileReport {
-            fingerprint: InterfaceFingerprint::from_symbols(&symbols),
-            claimed_files,
-            symbols,
-            findings,
+            let mut all_claimed = BTreeMap::<String, Vec<String>>::new();
+            let mut all_findings = Vec::new();
+            let mut all_symbols = Vec::new();
+            for handle in handles {
+                let (claimed, findings, symbols) = handle.join().unwrap()?;
+                for (owner, files) in claimed {
+                    all_claimed.entry(owner).or_default().extend(files);
+                }
+                all_findings.extend(findings);
+                all_symbols.extend(symbols);
+            }
+            for files in all_claimed.values_mut() {
+                files.sort();
+            }
+            Ok(ReconcileReport {
+                fingerprint: InterfaceFingerprint::from_symbols(&all_symbols),
+                claimed_files: all_claimed,
+                symbols: all_symbols,
+                findings: all_findings,
+            })
         })
     }
 }
