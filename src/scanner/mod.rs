@@ -115,7 +115,7 @@ fn reconcile_targets(
     }
     // Each language reconciler scans the entire project root; calling it
     // once per target produces duplicate orphaned-file findings. Cache
-    // results by language so each reconciler runs exactly once.
+    // results by language so each reconciler runs exactly once globally.
     let mut reconciler_cache: BTreeMap<Language, crate::reconcile::ReconcileReport> =
         BTreeMap::new();
     for (node_id, node_targets) in by_node {
@@ -156,10 +156,11 @@ fn reconcile_targets(
                 hash,
             });
         }
-        for (_, report) in std::mem::take(&mut reconciler_cache) {
-            all_findings.extend(report.findings);
-        }
         reports.extend(node_reports);
+    }
+    // Collect findings once per cached reconciler run, not per target or node.
+    for (_, report) in reconciler_cache {
+        all_findings.extend(report.findings);
     }
     let divergence_findings = detect_divergence(&reports, targets, config);
     all_findings.extend(divergence_findings);
