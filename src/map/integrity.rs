@@ -1,42 +1,64 @@
 //! Reusable integrity algorithms.
-
-use std::collections::{BTreeSet, VecDeque};
-
 use super::graph::{Finding, FindingSeverity, Graph};
-
+use std::collections::{BTreeMap, BTreeSet};
 /// Finds dependency cycles without blocking basic graph construction.
 #[must_use]
 pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
-    let mut findings = Vec::new();
-    for start in graph.nodes.keys() {
-        let mut queue = VecDeque::from([(start.clone(), vec![start.clone()])]);
-        while let Some((current, path)) = queue.pop_front() {
-            let Some(edges) = graph.outbound.get(&current) else {
-                continue;
-            };
-            for edge in edges {
-                if &edge.to == start {
-                    let mut cycle = path.clone();
-                    cycle.push(start.clone());
-                    findings.push(Finding {
-                        code: "CAIRN_ORDER_CYCLE".to_owned(),
-                        severity: FindingSeverity::Error,
-                        message: format!("dependency cycle: {}", cycle.join(" -> ")),
-                        node: Some(start.clone()),
-                        target: None,
-                        path: None,
-                    });
-                    return findings;
+    // 0 = white (unvisited), 1 = gray (in stack), 2 = black (done)
+    let mut color: BTreeMap<&str, u8> = BTreeMap::new();
+    let mut stack: Vec<&str> = Vec::new();
+    for start in graph.nodes.keys().map(String::as_str) {
+        if color.get(start).copied().unwrap_or(0) != 0 {
+            continue;
+        }
+        stack.push(start);
+        while let Some(node) = stack.last().copied() {
+            match color.entry(node).or_insert(0) {
+                0 => {
+                    *color.get_mut(node).unwrap() = 1;
+                    if let Some(edges) = graph.outbound.get(node) {
+                        for edge in edges {
+                            let to = edge.to.as_str();
+                            match color.get(to).copied().unwrap_or(0) {
+                                1 => {
+                                    // Cycle found: extract cycle from stack
+                                    let cycle: Vec<_> = stack
+                                        .iter()
+                                        .skip_while(|&n| *n != to)
+                                        .copied()
+                                        .chain(std::iter::once(to))
+                                        .collect();
+                                    return vec![Finding {
+                                        code: "CAIRN_ORDER_CYCLE".to_owned(),
+                                        severity: FindingSeverity::Error,
+                                        message: format!(
+                                            "dependency cycle: {}",
+                                            cycle.join(" -> ")
+                                        ),
+                                        node: Some(start.to_owned()),
+                                        target: None,
+                                        path: None,
+                                    }];
+                                }
+                                2 => {}
+                                _ => {
+                                    stack.push(to);
+                                }
+                            }
+                        }
+                    }
                 }
-                if !path.contains(&edge.to) {
-                    let mut next_path = path.clone();
-                    next_path.push(edge.to.clone());
-                    queue.push_back((edge.to.clone(), next_path));
+                1 => {
+                    *color.get_mut(node).unwrap() = 2;
+                    stack.pop();
+                }
+                _ => {
+                    stack.pop();
                 }
             }
         }
     }
-    findings
+    Vec::new()
 }
 
 /// Computes a topological order for the dependency graph.
