@@ -120,8 +120,6 @@ fn reconcile_targets(
         BTreeMap::new();
     for (node_id, node_targets) in by_node {
         let mut node_reports = Vec::new();
-        let mut aggregated_files = BTreeMap::<String, Vec<String>>::new();
-        let mut aggregated_symbols = Vec::new();
         for target in node_targets {
             let report = reconciler_cache.entry(target.language).or_insert_with(|| {
                 let req = ReconcileRequest { root, ignores };
@@ -149,13 +147,6 @@ fn reconcile_targets(
                 .cloned()
                 .unwrap_or_default();
             let owned_symbols = report.symbols.clone();
-            for (owner, files) in &report.claimed_files {
-                aggregated_files
-                    .entry(owner.clone())
-                    .or_default()
-                    .extend(files.clone());
-            }
-            aggregated_symbols.extend(report.symbols.clone());
             node_reports.push(TargetReport {
                 target_id: target.id.clone(),
                 language: target.language,
@@ -165,11 +156,9 @@ fn reconcile_targets(
                 hash,
             });
         }
-        // Collect findings only once per cached reconciler run, not per target.
-        for report in reconciler_cache.values() {
-            all_findings.extend(report.findings.clone());
+        for (_, report) in std::mem::take(&mut reconciler_cache) {
+            all_findings.extend(report.findings);
         }
-        reconciler_cache.clear();
         reports.extend(node_reports);
     }
     let divergence_findings = detect_divergence(&reports, targets, config);
