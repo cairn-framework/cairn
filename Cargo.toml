@@ -62,6 +62,7 @@ serde_yaml = "0.9.34"
 
 [profile.release]
 lto = "thin"
+codegen-units = 1
 strip = true
 panic = "abort"
 [dev-dependencies]
