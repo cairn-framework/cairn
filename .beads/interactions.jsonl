@@ -29,3 +29,4 @@
 {"id":"int-2aa6f9c7","kind":"field_change","created_at":"2026-06-03T18:36:47.883391Z","actor":"George-RD","issue_id":"cairn-42m","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
 {"id":"int-be0d77bf","kind":"field_change","created_at":"2026-06-03T18:36:48.622803Z","actor":"George-RD","issue_id":"cairn-95q","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
 {"id":"int-62366f48","kind":"field_change","created_at":"2026-06-03T18:37:22.44073Z","actor":"George-RD","issue_id":"cairn-42m","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-843c8fb8","kind":"field_change","created_at":"2026-06-03T18:44:03.33787Z","actor":"George-RD","issue_id":"cairn-42m","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
