@@ -95,8 +95,9 @@ impl Reconciler for PythonReconciler<'_> {
                 all_findings.extend(findings);
                 all_symbols.extend(symbols);
             }
+            all_symbols.sort();
             Ok(ReconcileReport {
-                fingerprint: InterfaceFingerprint::from_symbols(&all_symbols),
+                fingerprint: InterfaceFingerprint::from_sorted(&all_symbols),
                 claimed_files: all_claimed,
                 symbols: std::sync::Arc::new(all_symbols),
                 findings: all_findings,

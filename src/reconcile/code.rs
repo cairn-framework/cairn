@@ -82,8 +82,9 @@ impl Reconciler for RustCodeReconciler<'_> {
                     });
                 }
             }
+            symbols.sort();
             return Ok(ReconcileReport {
-                fingerprint: InterfaceFingerprint::from_symbols(&symbols),
+                fingerprint: InterfaceFingerprint::from_sorted(&symbols),
                 claimed_files,
                 symbols: std::sync::Arc::new(symbols),
                 findings,
@@ -145,8 +146,9 @@ impl Reconciler for RustCodeReconciler<'_> {
                 all_findings.extend(findings);
                 all_symbols.extend(symbols);
             }
+            all_symbols.sort();
             Ok(ReconcileReport {
-                fingerprint: InterfaceFingerprint::from_symbols(&all_symbols),
+                fingerprint: InterfaceFingerprint::from_sorted(&all_symbols),
                 claimed_files: all_claimed,
                 symbols: std::sync::Arc::new(all_symbols),
                 findings: all_findings,
