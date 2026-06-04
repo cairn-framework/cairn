@@ -50,6 +50,47 @@ impl Reconciler for RustCodeReconciler<'_> {
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
         let rust_files = discover_rust_files(request.root, request.ignores)?;
+        // For small file counts, sequential parsing avoids thread spawn overhead.
+        if rust_files.len() < 16 {
+            let mut parser = tree_sitter::Parser::new();
+            parser
+                .set_language(&tree_sitter_rust::LANGUAGE.into())
+                .map_err(|error| ReconcileError {
+                    code: "CAIRN_RECONCILE_RUST_LANGUAGE".to_owned(),
+                    message: error.to_string(),
+                })?;
+            let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
+            let mut findings = Vec::new();
+            let mut symbols = Vec::new();
+            for file in rust_files {
+                let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
+                if let Some(owner) = most_specific_owner(&owners, &rel) {
+                    claimed_files
+                        .entry(owner)
+                        .or_default()
+                        .push(rel.into_owned());
+                    symbols.extend(public_symbols(&mut parser, &file)?);
+                } else {
+                    findings.push(Finding {
+                        code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
+                        severity: FindingSeverity::Info,
+                        message: format!("Rust file `{rel}` is not owned by any eligible node"),
+                        node: None,
+                        target: None,
+                        path: Some(rel.into_owned()),
+                    });
+                }
+            }
+            for files in claimed_files.values_mut() {
+                files.sort();
+            }
+            return Ok(ReconcileReport {
+                fingerprint: InterfaceFingerprint::from_symbols(&symbols),
+                claimed_files,
+                symbols,
+                findings,
+            });
+        }
         let thread_count = std::thread::available_parallelism()
             .map(usize::from)
             .unwrap_or(2);

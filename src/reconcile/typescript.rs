@@ -213,26 +213,20 @@ fn collect_public_symbols(
     source: &[u8],
     symbols: &mut Vec<String>,
 ) -> Result<(), ReconcileError> {
-    if is_exportable(node, source) {
-        symbols.push(interface_symbol(node, source));
-    }
+    let kind = node.kind();
+    let is_target = EXPORTABLE_KINDS.contains(&kind);
+    let mut is_exportable = kind == "export_statement";
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
+        if is_target && (child.kind() == "visibility_modifier" || child.kind() == "export") {
+            is_exportable = true;
+        }
         collect_public_symbols(child, source, symbols)?;
     }
+    if is_target && is_exportable {
+        symbols.push(interface_symbol(node, source));
+    }
     Ok(())
-}
-
-fn is_exportable(node: tree_sitter::Node<'_>, _source: &[u8]) -> bool {
-    if !EXPORTABLE_KINDS.contains(&node.kind()) {
-        return false;
-    }
-    if node.kind() == "export_statement" {
-        return true;
-    }
-    let mut cursor = node.walk();
-    node.children(&mut cursor)
-        .any(|child| child.kind() == "visibility_modifier" || child.kind() == "export")
 }
 
 #[must_use]
