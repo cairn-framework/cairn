@@ -204,10 +204,9 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
         .child_by_field_name("body")
         .and_then(|body| source.get(node.start_byte()..body.start_byte()))
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
-        .map(str::trim)
-        .map(ToOwned::to_owned);
+        .map(str::trim);
     if let Some(signature) = signature {
-        return normalize_symbol(&signature);
+        return normalize_symbol(signature);
     }
     let mut parts = Vec::new();
     let mut cursor = node.walk();
