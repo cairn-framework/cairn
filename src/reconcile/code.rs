@@ -240,13 +240,27 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
 }
 
 fn normalize_symbol(text: &str) -> String {
-    text.split_whitespace().collect::<Vec<_>>().join(" ")
+    let mut result = String::with_capacity(text.len());
+    let mut in_whitespace = true;
+    for ch in text.chars() {
+        if ch.is_whitespace() {
+            if !in_whitespace && !result.is_empty() {
+                result.push(' ');
+            }
+            in_whitespace = true;
+        } else {
+            result.push(ch);
+            in_whitespace = false;
+        }
+    }
+    if result.ends_with(' ') {
+        result.pop();
+    }
+    result
 }
-
 fn trim_dot(path: &str) -> String {
     path.trim_start_matches("./").to_owned()
 }
-
 fn normalize(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }

@@ -51,6 +51,13 @@ impl Reconciler for TypeScriptReconciler<'_> {
         let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
         let mut findings = Vec::new();
         let mut symbols = Vec::new();
+        let mut parser = tree_sitter::Parser::new();
+        parser
+            .set_language(&tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into())
+            .map_err(|error| ReconcileError {
+                code: "CAIRN_RECONCILE_TS_LANGUAGE".to_owned(),
+                message: error.to_string(),
+            })?;
         for file in ts_files {
             let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
             if let Some(owner) = most_specific_owner(&owners, &rel) {
@@ -58,7 +65,7 @@ impl Reconciler for TypeScriptReconciler<'_> {
                     .entry(owner.clone())
                     .or_default()
                     .push(rel.clone());
-                symbols.extend(public_symbols(&file)?);
+                symbols.extend(public_symbols(&mut parser, &file)?);
             } else {
                 findings.push(Finding {
                     code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
@@ -149,19 +156,14 @@ fn walk(
     }
     Ok(())
 }
-
-fn public_symbols(path: &Path) -> Result<Vec<String>, ReconcileError> {
+fn public_symbols(
+    parser: &mut tree_sitter::Parser,
+    path: &Path,
+) -> Result<Vec<String>, ReconcileError> {
     let source = fs::read_to_string(path).map_err(|error| ReconcileError {
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
         message: format!("failed to read `{}`: {error}", path.display()),
     })?;
-    let mut parser = tree_sitter::Parser::new();
-    parser
-        .set_language(&tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into())
-        .map_err(|error| ReconcileError {
-            code: "CAIRN_RECONCILE_TS_LANGUAGE".to_owned(),
-            message: error.to_string(),
-        })?;
     let tree = parser.parse(&source, None).ok_or_else(|| ReconcileError {
         code: "CAIRN_RECONCILE_PARSE_TS".to_owned(),
         message: format!("failed to parse `{}`", path.display()),
