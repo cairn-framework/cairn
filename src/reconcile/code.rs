@@ -81,9 +81,6 @@ impl Reconciler for RustCodeReconciler<'_> {
                     });
                 }
             }
-            for files in claimed_files.values_mut() {
-                files.sort();
-            }
             return Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_symbols(&symbols),
                 claimed_files,
@@ -145,9 +142,6 @@ impl Reconciler for RustCodeReconciler<'_> {
                 }
                 all_findings.extend(findings);
                 all_symbols.extend(symbols);
-            }
-            for files in all_claimed.values_mut() {
-                files.sort();
             }
             Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_symbols(&all_symbols),
