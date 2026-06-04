@@ -176,9 +176,14 @@ fn walk(
         if is_ignored(&rel, ignores) {
             continue;
         }
-        if path.is_dir() {
+        let file_type = entry.file_type().map_err(|error| ReconcileError {
+            code: "CAIRN_RECONCILE_READ_DIR_ENTRY".to_owned(),
+            message: error.to_string(),
+        })?;
+        if file_type.is_dir() {
             walk(root, &path, ignores, files)?;
-        } else if let Some(ext) = path.extension().and_then(|e| e.to_str())
+        } else if file_type.is_file()
+            && let Some(ext) = path.extension().and_then(|e| e.to_str())
             && (ext == "ts" || ext == "tsx")
         {
             files.push(path);
