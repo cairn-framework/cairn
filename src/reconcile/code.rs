@@ -241,6 +241,12 @@ fn public_symbols(
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
         message: format!("failed to read `{}`: {error}", path.display()),
     })?;
+    // Fast path: if the file contains no 'pub' keyword it has no public
+    // symbols that our reconciler cares about (macro_rules! is already
+    // excluded from PUBLIC_ITEM_KINDS).
+    if !source.contains("pub ") {
+        return Ok(Vec::new());
+    }
     let tree = parser
         .parse(source.as_bytes(), None)
         .ok_or_else(|| ReconcileError {
