@@ -163,7 +163,6 @@ fn public_symbols(
     let mut symbols = Vec::new();
     let has_all = source.contains("__all__");
     collect_public_symbols(tree.root_node(), source.as_bytes(), &mut symbols, has_all)?;
-    symbols.sort();
     Ok(symbols)
 }
 

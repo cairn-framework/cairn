@@ -172,7 +172,6 @@ fn public_symbols(
     })?;
     let mut symbols = Vec::new();
     collect_public_symbols(tree.root_node(), source.as_bytes(), &mut symbols)?;
-    symbols.sort();
     Ok(symbols)
 }
 
