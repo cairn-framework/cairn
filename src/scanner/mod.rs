@@ -35,7 +35,7 @@ pub struct TargetReport {
     /// Files claimed by this target.
     pub claimed_files: Vec<String>,
     /// Public symbols exported by this target.
-    pub symbols: Vec<String>,
+    pub symbols: std::sync::Arc<Vec<String>>,
     /// Interface hash for this target.
     pub hash: String,
 }
@@ -826,7 +826,7 @@ mod tests {
             language: Language::Rust,
             reconciler_id: ReconcilerId("rust-code".to_owned()),
             claimed_files: Vec::new(),
-            symbols: Vec::new(),
+            symbols: std::sync::Arc::new(Vec::new()),
             hash: hash.to_owned(),
         };
         let target = Target::new(node_id.to_owned(), path_buf, Language::Rust)

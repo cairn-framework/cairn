@@ -107,7 +107,7 @@ impl Reconciler for GoReconciler<'_> {
             Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_symbols(&all_symbols),
                 claimed_files: all_claimed,
-                symbols: all_symbols,
+                symbols: std::sync::Arc::new(all_symbols),
                 findings: all_findings,
             })
         })

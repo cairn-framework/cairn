@@ -32,7 +32,7 @@ pub struct ReconcileReport {
     /// Files claimed by node ID.
     pub claimed_files: std::collections::BTreeMap<String, Vec<String>>,
     /// Public symbols.
-    pub symbols: Vec<String>,
+    pub symbols: std::sync::Arc<Vec<String>>,
     /// Interface fingerprint.
     pub fingerprint: fingerprint::InterfaceFingerprint,
     /// Reconciliation findings.

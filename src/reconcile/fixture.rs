@@ -42,7 +42,7 @@ impl Reconciler for FixtureReconciler {
 
         Ok(ReconcileReport {
             claimed_files: std::collections::BTreeMap::new(),
-            symbols: Vec::new(),
+            symbols: std::sync::Arc::new(Vec::new()),
             fingerprint: super::fingerprint::InterfaceFingerprint::from_symbols(&[]),
             findings,
         })
