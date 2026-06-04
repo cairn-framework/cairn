@@ -120,8 +120,10 @@ pub fn is_ignored(path: &str, ignores: &[String]) -> bool {
             return false;
         }
         path == pattern
-            || path.starts_with(&format!("{pattern}/"))
-            || path.ends_with(&format!("/{pattern}"))
+            || (path.starts_with(pattern) && path.as_bytes().get(pattern.len()) == Some(&b'/'))
+            || (path.len() > pattern.len()
+                && path.as_bytes()[path.len() - pattern.len() - 1] == b'/'
+                && path.ends_with(pattern))
             || (pattern.starts_with("*.") && path.ends_with(&pattern[1..]))
     })
 }
