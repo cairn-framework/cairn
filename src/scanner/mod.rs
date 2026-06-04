@@ -318,16 +318,14 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     );
     Ok(ScanResult {
         graph,
-        artefacts,
-        contracts,
-        interface_hash,
-        target_reports,
         target_hashes,
+        interface_hash,
         blueprint_snapshot: current_snapshot,
+        target_reports,
+        contracts,
+        artefacts,
     })
 }
-
-/// Runs scanner and writes generated outputs.
 ///
 /// # Errors
 ///

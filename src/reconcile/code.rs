@@ -156,7 +156,6 @@ impl Reconciler for RustCodeReconciler<'_> {
         })
     }
 }
-
 fn eligible_owners(ast: &Ast) -> Vec<(String, String)> {
     let mut owners = Vec::new();
     for node in &ast.nodes {
@@ -289,8 +288,6 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
         if matches!(
             kind,
             "visibility_modifier"
-                // tree-sitter-rust uses the bare keyword string as the anonymous
-                // node kind — not "const_kw", "fn_kw", etc.
                 | "struct"
                 | "enum"
                 | "trait"
@@ -313,8 +310,19 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
     }
     parts.join(" ")
 }
-
 fn normalize_symbol(text: &str) -> String {
+    // Fast path: text is already normalized (no consecutive whitespace,
+    // no leading/trailing whitespace).
+    let bytes = text.as_bytes();
+    if !bytes.is_empty()
+        && !bytes[0].is_ascii_whitespace()
+        && !bytes[bytes.len() - 1].is_ascii_whitespace()
+        && !bytes
+            .windows(2)
+            .any(|w| w[0].is_ascii_whitespace() && w[1].is_ascii_whitespace())
+    {
+        return text.to_owned();
+    }
     let mut result = String::with_capacity(text.len());
     let mut in_whitespace = true;
     for ch in text.chars() {
