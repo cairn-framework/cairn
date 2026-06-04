@@ -479,7 +479,10 @@ mod tests {
     use super::*;
 
     fn ignores(patterns: &[&str]) -> Vec<String> {
-        patterns.iter().map(ToString::to_string).collect()
+        patterns
+            .iter()
+            .map(|p| p.trim().trim_matches('/').to_owned())
+            .collect()
     }
 
     // ── is_ignored ────────────────────────────────────────────────────────────
