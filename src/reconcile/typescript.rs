@@ -51,7 +51,7 @@ impl Reconciler for TypeScriptReconciler<'_> {
         let thread_count = std::thread::available_parallelism()
             .map(usize::from)
             .unwrap_or(2);
-        let chunk_size = (ts_files.len() / thread_count).max(1);
+        let chunk_size = (ts_files.len() + thread_count - 1) / thread_count;
         let chunks: Vec<_> = ts_files.chunks(chunk_size).collect();
         std::thread::scope(|s| {
             let owners_ref = &owners;
