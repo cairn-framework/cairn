@@ -106,57 +106,47 @@ fn reconcile_targets(
     let mut reports = Vec::new();
     let mut all_findings = Vec::new();
     let rust_reconciler = RustCodeReconciler::new(ast);
-    let mut by_node: BTreeMap<String, Vec<&Target>> = BTreeMap::new();
-    for target in targets {
-        by_node
-            .entry(target.id.node_id.clone())
-            .or_default()
-            .push(target);
-    }
     // Each language reconciler scans the entire project root; calling it
     // once per target produces duplicate orphaned-file findings. Cache
     // results by language so each reconciler runs exactly once globally.
     let mut reconciler_cache: BTreeMap<Language, crate::reconcile::ReconcileReport> =
         BTreeMap::new();
-    for (node_id, node_targets) in by_node {
-        for target in node_targets {
-            let report = reconciler_cache.entry(target.language).or_insert_with(|| {
-                let req = ReconcileRequest { root, ignores };
-                match target.language {
-                    Language::Rust => rust_reconciler.reconcile(req).unwrap(),
-                    Language::TypeScript => {
-                        let reconciler =
-                            crate::reconcile::typescript::TypeScriptReconciler::new(ast);
-                        reconciler.reconcile(req).unwrap()
-                    }
-                    Language::Python => {
-                        let reconciler = crate::reconcile::python::PythonReconciler::new(ast);
-                        reconciler.reconcile(req).unwrap()
-                    }
-                    Language::Go => {
-                        let reconciler = crate::reconcile::go::GoReconciler::new(ast);
-                        reconciler.reconcile(req).unwrap()
-                    }
+    for target in targets {
+        let report = reconciler_cache.entry(target.language).or_insert_with(|| {
+            let req = ReconcileRequest { root, ignores };
+            match target.language {
+                Language::Rust => rust_reconciler.reconcile(req).unwrap(),
+                Language::TypeScript => {
+                    let reconciler = crate::reconcile::typescript::TypeScriptReconciler::new(ast);
+                    reconciler.reconcile(req).unwrap()
                 }
-            });
-            let hash = report.fingerprint.hash.clone();
-            let owned_files = report
-                .claimed_files
-                .get(&node_id)
-                .cloned()
-                .unwrap_or_default();
-            let owned_symbols = report.symbols.clone();
-            reports.push(TargetReport {
-                target_id: target.id.clone(),
-                language: target.language,
-                reconciler_id: target.reconciler_id.clone(),
-                claimed_files: owned_files,
-                symbols: owned_symbols,
-                hash,
-            });
-        }
+                Language::Python => {
+                    let reconciler = crate::reconcile::python::PythonReconciler::new(ast);
+                    reconciler.reconcile(req).unwrap()
+                }
+                Language::Go => {
+                    let reconciler = crate::reconcile::go::GoReconciler::new(ast);
+                    reconciler.reconcile(req).unwrap()
+                }
+            }
+        });
+        let hash = report.fingerprint.hash.clone();
+        let owned_files = report
+            .claimed_files
+            .get(&target.id.node_id)
+            .cloned()
+            .unwrap_or_default();
+        let owned_symbols = report.symbols.clone();
+        reports.push(TargetReport {
+            target_id: target.id.clone(),
+            language: target.language,
+            reconciler_id: target.reconciler_id.clone(),
+            claimed_files: owned_files,
+            symbols: owned_symbols,
+            hash,
+        });
     }
-    // Collect findings once per cached reconciler run, not per target or node.
+    // Collect findings once per cached reconciler run, not per target.
     for (_, report) in reconciler_cache {
         all_findings.extend(report.findings);
     }
