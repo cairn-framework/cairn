@@ -333,11 +333,33 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
 /// persistence fails, or when project loading itself fails.
 pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     let result = load_project(root, blueprint_path)?;
-    state::write_interface_hash(root, &result.target_hashes).map_err(|error| error.to_string())?;
-    state::write_blueprint_snapshot(root, &result.blueprint_snapshot)
-        .map_err(|error| error.to_string())?;
-    outputs::write_map(root, &result.graph).map_err(|error| error.to_string())?;
-    outputs::append_log(root, &result.graph).map_err(|error| error.to_string())?;
+    let errs = std::sync::Mutex::new(Vec::new());
+    std::thread::scope(|s| {
+        s.spawn(|| {
+            if let Err(e) = state::write_interface_hash(root, &result.target_hashes) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+        s.spawn(|| {
+            if let Err(e) = state::write_blueprint_snapshot(root, &result.blueprint_snapshot) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+        s.spawn(|| {
+            if let Err(e) = outputs::write_map(root, &result.graph) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+        s.spawn(|| {
+            if let Err(e) = outputs::append_log(root, &result.graph) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+    });
+    let errs = errs.into_inner().unwrap();
+    if let Some(first) = errs.into_iter().next() {
+        return Err(first);
+    }
     Ok(result)
 }
 
