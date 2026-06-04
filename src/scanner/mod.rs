@@ -567,9 +567,12 @@ fn check_gitignored_paths(graph: &mut Graph, ast: &blueprint::Ast, ignores: &[St
 }
 
 fn visit_nodes<F: FnMut(&blueprint::Node)>(nodes: &[blueprint::Node], f: &mut F) {
-    for node in nodes {
+    let mut stack: Vec<&blueprint::Node> = nodes.iter().collect();
+    while let Some(node) = stack.pop() {
         f(node);
-        visit_nodes(&node.children, f);
+        for child in &node.children {
+            stack.push(child);
+        }
     }
 }
 #[cfg(test)]
