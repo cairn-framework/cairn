@@ -26,6 +26,9 @@ pub(super) fn render_node(node: &NodeRecord, json: bool) -> String {
 
 pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
     if json {
+        if findings.is_empty() {
+            return "{\"findings\":[]}\n".to_owned();
+        }
         format!(
             "{{\"findings\":[{}]}}\n",
             findings
