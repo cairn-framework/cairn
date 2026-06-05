@@ -276,7 +276,10 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     let (target_reports, reconcile_findings) =
         reconcile_targets(&targets, root, &config.ignores, &ast, &config);
     let mut target_hashes = state::TargetHashes::new();
-    let mut all_findings = std::mem::take(&mut contracts.findings);
+    let mut all_findings = Vec::with_capacity(
+        contracts.findings.len() + artefacts.findings.len() + reconcile_findings.len(),
+    );
+    all_findings.extend(std::mem::take(&mut contracts.findings));
     all_findings.extend(std::mem::take(&mut artefacts.findings));
     all_findings.extend(reconcile_findings);
     dedup_findings(&mut all_findings);
