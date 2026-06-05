@@ -541,8 +541,10 @@ pub(crate) fn remediate_json(
     let mut has_source_issues = false;
     let mut has_research_issues = false;
     let mut has_order_issues = false;
+    let mut has_gitignored_paths = false;
     let mut summarise_nodes: Vec<String> = Vec::new();
     let mut decision_nodes: Vec<String> = Vec::new();
+    let mut gitignored_nodes: Vec<String> = Vec::new();
     for finding in &lint_response.findings {
         match finding.code.as_str() {
             "CAIRN_RECONCILE_ORPHANED_FILE" => has_orphans = true,
@@ -588,6 +590,14 @@ pub(crate) fn remediate_json(
             }
             "CAIRN_ORDER_CYCLE" => {
                 has_order_issues = true;
+            }
+            "CAIRN_PATH_GITIGNORED" => {
+                has_gitignored_paths = true;
+                if let Some(node) = &finding.node
+                    && !gitignored_nodes.contains(node)
+                {
+                    gitignored_nodes.push(node.clone());
+                }
             }
             "CAIRN_RECONCILE_RUST_LANGUAGE"
             | "CAIRN_RECONCILE_GO_LANGUAGE"
@@ -657,6 +667,15 @@ pub(crate) fn remediate_json(
             "command": "cairn refine",
             "description": "The blueprint has drifted from the code (ghost or orphaned modules). Generate a delta to reconcile the differences.",
             "nodes": [],
+        }));
+    }
+    if has_gitignored_paths {
+        actions.push(json!({
+            "priority": 2,
+            "action": "fix_gitignored_path",
+            "command": "cairn lint",
+            "description": "One or more declared paths match a .gitignore pattern and will appear as Ghost nodes. Un-ignore the path in .gitignore, or correct the path declaration in the blueprint.",
+            "nodes": gitignored_nodes,
         }));
     }
     if has_interface_changes && !summarise_nodes.is_empty() {

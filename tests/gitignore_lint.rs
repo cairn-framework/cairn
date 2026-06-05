@@ -6,6 +6,7 @@
 
 use std::fs;
 use std::path::PathBuf;
+use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
@@ -94,6 +95,42 @@ fn test_no_gitignore_no_warning() -> Result<(), Box<dyn std::error::Error>> {
     assert!(
         findings.is_empty(),
         "absent .gitignore should not emit warnings"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_gitignored_path_surfaces_remediation_action() -> Result<(), Box<dyn std::error::Error>> {
+    // A gitignored declared path is a Warning that `cairn lint` reports. The
+    // remediation driver must map it to a concrete, node-specific action rather
+    // than silently reporting "good shape".
+    let root = temp_root("gitignored-remediate")?;
+    fs::create_dir_all(root.join("dist"))?;
+    fs::write(root.join("dist/main.rs"), "")?;
+    fs::write(root.join(".gitignore"), "dist\n")?;
+    fs::write(root.join("cairn.blueprint"), minimal_blueprint("./dist"))?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["remediate", "--json"])
+        .output()?;
+    let stdout = String::from_utf8(output.stdout)?;
+    let parsed: serde_json::Value = serde_json::from_str(&stdout)?;
+    let actions = parsed["actions"]
+        .as_array()
+        .ok_or("remediate output missing actions array")?;
+
+    let gitignore_action = actions
+        .iter()
+        .find(|a| a["action"] == "fix_gitignored_path")
+        .ok_or_else(|| format!("expected a fix_gitignored_path action, got: {stdout}"))?;
+    let nodes: Vec<&str> = gitignore_action["nodes"]
+        .as_array()
+        .map(|arr| arr.iter().filter_map(serde_json::Value::as_str).collect())
+        .unwrap_or_default();
+    assert!(
+        nodes.contains(&"app.lib"),
+        "action should name the affected node app.lib, got: {nodes:?}"
     );
     Ok(())
 }
