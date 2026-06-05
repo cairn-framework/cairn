@@ -49,9 +49,7 @@ impl Reconciler for GoReconciler<'_> {
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
         let go_files = discover_go_files(request.root, request.ignores)?;
-        let thread_count = std::thread::available_parallelism()
-            .map(usize::from)
-            .unwrap_or(2);
+        let thread_count = std::thread::available_parallelism().map_or(2, usize::from);
         let chunk_size = go_files.len().div_ceil(thread_count).max(1);
         let chunks: Vec<_> = go_files.chunks(chunk_size).collect();
         std::thread::scope(|s| {
@@ -120,7 +118,7 @@ fn eligible_owners(ast: &Ast) -> Vec<(String, String)> {
     for node in &ast.nodes {
         collect_owner(node, &mut owners);
     }
-    owners.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+    owners.sort_by_key(|b| std::cmp::Reverse(b.1.len()));
     owners
 }
 
