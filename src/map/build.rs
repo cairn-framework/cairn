@@ -1,14 +1,10 @@
 //! Map graph builder.
 
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    path::Path,
-};
-
 use crate::{
     artefacts::contract::ContractSet,
     blueprint::{Ast, Edge, Node},
 };
+use std::{collections::BTreeMap, path::Path};
 
 use super::graph::{EdgeRef, Finding, FindingSeverity, Graph, NodeRecord, NodeState};
 
@@ -18,7 +14,7 @@ pub fn build_graph(
     ast: &Ast,
     root: &Path,
     contracts: &ContractSet,
-    claimed_files: &BTreeMap<String, Vec<String>>,
+    claimed_files: &mut BTreeMap<String, Vec<String>>,
     external_findings: Vec<Finding>,
 ) -> Graph {
     let mut graph = Graph {
@@ -43,11 +39,11 @@ fn insert_node(
     node: &Node,
     parent: Option<&str>,
     root: &Path,
-    claimed_files: &BTreeMap<String, Vec<String>>,
+    claimed_files: &mut BTreeMap<String, Vec<String>>,
 ) {
     let is_internal = !node.children.is_empty();
     let owns_files = !is_internal || node.owns_files;
-    let files = claimed_files.get(&node.id).cloned().unwrap_or_default();
+    let files = claimed_files.remove(&node.id).unwrap_or_default();
     let state = if node.paths.is_empty()
         || node.paths.iter().any(|path| root.join(path).exists())
         || !files.is_empty()
@@ -175,9 +171,8 @@ fn validate_path_ties(graph: &mut Graph) {
 }
 
 fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
-    let ids = graph.nodes.keys().cloned().collect::<BTreeSet<_>>();
     for contract in contracts.contracts.values() {
-        if !ids.contains(&contract.node) {
+        if !graph.nodes.contains_key(&contract.node) {
             graph.findings.push(Finding {
                 code: "CAIRN_CONTRACT_UNKNOWN_NODE".to_owned(),
                 severity: FindingSeverity::Error,
@@ -188,8 +183,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
             });
         }
     }
-    let nodes = graph.nodes.values().cloned().collect::<Vec<_>>();
-    for node in nodes {
+    for node in graph.nodes.values() {
         for pointer in &node.contracts {
             let full = root.join(pointer);
             if !full.exists() {
@@ -262,7 +256,7 @@ mod tests {
             ast,
             Path::new("/nonexistent"),
             &ContractSet::default(),
-            &BTreeMap::new(),
+            &mut BTreeMap::new(),
             Vec::new(),
         )
     }
@@ -470,7 +464,7 @@ mod tests {
             &a,
             Path::new("/nonexistent"),
             &ContractSet::default(),
-            &BTreeMap::new(),
+            &mut BTreeMap::new(),
             vec![external],
         );
         assert!(

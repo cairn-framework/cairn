@@ -13,7 +13,7 @@ pub type TargetHashes = BTreeMap<String, String>;
 pub fn write_interface_hash(root: &Path, hashes: &TargetHashes) -> io::Result<()> {
     let dir = root.join(".cairn/state");
     fs::create_dir_all(&dir)?;
-    let json = serde_json::to_string_pretty(hashes).map_err(|e| {
+    let json = serde_json::to_string(hashes).map_err(|e| {
         io::Error::new(
             io::ErrorKind::InvalidData,
             format!("serialization failed: {e}"),
@@ -94,7 +94,7 @@ impl Default for BlueprintSnapshot {
 pub fn write_blueprint_snapshot(root: &Path, snapshot: &BlueprintSnapshot) -> io::Result<()> {
     let dir = root.join(".cairn/state");
     fs::create_dir_all(&dir)?;
-    let json = serde_json::to_string_pretty(snapshot).map_err(|e| {
+    let json = serde_json::to_string(snapshot).map_err(|e| {
         io::Error::new(
             io::ErrorKind::InvalidData,
             format!("serialization failed: {e}"),

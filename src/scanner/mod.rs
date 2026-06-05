@@ -35,7 +35,7 @@ pub struct TargetReport {
     /// Files claimed by this target.
     pub claimed_files: Vec<String>,
     /// Public symbols exported by this target.
-    pub symbols: Vec<String>,
+    pub symbols: std::sync::Arc<Vec<String>>,
     /// Interface hash for this target.
     pub hash: String,
 }
@@ -106,71 +106,49 @@ fn reconcile_targets(
     let mut reports = Vec::new();
     let mut all_findings = Vec::new();
     let rust_reconciler = RustCodeReconciler::new(ast);
-    let mut by_node: BTreeMap<String, Vec<&Target>> = BTreeMap::new();
-    for target in targets {
-        by_node
-            .entry(target.id.node_id.clone())
-            .or_default()
-            .push(target);
-    }
     // Each language reconciler scans the entire project root; calling it
     // once per target produces duplicate orphaned-file findings. Cache
-    // results by language so each reconciler runs exactly once.
+    // results by language so each reconciler runs exactly once globally.
     let mut reconciler_cache: BTreeMap<Language, crate::reconcile::ReconcileReport> =
         BTreeMap::new();
-    for (node_id, node_targets) in by_node {
-        let mut node_reports = Vec::new();
-        let mut aggregated_files = BTreeMap::<String, Vec<String>>::new();
-        let mut aggregated_symbols = Vec::new();
-        for target in node_targets {
-            let report = reconciler_cache.entry(target.language).or_insert_with(|| {
-                let req = ReconcileRequest { root, ignores };
-                match target.language {
-                    Language::Rust => rust_reconciler.reconcile(req).unwrap(),
-                    Language::TypeScript => {
-                        let reconciler =
-                            crate::reconcile::typescript::TypeScriptReconciler::new(ast);
-                        reconciler.reconcile(req).unwrap()
-                    }
-                    Language::Python => {
-                        let reconciler = crate::reconcile::python::PythonReconciler::new(ast);
-                        reconciler.reconcile(req).unwrap()
-                    }
-                    Language::Go => {
-                        let reconciler = crate::reconcile::go::GoReconciler::new(ast);
-                        reconciler.reconcile(req).unwrap()
-                    }
+    for target in targets {
+        let report = reconciler_cache.entry(target.language).or_insert_with(|| {
+            let req = ReconcileRequest { root, ignores };
+            match target.language {
+                Language::Rust => rust_reconciler.reconcile(req).unwrap(),
+                Language::TypeScript => {
+                    let reconciler = crate::reconcile::typescript::TypeScriptReconciler::new(ast);
+                    reconciler.reconcile(req).unwrap()
                 }
-            });
-            let hash = report.fingerprint.hash.clone();
-            let owned_files = report
-                .claimed_files
-                .get(&node_id)
-                .cloned()
-                .unwrap_or_default();
-            let owned_symbols = report.symbols.clone();
-            for (owner, files) in &report.claimed_files {
-                aggregated_files
-                    .entry(owner.clone())
-                    .or_default()
-                    .extend(files.clone());
+                Language::Python => {
+                    let reconciler = crate::reconcile::python::PythonReconciler::new(ast);
+                    reconciler.reconcile(req).unwrap()
+                }
+                Language::Go => {
+                    let reconciler = crate::reconcile::go::GoReconciler::new(ast);
+                    reconciler.reconcile(req).unwrap()
+                }
             }
-            aggregated_symbols.extend(report.symbols.clone());
-            node_reports.push(TargetReport {
-                target_id: target.id.clone(),
-                language: target.language,
-                reconciler_id: target.reconciler_id.clone(),
-                claimed_files: owned_files,
-                symbols: owned_symbols,
-                hash,
-            });
-        }
-        // Collect findings only once per cached reconciler run, not per target.
-        for report in reconciler_cache.values() {
-            all_findings.extend(report.findings.clone());
-        }
-        reconciler_cache.clear();
-        reports.extend(node_reports);
+        });
+        let hash = report.fingerprint.hash.clone();
+        let owned_files = report
+            .claimed_files
+            .get(&target.id.node_id)
+            .cloned()
+            .unwrap_or_default();
+        let owned_symbols = report.symbols.clone();
+        reports.push(TargetReport {
+            target_id: target.id.clone(),
+            language: target.language,
+            reconciler_id: target.reconciler_id.clone(),
+            claimed_files: owned_files,
+            symbols: owned_symbols,
+            hash,
+        });
+    }
+    // Collect findings once per cached reconciler run, not per target.
+    for (_, report) in reconciler_cache {
+        all_findings.extend(report.findings);
     }
     let divergence_findings = detect_divergence(&reports, targets, config);
     all_findings.extend(divergence_findings);
@@ -182,16 +160,31 @@ fn reconcile_targets(
 /// different messages are still the same issue — the message is display-only.
 /// Preserves the first occurrence and order.
 fn dedup_findings(findings: &mut Vec<crate::map::graph::Finding>) {
-    let mut seen = std::collections::HashSet::new();
-    findings.retain(|f| {
-        let key = (
-            f.code.clone(),
-            f.node.clone(),
-            f.path.clone(),
-            f.target.clone(),
-        );
-        seen.insert(key)
-    });
+    let keep: Vec<bool> = {
+        let mut seen = std::collections::HashSet::new();
+        findings
+            .iter()
+            .map(|f| {
+                let key = (
+                    f.code.as_str(),
+                    f.node.as_deref(),
+                    f.path.as_deref(),
+                    f.target.as_deref(),
+                );
+                seen.insert(key)
+            })
+            .collect()
+    };
+    let mut write_idx = 0;
+    for (read_idx, should_keep) in keep.into_iter().enumerate() {
+        if should_keep {
+            if write_idx != read_idx {
+                findings.swap(write_idx, read_idx);
+            }
+            write_idx += 1;
+        }
+    }
+    findings.truncate(write_idx);
 }
 
 fn detect_divergence(
@@ -200,10 +193,10 @@ fn detect_divergence(
     config: &config::Config,
 ) -> Vec<crate::map::graph::Finding> {
     let mut findings = Vec::new();
-    let mut by_node: BTreeMap<String, Vec<&TargetReport>> = BTreeMap::new();
+    let mut by_node: BTreeMap<&str, Vec<&TargetReport>> = BTreeMap::new();
     for report in reports {
         by_node
-            .entry(report.target_id.node_id.clone())
+            .entry(report.target_id.node_id.as_str())
             .or_default()
             .push(report);
     }
@@ -213,7 +206,7 @@ fn detect_divergence(
         }
         let mut by_role: BTreeMap<String, Vec<&PathBuf>> = BTreeMap::new();
         let mut hash_by_path: BTreeMap<PathBuf, String> = BTreeMap::new();
-        for report in &node_reports.clone() {
+        for report in &node_reports {
             let target = targets.iter().find(|t| {
                 t.id.node_id == report.target_id.node_id && t.id.path == report.target_id.path
             });
@@ -238,7 +231,7 @@ fn detect_divergence(
                 continue;
             }
 
-            if let Some(asymmetry) = config.is_intentional_asymmetry(&node_id, &role, &paths) {
+            if let Some(asymmetry) = config.is_intentional_asymmetry(node_id, &role, &paths) {
                 findings.push(crate::map::graph::Finding {
                     code: "CT002".to_owned(),
                     severity: crate::map::graph::FindingSeverity::Warning,
@@ -246,7 +239,7 @@ fn detect_divergence(
                         "Intentional asymmetry in `{}` for contract role `{}`: {}",
                         node_id, role, asymmetry.reason
                     ),
-                    node: Some(node_id.clone()),
+                    node: Some(node_id.to_owned()),
                     target: Some(role.clone()),
                     path: None,
                 });
@@ -258,7 +251,7 @@ fn detect_divergence(
                     message: format!(
                         "Interface contradiction: targets for `{node_id}` with contract role `{role}` have divergent interfaces"
                     ),
-                    node: Some(node_id.clone()),
+                    node: Some(node_id.to_owned()),
                     target: Some(role.clone()),
                     path: None,
                 });
@@ -277,23 +270,23 @@ fn detect_divergence(
 pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     let config = config::load(root).map_err(|error| error.message)?;
     let ast = blueprint::parse_file(blueprint_path).map_err(|error| error.to_string())?;
-    let contracts = load_contracts(root, &ast);
-    let artefacts = load_artefacts(root, &ast, contracts.clone());
-
+    let mut contracts = load_contracts(root, &ast);
+    let mut artefacts = load_artefacts(root, &ast, contracts.clone());
     let targets = build_targets(&ast, &config);
     let (target_reports, reconcile_findings) =
         reconcile_targets(&targets, root, &config.ignores, &ast, &config);
     let mut target_hashes = state::TargetHashes::new();
-    let mut all_findings = contracts.findings.clone();
-    all_findings.extend(artefacts.findings.clone());
+    let mut all_findings = std::mem::take(&mut contracts.findings);
+    all_findings.extend(std::mem::take(&mut artefacts.findings));
     all_findings.extend(reconcile_findings);
     dedup_findings(&mut all_findings);
     for report in &target_reports {
-        let key = format!(
-            "{}:{}",
-            report.target_id.node_id,
-            report.target_id.path.display()
+        let mut key = String::with_capacity(
+            report.target_id.node_id.len() + 1 + report.target_id.path.as_os_str().len(),
         );
+        key.push_str(&report.target_id.node_id);
+        key.push(':');
+        key.push_str(&report.target_id.path.to_string_lossy());
         target_hashes.insert(key, report.hash.clone());
     }
     let interface_hash = target_reports
@@ -308,10 +301,10 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
             .extend(report.claimed_files.clone());
     }
     for files in claimed_files.values_mut() {
-        files.sort();
+        files.sort_unstable();
         files.dedup();
     }
-    let mut graph = build_graph(&ast, root, &contracts, &claimed_files, all_findings);
+    let mut graph = build_graph(&ast, root, &contracts, &mut claimed_files, all_findings);
     check_provenance_coverage(&mut graph, &artefacts);
     check_claims(&mut graph, &artefacts, root);
     check_gitignored_paths(&mut graph, &ast, &config.ignores);
@@ -326,28 +319,49 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     );
     Ok(ScanResult {
         graph,
-        artefacts,
-        contracts,
-        interface_hash,
-        target_reports,
         target_hashes,
+        interface_hash,
         blueprint_snapshot: current_snapshot,
+        target_reports,
+        contracts,
+        artefacts,
     })
 }
-
-/// Runs scanner and writes generated outputs.
 ///
 /// # Errors
 ///
 /// Returns an error string when project loading succeeds but generated output
 /// persistence fails, or when project loading itself fails.
+#[allow(clippy::missing_panics_doc)] // Reason: Mutex is never poisoned inside thread::scope
 pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     let result = load_project(root, blueprint_path)?;
-    state::write_interface_hash(root, &result.target_hashes).map_err(|error| error.to_string())?;
-    state::write_blueprint_snapshot(root, &result.blueprint_snapshot)
-        .map_err(|error| error.to_string())?;
-    outputs::write_map(root, &result.graph).map_err(|error| error.to_string())?;
-    outputs::append_log(root, &result.graph).map_err(|error| error.to_string())?;
+    let errs = std::sync::Mutex::new(Vec::new());
+    std::thread::scope(|s| {
+        s.spawn(|| {
+            if let Err(e) = state::write_interface_hash(root, &result.target_hashes) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+        s.spawn(|| {
+            if let Err(e) = state::write_blueprint_snapshot(root, &result.blueprint_snapshot) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+        s.spawn(|| {
+            if let Err(e) = outputs::write_map(root, &result.graph) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+        s.spawn(|| {
+            if let Err(e) = outputs::append_log(root, &result.graph) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+    });
+    let errs = errs.into_inner().unwrap();
+    if let Some(first) = errs.into_iter().next() {
+        return Err(first);
+    }
     Ok(result)
 }
 
@@ -358,7 +372,7 @@ fn walk_blueprint_nodes(
 ) {
     for node in nodes {
         let mut paths = node.paths.clone();
-        paths.sort();
+        paths.sort_unstable();
         snapshot.nodes.insert(
             node.id.clone(),
             state::NodeFingerprint {
@@ -553,9 +567,12 @@ fn check_gitignored_paths(graph: &mut Graph, ast: &blueprint::Ast, ignores: &[St
 }
 
 fn visit_nodes<F: FnMut(&blueprint::Node)>(nodes: &[blueprint::Node], f: &mut F) {
-    for node in nodes {
+    let mut stack: Vec<&blueprint::Node> = nodes.iter().collect();
+    while let Some(node) = stack.pop() {
         f(node);
-        visit_nodes(&node.children, f);
+        for child in &node.children {
+            stack.push(child);
+        }
     }
 }
 #[cfg(test)]
@@ -812,7 +829,7 @@ mod tests {
             language: Language::Rust,
             reconciler_id: ReconcilerId("rust-code".to_owned()),
             claimed_files: Vec::new(),
-            symbols: Vec::new(),
+            symbols: std::sync::Arc::new(Vec::new()),
             hash: hash.to_owned(),
         };
         let target = Target::new(node_id.to_owned(), path_buf, Language::Rust)

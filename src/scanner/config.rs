@@ -105,6 +105,9 @@ pub fn load(root: &Path) -> Result<Config, ConfigError> {
     }
     config.ignores.sort();
     config.ignores.dedup();
+    for pattern in &mut config.ignores {
+        *pattern = pattern.trim().trim_matches('/').to_owned();
+    }
     Ok(config)
 }
 
@@ -115,17 +118,17 @@ pub fn is_ignored(path: &str, ignores: &[String]) -> bool {
         return false;
     }
     ignores.iter().any(|pattern| {
-        let pattern = pattern.trim().trim_matches('/');
         if pattern.is_empty() {
             return false;
         }
         path == pattern
-            || path.starts_with(&format!("{pattern}/"))
-            || path.ends_with(&format!("/{pattern}"))
+            || (path.starts_with(pattern) && path.as_bytes().get(pattern.len()) == Some(&b'/'))
+            || (path.len() > pattern.len()
+                && path.as_bytes()[path.len() - pattern.len() - 1] == b'/'
+                && path.ends_with(pattern))
             || (pattern.starts_with("*.") && path.ends_with(&pattern[1..]))
     })
 }
-
 fn built_in_ignores() -> Vec<String> {
     [".git", "target", "node_modules", ".DS_Store", ".claude"]
         .iter()
@@ -476,7 +479,10 @@ mod tests {
     use super::*;
 
     fn ignores(patterns: &[&str]) -> Vec<String> {
-        patterns.iter().map(ToString::to_string).collect()
+        patterns
+            .iter()
+            .map(|p| p.trim().trim_matches('/').to_owned())
+            .collect()
     }
 
     // ── is_ignored ────────────────────────────────────────────────────────────

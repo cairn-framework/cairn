@@ -40,7 +40,6 @@ pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> Artefac
     validate_integrity(root, &ids, &mut set);
     set
 }
-
 fn load_todos(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
     for pointer in pointers(ast, "todos") {
         for path in markdown_paths(root, &pointer, set) {

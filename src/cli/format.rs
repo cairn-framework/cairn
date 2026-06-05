@@ -26,31 +26,39 @@ pub(super) fn render_node(node: &NodeRecord, json: bool) -> String {
 
 pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
     if json {
-        format!(
-            "{{\"findings\":[{}]}}\n",
-            findings
-                .iter()
-                .map(finding_json)
-                .collect::<Vec<_>>()
-                .join(",")
-        )
+        if findings.is_empty() {
+            return "{\"findings\":[]}\n".to_owned();
+        }
+        let mut out = String::from("{\"findings\":[");
+        for (i, finding) in findings.iter().enumerate() {
+            if i > 0 {
+                out.push(',');
+            }
+            out.push_str("{\"code\":\"");
+            out.push_str(&esc(&finding.code));
+            out.push_str("\",\"severity\":\"");
+            out.push_str(finding.severity.name());
+            out.push_str("\",\"message\":\"");
+            out.push_str(&esc(&finding.message));
+            out.push_str("\"}");
+        }
+        out.push_str("]}\n");
+        out
     } else if findings.is_empty() {
         format!(
             "Findings:\n{}\n",
             super::copy::lookup("empty-states.cli-clean-map.body")
         )
     } else {
-        format!(
-            "Findings:\n{}\n",
-            findings
-                .iter()
-                .map(|finding| format!(
-                    "{:?}: {} {}",
-                    finding.severity, finding.code, finding.message
-                ))
-                .collect::<Vec<_>>()
-                .join("\n")
-        )
+        let mut out = String::from("Findings:\n");
+        for finding in findings {
+            let _ = writeln!(
+                out,
+                "{:?}: {} {}",
+                finding.severity, finding.code, finding.message
+            );
+        }
+        out
     }
 }
 
@@ -370,37 +378,54 @@ pub(super) fn err(code: u8, message: &str) -> CliResult {
 }
 
 pub(super) fn string_array_json(values: &[String]) -> String {
-    format!(
-        "[{}]",
-        values
-            .iter()
-            .map(|value| format!("\"{}\"", esc(value)))
-            .collect::<Vec<_>>()
-            .join(",")
-    )
+    let mut out = String::from('[');
+    for (i, value) in values.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        out.push('"');
+        out.push_str(&esc(value));
+        out.push('"');
+    }
+    out.push(']');
+    out
 }
-
 pub(super) fn lines(values: &[String]) -> String {
     if values.is_empty() {
         "None".to_owned()
     } else {
-        values
-            .iter()
-            .map(|value| format!("- {value}"))
-            .collect::<Vec<_>>()
-            .join("\n")
+        let mut out = String::new();
+        for (i, value) in values.iter().enumerate() {
+            if i > 0 {
+                out.push('\n');
+            }
+            let _ = write!(out, "- {value}");
+        }
+        out
     }
 }
-
-pub(super) fn esc(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
-        .replace('\u{08}', "\\b")
-        .replace('\u{0C}', "\\f")
+pub(super) fn esc(value: &str) -> std::borrow::Cow<'_, str> {
+    if value.bytes().all(|b| {
+        b != b'\\'
+            && b != b'"'
+            && b != b'\n'
+            && b != b'\r'
+            && b != b'\t'
+            && b != b'\x08'
+            && b != b'\x0C'
+    }) {
+        return std::borrow::Cow::Borrowed(value);
+    }
+    std::borrow::Cow::Owned(
+        value
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('\n', "\\n")
+            .replace('\r', "\\r")
+            .replace('\t', "\\t")
+            .replace('\u{08}', "\\b")
+            .replace('\u{0C}', "\\f"),
+    )
 }
 
 #[cfg(test)]

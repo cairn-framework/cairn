@@ -260,7 +260,7 @@ pub fn islands(graph: &Graph) -> IslandsResponse {
         .values()
         .map(|members| {
             let mut sorted = members.clone();
-            sorted.sort();
+            sorted.sort_unstable();
             let representative = sorted.first().cloned().unwrap_or_default();
             IslandResponse {
                 representative,
@@ -403,7 +403,7 @@ fn collect_inner(
             }
         }
     }
-    nodes.sort();
+    nodes.sort_unstable();
     nodes.dedup();
     nodes
 }
