@@ -281,24 +281,6 @@ fn collect_public_symbols(
     Ok(())
 }
 fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
-    const SYMBOL_KINDS: &[&str] = &[
-        "const",
-        "enum",
-        "field_identifier",
-        "fn",
-        "identifier",
-        "mod",
-        "name",
-        "primitive_type",
-        "static",
-        "struct",
-        "trait",
-        "type",
-        "type_identifier",
-        "union",
-        "use",
-        "visibility_modifier",
-    ];
     let signature = node
         .child_by_field_name("body")
         .and_then(|body| source.get(node.start_byte()..body.start_byte()))
@@ -311,8 +293,25 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
         let kind = child.kind();
-        if SYMBOL_KINDS.binary_search(&kind).is_ok()
-            && let Ok(text) = child.utf8_text(source)
+        if matches!(
+            kind,
+            "const"
+                | "enum"
+                | "field_identifier"
+                | "fn"
+                | "identifier"
+                | "mod"
+                | "name"
+                | "primitive_type"
+                | "static"
+                | "struct"
+                | "trait"
+                | "type"
+                | "type_identifier"
+                | "union"
+                | "use"
+                | "visibility_modifier"
+        ) && let Ok(text) = child.utf8_text(source)
         {
             parts.push(text.trim());
         }
