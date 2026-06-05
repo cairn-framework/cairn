@@ -161,7 +161,29 @@ pub fn architecture_findings_from_project(root: &Path) -> Vec<Finding> {
     architecture_findings(&old_ast, &new_ast, &decisions_dir, escape_hatch)
 }
 
+fn current_head_hash(root: &Path) -> Option<String> {
+    let head_ref = std::fs::read_to_string(root.join(".git/HEAD")).ok()?;
+    let ref_path = head_ref.trim().strip_prefix("ref: ")?;
+    let hash = std::fs::read_to_string(root.join(".git").join(ref_path)).ok()?;
+    Some(hash.trim().to_owned())
+}
+
 fn read_head_blueprint(root: &Path) -> Option<Ast> {
+    // Fast path: if a cached copy exists for the current HEAD, use it.
+    let cache_path = root.join(".cairn/state/head-blueprint.cache");
+    if let (Some(head), Ok(cache)) = (
+        current_head_hash(root),
+        std::fs::read_to_string(&cache_path),
+    ) {
+        let mut lines = cache.lines();
+        if lines.next() == Some(&head) {
+            let source = lines.collect::<Vec<_>>().join("\n");
+            if let Ok(ast) = crate::blueprint::parser::parse_str("HEAD:cairn.blueprint", &source) {
+                return Some(ast);
+            }
+        }
+    }
+
     let output = std::process::Command::new("git")
         .current_dir(root)
         .args(["show", "HEAD:cairn.blueprint"])
@@ -171,7 +193,17 @@ fn read_head_blueprint(root: &Path) -> Option<Ast> {
         return None;
     }
     let source = String::from_utf8(output.stdout).ok()?;
-    crate::blueprint::parser::parse_str("HEAD:cairn.blueprint", &source).ok()
+    let ast = crate::blueprint::parser::parse_str("HEAD:cairn.blueprint", &source).ok()?;
+
+    // Write cache for subsequent runs.
+    if let Some(head) = current_head_hash(root) {
+        let cache_dir = root.join(".cairn/state");
+        let _ = std::fs::create_dir_all(&cache_dir);
+        let cache_content = format!("{head}\n{source}");
+        let _ = std::fs::write(&cache_path, cache_content);
+    }
+
+    Some(ast)
 }
 
 /// Load all decision file contents from the decisions directory.
