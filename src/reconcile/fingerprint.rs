@@ -4,7 +4,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 /// Interface hash value.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct InterfaceFingerprint {
     /// Stable hexadecimal hash.
     pub hash: String,

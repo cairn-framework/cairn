@@ -27,16 +27,38 @@ pub struct ReconcileRequest<'a> {
 }
 
 /// Reconcile report.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ReconcileReport {
     /// Files claimed by node ID.
     pub claimed_files: std::collections::BTreeMap<String, Vec<String>>,
     /// Public symbols.
+    #[serde(with = "serde_arc_vec")]
     pub symbols: std::sync::Arc<Vec<String>>,
     /// Interface fingerprint.
     pub fingerprint: fingerprint::InterfaceFingerprint,
     /// Reconciliation findings.
     pub findings: Vec<Finding>,
+}
+
+/// Serde helpers for `Arc<Vec<String>>`.
+mod serde_arc_vec {
+    use std::sync::Arc;
+
+    /// Serializes the inner `Vec<String>` through the `Arc`.
+    pub(crate) fn serialize<S: serde::Serializer>(
+        value: &Arc<Vec<String>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        serde::Serialize::serialize(value.as_ref(), serializer)
+    }
+
+    /// Deserializes a `Vec<String>` and wraps it in an `Arc`.
+    pub(crate) fn deserialize<'de, D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Arc<Vec<String>>, D::Error> {
+        let v: Vec<String> = serde::Deserialize::deserialize(deserializer)?;
+        Ok(Arc::new(v))
+    }
 }
 
 /// Reconciler error.

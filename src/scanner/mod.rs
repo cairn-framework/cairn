@@ -6,6 +6,7 @@ pub mod state;
 
 use std::{
     collections::{BTreeMap, BTreeSet},
+    hash::{Hash, Hasher},
     path::{Path, PathBuf},
 };
 
@@ -103,6 +104,11 @@ fn reconcile_targets(
     ast: &blueprint::Ast,
     config: &config::Config,
 ) -> (Vec<TargetReport>, Vec<crate::map::graph::Finding>) {
+    let cache_key = compute_reconciler_cache_key(ast, ignores, targets, root);
+    if let Some(cached) = try_load_reconciler_cache(root, &cache_key) {
+        return build_reports_from_cache(&cached, targets, config);
+    }
+
     let mut reports = Vec::new();
     let mut all_findings = Vec::new();
     let rust_reconciler = RustCodeReconciler::new(ast);
@@ -147,8 +153,189 @@ fn reconcile_targets(
         });
     }
     // Collect findings once per cached reconciler run, not per target.
-    for (_, report) in reconciler_cache {
-        all_findings.extend(report.findings);
+    for report in reconciler_cache.values() {
+        all_findings.extend(report.findings.clone());
+    }
+    let divergence_findings = detect_divergence(&reports, targets, config);
+    all_findings.extend(divergence_findings);
+
+    // Persist cache for next run — convert BTreeMap<Language, _> to BTreeMap<String, _>.
+    let serializable: BTreeMap<String, crate::reconcile::ReconcileReport> = reconciler_cache
+        .into_iter()
+        .map(|(lang, report)| (lang.as_str().to_owned(), report))
+        .collect();
+    write_reconciler_cache(root, &cache_key, &serializable);
+
+    (reports, all_findings)
+}
+
+/// Cache version for reconciler cache format.
+const RECONCILER_CACHE_VERSION: u32 = 1;
+
+/// Persistent cache entry for reconciler results.
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ReconcilerCacheEntry {
+    /// Schema version.
+    version: u32,
+    /// Cache key (hex hash of inputs).
+    key: String,
+    /// Reconcile reports keyed by `Language::as_str()`.
+    reports: BTreeMap<String, crate::reconcile::ReconcileReport>,
+}
+
+/// Source file extensions tracked for cache invalidation.
+const CACHE_EXTENSIONS: &[&str] = &["rs", "ts", "tsx", "py", "go"];
+
+/// Computes a cache key that captures every input to reconciliation.
+fn compute_reconciler_cache_key(
+    ast: &blueprint::Ast,
+    ignores: &[String],
+    targets: &[Target],
+    root: &Path,
+) -> String {
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+
+    // Cache version.
+    RECONCILER_CACHE_VERSION.hash(&mut hasher);
+
+    // Blueprint AST content — Debug is deterministic for these types.
+    format!("{ast:?}").hash(&mut hasher);
+
+    // Ignore patterns.
+    ignores.hash(&mut hasher);
+
+    // Target identities (order-sensitive, matching build_targets output).
+    for target in targets {
+        target.language.as_str().hash(&mut hasher);
+        target.id.node_id.hash(&mut hasher);
+        target.id.path.to_string_lossy().hash(&mut hasher);
+        target.reconciler_id.0.hash(&mut hasher);
+    }
+
+    // Walk project root collecting source file mtimes.
+    let mut file_entries: Vec<(String, u64)> = Vec::new();
+    collect_source_file_mtimes(root, root, ignores, &mut file_entries);
+    file_entries.sort_unstable();
+    file_entries.hash(&mut hasher);
+
+    format!("{:016x}", hasher.finish())
+}
+
+/// Recursively collects `(relative_path, mtime_secs)` for source files.
+fn collect_source_file_mtimes(
+    root: &Path,
+    dir: &Path,
+    ignores: &[String],
+    entries: &mut Vec<(String, u64)>,
+) {
+    let Ok(read_dir) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in read_dir.flatten() {
+        let path = entry.path();
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if config::is_ignored(&rel, ignores) {
+            continue;
+        }
+        let Ok(ft) = entry.file_type() else { continue };
+        if ft.is_dir() {
+            collect_source_file_mtimes(root, &path, ignores, entries);
+        } else if ft.is_file() {
+            let has_ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .is_some_and(|e| CACHE_EXTENSIONS.contains(&e));
+            if has_ext {
+                let mtime_secs = entry
+                    .metadata()
+                    .ok()
+                    .and_then(|m| m.modified().ok())
+                    .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                    .map_or(0, |d| d.as_secs());
+                entries.push((rel, mtime_secs));
+            }
+        }
+    }
+}
+
+/// Attempts to load a cached reconciler result matching `key`.
+fn try_load_reconciler_cache(
+    root: &Path,
+    key: &str,
+) -> Option<BTreeMap<String, crate::reconcile::ReconcileReport>> {
+    let path = root.join(".cairn/state/reconciler-cache.json");
+    let content = std::fs::read_to_string(path).ok()?;
+    let entry: ReconcilerCacheEntry = serde_json::from_str(&content).ok()?;
+    if entry.version != RECONCILER_CACHE_VERSION || entry.key != key {
+        return None;
+    }
+    Some(entry.reports)
+}
+
+/// Writes the reconciler cache to disk. Silently ignores errors.
+fn write_reconciler_cache(
+    root: &Path,
+    key: &str,
+    reports: &BTreeMap<String, crate::reconcile::ReconcileReport>,
+) {
+    let entry = ReconcilerCacheEntry {
+        version: RECONCILER_CACHE_VERSION,
+        key: key.to_owned(),
+        reports: reports.clone(),
+    };
+    let Ok(json) = serde_json::to_string(&entry) else {
+        return;
+    };
+    let dir = root.join(".cairn/state");
+    if std::fs::create_dir_all(&dir).is_err() {
+        return;
+    }
+    let path = dir.join("reconciler-cache.json");
+    // Skip write when content is identical (same pattern as state.rs).
+    if let Ok(existing) = std::fs::read_to_string(&path)
+        && existing == json
+    {
+        return;
+    }
+    let _ = std::fs::write(path, json);
+}
+
+/// Rebuilds the `(Vec<TargetReport>, Vec<Finding>)` from cached reconciler reports.
+fn build_reports_from_cache(
+    cached: &BTreeMap<String, crate::reconcile::ReconcileReport>,
+    targets: &[Target],
+    config: &config::Config,
+) -> (Vec<TargetReport>, Vec<crate::map::graph::Finding>) {
+    let mut reports = Vec::new();
+    let mut all_findings = Vec::new();
+
+    for target in targets {
+        let lang_key = target.language.as_str();
+        if let Some(report) = cached.get(lang_key) {
+            let hash = report.fingerprint.hash.clone();
+            let owned_files = report
+                .claimed_files
+                .get(&target.id.node_id)
+                .cloned()
+                .unwrap_or_default();
+            let owned_symbols = report.symbols.clone();
+            reports.push(TargetReport {
+                target_id: target.id.clone(),
+                language: target.language,
+                reconciler_id: target.reconciler_id.clone(),
+                claimed_files: owned_files,
+                symbols: owned_symbols,
+                hash,
+            });
+        }
+    }
+    // Collect findings once per cached language, not per target.
+    for report in cached.values() {
+        all_findings.extend(report.findings.clone());
     }
     let divergence_findings = detect_divergence(&reports, targets, config);
     all_findings.extend(divergence_findings);
