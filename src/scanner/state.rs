@@ -13,13 +13,19 @@ pub type TargetHashes = BTreeMap<String, String>;
 pub fn write_interface_hash(root: &Path, hashes: &TargetHashes) -> io::Result<()> {
     let dir = root.join(".cairn/state");
     fs::create_dir_all(&dir)?;
+    let path = dir.join("interface-hashes.json");
     let json = serde_json::to_string(hashes).map_err(|e| {
         io::Error::new(
             io::ErrorKind::InvalidData,
             format!("serialization failed: {e}"),
         )
     })?;
-    fs::write(dir.join("interface-hashes.json"), json)
+    if let Ok(existing) = fs::read_to_string(&path) {
+        if existing == json {
+            return Ok(());
+        }
+    }
+    fs::write(path, json)
 }
 
 /// Reads interface hash state from JSON.
@@ -94,13 +100,19 @@ impl Default for BlueprintSnapshot {
 pub fn write_blueprint_snapshot(root: &Path, snapshot: &BlueprintSnapshot) -> io::Result<()> {
     let dir = root.join(".cairn/state");
     fs::create_dir_all(&dir)?;
+    let path = dir.join("blueprint-snapshot.json");
     let json = serde_json::to_string(snapshot).map_err(|e| {
         io::Error::new(
             io::ErrorKind::InvalidData,
             format!("serialization failed: {e}"),
         )
     })?;
-    fs::write(dir.join("blueprint-snapshot.json"), json)
+    if let Ok(existing) = fs::read_to_string(&path) {
+        if existing == json {
+            return Ok(());
+        }
+    }
+    fs::write(path, json)
 }
 
 /// Reads blueprint snapshot state from JSON.

@@ -61,7 +61,13 @@ pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
     if !has_findings {
         let _ = writeln!(out, "None");
     }
-    fs::write(root.join("map.md"), out)
+    let path = root.join("map.md");
+    if let Ok(existing) = fs::read_to_string(&path) {
+        if existing == out {
+            return Ok(());
+        }
+    }
+    fs::write(path, out)
 }
 
 /// Appends `.cairn/log.md` scan event.
