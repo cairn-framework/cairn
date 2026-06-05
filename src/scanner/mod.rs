@@ -161,7 +161,7 @@ fn reconcile_targets(
 /// Preserves the first occurrence and order.
 fn dedup_findings(findings: &mut Vec<crate::map::graph::Finding>) {
     let keep: Vec<bool> = {
-        let mut seen = std::collections::HashSet::new();
+        let mut seen = std::collections::HashSet::with_capacity(findings.len());
         findings
             .iter()
             .map(|f| {
