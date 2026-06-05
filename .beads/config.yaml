@@ -21,7 +21,7 @@
 #   title-length: 255
 
 # Default actor for audit trails (overridden by BEADS_ACTOR or --actor)
-# actor: ""
+actor: "cairn-loop"
 
 # Export events (audit trail) to .beads/events.jsonl on each flush/sync
 # When enabled, new events are appended incrementally using a high-water mark.
