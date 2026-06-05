@@ -281,14 +281,6 @@ fn collect_public_symbols(
     Ok(())
 }
 fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
-    let signature = node
-        .child_by_field_name("body")
-        .and_then(|body| source.get(node.start_byte()..body.start_byte()))
-        .and_then(|bytes| std::str::from_utf8(bytes).ok())
-        .map(str::trim);
-    if let Some(signature) = signature {
-        return normalize_symbol(signature);
-    }
     const SYMBOL_KINDS: &[&str] = &[
         "const",
         "enum",
@@ -307,14 +299,22 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
         "use",
         "visibility_modifier",
     ];
+    let signature = node
+        .child_by_field_name("body")
+        .and_then(|body| source.get(node.start_byte()..body.start_byte()))
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .map(str::trim);
+    if let Some(signature) = signature {
+        return normalize_symbol(signature);
+    }
     let mut parts = Vec::with_capacity(8);
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
         let kind = child.kind();
-        if SYMBOL_KINDS.binary_search(&kind).is_ok() {
-            if let Ok(text) = child.utf8_text(source) {
-                parts.push(text.trim());
-            }
+        if SYMBOL_KINDS.binary_search(&kind).is_ok()
+            && let Ok(text) = child.utf8_text(source)
+        {
+            parts.push(text.trim());
         }
     }
     parts.join(" ")
