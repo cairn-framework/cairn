@@ -22,10 +22,13 @@ pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
     let _ = writeln!(out);
     let _ = writeln!(out, "## Synced");
     let mut has_synced = false;
+    let mut ghost_ids = Vec::new();
     for node in graph.nodes.values() {
         if node.state == NodeState::Synced {
             let _ = writeln!(out, "- {}", node.id);
             has_synced = true;
+        } else if node.state == NodeState::Ghost {
+            ghost_ids.push(node.id.as_str());
         }
     }
     if !has_synced {
@@ -33,15 +36,12 @@ pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
     }
     let _ = writeln!(out);
     let _ = writeln!(out, "## Ghost");
-    let mut has_ghost = false;
-    for node in graph.nodes.values() {
-        if node.state == NodeState::Ghost {
-            let _ = writeln!(out, "- {}", node.id);
-            has_ghost = true;
-        }
-    }
-    if !has_ghost {
+    if ghost_ids.is_empty() {
         let _ = writeln!(out, "None");
+    } else {
+        for id in ghost_ids {
+            let _ = writeln!(out, "- {}", id);
+        }
     }
     let _ = writeln!(out);
     let _ = writeln!(out, "## Active changes");
