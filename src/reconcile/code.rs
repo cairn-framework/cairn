@@ -243,7 +243,7 @@ fn public_symbols(
     // Fast path: if the file contains no 'pub' keyword it has no public
     // symbols that our reconciler cares about (macro_rules! is already
     // excluded from PUBLIC_ITEM_KINDS).
-    if !source.contains("pub ") {
+    if !source.as_bytes().windows(4).any(|w| w == b"pub ") {
         return Ok(Vec::new());
     }
     let tree = parser
