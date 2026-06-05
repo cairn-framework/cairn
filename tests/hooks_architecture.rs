@@ -25,6 +25,13 @@ fn git_init(root: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
         .current_dir(root)
         .args(["config", "user.name", "Test"])
         .output()?;
+    // Throwaway fixtures must commit without signing; some environments enforce
+    // commit signing that fails for ad-hoc repos and would leave HEAD empty,
+    // breaking the `git show HEAD:cairn.blueprint` the architecture gate reads.
+    Command::new("git")
+        .current_dir(root)
+        .args(["config", "commit.gpgsign", "false"])
+        .output()?;
     Ok(())
 }
 
