@@ -228,6 +228,33 @@ and why so the next session resumes cleanly.
 
 Exit criterion: the next iteration's success criterion is written. Go to phase 1.
 
+## Running the loop autonomously
+
+Phases 8 and 9 above describe the human-reviewed path: one PR per unit, CI and a
+reviewer gate the merge. When the loop runs unattended (for example, a long
+`/cairn-loop` session grinding through the backlog), it commits verified
+iterations straight to the working branch instead, and substitutes an internal
+review gate for the human one. The bar does not drop; it moves in-process.
+
+The internal gate is a small review DAG run with subagents before each commit:
+
+1. **Strict build and lint.** Warnings are failures. Run `cargo build` and
+   `cargo clippy --all-targets --all-features -- -D warnings` (zero output),
+   `cargo test`, then `cairn scan --strict` (non-zero on any Error or Warning)
+   and `cairn hook all`. Any non-green result blocks the commit.
+2. **Code review (subagent).** Dispatch a review agent over the diff for
+   correctness, convention violations, and missed edge cases. Treat its findings
+   as blocking until addressed or explicitly judged out of scope.
+3. **Simplify (subagent).** Dispatch a simplification pass over the diff for
+   reuse, dead code, and naming. Apply what survives review.
+4. **Re-verify.** Re-run step 1 after applying review and simplify changes. Loop
+   2 through 4 until a pass produces no further blocking findings, then commit.
+
+Only after the gate is clean does the iteration commit to the working branch and
+move to phase 10. Each merge is still a real, durable action: keep commits small
+and one-unit, and escalate to the maintainer (via `AskUserQuestion`) when a
+choice is theirs to make rather than guessing.
+
 ## When the loop reveals a finding it cannot clear
 
 Sometimes phase 6 surfaces drift that is correct intent the blueprint has not
