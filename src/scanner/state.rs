@@ -20,10 +20,10 @@ pub fn write_interface_hash(root: &Path, hashes: &TargetHashes) -> io::Result<()
             format!("serialization failed: {e}"),
         )
     })?;
-    if let Ok(existing) = fs::read_to_string(&path) {
-        if existing == json {
-            return Ok(());
-        }
+    if let Ok(existing) = fs::read_to_string(&path)
+        && existing == json
+    {
+        return Ok(());
     }
     fs::write(path, json)
 }
@@ -107,10 +107,10 @@ pub fn write_blueprint_snapshot(root: &Path, snapshot: &BlueprintSnapshot) -> io
             format!("serialization failed: {e}"),
         )
     })?;
-    if let Ok(existing) = fs::read_to_string(&path) {
-        if existing == json {
-            return Ok(());
-        }
+    if let Ok(existing) = fs::read_to_string(&path)
+        && existing == json
+    {
+        return Ok(());
     }
     fs::write(path, json)
 }

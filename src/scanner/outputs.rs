@@ -40,7 +40,7 @@ pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
         let _ = writeln!(out, "None");
     } else {
         for id in ghost_ids {
-            let _ = writeln!(out, "- {}", id);
+            let _ = writeln!(out, "- {id}");
         }
     }
     let _ = writeln!(out);
@@ -62,10 +62,10 @@ pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
         let _ = writeln!(out, "None");
     }
     let path = root.join("map.md");
-    if let Ok(existing) = fs::read_to_string(&path) {
-        if existing == out {
-            return Ok(());
-        }
+    if let Ok(existing) = fs::read_to_string(&path)
+        && existing == out
+    {
+        return Ok(());
     }
     fs::write(path, out)
 }
