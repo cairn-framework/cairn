@@ -63,7 +63,7 @@ serde_yaml = "0.9.34"
 [profile.release]
 lto = "fat"
 codegen-units = 1
+opt-level = 2
 strip = true
 panic = "abort"
-insta = { version = "1", features = ["json", "yaml", "redactions"] }
 tempfile = "3"
