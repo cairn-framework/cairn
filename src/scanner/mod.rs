@@ -332,6 +332,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
 ///
 /// Returns an error string when project loading succeeds but generated output
 /// persistence fails, or when project loading itself fails.
+#[allow(clippy::missing_panics_doc)] // Reason: Mutex is never poisoned inside thread::scope
 pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
     let result = load_project(root, blueprint_path)?;
     let errs = std::sync::Mutex::new(Vec::new());

@@ -47,6 +47,7 @@ impl Reconciler for RustCodeReconciler<'_> {
         ReconcilerId("rust-code".to_owned())
     }
 
+    #[allow(clippy::too_many_lines)] // Reason: sequential fast-path and parallel path kept together for clarity
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
         let rust_files = discover_rust_files(request.root, request.ignores)?;
@@ -93,7 +94,7 @@ impl Reconciler for RustCodeReconciler<'_> {
         let thread_count = std::thread::available_parallelism()
             .map(usize::from)
             .unwrap_or(2);
-        let chunk_size = ((rust_files.len() + thread_count - 1) / thread_count).max(1);
+        let chunk_size = rust_files.len().div_ceil(thread_count).max(1);
         let chunks: Vec<_> = rust_files.chunks(chunk_size).collect();
         std::thread::scope(|s| {
             let owners_ref = &owners;
@@ -190,7 +191,7 @@ fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String
 }
 
 fn discover_rust_files(root: &Path, ignores: &[String]) -> Result<Vec<PathBuf>, ReconcileError> {
-    let mut files = Vec::new();
+    let mut files = Vec::with_capacity(128);
     walk(root, root, ignores, &mut files)?;
     files.sort_unstable();
     Ok(files)

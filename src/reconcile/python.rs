@@ -43,7 +43,7 @@ impl Reconciler for PythonReconciler<'_> {
         let thread_count = std::thread::available_parallelism()
             .map(usize::from)
             .unwrap_or(2);
-        let chunk_size = ((py_files.len() + thread_count - 1) / thread_count).max(1);
+        let chunk_size = py_files.len().div_ceil(thread_count).max(1);
         let chunks: Vec<_> = py_files.chunks(chunk_size).collect();
         std::thread::scope(|s| {
             let owners_ref = &owners;

@@ -3,6 +3,7 @@ use super::graph::{Finding, FindingSeverity, Graph};
 use std::collections::{BTreeMap, BTreeSet};
 /// Finds dependency cycles without blocking basic graph construction.
 #[must_use]
+#[allow(clippy::missing_panics_doc)] // Reason: infallible unwrap; entry was just inserted via or_insert
 pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
     // 0 = white (unvisited), 1 = gray (in stack), 2 = black (done)
     let mut color: BTreeMap<&str, u8> = BTreeMap::new();
