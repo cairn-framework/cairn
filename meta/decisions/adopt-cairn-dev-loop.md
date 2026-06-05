@@ -19,12 +19,14 @@ verification, and provenance into one repeatable loop.
 
 ## Decision
 
-Adopt a seven-phase development loop, the Cairn Dev Loop, documented in
+Adopt a ten-phase coding loop, the Cairn Dev Loop, documented in
 `docs/agent/cairn-dev-workflow.md` and runnable as `/cairn-loop`. The phases are
-orient, scope, propose, implement, verify, record, land, each gated by cairn's
-own queries (`context`, `lint`, `neighbourhood`, `rationale`, `dependents`) and
-gates (`scan`, `hook all`). CLAUDE.md points to the loop from the "Using cairn in
-this repo" section.
+orient, scope, propose, implement, test, verify, record, PR, merge, continue,
+each gated by cairn's own queries (`context`, `lint`, `neighbourhood`,
+`rationale`, `dependents`) and gates (`scan`, `hook all`), plus the language
+gates (`cargo test`, `clippy`) and the path to merge (CI green, review resolved).
+The loop is continuous: phase ten selects the next unit and returns to phase one.
+CLAUDE.md points to the loop from the "Using cairn in this repo" section.
 
 ## Rationale
 

@@ -32,12 +32,17 @@ graph you query is stale relative to the code you just wrote.
 | 2. Scope | What does this change touch, and why is it shaped this way? | `cairn neighbourhood`, `cairn rationale`, `cairn dependents` |
 | 3. Propose | What am I building, and what counts as done? | `cairn-propose` skill, or a decision artefact |
 | 4. Implement | Make the change, keep the map honest | edit code + `cairn.blueprint` |
-| 5. Verify | Did I introduce drift or break the build? | `cargo` gates, `cairn scan`, `cairn hook all` |
-| 6. Record | Why did this change happen? | decision artefact, `cairn rationale` |
-| 7. Land | Commit and push the iteration | `gt` / git |
+| 5. Test | Does new behaviour have a failing-then-passing test? | `cargo test`, fixtures under `tests/` |
+| 6. Verify | Did I introduce drift or break the build? | `cargo` gates, `cairn scan`, `cairn hook all` |
+| 7. Record | Why did this change happen? | decision artefact, `cairn rationale` |
+| 8. PR | Is the change reviewable and on a path to merge? | `gt submit` / GitHub PR, CI |
+| 9. Merge | Is CI green and review satisfied? | CI gate, review threads, merge |
+| 10. Continue | What is the next iteration? | backlog, `cairn lint`, loop to phase 1 |
 
-Each phase has an exit criterion. Do not advance until it is met. When the
-iteration lands, loop back to phase 1 for the next one.
+Each phase has an exit criterion. Do not advance until it is met. The loop does
+not stop at one change: phase 10 selects the next unit of work and returns to
+phase 1. A clean iteration is code merged, CI green, `cairn scan` clean, and the
+next task identified.
 
 ## Phase 1: Orient
 
@@ -102,7 +107,27 @@ immediately rather than at the gate.
 
 Exit criterion: the change compiles and the blueprint still describes the tree.
 
-## Phase 5: Verify
+## Phase 5: Test
+
+Behaviour is not done until a test pins it. This is a coding workflow, so every
+iteration that changes behaviour adds or extends a test, and a bugfix starts from
+a test that reproduces the bug.
+
+- Write the test first when fixing a bug: it should fail against the current
+  code, then pass once the fix lands. That proves the test exercises the bug.
+- Co-locate unit tests with the module under `#[cfg(test)]`; put cross-module and
+  CLI-surface tests under `tests/` (the `cairn.tests` node).
+- Run the focused test while iterating, then the full suite before moving on:
+
+```bash
+cargo test <name>          # fast loop on the test you are writing
+cargo test                 # full suite must be green before phase 6
+```
+
+Exit criterion: new or changed behaviour has a test that fails without the change
+and passes with it, and `cargo test` is green.
+
+## Phase 6: Verify
 
 This is the gate. Run the language gates and the cairn gates together.
 
@@ -126,7 +151,7 @@ repo).
 Exit criterion: all gates green. A failing gate is a blocked iteration, not a
 formality to wave through.
 
-## Phase 6: Record
+## Phase 7: Record
 
 If the change altered structure or made a non-obvious tradeoff, write a decision
 artefact so the next iteration can read why.
@@ -152,29 +177,63 @@ once a `decisions` pointer is added.
 
 Exit criterion: a reader can reconstruct why this iteration happened.
 
-## Phase 7: Land
+## Phase 8: PR
 
-Commit and push through the repo's VCS workflow (Graphite; see
-`docs/agent/graphite.md`). Re-run `cairn scan` one last time if you amended after
-verifying.
+Commit, push, and open a reviewable pull request. Use the repo's VCS workflow
+(Graphite; see `docs/agent/graphite.md`), or plain git plus the GitHub MCP tools
+when `gt` is unavailable.
 
 ```bash
 gt create -m "<type>(<scope>): <subject>"
-gt submit --stack --publish --no-interactive
+gt submit --stack --publish --no-interactive    # opens / updates the PR
 ```
 
-Before submitting a PR, run `/reforge` then `/debate` on the diff per
-`CLAUDE.md`. Skip that only for a single-line documentation change.
+Keep one PR to one logical unit (target under 250 lines changed, hard cap 400).
+Before submitting, run `/reforge` then `/debate` on the diff per `CLAUDE.md`. Skip
+that only for a single-line documentation change.
 
-Exit criterion: the work is pushed and `git status` shows the branch up to date
-with its remote. Then loop back to phase 1.
+Exit criterion: the branch is pushed, a PR is open, and CI has started.
+
+## Phase 9: Merge
+
+Drive the PR to a merged state. This is the path to merge, not a fire-and-forget
+push.
+
+1. Watch CI. Subscribe to PR activity so CI results and review comments wake the
+   session, rather than polling. On a CI failure, re-diagnose, push a fix, and
+   re-check. Treat "make CI green" as a loop with a terminal state.
+2. Resolve review threads. Address each actionable comment with a commit or a
+   reply explaining why not. Do not contradict an accepted decision to satisfy a
+   comment; write a superseding decision instead.
+3. Merge once CI is green and review is satisfied. Re-run `cairn scan` after any
+   rebase so the merged commit is still clean.
+
+Exit criterion: the PR is merged, CI is green on the target branch, and
+`cairn scan` is clean against the merged state.
+
+## Phase 10: Continue
+
+The loop keeps working. Pick the next unit and return to phase 1. Choose the next
+task in this priority order:
+
+1. Any finding `cairn lint` reports against the merged state (clear drift first).
+2. The next open item in the backlog (`bd ready`, or the repo's tracker).
+3. A `CAIRN_PROVENANCE_NO_DECISION` or other advisory the loop has been deferring.
+4. A small, self-contained improvement surfaced while doing the last iteration.
+
+Keep each iteration small and shippable. Stop the loop only when the backlog is
+empty and `cairn lint` is clean, when a gate is genuinely blocked on a decision
+that is the maintainer's to make, or when told to stop. Record where you stopped
+and why so the next session resumes cleanly.
+
+Exit criterion: the next iteration's success criterion is written. Go to phase 1.
 
 ## When the loop reveals a finding it cannot clear
 
-Sometimes phase 5 surfaces drift that is correct intent the blueprint has not
+Sometimes phase 6 surfaces drift that is correct intent the blueprint has not
 caught up to (a deliberately added module, a renamed path). That is the loop
 working: the map disagreed with the code. Reconcile by updating the blueprint to
-match the new reality, write the decision in phase 6 explaining the structural
+match the new reality, write the decision in phase 7 explaining the structural
 move, and re-scan. Never silence a finding by ignoring the file; either the code
 or the declaration is wrong, and the loop's job is to force that choice into the
 open.
