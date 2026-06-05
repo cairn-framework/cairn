@@ -33,7 +33,7 @@ Every Cairn error code follows the format **`CXNNN`** where:
 
 ### Registry Location
 
-The canonical registry lives at `openspec/registries/error-codes.md`. That file is the single source of truth for which codes are allocated.
+The canonical registry lives at `docs/registries/error-codes.md`. That file is the single source of truth for which codes are allocated.
 
 ### Rules
 
@@ -219,7 +219,7 @@ The macro rejects combination with manual `#[ignore]`; a test cannot carry both 
 
 For decimal phase numbers (for example `phase-7.6`), encode the phase argument as a zero-padded integer: major * 100 + minor (`phase = 706`). This preserves injectivity (`phase-7.10` → `710`, `phase-71.0` → `7100`).
 
-Verification states are modeled by the five-state `VerificationState` enum (`Draft`, `Planned`, `Passed`, `Failed`, `Blocked`) defined in `src/verification.rs`. See `openspec/specs/testing-baseline/spec.md` for canonical scenarios and `openspec/registries/error-codes.md` for the `CC001` error code used when a verification is `Blocked` by an upstream dependency.
+Verification states are modeled by the five-state `VerificationState` enum (`Draft`, `Planned`, `Passed`, `Failed`, `Blocked`) defined in `src/verification.rs`. See `archive/openspec/specs/testing-baseline/spec.md` for canonical scenarios and `docs/registries/error-codes.md` for the `CC001` error code used when a verification is `Blocked` by an upstream dependency.
 
 ### Coverage Requirements
 
@@ -248,7 +248,7 @@ Examples:
 
 ### Location
 
-The declared items tracker lives at `openspec/registries/declared-items.md`.
+The declared items tracker lives at `docs/registries/declared-items.md`.
 
 ### Purpose
 
@@ -293,7 +293,7 @@ The Cairn spec v0.6 contains items at the "Declared" maturity level -- capabilit
 
 ## 8. Git Hooks
 
-Hooks are managed via [prek](https://github.com/j178/prek) (Rust rewrite of pre-commit, drop-in `.pre-commit-config.yaml` compatible). After clone, run `make install-hooks` to install both pre-commit and pre-push stages. Pre-commit runs `cargo fmt --check` plus the em-dash detector. Pre-push runs `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test --locked`, `cargo doc --no-deps` (with `RUSTDOCFLAGS=-D warnings`), and `cflx openspec validate --strict`. CI mirrors the pre-push battery as a server-side safety net.
+Hooks are managed via [prek](https://github.com/j178/prek) (Rust rewrite of pre-commit, drop-in `.pre-commit-config.yaml` compatible). After clone, run `make install-hooks` to install both pre-commit and pre-push stages. Pre-commit runs `cargo fmt --check` plus the em-dash detector. Pre-push runs `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test --locked`, `cargo doc --no-deps` (with `RUSTDOCFLAGS=-D warnings`), and `cairn lint`. CI mirrors the pre-push battery as a server-side safety net.
 
 ---
 

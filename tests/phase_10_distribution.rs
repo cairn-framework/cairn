@@ -4,11 +4,11 @@
 //! checks. LSP-related scenarios were retired along with the LSP surface per
 //! decision #105.
 //!
-//! See `openspec/specs/testing-baseline/spec.md` for the test-first pre-phase
+//! See `archive/openspec/specs/testing-baseline/spec.md` for the test-first pre-phase
 //! convention.
 
-// LSP tests retired per decision #105; cflx_planned macro kept for future use.
-// use cairn::cflx_planned;
+// LSP tests retired per decision #105; cairn_planned macro kept for future use.
+// use cairn::cairn_planned;
 /// Scenario: LSP binary is a workspace member with workspace lints.
 #[test]
 fn test_lsp_binary_is_workspace_member_with_workspace_lints() {

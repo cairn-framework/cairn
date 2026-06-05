@@ -1,7 +1,7 @@
 //! `cairn refine` implementation.
 //!
 //! Re-runs brownfield discovery and writes results to a timestamped
-//! change directory under `openspec/changes/brownfield-refine-{secs}/`.
+//! change directory under `meta/changes/brownfield-refine-{secs}/`.
 
 use std::path::Path;
 
@@ -33,7 +33,7 @@ pub fn run_refine(root: &Path) -> Result<String, CairnError> {
 /// directory already exists.
 fn unique_change_id(root: &Path, ts: &str) -> Result<String, CairnError> {
     let base = format!("{CHANGE_ID_PREFIX}-{ts}");
-    let changes_dir = root.join("openspec/changes");
+    let changes_dir = root.join("meta/changes");
     if !changes_dir.join(&base).exists() {
         return Ok(base);
     }
@@ -71,7 +71,7 @@ fn write_refine_change(
     extraction: &Extraction,
     templates: &[super::templates::ContractTemplate],
 ) -> Result<(), CairnError> {
-    let change_dir = root.join("openspec/changes").join(change_id);
+    let change_dir = root.join("meta/changes").join(change_id);
     super::create_dir(&change_dir)?;
     super::create_dir(&change_dir.join("contracts"))?;
 
@@ -379,7 +379,7 @@ mod tests {
     fn test_unique_change_id_returns_base_when_no_collision() {
         let dir = tempfile::tempdir().expect("temp dir");
         let root = dir.path();
-        // Don't create openspec/changes/ at all — base must not exist.
+        // Don't create meta/changes/ at all — base must not exist.
         let result = unique_change_id(root, "99999").expect("must succeed");
         assert_eq!(result, format!("{CHANGE_ID_PREFIX}-99999"));
     }
@@ -390,7 +390,7 @@ mod tests {
         let root = dir.path();
         let ts = "12345";
         let base = format!("{CHANGE_ID_PREFIX}-{ts}");
-        std::fs::create_dir_all(root.join("openspec/changes").join(&base)).unwrap();
+        std::fs::create_dir_all(root.join("meta/changes").join(&base)).unwrap();
         let result = unique_change_id(root, ts).expect("must succeed");
         assert_eq!(result, format!("{base}-1"));
     }
@@ -401,7 +401,7 @@ mod tests {
         let root = dir.path();
         let ts = "67890";
         let base = format!("{CHANGE_ID_PREFIX}-{ts}");
-        let changes = root.join("openspec/changes");
+        let changes = root.join("meta/changes");
         std::fs::create_dir_all(changes.join(&base)).unwrap();
         std::fs::create_dir_all(changes.join(format!("{base}-1"))).unwrap();
         let result = unique_change_id(root, ts).expect("must succeed");

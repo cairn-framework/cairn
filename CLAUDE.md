@@ -21,17 +21,17 @@ The framework's role (spec §3.4): *"a fence around the authority chain and a na
 | `docs/spec.md` | Canonical spec. Read this first for any architecture question |
 | `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work |
 | `docs/landing/` | Marketing landing page (GitHub Pages target) |
-| `openspec/changes/<phase>/` | Active phase proposals (proposal.md + design.md + tasks.md + specs/) |
-| `openspec/changes/archive/` | Archived phases (historical record; do NOT rewrite) |
-| `openspec/specs/<area>/spec.md` | Consolidated per-area specs |
-| `openspec/conventions.md` | Rust code conventions (error codes, module size, state versioning) |
-| `openspec/registries/` | `declared-items.md`, `error-codes.md` |
+| `meta/changes/<phase>/` | Active phase proposals (proposal.md + design.md + tasks.md + specs/) |
+| `archive/openspec/changes-archive/` | Archived phases (historical record; do NOT rewrite) |
+| `archive/openspec/specs/<area>/spec.md` | Consolidated per-area specs |
+| `docs/conventions.md` | Rust code conventions (error codes, module size, state versioning) |
+| `docs/registries/` | `declared-items.md`, `error-codes.md` |
 | `src/` | Rust implementation (phase 1+ kernel and onwards) |
 | `src/ui_assets/` | Embedded web UI (styled via `docs/design-system/`) |
 | `cairn.blueprint` | Root blueprint: CAIRN describing itself (dogfood) |
 | `test/fixtures/cairn-bootstrap/` | Bootstrap fixture (test artifact, may lag behind root) |
 | `meta/research/gas-city-cairn-integration/` | Gas City / Beads integration analysis, decisions, and issue slate |
-| `AGENTS.md` | Instructions read by the codex agent during cflx runs |
+| `AGENTS.md` | Agent orientation and workflow reference |
 
 ## Using cairn in this repo
 
@@ -85,7 +85,7 @@ If you see `DSL` or `.dsl` string literals in `src/cli/mod.rs` or `src/blueprint
 - `provenance chain` / `authority chain`: spec §3 spine
 - `interface hash`, `ghost`/`synced`/`orphaned`, `drift`, `divergence`, `verified`/`external`/`unverified`, `hinge`: all kept
 
-Use `blueprint` / `map` / `map.md` in all new prose, code identifiers, and spec drafts. The archived plan is in `openspec/changes/archive/phase-2.6-terminology-rename/`; consolidated spec at `openspec/specs/terminology-rename/spec.md`.
+Use `blueprint` / `map` / `map.md` in all new prose, code identifiers, and spec drafts. The archived plan is in `archive/openspec/changes-archive/phase-2.6-terminology-rename/`; consolidated spec at `archive/openspec/specs/terminology-rename/spec.md`.
 
 ## Voice and audience
 
@@ -144,7 +144,7 @@ tag-extensible; AI assists but the reconciler owns deterministic enforcement.
 
 ## What to avoid
 
-- Rewriting archived phases under `openspec/changes/archive/`; they are historical record.
+- Rewriting archived phases under `archive/openspec/changes-archive/`; they are historical record.
 - Inventing new terminology for concepts already named in the spec beyond the three applied renames.
 - Describing the architecture as a flat six-layer stack.
 - Calling `cflx` "cairn"; they're different tools. cflx is the workflow runner, cairn is the framework.
@@ -156,8 +156,8 @@ tag-extensible; AI assists but the reconciler owns deterministic enforcement.
 
 - `docs/spec.md`: canonical spec
 - `docs/design-system/README.md`: UI token + component reference
-- `openspec/changes/archive/phase-2.6-terminology-rename/`: terminology rename plan and full rationale
-- Archived phases for prior-art patterns: `openspec/changes/archive/phase-2-artefacts/`, `openspec/changes/archive/phase-2.5-graph-explorer/`
+- `archive/openspec/changes-archive/phase-2.6-terminology-rename/`: terminology rename plan and full rationale
+- Archived phases for prior-art patterns: `archive/openspec/changes-archive/phase-2-artefacts/`, `archive/openspec/changes-archive/phase-2.5-graph-explorer/`
 
 ## graphify
 

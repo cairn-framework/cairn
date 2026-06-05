@@ -189,7 +189,7 @@ mod tests {
     // against literals (`assert_eq!(CONST, 3)`). Real fixture-driven
     // tests will land alongside the directory-traversal engine in
     // phase-9 task 1.1-1.3. The integration-test counterparts are
-    // already `#[cflx_planned(phase = 900)]` per cycle 3 reasoning.
+    // already `#[cairn_planned(phase = 900)]` per cycle 3 reasoning.
 
     #[test]
     fn candidate_new_derives_id_from_directory() {

@@ -53,8 +53,8 @@ pub mod watch;
 /// Verification state types.
 pub mod verification;
 
-/// Re-export the `cflx_planned` attribute macro.
-pub use cairn_macros::cflx_planned;
+/// Re-export the `cairn_planned` attribute macro.
+pub use cairn_macros::cairn_planned;
 
 /// Returns the Cargo package name compiled into this crate.
 #[must_use]

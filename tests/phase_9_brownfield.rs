@@ -10,11 +10,11 @@
 //! plain `#[test]` and enforce their invariants on every `cargo test`.
 //! The 26 acceptance-criterion stubs covering init / refine / review /
 //! mcp / suggest / interview / templates / obligations carry
-//! `#[cflx_planned(phase = 900)]` and stay skipped under `cargo test`;
+//! `#[cairn_planned(phase = 900)]` and stay skipped under `cargo test`;
 //! they fail with `unimplemented!` under `cargo test -- --ignored`.
-//! Phase 9 removes `#[cflx_planned]` group-by-group as code lands.
+//! Phase 9 removes `#[cairn_planned]` group-by-group as code lands.
 
-use cairn::cflx_planned;
+use cairn::cairn_planned;
 
 // Fixture helpers. Phase 9 supplies real implementations; the pre-phase
 // keeps thin placeholders so test bodies referencing them compile.
@@ -120,7 +120,7 @@ mod init {
         let result = bf_init::run_init_from_code(&root, false);
         assert!(result.is_ok());
         let change_id = result.unwrap();
-        let change_dir = root.join("openspec/changes").join(&change_id);
+        let change_dir = root.join("meta/changes").join(&change_id);
         assert!(change_dir.exists());
         assert!(change_dir.join("proposal.md").exists());
         assert!(change_dir.join("blueprint.delta").exists());
@@ -149,7 +149,7 @@ mod init {
         populate_source_dir(&root, "src/core", 3);
         let first = bf_init::run_init_from_code(&root, false);
         assert!(first.is_ok());
-        let change_dir = root.join("openspec/changes/brownfield-init");
+        let change_dir = root.join("meta/changes/brownfield-init");
         // Write a marker to verify it gets replaced.
         fs::write(change_dir.join("marker.txt"), "old").unwrap();
         // Force init replaces the directory.
@@ -178,7 +178,7 @@ mod init {
         };
         let result = write_change(&root, "test-change", &extraction, &[]);
         assert!(result.is_ok());
-        let dir = root.join("openspec/changes/test-change");
+        let dir = root.join("meta/changes/test-change");
         assert!(dir.join("proposal.md").exists());
         assert!(dir.join("blueprint.delta").exists());
         assert!(dir.join("contracts/src_core.md").exists());
@@ -198,7 +198,7 @@ mod refine {
         assert!(result.is_ok());
         let change_id = result.unwrap();
         assert!(change_id.starts_with("brownfield-refine-"));
-        let change_dir = root.join("openspec/changes").join(&change_id);
+        let change_dir = root.join("meta/changes").join(&change_id);
         assert!(change_dir.exists());
         assert!(change_dir.join("proposal.md").exists());
         assert!(change_dir.join("blueprint.delta").exists());
@@ -215,8 +215,8 @@ mod refine {
         let second = bf_refine::run_refine(&root).unwrap();
         // Each refine creates a separate change directory.
         assert_ne!(first, second);
-        assert!(root.join("openspec/changes").join(&first).exists());
-        assert!(root.join("openspec/changes").join(&second).exists());
+        assert!(root.join("meta/changes").join(&first).exists());
+        assert!(root.join("meta/changes").join(&second).exists());
     }
 
     /// Scenario: Refine detects a renamed directory.
@@ -241,7 +241,7 @@ mod refine {
         assert!(result.is_ok(), "refine failed: {result:?}");
         let change_id = result.unwrap();
         let delta_path = root
-            .join("openspec/changes")
+            .join("meta/changes")
             .join(&change_id)
             .join("blueprint.delta");
         let delta = std::fs::read_to_string(&delta_path).expect("read delta");
@@ -461,11 +461,11 @@ mod fixture_integration {
 }
 
 mod review {
-    use super::cflx_planned;
+    use super::cairn_planned;
 
     /// Scenario: False-positive deletion respected.
     /// NOTE: needs sharpening in phase-9 with archive-mock.
-    #[cflx_planned(phase = 900)]
+    #[cairn_planned(phase = 900)]
     #[test]
     fn test_review__false_positive_deletion_respected() {
         unimplemented!("awaits phase-9: review false-positive deletion respected");
@@ -590,7 +590,7 @@ mod heuristics {
 
     /// Scenario: Edge threshold of two import observations.
     /// Cycle 3: same rationale; awaits the import-observation engine.
-    #[cairn::cflx_planned(phase = 900)]
+    #[cairn::cairn_planned(phase = 900)]
     #[test]
     fn test_heuristics__edge_threshold_two_import_observations() {
         unimplemented!(
@@ -632,7 +632,7 @@ mod suggest {
     #[test]
     fn test_suggest__engine_writes_to_queue_file() {
         let root = super::temp_repo("suggest-queue");
-        let change_dir = root.join("openspec/changes/test-change");
+        let change_dir = root.join("meta/changes/test-change");
         std::fs::create_dir_all(&change_dir).unwrap();
 
         let candidate_a = cairn::brownfield::discovery::DiscoveredCandidate {
@@ -819,7 +819,7 @@ mod suggest {
     #[test]
     fn test_suggest__pending_entries_block_archive_with_cc002() {
         let root = super::temp_repo("suggest-cc002");
-        let change_dir = root.join("openspec/changes/test-change");
+        let change_dir = root.join("meta/changes/test-change");
         std::fs::create_dir_all(&change_dir).unwrap();
 
         let candidate_a = cairn::brownfield::discovery::DiscoveredCandidate {
@@ -954,7 +954,7 @@ mod suggest {
     #[test]
     fn test_suggest__refine_emits_to_queue_file_with_propose_stage() {
         let root = super::temp_repo("refine-queue");
-        let change_dir = root.join("openspec/changes/brownfield-refine-test");
+        let change_dir = root.join("meta/changes/brownfield-refine-test");
         std::fs::create_dir_all(&change_dir).unwrap();
 
         let candidate_a = cairn::brownfield::discovery::DiscoveredCandidate {
@@ -1013,7 +1013,7 @@ mod suggest {
     #[test]
     fn test_suggest__force_init_aborts_on_pending_entries() {
         let root = super::temp_repo("force-init-pending");
-        let change_dir = root.join("openspec/changes/brownfield-init");
+        let change_dir = root.join("meta/changes/brownfield-init");
         std::fs::create_dir_all(&change_dir).unwrap();
 
         // Write a queue with pending entries
@@ -1052,7 +1052,7 @@ mod interview {
     #[test]
     fn test_interview__session_persists_across_invocations() {
         let root = super::temp_repo("interview-persist");
-        let change_dir = root.join("openspec/changes/test-change");
+        let change_dir = root.join("meta/changes/test-change");
         std::fs::create_dir_all(change_dir.join("research")).unwrap();
 
         let questions = vec!["Q1".to_owned(), "Q2".to_owned()];
@@ -1076,7 +1076,7 @@ mod interview {
     #[test]
     fn test_interview__final_transcript_lands_at_genesis_path() {
         let root = super::temp_repo("interview-genesis");
-        let change_dir = root.join("openspec/changes/test-change");
+        let change_dir = root.join("meta/changes/test-change");
         std::fs::create_dir_all(change_dir.join("research")).unwrap();
 
         let questions = vec!["What is the scope?".to_owned()];
@@ -1106,7 +1106,7 @@ mod interview {
     #[test]
     fn test_interview__session_state_never_leaks_outside_change_dir() {
         let root = super::temp_repo("interview-leak");
-        let change_dir = root.join("openspec/changes/test-change");
+        let change_dir = root.join("meta/changes/test-change");
         std::fs::create_dir_all(change_dir.join("research")).unwrap();
 
         let questions = vec!["Q1".to_owned()];
@@ -1244,7 +1244,7 @@ body = "---\nnode: {id}\n---\n\n# Auth Contract for {name}\n\nThis module handle
     let result = cairn::brownfield::init::run_init_from_code(&root, false);
     assert!(result.is_ok(), "init should succeed: {result:?}");
 
-    let contract_path = root.join("openspec/changes/brownfield-init/contracts/src_auth.md");
+    let contract_path = root.join("meta/changes/brownfield-init/contracts/src_auth.md");
     let contract = std::fs::read_to_string(&contract_path).unwrap();
     assert!(
         contract.contains("Auth Contract for auth"),
@@ -1253,24 +1253,24 @@ body = "---\nnode: {id}\n---\n\n# Auth Contract for {name}\n\nThis module handle
 }
 
 mod obligations {
-    use super::cflx_planned;
+    use super::cairn_planned;
 
     /// Scenario: Populated when obligations field exists on decision artefact.
-    #[cflx_planned(phase = 900)]
+    #[cairn_planned(phase = 900)]
     #[test]
     fn test_obligations__populated_when_field_exists() {
         unimplemented!("awaits phase-9: obligations populated when field exists");
     }
 
     /// Scenario: Obligations reviewable before archive.
-    #[cflx_planned(phase = 900)]
+    #[cairn_planned(phase = 900)]
     #[test]
     fn test_obligations__reviewable_before_archive() {
         unimplemented!("awaits phase-9: obligations reviewable before archive");
     }
 
     /// Scenario: No-op when obligations field absent.
-    #[cflx_planned(phase = 900)]
+    #[cairn_planned(phase = 900)]
     #[test]
     fn test_obligations__no_op_when_field_absent() {
         unimplemented!("awaits phase-9: obligations no-op when field absent");

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Newly-emitted entries default to `Pending`. A human reviewer
 /// transitions the entry to `Accepted`, `Rejected`, or `Deferred`.
-/// Pending entries block `cflx openspec validate <change> --strict` with
+/// Pending entries block `cairn lint <change> --strict` with
 /// error code `CC002`.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]

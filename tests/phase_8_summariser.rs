@@ -7,7 +7,7 @@
 //! enforce their invariants on every `cargo test`. Tests that bind to
 //! the still-pending CLI surface (`cairn summarise`, `cairn draft
 //! accept/edit/discard`, MCP tool-registry filtering, contract
-//! validation + rollback) carry `#[cflx_planned(phase = 800)]` and
+//! validation + rollback) carry `#[cairn_planned(phase = 800)]` and
 //! stay skipped under `cargo test`; they fail with `unimplemented!`
 //! under `cargo test -- --ignored`.
 

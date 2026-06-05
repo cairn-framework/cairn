@@ -116,12 +116,12 @@ fn test_architecture_decision_hook_in_integration_contract() {
 fn test_ch001_in_error_registry() {
     let content = fs::read_to_string(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/openspec/registries/error-codes.md"
+        "/docs/registries/error-codes.md"
     ))
     .unwrap();
     assert!(
         content.contains("CH001"),
-        "openspec/registries/error-codes.md should list CH001"
+        "docs/registries/error-codes.md should list CH001"
     );
 }
 

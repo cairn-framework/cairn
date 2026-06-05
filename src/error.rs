@@ -20,7 +20,7 @@ pub enum CairnError {
         /// Description of what upstream dependency is missing.
         upstream_cause: String,
     },
-    /// `cflx openspec validate --strict` found pending suggested-edge
+    /// `cairn lint --strict` found pending suggested-edge
     /// entries that block archive.
     UntriagedSuggestedEdges {
         /// Change ID whose queue carries pending entries.
@@ -114,7 +114,7 @@ mod tests {
         let err = CairnError::UntriagedSuggestedEdges {
             change_id: "phase-x".to_owned(),
             pending_count: 3,
-            file_path: "openspec/changes/phase-x/suggested-edges.json".to_owned(),
+            file_path: "meta/changes/phase-x/suggested-edges.json".to_owned(),
         };
         assert_eq!(err.code(), "CC002");
         let msg = format!("{err}");

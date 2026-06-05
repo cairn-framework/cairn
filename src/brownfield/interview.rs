@@ -232,7 +232,7 @@ mod tests {
 
     fn temp_change_dir(name: &str) -> std::path::PathBuf {
         let root = std::env::temp_dir().join(name);
-        let change_dir = root.join("openspec/changes/test-change");
+        let change_dir = root.join("meta/changes/test-change");
         std::fs::create_dir_all(change_dir.join("research")).unwrap();
         change_dir
     }

@@ -58,7 +58,7 @@ pub fn write_change(
     extraction: &Extraction,
     templates: &[templates::ContractTemplate],
 ) -> Result<(), CairnError> {
-    let change_dir = root.join("openspec/changes").join(change_id);
+    let change_dir = root.join("meta/changes").join(change_id);
     create_dir(&change_dir)?;
     create_dir(&change_dir.join("contracts"))?;
 

@@ -93,7 +93,7 @@ pub fn run(args: &[String]) -> CliResult {
             let force = parsed.command_args.iter().any(|a| a == "--force");
             return match crate::brownfield::init::run_init_from_code(project_root, force) {
                 Ok(change_id) => ok(format!(
-                    "brownfield init complete; change written to openspec/changes/{change_id}/\n"
+                    "brownfield init complete; change written to meta/changes/{change_id}/\n"
                 )),
                 Err(e) => err(1, &e.to_string()),
             };
@@ -106,7 +106,7 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "refine" {
         return match crate::brownfield::refine::run_refine(project_root) {
             Ok(change_id) => ok(format!(
-                "refine complete; change written to openspec/changes/{change_id}/\n"
+                "refine complete; change written to meta/changes/{change_id}/\n"
             )),
             Err(e) => err(1, &e.to_string()),
         };
@@ -1203,28 +1203,31 @@ app.api -> app.core "reports"
         let root = temp_root("import-openspec")?;
         write_project(&root)?;
 
-        // Set up openspec changes with two phases and archive.
-        let openspec = root.join("openspec/changes");
-        fs::create_dir_all(openspec.join("phase-7-test"))?;
+        // Set up legacy openspec changes with two phases and archive.
+        let changes_dir = root.join("meta/changes");
+        fs::create_dir_all(changes_dir.join("phase-7-test"))?;
         fs::write(
-            openspec.join("phase-7-test/proposal.md"),
+            changes_dir.join("phase-7-test/proposal.md"),
             "# Proposal: Phase 7 Test\n",
         )?;
         fs::write(
-            openspec.join("phase-7-test/design.md"),
+            changes_dir.join("phase-7-test/design.md"),
             "# Design: Phase 7 Test\n",
         )?;
-        fs::write(openspec.join("phase-7-test/tasks.md"), "- [ ] Task one\n")?;
-        fs::create_dir_all(openspec.join("phase-7-test/specs"))?;
-        fs::write(openspec.join("phase-7-test/specs/spec.md"), "# Spec\n")?;
-        fs::create_dir_all(openspec.join("phase-8-test"))?;
         fs::write(
-            openspec.join("phase-8-test/proposal.md"),
+            changes_dir.join("phase-7-test/tasks.md"),
+            "- [ ] Task one\n",
+        )?;
+        fs::create_dir_all(changes_dir.join("phase-7-test/specs"))?;
+        fs::write(changes_dir.join("phase-7-test/specs/spec.md"), "# Spec\n")?;
+        fs::create_dir_all(changes_dir.join("phase-8-test"))?;
+        fs::write(
+            changes_dir.join("phase-8-test/proposal.md"),
             "# Proposal: Phase 8 Test\n",
         )?;
-        fs::create_dir_all(openspec.join("archive/old-phase"))?;
+        fs::create_dir_all(changes_dir.join("archive/old-phase"))?;
         fs::write(
-            openspec.join("archive/old-phase/proposal.md"),
+            changes_dir.join("archive/old-phase/proposal.md"),
             "# Proposal: Old Phase\n",
         )?;
 

@@ -6,9 +6,9 @@ use syn::{ItemFn, Lit, parse_macro_input, spanned::Spanned};
 
 /// Marks a test as planned for a future phase.
 ///
-/// Emits `#[ignore = "cflx_planned: phase-<N>"]` and registers the test in `target/cflx/planned.json`.
+/// Emits `#[ignore = "cairn_planned: phase-<N>"]` and registers the test in `target/cairn/planned.json`.
 #[proc_macro_attribute]
-pub fn cflx_planned(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn cairn_planned(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(input as ItemFn);
 
     // Parse phase argument
@@ -46,7 +46,7 @@ pub fn cflx_planned(args: TokenStream, input: TokenStream) -> TokenStream {
     let Some(phase) = phase else {
         return syn::Error::new(
             proc_macro2::Span::call_site(),
-            "cflx_planned requires a `phase = <positive_integer>` argument",
+            "cairn_planned requires a `phase = <positive_integer>` argument",
         )
         .to_compile_error()
         .into();
@@ -57,7 +57,7 @@ pub fn cflx_planned(args: TokenStream, input: TokenStream) -> TokenStream {
         if attr.path().is_ident("ignore") {
             return syn::Error::new(
                 attr.span(),
-                "cannot combine #[cflx_planned] with #[ignore]; use one mechanism only",
+                "cannot combine #[cairn_planned] with #[ignore]; use one mechanism only",
             )
             .to_compile_error()
             .into();
@@ -69,10 +69,10 @@ pub fn cflx_planned(args: TokenStream, input: TokenStream) -> TokenStream {
     let line = 0;
 
     // Write registration entry to sidecar
-    let sidecar_path = std::path::PathBuf::from("target/cflx/planned.json");
+    let sidecar_path = std::path::PathBuf::from("target/cairn/planned.json");
     let _ = update_sidecar(&sidecar_path, &fn_name, phase, &file, line);
 
-    let ignore_msg = format!("cflx_planned: phase-{phase}");
+    let ignore_msg = format!("cairn_planned: phase-{phase}");
     let expanded = quote! {
         #[ignore = #ignore_msg]
         #input_fn

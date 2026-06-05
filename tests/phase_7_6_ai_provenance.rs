@@ -3,7 +3,7 @@
 //! Tests covering the cairn library schema and reader contracts for the
 //! trace sidecar, the suggested-edges queue, the islands query, and
 //! neighbourhood `--include-orphans`. CLI-level trace rendering scenarios
-//! were retired along with the cflx workflow runner per decision #105.
+//! were retired along with the cairn workflow runner per decision #105.
 
 mod provenance_foundation {
     use cairn::provenance::{
@@ -108,7 +108,7 @@ mod provenance_foundation {
     #[test]
     fn test_trace_command_delegates_to_library_reader() {
         // Structural assertion: the cairn library exposes read_sidecar as
-        // the single typed entrypoint that the cflx wrapper consumes.
+        // the single typed entrypoint that the orchestrator consumes.
         let _: fn(&std::path::Path) -> Result<TraceSidecar, TraceError> = read_sidecar;
     }
 }

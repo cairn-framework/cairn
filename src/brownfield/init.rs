@@ -1,7 +1,7 @@
 //! `cairn init --from-code` implementation.
 //!
 //! Runs brownfield discovery against the project root and writes the
-//! results as a change proposal under `openspec/changes/brownfield-init/`.
+//! results as a change proposal under `meta/changes/brownfield-init/`.
 
 use std::path::Path;
 
@@ -21,7 +21,7 @@ const CHANGE_ID: &str = "brownfield-init";
 /// already exists (unless `force` is true) or when filesystem
 /// operations fail.
 pub fn run_init_from_code(root: &Path, force: bool) -> Result<String, CairnError> {
-    let change_dir = root.join("openspec/changes").join(CHANGE_ID);
+    let change_dir = root.join("meta/changes").join(CHANGE_ID);
     if change_dir.exists() && !force {
         return Err(CairnError::ChangeDiscovery {
             path: change_dir.to_string_lossy().to_string(),

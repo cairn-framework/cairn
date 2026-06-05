@@ -4,25 +4,25 @@ Cairn is a graph-based architecture map for codebases. It models systems, contai
 
 ## Your task context
 
-Your change directory (`openspec/changes/<change-id>/`) contains everything you need: `proposal.md` (why), `design.md` (how), `tasks.md` (what), and `specs/` (acceptance criteria). Work from these files. The `apply_prompt` in `.cflx.jsonc` gives you the build/lint requirements.
+Your change directory (`meta/changes/<change-id>/`) contains everything you need: `proposal.md` (why), `design.md` (how), `tasks.md` (what), and `specs/` (acceptance criteria). Work from these files. The quality gates in `scripts/pre-archive-rust-gates.sh` gives you the build/lint requirements.
 
 ## Where things live
 
 | Path | What |
 |---|---|
-| `openspec/conventions.md` | Rust code conventions (error codes, module size, state versioning, testing, docs). Authoritative; do not duplicate. |
-| `openspec/registries/` | `declared-items.md`, `error-codes.md`. Check when adding new public items or error codes to avoid collisions. |
-| `openspec/changes/<other-phase>/specs/` | Other phases' acceptance criteria. Check only if your design.md references them. |
+| `docs/conventions.md` | Rust code conventions (error codes, module size, state versioning, testing, docs). Authoritative; do not duplicate. |
+| `docs/registries/` | `declared-items.md`, `error-codes.md`. Check when adding new public items or error codes to avoid collisions. |
+| `archive/openspec/changes/<other-phase>/specs/` | Other phases' acceptance criteria. Check only if your design.md references them. |
 | `docs/spec.md` | Canonical Cairn spec. |
 | `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work. |
 
 ## Check if relevant, don't read by default
 
-- **Conventions**: `openspec/conventions.md` covers cross-cutting rules (error codes, naming, module limits). Check when making structural or naming decisions.
-- **Registries**: `openspec/registries/` covers declared items and error codes across all phases. Check when adding new public items or error codes to avoid collisions.
-- **Specs from other phases**: `openspec/changes/<other-phase>/specs/` is only relevant if your design.md references another phase's requirements.
+- **Conventions**: `docs/conventions.md` covers cross-cutting rules (error codes, naming, module limits). Check when making structural or naming decisions.
+- **Registries**: `docs/registries/` covers declared items and error codes across all phases. Check when adding new public items or error codes to avoid collisions.
+- **Specs from other phases**: `archive/openspec/changes/<other-phase>/specs/` is only relevant if your design.md references another phase's requirements.
 
-When implementing a feature phase, check `openspec/conventions.md` for the test-first pre-phase convention. If a paired `phase-<N>.0-tests` change exists, remove the matching `#[cflx_planned(phase = <N>)]` attribute as the feature lands rather than rewriting those tests from scratch. The attribute is structured (proc-macro), not a comment; do not parse the `#[ignore]` reason string.
+When implementing a feature phase, check `docs/conventions.md` for the test-first pre-phase convention. If a paired `phase-<N>.0-tests` change exists, remove the matching `#[cairn_planned(phase = <N>)]` attribute as the feature lands rather than rewriting those tests from scratch. The attribute is structured (proc-macro), not a comment; do not parse the `#[ignore]` reason string.
 
 ## UI and visual work: use the design system
 
@@ -40,7 +40,7 @@ Any UI change (the webui at `src/ui_assets/`, any landing or marketing page, any
 - Implement only what your tasks.md specifies. Do not add features from other phases.
 - Do not modify files outside your change scope unless your design.md explicitly requires it.
 - If a task is ambiguous, prefer the simpler interpretation. Check `proposal.md` and `design.md` before guessing.
-- All Rust code must pass the gates in `.cflx.jsonc` `apply_prompt` before marking a task complete.
+- All Rust code must pass the gates in `scripts/pre-archive-rust-gates.sh` `apply_prompt` before marking a task complete.
 - No `unsafe` code unless your phase design document justifies it.
 - No `#[allow(...)]` without a `// Reason:` comment.
 

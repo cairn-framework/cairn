@@ -468,8 +468,8 @@ mod tests {
     #[test]
     fn test_config_from_args_changes_dir_sets_path() {
         let config =
-            config_from_args(&["--changes-dir".to_owned(), "openspec/changes".to_owned()]).unwrap();
-        assert_eq!(config.changes_dir, PathBuf::from("openspec/changes"));
+            config_from_args(&["--changes-dir".to_owned(), "meta/changes".to_owned()]).unwrap();
+        assert_eq!(config.changes_dir, PathBuf::from("meta/changes"));
     }
 
     #[test]

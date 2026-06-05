@@ -36,7 +36,7 @@ pub fn read_queue(path: &Path) -> Result<Option<SuggestedEdgesQueue>, QueueError
     Ok(Some(queue))
 }
 
-/// Counts entries whose triage state is `Pending`. The `cflx openspec
+/// Counts entries whose triage state is `Pending`. The `/propose command
 /// validate --strict` gate uses this count to block archive with CC002
 /// when non-zero.
 #[must_use]

@@ -1,4 +1,4 @@
-//! Trace sidecar: per-archived-change `.cflx-trace.json`.
+//! Trace sidecar: per-archived-change `.cairn-trace.json`.
 
 use std::{collections::BTreeMap, fs, path::Path};
 
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// Wire schema version for the trace sidecar.
 pub const TRACE_SIDECAR_VERSION: u32 = 1;
 
-/// A single cairn-native cflx stage.
+/// A single cairn-native trace stage.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TraceStage {
@@ -99,7 +99,7 @@ impl std::fmt::Display for TraceError {
 
 impl std::error::Error for TraceError {}
 
-/// Reads and parses a `.cflx-trace.json` sidecar from disk.
+/// Reads and parses a `.cairn-trace.json` sidecar from disk.
 ///
 /// # Errors
 ///

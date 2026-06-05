@@ -22,8 +22,8 @@ jobs:
         run: cargo test --locked
       - name: doc
         run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
-      # cflx openspec validate runs locally via prek pre-push hook.
-      # Re-add as a CI step once cflx has a public install path.
+      # Quality gates run locally via prek pre-push hook.
+      # Re-add as a CI step once needed.
 
   hooks:
     runs-on: ubuntu-latest

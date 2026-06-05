@@ -17,7 +17,7 @@ repos:
         language: pygrep
         types: [text]
         files: \.md$
-        exclude: ^(openspec/changes/archive/|docs/research/|graphify-out/)
+        exclude: ^(archive/|docs/research/|graphify-out/)
 
       - id: cargo-clippy
         name: cargo clippy (warnings as errors)
@@ -43,21 +43,6 @@ repos:
         pass_filenames: false
         stages: [pre-push]
 
-      - id: cflx-validate
-        name: cflx validate (strict)
-        entry: cflx openspec validate --strict
-        language: system
-        pass_filenames: false
-        files: ^openspec/
-        stages: [pre-push]
-
-      - id: openspec-validate-specs
-        name: openspec validate --specs (strict)
-        entry: openspec validate --specs --strict
-        language: system
-        pass_filenames: false
-        files: ^openspec/specs/
-        stages: [pre-push]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

@@ -11,13 +11,13 @@
 //! enforce their invariants on every `cargo test`. Scenarios still
 //! awaiting phase-7.7 UI work (copy.toml authoring, empty-state
 //! component, findings rollup panel, prose-nudge banner) carry
-//! `#[cflx_planned(phase = 707)]` and stay skipped under `cargo test`;
+//! `#[cairn_planned(phase = 707)]` and stay skipped under `cargo test`;
 //! they fail with `unimplemented!` under `cargo test -- --ignored`.
 //!
 //! Test contract for `phase-7.7-ux-foundation`. Each test corresponds to one
 //! acceptance-criterion scenario across the three spec deltas (`cli`,
 //! `graph-explorer`, `reconciliation`). Phase 7.7 removes
-//! `#[cflx_planned]` and replaces stub bodies with real assertions
+//! `#[cairn_planned]` and replaces stub bodies with real assertions
 //! group-by-group as code lands.
 
 mod cli {
@@ -589,7 +589,7 @@ mod reconciliation {
             message: "source `s1` is unverified".to_owned(),
             node: None,
             target: None,
-            path: Some("openspec/sources/s1.md".to_owned()),
+            path: Some("meta/sources/s1.md".to_owned()),
         };
         assert_eq!(finding.severity, cairn::map::FindingSeverity::Info);
     }

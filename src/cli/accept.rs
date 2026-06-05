@@ -56,8 +56,8 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
     if let Some(id) = change_id {
         run_step(
             &mut findings,
-            &format!("cflx openspec validate {id}"),
-            || run_command("cflx", &["openspec", "validate", id, "--strict"], json),
+            &format!("cairn lint --strict {id}"),
+            || run_command("cairn", &["lint", "--strict", id], json),
             "validation failed",
             "could not run validation",
         );

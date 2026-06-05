@@ -407,13 +407,13 @@ pub(super) fn run_change_apply(root: &Path, change_id: &str) -> CliResult {
     }
 }
 
-/// Migrate openspec changes to the meta/changes directory.
+/// Migrate legacy openspec changes to the meta/changes directory.
 pub(super) fn run_import_openspec(root: &Path, json: bool) -> CliResult {
-    let openspec_dir = root.join("openspec/changes");
+    let changes_dir = root.join("meta/changes");
     let meta_dir = root.join("meta/changes");
 
-    if !openspec_dir.exists() {
-        return err(1, "no openspec/changes directory found");
+    if !changes_dir.exists() {
+        return err(1, "no meta/changes directory found");
     }
 
     if let Err(error) = fs::create_dir_all(&meta_dir) {
@@ -423,9 +423,9 @@ pub(super) fn run_import_openspec(root: &Path, json: bool) -> CliResult {
     let mut migrated = Vec::new();
     let mut copied_archive = false;
 
-    let entries = match fs::read_dir(&openspec_dir) {
+    let entries = match fs::read_dir(&changes_dir) {
         Ok(entries) => entries,
-        Err(error) => return err(1, &format!("failed to read openspec/changes: {error}")),
+        Err(error) => return err(1, &format!("failed to read meta/changes: {error}")),
     };
 
     for entry in entries {
@@ -461,7 +461,7 @@ pub(super) fn run_import_openspec(root: &Path, json: bool) -> CliResult {
     }
 
     // Copy archive directory if it exists.
-    let archive_source = openspec_dir.join("archive");
+    let archive_source = changes_dir.join("archive");
     if archive_source.exists() {
         let archive_target = meta_dir.join("archive");
         if let Err(error) = copy_dir_all(&archive_source, &archive_target) {

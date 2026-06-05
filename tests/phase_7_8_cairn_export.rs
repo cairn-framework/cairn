@@ -120,8 +120,8 @@ fn test_export_is_lifecycle_orthogonal() {
         }],
         artefacts: vec![ArtefactEntry {
             artefact_type: cairn::artefacts::registry::ArtefactType::Contract,
-            id: "openspec/specs/foo/contract.md".to_owned(),
-            path: "openspec/specs/foo/contract.md".to_owned(),
+            id: "meta/contracts/foo/contract.md".to_owned(),
+            path: "meta/contracts/foo/contract.md".to_owned(),
             node: Some("node-a".to_owned()),
         }],
         changes: vec![ChangeEntry {
@@ -200,8 +200,8 @@ fn json_snapshot_pins_wire_format() {
         }],
         artefacts: vec![ArtefactEntry {
             artefact_type: cairn::artefacts::registry::ArtefactType::Contract,
-            id: "openspec/specs/foo/contract.md".to_owned(),
-            path: "openspec/specs/foo/contract.md".to_owned(),
+            id: "meta/contracts/foo/contract.md".to_owned(),
+            path: "meta/contracts/foo/contract.md".to_owned(),
             node: Some("node-a".to_owned()),
         }],
         changes: vec![ChangeEntry {

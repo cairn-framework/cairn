@@ -1,9 +1,9 @@
 //! Phase 7.6 AI Provenance Foundation: typed schemas and readers for the
 //! per-archived-change trace sidecar.
 //!
-//! The cairn library defines the schema and provides readers; cflx (or
+//! The cairn library defines the schema and provides readers; orchestrator (or
 //! another producer) is the writer of these files. These types are stable
-//! and version-gated per `openspec/conventions.md` Section 3.
+//! and version-gated per `docs/conventions.md` Section 3.
 //!
 //! Suggested-edges queue types live in the `suggested_edges` module.
 
