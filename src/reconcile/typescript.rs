@@ -209,6 +209,9 @@ fn collect_public_symbols(
     source: &[u8],
     symbols: &mut Vec<String>,
 ) -> Result<(), ReconcileError> {
+    if node.child_count() == 0 {
+        return Ok(());
+    }
     let kind = node.kind();
     let is_target = EXPORTABLE_KINDS.contains(&kind);
     let mut is_exportable = kind == "export_statement";

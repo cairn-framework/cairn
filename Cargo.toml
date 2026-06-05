@@ -66,4 +66,7 @@ codegen-units = 1
 opt-level = 2
 strip = true
 panic = "abort"
+
+[dev-dependencies]
+insta = { version = "1", features = ["json", "yaml", "redactions"] }
 tempfile = "3"

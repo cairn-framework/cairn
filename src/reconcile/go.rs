@@ -206,6 +206,9 @@ fn collect_public_symbols(
     source: &[u8],
     symbols: &mut Vec<String>,
 ) -> Result<(), ReconcileError> {
+    if node.child_count() == 0 {
+        return Ok(());
+    }
     if is_exported(node, source) {
         symbols.push(interface_symbol(node, source));
     }

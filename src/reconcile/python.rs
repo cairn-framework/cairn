@@ -199,6 +199,9 @@ fn collect_public_symbols(
     symbols: &mut Vec<String>,
     has_all: bool,
 ) -> Result<(), ReconcileError> {
+    if node.child_count() == 0 {
+        return Ok(());
+    }
     if is_public_item(node, source, has_all) {
         symbols.push(interface_symbol(node, source));
     }
