@@ -289,31 +289,32 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
     if let Some(signature) = signature {
         return normalize_symbol(signature);
     }
-    let mut parts = Vec::new();
+    const SYMBOL_KINDS: &[&str] = &[
+        "const",
+        "enum",
+        "field_identifier",
+        "fn",
+        "identifier",
+        "mod",
+        "name",
+        "primitive_type",
+        "static",
+        "struct",
+        "trait",
+        "type",
+        "type_identifier",
+        "union",
+        "use",
+        "visibility_modifier",
+    ];
+    let mut parts = Vec::with_capacity(8);
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
         let kind = child.kind();
-        if matches!(
-            kind,
-            "visibility_modifier"
-                | "struct"
-                | "enum"
-                | "trait"
-                | "fn"
-                | "mod"
-                | "use"
-                | "type"
-                | "const"
-                | "static"
-                | "union"
-                | "name"
-                | "identifier"
-                | "primitive_type"
-                | "field_identifier"
-                | "type_identifier"
-        ) && let Ok(text) = child.utf8_text(source)
-        {
-            parts.push(text.trim());
+        if SYMBOL_KINDS.binary_search(&kind).is_ok() {
+            if let Ok(text) = child.utf8_text(source) {
+                parts.push(text.trim());
+            }
         }
     }
     parts.join(" ")
