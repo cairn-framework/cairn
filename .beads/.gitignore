@@ -1,6 +1,7 @@
 # Dolt database (managed by Dolt, not git)
 dolt/
 embeddeddolt/
+proxieddb/
 
 # Runtime files
 bd.sock
@@ -23,6 +24,8 @@ push-state.json
 
 # Local version tracking (prevents upgrade notification spam after git ops)
 .local_version
+
+proxied_server_client_info.json
 
 # Worktree redirect file (contains relative path to main repo's .beads/)
 # Must not be committed as paths would be wrong in other clones
@@ -47,6 +50,9 @@ dolt-server.lock
 dolt-server.port
 dolt-server.activity
 
+# Debug-mode pprof artifacts (written when dolt.debug: true in config.yaml)
+dolt-pprof/
+
 # Corrupt backup directories (created by bd doctor --fix recovery)
 *.corrupt.backup/
 
@@ -68,3 +74,6 @@ bd.db
 # They would override fork protection in .git/info/exclude.
 # Config files (metadata.json, config.yaml) are tracked by git by default
 # since no pattern above ignores them.
+
+# Runtime auto-import staging (local-only)
+.auto-import-issues.jsonl
