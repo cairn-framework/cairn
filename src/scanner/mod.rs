@@ -220,7 +220,7 @@ fn compute_reconciler_cache_key(
     // AST, so changes to the blueprint already invalidate the key via the AST hash.
     // Trade-off: source files added outside all blueprint paths won't invalidate the
     // cache immediately; they appear only on the next full reconcile (cache miss).
-    let mut file_entries: Vec<(String, u64)> = Vec::new();
+    let mut file_entries: Vec<(String, u64)> = Vec::with_capacity(256);
     for scan_root in blueprint_source_roots(ast, root) {
         collect_source_file_mtimes(root, &scan_root, ignores, &mut file_entries);
     }
