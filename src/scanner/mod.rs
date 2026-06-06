@@ -307,8 +307,13 @@ fn collect_node_source_roots(nodes: &[blueprint::Node], root: &Path, dirs: &mut 
     for node in nodes {
         for path_str in &node.paths {
             let rel = path_str.trim_start_matches("./").trim_start_matches('/');
+            // Use path extension as a heuristic instead of stat()-ing every path:
+            // paths with a source-file extension (e.g. "src/main.rs") are files —
+            // take their parent; paths without an extension are directories.
+            // Blueprint convention: declared file paths always have extensions.
+            let is_file_path = Path::new(rel).extension().is_some();
             let abs = root.join(rel);
-            if abs.is_file() {
+            if is_file_path {
                 if let Some(parent) = abs.parent() {
                     dirs.push(parent.to_path_buf());
                 }
