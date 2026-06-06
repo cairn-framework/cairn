@@ -170,7 +170,7 @@ fn reconcile_targets(
 }
 
 /// Cache version for reconciler cache format.
-const RECONCILER_CACHE_VERSION: u32 = 1;
+const RECONCILER_CACHE_VERSION: u32 = 2;
 
 /// Persistent cache entry for reconciler results.
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -212,10 +212,19 @@ fn compute_reconciler_cache_key(
         target.reconciler_id.0.hash(&mut hasher);
     }
 
-    // Walk project root collecting source file mtimes.
+    // Walk only blueprint-declared source roots instead of the entire project.
+    // Most projects have all source files within declared node paths; walking from
+    // root would visit many directories (docs/, meta/, scripts/, etc.) that contain
+    // no source files, wasting ~3ms per scan. Blueprint roots are derived from the
+    // AST, so changes to the blueprint already invalidate the key via the AST hash.
+    // Trade-off: source files added outside all blueprint paths won't invalidate the
+    // cache immediately; they appear only on the next full reconcile (cache miss).
     let mut file_entries: Vec<(String, u64)> = Vec::new();
-    collect_source_file_mtimes(root, root, ignores, &mut file_entries);
+    for scan_root in blueprint_source_roots(ast, root) {
+        collect_source_file_mtimes(root, &scan_root, ignores, &mut file_entries);
+    }
     file_entries.sort_unstable();
+    file_entries.dedup();
     file_entries.hash(&mut hasher);
 
     format!("{:016x}", hasher.finish())
@@ -259,6 +268,54 @@ fn collect_source_file_mtimes(
                 entries.push((rel, mtime_secs));
             }
         }
+    }
+}
+
+/// Returns the minimal set of directories to walk for cache key computation.
+///
+/// Extracts declared path roots from the blueprint AST. For each declared path:
+/// - Directory paths are used directly.
+/// - File paths contribute their parent directory.
+///
+/// Redundant entries are pruned: if directory A is a sub-path of directory B,
+/// A is removed because a walk of B already covers A.
+fn blueprint_source_roots(ast: &blueprint::Ast, root: &Path) -> Vec<PathBuf> {
+    let mut dirs: Vec<PathBuf> = Vec::new();
+    collect_node_source_roots(&ast.nodes, root, &mut dirs);
+    // Prune directories that are already covered by an ancestor in the list.
+    let all = dirs;
+    let mut minimal: Vec<PathBuf> = Vec::new();
+    'outer: for candidate in &all {
+        for other in &all {
+            if other == candidate {
+                continue;
+            }
+            if candidate.starts_with(other) {
+                // candidate is a sub-directory of other; skip it.
+                continue 'outer;
+            }
+        }
+        if !minimal.contains(candidate) {
+            minimal.push(candidate.clone());
+        }
+    }
+    minimal
+}
+
+fn collect_node_source_roots(nodes: &[blueprint::Node], root: &Path, dirs: &mut Vec<PathBuf>) {
+    for node in nodes {
+        for path_str in &node.paths {
+            let rel = path_str.trim_start_matches("./").trim_start_matches('/');
+            let abs = root.join(rel);
+            if abs.is_file() {
+                if let Some(parent) = abs.parent() {
+                    dirs.push(parent.to_path_buf());
+                }
+            } else {
+                dirs.push(abs);
+            }
+        }
+        collect_node_source_roots(&node.children, root, dirs);
     }
 }
 
