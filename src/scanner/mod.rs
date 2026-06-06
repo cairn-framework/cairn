@@ -170,7 +170,7 @@ fn reconcile_targets(
 }
 
 /// Cache version for reconciler cache format.
-const RECONCILER_CACHE_VERSION: u32 = 2;
+const RECONCILER_CACHE_VERSION: u32 = 3;
 
 /// Persistent cache entry for reconciler results.
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -198,8 +198,9 @@ fn compute_reconciler_cache_key(
     // Cache version.
     RECONCILER_CACHE_VERSION.hash(&mut hasher);
 
-    // Blueprint AST content — Debug is deterministic for these types.
-    format!("{ast:?}").hash(&mut hasher);
+    // Blueprint AST — Hash derive is deterministic for these types within a version.
+    // Avoids the ~3KB heap allocation of format!("{ast:?}").
+    ast.hash(&mut hasher);
 
     // Ignore patterns.
     ignores.hash(&mut hasher);

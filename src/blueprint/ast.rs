@@ -1,7 +1,7 @@
 //! Typed AST produced by the Cairn blueprint parser.
 
 /// Source span with one-based line and column positions.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Span {
     /// Source path used for diagnostics.
     pub file: String,
@@ -30,7 +30,7 @@ impl Span {
 }
 
 /// Parsed blueprint root.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Ast {
     /// Top-level nodes.
     pub nodes: Vec<Node>,
@@ -39,7 +39,7 @@ pub struct Ast {
 }
 
 /// Supported node declarations.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum NodeKind {
     /// System declaration.
     System,
@@ -52,7 +52,7 @@ pub enum NodeKind {
 }
 
 /// Parsed node declaration.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Node {
     /// Declaration kind.
     pub kind: NodeKind,
@@ -79,7 +79,7 @@ pub struct Node {
 }
 
 /// Retained field metadata.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Field {
     /// Field name.
     pub name: String,
@@ -90,7 +90,7 @@ pub struct Field {
 }
 
 /// Dependency edge.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Edge {
     /// Source node ID.
     pub from: String,
