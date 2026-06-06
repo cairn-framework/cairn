@@ -509,9 +509,6 @@ fn copy_dir_all(source: impl AsRef<Path>, target: impl AsRef<Path>) -> std::io::
 
 /// Watch for finding changes and emit newline-delimited JSON events.
 pub(super) fn run_watch_command(root: &Path, opts: &crate::watch::WatchOpts) -> CliResult {
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicBool, Ordering};
-
     let blueprint = root.join("cairn.blueprint");
 
     // --once: single scan, emit all findings as added, exit.
@@ -532,11 +529,8 @@ pub(super) fn run_watch_command(root: &Path, opts: &crate::watch::WatchOpts) -> 
         return ok(String::new());
     }
 
-    let stop = Arc::new(AtomicBool::new(false));
-    let shutdown = Arc::clone(&stop);
-    if let Err(error) = ctrlc::set_handler(move || {
-        shutdown.store(true, Ordering::SeqCst);
-    }) {
+    let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    if let Err(error) = crate::signal::install_sigint_handler(std::sync::Arc::clone(&stop)) {
         return err(1, &format!("failed to set Ctrl-C handler: {error}"));
     }
 
@@ -550,10 +544,10 @@ pub(super) fn run_watch_command(root: &Path, opts: &crate::watch::WatchOpts) -> 
 
     let interval = std::time::Duration::from_secs(opts.interval_secs);
 
-    while !stop.load(Ordering::SeqCst) {
+    while !stop.load(std::sync::atomic::Ordering::SeqCst) {
         std::thread::sleep(interval);
 
-        if stop.load(Ordering::SeqCst) {
+        if stop.load(std::sync::atomic::Ordering::SeqCst) {
             break;
         }
 

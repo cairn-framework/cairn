@@ -37,6 +37,8 @@ pub mod query_api;
 pub mod reconcile;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
+/// POSIX SIGINT handling without Foundation/ObjC dependencies.
+pub mod signal;
 /// SSE event consumer for orchestrator integration spikes.
 pub mod sse;
 /// Pluggable state persistence backend.

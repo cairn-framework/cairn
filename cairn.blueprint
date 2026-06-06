@@ -11,6 +11,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/error.rs"
         path "./src/verification.rs"
         path "./src/bin/cairn-lsp.rs"
+        path "./src/signal.rs"
     }
     Module SSE "Minimal SSE consumer for Gas City integration" id "cairn.sse" {
         path "./src/sse.rs"

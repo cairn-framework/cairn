@@ -144,7 +144,7 @@ pub enum UiError {
     /// Project loading failed.
     Project(String),
     /// Ctrl+C handler installation failed.
-    ShutdownHandler(ctrlc::Error),
+    ShutdownHandler(String),
 }
 
 impl fmt::Display for UiError {
@@ -154,8 +154,9 @@ impl fmt::Display for UiError {
                 write!(formatter, "port conflict on {port}: {source}")
             }
             Self::Io(error) => write!(formatter, "{error}"),
-            Self::Project(error) => write!(formatter, "{error}"),
-            Self::ShutdownHandler(error) => write!(formatter, "{error}"),
+            Self::Project(error) | Self::ShutdownHandler(error) => {
+                write!(formatter, "{error}")
+            }
         }
     }
 }
@@ -205,11 +206,7 @@ impl ServerHandle {
 /// Returns an error when binding, project loading, or request serving fails.
 pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError> {
     let stop = Arc::new(AtomicBool::new(false));
-    let shutdown = Arc::clone(&stop);
-    ctrlc::set_handler(move || {
-        shutdown.store(true, Ordering::SeqCst);
-    })
-    .map_err(UiError::ShutdownHandler)?;
+    crate::signal::install_sigint_handler(Arc::clone(&stop)).map_err(UiError::ShutdownHandler)?;
 
     let server = Server::bind(options)?;
     let url = server.url();
