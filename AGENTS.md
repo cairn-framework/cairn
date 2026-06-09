@@ -12,7 +12,7 @@ Your change directory (`meta/changes/<change-id>/`) contains everything you need
 |---|---|
 | `docs/conventions.md` | Rust code conventions (error codes, module size, state versioning, testing, docs). Authoritative; do not duplicate. |
 | `docs/registries/` | `declared-items.md`, `error-codes.md`. Check when adding new public items or error codes to avoid collisions. |
-| `archive/openspec/changes/<other-phase>/specs/` | Other phases' acceptance criteria. Check only if your design.md references them. |
+| `archive/openspec/changes-archive/<other-phase>/specs/` | Other phases' acceptance criteria. Check only if your design.md references them. |
 | `docs/spec.md` | Canonical Cairn spec. |
 | `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work. |
 
@@ -20,7 +20,7 @@ Your change directory (`meta/changes/<change-id>/`) contains everything you need
 
 - **Conventions**: `docs/conventions.md` covers cross-cutting rules (error codes, naming, module limits). Check when making structural or naming decisions.
 - **Registries**: `docs/registries/` covers declared items and error codes across all phases. Check when adding new public items or error codes to avoid collisions.
-- **Specs from other phases**: `archive/openspec/changes/<other-phase>/specs/` is only relevant if your design.md references another phase's requirements.
+- **Specs from other phases**: `archive/openspec/changes-archive/<other-phase>/specs/` is only relevant if your design.md references another phase's requirements.
 
 When implementing a feature phase, check `docs/conventions.md` for the test-first pre-phase convention. If a paired `phase-<N>.0-tests` change exists, remove the matching `#[cairn_planned(phase = <N>)]` attribute as the feature lands rather than rewriting those tests from scratch. The attribute is structured (proc-macro), not a comment; do not parse the `#[ignore]` reason string.
 

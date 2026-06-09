@@ -82,7 +82,7 @@ which modules and edges the change affects.
 Capture intent before code. Match the proposal weight to the change.
 
 - Substantial work (new module, cross-cutting behaviour, interface change): use
-  the `cairn-propose` skill to scaffold a change under `openspec/changes/` with
+  the `cairn-propose` skill to scaffold a change under `meta/changes/` with
   proposal, design, and tasks. Then drive it with `cairn-apply`.
 - Small surgical work (a bugfix, a doc, a contained refactor): skip the change
   directory. State the success criterion inline and, if it alters structure,
