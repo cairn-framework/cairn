@@ -213,7 +213,7 @@ All public APIs MUST return `Result<T, CairnError>`. Internal functions MAY use 
 
 Feature phases that introduce new acceptance criteria SHOULD be preceded by a paired pre-phase `phase-<N>.0-tests` whose apply task writes failing test assertions against the feature's acceptance criteria.
 
-Pre-phase tests MUST be marked `#[cflx_planned(phase = <N>)]` so pre-phase archives pass `cargo test` cleanly. The proc-macro expands to `#[ignore = "cflx_planned: phase-<N>"]` underneath so `cargo test` keeps working without runner changes. Phase `N`'s first task group MUST remove the `#[cflx_planned]` attribute from the relevant test as the corresponding feature code lands.
+Pre-phase tests MUST be marked `#[cairn_planned(phase = <N>)]` so pre-phase archives pass `cargo test` cleanly. The proc-macro expands to `#[ignore = "cairn_planned: phase-<N>"]` underneath so `cargo test` keeps working without runner changes. Phase `N`'s first task group MUST remove the `#[cairn_planned]` attribute from the relevant test as the corresponding feature code lands.
 
 The macro rejects combination with manual `#[ignore]`; a test cannot carry both attributes. If a planned test also needs an unrelated ignore reason, the planned attribute should be removed once the prerequisite phase lands, and a plain `#[ignore]` added for the orthogonal concern.
 
@@ -299,8 +299,8 @@ Hooks are managed via [prek](https://github.com/j178/prek) (Rust rewrite of pre-
 
 ## 9. Genesis Transcript
 
-Proposal authoring via the `cflx-proposal` skill writes the elicitation transcript to `openspec/changes/<id>/research/genesis.md` with id `genesis-<change-id>`. The file lives in the change directory, archives with the change directory, and is not loaded by the cairn scanner. It provides human-readable and codex-readable provenance for the change's elicitation history.
+When proposal authoring captures an elicitation transcript (historically via the retired `cflx-proposal` skill, now the `cairn-propose` skill), the transcript lives at `meta/changes/<id>/research/genesis.md` with id `genesis-<change-id>`. The file lives in the change directory, archives with the change directory, and is not loaded by the cairn scanner. It provides human-readable and codex-readable provenance for the change's elicitation history.
 
 The `nodes` field of the genesis artefact carries the change ID as a placeholder, not a blueprint node ID. The apply-stage codex agent SHALL NOT re-point or rewrite this field. The file SHALL NOT be moved to `meta/research/` or any other location during apply or archive. Rationale and the option-A/B/C debate that produced this verdict live in `docs/strongholds/oq3-genesis-lifecycle.md`.
 
-When a future phase implements artefact-delta processing in the cflx archiver and a scanner-visible `meta/research/genesis/` subtree exists, this convention may be revisited (see the forward-compatibility note in the linked stronghold). Until then, the change-directory-relative path is the durable home.
+When a future phase implements artefact-delta processing in `cairn archive` and a scanner-visible `meta/research/genesis/` subtree exists, this convention may be revisited (see the forward-compatibility note in the linked stronghold). Until then, the change-directory-relative path is the durable home.

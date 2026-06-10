@@ -56,7 +56,7 @@ This will merge the PR with squash and delete the branch.
 
 ## Safety rules (hard stops)
 
-- **Do NOT proceed** if the PR modifies `.github/workflows/`, `Cargo.toml`, `.cflx.jsonc`, or `scripts/dogfood.sh`. Escalate to the user.
+- **Do NOT proceed** if the PR modifies `.github/workflows/`, `Cargo.toml`, or `scripts/dogfood.sh`. Escalate to the user.
 - **Do NOT proceed** if the PR has >30 files changed or >1000 total lines changed. Escalate to the user.
 - **Do NOT proceed** if the PR is a draft or from a fork.
 - **Do NOT proceed** if you cannot understand or fix a test failure. Escalate to the user.
