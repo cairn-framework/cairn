@@ -43,6 +43,7 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Active changes** | `cairn changes` | `--json` (required) |
 | **Change details** | `cairn show <change-id>` | `--json` (required) |
 | **Brownfield onboard** | `cairn onboard` | `--json` |
+| **Record cairn friction** | `cairn feedback "<message>"` | `--json`; logs to `.cairn/feedback.md`, prints upstream issue link |
 | **Brownfield extract** | `cairn init --from-code` | `--force` (overwrite existing) |
 | **Brownfield refine** | `cairn refine` | writes timestamped change |
 | **Disconnected islands** | `cairn islands` | `--json` |

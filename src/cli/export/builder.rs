@@ -194,7 +194,7 @@ fn flatten_changes(changes_in: &[Change]) -> Vec<ChangeEntry> {
     out
 }
 
-fn current_timestamp_rfc3339() -> String {
+pub(crate) fn current_timestamp_rfc3339() -> String {
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |d| d.as_secs());

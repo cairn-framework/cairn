@@ -239,11 +239,16 @@ pub(super) fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
         Err(message) => err(2, &message),
     }
 }
+/// Agent-facing guide written by `cairn init`, meant to be appended to a
+/// project's CLAUDE.md or AGENTS.md so coding agents use the map and feed
+/// friction back upstream.
+const AGENT_GUIDE: &str = include_str!("agent_guide.md");
+
 pub(super) fn init_project(root: &Path) -> CliResult {
     let writes = [
         (
             "cairn.blueprint",
-            "System Example \"Starter architecture\" id \"example\" {\n    Module App \"Starter app\" id \"example.app\" {\n        path \"./src\"\n    }\n}\n",
+            "# Describe your system here. Every source file (tests included) should\n# fall under some module's path. Grammar reference:\n# https://github.com/cairn-framework/cairn/blob/HEAD/docs/blueprint.md\nSystem Example \"Starter architecture\" id \"example\" {\n    Module App \"Starter app\" id \"example.app\" {\n        path \"./src\"\n    }\n}\n",
         ),
         (
             "cairn.config.yaml",
@@ -251,6 +256,7 @@ pub(super) fn init_project(root: &Path) -> CliResult {
         ),
         ("meta/contracts/.gitkeep", ""),
         (".cairn/state/.gitkeep", ""),
+        (".cairn/AGENTS.md", AGENT_GUIDE),
     ];
     for (path, content) in writes {
         let full = root.join(path);
@@ -266,7 +272,96 @@ pub(super) fn init_project(root: &Path) -> CliResult {
             return err(1, &format!("failed to write {}", full.display()));
         }
     }
-    ok("initialized Cairn project\n".to_owned())
+    ok(format!(
+        "{}\n\n{}\n",
+        copy::lookup("init.done"),
+        copy::lookup("init.next-steps")
+    ))
+}
+
+/// Upstream issue tracker for `cairn feedback` reports.
+const FEEDBACK_ISSUE_BASE: &str = "https://github.com/cairn-framework/cairn/issues/new";
+
+pub(super) fn run_feedback_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
+    let message = parsed.command_args[1..].join(" ").trim().to_owned();
+    if message.is_empty() {
+        return err(2, copy::lookup("feedback.usage"));
+    }
+    let log_path = root.join(".cairn/feedback.md");
+    if let Some(parent) = log_path.parent()
+        && let Err(error) = fs::create_dir_all(parent)
+    {
+        return err(
+            1,
+            &format!("failed to create {}: {error}", parent.display()),
+        );
+    }
+    let timestamp = super::export::current_timestamp_rfc3339();
+    let version = env!("CARGO_PKG_VERSION");
+    let mut entry = if log_path.exists() {
+        String::new()
+    } else {
+        "# Cairn feedback log\n\nFriction recorded by `cairn feedback`. \
+         Triage entries into upstream issues at\n\
+         https://github.com/cairn-framework/cairn/issues\n"
+            .to_owned()
+    };
+    let _ = write!(entry, "\n## {timestamp} (cairn {version})\n\n{message}\n");
+    let appended = {
+        use std::io::Write as _;
+        fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&log_path)
+            .and_then(|mut file| file.write_all(entry.as_bytes()))
+    };
+    if let Err(error) = appended {
+        return err(
+            1,
+            &format!("failed to write {}: {error}", log_path.display()),
+        );
+    }
+
+    let title: String = message
+        .lines()
+        .next()
+        .unwrap_or("")
+        .chars()
+        .take(80)
+        .collect();
+    let body = format!("{message}\n\nRecorded by `cairn feedback` (cairn {version}).");
+    let issue_url = format!(
+        "{FEEDBACK_ISSUE_BASE}?title={}&body={}",
+        encode_query_component(&title),
+        encode_query_component(&body)
+    );
+    if parsed.json {
+        return ok(format!(
+            "{{\"command\":\"feedback\",\"status\":\"ok\",\"data\":{{\"recorded\":\".cairn/feedback.md\",\"issue_url\":\"{}\"}}}}\n",
+            super::format::esc(&issue_url)
+        ));
+    }
+    ok(format!(
+        "{}\n{}\n{issue_url}\n",
+        copy::lookup("feedback.recorded"),
+        copy::lookup("feedback.cta")
+    ))
+}
+
+/// Percent-encodes a string for use as a URL query parameter value.
+fn encode_query_component(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
+                out.push(byte as char);
+            }
+            _ => {
+                let _ = write!(out, "%{byte:02X}");
+            }
+        }
+    }
+    out
 }
 
 pub(super) fn run_change_new(root: &Path, change_id: &str) -> CliResult {

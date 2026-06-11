@@ -5,7 +5,7 @@ Complete reference for the `cairn` CLI.
 ## Installation
 
 ```bash
-cargo install --git https://github.com/George-RD/cairn.git
+cargo install --git https://github.com/cairn-framework/cairn.git
 ```
 
 This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
@@ -109,6 +109,7 @@ These commands require the `--json` flag.
 | `cairn watch` | Watch for finding changes and emit JSON events |
 | `cairn import-openspec` | Migrate openspec changes to meta/changes/ |
 | `cairn docstring <node>` | Generate a docstring for a node |
+| `cairn feedback "<message>"` | Record cairn friction in `.cairn/feedback.md` and print a prefilled upstream issue link |
 
 ### MAS orchestration
 | Command | Description |

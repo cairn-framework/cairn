@@ -45,6 +45,7 @@ This repo dogfoods cairn. The root `cairn.blueprint` describes the module graph.
 - `cairn context` for a structured project overview (start here as an agent entry point).
 - `cairn lint --json` for structured findings output consumable by scripts or agents.
 - `cairn onboard` to group orphaned files by directory with ignore/node suggestions.
+- `cairn feedback "<message>"` to record cairn friction; entries land in `.cairn/feedback.md` for triage into beads or upstream issues.
 - `cairn ui --port 3000` to browse the graph in a browser (human use).
 
 Module IDs follow dotted notation rooted at `cairn` (e.g. `cairn.kernel.map`, `cairn.reconcile`, `cairn.ui`). Run `cairn get <any-known-id>` to verify a node exists, or open `cairn.blueprint` to see the full ID list.
