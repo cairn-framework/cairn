@@ -252,7 +252,7 @@
   });
 
   function buildLayout(graph, artefactCounts) {
-    if (!graph) return { nodes: [], totalHeight: 0 };
+    if (!graph || !Array.isArray(graph.nodes)) return { nodes: [], totalHeight: 0 };
     const systems = graph.nodes.filter((n) => n.kind === "system");
     const containers = graph.nodes.filter((n) => n.kind === "container");
     const modules = graph.nodes.filter((n) => n.kind === "module");
@@ -1097,6 +1097,11 @@
           </div>
         </div>
 
+        ${detail.loading
+          ? html`<div class="row-empty">${copy("empty-states.node-artefacts-loading.body")}</div>`
+          : detail.failed
+          ? html`<div class="row-empty">${copy("empty-states.node-artefacts-failed.body")}</div>`
+          : html`
         <div class="chain-balance">
           <div class="balance-grid">
             <div class="balance-side prov">
@@ -1192,6 +1197,7 @@
             ? html`<div class="row-empty">${copy("empty-states.node-no-inbound.body")}</div>`
             : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
         <//>
+        `}
       </section>
     `;
   }
@@ -1413,11 +1419,13 @@
 
   function CommandPalette({ open, graph, onClose, onSelect }) {
     const [q, setQ] = useState("");
+    const [activeIdx, setActiveIdx] = useState(0);
     const inputRef = useRef(null);
 
     useEffect(() => {
       if (!open) return undefined;
       setQ("");
+      setActiveIdx(0);
       const handle = requestAnimationFrame(() => {
         if (inputRef.current) inputRef.current.focus();
       });
@@ -1431,6 +1439,12 @@
       };
     }, [open, onClose]);
 
+    useEffect(() => {
+      if (!open) return;
+      const row = document.querySelector(".cmd-palette-results .result-row.active");
+      if (row) row.scrollIntoView({ block: "nearest" });
+    }, [open, activeIdx]);
+
     if (!open) return null;
     const ql = q.toLowerCase();
     const matches = graph
@@ -1443,13 +1457,33 @@
           );
         })
       : [];
+    const shown = matches.slice(0, 20);
+
+    const onInputKey = (e) => {
+      if (e.isComposing || e.keyCode === 229) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveIdx((i) => Math.min(i + 1, Math.max(0, shown.length - 1)));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveIdx((i) => Math.max(i - 1, 0));
+      } else if (e.key === "Enter") {
+        const hit = shown[activeIdx];
+        if (hit) {
+          onSelect(hit.id);
+          onClose();
+        }
+      }
+    };
 
     return html`
       <div class="modal-scrim" onClick=${onClose}>
         <div class="cmd-palette" onClick=${(e) => e.stopPropagation()}>
           <div class="cmd-palette-head">
             <span class="cmd-label">Query</span>
-            <input ref=${inputRef} value=${q} onInput=${(e) => setQ(e.target.value)}
+            <input ref=${inputRef} value=${q}
+              onInput=${(e) => { setQ(e.target.value); setActiveIdx(0); }}
+              onKeyDown=${onInputKey}
               placeholder="search modules, containers, decisions"/>
             <kbd>esc</kbd>
           </div>
@@ -1467,8 +1501,8 @@
                   ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches.body")}</div>`
                   : html`<${Fragment}>
                       <div class="caps result-group">Nodes</div>
-                      ${matches.slice(0, 20).map((n) => html`
-                        <button class="result-row" key=${n.id}
+                      ${shown.map((n, i) => html`
+                        <button class=${clsx("result-row", i === activeIdx && "active")} key=${n.id}
                           onClick=${() => {
                             onSelect(n.id);
                             onClose();
@@ -1583,12 +1617,18 @@
     const [blueprint, setBlueprint] = useState(null);
     const [blueprintFocus, setBlueprintFocus] = useState(null);
     const [showFindings, setShowFindings] = useState(false);
+    const [bootTick, setBootTick] = useState(0);
 
     useEffect(() => {
       let cancelled = false;
+      setError(null);
       Promise.all([fetchGraph(), fetchStatus(), fetchLint()])
         .then(([g, s, l]) => {
           if (cancelled) return;
+          if (!g || !Array.isArray(g.nodes)) {
+            setError("graph data unavailable");
+            return;
+          }
           setGraph(g);
           setStatus(s);
           setLint(l);
@@ -1599,7 +1639,7 @@
       return () => {
         cancelled = true;
       };
-    }, []);
+    }, [bootTick]);
 
     useEffect(() => {
       try {
@@ -1668,6 +1708,7 @@
         return undefined;
       }
       let cancelled = false;
+      setDetail({ loading: true });
       Promise.all([
         fetchNodeArtefacts(selectionId, "contract"),
         fetchNodeArtefacts(selectionId, "decisions"),
@@ -1687,6 +1728,8 @@
           depends,
           dependents,
         });
+      }).catch(() => {
+        if (!cancelled) setDetail({ failed: true });
       });
       return () => {
         cancelled = true;
@@ -1750,20 +1793,29 @@
           onOpenCmd=${() => setCmdOpen(true)}
           onOpenBlueprint=${openBlueprint}
         />
-        ${error
-          ? html`<div class="status-banner">Failed to load: ${error}</div>`
-          : null}
         <div class="main">
-          <${GraphCanvas}
-            graph=${graph}
-            layoutData=${layoutData}
-            selection=${selectionId ? { id: selectionId } : null}
-            hoveredId=${hoveredId}
-            lint=${lint}
-            onSelect=${(id) => setSelectionId(id)}
-            onHover=${setHoveredId}
-            edgeTrace=${hoveredId}
-          />
+          ${error
+            ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
+                <div class="empty-state">
+                  <h2 class="empty-state-heading">${copy("empty-states.map-failed.heading")}</h2>
+                  <p class="empty-state-body">${error}</p>
+                  <button class="btn secondary" onClick=${() => setBootTick((t) => t + 1)}>${copy("empty-states.map-failed.cta")}</button>
+                </div>
+              </section>`
+            : !graph
+              ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
+                  <div class="row-empty">${copy("empty-states.map-loading.body")}</div>
+                </section>`
+              : html`<${GraphCanvas}
+                  graph=${graph}
+                  layoutData=${layoutData}
+                  selection=${selectionId ? { id: selectionId } : null}
+                  hoveredId=${hoveredId}
+                  lint=${lint}
+                  onSelect=${(id) => setSelectionId(id)}
+                  onHover=${setHoveredId}
+                  edgeTrace=${hoveredId}
+                />`}
           <aside class="inspector-wrap" aria-live="polite">
             ${inspector}
           </aside>
