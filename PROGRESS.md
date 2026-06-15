@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the private `copy_dir_all` helper in `src/cli/commands/import.rs`, covering nested files/directories, empty source, and target overwrites, using `tempfile::tempdir()` for RAII cleanup.
-  - Bead: cairn-uf1
-  - Commit: 05b07d0
+- Added unit tests for the pure helper functions in `src/query_api/util.rs` (`required`, `findings_error`, `finding_error`, `command_error`), covering present/missing required values, empty/single/multiple findings, and command error wrapping.
+  - Bead: cairn-bvr
+  - Commit: cd1e9f2
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
