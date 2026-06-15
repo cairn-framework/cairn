@@ -23,8 +23,8 @@ pub enum StateError {
 impl fmt::Display for StateError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            StateError::Io(e) => write!(f, "I/O error: {e}"),
-            StateError::Serialization(msg) => write!(f, "serialization error: {msg}"),
+            Self::Io(e) => write!(f, "I/O error: {e}"),
+            Self::Serialization(msg) => write!(f, "serialization error: {msg}"),
         }
     }
 }
@@ -32,21 +32,21 @@ impl fmt::Display for StateError {
 impl std::error::Error for StateError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            StateError::Io(e) => Some(e),
-            StateError::Serialization(_) => None,
+            Self::Io(e) => Some(e),
+            Self::Serialization(_) => None,
         }
     }
 }
 
 impl From<io::Error> for StateError {
     fn from(e: io::Error) -> Self {
-        StateError::Io(e)
+        Self::Io(e)
     }
 }
 
 impl From<serde_json::Error> for StateError {
     fn from(e: serde_json::Error) -> Self {
-        StateError::Serialization(e.to_string())
+        Self::Serialization(e.to_string())
     }
 }
 
