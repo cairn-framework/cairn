@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the private `blueprint_source_roots` helper in `src/scanner/cache.rs`, covering directory paths, file paths, subdirectory pruning, nested nodes, and leading `./` handling.
-  - Bead: cairn-dft
-  - Commit: 14f5037
+- Added unit tests for the private `format_health_human` helper in `src/cli/render/health.rs`, covering clean/unclean status, summary counts, scan error/warning inclusion, and missing summary defaults.
+  - Bead: cairn-6ut
+  - Commit: 91bf63e
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
@@ -17,6 +17,6 @@
 - All extracted submodules have module-level docs.
 
 ## Next Candidates
-1. Continue adding targeted unit tests for extracted helpers in recently-split modules (scanner cache/checks, cli/render submodules, etc.).
+1. Continue adding targeted unit tests for extracted helpers in recently-split modules (cli/render submodules, scanner cache/checks, etc.).
 2. Audit remaining documentation gaps in public APIs.
 3. Address the open epic `cairn-v1t` only as a deliberate, scoped milestone: migrate all decision files, add the blueprint pointer, and write covering decisions in one coordinated effort.
