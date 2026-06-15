@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Refactored `parse_http_url` in `src/sse.rs` to use `Option::map_or_else` for the authority/path split.
-  - Bead: cairn-tw9
-  - Commit: 6e1956d
+- Refactored `render_stub` in `src/brownfield/templates.rs` to use `Option::map_or_else` instead of an `if let`/`else` fallback.
+  - Bead: cairn-98i
+  - Commit: 005c975
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
