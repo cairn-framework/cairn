@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added module-level documentation to `src/query_api/util.rs`, describing the purpose of the helper functions used by query dispatch and MCP paths.
-  - Bead: cairn-5n1
-  - Commit: 16e1273
+- Audited `src/**/*.rs` for files missing a top-level module doc and added a concise `//!` summary to 18 source modules across artefacts, changes, query_api, summariser, and ui.
+  - Bead: cairn-4es
+  - Commit: 6657084
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
