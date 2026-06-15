@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Moved `src/summariser/backend.rs` tests into a submodule.
-  - Bead: cairn-4r7
-  - Commit: 5aada5d
+- Extracted `src/mcp.rs` inline tests into `src/mcp/tests.rs`.
+  - Bead: cairn-xcc
+  - Commit: 0bd4cec
 
 ## Next Candidates
 1. Split `src/summariser/prompt.rs` (743 lines) or add a valid file-size allow directive.
