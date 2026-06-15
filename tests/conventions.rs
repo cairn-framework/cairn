@@ -32,10 +32,12 @@ fn scan_dir(dir: &std::path::Path, manifest: &std::path::Path, violations: &mut 
                 let trimmed = line.trim();
                 // Skip the scanner logic inside this test file when it appears
                 // in other files (e.g. copy-pasted test utilities).
-                if trimmed.contains("starts_with(\"#[allow(\")") {
+                if trimmed.contains("starts_with(\"#[allow(\")")
+                    || trimmed.contains("starts_with(\"#![allow(\")")
+                {
                     continue;
                 }
-                if trimmed.starts_with("#[allow(") {
+                if trimmed.starts_with("#[allow(") || trimmed.starts_with("#![allow(") {
                     let has_reason = find_reason_in_preceding_comments(&lines, idx)
                         || trimmed.contains("// Reason:")
                         || lines
