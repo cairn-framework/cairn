@@ -16,6 +16,7 @@ pedantic = { level = "deny" }
 cargo = { level = "deny" }
 dbg_macro = { level = "deny" }
 todo = { level = "deny" }
+use_self = { level = "deny" }
 
 [package]
 name = "cairn"

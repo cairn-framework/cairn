@@ -49,10 +49,10 @@ impl Language {
     pub fn from_extension(path: &Path) -> Option<Self> {
         let ext = path.extension()?.to_str()?;
         match ext {
-            "rs" => Some(Language::Rust),
-            "ts" | "tsx" => Some(Language::TypeScript),
-            "py" => Some(Language::Python),
-            "go" => Some(Language::Go),
+            "rs" => Some(Self::Rust),
+            "ts" | "tsx" => Some(Self::TypeScript),
+            "py" => Some(Self::Python),
+            "go" => Some(Self::Go),
             _ => None,
         }
     }
@@ -61,10 +61,10 @@ impl Language {
     #[must_use]
     pub fn from_language_str(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
-            "rust" => Some(Language::Rust),
-            "typescript" | "ts" => Some(Language::TypeScript),
-            "python" | "py" => Some(Language::Python),
-            "go" => Some(Language::Go),
+            "rust" => Some(Self::Rust),
+            "typescript" | "ts" => Some(Self::TypeScript),
+            "python" | "py" => Some(Self::Python),
+            "go" => Some(Self::Go),
             _ => None,
         }
     }
@@ -73,10 +73,10 @@ impl Language {
     #[must_use]
     pub fn as_str(&self) -> &'static str {
         match self {
-            Language::Rust => "rust",
-            Language::TypeScript => "typescript",
-            Language::Python => "python",
-            Language::Go => "go",
+            Self::Rust => "rust",
+            Self::TypeScript => "typescript",
+            Self::Python => "python",
+            Self::Go => "go",
         }
     }
 
@@ -84,10 +84,10 @@ impl Language {
     #[must_use]
     pub fn reconciler_id(&self) -> ReconcilerId {
         match self {
-            Language::Rust => ReconcilerId("rust-code".to_owned()),
-            Language::TypeScript => ReconcilerId("typescript-code".to_owned()),
-            Language::Python => ReconcilerId("python-code".to_owned()),
-            Language::Go => ReconcilerId("go-code".to_owned()),
+            Self::Rust => ReconcilerId("rust-code".to_owned()),
+            Self::TypeScript => ReconcilerId("typescript-code".to_owned()),
+            Self::Python => ReconcilerId("python-code".to_owned()),
+            Self::Go => ReconcilerId("go-code".to_owned()),
         }
     }
 }
