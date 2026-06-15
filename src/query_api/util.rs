@@ -1,3 +1,6 @@
+//! Small query API helper functions.
+//!
+//! This module holds pure utility helpers used by the query dispatch and MCP paths.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
