@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Refactored `render_next` in `src/cli/render/remediate.rs` to use `Option::map_or_else` instead of an `if let`/`else` fallback.
-  - Bead: cairn-4xv
-  - Commit: c0fc37a
+- Refactored `StateError` in `src/state/mod.rs` to use `Self` in `Display`, `Error::source`, and `From` impls.
+  - Bead: cairn-zbe
+  - Commit: 50c471e
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
