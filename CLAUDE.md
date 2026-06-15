@@ -170,6 +170,12 @@ Rules:
 - After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
 
 
+## Beads workflow notes
+
+- `.beads/issues.jsonl` is a passive export regenerated from the Dolt DB on every `bd` command. **Never hand-edit it.**
+- After closing a bead, immediately re-export: `bd close <id> --reason "..." && bd export -o .beads/issues.jsonl`.
+- Do not run bare `for ...; do bd close $id; done` loops. Each `bd` invocation re-imports the JSONL, which clobbers unexported closes from prior loop iterations.
+
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
 ## Beads Issue Tracker
 
@@ -190,11 +196,6 @@ bd close <id>         # Complete work
 - Run `bd prime` for detailed command reference and session close protocol
 - Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 
-### Working with beads
-
-- `.beads/issues.jsonl` is a passive export regenerated from the Dolt DB on every `bd` command. **Never hand-edit it.**
-- After closing a bead, immediately re-export: `bd close <id> --reason "..." && bd export -o .beads/issues.jsonl`.
-- Do not run bare `for ...; do bd close $id; done` loops. Each `bd` invocation re-imports the JSONL, which clobbers unexported closes from prior loop iterations.
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
 
 ## Agent Context Profiles
