@@ -239,7 +239,7 @@ mod tests {
     fn test_topological_order_isolated_nodes_all_present() {
         let g = make_graph(&["x", "y", "z"], &[]);
         let order = topological_order(&g).expect("no edges, no cycle");
-        let mut got = order.clone();
+        let mut got = order;
         got.sort();
         assert_eq!(got, vec!["x", "y", "z"]);
     }
