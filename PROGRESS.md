@@ -4,11 +4,10 @@
 - In-progress: none
 
 ## Last Completed
-- Extracted `src/hooks/mod.rs` tests into `src/hooks/tests.rs`.
-  - Bead: cairn-z5a
-  - Commit: 971cd5b
+- Extracted `src/changes/apply.rs` tests into `src/changes/apply/tests.rs`.
+  - Bead: cairn-fgl
+  - Commit: bcd7c20
 
 ## Next Candidates
-1. Address `src/changes/apply.rs` (640 lines) by extracting tests or splitting into submodules.
-2. Address `src/artefacts/registry/validate.rs` (659 lines).
-3. Address remaining oversized files surfaced by `scripts/check-file-sizes.sh` one per commit.
+1. Address `src/artefacts/registry/validate.rs` (659 lines), the last oversized file surfaced by `scripts/check-file-sizes.sh`.
+2. Re-run `scripts/check-file-sizes.sh` to confirm the remaining list after the latest changes.
