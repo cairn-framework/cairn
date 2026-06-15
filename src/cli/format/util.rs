@@ -1,8 +1,8 @@
-// Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
+//! Utility helpers for CLI formatting: argument parsing, graph queries, and output builders.
 #![allow(clippy::wildcard_imports)]
-use super::*;
+use super::super::*;
 
-pub(super) fn node_arg(args: &[String]) -> Result<&str, Finding> {
+pub(crate) fn node_arg(args: &[String]) -> Result<&str, Finding> {
     args.get(1).map(String::as_str).ok_or_else(|| Finding {
         code: "CAIRN_CLI_MISSING_NODE".to_owned(),
         severity: FindingSeverity::Error,
@@ -13,178 +13,7 @@ pub(super) fn node_arg(args: &[String]) -> Result<&str, Finding> {
     })
 }
 
-pub(super) fn render_node(node: &NodeRecord, json: bool) -> String {
-    if json {
-        format!("{}\n", node_json(node))
-    } else {
-        format!(
-            "ID: {}\nName: {}\nDescription: {}\nState: {:?}\n",
-            node.id, node.name, node.description, node.state
-        )
-    }
-}
-
-pub(super) fn render_findings(findings: &[Finding], json: bool) -> String {
-    if json {
-        if findings.is_empty() {
-            return "{\"findings\":[]}\n".to_owned();
-        }
-        let mut out = String::from("{\"findings\":[");
-        for (i, finding) in findings.iter().enumerate() {
-            if i > 0 {
-                out.push(',');
-            }
-            out.push_str("{\"code\":\"");
-            out.push_str(&esc(&finding.code));
-            out.push_str("\",\"severity\":\"");
-            out.push_str(finding.severity.name());
-            out.push_str("\",\"message\":\"");
-            out.push_str(&esc(&finding.message));
-            out.push_str("\"}");
-        }
-        out.push_str("]}\n");
-        out
-    } else if findings.is_empty() {
-        format!(
-            "Findings:\n{}\n",
-            super::copy::lookup("empty-states.cli-clean-map.body")
-        )
-    } else {
-        let mut out = String::from("Findings:\n");
-        for finding in findings {
-            let _ = writeln!(
-                out,
-                "{:?}: {} {}",
-                finding.severity, finding.code, finding.message
-            );
-        }
-        out
-    }
-}
-
-pub(super) fn node_json(node: &NodeRecord) -> String {
-    format!(
-        "{{\"id\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"state\":\"{:?}\",\"children\":{},\"files\":{}}}",
-        esc(&node.id),
-        esc(&node.name),
-        esc(&node.description),
-        node.state,
-        string_array_json(&node.children),
-        string_array_json(&node.files)
-    )
-}
-
-pub(super) fn finding_json(finding: &Finding) -> String {
-    format!(
-        "{{\"code\":\"{}\",\"severity\":\"{}\",\"message\":\"{}\"}}",
-        esc(&finding.code),
-        finding.severity.name(),
-        esc(&finding.message)
-    )
-}
-
-pub(super) fn todos_json(todos: &[Todo]) -> String {
-    format!(
-        "[{}]",
-        todos
-            .iter()
-            .map(|todo| {
-                format!(
-                    "{{\"path\":\"{}\",\"node\":\"{}\",\"status\":\"{}\",\"created\":\"{}\",\"satisfies\":\"{}\"}}",
-                    esc(&todo.path),
-                    esc(&todo.node),
-                    todo_status(todo.status),
-                    esc(&todo.created),
-                    esc(todo.satisfies.as_deref().unwrap_or(""))
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-pub(super) fn decisions_json(decisions: &[Decision]) -> String {
-    format!(
-        "[{}]",
-        decisions
-            .iter()
-            .map(|decision| {
-                format!(
-                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"related\":{}}}",
-                    esc(&decision.id),
-                    decision_status(decision.status),
-                    string_array_json(&decision.nodes),
-                    string_array_json(&decision.informed_by),
-                    string_array_json(&decision.supersedes),
-                    string_array_json(&decision.refines),
-                    string_array_json(&decision.related)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-pub(super) fn research_json(research: &[Research]) -> String {
-    format!(
-        "[{}]",
-        research
-            .iter()
-            .map(|item| {
-                format!(
-                    "{{\"id\":\"{}\",\"nodes\":{},\"sources\":{},\"date\":\"{}\"}}",
-                    esc(&item.id),
-                    string_array_json(&item.nodes),
-                    string_array_json(&item.sources),
-                    esc(&item.date)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-pub(super) fn reviews_json(reviews: &[Review]) -> String {
-    format!(
-        "[{}]",
-        reviews
-            .iter()
-            .map(|review| {
-                format!(
-                    "{{\"path\":\"{}\",\"node\":\"{}\",\"review_type\":\"{}\",\"date\":\"{}\",\"reviewer\":\"{}\"}}",
-                    esc(&review.path),
-                    esc(&review.node),
-                    review_type(review.review_type),
-                    esc(&review.date),
-                    esc(&review.reviewer)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-pub(super) fn sources_json(sources: &[Source]) -> String {
-    format!(
-        "[{}]",
-        sources
-            .iter()
-            .map(|source| {
-                format!(
-                    "{{\"id\":\"{}\",\"file\":\"{}\",\"verification\":\"{}\",\"type\":\"{}\",\"date\":\"{}\"}}",
-                    esc(&source.id),
-                    esc(&source.file),
-                    source_verification(source.verification),
-                    esc(&source.source_type),
-                    esc(&source.date)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-pub(super) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
+pub(crate) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
     let mut ids = BTreeSet::from([node.to_owned()]);
     if let Some(edges) = graph.inbound.get(node) {
         ids.extend(edges.iter().map(|edge| edge.from.clone()));
@@ -195,7 +24,7 @@ pub(super) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeS
     ids
 }
 
-pub(super) fn research_for_nodes(
+pub(crate) fn research_for_nodes(
     scan_result: &scanner::ScanResult,
     nodes: &BTreeSet<String>,
 ) -> Vec<Research> {
@@ -208,7 +37,7 @@ pub(super) fn research_for_nodes(
         .collect()
 }
 
-pub(super) fn sources_for_nodes(
+pub(crate) fn sources_for_nodes(
     scan_result: &scanner::ScanResult,
     nodes: &BTreeSet<String>,
 ) -> Vec<Source> {
@@ -236,12 +65,12 @@ pub(super) fn sources_for_nodes(
         .collect()
 }
 
-pub(super) fn flag_value<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
+pub(crate) fn flag_value<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
     args.windows(2)
         .find_map(|pair| (pair[0] == flag).then_some(pair[1].as_str()))
 }
 
-pub(super) fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
+pub(crate) fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
     match value {
         "open" => Some(TodoStatus::Open),
         "in_progress" => Some(TodoStatus::InProgress),
@@ -251,7 +80,7 @@ pub(super) fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
     }
 }
 
-pub(super) fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus> {
+pub(crate) fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus> {
     match value {
         "proposed" => Some(DecisionStatus::Proposed),
         "accepted" => Some(DecisionStatus::Accepted),
@@ -261,88 +90,19 @@ pub(super) fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus
     }
 }
 
-pub(super) fn todo_line(todo: &Todo) -> String {
-    format!("{} [{}] {}", todo.node, todo_status(todo.status), todo.path)
-}
-
-pub(super) fn decision_line(decision: &Decision) -> String {
-    format!(
-        "{} [{}] {}",
-        decision.id,
-        decision_status(decision.status),
-        decision.nodes.join(", ")
-    )
-}
-
-pub(super) fn research_line(research: &Research) -> String {
-    format!("{} sources: {}", research.id, research.sources.join(", "))
-}
-
-pub(super) fn review_line(review: &Review) -> String {
-    format!(
-        "{} [{}] {}",
-        review.node,
-        review_type(review.review_type),
-        review.path
-    )
-}
-
-pub(super) fn source_line(source: &Source) -> String {
-    format!(
-        "{} [{}] {}",
-        source.id,
-        source_verification(source.verification),
-        source.file
-    )
-}
-
-pub(super) const fn todo_status(status: TodoStatus) -> &'static str {
-    match status {
-        TodoStatus::Open => "open",
-        TodoStatus::InProgress => "in_progress",
-        TodoStatus::Done => "done",
-        TodoStatus::Blocked => "blocked",
-    }
-}
-
-pub(super) const fn decision_status(status: DecisionStatus) -> &'static str {
-    match status {
-        DecisionStatus::Proposed => "proposed",
-        DecisionStatus::Accepted => "accepted",
-        DecisionStatus::Deprecated => "deprecated",
-        DecisionStatus::Superseded => "superseded",
-    }
-}
-
-pub(super) const fn review_type(review_type: ReviewType) -> &'static str {
-    match review_type {
-        ReviewType::Human => "human",
-        ReviewType::AgentIntrospective => "agent_introspective",
-        ReviewType::AgentCrossModel => "agent_cross_model",
-    }
-}
-
-pub(super) const fn source_verification(verification: SourceVerification) -> &'static str {
-    match verification {
-        SourceVerification::Verified => "verified",
-        SourceVerification::External => "external",
-        SourceVerification::Unverified => "unverified",
-    }
-}
-
-pub(super) fn findings_output(json: bool, findings: &[Finding]) -> CliResult {
+pub(crate) fn findings_output(json: bool, findings: &[Finding]) -> CliResult {
     CliResult {
         code: 1,
-        stdout: render_findings(findings, json),
+        stdout: super::render::render_findings(findings, json),
         stderr: String::new(),
     }
 }
 
-pub(super) fn finding_output(json: bool, finding: Finding) -> CliResult {
+pub(crate) fn finding_output(json: bool, finding: Finding) -> CliResult {
     findings_output(json, &[finding])
 }
 
-pub(super) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
+pub(crate) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
     let finding = Finding {
         code: code.to_owned(),
         severity: FindingSeverity::Error,
@@ -354,7 +114,7 @@ pub(super) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
     finding_output(json, finding)
 }
 
-pub(super) fn ok(stdout: String) -> CliResult {
+pub(crate) fn ok(stdout: String) -> CliResult {
     CliResult {
         code: 0,
         stdout,
@@ -369,7 +129,7 @@ pub(super) fn ok(stdout: String) -> CliResult {
 /// - **0**: success (clean, no findings)
 /// - **1**: success with advisory findings, or operational error
 /// - **2**: argument/usage error (bad args, unknown command)
-pub(super) fn err(code: u8, message: &str) -> CliResult {
+pub(crate) fn err(code: u8, message: &str) -> CliResult {
     CliResult {
         code,
         stdout: String::new(),
@@ -377,20 +137,7 @@ pub(super) fn err(code: u8, message: &str) -> CliResult {
     }
 }
 
-pub(super) fn string_array_json(values: &[String]) -> String {
-    let mut out = String::from('[');
-    for (i, value) in values.iter().enumerate() {
-        if i > 0 {
-            out.push(',');
-        }
-        out.push('"');
-        out.push_str(&esc(value));
-        out.push('"');
-    }
-    out.push(']');
-    out
-}
-pub(super) fn lines(values: &[String]) -> String {
+pub(crate) fn lines(values: &[String]) -> String {
     if values.is_empty() {
         "None".to_owned()
     } else {
@@ -404,7 +151,8 @@ pub(super) fn lines(values: &[String]) -> String {
         out
     }
 }
-pub(super) fn esc(value: &str) -> std::borrow::Cow<'_, str> {
+
+pub(crate) fn esc(value: &str) -> std::borrow::Cow<'_, str> {
     if value.bytes().all(|b| {
         b != b'\\'
             && b != b'"'
@@ -430,6 +178,7 @@ pub(super) fn esc(value: &str) -> std::borrow::Cow<'_, str> {
 
 #[cfg(test)]
 mod tests {
+    use super::super::render::{decision_status, todo_status};
     use super::*;
 
     // ── esc ───────────────────────────────────────────────────────────────────
@@ -481,10 +230,10 @@ mod tests {
 
     #[test]
     fn test_esc_backslash_is_escaped_first_so_replacements_do_not_double_escape() {
-        // Input: the two chars '\' and 'n' (a literal backslash followed by 'n').
-        // esc must produce '\\n' (JSON: literal backslash then 'n'), NOT '\\\\n'.
+        // Input: the two chars '\\' and 'n' (a literal backslash followed by 'n').
+        // esc must produce '\\\\n' (JSON: literal backslash then 'n'), NOT '\\\\\\\\n'.
         // If the newline-replacement step ran before the backslash step it would
-        // turn '\\' (already escaped backslash) into '\\\\' — double escaping.
+        // turn '\\\\' (already escaped backslash) into '\\\\\\\\' — double escaping.
         assert_eq!(esc("\\n"), "\\\\n");
     }
 
@@ -493,31 +242,6 @@ mod tests {
         let input = "a\\\"\n\r\t\u{08}\u{0C}z";
         let want = "a\\\\\\\"\\n\\r\\t\\b\\fz";
         assert_eq!(esc(input), want);
-    }
-
-    // ── string_array_json ────────────────────────────────────────────────────
-
-    #[test]
-    fn test_string_array_json_empty() {
-        assert_eq!(string_array_json(&[]), "[]");
-    }
-
-    #[test]
-    fn test_string_array_json_single() {
-        assert_eq!(string_array_json(&["a".to_owned()]), "[\"a\"]");
-    }
-
-    #[test]
-    fn test_string_array_json_multiple() {
-        assert_eq!(
-            string_array_json(&["a".to_owned(), "b".to_owned()]),
-            "[\"a\",\"b\"]"
-        );
-    }
-
-    #[test]
-    fn test_string_array_json_value_with_quote_is_escaped() {
-        assert_eq!(string_array_json(&["a\"b".to_owned()]), "[\"a\\\"b\"]");
     }
 
     // ── lines ─────────────────────────────────────────────────────────────────
@@ -620,7 +344,7 @@ mod tests {
         assert_eq!(parse_decision_status_filter(""), None);
     }
 
-    // ── status display strings ────────────────────────────────────────────────
+    // ── status roundtrips ─────────────────────────────────────────────────────
 
     #[test]
     fn test_todo_status_roundtrip() {
@@ -646,35 +370,6 @@ mod tests {
             assert_eq!(decision_status(status), name);
             assert_eq!(parse_decision_status_filter(name), Some(status));
         }
-    }
-
-    #[test]
-    fn test_review_type_display_strings() {
-        assert_eq!(review_type(ReviewType::Human), "human");
-        assert_eq!(
-            review_type(ReviewType::AgentIntrospective),
-            "agent_introspective"
-        );
-        assert_eq!(
-            review_type(ReviewType::AgentCrossModel),
-            "agent_cross_model"
-        );
-    }
-
-    #[test]
-    fn test_source_verification_display_strings() {
-        assert_eq!(
-            source_verification(SourceVerification::Verified),
-            "verified"
-        );
-        assert_eq!(
-            source_verification(SourceVerification::External),
-            "external"
-        );
-        assert_eq!(
-            source_verification(SourceVerification::Unverified),
-            "unverified"
-        );
     }
 
     // ── node_arg ─────────────────────────────────────────────────────────────
