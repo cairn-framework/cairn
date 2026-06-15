@@ -243,3 +243,93 @@ pub(crate) fn build_reports_from_cache(
     all_findings.extend(divergence_findings);
     (reports, all_findings)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blueprint::{Ast, Node, NodeKind, Span};
+
+    fn leaf(id: &str) -> Node {
+        Node {
+            kind: NodeKind::Module,
+            name: id.to_owned(),
+            description: String::new(),
+            id: id.to_owned(),
+            tags: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            raw_fields: Vec::new(),
+            children: Vec::new(),
+            span: Span::point("test", 1, 1),
+        }
+    }
+
+    fn node_with_paths(id: &str, paths: &[&str]) -> Node {
+        Node {
+            paths: paths.iter().map(std::string::ToString::to_string).collect(),
+            ..leaf(id)
+        }
+    }
+
+    #[test]
+    fn blueprint_source_roots_returns_directory_paths() {
+        let ast = Ast {
+            nodes: vec![node_with_paths("app", &["./src", "./tests"])],
+            edges: Vec::new(),
+        };
+
+        let roots = blueprint_source_roots(&ast, Path::new("/repo"));
+        assert_eq!(
+            roots,
+            vec![PathBuf::from("/repo/src"), PathBuf::from("/repo/tests")]
+        );
+    }
+
+    #[test]
+    fn blueprint_source_roots_uses_parent_for_file_paths() {
+        let ast = Ast {
+            nodes: vec![node_with_paths("app", &["./src/main.rs"])],
+            edges: Vec::new(),
+        };
+
+        let roots = blueprint_source_roots(&ast, Path::new("/repo"));
+        assert_eq!(roots, vec![PathBuf::from("/repo/src")]);
+    }
+
+    #[test]
+    fn blueprint_source_roots_prunes_subdirectories() {
+        let ast = Ast {
+            nodes: vec![node_with_paths("app", &["./src", "./src/components"])],
+            edges: Vec::new(),
+        };
+
+        let roots = blueprint_source_roots(&ast, Path::new("/repo"));
+        assert_eq!(roots, vec![PathBuf::from("/repo/src")]);
+    }
+
+    #[test]
+    fn blueprint_source_roots_includes_nested_nodes() {
+        let ast = Ast {
+            nodes: vec![Node {
+                children: vec![node_with_paths("child", &["./lib"])],
+                ..leaf("parent")
+            }],
+            edges: Vec::new(),
+        };
+
+        let roots = blueprint_source_roots(&ast, Path::new("/repo"));
+        assert_eq!(roots, vec![PathBuf::from("/repo/lib")]);
+    }
+
+    #[test]
+    fn blueprint_source_roots_ignores_leading_dot_slash() {
+        let ast = Ast {
+            nodes: vec![node_with_paths("app", &["src"])],
+            edges: Vec::new(),
+        };
+
+        let roots = blueprint_source_roots(&ast, Path::new("/repo"));
+        assert_eq!(roots, vec![PathBuf::from("/repo/src")]);
+    }
+}
