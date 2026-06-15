@@ -172,11 +172,10 @@ fn parse_http_url(url: &str) -> Result<(String, u16, String), SseError> {
         ))
     })?;
 
-    let (authority, path) = if let Some(slash) = rest.find('/') {
-        (&rest[..slash], rest[slash..].to_owned())
-    } else {
-        (rest, "/".to_owned())
-    };
+    let (authority, path) = rest.find('/').map_or_else(
+        || (rest, "/".to_owned()),
+        |slash| (&rest[..slash], rest[slash..].to_owned()),
+    );
 
     let (host, port) = if let Some(colon) = authority.rfind(':') {
         let port: u16 = authority[colon + 1..].parse().map_err(|_| {
