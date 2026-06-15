@@ -68,7 +68,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
     }
 
     Module MCP "MCP tool wrapper over query API" id "cairn.mcp" @integration {
-        path "./src/mcp.rs"
+        path "./src/mcp"
         path "./src/bin/cairn-mcp.rs"
     }
 
