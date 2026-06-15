@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the private `sha256_hex` helper in `src/artefacts/registry/sha256.rs`, using known SHA-256 vectors for empty input and the string `"abc"`.
-  - Bead: cairn-02m
-  - Commit: 747f804
+- Added unit tests for the scanner output helpers in `src/scanner/outputs.rs` (`write_map` and `append_log`), covering map section generation, idempotent writes, log directory creation, append behavior, and error-only counting.
+  - Bead: cairn-3g5
+  - Commit: 29bf06c
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
