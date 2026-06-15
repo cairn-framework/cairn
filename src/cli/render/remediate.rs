@@ -102,41 +102,42 @@ pub(crate) fn render_next(
         .get("actions")
         .and_then(serde_json::Value::as_array)
         .unwrap_or(&empty);
-    if let Some(first) = actions.first() {
-        let name = first
-            .get("action")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("unknown");
-        let command = first
-            .get("command")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("");
-        let description = first
-            .get("description")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("");
-        let nodes = first
-            .get("nodes")
-            .and_then(serde_json::Value::as_array)
-            .map(|arr: &Vec<serde_json::Value>| {
-                arr.iter()
-                    .filter_map(serde_json::Value::as_str)
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
-        let mut lines = Vec::new();
-        lines.push(format!("Next action: {name}"));
-        if !description.is_empty() {
-            lines.push(format!("  {description}"));
-        }
-        if !command.is_empty() {
-            lines.push(format!("  run: {command}"));
-        }
-        if !nodes.is_empty() {
-            lines.push(format!("  nodes: {}", nodes.join(", ")));
-        }
-        lines.join("\n") + "\n"
-    } else {
-        "Next: nothing to do.\n".to_owned()
-    }
+    actions.first().map_or_else(
+        || "Next: nothing to do.\n".to_owned(),
+        |first| {
+            let name = first
+                .get("action")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("unknown");
+            let command = first
+                .get("command")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("");
+            let description = first
+                .get("description")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("");
+            let nodes = first
+                .get("nodes")
+                .and_then(serde_json::Value::as_array)
+                .map(|arr: &Vec<serde_json::Value>| {
+                    arr.iter()
+                        .filter_map(serde_json::Value::as_str)
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            let mut lines = Vec::new();
+            lines.push(format!("Next action: {name}"));
+            if !description.is_empty() {
+                lines.push(format!("  {description}"));
+            }
+            if !command.is_empty() {
+                lines.push(format!("  run: {command}"));
+            }
+            if !nodes.is_empty() {
+                lines.push(format!("  nodes: {}", nodes.join(", ")));
+            }
+            lines.join("\n") + "\n"
+        },
+    )
 }
