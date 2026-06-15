@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added edge-case tests for the blueprint delta parser in `src/changes/delta.rs`, covering section cross-contamination, malformed edge renames, missing rename arrows, quote-style handling in `clean_scalar`, blank-line filtering, and multi-section round-trips. Added an honest `cairn:allow-large-module` directive noting the inline test module pushes the file just over the 500-line gate.
-  - Bead: cairn-4fu
-  - Commit: 17b9744
+- Extracted the inline `#[cfg(test)]` module from `src/changes/delta.rs` into a sibling `src/changes/delta/tests.rs` file, following the codebase's established pattern. Removed the `cairn:allow-large-module` directive; the production module is back under the 500-line gate.
+  - Bead: cairn-lxu
+  - Commit: 01fc408
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
