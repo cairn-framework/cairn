@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the `render_files` query renderer in `src/cli/render/node.rs`, covering node files without target reports, target claimed files, JSON envelope, and multi-target wrapper.
-  - Bead: cairn-dxs
-  - Commit: 8c52f5d
+- Extended unit tests for the JSON serialization helpers in `src/cli/format/json.rs`, covering `finding_json`, `node_json`, `todos_json`, `decisions_json`, `reviews_json`, `sources_json`, and `research_json`.
+  - Bead: cairn-h1f
+  - Commit: 87102ff
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
