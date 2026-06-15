@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the private `format_health_human` helper in `src/cli/render/health.rs`, covering clean/unclean status, summary counts, scan error/warning inclusion, and missing summary defaults.
-  - Bead: cairn-6ut
-  - Commit: 91bf63e
+- Added unit tests for the `render_todos` query renderer in `src/cli/render/artefacts.rs`, covering human output, status filtering, JSON mode, and unknown-node error handling.
+  - Bead: cairn-iob
+  - Commit: 27452b7
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
