@@ -95,10 +95,8 @@ pub fn analyze(findings: &[Finding]) -> OnboardReport {
 }
 
 fn parent_dir(path: &str) -> String {
-    match path.rfind('/') {
-        Some(pos) => path[..pos].to_owned(),
-        None => ".".to_owned(),
-    }
+    path.rfind('/')
+        .map_or_else(|| ".".to_owned(), |pos| path[..pos].to_owned())
 }
 
 fn classify(directory: &str) -> ClusterSuggestion {
@@ -232,13 +230,9 @@ pub fn render_json(report: &OnboardReport) -> String {
 
 fn capitalize(s: &str) -> String {
     let mut chars = s.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(first) => {
-            let upper: String = first.to_uppercase().collect();
-            upper + chars.as_str()
-        }
-    }
+    chars.next().map_or_else(String::new, |first| {
+        first.to_uppercase().collect::<String>() + chars.as_str()
+    })
 }
 
 #[cfg(test)]
