@@ -155,6 +155,44 @@ mod tests {
         }
     }
 
+    fn system(id: &str, name: &str, desc: &str) -> NodeRecord {
+        NodeRecord {
+            kind: NodeKind::System,
+            id: id.to_owned(),
+            name: name.to_owned(),
+            description: desc.to_owned(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files: Vec::new(),
+            span: Span::point("test", 1, 1),
+        }
+    }
+
+    fn scan_with_nodes(nodes: Vec<NodeRecord>) -> ScanResult {
+        let graph_nodes: BTreeMap<String, NodeRecord> =
+            nodes.into_iter().map(|n| (n.id.clone(), n)).collect();
+        ScanResult {
+            graph: Graph {
+                nodes: graph_nodes,
+                names: BTreeMap::new(),
+                outbound: BTreeMap::new(),
+                inbound: BTreeMap::new(),
+                findings: Vec::new(),
+            },
+            artefacts: crate::artefacts::registry::ArtefactSet::default(),
+            contracts: crate::artefacts::contract::ContractSet::default(),
+            interface_hash: String::new(),
+            target_reports: Vec::new(),
+            target_hashes: TargetHashes::default(),
+            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
+        }
+    }
+
     fn scan_with_todos(todos: Vec<Todo>) -> ScanResult {
         let mut nodes = BTreeMap::new();
         nodes.insert("app".to_owned(), node_record("app"));
@@ -233,5 +271,36 @@ mod tests {
         assert!(!rendered.contains("\"node\":\"app\""));
         assert!(!rendered.contains("in-progress"));
         assert!(!rendered.contains("\"status\":\"open\""));
+    }
+
+    #[test]
+    fn render_context_shows_system_name_and_counts() {
+        let scan = scan_with_nodes(vec![
+            system("sys", "MySystem", "A test system"),
+            node_record("app"),
+        ]);
+        let rendered = render_context(&scan);
+        assert!(rendered.contains("MySystem (2 nodes, 0 edges)"));
+        assert!(rendered.contains("A test system"));
+        assert!(rendered.contains("Findings: 0 errors, 0 warnings, 0 info"));
+        assert!(rendered.contains(
+            "Artefacts: 0 contracts, 0 decisions, 0 todos, 0 research, 0 reviews, 0 sources"
+        ));
+    }
+
+    #[test]
+    fn render_context_lists_module_lines() {
+        let mut app = node_record("app");
+        app.paths = vec!["./src".to_owned()];
+        let scan = scan_with_nodes(vec![system("sys", "Sys", ""), app]);
+        let rendered = render_context(&scan);
+        assert!(rendered.contains("  app (app) [Synced] ./src"));
+    }
+
+    #[test]
+    fn render_context_defaults_when_no_system() {
+        let scan = scan_with_nodes(vec![node_record("app")]);
+        let rendered = render_context(&scan);
+        assert!(rendered.contains("unknown (1 nodes, 0 edges)"));
     }
 }
