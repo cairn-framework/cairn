@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Extended unit tests for the render helpers in `src/cli/format/render.rs`, covering `todo_line`, `decision_line`, `research_line`, `review_line`, `source_line`, `render_node`, and `render_findings`.
-  - Bead: cairn-3xu
-  - Commit: a3e48e0
+- Added unit tests for the private `copy_dir_all` helper in `src/cli/commands/import.rs`, covering nested files/directories, empty source, and target overwrites, using `tempfile::tempdir()` for RAII cleanup.
+  - Bead: cairn-uf1
+  - Commit: 05b07d0
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
