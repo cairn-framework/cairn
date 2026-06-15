@@ -125,3 +125,113 @@ pub(crate) fn render_dependencies(
         })
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        artefacts::registry::{Todo, TodoStatus},
+        blueprint::{NodeKind, Span},
+        map::{Graph, NodeRecord, NodeState},
+        scanner::{ScanResult, state::TargetHashes},
+    };
+    use std::collections::BTreeMap;
+
+    fn node_record(id: &str) -> NodeRecord {
+        NodeRecord {
+            kind: NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files: Vec::new(),
+            span: Span::point("test", 1, 1),
+        }
+    }
+
+    fn scan_with_todos(todos: Vec<Todo>) -> ScanResult {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("app".to_owned(), node_record("app"));
+        ScanResult {
+            graph: Graph {
+                nodes,
+                names: BTreeMap::new(),
+                outbound: BTreeMap::new(),
+                inbound: BTreeMap::new(),
+                findings: Vec::new(),
+            },
+            artefacts: crate::artefacts::registry::ArtefactSet {
+                todos,
+                ..Default::default()
+            },
+            contracts: crate::artefacts::contract::ContractSet::default(),
+            interface_hash: String::new(),
+            target_reports: Vec::new(),
+            target_hashes: TargetHashes::default(),
+            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
+        }
+    }
+
+    fn parsed(json: bool) -> ParsedArgs {
+        ParsedArgs {
+            json,
+            strict: false,
+            file: std::path::PathBuf::from("cairn.blueprint"),
+            changes_dir: std::path::PathBuf::from("meta/changes"),
+            command: "status".to_owned(),
+            command_args: vec!["status".to_owned()],
+        }
+    }
+
+    fn todo(status: TodoStatus) -> Todo {
+        Todo {
+            path: "./todo.md".to_owned(),
+            node: "app".to_owned(),
+            status,
+            created: "2026-01-01".to_owned(),
+            satisfies: None,
+            body: String::new(),
+        }
+    }
+
+    #[test]
+    fn render_status_human_lists_open_and_in_progress_todos() {
+        let scan = scan_with_todos(vec![todo(TodoStatus::Open), todo(TodoStatus::Done)]);
+        let rendered = render_status(&parsed(false), &scan, std::path::Path::new("."));
+        assert!(rendered.contains("Status:"));
+        assert!(rendered.contains("[open]"));
+        assert!(!rendered.contains("[done]"));
+    }
+
+    #[test]
+    fn render_status_human_empty_todos_renders_none() {
+        let scan = scan_with_todos(Vec::new());
+        let rendered = render_status(&parsed(false), &scan, std::path::Path::new("."));
+        assert!(rendered.contains("Open todos:"));
+        assert!(!rendered.contains("[open]"));
+    }
+
+    #[test]
+    fn render_status_json_includes_open_todos() {
+        let scan = scan_with_todos(vec![todo(TodoStatus::InProgress)]);
+        let rendered = render_status(&parsed(true), &scan, std::path::Path::new("."));
+        assert!(rendered.contains("\"open_todos\""));
+        assert!(rendered.contains("\"active_changes\""));
+        assert!(rendered.contains("\"recent_log_entries\""));
+    }
+
+    #[test]
+    fn render_status_json_omits_done_todos() {
+        let scan = scan_with_todos(vec![todo(TodoStatus::Done)]);
+        let rendered = render_status(&parsed(true), &scan, std::path::Path::new("."));
+        assert!(!rendered.contains("\"node\":\"app\""));
+        assert!(!rendered.contains("in-progress"));
+        assert!(!rendered.contains("\"status\":\"open\""));
+    }
+}
