@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for `InterfaceFingerprint` in `src/reconcile/fingerprint.rs`, covering determinism, order-independence, equivalence with `from_sorted`, hash format (16 lowercase hex chars), and differentiability for distinct symbol sets. Avoided hard-coded hash literals because `std::hash::DefaultHasher` output is not stable across Rust versions.
-  - Bead: cairn-0vj
-  - Commit: 7389781
+- Added unit tests for the pure normalization helpers in `src/reconcile/code.rs` (`normalize_symbol`, `trim_dot`, `normalize`), covering whitespace normalization, leading `./` stripping, and backslash-to-forward-slash path normalization.
+  - Bead: cairn-yxq
+  - Commit: 2af53aa
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
