@@ -188,3 +188,118 @@ pub(crate) fn render_rationale(
         })
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        artefacts::registry::{Todo, TodoStatus},
+        map::{Graph, NodeRecord, NodeState},
+        scanner::{ScanResult, state::TargetHashes},
+    };
+    use std::collections::BTreeMap;
+
+    fn parsed(node: &str, json: bool) -> ParsedArgs {
+        ParsedArgs {
+            json,
+            strict: false,
+            file: std::path::PathBuf::from("cairn.blueprint"),
+            changes_dir: std::path::PathBuf::from("meta/changes"),
+            command: "todos".to_owned(),
+            command_args: vec!["todos".to_owned(), node.to_owned()],
+        }
+    }
+
+    fn node_record(id: &str) -> NodeRecord {
+        NodeRecord {
+            kind: crate::blueprint::NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files: Vec::new(),
+            span: crate::blueprint::Span::point("test", 1, 1),
+        }
+    }
+
+    fn scan_with_todos(todos: Vec<Todo>) -> ScanResult {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("app".to_owned(), node_record("app"));
+        ScanResult {
+            graph: Graph {
+                nodes,
+                names: BTreeMap::new(),
+                outbound: BTreeMap::new(),
+                inbound: BTreeMap::new(),
+                findings: Vec::new(),
+            },
+            artefacts: crate::artefacts::registry::ArtefactSet {
+                todos,
+                ..Default::default()
+            },
+            contracts: crate::artefacts::contract::ContractSet::default(),
+            interface_hash: String::new(),
+            target_reports: Vec::new(),
+            target_hashes: TargetHashes::default(),
+            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
+        }
+    }
+
+    fn todo(node: &str, status: TodoStatus) -> Todo {
+        Todo {
+            path: "./todo.md".to_owned(),
+            node: node.to_owned(),
+            status,
+            created: "2026-01-01".to_owned(),
+            satisfies: None,
+            body: String::new(),
+        }
+    }
+
+    #[test]
+    fn render_todos_human_lists_matching_todos() {
+        let scan = scan_with_todos(vec![todo("app", TodoStatus::Open)]);
+        let rendered = render_todos(&parsed("app", false), &scan).unwrap();
+        assert!(rendered.contains("Todos for app:"));
+        assert!(rendered.contains("[open]"));
+    }
+
+    #[test]
+    fn render_todos_filters_by_status() {
+        let scan = scan_with_todos(vec![
+            todo("app", TodoStatus::Open),
+            todo("app", TodoStatus::Done),
+        ]);
+        let mut p = parsed("app", false);
+        p.command_args = vec![
+            "todos".to_owned(),
+            "app".to_owned(),
+            "--status".to_owned(),
+            "done".to_owned(),
+        ];
+        let rendered = render_todos(&p, &scan).unwrap();
+        assert!(rendered.contains("[done]"));
+        assert!(!rendered.contains("[open]"));
+    }
+
+    #[test]
+    fn render_todos_json_mode() {
+        let scan = scan_with_todos(vec![todo("app", TodoStatus::Open)]);
+        let rendered = render_todos(&parsed("app", true), &scan).unwrap();
+        assert!(rendered.contains("\"node\":\"app\""));
+        assert!(rendered.contains("\"todos\""));
+    }
+
+    #[test]
+    fn render_todos_unknown_node_returns_err() {
+        let scan = scan_with_todos(Vec::new());
+        let result = render_todos(&parsed("missing", false), &scan);
+        assert!(result.is_err());
+    }
+}
