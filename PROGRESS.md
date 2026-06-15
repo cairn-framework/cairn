@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added a convention test (`tests/conventions.rs::test_every_source_file_has_module_doc`) that walks `src/**/*.rs` and enforces a top-level `//!` module doc in the first five lines, and added missing module docs to the two extracted test submodules that lacked them.
-  - Bead: cairn-id4
-  - Commit: f9df7fe
+- Added unit tests for the private `sha256_hex` helper in `src/artefacts/registry/sha256.rs`, using known SHA-256 vectors for empty input and the string `"abc"`.
+  - Bead: cairn-02m
+  - Commit: 747f804
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
