@@ -1,3 +1,5 @@
+//! Tests for hook helpers: finding classification and change-id parsing.
+
 use super::*;
 use crate::map::graph::FindingSeverity;
 

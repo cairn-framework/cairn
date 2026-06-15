@@ -1,3 +1,5 @@
+//! Tests for change operation summaries and node filtering.
+
 use super::*;
 use super::{
     apply::apply_blueprint_delta, delta::parse_blueprint_delta, validate::validate_change,

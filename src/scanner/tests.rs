@@ -1,3 +1,5 @@
+//! Tests for scanner orchestration: deduplication, divergence, blueprint-change gating, and provenance coverage.
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 

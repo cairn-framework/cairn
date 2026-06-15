@@ -1,3 +1,5 @@
+//! Blueprint change, provenance, claims, and gitignored-path checks emitted during scanning.
+
 use std::{collections::BTreeSet, path::Path};
 
 use super::{ArtefactSet, Graph, blueprint, config, state};

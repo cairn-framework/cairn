@@ -1,3 +1,5 @@
+//! Tests for blueprint delta application and AST serialization helpers.
+
 use super::*;
 use crate::blueprint::{NodeKind, Span};
 

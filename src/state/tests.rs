@@ -1,3 +1,5 @@
+//! Tests for state backend persistence and queries.
+
 use super::{FilesystemStateBackend, StateRecord, beads, storage_backend};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

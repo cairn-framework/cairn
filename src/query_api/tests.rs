@@ -1,3 +1,5 @@
+//! Tests for query API request handling and envelope formatting.
+
 use super::*;
 
 #[test]

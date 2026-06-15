@@ -1,3 +1,5 @@
+//! Tests for change validation against the current graph.
+
 // Reason: test module covers many independent validation branches
 #![allow(clippy::too_many_lines)]
 use std::collections::BTreeMap;

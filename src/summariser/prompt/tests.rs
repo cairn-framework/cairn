@@ -1,4 +1,6 @@
 // cairn:allow-large-module reason: dedicated test submodule extracted from src/summariser/prompt.rs; source module is now under the limit.
+//! Tests for summariser prompt construction and size limits.
+
 use super::*;
 use crate::blueprint::NodeKind;
 use crate::map::graph::{EdgeRef, Finding, FindingSeverity, Graph, NodeRecord, NodeState};

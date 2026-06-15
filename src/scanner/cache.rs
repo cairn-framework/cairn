@@ -1,3 +1,5 @@
+//! Reconciler result cache: key computation, source-root walking, cache load/write, and report reconstruction.
+
 use std::{
     collections::BTreeMap,
     hash::{Hash, Hasher},
