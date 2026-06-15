@@ -141,3 +141,44 @@ pub(crate) fn render_next(
         },
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn format_remediate_human_empty_actions() {
+        let json = serde_json::json!({"actions": []});
+        assert_eq!(format_remediate_human(&json), "No actions required.\n");
+    }
+
+    #[test]
+    fn format_remediate_human_lists_actions() {
+        let json = serde_json::json!({
+            "actions": [{
+                "priority": 1,
+                "action": "fix-lint",
+                "description": "Run cargo fmt",
+                "command": "cargo fmt",
+                "nodes": ["app"]
+            }]
+        });
+        let rendered = format_remediate_human(&json);
+        assert!(rendered.contains("Actions (1):"));
+        assert!(rendered.contains("[1] fix-lint"));
+        assert!(rendered.contains("Run cargo fmt"));
+        assert!(rendered.contains("run: cargo fmt"));
+        assert!(rendered.contains("nodes: app"));
+    }
+
+    #[test]
+    fn format_remediate_human_omits_optional_fields() {
+        let json = serde_json::json!({
+            "actions": [{"action": "noop"}]
+        });
+        let rendered = format_remediate_human(&json);
+        assert!(rendered.contains("[99] noop"));
+        assert!(!rendered.contains("run:"));
+        assert!(!rendered.contains("nodes:"));
+    }
+}
