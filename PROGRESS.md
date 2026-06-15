@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Refactored `parent_dir` and `capitalize` in `src/brownfield/onboard.rs` to use `Option::map_or_else`.
-  - Bead: cairn-bvo
-  - Commit: b51cc60
+- Refactored `parse_http_url` in `src/sse.rs` to use `Option::map_or_else` for the authority/path split.
+  - Bead: cairn-tw9
+  - Commit: 6e1956d
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
