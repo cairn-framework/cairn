@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the pure helper functions in `src/query_api/util.rs` (`required`, `findings_error`, `finding_error`, `command_error`), covering present/missing required values, empty/single/multiple findings, and command error wrapping.
-  - Bead: cairn-bvr
-  - Commit: cd1e9f2
+- Added module-level documentation to `src/query_api/util.rs`, describing the purpose of the helper functions used by query dispatch and MCP paths.
+  - Bead: cairn-5n1
+  - Commit: 16e1273
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
