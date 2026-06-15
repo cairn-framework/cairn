@@ -4,11 +4,11 @@
 - In-progress: none
 
 ## Last Completed
-- Extracted `src/mcp.rs` inline tests into `src/mcp/tests.rs`.
-  - Bead: cairn-xcc
-  - Commit: 0bd4cec
+- Extracted `src/summariser/prompt.rs` tests into `src/summariser/prompt/tests.rs`.
+  - Bead: cairn-egp
+  - Commit: daf42fc
 
 ## Next Candidates
-1. Split `src/summariser/prompt.rs` (743 lines) or add a valid file-size allow directive.
-2. Add valid file-size allow directives or split remaining oversized files in `src/changes/` and `src/scanner/` subtrees.
+1. Add valid file-size allow directives or split remaining oversized files in `src/changes/` and `src/scanner/` subtrees.
+2. Address `src/query_api/mod.rs` (629 lines) by extracting tests or splitting into submodules.
 3. Address remaining oversized files surfaced by `scripts/check-file-sizes.sh` one per commit.
