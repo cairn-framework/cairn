@@ -63,3 +63,83 @@ pub(super) fn command_error(message: String) -> QueryError {
         remediation: None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    //! Unit tests for query API utility helpers.
+
+    use crate::map::graph::{Finding, FindingSeverity};
+
+    use super::*;
+
+    fn sample_finding(code: &str, message: &str, path: Option<&str>) -> Finding {
+        Finding {
+            code: code.to_owned(),
+            severity: FindingSeverity::Error,
+            message: message.to_owned(),
+            node: None,
+            target: None,
+            path: path.map(std::convert::Into::into),
+        }
+    }
+
+    #[test]
+    fn required_returns_value_when_present() {
+        let value = "present".to_owned();
+        assert_eq!(required(Some(&value), "field").unwrap(), "present");
+    }
+
+    #[test]
+    fn required_reports_missing_field() {
+        let err = required(None, "field").unwrap_err();
+        assert_eq!(err.code, "CAIRN_QUERY_MISSING_FIELD");
+        assert_eq!(err.message, "`field` is required");
+        assert!(err.source_span.is_none());
+        assert!(err.remediation.is_none());
+    }
+
+    #[test]
+    fn findings_error_empty_slice_uses_generic_code() {
+        let err = findings_error(&[]);
+        assert_eq!(err.code, "CAIRN_QUERY_FINDINGS");
+        assert_eq!(err.message, "");
+        assert!(err.source_span.is_none());
+    }
+
+    #[test]
+    fn findings_error_uses_first_finding_code_and_path() {
+        let finding = sample_finding("F1", "first", Some("/a"));
+        let err = findings_error(std::slice::from_ref(&finding));
+        assert_eq!(err.code, "F1");
+        assert_eq!(err.message, "F1: first");
+        assert_eq!(err.source_span.as_deref(), Some("/a"));
+    }
+
+    #[test]
+    fn findings_error_joins_multiple_finding_messages() {
+        let first = sample_finding("F1", "one", None);
+        let second = sample_finding("F2", "two", Some("/b"));
+        let err = findings_error(&[first, second]);
+        assert_eq!(err.code, "F1");
+        assert_eq!(err.message, "F1: one; F2: two");
+        assert!(err.source_span.is_none());
+    }
+
+    #[test]
+    fn finding_error_maps_fields() {
+        let finding = sample_finding("F3", "msg", Some("/c"));
+        let err = finding_error(finding);
+        assert_eq!(err.code, "F3");
+        assert_eq!(err.message, "msg");
+        assert_eq!(err.source_span.as_deref(), Some("/c"));
+        assert!(err.remediation.is_none());
+    }
+
+    #[test]
+    fn command_error_wraps_message() {
+        let err = command_error("boom".to_owned());
+        assert_eq!(err.code, "CAIRN_COMMAND_FAILED");
+        assert_eq!(err.message, "boom");
+        assert!(err.source_span.is_none());
+    }
+}
