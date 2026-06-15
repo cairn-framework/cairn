@@ -102,3 +102,58 @@ fn copy_dir_all(source: impl AsRef<Path>, target: impl AsRef<Path>) -> std::io::
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn copy_dir_all_creates_target_and_copies_files() {
+        let source = tempfile::tempdir().unwrap();
+        let target = tempfile::tempdir().unwrap();
+
+        fs::create_dir_all(source.path().join("sub")).unwrap();
+        fs::write(source.path().join("a.txt"), "hello").unwrap();
+        fs::write(source.path().join("sub/b.txt"), "world").unwrap();
+
+        copy_dir_all(source.path(), target.path()).unwrap();
+
+        assert!(target.path().join("sub").is_dir());
+        assert_eq!(
+            fs::read_to_string(target.path().join("a.txt")).unwrap(),
+            "hello"
+        );
+        assert_eq!(
+            fs::read_to_string(target.path().join("sub/b.txt")).unwrap(),
+            "world"
+        );
+    }
+
+    #[test]
+    fn copy_dir_all_copies_empty_directory() {
+        let source = tempfile::tempdir().unwrap();
+        let target = tempfile::tempdir().unwrap();
+
+        copy_dir_all(source.path(), target.path()).unwrap();
+
+        assert!(target.path().is_dir());
+        let entries: Vec<_> = fs::read_dir(target.path()).unwrap().collect();
+        assert!(entries.is_empty());
+    }
+
+    #[test]
+    fn copy_dir_all_overwrites_existing_file_in_target() {
+        let source = tempfile::tempdir().unwrap();
+        let target = tempfile::tempdir().unwrap();
+
+        fs::write(source.path().join("file.txt"), "new").unwrap();
+        fs::write(target.path().join("file.txt"), "old").unwrap();
+
+        copy_dir_all(source.path(), target.path()).unwrap();
+
+        assert_eq!(
+            fs::read_to_string(target.path().join("file.txt")).unwrap(),
+            "new"
+        );
+    }
+}
