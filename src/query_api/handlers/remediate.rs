@@ -1,4 +1,5 @@
 //! Hook, health, and remediation query handlers.
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::serialise::*;
 use super::super::*;

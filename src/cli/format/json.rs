@@ -1,4 +1,5 @@
 //! JSON serialization helpers for CLI output.
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::render::{decision_status, review_type, source_verification, todo_status};

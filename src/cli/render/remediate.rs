@@ -1,4 +1,5 @@
 //! Remediation and next-action query renderers.
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use crate::query_api;

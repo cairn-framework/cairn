@@ -1,4 +1,5 @@
 //! Project-wide query renderers (context, status, dependencies).
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::format::{lines, node_arg, string_array_json, todos_json};
 use super::super::*;

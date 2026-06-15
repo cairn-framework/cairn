@@ -1,4 +1,5 @@
 //! CLI import-openspec command implementation.
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 

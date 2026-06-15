@@ -1,4 +1,5 @@
 //! Artefact query renderers (todos, decisions, research, sources, rationale).
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::format::{
     decision_line, decisions_json, flag_value, lines, node_arg, parse_decision_status_filter,

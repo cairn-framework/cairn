@@ -1,4 +1,5 @@
 //! Shared CLI command helpers and re-exports of per-command implementations.
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::format::flag_value;
 use super::*;

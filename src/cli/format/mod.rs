@@ -1,4 +1,5 @@
 //! CLI formatting helpers: JSON serialization, human rendering, and shared utilities.
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 
 mod json;

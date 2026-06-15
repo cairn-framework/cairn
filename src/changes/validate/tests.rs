@@ -1,3 +1,4 @@
+// Reason: test module covers many independent validation branches
 #![allow(clippy::too_many_lines)]
 use std::collections::BTreeMap;
 use std::path::PathBuf;

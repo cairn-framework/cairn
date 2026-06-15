@@ -1,4 +1,5 @@
 //! Node-level query renderers.
+// Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::format::{
     lines, neighbourhood_ids, node_arg, node_json, render_node, string_array_json,
