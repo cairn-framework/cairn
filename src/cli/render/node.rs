@@ -208,3 +208,122 @@ pub(crate) fn render_files(
         }
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        blueprint::{NodeKind, Span},
+        map::{Graph, NodeRecord, NodeState},
+        reconcile::{ReconcilerId, target::Language},
+        scanner::{ScanResult, TargetReport, state::TargetHashes},
+    };
+    use std::{collections::BTreeMap, sync::Arc};
+
+    fn node_record(id: &str, files: Vec<String>) -> NodeRecord {
+        NodeRecord {
+            kind: NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files,
+            span: Span::point("test", 1, 1),
+        }
+    }
+
+    fn parsed(files: &str, json: bool) -> ParsedArgs {
+        ParsedArgs {
+            json,
+            strict: false,
+            file: std::path::PathBuf::from("cairn.blueprint"),
+            changes_dir: std::path::PathBuf::from("meta/changes"),
+            command: "files".to_owned(),
+            command_args: vec!["files".to_owned(), files.to_owned()],
+        }
+    }
+
+    fn scan_with_files_and_reports(files: Vec<String>, reports: Vec<TargetReport>) -> ScanResult {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("app".to_owned(), node_record("app", files));
+        ScanResult {
+            graph: Graph {
+                nodes,
+                names: BTreeMap::new(),
+                outbound: BTreeMap::new(),
+                inbound: BTreeMap::new(),
+                findings: Vec::new(),
+            },
+            artefacts: crate::artefacts::registry::ArtefactSet::default(),
+            contracts: crate::artefacts::contract::ContractSet::default(),
+            interface_hash: String::new(),
+            target_reports: reports,
+            target_hashes: TargetHashes::default(),
+            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
+        }
+    }
+
+    fn report(path: &str, claimed_files: &[&str]) -> TargetReport {
+        TargetReport {
+            target_id: crate::reconcile::target::TargetId::new(
+                "app".to_owned(),
+                std::path::PathBuf::from(path),
+            ),
+            language: Language::Rust,
+            reconciler_id: ReconcilerId("rust-code".to_owned()),
+            claimed_files: claimed_files
+                .iter()
+                .map(std::string::ToString::to_string)
+                .collect(),
+            symbols: Arc::new(Vec::new()),
+            hash: "abcd1234".to_owned(),
+        }
+    }
+
+    #[test]
+    fn render_files_human_lists_node_files_when_no_target_report() {
+        let scan = scan_with_files_and_reports(vec!["src/lib.rs".to_owned()], Vec::new());
+        let rendered = render_files(&parsed("app", false), &scan).unwrap();
+        assert!(rendered.contains("Files for app:"));
+        assert!(rendered.contains("src/lib.rs"));
+    }
+
+    #[test]
+    fn render_files_human_includes_target_claimed_files() {
+        let scan = scan_with_files_and_reports(Vec::new(), vec![report("src", &["src/lib.rs"])]);
+        let rendered = render_files(&parsed("app", false), &scan).unwrap();
+        assert!(rendered.contains("rust-code"));
+        assert!(rendered.contains("src/lib.rs"));
+    }
+
+    #[test]
+    fn render_files_json_includes_files_and_targets() {
+        let scan = scan_with_files_and_reports(
+            vec!["src/lib.rs".to_owned()],
+            vec![report("src", &["src/lib.rs"])],
+        );
+        let rendered = render_files(&parsed("app", true), &scan).unwrap();
+        assert!(rendered.contains("\"node\":\"app\""));
+        assert!(rendered.contains("\"files\""));
+        assert!(rendered.contains("\"targets\""));
+    }
+
+    #[test]
+    fn render_files_multi_target_uses_targets_wrapper() {
+        let scan = scan_with_files_and_reports(
+            Vec::new(),
+            vec![
+                report("src", &["src/lib.rs"]),
+                report("tests", &["tests/a.rs"]),
+            ],
+        );
+        let rendered = render_files(&parsed("app", true), &scan).unwrap();
+        assert!(rendered.starts_with("{\"node\":\"app\",\"targets\":"));
+    }
+}
