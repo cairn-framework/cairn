@@ -87,3 +87,60 @@ fn format_health_human(
     }
     lines.join("\n") + "\n"
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn health_json(
+        clean: bool,
+        total_errors: u64,
+        total_warnings: u64,
+        total_info: u64,
+    ) -> serde_json::Value {
+        serde_json::json!({
+            "clean": clean,
+            "summary": {
+                "total_errors": total_errors,
+                "total_warnings": total_warnings,
+                "total_info": total_info,
+                "modules": { "synced": 1, "ghost": 0, "orphaned": 0 }
+            }
+        })
+    }
+
+    #[test]
+    fn format_health_human_clean() {
+        let rendered = format_health_human(&health_json(true, 0, 0, 0), 0, 0);
+        assert!(rendered.contains("Health: clean"));
+        assert!(rendered.contains("errors: 0, warnings: 0, info: 0"));
+    }
+
+    #[test]
+    fn format_health_human_unclean() {
+        let rendered = format_health_human(&health_json(false, 1, 2, 3), 0, 0);
+        assert!(rendered.contains("Health: needs attention"));
+        assert!(rendered.contains("errors: 1, warnings: 2, info: 3"));
+    }
+
+    #[test]
+    fn format_health_human_includes_scan_counts() {
+        let rendered = format_health_human(&health_json(false, 1, 0, 0), 2, 1);
+        assert!(rendered.contains("scan errors: 2"));
+        assert!(rendered.contains("scan warnings: 1"));
+    }
+
+    #[test]
+    fn format_health_human_omits_zero_scan_counts() {
+        let rendered = format_health_human(&health_json(true, 0, 0, 0), 0, 0);
+        assert!(!rendered.contains("scan errors"));
+        assert!(!rendered.contains("scan warnings"));
+    }
+
+    #[test]
+    fn format_health_human_defaults_missing_summary() {
+        let rendered = format_health_human(&serde_json::json!({"clean": false}), 0, 0);
+        assert!(rendered.contains("Health: needs attention"));
+        assert!(rendered.contains("errors: 0, warnings: 0, info: 0"));
+    }
+}
