@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Refactored `render_stub` in `src/brownfield/templates.rs` to use `Option::map_or_else` instead of an `if let`/`else` fallback.
-  - Bead: cairn-98i
-  - Commit: 005c975
+- Refactored `render_next` in `src/cli/render/remediate.rs` to use `Option::map_or_else` instead of an `if let`/`else` fallback.
+  - Bead: cairn-4xv
+  - Commit: c0fc37a
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
