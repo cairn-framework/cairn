@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Removed a redundant clone of `response.metadata` in `summariser::generate`, moving the owned value instead.
-  - Bead: cairn-4bp
-  - Commit: 52b5f94
+- Refactored `parent_dir` and `capitalize` in `src/brownfield/onboard.rs` to use `Option::map_or_else`.
+  - Bead: cairn-bvo
+  - Commit: b51cc60
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
@@ -15,6 +15,6 @@
 - All extracted submodules have module-level docs.
 
 ## Next Candidates
-1. Adopt `scripts/pre-archive-rust-gates.sh` as the standard validation command for future iterations (already used for the last change).
-2. Continue with nursery-clippy surfaced improvements: redundant clones, const fn opportunities, or Option::map_or_else simplifications.
-3. Audit remaining documentation gaps in public APIs.
+1. Continue addressing nursery-clippy surfaced improvements in production code: redundant clones, const fn opportunities, or further Option/Result simplifications.
+2. Audit remaining documentation gaps in public APIs.
+3. Investigate whether any recently-split modules could benefit from targeted unit tests for extracted helpers.
