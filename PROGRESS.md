@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the `render_todos` query renderer in `src/cli/render/artefacts.rs`, covering human output, status filtering, JSON mode, and unknown-node error handling.
-  - Bead: cairn-iob
-  - Commit: 27452b7
+- Added unit tests for the `render_status` query renderer in `src/cli/render/project.rs`, covering open/in-progress todos, done-todo omission, JSON mode, and empty todos.
+  - Bead: cairn-brl
+  - Commit: 800ada1
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
