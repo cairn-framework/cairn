@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the scanner output helpers in `src/scanner/outputs.rs` (`write_map` and `append_log`), covering map section generation, idempotent writes, log directory creation, append behavior, and error-only counting.
-  - Bead: cairn-3g5
-  - Commit: 29bf06c
+- Added unit tests for `InterfaceFingerprint` in `src/reconcile/fingerprint.rs`, covering determinism, order-independence, equivalence with `from_sorted`, hash format (16 lowercase hex chars), and differentiability for distinct symbol sets. Avoided hard-coded hash literals because `std::hash::DefaultHasher` output is not stable across Rust versions.
+  - Bead: cairn-0vj
+  - Commit: 7389781
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
