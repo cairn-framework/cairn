@@ -1,4 +1,5 @@
 // cairn:allow-large-module reason: single dispatch table for change-directory mutating tools; each branch is a thin adapter to a changes or brownfield submodule, so splitting would fragment the CLI-to-domain mapping.
+//! Dispatch for change-directory mutating query tools.
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

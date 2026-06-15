@@ -1,3 +1,5 @@
+//! Blueprint delta document parser.
+
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;

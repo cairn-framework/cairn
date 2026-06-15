@@ -1,3 +1,5 @@
+//! Parse artefact operations from change directories.
+
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::delta::clean_scalar;

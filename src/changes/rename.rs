@@ -1,3 +1,5 @@
+//! Rename-aware reference rewriting for changes.
+
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::apply::atomic_write;

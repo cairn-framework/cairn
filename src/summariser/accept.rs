@@ -1,3 +1,5 @@
+//! Accept a generated draft into a contract artefact.
+
 // Draft accept action: validate, atomically replace contract, record hash.
 
 use std::{

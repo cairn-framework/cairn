@@ -1,3 +1,5 @@
+//! Apply a change to the blueprint and artefacts.
+
 use super::*;
 
 pub(super) fn mutation_paths(root: &Path, blueprint_path: &Path, change: &Change) -> Vec<PathBuf> {

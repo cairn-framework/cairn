@@ -1,3 +1,5 @@
+//! Minimal SHA-256 helper for source verification.
+
 use std::fmt::Write as _;
 
 pub(super) const SHA256_INITIAL_STATE: [u32; 8] = [

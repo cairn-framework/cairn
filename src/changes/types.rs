@@ -1,3 +1,5 @@
+//! Change data types.
+
 use super::*;
 
 pub struct Change {
