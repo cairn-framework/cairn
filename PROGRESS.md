@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added a unit test for `install_sigint_handler` in `src/signal.rs`, verifying that the SIGINT handler can be registered multiple times without error and that the shared flag remains unset until a real signal arrives.
-  - Bead: cairn-1wk
-  - Commit: a69d946
+- Added edge-case tests for the blueprint delta parser in `src/changes/delta.rs`, covering section cross-contamination, malformed edge renames, missing rename arrows, quote-style handling in `clean_scalar`, blank-line filtering, and multi-section round-trips. Added an honest `cairn:allow-large-module` directive noting the inline test module pushes the file just over the 500-line gate.
+  - Bead: cairn-4fu
+  - Commit: 17b9744
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
