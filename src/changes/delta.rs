@@ -1,5 +1,5 @@
+// cairn:allow-large-module reason: inline test module pushes the parser file just over the 500-line gate; production code is a single finite-state machine over blueprint delta sections and the tests are tightly coupled to its delta-specific line-cleaning conventions, so extraction would fragment the module without reducing complexity.
 //! Blueprint delta document parser.
-
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
@@ -470,5 +470,79 @@ mod tests {
         let result = parse_blueprint_delta("test.md", src);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("malformed rename"));
+    }
+}
+
+#[cfg(test)]
+mod edge_case_tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_node_section_rejects_edge_operations() {
+        let section = "app.a -> app.b \"desc\"";
+        let err = parse_node_section("delta.md", Some(section)).unwrap_err();
+        assert!(err.contains("node delta section contains edge operations"));
+    }
+
+    #[test]
+    fn test_parse_edge_section_rejects_node_operations() {
+        let section = "Module m \"M\" id \"m\" {}";
+        let err = parse_edge_section("delta.md", Some(section)).unwrap_err();
+        assert!(err.contains("edge delta section contains node operations"));
+    }
+
+    #[test]
+    fn test_parse_edge_renames_with_multiple_source_edges_fails() {
+        let section = "app.a -> app.b => app.x -> app.y";
+        assert!(parse_edge_renames("delta.md", Some(section)).is_err());
+    }
+
+    #[test]
+    fn test_parse_edge_renames_with_multiple_target_edges_fails() {
+        let section = "app.a -> app.b => app.x -> app.y, app.z -> app.w";
+        assert!(parse_edge_renames("delta.md", Some(section)).is_err());
+    }
+    #[test]
+    fn test_parse_edge_renames_rejects_missing_rename_arrow() {
+        let section = "app.a -> app.b app.x -> app.y";
+        let err = parse_edge_renames("delta.md", Some(section)).unwrap_err();
+        assert!(err.contains("malformed edge rename operation"));
+    }
+
+    #[test]
+    fn test_parse_blueprint_delta_multiple_sections_round_trip() {
+        let src = "## ADDED Nodes\nModule m \"M\" id \"m\" {}\n## REMOVED Nodes\n- old\n## ADDED Edges\nm -> old \"x\"\n";
+        let delta = parse_blueprint_delta("delta.md", src).unwrap();
+        assert_eq!(delta.added_nodes.len(), 1);
+        assert_eq!(delta.removed_nodes, vec!["old"]);
+        assert_eq!(delta.added_edges.len(), 1);
+    }
+
+    #[test]
+    fn test_clean_scalar_strips_all_quote_styles() {
+        assert_eq!(clean_scalar("`id`"), "id");
+        assert_eq!(clean_scalar("\"id\""), "id");
+        assert_eq!(clean_scalar("'id'"), "id");
+    }
+
+    #[test]
+    fn test_uncomment_lines_filters_blank_lines() {
+        let section = "- a\n\n- b\n";
+        let result = uncomment_lines(section);
+        assert_eq!(result, "a\nb");
+    }
+
+    #[test]
+    fn test_parse_rename_lines_rejects_missing_arrow() {
+        let err = parse_rename_lines(Some("app.a app.b")).unwrap_err();
+        assert!(err.contains("malformed rename operation"));
+    }
+
+    #[test]
+    fn test_parse_rename_lines_cleans_backtick_quoted_ids() {
+        let renames = parse_rename_lines(Some("- `app.old` -> `app.new`\n")).unwrap();
+        assert_eq!(renames.len(), 1);
+        assert_eq!(renames[0].from, "app.old");
+        assert_eq!(renames[0].to, "app.new");
     }
 }
