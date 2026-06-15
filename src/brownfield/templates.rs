@@ -45,11 +45,10 @@ pub struct ContractTemplate {
 /// Never panics.
 #[must_use]
 pub fn render_stub(candidate: &DiscoveredCandidate, templates: &[ContractTemplate]) -> String {
-    if let Some(template) = find_matching_template(candidate, templates) {
-        apply_template(candidate, &template.body)
-    } else {
-        super::stub_contract(candidate)
-    }
+    find_matching_template(candidate, templates).map_or_else(
+        || super::stub_contract(candidate),
+        |template| apply_template(candidate, &template.body),
+    )
 }
 
 /// Find the first template whose match rules succeed for the candidate.
