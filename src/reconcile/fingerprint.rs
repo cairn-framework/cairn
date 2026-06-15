@@ -27,3 +27,53 @@ impl InterfaceFingerprint {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_symbols_is_deterministic() {
+        let fp1 = InterfaceFingerprint::from_symbols(&["b".to_owned(), "a".to_owned()]);
+        let fp2 = InterfaceFingerprint::from_symbols(&["b".to_owned(), "a".to_owned()]);
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn from_symbols_sorts_before_hashing() {
+        let fp1 = InterfaceFingerprint::from_symbols(&["b".to_owned(), "a".to_owned()]);
+        let fp2 = InterfaceFingerprint::from_symbols(&["a".to_owned(), "b".to_owned()]);
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn from_symbols_matches_from_sorted_with_pre_sorted_input() {
+        let mut symbols = vec!["b".to_owned(), "a".to_owned(), "c".to_owned()];
+        symbols.sort_unstable();
+        let fp1 =
+            InterfaceFingerprint::from_symbols(&["b".to_owned(), "a".to_owned(), "c".to_owned()]);
+        let fp2 = InterfaceFingerprint::from_sorted(&symbols);
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn different_symbols_produce_different_hashes() {
+        let fp1 = InterfaceFingerprint::from_symbols(&["a".to_owned()]);
+        let fp2 = InterfaceFingerprint::from_symbols(&["b".to_owned()]);
+        assert_ne!(fp1.hash, fp2.hash);
+    }
+
+    #[test]
+    fn empty_symbols_produces_sixteen_char_hash() {
+        let fp = InterfaceFingerprint::from_symbols(&[]);
+        assert_eq!(fp.hash.len(), 16);
+        assert!(fp.hash.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn hash_format_is_lower_hex() {
+        let fp = InterfaceFingerprint::from_symbols(&["x".to_owned()]);
+        assert!(fp.hash.chars().all(|c| c.is_ascii_hexdigit()));
+        assert!(fp.hash.chars().all(|c| !c.is_ascii_uppercase()));
+    }
+}
