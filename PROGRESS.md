@@ -4,11 +4,11 @@
 - In-progress: none
 
 ## Last Completed
-- Split `src/scanner/mod.rs` into `cache.rs`, `checks.rs`, and `tests.rs` submodules.
-  - Bead: cairn-0s5
-  - Commit: fd44dee
+- Split `src/state/mod.rs` into `beads.rs` and `tests.rs` submodules.
+  - Bead: cairn-e2v
+  - Commit: bd534e0
 
 ## Next Candidates
-1. Add valid file-size allow directives or split remaining oversized files in `src/changes/` and `src/state/` subtrees.
-2. Address `src/state/mod.rs` (1077 lines) by extracting tests or splitting into submodules.
+1. Add valid file-size allow directives or split remaining oversized files in `src/changes/`.
+2. Address `src/changes/mod.rs` (671 lines) or `src/changes/apply.rs` (640 lines).
 3. Address remaining oversized files surfaced by `scripts/check-file-sizes.sh` one per commit.
