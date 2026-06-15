@@ -4,11 +4,11 @@
 - In-progress: none
 
 ## Last Completed
-- Extracted `src/changes/mod.rs` tests into `src/changes/tests.rs`.
-  - Bead: cairn-e0m
-  - Commit: c7ffe92
+- Extracted `src/changes/validate` inline tests into `src/changes/validate/tests.rs`.
+  - Bead: cairn-npg
+  - Commit: b4e95ee
 
 ## Next Candidates
-1. Add valid file-size allow directives or split remaining oversized files in `src/changes/apply.rs` and `src/changes/validate.rs`.
+1. Address `src/changes/apply.rs` (640 lines) by extracting tests or splitting into submodules.
 2. Address `src/artefacts/registry/validate.rs` (659 lines) or `src/hooks/mod.rs` (619 lines).
 3. Address remaining oversized files surfaced by `scripts/check-file-sizes.sh` one per commit.
