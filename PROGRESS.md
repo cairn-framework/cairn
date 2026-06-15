@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the `render_status` query renderer in `src/cli/render/project.rs`, covering open/in-progress todos, done-todo omission, JSON mode, and empty todos.
-  - Bead: cairn-brl
-  - Commit: 800ada1
+- Added unit tests for the `render_files` query renderer in `src/cli/render/node.rs`, covering node files without target reports, target claimed files, JSON envelope, and multi-target wrapper.
+  - Bead: cairn-dxs
+  - Commit: 8c52f5d
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
