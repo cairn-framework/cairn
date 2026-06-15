@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Extended unit tests for the JSON serialization helpers in `src/cli/format/json.rs`, covering `finding_json`, `node_json`, `todos_json`, `decisions_json`, `reviews_json`, `sources_json`, and `research_json`.
-  - Bead: cairn-h1f
-  - Commit: 87102ff
+- Added unit tests for the private `format_remediate_human` helper in `src/cli/render/remediate.rs`, covering empty actions, full action rendering, and omitted optional fields.
+  - Bead: cairn-0rj
+  - Commit: 276a368
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
