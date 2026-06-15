@@ -4,13 +4,16 @@
 - In-progress: none
 
 ## Last Completed
-- Extracted `src/artefacts/registry/validate.rs` tests into `src/artefacts/registry/validate/tests.rs`.
-  - Bead: cairn-pqz
-  - Commit: bd06d15
+- Fixed stale `cairn.blueprint` mcp path after `src/mcp.rs` → `src/mcp/mod.rs` + `tests.rs` move.
+  - Bead: cairn-sdo
+  - Commit: 81f6baa
 
 ## Result
-`scripts/check-file-sizes.sh` now reports no oversized files in `src/`.
+- `scripts/check-file-sizes.sh` reports no oversized files in `src/`.
+- `cairn lint` reports no findings.
+- `cargo fmt --check`, `cargo clippy --all-targets --all-features -- -D warnings`, and `cargo test --locked` all pass.
 
 ## Next Candidates
-1. Re-run full gates (`cargo fmt --check`, `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test --locked`) to confirm clean baseline.
-2. Pick the next quality improvement from lint output, test coverage gaps, or `cairn lint` findings.
+1. Run `cargo clippy --all-targets --all-features -- -D warnings` and address any non-warning findings.
+2. Check test coverage or pick up any remaining `cairn` command quality gates.
+3. Investigate whether other post-split modules need blueprint path updates (scanner, state, changes submodules are already directory-based and covered).
