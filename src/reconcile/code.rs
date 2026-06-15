@@ -360,3 +360,45 @@ fn normalize(path: &Path) -> std::borrow::Cow<'_, str> {
         s
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_symbol_collapses_consecutive_whitespace() {
+        assert_eq!(normalize_symbol("fn   foo"), "fn foo");
+    }
+
+    #[test]
+    fn normalize_symbol_trims_leading_and_trailing_whitespace() {
+        assert_eq!(normalize_symbol("  fn foo  "), "fn foo");
+    }
+
+    #[test]
+    fn normalize_symbol_already_normalized_returns_input_owned() {
+        assert_eq!(normalize_symbol("fn foo"), "fn foo");
+    }
+
+    #[test]
+    fn trim_dot_strips_leading_dot_slash() {
+        assert_eq!(trim_dot("./src/main.rs"), "src/main.rs");
+    }
+
+    #[test]
+    fn trim_dot_leaves_unchanged_when_no_leading_dot_slash() {
+        assert_eq!(trim_dot("src/main.rs"), "src/main.rs");
+    }
+
+    #[test]
+    fn normalize_backslash_to_forward_slash() {
+        let path = PathBuf::from("src\\main.rs");
+        assert_eq!(normalize(&path), "src/main.rs");
+    }
+
+    #[test]
+    fn normalize_forward_slashes_unchanged() {
+        let path = PathBuf::from("src/main.rs");
+        assert_eq!(normalize(&path), "src/main.rs");
+    }
+}
