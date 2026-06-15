@@ -69,7 +69,7 @@ pub fn generate(
             draft_text: response.draft_text,
             created_at: created_at.to_owned(),
             transitions: Vec::new(),
-            metadata: response.metadata.clone(),
+            metadata: response.metadata,
         },
     });
     store.write(&draft)?;
