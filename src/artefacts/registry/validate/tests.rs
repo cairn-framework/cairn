@@ -1,3 +1,5 @@
+//! Tests for artefact registry validation.
+
 #![allow(clippy::field_reassign_with_default)]
 // Reason: two-step Default + field assignment is more readable in test fixtures
 // than the single-expression struct-update alternative when multiple fields vary.

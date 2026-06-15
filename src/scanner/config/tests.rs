@@ -1,3 +1,5 @@
+//! Tests for scanner ignore/protection configuration.
+
 use super::*;
 
 fn ignores(patterns: &[&str]) -> Vec<String> {

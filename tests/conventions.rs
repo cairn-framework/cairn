@@ -67,3 +67,41 @@ fn find_reason_in_preceding_comments(lines: &[&str], allow_idx: usize) -> bool {
     }
     false
 }
+
+#[test]
+fn test_every_source_file_has_module_doc() {
+    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let mut violations = Vec::new();
+    scan_src_for_module_docs(&manifest.join("src"), &manifest, &mut violations);
+
+    assert!(
+        violations.is_empty(),
+        "Found {} source files without a //! module doc in the first 5 lines:\n{}",
+        violations.len(),
+        violations.join("\n")
+    );
+}
+
+fn scan_src_for_module_docs(
+    dir: &std::path::Path,
+    manifest: &std::path::Path,
+    violations: &mut Vec<String>,
+) {
+    for entry in fs::read_dir(dir).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.is_dir() {
+            scan_src_for_module_docs(&path, manifest, violations);
+        } else if path.extension().is_some_and(|ext| ext == "rs") {
+            let content = fs::read_to_string(&path).unwrap();
+            let has_doc = content
+                .lines()
+                .take(5)
+                .any(|line| line.trim_start().starts_with("//!"));
+            if !has_doc {
+                let rel = path.strip_prefix(manifest).unwrap().display();
+                violations.push(rel.to_string());
+            }
+        }
+    }
+}
