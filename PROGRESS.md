@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the pure normalization helpers in `src/reconcile/code.rs` (`normalize_symbol`, `trim_dot`, `normalize`), covering whitespace normalization, leading `./` stripping, and backslash-to-forward-slash path normalization.
-  - Bead: cairn-yxq
-  - Commit: 2af53aa
+- Added a unit test for `install_sigint_handler` in `src/signal.rs`, verifying that the SIGINT handler can be registered multiple times without error and that the shared flag remains unset until a real signal arrives.
+  - Bead: cairn-1wk
+  - Commit: a69d946
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
