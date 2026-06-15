@@ -4,9 +4,9 @@
 - In-progress: none
 
 ## Last Completed
-- Added unit tests for the private `format_remediate_human` helper in `src/cli/render/remediate.rs`, covering empty actions, full action rendering, and omitted optional fields.
-  - Bead: cairn-0rj
-  - Commit: 276a368
+- Extended unit tests for `render_context` in `src/cli/render/project.rs`, covering system name/description, node/edge counts, findings counts, module lines, and default heading when no system exists.
+  - Bead: cairn-oak
+  - Commit: 846aaf4
 
 ## Result
 - `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
