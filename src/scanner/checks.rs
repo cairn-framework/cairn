@@ -182,3 +182,57 @@ fn visit_nodes<F: FnMut(&blueprint::Node)>(nodes: &[blueprint::Node], f: &mut F)
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blueprint::{Node, NodeKind, Span};
+
+    fn leaf(id: &str) -> Node {
+        Node {
+            kind: NodeKind::Module,
+            name: id.to_owned(),
+            description: String::new(),
+            id: id.to_owned(),
+            tags: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            contracts: Vec::new(),
+            raw_fields: Vec::new(),
+            children: Vec::new(),
+            span: Span::point("test", 1, 1),
+        }
+    }
+
+    fn node(id: &str, children: Vec<Node>) -> Node {
+        Node {
+            children,
+            ..leaf(id)
+        }
+    }
+
+    #[test]
+    fn visit_nodes_collects_all_nodes_in_tree() {
+        let tree = vec![node(
+            "root",
+            vec![
+                node("child-a", vec![node("grandchild", Vec::new())]),
+                node("child-b", Vec::new()),
+            ],
+        )];
+
+        let mut visited = Vec::new();
+        visit_nodes(&tree, &mut |n| visited.push(n.id.clone()));
+
+        // Order is stack-based and not part of the contract; assert the set.
+        visited.sort();
+        assert_eq!(visited, vec!["child-a", "child-b", "grandchild", "root"]);
+    }
+
+    #[test]
+    fn visit_nodes_empty_input_invokes_callback_never() {
+        let mut visited = Vec::new();
+        visit_nodes(&[], &mut |n| visited.push(n.id.clone()));
+        assert!(visited.is_empty());
+    }
+}
