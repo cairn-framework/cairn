@@ -1,31 +1,49 @@
 # Cairn Atomic Improvement Loop
 
-## Current Status
-- In-progress: none
+## Cadence Definition
 
-## Last Completed
-- Extracted the inline `#[cfg(test)]` module from `src/changes/delta.rs` into a sibling `src/changes/delta/tests.rs` file, following the codebase's established pattern. Removed the `cairn:allow-large-module` directive; the production module is back under the 500-line gate.
-  - Bead: cairn-lxu
-  - Commit: 01fc408
+The **Atomic Improvement Loop** is a repeatable, triggerable process for making small, self-contained improvements to the cairn codebase:
 
-## Session Summary
-- **Commits this session**: 113
-- **Tests**: 880 lib tests pass; integration / phase tests pass
-- **Gates**: `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check)
-- **Lint**: `cairn lint` reports no findings
-- **Working tree**: clean
+- One atomic improvement per iteration (test coverage, docs, refactor, minor fix).
+- Each iteration: re-orient from `PROGRESS.md`, implement, validate via `scripts/pre-archive-rust-gates.sh` and `cairn lint`, create/close a bead, commit, update `PROGRESS.md`.
+- Stop when the session budget is reached or marginal value drops.
 
-## Result
-- `scripts/pre-archive-rust-gates.sh` passes (fmt, clippy, tests, file-size check).
-- `cairn lint` reports no findings.
-- `use_self = "deny"` is in `[workspace.lints.clippy]` in `Cargo.toml`, preventing regression.
-- All `#[allow(...)]` and `#![allow(...)]` directives in `src/` and `tests/` document their rationale.
-- All source files now have module-level docs, enforced by the conventions test.
+To trigger: run `autoresearch.sh` or re-create the workflow manually from this file.
 
-## Blocked / Deferred
-- Epic `cairn-v1t` (wire decisions into blueprint provenance graph) and child beads `cairn-v1t.1` / `cairn-v1t.2` remain open. They are explicitly blocked: the decisions pointer, schema migration, and covering decisions for all leaf nodes must land together as a deliberate repo-wide milestone, not as an atomic improvement.
+## Last Completed Session
+- **Commits**: 113 atomic improvements (module splitting, test extraction, unit tests, module docs, clippy cleanups).
+- **Tests**: 880 lib tests pass; integration / phase tests pass.
+- **Gates**: `scripts/pre-archive-rust-gates.sh` passes; `cairn lint` clean.
+- **Merge to main**: all work merged into `main` and pushed; GitHub default branch set to `main`.
 
-## Next Candidates for a Future Session
-1. Continue adding targeted unit tests for extracted helpers in recently-split modules.
-2. Audit remaining documentation gaps in public APIs.
-3. Address the open epic `cairn-v1t` only as a deliberate, scoped milestone: migrate all decision files, add the blueprint pointer, and write covering decisions in one coordinated effort.
+## What This Cadence Is Good For
+- Mechanical code quality: tests, docs, clippy, module extraction.
+- Small, low-risk, independently committable changes.
+
+## What This Cadence Is NOT Good For
+- Repo-wide architectural changes.
+- Multi-file schema migrations.
+- Bugs that require cross-cutting understanding.
+
+## High-Ticket Items: Planned Sessions
+
+### 1. `cairn-xy1` — Fix Degenerate Interface Hashes
+All 27 nodes in `.cairn/state/interface-hashes.json` share one hash (`3f881a6cf699b056`). The fingerprint collapses every module's interface into the same value, making `CAIRN_INTERFACE_HASH_CHANGED` unable to identify which node drifted.
+
+Definition of done:
+- `cairn scan` produces distinct hashes for modules with distinct public interfaces.
+- Identical public interfaces across modules still produce identical hashes.
+- `cairn hook all` passes after a clean `cairn scan` baseline.
+
+### 2. `cairn-v1t` — Wire Decisions into Blueprint Provenance Graph
+Epic to migrate `meta/decisions/` to the new schema, add a `decisions` pointer to `cairn.blueprint`, and write covering decisions for all leaf nodes so `CAIRN_PROVENANCE_NO_DECISION` does not fire.
+
+Definition of done:
+- All decision files use `id/nodes/status/date` frontmatter.
+- `cairn.blueprint` declares a decisions pointer.
+- Every leaf node has a covering decision.
+- `cairn lint` reports no provenance findings.
+
+## Status
+- `cairn-xy1` and `cairn-v1t` are explicitly deferred from atomic-loop work.
+- Start the next session by picking one of the planned sessions above, not by running the improvement loop.
