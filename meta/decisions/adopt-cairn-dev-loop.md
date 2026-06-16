@@ -1,10 +1,10 @@
 ---
-type: decision
-node: cairn
+id: dec.adopt-cairn-dev-loop
+nodes:
+  - cairn.kernel.cli
 status: accepted
 date: 2026-06-05
-affects:
-  - cairn.kernel.cli
+informed_by: []
 ---
 
 # Adopt the Cairn Dev Loop as the development workflow
@@ -26,7 +26,8 @@ each gated by cairn's own queries (`context`, `lint`, `neighbourhood`,
 `rationale`, `dependents`) and gates (`scan`, `hook all`), plus the language
 gates (`cargo test`, `clippy`) and the path to merge (CI green, review resolved).
 The loop is continuous: phase ten selects the next unit and returns to phase one.
-CLAUDE.md points to the loop from the "Using cairn in this repo" section.
+A clean iteration is code merged, CI green, `cairn scan` clean, and the
+next task identified.
 
 ## Rationale
 
@@ -43,3 +44,11 @@ declared decision makes every uncovered leaf node raise
 left for a dedicated iteration. Until then, decision records live in
 `meta/decisions/` as durable prose, and this file is the first one written under
 the loop it describes.
+
+## Consequences
+
+- `docs/agent/cairn-dev-workflow.md` becomes the canonical loop documentation.
+- `CLAUDE.md` should reference it from the "Using cairn in this repo" section.
+- Iterations should leave `cairn scan`, `cairn lint`, and `cairn hook all` green.
+- Larger-than-atomic work must still go through a proposal/change directory, not
+  be forced through the loop.

@@ -34,6 +34,25 @@ The **Atomic Improvement Loop** is a repeatable process for continuously improvi
 
 ## Last Completed Session
 
+- **Milestone**: `cairn-v1t` — Wire decisions into the blueprint provenance graph (closed).
+- **Branch**: `milestone/cairn-v1t-decisions` off `main` at `b64c6b8`.
+- **Changes**:
+  - Migrated `meta/decisions/no-orchestrator.md` to the new `id/nodes/status/date` schema.
+  - Refactored `src/hooks/architecture.rs` to consume parsed `Decision` records from `crate::artefacts::registry`; made `load_decisions` `pub(crate)`.
+  - Added `decisions`, `research`, and `sources` pointers to `cairn.blueprint`.
+  - Authored covering decisions for all remaining leaf nodes:
+    `dec.kernel-core`, `dec.kernel-tooling`, `dec.code-reconciliation`, `dec.user-surfaces`, `dec.build-and-extension`, `dec.test-infrastructure`, `dec.root-module`.
+  - Promoted `meta/research/gas-city-cairn-integration/analysis.md` to a CAIRN research artefact (`res.gas-city-cairn-integration`) with real external sources.
+  - Created `meta/sources/gas-city-repo.md` and `meta/sources/beads-repo.md` as `verification: external` source artefacts.
+- **Validation**:
+  - `cairn scan` clean: zero findings.
+  - `cairn lint` clean: zero findings.
+  - `cairn hook all` clean: zero findings.
+  - `scripts/pre-archive-rust-gates.sh` passes (880 lib tests + integration tests).
+- **Beads**: closed `cairn-v1t`, `cairn-v1t.1`, `cairn-v1t.2`; exported `.beads/issues.jsonl`.
+
+## Prior Session
+
 - **Commits**: 113 atomic improvements (module splitting, test extraction, unit tests, module docs, clippy cleanups).
 - **Tests**: 880 lib tests pass; integration / phase tests pass.
 - **Gates**: `scripts/pre-archive-rust-gates.sh` passes; `cairn lint` clean.

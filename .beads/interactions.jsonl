@@ -127,3 +127,7 @@
 {"id":"int-d7fa3b0d","kind":"field_change","created_at":"2026-06-15T23:23:00.608769Z","actor":"cairn-loop","issue_id":"cairn-lxu","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Implemented and validated via scripts/pre-archive-rust-gates.sh and cairn lint."}}
 {"id":"int-ff1475e4","kind":"field_change","created_at":"2026-06-16T10:53:51.289752Z","actor":"cairn-loop","issue_id":"cairn-xy1","extra":{"field":"status","new_value":"in_progress","old_value":"open"}}
 {"id":"int-7a3af5d4","kind":"field_change","created_at":"2026-06-16T11:12:15.285111Z","actor":"cairn-loop","issue_id":"cairn-xy1","extra":{"field":"status","new_value":"closed","old_value":"in_progress"}}
+{"id":"int-56f02245","kind":"field_change","created_at":"2026-06-16T12:17:17.877497Z","actor":"cairn-loop","issue_id":"cairn-v1t.1","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-b1a3ebb0","kind":"field_change","created_at":"2026-06-16T12:17:18.000738Z","actor":"cairn-loop","issue_id":"cairn-v1t.2","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-4548590e","kind":"field_change","created_at":"2026-06-16T12:17:39.787604Z","actor":"cairn-loop","issue_id":"cairn-v1t.2","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
+{"id":"int-958e80d7","kind":"field_change","created_at":"2026-06-16T12:17:45.974292Z","actor":"cairn-loop","issue_id":"cairn-v1t","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
