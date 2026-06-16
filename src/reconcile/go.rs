@@ -65,16 +65,22 @@ impl Reconciler for GoReconciler<'_> {
                             message: error.to_string(),
                         })?;
                     let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
+                    let mut node_symbols = BTreeMap::<String, Vec<String>>::new();
                     let mut findings = Vec::new();
                     let mut symbols = Vec::new();
                     for file in chunk {
                         let rel = normalize(file.strip_prefix(request.root).unwrap_or(file));
                         if let Some(owner) = most_specific_owner(owners_ref, &rel) {
                             claimed_files
-                                .entry(owner)
+                                .entry(owner.clone())
                                 .or_default()
                                 .push(rel.into_owned());
-                            symbols.extend(public_symbols(&mut parser, file)?);
+                            let file_symbols = public_symbols(&mut parser, file)?;
+                            node_symbols
+                                .entry(owner)
+                                .or_default()
+                                .extend(file_symbols.clone());
+                            symbols.extend(file_symbols);
                         } else {
                             findings.push(Finding {
                                 code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
@@ -88,25 +94,33 @@ impl Reconciler for GoReconciler<'_> {
                             });
                         }
                     }
-                    Ok::<_, ReconcileError>((claimed_files, findings, symbols))
+                    Ok::<_, ReconcileError>((claimed_files, node_symbols, findings, symbols))
                 }));
             }
             let mut all_claimed = BTreeMap::<String, Vec<String>>::new();
+            let mut all_node_symbols = BTreeMap::<String, Vec<String>>::new();
             let mut all_findings = Vec::new();
             let mut all_symbols = Vec::new();
             for handle in handles {
-                let (claimed, findings, symbols) = handle.join().unwrap()?;
+                let (claimed, node_symbols, findings, symbols) = handle.join().unwrap()?;
                 for (owner, files) in claimed {
                     all_claimed.entry(owner).or_default().extend(files);
+                }
+                for (owner, syms) in node_symbols {
+                    all_node_symbols.entry(owner).or_default().extend(syms);
                 }
                 all_findings.extend(findings);
                 all_symbols.extend(symbols);
             }
             all_symbols.sort_unstable();
+            for syms in all_node_symbols.values_mut() {
+                syms.sort_unstable();
+            }
             Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_sorted(&all_symbols),
                 claimed_files: all_claimed,
                 symbols: std::sync::Arc::new(all_symbols),
+                node_symbols: all_node_symbols,
                 findings: all_findings,
             })
         })

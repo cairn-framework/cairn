@@ -139,19 +139,24 @@ fn reconcile_targets(
                 }
             }
         });
-        let hash = report.fingerprint.hash.clone();
         let owned_files = report
             .claimed_files
             .get(&target.id.node_id)
             .cloned()
             .unwrap_or_default();
-        let owned_symbols = report.symbols.clone();
+        let owned_symbols = report
+            .node_symbols
+            .get(&target.id.node_id)
+            .cloned()
+            .unwrap_or_default();
+        let hash =
+            crate::reconcile::fingerprint::InterfaceFingerprint::from_symbols(&owned_symbols).hash;
         reports.push(TargetReport {
             target_id: target.id.clone(),
             language: target.language,
             reconciler_id: target.reconciler_id.clone(),
             claimed_files: owned_files,
-            symbols: owned_symbols,
+            symbols: std::sync::Arc::new(owned_symbols),
             hash,
         });
     }

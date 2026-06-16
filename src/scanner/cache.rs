@@ -9,8 +9,11 @@ use std::{
 use super::{Target, TargetReport, blueprint, config, detect_divergence};
 
 /// Cache version for reconciler cache format.
-const RECONCILER_CACHE_VERSION: u32 = 3;
-
+///
+/// Bumped from 3 to 4 when `ReconcileReport` gained `node_symbols`, because
+/// old cached reports deserialize with an empty `node_symbols` map and would
+/// otherwise produce degenerate per-node interface hashes.
+const RECONCILER_CACHE_VERSION: u32 = 4;
 /// Persistent cache entry for reconciler results.
 #[derive(serde::Serialize, serde::Deserialize)]
 struct ReconcilerCacheEntry {
@@ -218,19 +221,25 @@ pub(crate) fn build_reports_from_cache(
     for target in targets {
         let lang_key = target.language.as_str();
         if let Some(report) = cached.get(lang_key) {
-            let hash = report.fingerprint.hash.clone();
             let owned_files = report
                 .claimed_files
                 .get(&target.id.node_id)
                 .cloned()
                 .unwrap_or_default();
-            let owned_symbols = report.symbols.clone();
+            let owned_symbols = report
+                .node_symbols
+                .get(&target.id.node_id)
+                .cloned()
+                .unwrap_or_default();
+            let hash =
+                crate::reconcile::fingerprint::InterfaceFingerprint::from_symbols(&owned_symbols)
+                    .hash;
             reports.push(TargetReport {
                 target_id: target.id.clone(),
                 language: target.language,
                 reconciler_id: target.reconciler_id.clone(),
                 claimed_files: owned_files,
-                symbols: owned_symbols,
+                symbols: std::sync::Arc::new(owned_symbols),
                 hash,
             });
         }
