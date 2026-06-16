@@ -92,19 +92,22 @@ fn test_architecture_gate_passes_on_module_add_with_decision()
 
     fs::write(
         root.join("cairn.blueprint"),
-        r#"System App "desc" id "app" {}
+        r#"System App "desc" id "app" {
+    decisions "./meta/decisions"
+}
 "#,
     )?;
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::write(
         root.join("meta/decisions/add-one.md"),
-        "---\naffects: app.one\n---\n\n# Decision\n",
+        "---\nid: dec.add-one\nnodes:\n  - app.one\nstatus: accepted\ndate: 2026-06-16\n---\n\n# Decision\n",
     )?;
     git_commit(&root, "initial")?;
 
     fs::write(
         root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
+    decisions "./meta/decisions"
     Module One "one" id "app.one" {
         path "./src/one"
     }

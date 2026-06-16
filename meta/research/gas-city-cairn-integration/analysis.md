@@ -1,3 +1,13 @@
+---
+id: res.gas-city-cairn-integration
+nodes:
+  - cairn.root
+sources:
+  - src.gas-city-repo
+  - src.beads-repo
+date: 2026-05-13
+---
+
 # Gas City / Beads / cairness — Deep Analysis
 
 **Date:** 2026-05-13

@@ -4,6 +4,10 @@
 # the real source tree as of 2026-05-11.
 
 System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" @framework {
+    decisions "./meta/decisions"
+    research "./meta/research"
+    research "./meta/research/gas-city-cairn-integration/analysis.md"
+    sources "./meta/sources"
 
     Module Root "Crate entry points, shared error types, and verification" id "cairn.root" {
         path "./src/main.rs"
@@ -13,6 +17,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/bin/cairn-lsp.rs"
         path "./src/signal.rs"
     }
+
     Module SSE "Minimal SSE consumer for Gas City integration" id "cairn.sse" {
         path "./src/sse.rs"
     }
@@ -25,6 +30,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/watch.rs"
     }
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
+        decisions "./meta/decisions"
 
         Module Blueprint "Parses .blueprint files into AST node graph" id "cairn.kernel.blueprint" {
             path "./src/blueprint"

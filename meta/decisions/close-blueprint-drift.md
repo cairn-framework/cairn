@@ -1,12 +1,11 @@
 ---
-type: decision
-node: cairn.root
-status: accepted
-date: 2026-06-03
-affects:
+id: dec.close-blueprint-drift
+nodes:
   - cairn.sse
   - cairn.state
   - cairn.watch
+status: accepted
+date: 2026-06-03
 ---
 
 # Close blueprint drift for orphaned modules

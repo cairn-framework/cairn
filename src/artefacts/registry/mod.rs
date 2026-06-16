@@ -69,7 +69,8 @@ fn load_todos(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
     }
 }
 
-fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
+/// Load decision artefacts from all `decisions` pointers declared in `ast`.
+pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
     for pointer in pointers(ast, "decisions") {
         for path in markdown_paths(root, &pointer, set) {
             if let Some(parsed) = parse_file(&path, &pointer, set) {
