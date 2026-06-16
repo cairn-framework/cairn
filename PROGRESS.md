@@ -34,20 +34,22 @@ The **Atomic Improvement Loop** is a repeatable process for continuously improvi
 
 ## Last Completed Session
 
-- **Milestone**: `cairn-v1t` — Wire decisions into the blueprint provenance graph (closed).
-- **Branch**: `milestone/cairn-v1t-decisions` off `main` at `b64c6b8`.
-- **Changes**:
-  - Migrated `meta/decisions/no-orchestrator.md` to the new `id/nodes/status/date` schema.
-  - Refactored `src/hooks/architecture.rs` to consume parsed `Decision` records from `crate::artefacts::registry`; made `load_decisions` `pub(crate)`.
-  - Added `decisions`, `research`, and `sources` pointers to `cairn.blueprint`.
-  - Authored covering decisions for all remaining leaf nodes:
-    `dec.kernel-core`, `dec.kernel-tooling`, `dec.code-reconciliation`, `dec.user-surfaces`, `dec.build-and-extension`, `dec.test-infrastructure`, `dec.root-module`.
-  - Promoted `meta/research/gas-city-cairn-integration/analysis.md` to a CAIRN research artefact (`res.gas-city-cairn-integration`) with real external sources.
-  - Created `meta/sources/gas-city-repo.md` and `meta/sources/beads-repo.md` as `verification: external` source artefacts.
 - **Validation**:
   - `cairn scan` clean: zero findings.
   - `cairn lint` clean: zero findings.
   - `cairn hook all` clean: zero findings.
+  - `scripts/pre-archive-rust-gates.sh` passes (880 lib tests + integration/phase tests).
+  - PR #135 opened from `milestone/cairn-v1t-decisions`; `dogfood` CI run succeeded on main merge commit `b6202b0`.
+  - GitHub Pages deploy fails pre-existing environment protection rule (logged as bead `cairn-kb0`); unrelated to code changes.
+- **Merge**: PR #135 squash-merged into `main` at `b6202b0`; branch `milestone/cairn-v1t-decisions` deleted remotely.
+- **Beads**: closed `cairn-v1t`, `cairn-v1t.1`, `cairn-v1t.2`; exported `.beads/issues.jsonl`; created `cairn-kb0` for Pages deploy infra issue.
+
+## Notes
+
+- The `gh pr merge --squash --auto` landed immediately because no required checks are configured on the branch; going forward, set `ci`/`dogfood` as required branch-protection rules if we want auto-merge to actually gate on them.
+- GitHub Pages deploy failure is environmental and predates this milestone; do not chase it inside code work.
+
+## Prior Session
   - `scripts/pre-archive-rust-gates.sh` passes (880 lib tests + integration tests).
 - **Beads**: closed `cairn-v1t`, `cairn-v1t.1`, `cairn-v1t.2`; exported `.beads/issues.jsonl`.
 
