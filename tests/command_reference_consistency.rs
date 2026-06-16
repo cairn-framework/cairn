@@ -44,6 +44,7 @@ fn registered_commands() -> Vec<String> {
         "change",
         "check",
         "export",
+        "feedback",
         "import-openspec",
         "onboard",
         "refine",

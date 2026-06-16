@@ -86,6 +86,7 @@ Error responses from the MCP/query path:
 | `init --from-code` | `cairn_init_from_code` | Brownfield extraction from existing code |
 | `refine` | `cairn_refine` | Re-run brownfield discovery |
 | `import-openspec` | `cairn_import_openspec` | Migrate openspec changes to meta/changes |
+| `feedback "<message>"` | — | Record cairn friction in `.cairn/feedback.md`, print upstream issue link |
 
 ### Draft lifecycle (semi-stable)
 

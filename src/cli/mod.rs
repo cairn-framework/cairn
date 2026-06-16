@@ -34,8 +34,8 @@ mod render;
 
 use commands::{
     init_project, legacy_blueprint_warning, run_archive_command, run_change_apply, run_change_new,
-    run_change_tasks, run_hook_command, run_import_openspec, run_onboard_command,
-    run_shared_json_command, run_ui_command, run_watch_command,
+    run_change_tasks, run_feedback_command, run_hook_command, run_import_openspec,
+    run_onboard_command, run_shared_json_command, run_ui_command, run_watch_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -128,6 +128,9 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "onboard" {
         return run_onboard_command(&parsed);
+    }
+    if parsed.command == "feedback" {
+        return run_feedback_command(&parsed, project_root);
     }
     if parsed.command == "watch" {
         let opts = match crate::watch::WatchOpts::from_args(&parsed.command_args[1..]) {
@@ -456,6 +459,7 @@ const EXTRA_CLI_COMMANDS: &[&str] = &[
     "change",
     "check",
     "export",
+    "feedback",
     "import-openspec",
     "onboard",
     "refine",
@@ -496,6 +500,7 @@ fn command_description(name: &str) -> &'static str {
         "depends" => "List nodes a given node depends on",
         "docstring" => "Generate a docstring for a node",
         "export" => "Export project data",
+        "feedback" => "Record cairn friction and get an upstream issue link",
         "files" => "List files owned by a node",
         "get" => "Inspect a node by ID",
         "hook" => "Run reconciliation hooks",
@@ -724,12 +729,45 @@ mod tests {
         let root = temp_root("init")?;
         let init = run_in(&root, &["init"]);
         assert_eq!(init.code, 0);
+        assert!(init.stdout.contains("Next steps"));
         assert!(root.join("cairn.blueprint").exists());
         assert!(root.join("cairn.config.yaml").exists());
+        let guide = fs::read_to_string(root.join(".cairn/AGENTS.md"))?;
+        assert!(guide.contains("cairn feedback"));
 
         let version = run(&["--version".to_owned()]);
         assert_eq!(version.code, 0);
         assert!(version.stdout.contains("cairn "));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_feedback_command() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("feedback")?;
+
+        let missing = run_in(&root, &["feedback"]);
+        assert_eq!(missing.code, 2);
+        assert!(missing.stderr.contains("usage: cairn feedback"));
+
+        let first = run_in(&root, &["feedback", "scan said X,", "expected Y"]);
+        assert_eq!(first.code, 0);
+        assert!(first.stdout.contains(".cairn/feedback.md"));
+        assert!(
+            first
+                .stdout
+                .contains("https://github.com/cairn-framework/cairn/issues/new?title=scan%20said")
+        );
+
+        let second = run_in(&root, &["--json", "feedback", "ui crashed"]);
+        assert_eq!(second.code, 0);
+        assert!(second.stdout.contains("\"command\":\"feedback\""));
+        assert!(second.stdout.contains("\"issue_url\":"));
+
+        let log = fs::read_to_string(root.join(".cairn/feedback.md"))?;
+        assert!(log.starts_with("# Cairn feedback log"));
+        assert!(log.contains("scan said X, expected Y"));
+        assert!(log.contains("ui crashed"));
 
         Ok(())
     }

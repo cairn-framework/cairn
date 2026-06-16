@@ -459,6 +459,15 @@ kbd {
   cursor: grabbing;
 }
 
+/* Boot loading and failure states rendered in place of the map */
+.graph-canvas.canvas-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-6);
+  cursor: default;
+}
+
 .graph-bg {
   position: absolute;
   inset: 0;
@@ -2177,7 +2186,8 @@ button.path-row:hover {
   transition: background var(--dur-tick) var(--ease-settle);
 }
 
-.result-row:hover {
+.result-row:hover,
+.result-row.active {
   background: var(--stone-3);
 }
 

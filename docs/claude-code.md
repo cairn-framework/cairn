@@ -8,7 +8,7 @@ direct CLI invocation.
 Install both the main CLI and the MCP server:
 
 ```bash
-cargo install --git https://github.com/George-RD/cairn.git
+cargo install --git https://github.com/cairn-framework/cairn.git
 ```
 
 This installs `cairn`, `cairn-mcp`, and `cairn-lsp` into `~/.cargo/bin/`.
