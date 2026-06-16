@@ -45,5 +45,5 @@ Definition of done:
 - `cairn lint` reports no provenance findings.
 
 ## Status
-- `cairn-xy1` and `cairn-v1t` are explicitly deferred from atomic-loop work.
-- Start the next session by picking one of the planned sessions above, not by running the improvement loop.
+- Atomic-loop work and planned sessions can run independently. If `cairn-xy1` or `cairn-v1t` are already done, future Atomic Improvement Loop sessions can still operate on smaller items.
+- When no planned session is active, use the Atomic Improvement Loop to keep code quality improving continuously.
