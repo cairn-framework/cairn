@@ -31,9 +31,12 @@ pub struct ReconcileRequest<'a> {
 pub struct ReconcileReport {
     /// Files claimed by node ID.
     pub claimed_files: std::collections::BTreeMap<String, Vec<String>>,
-    /// Public symbols.
+    /// Public symbols across all reconciled files (global view, mainly for tests).
     #[serde(with = "serde_arc_vec")]
     pub symbols: std::sync::Arc<Vec<String>>,
+    /// Public symbols attributed to each node ID. Used to compute per-node
+    /// interface fingerprints.
+    pub node_symbols: std::collections::BTreeMap<String, Vec<String>>,
     /// Interface fingerprint.
     pub fingerprint: fingerprint::InterfaceFingerprint,
     /// Reconciliation findings.

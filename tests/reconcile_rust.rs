@@ -6,9 +6,12 @@
 
 use cairn::{
     blueprint::{Ast, NodeKind, Span, ast::Node},
-    reconcile::{ReconcileRequest, Reconciler, code::RustCodeReconciler},
+    reconcile::{
+        ReconcileRequest, Reconciler, code::RustCodeReconciler, fingerprint::InterfaceFingerprint,
+    },
 };
 use std::fs;
+use tempfile::tempdir;
 
 fn single_node_ast(node_id: &str, path: &str) -> Ast {
     Ast {
@@ -267,5 +270,68 @@ fn test_rust_ignored_file_excluded_from_symbols() {
             .all(|s| !s.contains("should_be_ignored")),
         "ignored file symbols must not appear; got: {:?}",
         report.symbols
+    );
+}
+
+#[test]
+fn test_node_symbols_produce_distinct_hashes_per_node() {
+    let dir = tempdir().unwrap();
+    fs::create_dir(dir.path().join("src")).unwrap();
+    fs::write(
+        dir.path().join("src/lib.rs"),
+        "pub fn alpha() {}\npub struct Alpha;\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.path().join("src/other.rs"),
+        "pub fn beta() {}\npub enum Beta {}\n",
+    )
+    .unwrap();
+
+    let ast = Ast {
+        nodes: vec![
+            Node {
+                kind: NodeKind::Module,
+                name: "alpha".to_owned(),
+                description: String::new(),
+                id: "app.alpha".to_owned(),
+                tags: Vec::new(),
+                paths: vec!["src/lib.rs".to_owned()],
+                owns_files: true,
+                contracts: Vec::new(),
+                raw_fields: Vec::new(),
+                children: Vec::new(),
+                span: Span::point("test", 1, 1),
+            },
+            Node {
+                kind: NodeKind::Module,
+                name: "beta".to_owned(),
+                description: String::new(),
+                id: "app.beta".to_owned(),
+                tags: Vec::new(),
+                paths: vec!["src/other.rs".to_owned()],
+                owns_files: true,
+                contracts: Vec::new(),
+                raw_fields: Vec::new(),
+                children: Vec::new(),
+                span: Span::point("test", 1, 1),
+            },
+        ],
+        edges: Vec::new(),
+    };
+
+    let report = RustCodeReconciler::new(&ast)
+        .reconcile(rs_request(dir.path(), &[]))
+        .unwrap();
+
+    let alpha_hash = InterfaceFingerprint::from_symbols(
+        report.node_symbols.get("app.alpha").unwrap_or(&Vec::new()),
+    );
+    let beta_hash = InterfaceFingerprint::from_symbols(
+        report.node_symbols.get("app.beta").unwrap_or(&Vec::new()),
+    );
+    assert_ne!(
+        alpha_hash, beta_hash,
+        "nodes with distinct public symbols must have distinct interface hashes"
     );
 }
