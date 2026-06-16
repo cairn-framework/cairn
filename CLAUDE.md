@@ -96,11 +96,11 @@ parenthesis as context dictates. Full guidance: `docs/agent/voice.md`.
 
 All UI changes (webui at `src/ui_assets/`, landing at `docs/landing/`, any new surface) must pull colors, type, spacing, radius, shadow, and motion from `docs/design-system/tokens.css`. Do not hardcode hex or rem values. Reuse classes from `docs/design-system/components.css` before introducing new components. Font authority is Source Serif 4 (headings, long-form) plus IBM Plex Mono (code, technical vocabulary) plus IBM Plex Sans (UI chrome). See `docs/design-system/README.md` for consumption patterns (marketing via `<link>`, Rust webui via `include_str!`). AGENTS.md carries the same directive for codex-driven phases.
 
-## Workflow: cflx (Conflux)
+## Workflow: verification gates
 
 Pre-commit hook runs `cargo fmt --check`. Verification gates: `cargo build` (zero
 warnings), `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test`.
-cflx is retired per decision #105; existing `openspec/` phases are historical record.
+cflx is retired per decision #105; `archive/openspec/` phases are historical record.
 
 ## Workflow: Graphite (gt)
 

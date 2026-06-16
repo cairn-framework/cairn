@@ -28,7 +28,7 @@ src/ui_assets/assets/
 .worktrees
 .orchestrator/
 
-# Legacy agent-runner scaffolding (superseded by claude per .cflx.jsonc)
+# Legacy agent-runner scaffolding (superseded by claude; cflx retired per decision #105)
 # Kept ignored in case any tool regenerates them.
 .codex/
 .opencode/
@@ -41,7 +41,7 @@ src/ui_assets/assets/
 graphify-out/
 
 
-# Python bytecode caches from cflx analyze script tests
+# Python bytecode caches
 __pycache__/
 *.pyc
 
