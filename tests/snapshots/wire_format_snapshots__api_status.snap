@@ -1,6 +1,5 @@
 ---
 source: tests/wire_format_snapshots.rs
-assertion_line: 52
 expression: value
 ---
 {
@@ -8,7 +7,7 @@ expression: value
   "errors": 1,
   "findings": 2,
   "infos": 0,
-  "interface_hash": "7bfb5bd6eea075d6",
+  "interface_hash": "b91967a14df3b069",
   "nodes": 3,
   "schema_version": 1,
   "warnings": 1
