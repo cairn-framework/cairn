@@ -301,10 +301,11 @@ pub(super) fn run_feedback_command(parsed: &ParsedArgs, root: &Path) -> CliResul
     let mut entry = if log_path.exists() {
         String::new()
     } else {
-        "# Cairn feedback log\n\nFriction recorded by `cairn feedback`. \
-         Triage entries into upstream issues at\n\
-         https://github.com/cairn-framework/cairn/issues\n"
-            .to_owned()
+        format!(
+            "# Cairn feedback log\n\nFriction recorded by `cairn feedback`. \
+             Triage entries into upstream issues at\n\
+             {FEEDBACK_ISSUE_BASE}\n"
+        )
     };
     let _ = write!(entry, "\n## {timestamp} (cairn {version})\n\n{message}\n");
     let appended = {

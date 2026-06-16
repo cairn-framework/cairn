@@ -85,7 +85,7 @@ cta = ""
 
 [empty-states.map-failed]
 heading = "Map failed to load"
-body = ""
+body = "The graph data is missing or malformed. Check the cairn ui server and try again."
 cta = "Retry"
 
 [empty-states.node-artefacts-loading]

@@ -32,7 +32,7 @@ produce the four-module shape. Surface metrics were close: arm A 875 LOC and
 The behavioural difference showed up in correctness. On a shared fixture,
 arm B reported two false positives (link syntax inside inline code spans and
 fenced code blocks was treated as a real link); arm A handled both correctly.
-Arm A's agent caught this by smoke-testing against markdown in its own repo,
+Arm A's agent caught this by smoke-testing against Markdown in its own repo,
 where the example link syntax in SPEC.md sat inside backticks. Attribution is
 soft (single run per arm; could be agent variance), but arm A's workflow
 included more verification passes: its `.cairn/log.md` recorded four scans,

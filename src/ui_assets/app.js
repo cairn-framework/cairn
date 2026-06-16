@@ -1622,11 +1622,14 @@
     useEffect(() => {
       let cancelled = false;
       setError(null);
+      setGraph(null);
+      setStatus(null);
+      setLint(null);
       Promise.all([fetchGraph(), fetchStatus(), fetchLint()])
         .then(([g, s, l]) => {
           if (cancelled) return;
-          if (!g || !Array.isArray(g.nodes)) {
-            setError("graph data unavailable");
+          if (!g || !Array.isArray(g.nodes) || !Array.isArray(g.edges)) {
+            setError(copy("empty-states.map-failed.body"));
             return;
           }
           setGraph(g);
