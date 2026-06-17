@@ -13,6 +13,7 @@ mod mermaid;
 mod runner;
 
 pub use builder::build_export;
+pub(crate) use builder::current_timestamp_rfc3339;
 pub use json::render_json;
 pub use markdown::render_markdown;
 pub use mermaid::render_mermaid;

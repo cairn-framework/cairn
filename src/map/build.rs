@@ -135,7 +135,9 @@ fn validate_ids(graph: &mut Graph) {
             graph.findings.push(Finding {
                 code: "CAIRN_INTEGRITY_INVALID_ID".to_owned(),
                 severity: FindingSeverity::Error,
-                message: format!("node id `{id}` must be lowercase dotted identifier"),
+                message: format!(
+                    "node id `{id}` must be a lowercase dotted identifier (a-z, 0-9, `.`, `-`; underscores are not allowed)"
+                ),
                 node: Some(id.clone()),
                 target: None,
                 path: None,

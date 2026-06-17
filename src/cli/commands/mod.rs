@@ -6,6 +6,7 @@ use super::*;
 
 mod archive;
 mod change;
+mod feedback;
 mod hook;
 mod import;
 mod onboard;
@@ -14,6 +15,7 @@ mod watch;
 
 pub(crate) use archive::run_archive_command;
 pub(crate) use change::{run_change_apply, run_change_new, run_change_tasks};
+pub(crate) use feedback::run_feedback_command;
 pub(crate) use hook::run_hook_command;
 pub(crate) use import::run_import_openspec;
 pub(crate) use onboard::run_onboard_command;

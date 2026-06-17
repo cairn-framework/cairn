@@ -16,11 +16,14 @@ pub(crate) fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
     }
 }
 
+/// Agent-facing guide written by `cairn init`, appended to a project's CLAUDE.md or AGENTS.md.
+const AGENT_GUIDE: &str = include_str!("../agent_guide.md");
+
 pub(crate) fn init_project(root: &Path) -> CliResult {
     let writes = [
         (
             "cairn.blueprint",
-            "System Example \"Starter architecture\" id \"example\" {\n    Module App \"Starter app\" id \"example.app\" {\n        path \"./src\"\n    }\n}\n",
+            "# Describe your system here. Every source file (tests included) should\n# fall under some module's path. Grammar reference:\n# https://github.com/cairn-framework/cairn/blob/HEAD/docs/blueprint.md\nSystem Example \"Starter architecture\" id \"example\" {\n    Module App \"Starter app\" id \"example.app\" {\n        path \"./src\"\n    }\n}\n",
         ),
         (
             "cairn.config.yaml",
@@ -28,6 +31,7 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
         ),
         ("meta/contracts/.gitkeep", ""),
         (".cairn/state/.gitkeep", ""),
+        (".cairn/AGENTS.md", AGENT_GUIDE),
     ];
     for (path, content) in writes {
         let full = root.join(path);
@@ -43,5 +47,9 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
             return err(1, &format!("failed to write {}", full.display()));
         }
     }
-    ok("initialized Cairn project\n".to_owned())
+    ok(format!(
+        "{}\n\n{}\n",
+        copy::lookup("init.done"),
+        copy::lookup("init.next-steps")
+    ))
 }

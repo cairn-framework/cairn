@@ -78,6 +78,26 @@ heading = "No matches"
 body = "No nodes match that query."
 cta = ""
 
+[empty-states.map-loading]
+heading = ""
+body = "Loading the map…"
+cta = ""
+
+[empty-states.map-failed]
+heading = "Map failed to load"
+body = "The graph data is missing or malformed. Check the cairn ui server and try again."
+cta = "Retry"
+
+[empty-states.node-artefacts-loading]
+heading = ""
+body = "Loading artefacts…"
+cta = ""
+
+[empty-states.node-artefacts-failed]
+heading = ""
+body = "Artefacts failed to load. Check the cairn ui server, then reselect the node."
+cta = ""
+
 [empty-states.cli-no-blueprint]
 heading = "No blueprint found"
 body = "No cairn.blueprint found. Inspection has nothing to look at."
@@ -121,6 +141,25 @@ CAIRN_CONTRACT_MISSING_NODE = { heading = "Contract references unknown node", bo
 
 CT001 = { heading = "Interface contradiction", body = "Targets for `{node}` with the same contract role have divergent interfaces.", cta = "Review the contract and reconcile the interface shapes." }
 CT002 = { heading = "Intentional asymmetry", body = "An intentional asymmetry was detected in `{node}` for contract role `{target}`.", cta = "Review the rationale to confirm the asymmetry is still correct." }
+# -- Init ---------------------------------------------------------------
+
+[init]
+done = "initialized Cairn project"
+next-steps = """
+Next steps:
+  1. Describe your system in cairn.blueprint (a starter was written)
+  2. Run `cairn scan` to reconcile the blueprint against your code
+  3. Append .cairn/AGENTS.md to your agent instructions (CLAUDE.md or AGENTS.md)
+
+Existing codebase? `cairn init --from-code` discovers modules for you."""
+
+# -- Feedback -------------------------------------------------------------
+
+[feedback]
+usage = "usage: cairn feedback \"<what you expected, what happened instead>\""
+recorded = "Feedback recorded in .cairn/feedback.md"
+cta = "File it upstream when convenient:"
+
 # -- Errors -------------------------------------------------------------
 
 [errors]
