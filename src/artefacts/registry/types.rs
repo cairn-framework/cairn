@@ -199,10 +199,22 @@ pub struct Research {
     pub date: String,
     /// Referenced source IDs.
     pub sources: Vec<String>,
+    /// Research method: primary observation or secondary (cites sources).
+    pub method: ResearchMethod,
     /// Tags.
     pub tags: Vec<String>,
     /// Markdown body.
     pub body: String,
+}
+
+/// Whether the research evidence is original or derived from cited sources.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum ResearchMethod {
+    /// Original observation or experiment; the methodology is the evidence.
+    Primary,
+    /// Derived from cited sources (default); requires `sources`.
+    #[default]
+    Secondary,
 }
 
 /// Source verification state.

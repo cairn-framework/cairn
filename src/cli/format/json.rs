@@ -145,7 +145,7 @@ pub(crate) fn string_array_json(values: &[String]) -> String {
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{DecisionStatus, SourceVerification, TodoStatus},
+        artefacts::registry::{DecisionStatus, ResearchMethod, SourceVerification, TodoStatus},
         blueprint::{NodeKind, Span},
         map::{FindingSeverity, NodeRecord, NodeState},
     };
@@ -327,6 +327,7 @@ mod tests {
             nodes: vec!["app".to_owned()],
             date: "2026-01-01".to_owned(),
             sources: vec!["src-1".to_owned()],
+            method: ResearchMethod::Secondary,
             tags: Vec::new(),
             body: String::new(),
         };

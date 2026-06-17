@@ -94,6 +94,25 @@ pub(super) fn parse_source_verification(
         }
     }
 }
+
+pub(super) fn parse_research_method(
+    value: &str,
+    path: &Path,
+    set: &mut ArtefactSet,
+) -> Option<ResearchMethod> {
+    match value {
+        "primary" => Some(ResearchMethod::Primary),
+        "secondary" => Some(ResearchMethod::Secondary),
+        _ => {
+            set.findings.push(error_finding(
+                "CAIRN_RESEARCH_METHOD_INVALID",
+                format!("research `{}` has invalid method `{value}`", path.display()),
+                Some(path_string(path)),
+            ));
+            None
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use std::path::Path;

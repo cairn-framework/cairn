@@ -3,6 +3,7 @@ id: res.agent-experiment-linklint
 nodes:
   - cairn.kernel.cli
 date: 2026-06-10
+method: primary
 ---
 
 # Blind two-arm agent experiment: building a small CLI with and without cairn

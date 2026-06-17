@@ -127,7 +127,7 @@ pub(crate) const fn source_verification(verification: SourceVerification) -> &'s
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{DecisionStatus, SourceVerification, TodoStatus},
+        artefacts::registry::{DecisionStatus, ResearchMethod, SourceVerification, TodoStatus},
         blueprint::{NodeKind, Span},
         map::{FindingSeverity, NodeRecord, NodeState},
     };
@@ -241,6 +241,7 @@ mod tests {
             nodes: Vec::new(),
             date: String::new(),
             sources: vec!["src-1".to_owned(), "src-2".to_owned()],
+            method: ResearchMethod::Secondary,
             tags: Vec::new(),
             body: String::new(),
         };

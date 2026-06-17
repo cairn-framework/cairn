@@ -19,7 +19,8 @@ mod validate;
 use io::list;
 use io::{collect_ids, markdown_paths, optional, parse_file, path_string, pointers, required};
 use parse::{
-    parse_decision_status, parse_review_type, parse_source_verification, parse_todo_status,
+    parse_decision_status, parse_research_method, parse_review_type, parse_source_verification,
+    parse_todo_status,
 };
 pub use types::*;
 use validate::validate_integrity;
@@ -172,12 +173,16 @@ fn load_research(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
                 let Some(date) = required(&parsed.values, "date", path_string(&path), set) else {
                     continue;
                 };
+                let method = optional(&parsed.values, "method")
+                    .and_then(|value| parse_research_method(&value, &path, set))
+                    .unwrap_or_default();
                 set.research.push(Research {
                     id,
                     path: path_string(&path),
                     nodes: list(&parsed, "nodes"),
                     date,
                     sources: list(&parsed, "sources"),
+                    method,
                     tags: list(&parsed, "tags"),
                     body: parsed.body,
                 });

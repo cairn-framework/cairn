@@ -169,7 +169,7 @@ pub(super) fn validate_provenance_refs(
     set: &mut ArtefactSet,
 ) {
     for research in &set.research {
-        if research.sources.is_empty() {
+        if research.sources.is_empty() && research.method != ResearchMethod::Primary {
             set.findings.push(error(
                 "CAIRN_RESEARCH_MISSING_SOURCES",
                 format!("research `{}` has no sources", research.id),

@@ -43,6 +43,7 @@ fn make_research(id: &str, nodes: &[&str], sources: &[&str]) -> Research {
         nodes: nodes.iter().map(ToString::to_string).collect(),
         date: "2024-01-01".to_owned(),
         sources: sources.iter().map(ToString::to_string).collect(),
+        method: ResearchMethod::Secondary,
         tags: Vec::new(),
         body: String::new(),
     }
@@ -234,6 +235,16 @@ fn test_research_no_sources_emits_missing_sources_error() {
     let source_ids = BTreeSet::new();
     validate_provenance_refs(&BTreeSet::new(), &source_ids, &mut set);
     assert!(finding_codes(&set).contains(&"CAIRN_RESEARCH_MISSING_SOURCES"));
+}
+
+#[test]
+fn test_research_primary_with_no_sources_is_clean() {
+    let mut set = ArtefactSet::default();
+    let mut research = make_research("r1", &["app.real"], &[]);
+    research.method = ResearchMethod::Primary;
+    set.research = vec![research];
+    validate_provenance_refs(&BTreeSet::new(), &BTreeSet::new(), &mut set);
+    assert!(!finding_codes(&set).contains(&"CAIRN_RESEARCH_MISSING_SOURCES"));
 }
 
 #[test]
