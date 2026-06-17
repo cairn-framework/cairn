@@ -1,0 +1,3 @@
+{"ts":"2026-06-16T13:07:51.973Z","campaign":"cairn-main-default","event":"task_dispatched"}
+{"ts":"2026-06-17T10:07:00.872Z","campaign":"cairn","event":"task_dispatched","task":"cairn-cns"}
+{"ts":"2026-06-17T10:44:22.131Z","campaign":"cairn-ambiguities","event":"task_completed","task":"resolve-beads-conflict-and-research-sourcing","ambiguity_1":"beads jsonl conflict procedure ruled: Dolt canonical, bd dolt pull reconciles, bd export regenerates","ambiguity_2":"res.agent-experiment-linklint ruled option d: add ResearchMethod primary/secondary, default secondary","sources":["SYNC_CONCEPTS.md","src/artefacts/registry/validate/mod.rs","cairn.blueprint","docs/conventions.md"]}
