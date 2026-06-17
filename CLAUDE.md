@@ -103,15 +103,9 @@ Pre-commit hook runs `cargo fmt --check`. Verification gates: `cargo build` (zer
 warnings), `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test`.
 cflx is retired per decision #105; `archive/openspec/` phases are historical record.
 
-## Workflow: Graphite (gt)
-
-Full workflow in `docs/agent/graphite.md` (load when using `gt` or doing PR work).
-Quick reference: `gt create -m "..."` to commit, `gt submit --stack --publish` to push.
-Raw `git commit`, `git push`, `git checkout -b` bypass Graphite's metadata — use `gt`.
-
 ## Pre-submit review: mandatory
 
-Before submitting any PR (via `gt submit` or `/forge-pr`), run both `/reforge` and `/debate` (or `/palantir-debate`) on the changes. This is not optional. The sequence is:
+Before submitting any PR (via `/forge-pr` or `gh pr create`), run both `/reforge` and `/debate` (or `/palantir-debate`) on the changes. This is not optional. The sequence is:
 
 1. Implementation complete, tests pass, `cairn scan` clean
 2. `/reforge` on the changed files (simplify, remove dead code, naming consistency)

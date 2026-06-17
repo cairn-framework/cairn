@@ -35,7 +35,7 @@ graph you query is stale relative to the code you just wrote.
 | 5. Test | Does new behaviour have a failing-then-passing test? | `cargo test`, fixtures under `tests/` |
 | 6. Verify | Did I introduce drift or break the build? | `cargo` gates, `cairn scan`, `cairn hook all` |
 | 7. Record | Why did this change happen? | decision artefact, `cairn rationale` |
-| 8. PR | Is the change reviewable and on a path to merge? | `gt submit` / GitHub PR, CI |
+| 8. PR | Is the change reviewable and on a path to merge? | GitHub PR, CI |
 | 9. Merge | Is CI green and review satisfied? | CI gate, review threads, merge |
 | 10. Continue | What is the next iteration? | backlog, `cairn lint`, loop to phase 1 |
 
@@ -179,13 +179,15 @@ Exit criterion: a reader can reconstruct why this iteration happened.
 
 ## Phase 8: PR
 
-Commit, push, and open a reviewable pull request. Use the repo's VCS workflow
-(Graphite; see `docs/agent/graphite.md`), or plain git plus the GitHub MCP tools
-when `gt` is unavailable.
+Commit, push, and open a reviewable pull request with plain git plus the GitHub
+CLI (`gh`) or the GitHub MCP tools.
 
 ```bash
-gt create -m "<type>(<scope>): <subject>"
-gt submit --stack --publish --no-interactive    # opens / updates the PR
+git checkout -b <type>/<scope>-<subject>
+git add <files-for-this-unit>
+git commit -m "<type>(<scope>): <subject>"
+git push -u origin HEAD
+gh pr create --fill                             # opens the PR
 ```
 
 Keep one PR to one logical unit (target under 250 lines changed, hard cap 400).

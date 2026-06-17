@@ -62,9 +62,9 @@ met. Track progress with `bd` (this repo's tracker), not TodoWrite.
 7. **Record** — if structure changed or a non-obvious tradeoff was made, write a
    decision artefact (`meta/decisions/`). Confirm intent with `cairn rationale`.
 
-8. **PR** — commit and push via Graphite (`docs/agent/graphite.md`) or git plus
-   the GitHub MCP tools. Open one PR per logical unit. Before submitting, run
-   `/reforge` then `/debate` on the diff per `CLAUDE.md`.
+8. **PR** — commit with plain git, push, and open one PR per logical unit with
+   `gh pr create` or the GitHub MCP tools. Before submitting, run `/reforge` then
+   `/debate` on the diff per `CLAUDE.md`.
 
 9. **Merge** — drive the PR to merged. Subscribe to PR activity so CI and review
    events wake the session; on a CI failure, fix and re-push until green. Resolve
