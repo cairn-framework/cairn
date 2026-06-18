@@ -1,4 +1,4 @@
-# Session Handoff — 2026-06-17
+# Session Handoff: 2026-06-17
 
 Branch: `main`, synced with origin, working tree clean. `dev` retired entirely
 (merged, protection removed, deleted local + `origin/dev`, `origin/HEAD → main`).
