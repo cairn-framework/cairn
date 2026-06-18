@@ -1037,7 +1037,10 @@ app.api -> app.core "reports"
 
         let clean_root = temp_root("check-clean-map")?;
         fs::create_dir_all(clean_root.join("src"))?;
-        fs::write(clean_root.join("src/lib.rs"), "pub fn main() {}\n")?;
+        fs::write(
+            clean_root.join("src/lib.rs"),
+            "pub fn main() {}\n#[cfg(test)]\nmod tests {}\n",
+        )?;
         fs::write(
             clean_root.join("cairn.blueprint"),
             "System Clean \"clean project\" id \"clean\" {\n    Module Only \"only module\" id \"clean.only\" {\n        path \"./src\"\n    }\n}\n",

@@ -314,8 +314,14 @@ fn test_internal_node_ownership_opt_in_controls_direct_files()
 -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("ownership")?;
     fs::create_dir_all(root.join("src/auth"))?;
-    fs::write(root.join("src/direct.rs"), "pub fn direct() {}\n")?;
-    fs::write(root.join("src/auth/lib.rs"), "pub fn auth() {}\n")?;
+    fs::write(
+        root.join("src/direct.rs"),
+        "pub fn direct() {}\n#[cfg(test)]\nmod tests {}\n",
+    )?;
+    fs::write(
+        root.join("src/auth/lib.rs"),
+        "pub fn auth() {}\n#[cfg(test)]\nmod tests {}\n",
+    )?;
     fs::write(
         root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
@@ -1154,8 +1160,14 @@ fn write_phase_2_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> 
     fs::create_dir_all(root.join("meta/reviews"))?;
     fs::create_dir_all(root.join("meta/research"))?;
     fs::create_dir_all(root.join("meta/sources"))?;
-    fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
-    fs::write(root.join("src/store/lib.rs"), "pub fn save() {}\n")?;
+    fs::write(
+        root.join("src/auth/lib.rs"),
+        "pub fn login() {}\n#[cfg(test)]\nmod tests {}\n",
+    )?;
+    fs::write(
+        root.join("src/store/lib.rs"),
+        "pub fn save() {}\n#[cfg(test)]\nmod tests {}\n",
+    )?;
     fs::write(root.join("meta/sources/auth.txt"), "evidence\n")?;
     fs::write(
         root.join("cairn.blueprint"),
@@ -1842,6 +1854,86 @@ fn test_reconciler_dedups_duplicate_orphan_findings() -> Result<(), Box<dyn std:
         "duplicate orphan findings from multiple reconciler passes must be deduplicated; got {} findings: {:?}",
         orphan_findings.len(),
         orphan_findings
+    );
+    Ok(())
+}
+
+// ── test-coverage gate integration tests ────────────────────────────────────
+
+#[test]
+fn test_coverage_gate_emits_finding_for_untested_module() -> Result<(), Box<dyn std::error::Error>>
+{
+    let root = temp_root("coverage-gate-finding")?;
+    fs::create_dir_all(root.join("src"))?;
+    // Synced module: file present but no #[cfg(test)] block.
+    fs::write(root.join("src/lib.rs"), "pub fn run() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    assert!(
+        result.graph.findings.iter().any(|f| {
+            f.code == "CAIRN_TEST_COVERAGE_MISSING"
+                && f.node.as_deref() == Some("app.lib")
+                && f.severity == cairn::map::FindingSeverity::Warning
+        }),
+        "synced module lacking #[cfg(test)] must produce CAIRN_TEST_COVERAGE_MISSING Warning: {:?}",
+        result.graph.findings
+    );
+    Ok(())
+}
+
+#[test]
+fn test_coverage_gate_strict_blocks_on_missing_tests() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("coverage-gate-strict")?;
+    fs::create_dir_all(root.join("src"))?;
+    fs::write(root.join("src/lib.rs"), "pub fn run() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["scan", "--strict"])
+        .output()?;
+
+    assert!(
+        !output.status.success(),
+        "cairn scan --strict must exit non-zero when CAIRN_TEST_COVERAGE_MISSING is present"
+    );
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(
+        stdout.contains("CAIRN_TEST_COVERAGE_MISSING"),
+        "strict output must name the finding: {stdout}"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_coverage_gate_no_test_coverage_tag_suppresses_finding()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("coverage-gate-exempt-tag")?;
+    fs::create_dir_all(root.join("src"))?;
+    // No #[cfg(test)], but node is tagged @no-test-coverage.
+    fs::write(root.join("src/lib.rs"), "pub fn run() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" @no-test-coverage {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["scan", "--strict"])
+        .output()?;
+
+    assert!(
+        output.status.success(),
+        "cairn scan --strict must exit 0 when @no-test-coverage exempts the module: {}",
+        String::from_utf8(output.stdout)?
     );
     Ok(())
 }

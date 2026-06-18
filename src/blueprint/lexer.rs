@@ -223,3 +223,45 @@ impl Lexer<'_> {
 fn is_word_char(ch: char) -> bool {
     ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.')
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tokenize_words_tag_and_eof() {
+        let tokens = tokenize("test", "Module Foo id \"foo\" @bar").unwrap();
+        let kinds: Vec<TokenKind> = tokens.iter().map(|t| t.kind.clone()).collect();
+        assert!(kinds.contains(&TokenKind::Word("Module".to_owned())));
+        assert!(kinds.contains(&TokenKind::Word("Foo".to_owned())));
+        assert!(kinds.contains(&TokenKind::String("foo".to_owned())));
+        assert!(kinds.contains(&TokenKind::Tag("bar".to_owned())));
+        assert_eq!(kinds.last(), Some(&TokenKind::Eof));
+    }
+
+    #[test]
+    fn tokenize_arrow_braces_and_colon() {
+        let tokens = tokenize("test", "a -> b { id: \"x\" }").unwrap();
+        let kinds: Vec<TokenKind> = tokens.iter().map(|t| t.kind.clone()).collect();
+        assert!(kinds.contains(&TokenKind::Arrow));
+        assert!(kinds.contains(&TokenKind::OpenBrace));
+        assert!(kinds.contains(&TokenKind::Colon));
+        assert!(kinds.contains(&TokenKind::CloseBrace));
+    }
+
+    #[test]
+    fn tokenize_hyphenated_tag() {
+        let tokens = tokenize("test", "@no-test-coverage").unwrap();
+        assert_eq!(
+            tokens[0].kind,
+            TokenKind::Tag("no-test-coverage".to_owned())
+        );
+    }
+
+    #[test]
+    fn tokenize_unterminated_string_is_error() {
+        let err = tokenize("test", "\"unterminated").unwrap_err();
+        assert!(matches!(*err.kind, ParseErrorKind::UnterminatedString));
+        assert_eq!(err.code, "CAIRN_PARSE_UNTERMINATED_STRING");
+    }
+}

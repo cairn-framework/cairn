@@ -63,8 +63,14 @@ fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(root.join("meta/research"))?;
     fs::create_dir_all(root.join("meta/sources"))?;
     fs::create_dir_all(root.join(".cairn"))?;
-    fs::write(root.join("src/api/lib.rs"), "pub fn serve() {}\n")?;
-    fs::write(root.join("src/core/lib.rs"), "pub fn core() {}\n")?;
+    fs::write(
+        root.join("src/api/lib.rs"),
+        "pub fn serve() {}\n#[cfg(test)]\nmod tests {}\n",
+    )?;
+    fs::write(
+        root.join("src/core/lib.rs"),
+        "pub fn core() {}\n#[cfg(test)]\nmod tests {}\n",
+    )?;
     fs::write(
         root.join("cairn.blueprint"),
         r#"System App "desc" id "app" @product {

@@ -78,7 +78,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/bin/cairn-mcp.rs"
     }
 
-    Module Macros "Proc-macro crate for compile-time attributes" id "cairn.macros" @build {
+    Module Macros "Proc-macro crate for compile-time attributes" id "cairn.macros" @build @no-test-coverage {
         path "./cairn-macros"
     }
 
@@ -98,7 +98,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/summariser"
     }
 
-    Module Tests "Integration and smoke tests" id "cairn.tests" @test {
+    Module Tests "Integration and smoke tests" id "cairn.tests" @test @no-test-coverage {
         path "./tests"
     }
 }

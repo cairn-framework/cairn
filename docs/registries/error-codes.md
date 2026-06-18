@@ -60,6 +60,7 @@ _No codes allocated yet._
 ## CH -- Hooks
 
 - CH001 -- blueprint architectural mutation lacks paired decision artefact -- issue #68
+- CH002 -- synced module lacks test coverage (CAIRN_TEST_COVERAGE_MISSING) -- change `cairn-test-coverage-gate`
 
 ## CE -- Edges
 
