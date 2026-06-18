@@ -43,6 +43,21 @@ repos:
         pass_filenames: false
         stages: [pre-push]
 
+      - id: biome-format-check
+        name: biome format check (webui)
+        entry: biome format --check
+        language: system
+        files: ^src/ui_assets/(app\.js|style\.css)$
+        pass_filenames: true
+
+      - id: biome-lint
+        name: biome lint (webui)
+        entry: biome lint
+        language: system
+        files: ^src/ui_assets/(app\.js|style\.css)$
+        pass_filenames: true
+        stages: [pre-push]
+
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
