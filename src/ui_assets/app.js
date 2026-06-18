@@ -15,7 +15,8 @@
  * contracts + decisions, clamped to the 0 through 5 band the widget expects.
  */
 
-(function () {
+(() => {
+  // biome-ignore lint/suspicious/noRedundantUseStrict: classic script (no type=module); strict mode is intentional here
   "use strict";
 
   if (typeof window === "undefined" || !window.preact || !window.preactHooks || !window.htm) {
@@ -64,7 +65,7 @@
 
   function copyFinding(code) {
     if (!_copyData) return null;
-    const obj = (_copyData.findings || {}).codes || {};
+    const obj = _copyData.findings?.codes || {};
     const entry = obj[code];
     if (!entry || typeof entry !== "object") return null;
     return entry;
@@ -168,11 +169,7 @@
   }
 
   function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   // Tokenize a blueprint line into coloured spans. Mirrors the v2 prototype so
@@ -219,7 +216,7 @@
 
   function truncate(value, limit) {
     if (!value || value.length <= limit) return value || "";
-    return value.slice(0, limit - 1) + "\u2026";
+    return `${value.slice(0, limit - 1)}\u2026`;
   }
 
   // Clamp any count into the 0 through 5 band used by the chain-balance widget.
@@ -280,8 +277,7 @@
         .filter((m) => m.parent === containerId)
         .slice()
         .sort((a, b) => {
-          const rank = (state) =>
-            state === "ghost" ? 0 : state === "orphaned" ? 1 : 2;
+          const rank = (state) => (state === "ghost" ? 0 : state === "orphaned" ? 1 : 2);
           const rr = rank(a.state) - rank(b.state);
           if (rr !== 0) return rr;
           return (a.name || a.id).localeCompare(b.name || b.id);
@@ -306,9 +302,7 @@
       }
     };
 
-    const topContainers = containers.filter(
-      (c) => c.parent === (system ? system.id : null) || !c.parent,
-    );
+    const topContainers = containers.filter((c) => c.parent === (system ? system.id : null) || !c.parent);
     const orphanedContainers = containers.filter((c) => !topContainers.includes(c));
 
     for (const container of [...topContainers, ...orphanedContainers]) {
@@ -453,9 +447,7 @@
       }
     }
 
-    const graphStats = status
-      ? `${status.nodes} nodes, ${status.edges} edges, ${status.findings} findings`
-      : "";
+    const graphStats = status ? `${status.nodes} nodes, ${status.edges} edges, ${status.findings} findings` : "";
 
     return html`
       <header class="topbar">
@@ -465,9 +457,7 @@
             <span class="brand-name">Cairn</span>
           </button>
           <nav class="breadcrumb" aria-label="Selection breadcrumb">
-            ${crumbs.length === 0
-              ? html`<span class="crumb">map</span>`
-              : crumbs}
+            ${crumbs.length === 0 ? html`<span class="crumb">map</span>` : crumbs}
           </nav>
         </div>
         <div class="topbar-center">
@@ -493,15 +483,7 @@
 
   function SystemNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     const d = node.data;
-    const strokeColor = selected
-      ? "var(--seam-carved)"
-      : findingSeverity === "error"
-        ? "var(--ghost)"
-        : findingSeverity === "warning"
-          ? "var(--orphaned)"
-          : findingSeverity === "info"
-            ? "var(--settled)"
-            : "var(--seam-thin)";
+    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
     return html`
       <g class=${clsx("canvas-node", dimmed && "dimmed")}
          transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
@@ -524,15 +506,7 @@
 
   function ContainerNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     const d = node.data;
-    const strokeColor = selected
-      ? "var(--seam-carved)"
-      : findingSeverity === "error"
-        ? "var(--ghost)"
-        : findingSeverity === "warning"
-          ? "var(--orphaned)"
-          : findingSeverity === "info"
-            ? "var(--settled)"
-            : "var(--seam-thin)";
+    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
     return html`
       <g class=${clsx("canvas-node", dimmed && "dimmed")}
          transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
@@ -557,25 +531,8 @@
     const d = node.data;
     const recon = d.state || "synced";
     const breath = recon !== "synced";
-    const statusColor =
-      recon === "ghost"
-        ? "var(--ghost)"
-        : recon === "orphaned"
-          ? "var(--orphaned)"
-          : "var(--synced)";
-    const strokeColor = selected
-      ? "var(--seam-carved)"
-      : findingSeverity === "error"
-        ? "var(--ghost)"
-        : findingSeverity === "warning"
-          ? "var(--orphaned)"
-          : findingSeverity === "info"
-            ? "var(--settled)"
-            : recon === "ghost"
-              ? "var(--ghost)"
-              : recon === "orphaned"
-                ? "var(--orphaned)"
-                : "var(--seam-thin)";
+    const statusColor = recon === "ghost" ? "var(--ghost)" : recon === "orphaned" ? "var(--orphaned)" : "var(--synced)";
+    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : recon === "ghost" ? "var(--ghost)" : recon === "orphaned" ? "var(--orphaned)" : "var(--seam-thin)";
 
     const counts = node.counts || { provenance: 0, authority: 0, decisions: 0, contracts: 0 };
     const provStrength = Math.max(0.15, balanceFromCount(counts.provenance) / 5);
@@ -604,23 +561,28 @@
         <text x="64" y="20" font-size="10" font-family="var(--font-mono)"
               fill="var(--ink-ghost)" letter-spacing="1">· ${truncate(d.id, 24)}</text>
         <circle cx=${node.width - 16} cy="16" r="3.5" fill=${statusColor}/>
-        ${breath
-          ? html`<circle cx=${node.width - 16} cy="16" r="6" fill="none" stroke=${statusColor} stroke-width="1" opacity="0.4">
+        ${
+          breath
+            ? html`<circle cx=${node.width - 16} cy="16" r="6" fill="none" stroke=${statusColor} stroke-width="1" opacity="0.4">
               <animate attributeName="r" values="4;8;4" dur="2.4s" repeatCount="indefinite"/>
               <animate attributeName="opacity" values="0.5;0;0.5" dur="2.4s" repeatCount="indefinite"/>
             </circle>`
-          : null}
-        ${findingSeverity
-          ? html`<rect x=${node.width - 10} y="8" width="6" height="6" rx="1.5"
+            : null
+        }
+        ${
+          findingSeverity
+            ? html`<rect x=${node.width - 10} y="8" width="6" height="6" rx="1.5"
                 fill=${findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : "var(--settled)"}/>`
-          : null}
+            : null
+        }
         <text x="14" y="46" font-size="17" font-family="var(--font-serif)"
               fill="var(--ink-char)" font-weight="500" letter-spacing="-0.3"
               style="font-variation-settings: 'opsz' 20">${truncate(d.name, 22)}</text>
         <text x="14" y="62" font-size="10.5" font-family="var(--font-mono)"
               fill="var(--ink-mist)" letter-spacing="0.4">${truncate(d.id, 28)}</text>
-        ${recon !== "synced"
-          ? html`<g transform=${`translate(${node.width - 74}, 30)`}>
+        ${
+          recon !== "synced"
+            ? html`<g transform=${`translate(${node.width - 74}, 30)`}>
               <rect x="0" y="0" width="58" height="16" rx="3"
                     fill=${recon === "ghost" ? "var(--ghost-wash)" : "var(--orphan-wash)"}
                     stroke=${recon === "ghost" ? "var(--ghost)" : "var(--orphaned)"}
@@ -630,7 +592,8 @@
                     letter-spacing="1.2" text-anchor="middle"
                     style="text-transform:uppercase">${recon}</text>
             </g>`
-          : null}
+            : null
+        }
         <line x1="12" y1="78" x2=${node.width - 12} y2="78" stroke="var(--seam-faint)"/>
         <g transform="translate(14, 88)">
           <rect x="0" y="3" width="72" height="3" rx="1.5" fill="rgba(255,255,255,0.04)"/>
@@ -640,9 +603,7 @@
           <rect x="92" y="3" width="72" height="3" rx="1.5" fill="rgba(255,255,255,0.04)"/>
           <rect x="92" y="3" width=${authStrength * 72} height="3" rx="1.5" fill="var(--auth-2)"/>
           <text x=${node.width - 28} y="7" font-size="9" font-family="var(--font-mono)"
-                fill="var(--ink-faded)" letter-spacing="0.3" text-anchor="end">${
-                  dependentCount > 0 ? `${dependentCount} dep` : ""
-                }</text>
+                fill="var(--ink-faded)" letter-spacing="0.3" text-anchor="end">${dependentCount > 0 ? `${dependentCount} dep` : ""}</text>
         </g>
       </g>
     `;
@@ -661,16 +622,7 @@
     `;
   }
 
-  function GraphCanvas({
-    graph,
-    layoutData,
-    selection,
-    hoveredId,
-    lint,
-    onSelect,
-    onHover,
-    edgeTrace,
-  }) {
+  function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, onHover, edgeTrace }) {
     const svgRef = useRef(null);
     const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
     const [panState, setPanState] = useState(null);
@@ -786,14 +738,18 @@
           <g transform=${`translate(${viewport.x}, ${viewport.y}) scale(${viewport.zoom})`}>
             <line x1="900" y1="20" x2="900" y2=${totalHeight}
                   stroke="var(--seam-clear)" stroke-dasharray="1 6" opacity="0.6"/>
-            ${ownershipEdges.map((e, i) => html`
+            ${ownershipEdges.map(
+              (e, i) => html`
               <path key=${`o-${i}`} class=${clsx("edge", isTraced(e) && "traced", isDimmed(e) && "dimmed")}
                     d=${e.d}/>
-            `)}
-            ${dependencyEdges.map((e, i) => html`
+            `,
+            )}
+            ${dependencyEdges.map(
+              (e, i) => html`
               <path key=${`d-${i}`} class=${clsx("edge dependency", isTraced(e) && "traced", isDimmed(e) && "dimmed")}
                     d=${e.d}/>
-            `)}
+            `,
+            )}
             ${ownershipEdges.map((e, i) => {
               const m = edgeMidpoint(e.from, e.to);
               return html`
@@ -818,9 +774,11 @@
               const isSelected = selection && selection.id === n.id;
               const isHovered = hoveredId === n.id;
               const findingSeverity = nodeSeverity.get(n.id) || null;
-              if (n.kind === "system") return html`<${SystemNode} key=${n.id} node=${n}
+              if (n.kind === "system")
+                return html`<${SystemNode} key=${n.id} node=${n}
                 selected=${isSelected} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
-              if (n.kind === "container") return html`<${ContainerNode} key=${n.id} node=${n}
+              if (n.kind === "container")
+                return html`<${ContainerNode} key=${n.id} node=${n}
                 selected=${isSelected} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
               if (n.kind === "divider") return html`<${DividerNode} key=${n.id} node=${n}/>`;
               return html`<${ModuleNode} key=${n.id} node=${n}
@@ -844,20 +802,22 @@
         </div>
 
         <div class="graph-minimap" title="Overview of reconciliation state">
-          ${graph
-            ? graph.nodes
-                .filter((n) => n.kind === "module")
-                .slice(0, 48)
-                .map((m) => {
-                  const active = selection && selection.id === m.id;
-                  const state = m.state || "synced";
-                  return html`<div key=${m.id}
+          ${
+            graph
+              ? graph.nodes
+                  .filter((n) => n.kind === "module")
+                  .slice(0, 48)
+                  .map((m) => {
+                    const active = selection && selection.id === m.id;
+                    const state = m.state || "synced";
+                    return html`<div key=${m.id}
                     class=${clsx("mini-dot", state, active && "active")}
                     style="height:22px"
                     onClick=${() => onSelect(m.id)}
                     title=${`${m.name}: ${state}`}></div>`;
-                })
-            : null}
+                  })
+              : null
+          }
         </div>
 
         <div class="graph-legend">
@@ -920,16 +880,9 @@
   }
 
   function buildBlueprintSnippet(node) {
-    const kindKeyword =
-      node.kind === "system"
-        ? "System"
-        : node.kind === "container"
-          ? "Container"
-          : node.kind === "module"
-            ? "Module"
-            : "Actor";
+    const kindKeyword = node.kind === "system" ? "System" : node.kind === "container" ? "Container" : node.kind === "module" ? "Module" : "Actor";
     const base = `${kindKeyword} ${node.name || ""} "${node.description || ""}" id "${node.id}"`;
-    const lines = [base + " {"];
+    const lines = [`${base} {`];
     for (const p of node.paths || []) lines.push(`  path "${p}"`);
     for (const c of node.contracts || []) lines.push(`  contract "${c}"`);
     lines.push("}");
@@ -937,7 +890,7 @@
   }
 
   function ArtefactCard({ artefact }) {
-    const status = (artefact.frontmatter && artefact.frontmatter.status) || artefact.type;
+    const status = artefact.frontmatter?.status || artefact.type;
     const kindClass = artefact.type === "decisions" ? "decision" : artefact.type;
     return html`
       <div class=${clsx("artefact", kindClass, status)}>
@@ -947,9 +900,7 @@
         </div>
         <div class="artefact-title">${artefact.title || artefact.path}</div>
         <div class="artefact-meta">${artefact.path}</div>
-        ${artefact.body
-          ? html`<div class="artefact-body">${truncate(artefact.body, 480)}</div>`
-          : null}
+        ${artefact.body ? html`<div class="artefact-body">${truncate(artefact.body, 480)}</div>` : null}
       </div>
     `;
   }
@@ -1021,26 +972,20 @@
           <strong>${nudge.heading}</strong>
         </div>
         <p class="prose-nudge-body">${nudge.body}</p>
-        ${nudge.cta
-          ? html`<div class="prose-nudge-cta-row">
+        ${
+          nudge.cta
+            ? html`<div class="prose-nudge-cta-row">
               <code class="prose-nudge-cta">${nudge.cta}</code>
               <${CopyButton} text=${nudge.cta} />
             </div>`
-          : null}
+            : null
+        }
       </div>
     `;
   }
 
   function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onViewBlueprint, onClose }) {
-    const {
-      contracts,
-      decisions,
-      todos,
-      research,
-      sources,
-      depends,
-      dependents,
-    } = detail;
+    const { contracts, decisions, todos, research, sources, depends, dependents } = detail;
 
     const provCount = (sources?.length || 0) + (research?.length || 0);
     const authCount = (contracts?.length || 0) + (decisions?.length || 0);
@@ -1049,8 +994,8 @@
 
     const sortedDecisions = (decisions || []).slice().sort((a, b) => {
       const rank = (s) => (s === "proposed" ? 0 : s === "accepted" ? 1 : 2);
-      const sa = (a.frontmatter && a.frontmatter.status) || "accepted";
-      const sb = (b.frontmatter && b.frontmatter.status) || "accepted";
+      const sa = a.frontmatter?.status || "accepted";
+      const sb = b.frontmatter?.status || "accepted";
       return rank(sa) - rank(sb);
     });
 
@@ -1070,9 +1015,7 @@
         </div>
         <h2 class="ins-title">${node.name || node.id}</h2>
         <div class="ins-slug">${node.id}</div>
-        ${node.description
-          ? html`<p class="ins-desc">${node.description}</p>`
-          : null}
+        ${node.description ? html`<p class="ins-desc">${node.description}</p>` : null}
 
         <div class="pill-row">
           <span class=${clsx("pill", node.state || "synced")}>
@@ -1091,17 +1034,16 @@
             <span class="ins-section-count">${pathEntries.length}</span>
           </div>
           <div class="paths-list">
-            ${pathEntries.length === 0
-              ? html`<div class="row-empty">${copy("empty-states.node-no-paths.body")}</div>`
-              : pathEntries.map((p) => renderPath(p.path, p.state))}
+            ${pathEntries.length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-paths.body")}</div>` : pathEntries.map((p) => renderPath(p.path, p.state))}
           </div>
         </div>
 
-        ${detail.loading
-          ? html`<div class="row-empty">${copy("empty-states.node-artefacts-loading.body")}</div>`
-          : detail.failed
-          ? html`<div class="row-empty">${copy("empty-states.node-artefacts-failed.body")}</div>`
-          : html`
+        ${
+          detail.loading
+            ? html`<div class="row-empty">${copy("empty-states.node-artefacts-loading.body")}</div>`
+            : detail.failed
+              ? html`<div class="row-empty">${copy("empty-states.node-artefacts-failed.body")}</div>`
+              : html`
         <div class="chain-balance">
           <div class="balance-grid">
             <div class="balance-side prov">
@@ -1145,67 +1087,60 @@
         </div>
 
         <${Section} label="Contracts" count=${contracts?.length || 0}>
-          ${(contracts || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-contracts.body")}</div>`
-            : (contracts || []).map((c) => html`<${ArtefactCard} key=${c.path} artefact=${c}/>`)}
+          ${(contracts || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-contracts.body")}</div>` : (contracts || []).map((c) => html`<${ArtefactCard} key=${c.path} artefact=${c}/>`)}
         <//>
 
         <${Section} label="Decisions" count=${decisions?.length || 0} defaultOpen=${sortedDecisions.length > 0}>
-          ${sortedDecisions.length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-decisions.body")}</div>`
-            : sortedDecisions.map((d) => html`
-                <button class=${clsx("artefact", "decision", (d.frontmatter && d.frontmatter.status) || "accepted")}
+          ${
+            sortedDecisions.length === 0
+              ? html`<div class="row-empty">${copy("empty-states.node-no-decisions.body")}</div>`
+              : sortedDecisions.map(
+                  (d) => html`
+                <button class=${clsx("artefact", "decision", d.frontmatter?.status || "accepted")}
                   key=${d.path} onClick=${() => onSelectDecision(d)}>
                   <div class="artefact-head">
                     <span class="artefact-id">decision</span>
-                    <span class=${clsx("artefact-status", (d.frontmatter && d.frontmatter.status) || "accepted")}>
-                      ${(d.frontmatter && d.frontmatter.status) || "accepted"}
+                    <span class=${clsx("artefact-status", d.frontmatter?.status || "accepted")}>
+                      ${d.frontmatter?.status || "accepted"}
                     </span>
                   </div>
                   <div class="artefact-title">${d.title || d.path}</div>
                   <div class="artefact-meta">${d.path}</div>
                 </button>
-              `)}
+              `,
+                )
+          }
         <//>
 
         <${Section} label="Todos" count=${todos?.length || 0}>
-          ${(todos || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-todos.body")}</div>`
-            : (todos || []).map((t) => html`<${ArtefactCard} key=${t.path} artefact=${t}/>`)}
+          ${(todos || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-todos.body")}</div>` : (todos || []).map((t) => html`<${ArtefactCard} key=${t.path} artefact=${t}/>`)}
         <//>
 
         <${Section} label="Research" count=${research?.length || 0}>
-          ${(research || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-research.body")}</div>`
-            : (research || []).map((r) => html`<${ArtefactCard} key=${r.path} artefact=${r}/>`)}
+          ${(research || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-research.body")}</div>` : (research || []).map((r) => html`<${ArtefactCard} key=${r.path} artefact=${r}/>`)}
         <//>
 
         <${Section} label="Sources" count=${sources?.length || 0}>
-          ${(sources || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-sources.body")}</div>`
-            : (sources || []).map((s) => html`<${ArtefactCard} key=${s.path} artefact=${s}/>`)}
+          ${(sources || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-sources.body")}</div>` : (sources || []).map((s) => html`<${ArtefactCard} key=${s.path} artefact=${s}/>`)}
         <//>
 
         <${Section} label="Depends on" count=${depends?.length || 0}>
-          ${(depends || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-outbound.body")}</div>`
-            : (depends || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
+          ${(depends || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-outbound.body")}</div>` : (depends || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
         <//>
 
         <${Section} label="Dependents" count=${dependents?.length || 0}>
-          ${(dependents || []).length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-inbound.body")}</div>`
-            : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
+          ${(dependents || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-inbound.body")}</div>` : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
         <//>
-        `}
+        `
+        }
       </section>
     `;
   }
 
   function DecisionDetail({ decision, node, onBack, onSelect }) {
-    const status = (decision.frontmatter && decision.frontmatter.status) || "accepted";
-    const date = (decision.frontmatter && decision.frontmatter.date) || null;
-    const author = (decision.frontmatter && decision.frontmatter.author) || null;
+    const status = decision.frontmatter?.status || "accepted";
+    const date = decision.frontmatter?.date || null;
+    const author = decision.frontmatter?.author || null;
 
     const body = decision.body || "";
     const conditionMatch = /##\s*(Condition|When this applies)\s*\n([\s\S]*?)(?=\n##\s|\s*$)/i.exec(body);
@@ -1224,19 +1159,23 @@
           ${author ? html`<span class="pill">${author}</span>` : null}
         </div>
 
-        ${condition
-          ? html`<div class="decision-condition">
+        ${
+          condition
+            ? html`<div class="decision-condition">
               <div class="caps">When this applies</div>
               <div class="condition-text">${condition}</div>
             </div>`
-          : null}
+            : null
+        }
 
-        ${rationale
-          ? html`<div class="decision-rationale">
+        ${
+          rationale
+            ? html`<div class="decision-rationale">
               <div class="caps">Rationale</div>
               <p>${rationale}</p>
             </div>`
-          : null}
+            : null
+        }
 
         <div class="hinge-diagram">
           <div class="hinge-side prov">
@@ -1257,15 +1196,17 @@
           </div>
         </div>
 
-        ${node
-          ? html`<div class="attached-modules">
+        ${
+          node
+            ? html`<div class="attached-modules">
               <div class="caps">Attached to</div>
               <button class="attached-module" onClick=${() => onSelect(node.id)}>
                 <div class="name">${node.name}</div>
                 <div class="slug">${node.id}</div>
               </button>
             </div>`
-          : null}
+            : null
+        }
       </section>
     `;
   }
@@ -1280,13 +1221,11 @@
     return html`
       <section class="inspector empty-inspector">
         <div class="ins-eyebrow">Map</div>
-        <h2 class="ins-title">${graph && graph.nodes[0] ? graph.nodes[0].name : "Cairn"}</h2>
+        <h2 class="ins-title">${graph?.nodes[0] ? graph.nodes[0].name : "Cairn"}</h2>
         <div class="ins-slug">
           ${status ? `${status.nodes} nodes · ${status.edges} edges · ${status.findings} findings` : ""}
         </div>
-        ${graph && graph.nodes[0] && graph.nodes[0].description
-          ? html`<p class="ins-desc">${graph.nodes[0].description}</p>`
-          : null}
+        ${graph?.nodes[0]?.description ? html`<p class="ins-desc">${graph.nodes[0].description}</p>` : null}
 
         <div class="stat-grid">
           <div class="stat-cell">
@@ -1294,7 +1233,7 @@
             <div class="caps">modules</div>
           </div>
           <div class="stat-cell">
-            <div class=${clsx("stat-n", (ghostCount > 0) && "ghost")}>${ghostCount}</div>
+            <div class=${clsx("stat-n", ghostCount > 0 && "ghost")}>${ghostCount}</div>
             <div class="caps">ghost</div>
           </div>
           <div class="stat-cell">
@@ -1303,11 +1242,13 @@
           </div>
         </div>
 
-        ${lint && lint.findings && lint.findings.length > 0
-          ? html`<div>
+        ${
+          lint?.findings && lint.findings.length > 0
+            ? html`<div>
               <div class="caps" style="margin-bottom:var(--s-2)">Recent findings</div>
               <div class="recent-list">
-                ${lint.findings.slice(0, 5).map((f) => html`
+                ${lint.findings.slice(0, 5).map(
+                  (f) => html`
                   <button class="recent-row" key=${f.code + (f.node || "") + (f.path || "")}
                     onClick=${() => f.node && onSelect(f.node)}>
                     <span class="r-id">${f.code}</span>
@@ -1316,11 +1257,13 @@
                       <span class="dot"></span>${f.severity}
                     </span>
                   </button>
-                `)}
+                `,
+                )}
               </div>
               <button class="btn-text" style="margin-top:var(--s-2)" onClick=${onShowFindings}>View all findings →</button>
             </div>`
-          : html`<div class="row-empty">${copy("empty-states.map-clean.body")}</div>`}
+            : html`<div class="row-empty">${copy("empty-states.map-clean.body")}</div>`
+        }
 
         <div class="hint">
           <kbd>⌘</kbd><kbd>K</kbd> query the map. Click any stone to consult it.
@@ -1382,23 +1325,35 @@
 
         <div class="findings-controls">
           <div class="scope-toggle">
-            <button class=${clsx(scope === "map" && "active")} onClick=${() => { setScope("map"); setActiveCategory(null); }}>Whole map</button>
-            <button class=${clsx(scope === "node" && !nodeDisabled && "active")} onClick=${() => { setScope("node"); setActiveCategory(null); }} disabled=${nodeDisabled}>Selected node</button>
+            <button class=${clsx(scope === "map" && "active")} onClick=${() => {
+              setScope("map");
+              setActiveCategory(null);
+            }}>Whole map</button>
+            <button class=${clsx(scope === "node" && !nodeDisabled && "active")} onClick=${() => {
+              setScope("node");
+              setActiveCategory(null);
+            }} disabled=${nodeDisabled}>Selected node</button>
           </div>
-          ${categories.length > 1
-            ? html`<div class="category-chips">
+          ${
+            categories.length > 1
+              ? html`<div class="category-chips">
                 <button class=${clsx("pill", !activeCategory && "synced")} onClick=${() => setActiveCategory(null)}>All</button>
-                ${categories.map((c) => html`
+                ${categories.map(
+                  (c) => html`
                   <button class=${clsx("pill", activeCategory === c && "synced")} key=${c} onClick=${() => setActiveCategory(activeCategory === c ? null : c)}>${c}</button>
-                `)}
+                `,
+                )}
               </div>`
-            : null}
+              : null
+          }
         </div>
 
         <div class="findings-list">
-          ${findings.length === 0
-            ? html`<div class="row-empty">${(scope !== "map" || activeCategory) && scopeFiltered.length > 0 ? copy("empty-states.no-filter-matches.body") : copy("empty-states.map-clean.body")}</div>`
-            : findings.map((f) => html`
+          ${
+            findings.length === 0
+              ? html`<div class="row-empty">${(scope !== "map" || activeCategory) && scopeFiltered.length > 0 ? copy("empty-states.no-filter-matches.body") : copy("empty-states.map-clean.body")}</div>`
+              : findings.map(
+                  (f) => html`
                 <button class="recent-row" key=${f.code + (f.node || "") + (f.path || "")}
                   onClick=${() => f.node && onSelect(f.node)}>
                   <span class="r-id">${f.code}</span>
@@ -1407,7 +1362,9 @@
                     <span class="dot"></span>${f.severity}
                   </span>
                 </button>
-              `)}
+              `,
+                )
+          }
         </div>
       </section>
     `;
@@ -1450,11 +1407,7 @@
     const matches = graph
       ? graph.nodes.filter((n) => {
           if (!ql) return false;
-          return (
-            n.id.toLowerCase().includes(ql) ||
-            (n.name || "").toLowerCase().includes(ql) ||
-            (n.kind || "").toLowerCase().includes(ql)
-          );
+          return n.id.toLowerCase().includes(ql) || (n.name || "").toLowerCase().includes(ql) || (n.kind || "").toLowerCase().includes(ql);
         })
       : [];
     const shown = matches.slice(0, 20);
@@ -1482,13 +1435,17 @@
           <div class="cmd-palette-head">
             <span class="cmd-label">Query</span>
             <input ref=${inputRef} value=${q}
-              onInput=${(e) => { setQ(e.target.value); setActiveIdx(0); }}
+              onInput=${(e) => {
+                setQ(e.target.value);
+                setActiveIdx(0);
+              }}
               onKeyDown=${onInputKey}
               placeholder="search modules, containers, decisions"/>
             <kbd>esc</kbd>
           </div>
-          ${q === ""
-            ? html`<div class="cmd-palette-syntax">
+          ${
+            q === ""
+              ? html`<div class="cmd-palette-syntax">
                 <div class="caps">Query syntax</div>
                 <div class="syntax-grid">
                   <span class="kw">module</span><span class="rest">show a module by id or name</span>
@@ -1496,12 +1453,14 @@
                   <span class="kw">ghost</span><span class="rest">list reconciliation gaps</span>
                 </div>
               </div>`
-            : html`<div class="cmd-palette-results">
-                ${matches.length === 0
-                  ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches.body")}</div>`
-                  : html`<${Fragment}>
+              : html`<div class="cmd-palette-results">
+                ${
+                  matches.length === 0
+                    ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches.body")}</div>`
+                    : html`<${Fragment}>
                       <div class="caps result-group">Nodes</div>
-                      ${shown.map((n, i) => html`
+                      ${shown.map(
+                        (n, i) => html`
                         <button class=${clsx("result-row", i === activeIdx && "active")} key=${n.id}
                           onClick=${() => {
                             onSelect(n.id);
@@ -1511,9 +1470,12 @@
                           <span class="title">${n.name}</span>
                           <span class="rhs">${n.id}</span>
                         </button>
-                      `)}
-                    <//>`}
-              </div>`}
+                      `,
+                      )}
+                    <//>`
+                }
+              </div>`
+          }
         </div>
       </div>
     `;
@@ -1524,7 +1486,7 @@
   // ==========================================================================
 
   function ChangesDrawer({ open, onToggle, lint, onSelect }) {
-    const findings = (lint && lint.findings) || [];
+    const findings = lint?.findings || [];
     return html`
       <div class="changes-drawer">
         <button class="drawer-handle" onClick=${onToggle}>
@@ -1533,11 +1495,13 @@
           <span class="sub">reconciliation and integrity notes</span>
           <span class="chev">${open ? "▾" : "▴"}</span>
         </button>
-        ${open
-          ? findings.length === 0
-            ? html`<div class="drawer-empty">${copy("empty-states.map-clean.body")}</div>`
-            : html`<div class="drawer-body">
-                ${findings.map((f) => html`
+        ${
+          open
+            ? findings.length === 0
+              ? html`<div class="drawer-empty">${copy("empty-states.map-clean.body")}</div>`
+              : html`<div class="drawer-body">
+                ${findings.map(
+                  (f) => html`
                   <button class="change-card"
                     key=${f.code + (f.node || "") + (f.path || "")}
                     onClick=${() => f.node && onSelect(f.node)}>
@@ -1550,9 +1514,11 @@
                     <div class="card-title">${f.message}</div>
                     <div class="card-slug">${f.path || f.node || ""}</div>
                   </button>
-                `)}
+                `,
+                )}
               </div>`
-          : null}
+            : null
+        }
       </div>
     `;
   }
@@ -1572,11 +1538,9 @@
     }, [open, onClose]);
 
     if (!open) return null;
-    const source = blueprint && blueprint.source;
-    const filePath = blueprint && blueprint.path;
-    const innerHtml = source
-      ? highlightBlueprint(source, focusModuleId)
-      : '<span class="cm">Blueprint source is not available.</span>';
+    const source = blueprint?.source;
+    const filePath = blueprint?.path;
+    const innerHtml = source ? highlightBlueprint(source, focusModuleId) : '<span class="cm">Blueprint source is not available.</span>';
 
     return html`
       <div class="modal-scrim centered" onClick=${onClose}>
@@ -1695,10 +1659,7 @@
       return map;
     }, [detail, selectionId]);
 
-    const layoutData = useMemo(
-      () => buildLayout(graph, artefactCountsById),
-      [graph, artefactCountsById],
-    );
+    const layoutData = useMemo(() => buildLayout(graph, artefactCountsById), [graph, artefactCountsById]);
 
     useEffect(() => {
       if (!selectionId || !graph) {
@@ -1720,20 +1681,22 @@
         fetchNodeArtefacts(selectionId, "sources"),
         fetchDepends(selectionId).catch(() => []),
         fetchDependents(selectionId).catch(() => []),
-      ]).then(([contracts, decisions, todos, research, sources, depends, dependents]) => {
-        if (cancelled) return;
-        setDetail({
-          contracts,
-          decisions,
-          todos,
-          research,
-          sources,
-          depends,
-          dependents,
+      ])
+        .then(([contracts, decisions, todos, research, sources, depends, dependents]) => {
+          if (cancelled) return;
+          setDetail({
+            contracts,
+            decisions,
+            todos,
+            research,
+            sources,
+            depends,
+            dependents,
+          });
+        })
+        .catch(() => {
+          if (!cancelled) setDetail({ failed: true });
         });
-      }).catch(() => {
-        if (!cancelled) setDetail({ failed: true });
-      });
       return () => {
         cancelled = true;
       };
@@ -1755,7 +1718,10 @@
       ? html`<${FindingsPanel}
           lint=${lint}
           selectionId=${selectionId}
-          onSelect=${(id) => { setShowFindings(false); setSelectionId(id); }}
+          onSelect=${(id) => {
+            setShowFindings(false);
+            setSelectionId(id);
+          }}
           onBack=${() => setShowFindings(false)}
         />`
       : selectedDecision
@@ -1797,19 +1763,20 @@
           onOpenBlueprint=${openBlueprint}
         />
         <div class="main">
-          ${error
-            ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
+          ${
+            error
+              ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
                 <div class="empty-state">
                   <h2 class="empty-state-heading">${copy("empty-states.map-failed.heading")}</h2>
                   <p class="empty-state-body">${error}</p>
                   <button class="btn secondary" onClick=${() => setBootTick((t) => t + 1)}>${copy("empty-states.map-failed.cta")}</button>
                 </div>
               </section>`
-            : !graph
-              ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
+              : !graph
+                ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
                   <div class="row-empty">${copy("empty-states.map-loading.body")}</div>
                 </section>`
-              : html`<${GraphCanvas}
+                : html`<${GraphCanvas}
                   graph=${graph}
                   layoutData=${layoutData}
                   selection=${selectionId ? { id: selectionId } : null}
@@ -1818,7 +1785,8 @@
                   onSelect=${(id) => setSelectionId(id)}
                   onHover=${setHoveredId}
                   edgeTrace=${hoveredId}
-                />`}
+                />`
+          }
           <aside class="inspector-wrap" aria-live="polite">
             ${inspector}
           </aside>

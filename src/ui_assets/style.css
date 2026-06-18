@@ -54,8 +54,7 @@ body::before {
   pointer-events: none;
   z-index: 9999;
   opacity: var(--grain-opacity);
-  background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.85  0 0 0 0 0.7  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.85  0 0 0 0 0.7  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   mix-blend-mode: overlay;
 }
 
@@ -211,13 +210,23 @@ kbd {
 
 /* Logo idle: a subtle 3s breath on the top stone. */
 @keyframes logo-idle-top {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%      { transform: translateY(-1px) rotate(-1.2deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-1px) rotate(-1.2deg);
+  }
 }
 
 @keyframes logo-idle-mid {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-0.5px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.5px);
+  }
 }
 
 .brand-mark .stone-top {
@@ -472,10 +481,11 @@ kbd {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle, color-mix(in oklab, var(--ink-ghost) 60%, transparent) 0.8px, transparent 1px),
-    linear-gradient(to right, color-mix(in oklab, var(--ink-ghost) 80%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--ink-ghost) 80%, transparent) 1px, transparent 1px);
-  background-size: 32px 32px, 128px 128px, 128px 128px;
+    radial-gradient(circle, color-mix(in oklab, var(--ink-ghost) 60%, transparent) 0.8px, transparent 1px), linear-gradient(to right, color-mix(in oklab, var(--ink-ghost) 80%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklab, var(--ink-ghost) 80%, transparent) 1px, transparent 1px);
+  background-size:
+    32px 32px,
+    128px 128px,
+    128px 128px;
   opacity: 0.6;
   pointer-events: none;
 }
@@ -789,8 +799,12 @@ kbd {
 /* Reconciliation settle: applied once on first render or on state change.
    Kept short and non-looping so the canvas does not bounce. */
 @keyframes recon-settle {
-  from { opacity: 0.6; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .canvas-node.settling {
@@ -799,8 +813,13 @@ kbd {
 
 /* Drift breathe: ghost / orphaned nodes pulse subtly */
 @keyframes drift-breathe {
-  0%, 100% { opacity: 0.85; }
-  50%      { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .canvas-node.breathing {
@@ -856,7 +875,8 @@ kbd {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  transition: color var(--dur-instant) var(--ease-settle),
+  transition:
+    color var(--dur-instant) var(--ease-settle),
     background var(--dur-instant) var(--ease-settle);
 }
 
@@ -1097,11 +1117,23 @@ kbd {
   margin: 0;
 }
 
-.blueprint-code .kw  { color: var(--hinge-1); }
-.blueprint-code .str { color: var(--prov-1); }
-.blueprint-code .tag { color: var(--auth-1); font-style: italic; }
-.blueprint-code .key { color: var(--ink-char); }
-.blueprint-code .cm  { color: var(--ink-mist); font-style: italic; }
+.blueprint-code .kw {
+  color: var(--hinge-1);
+}
+.blueprint-code .str {
+  color: var(--prov-1);
+}
+.blueprint-code .tag {
+  color: var(--auth-1);
+  font-style: italic;
+}
+.blueprint-code .key {
+  color: var(--ink-char);
+}
+.blueprint-code .cm {
+  color: var(--ink-mist);
+  font-style: italic;
+}
 
 /* Paths block. Always visible on module inspector. */
 .paths-block {
@@ -1232,7 +1264,9 @@ button.path-row:hover {
   height: 12px;
   background: var(--hinge-1);
   border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--stone-1), 0 0 0 3px var(--seam-carved);
+  box-shadow:
+    0 0 0 2px var(--stone-1),
+    0 0 0 3px var(--seam-carved);
 }
 
 .balance-tracks {
@@ -1403,12 +1437,24 @@ button.path-row:hover {
   background: var(--hinge-2);
 }
 
-.artefact.decision.accepted::before { background: var(--hinge-1); }
-.artefact.decision.proposed::before { background: var(--prov-1); }
-.artefact.decision.deprecated::before { background: var(--ink-ghost); }
-.artefact.decision.superseded::before { background: var(--ink-ghost); }
-.artefact.contract::before { background: var(--auth-2); }
-.artefact.change::before { background: var(--prov-2); }
+.artefact.decision.accepted::before {
+  background: var(--hinge-1);
+}
+.artefact.decision.proposed::before {
+  background: var(--prov-1);
+}
+.artefact.decision.deprecated::before {
+  background: var(--ink-ghost);
+}
+.artefact.decision.superseded::before {
+  background: var(--ink-ghost);
+}
+.artefact.contract::before {
+  background: var(--auth-2);
+}
+.artefact.change::before {
+  background: var(--prov-2);
+}
 
 .artefact-head {
   display: flex;
@@ -1435,10 +1481,27 @@ button.path-row:hover {
   margin-left: auto;
 }
 
-.artefact-status.accepted   { background: var(--hinge-wash); color: var(--hinge-1); border: 1px solid var(--hinge-2); }
-.artefact-status.proposed   { background: var(--prov-wash);  color: var(--prov-1);  border: 1px solid var(--prov-2); }
-.artefact-status.deprecated { background: transparent;        color: var(--ink-mist); border: 1px solid var(--seam-clear); }
-.artefact-status.superseded { background: transparent;        color: var(--ink-mist); border: 1px solid var(--seam-clear); text-decoration: line-through; }
+.artefact-status.accepted {
+  background: var(--hinge-wash);
+  color: var(--hinge-1);
+  border: 1px solid var(--hinge-2);
+}
+.artefact-status.proposed {
+  background: var(--prov-wash);
+  color: var(--prov-1);
+  border: 1px solid var(--prov-2);
+}
+.artefact-status.deprecated {
+  background: transparent;
+  color: var(--ink-mist);
+  border: 1px solid var(--seam-clear);
+}
+.artefact-status.superseded {
+  background: transparent;
+  color: var(--ink-mist);
+  border: 1px solid var(--seam-clear);
+  text-decoration: line-through;
+}
 
 .artefact-title {
   font-family: var(--font-serif);
@@ -1732,7 +1795,9 @@ button.path-row:hover {
   height: 16px;
   background: var(--hinge-1);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px var(--stone-1), 0 0 0 4px var(--seam-carved);
+  box-shadow:
+    0 0 0 3px var(--stone-1),
+    0 0 0 4px var(--seam-carved);
   position: relative;
   z-index: 2;
 }
@@ -1830,13 +1895,27 @@ button.path-row:hover {
   color: var(--ink-aged);
   padding: var(--s-1) var(--s-3);
   border-radius: var(--r-edge);
-  transition: background var(--dur-quick) var(--ease-settle), color var(--dur-quick) var(--ease-settle);
+  transition:
+    background var(--dur-quick) var(--ease-settle),
+    color var(--dur-quick) var(--ease-settle);
 }
 
-.findings-panel .scope-toggle button:hover { background: var(--stone-3); color: var(--ink-char); }
-.findings-panel .scope-toggle button.active { background: var(--stone-4); color: var(--ink-char); }
-.findings-panel .scope-toggle button:disabled { opacity: 0.4; cursor: default; }
-.findings-panel .scope-toggle button:disabled:hover { background: transparent; color: var(--ink-aged); }
+.findings-panel .scope-toggle button:hover {
+  background: var(--stone-3);
+  color: var(--ink-char);
+}
+.findings-panel .scope-toggle button.active {
+  background: var(--stone-4);
+  color: var(--ink-char);
+}
+.findings-panel .scope-toggle button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.findings-panel .scope-toggle button:disabled:hover {
+  background: transparent;
+  color: var(--ink-aged);
+}
 
 .findings-panel .category-chips {
   display: flex;
@@ -1875,9 +1954,15 @@ button.path-row:hover {
   border-radius: var(--r-edge);
   background: var(--stone-2);
 }
-.prose-nudge.error { border-left-color: var(--ghost); }
-.prose-nudge.warning { border-left-color: var(--orphaned); }
-.prose-nudge.info { border-left-color: var(--settled); }
+.prose-nudge.error {
+  border-left-color: var(--ghost);
+}
+.prose-nudge.warning {
+  border-left-color: var(--orphaned);
+}
+.prose-nudge.info {
+  border-left-color: var(--settled);
+}
 
 .prose-nudge-heading {
   display: flex;
@@ -2088,13 +2173,23 @@ button.path-row:hover {
 }
 
 @keyframes scrim-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes palette-in {
-  from { transform: translateY(-12px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .cmd-palette {
@@ -2304,11 +2399,23 @@ button.path-row:hover {
   white-space: pre;
 }
 
-.blueprint-modal pre .kw  { color: var(--hinge-1); }
-.blueprint-modal pre .str { color: var(--prov-1); }
-.blueprint-modal pre .tag { color: var(--auth-1); font-style: italic; }
-.blueprint-modal pre .key { color: var(--ink-char); }
-.blueprint-modal pre .cm  { color: var(--ink-mist); font-style: italic; }
+.blueprint-modal pre .kw {
+  color: var(--hinge-1);
+}
+.blueprint-modal pre .str {
+  color: var(--prov-1);
+}
+.blueprint-modal pre .tag {
+  color: var(--auth-1);
+  font-style: italic;
+}
+.blueprint-modal pre .key {
+  color: var(--ink-char);
+}
+.blueprint-modal pre .cm {
+  color: var(--ink-mist);
+  font-style: italic;
+}
 
 .blueprint-modal .modal-foot {
   padding: var(--s-3) var(--s-6);
@@ -2442,8 +2549,11 @@ button.path-row:hover {
   *,
   *::before,
   *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: prefers-reduced-motion override requires !important to beat any specificity */
     animation-duration: 0.001ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: prefers-reduced-motion override requires !important to beat any specificity */
     animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: prefers-reduced-motion override requires !important to beat any specificity */
     transition-duration: 0.001ms !important;
   }
 
@@ -2451,6 +2561,7 @@ button.path-row:hover {
   .brand-mark .stone-mid,
   .canvas-node.settling,
   .canvas-node.breathing {
+    /* biome-ignore lint/complexity/noImportantStyles: prefers-reduced-motion override requires !important to beat any specificity */
     animation: none !important;
   }
 }

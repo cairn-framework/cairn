@@ -5,7 +5,7 @@ check:
 	cargo clippy --all-targets --all-features -- -D warnings
 	cargo test
 	RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
-	biome check src/ui_assets/app.js src/ui_assets/style.css
+	biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css
 
 # One-screen project status. Sub-targets are independently runnable so a failure
 # in one (e.g. corrupt worktree state) doesn't suppress the others.
@@ -39,7 +39,7 @@ install-hooks:
 	prek install --install-hooks --hook-type pre-commit --hook-type pre-push
 
 biome-check:
-	biome check src/ui_assets/app.js src/ui_assets/style.css
+	biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css
 
 biome-fix:
 	biome check --write --unsafe src/ui_assets/app.js

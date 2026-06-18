@@ -45,14 +45,14 @@ repos:
 
       - id: biome-format-check
         name: biome format check (webui)
-        entry: biome format --check
+        entry: biome check --error-on-warnings --linter-enabled=false
         language: system
         files: ^src/ui_assets/(app\.js|style\.css)$
         pass_filenames: true
 
       - id: biome-lint
         name: biome lint (webui)
-        entry: biome lint
+        entry: biome check --error-on-warnings --formatter-enabled=false
         language: system
         files: ^src/ui_assets/(app\.js|style\.css)$
         pass_filenames: true
