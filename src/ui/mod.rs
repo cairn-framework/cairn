@@ -25,6 +25,7 @@ use crate::{
         query::{self, GraphEdgeKind, GraphResponse},
     },
     scanner,
+    state::backlog,
 };
 
 mod api;

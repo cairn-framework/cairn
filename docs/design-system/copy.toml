@@ -43,6 +43,11 @@ heading = "No tasks"
 body = "No open tasks for this node."
 cta = "cairn todos <node>"
 
+[empty-states.node-no-beads]
+heading = "No beads"
+body = "No beads link to this node."
+cta = "bd ready"
+
 [empty-states.node-no-research]
 heading = "No research"
 body = "No research artefacts link to this node."

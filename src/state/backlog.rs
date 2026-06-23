@@ -124,6 +124,21 @@ pub fn find(root: &Path, id: &str) -> Option<BacklogItem> {
     read(root).into_iter().find(|item| item.id == id)
 }
 
+/// Items linked to `node` via their `cairn-node:<id>` label, most urgent first
+/// (priority ascending, then id). Read-only view over the export; both open and
+/// closed items are returned so the per-node surface shows full task history. A
+/// label pointing at a node id that does not exist in the graph simply never
+/// matches a real node here, so orphan task-beads are invisible per node.
+#[must_use]
+pub fn for_node<'a>(items: &'a [BacklogItem], node: &str) -> Vec<&'a BacklogItem> {
+    let mut linked: Vec<&BacklogItem> = items
+        .iter()
+        .filter(|item| item.linked_node() == Some(node))
+        .collect();
+    linked.sort_by(|a, b| a.priority.cmp(&b.priority).then_with(|| a.id.cmp(&b.id)));
+    linked
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,6 +280,49 @@ mod tests {
             ids.contains(&"cairn-child"),
             "parent-child is not a blocker"
         );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn for_node_groups_by_linked_node_and_sorts() {
+        let dir = tmpdir("fornode");
+        write_export(
+            &dir,
+            &[
+                r#"{"id":"cairn-b","status":"open","priority":2,"labels":["cairn-node:cairn.kernel.cli"]}"#,
+                r#"{"id":"cairn-a","status":"closed","priority":0,"labels":["cairn-node:cairn.kernel.cli"]}"#,
+                r#"{"id":"cairn-other","status":"open","priority":0,"labels":["cairn-node:cairn.ui"]}"#,
+                r#"{"id":"cairn-unlinked","status":"open","priority":0,"labels":["refactor"]}"#,
+            ],
+        );
+        let items = read(&dir);
+        let ids: Vec<&str> = for_node(&items, "cairn.kernel.cli")
+            .iter()
+            .map(|item| item.id.as_str())
+            .collect();
+        assert_eq!(
+            ids,
+            vec!["cairn-a", "cairn-b"],
+            "only this node, urgent first"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn for_node_excludes_unlinked_and_isolates_orphan_labels() {
+        let dir = tmpdir("fornode-orphan");
+        write_export(
+            &dir,
+            &[
+                r#"{"id":"cairn-orphan","status":"open","priority":0,"labels":["cairn-node:cairn.gone"]}"#,
+                r#"{"id":"cairn-unlinked","status":"open","priority":0,"labels":[]}"#,
+            ],
+        );
+        let items = read(&dir);
+        assert!(for_node(&items, "cairn.kernel.cli").is_empty());
+        // Orphan label resolves only to its own (nonexistent) node string, so a
+        // real per-node view never surfaces it.
+        assert_eq!(for_node(&items, "cairn.gone").len(), 1);
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
