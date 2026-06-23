@@ -170,6 +170,27 @@ pub(super) fn artefact_response_json(root: &Path, kind: &str, node: &str) -> Str
     format!("{{\"node\":\"{}\",\"artefacts\":[{artefacts}]}}", esc(node))
 }
 
+pub(super) fn beads_response_json(root: &Path, node: &str) -> String {
+    let items = backlog::read(root);
+    let beads = backlog::for_node(&items, node)
+        .iter()
+        .map(|item| bead_json(item))
+        .collect::<Vec<_>>()
+        .join(",");
+    format!("{{\"node\":\"{}\",\"beads\":[{beads}]}}", esc(node))
+}
+
+fn bead_json(item: &backlog::BacklogItem) -> String {
+    format!(
+        "{{\"id\":\"{}\",\"title\":\"{}\",\"status\":\"{}\",\"priority\":{},\"issue_type\":\"{}\"}}",
+        esc(&item.id),
+        esc(&item.title),
+        esc(&item.status),
+        item.priority,
+        esc(&item.issue_type)
+    )
+}
+
 pub(super) fn rationale_json(root: &Path, node: &str) -> String {
     let artefacts = ["decisions", "research", "sources"]
         .iter()
@@ -379,5 +400,31 @@ mod tests {
     fn test_title_from_body_empty_h1_uses_fallback() {
         use super::title_from_body;
         assert_eq!(title_from_body("# \nbody", "fallback"), "fallback");
+    }
+
+    // ── beads_response_json ──────────────────────────────────────────────────
+
+    #[test]
+    fn test_beads_response_json_filters_by_node() {
+        use super::beads_response_json;
+        let dir = std::env::temp_dir().join(format!("cairn-ui-beads-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".beads")).unwrap();
+        std::fs::write(
+            dir.join(".beads").join("issues.jsonl"),
+            [
+                r#"{"id":"cairn-ui1","title":"View","status":"open","priority":1,"issue_type":"task","labels":["cairn-node:cairn.ui"]}"#,
+                r#"{"id":"cairn-elsewhere","title":"Other","status":"open","priority":0,"issue_type":"task","labels":["cairn-node:cairn.kernel.cli"]}"#,
+            ]
+            .join("\n"),
+        )
+        .unwrap();
+        let json = beads_response_json(&dir, "cairn.ui");
+        assert!(json.contains("\"node\":\"cairn.ui\""));
+        assert!(json.contains("\"id\":\"cairn-ui1\""));
+        assert!(json.contains("\"status\":\"open\""));
+        assert!(json.contains("\"priority\":1"));
+        assert!(!json.contains("cairn-elsewhere"), "other nodes excluded");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

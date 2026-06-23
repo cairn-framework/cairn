@@ -4,8 +4,9 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 use api::{
-    artefact_response_json, contract_response_json, dependency_json, finding_json, graph_json,
-    lint_json, meta_json, node_json, project_finding, rationale_json, status_json,
+    artefact_response_json, beads_response_json, contract_response_json, dependency_json,
+    finding_json, graph_json, lint_json, meta_json, node_json, project_finding, rationale_json,
+    status_json,
 };
 use serialise::{esc, percent_decode};
 use std::{cell::RefCell, time::SystemTime};
@@ -188,6 +189,7 @@ impl Server {
             "todos" => json(200, &artefact_response_json(&self.root, "todos", &node)),
             "research" => json(200, &artefact_response_json(&self.root, "research", &node)),
             "sources" => json(200, &artefact_response_json(&self.root, "sources", &node)),
+            "beads" => json(200, &beads_response_json(&self.root, &node)),
             "rationale" => json(200, &rationale_json(&self.root, &node)),
             _ => text(404, "not found"),
         }

@@ -135,6 +135,7 @@ cairn.kernel.query      -> cairn.kernel.changes     "Reads change state"
 cairn.kernel.query      -> cairn.kernel.hooks       "Reads hook findings"
 cairn.ui                -> cairn.kernel.scanner     "Runs scans for API responses"
 cairn.ui                -> cairn.kernel.map         "Serves graph data"
+cairn.ui                -> cairn.state            "Reads node-linked beads for the inspector"
 cairn.mcp               -> cairn.kernel.query       "Wraps queries as MCP tools"
 
 # Pluggable reconciler reports back to graph

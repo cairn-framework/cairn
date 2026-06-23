@@ -152,6 +152,12 @@
     return response.artefacts;
   }
 
+  async function fetchNodeBeads(id) {
+    const response = await fetchJson(`/api/node/${percentEncodeId(id)}/beads`);
+    if (!response || !Array.isArray(response.beads)) return [];
+    return response.beads;
+  }
+
   async function fetchDepends(id) {
     const response = await fetchJson(`/api/depends/${percentEncodeId(id)}`);
     if (!response || !Array.isArray(response.nodes)) return [];
@@ -905,6 +911,19 @@
     `;
   }
 
+  function BeadCard({ bead }) {
+    return html`
+      <div class=${clsx("artefact", "bead", bead.status)}>
+        <div class="artefact-head">
+          <span class="artefact-id">${bead.id}</span>
+          <span class=${clsx("artefact-status", bead.status)}>${bead.status}</span>
+        </div>
+        <div class="artefact-title">${bead.title || bead.id}</div>
+        <div class="artefact-meta">${bead.issue_type} · P${bead.priority}</div>
+      </div>
+    `;
+  }
+
   function DependencyRow({ entry, onSelect }) {
     return html`
       <button class="dep-row" onClick=${() => onSelect(entry.id)}>
@@ -985,7 +1004,7 @@
   }
 
   function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onViewBlueprint, onClose }) {
-    const { contracts, decisions, todos, research, sources, depends, dependents } = detail;
+    const { contracts, decisions, todos, beads, research, sources, depends, dependents } = detail;
 
     const provCount = (sources?.length || 0) + (research?.length || 0);
     const authCount = (contracts?.length || 0) + (decisions?.length || 0);
@@ -1114,6 +1133,10 @@
 
         <${Section} label="Todos" count=${todos?.length || 0}>
           ${(todos || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-todos.body")}</div>` : (todos || []).map((t) => html`<${ArtefactCard} key=${t.path} artefact=${t}/>`)}
+        <//>
+
+        <${Section} label="Beads" count=${beads?.length || 0}>
+          ${(beads || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-beads.body")}</div>` : (beads || []).map((b) => html`<${BeadCard} key=${b.id} bead=${b}/>`)}
         <//>
 
         <${Section} label="Research" count=${research?.length || 0}>
@@ -1677,17 +1700,19 @@
         fetchNodeArtefacts(selectionId, "contract"),
         fetchNodeArtefacts(selectionId, "decisions"),
         fetchNodeArtefacts(selectionId, "todos"),
+        fetchNodeBeads(selectionId).catch(() => []),
         fetchNodeArtefacts(selectionId, "research"),
         fetchNodeArtefacts(selectionId, "sources"),
         fetchDepends(selectionId).catch(() => []),
         fetchDependents(selectionId).catch(() => []),
       ])
-        .then(([contracts, decisions, todos, research, sources, depends, dependents]) => {
+        .then(([contracts, decisions, todos, beads, research, sources, depends, dependents]) => {
           if (cancelled) return;
           setDetail({
             contracts,
             decisions,
             todos,
+            beads,
             research,
             sources,
             depends,
