@@ -46,6 +46,9 @@ pub(crate) fn render_decisions(
 ) -> Result<String, Finding> {
     let status =
         flag_value(&parsed.command_args, "--status").and_then(parse_decision_status_filter);
+    if let Some(query) = flag_value(&parsed.command_args, "--grep") {
+        return Ok(render_decisions_grep(parsed, scan_result, query));
+    }
     node_arg(&parsed.command_args).and_then(|node| {
         let node = scan_result.graph.resolve(node)?;
         let decisions = scan_result
@@ -72,6 +75,44 @@ pub(crate) fn render_decisions(
             )
         })
     })
+}
+
+fn render_decisions_grep(
+    parsed: &ParsedArgs,
+    scan_result: &scanner::ScanResult,
+    query: &str,
+) -> String {
+    let status =
+        flag_value(&parsed.command_args, "--status").and_then(parse_decision_status_filter);
+    let needle = query.to_lowercase();
+    let matches = scan_result
+        .artefacts
+        .decisions
+        .iter()
+        .filter(|decision| {
+            status.is_none_or(|filter| decision.status == filter)
+                && (decision.id.to_lowercase().contains(&needle)
+                    || decision.body.to_lowercase().contains(&needle)
+                    || decision
+                        .nodes
+                        .iter()
+                        .any(|node| node.to_lowercase().contains(&needle)))
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    if parsed.json {
+        format!(
+            "{{\"query\":\"{}\",\"decisions\":{}}}\n",
+            esc(query),
+            decisions_json(&matches)
+        )
+    } else {
+        format!(
+            "Decisions matching \"{}\":\n{}\n",
+            query,
+            lines(&matches.iter().map(decision_line).collect::<Vec<_>>())
+        )
+    }
 }
 
 pub(crate) fn render_research(
@@ -193,7 +234,7 @@ pub(crate) fn render_rationale(
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{Todo, TodoStatus},
+        artefacts::registry::{Decision, DecisionStatus, Todo, TodoStatus},
         map::{Graph, NodeRecord, NodeState},
         scanner::{ScanResult, state::TargetHashes},
     };
@@ -260,6 +301,128 @@ mod tests {
             satisfies: None,
             body: String::new(),
         }
+    }
+
+    fn decision(id: &str, nodes: &[&str], body: &str, status: DecisionStatus) -> Decision {
+        Decision {
+            id: id.to_owned(),
+            path: format!("meta/decisions/{id}.md"),
+            nodes: nodes.iter().map(|node| (*node).to_owned()).collect(),
+            status,
+            date: "2026-01-01".to_owned(),
+            revisited: None,
+            revisit_triggers: Vec::new(),
+            informed_by: Vec::new(),
+            supersedes: Vec::new(),
+            refines: Vec::new(),
+            related: Vec::new(),
+            orphaned: false,
+            orphan_reason: None,
+            claims: None,
+            body: body.to_owned(),
+        }
+    }
+
+    fn scan_with_decisions(decisions: Vec<Decision>) -> ScanResult {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("app".to_owned(), node_record("app"));
+        ScanResult {
+            graph: Graph {
+                nodes,
+                names: BTreeMap::new(),
+                outbound: BTreeMap::new(),
+                inbound: BTreeMap::new(),
+                findings: Vec::new(),
+            },
+            artefacts: crate::artefacts::registry::ArtefactSet {
+                decisions,
+                ..Default::default()
+            },
+            contracts: crate::artefacts::contract::ContractSet::default(),
+            interface_hash: String::new(),
+            target_reports: Vec::new(),
+            target_hashes: TargetHashes::default(),
+            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
+        }
+    }
+
+    fn decisions_parsed(args: &[&str], json: bool) -> ParsedArgs {
+        ParsedArgs {
+            json,
+            strict: false,
+            file: std::path::PathBuf::from("cairn.blueprint"),
+            changes_dir: std::path::PathBuf::from("meta/changes"),
+            command: "decisions".to_owned(),
+            command_args: args.iter().map(|arg| (*arg).to_owned()).collect(),
+        }
+    }
+
+    #[test]
+    fn render_decisions_grep_matches_body_keyword() {
+        let scan = scan_with_decisions(vec![
+            decision(
+                "dec.beads-loader",
+                &["app"],
+                "Read beads jsonl export",
+                DecisionStatus::Accepted,
+            ),
+            decision(
+                "dec.unrelated",
+                &["app"],
+                "Something else entirely",
+                DecisionStatus::Accepted,
+            ),
+        ]);
+        let p = decisions_parsed(&["decisions", "--grep", "beads"], false);
+        let rendered = render_decisions(&p, &scan).unwrap();
+        assert!(rendered.contains("Decisions matching \"beads\":"));
+        assert!(rendered.contains("dec.beads-loader"));
+        assert!(!rendered.contains("dec.unrelated"));
+    }
+
+    #[test]
+    fn render_decisions_grep_searches_without_node_arg() {
+        let scan = scan_with_decisions(vec![decision(
+            "dec.feedback",
+            &["cairn.kernel.cli"],
+            "feedback loop records friction",
+            DecisionStatus::Accepted,
+        )]);
+        let p = decisions_parsed(&["decisions", "--grep", "friction"], false);
+        let rendered = render_decisions(&p, &scan).unwrap();
+        assert!(rendered.contains("dec.feedback"));
+        assert!(!rendered.contains("Error"));
+        assert!(!rendered.contains("NOT_FOUND"));
+    }
+
+    #[test]
+    fn render_decisions_grep_json_mode() {
+        let scan = scan_with_decisions(vec![decision(
+            "dec.beads-loader",
+            &["app"],
+            "beads",
+            DecisionStatus::Accepted,
+        )]);
+        let p = decisions_parsed(&["decisions", "--grep", "beads"], true);
+        let rendered = render_decisions(&p, &scan).unwrap();
+        assert!(rendered.contains("\"query\":\"beads\""));
+        assert!(rendered.contains("\"decisions\""));
+        assert!(rendered.contains("dec.beads-loader"));
+    }
+
+    #[test]
+    fn render_decisions_grep_respects_status_filter() {
+        let scan = scan_with_decisions(vec![
+            decision("dec.live", &["app"], "beads", DecisionStatus::Accepted),
+            decision("dec.old", &["app"], "beads", DecisionStatus::Superseded),
+        ]);
+        let p = decisions_parsed(
+            &["decisions", "--grep", "beads", "--status", "accepted"],
+            false,
+        );
+        let rendered = render_decisions(&p, &scan).unwrap();
+        assert!(rendered.contains("dec.live"));
+        assert!(!rendered.contains("dec.old"));
     }
 
     #[test]

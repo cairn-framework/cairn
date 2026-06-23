@@ -28,6 +28,29 @@ pub(super) fn node_json(node: &NodeRecord) -> Value {
     })
 }
 
+pub(super) fn backlog_item_json(item: &crate::state::backlog::BacklogItem) -> Value {
+    json!({
+        "id": item.id,
+        "title": item.title,
+        "status": item.status,
+        "priority": item.priority,
+        "issue_type": item.issue_type,
+        "node": item.linked_node(),
+    })
+}
+
+pub(super) fn backlog_item_detail_json(item: &crate::state::backlog::BacklogItem) -> Value {
+    json!({
+        "id": item.id,
+        "title": item.title,
+        "status": item.status,
+        "priority": item.priority,
+        "issue_type": item.issue_type,
+        "node": item.linked_node(),
+        "description": item.description,
+    })
+}
+
 pub(super) fn todo_json(todo: &Todo) -> Value {
     json!({
         "path": todo.path,

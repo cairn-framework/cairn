@@ -9,12 +9,29 @@ use super::{scan_error_count, scan_error_warning};
 
 pub(crate) fn render_get(
     parsed: &ParsedArgs,
+    root: &Path,
     scan_result: &scanner::ScanResult,
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
-        query::get(&scan_result.graph, node)
-            .map(|response| render_node(&response.node, parsed.json))
+        match query::get(&scan_result.graph, node) {
+            Ok(response) => Ok(render_node(&response.node, parsed.json)),
+            // A graph node wins; otherwise resolve a beads task id so the loop
+            // can `cairn get <bead>` and see the task plus the node it touches.
+            // JSON/MCP `get` stays strictly node-typed.
+            Err(finding) => crate::state::backlog::find(root, node)
+                .filter(|_| !parsed.json)
+                .map(|item| render_backlog_item(&item))
+                .ok_or(finding),
+        }
     })
+}
+
+fn render_backlog_item(item: &crate::state::backlog::BacklogItem) -> String {
+    let linked = item.linked_node().unwrap_or("(unlinked)");
+    format!(
+        "Task {} [{}, P{}] {}\n  {}\n  linked node: {}\n  Description: {}\n",
+        item.id, item.status, item.priority, item.issue_type, item.title, linked, item.description
+    )
 }
 
 // Reason: neighbourhood rendering spans human + JSON branches for many node

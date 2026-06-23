@@ -40,7 +40,7 @@ use handlers::{
 };
 pub(crate) use handlers::{health_json, remediate_json};
 use registry::{metadata_for_tool, registry_slice};
-use serialise::{findings_json, node_json, relevant_rules};
+use serialise::{backlog_item_detail_json, findings_json, node_json, relevant_rules};
 use util::{finding_error, findings_error, load_for, required};
 
 /// Tool safety class.
@@ -269,9 +269,16 @@ fn execute_data(
     }
     match metadata.cli_name {
         "get" => {
-            let node = query::get(&scan_result.graph, required(request.node.as_ref(), "node")?)
-                .map_err(finding_error)?;
-            Ok(node_json(&node.node))
+            let id = required(request.node.as_ref(), "node")?;
+            query::get(&scan_result.graph, id).map_or_else(
+                |finding| {
+                    crate::state::backlog::find(root, id).map_or_else(
+                        || Err(finding_error(finding)),
+                        |item| Ok(backlog_item_detail_json(&item)),
+                    )
+                },
+                |node| Ok(node_json(&node.node)),
+            )
         }
         "neighbourhood" => neighbourhood_json(&scan_result, request),
         "contract" => contract_json(&scan_result, required(request.node.as_ref(), "node")?),
@@ -288,7 +295,7 @@ fn execute_data(
             Ok(json!({ "findings": findings_json(&response.findings) }))
         }
         "status" => Ok(status_json(root, &scan_result)),
-        "context" => Ok(context_json(&scan_result, loaded_config)),
+        "context" => Ok(context_json(root, &scan_result, loaded_config)),
         "rationale" => rationale_json(&scan_result, required(request.node.as_ref(), "node")?),
         "todos" => todos_response_json(&scan_result, request),
         "decisions" => decisions_response_json(&scan_result, request),

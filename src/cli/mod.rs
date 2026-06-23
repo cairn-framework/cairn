@@ -299,7 +299,9 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     if parsed.command == "archive" {
         return run_archive_command(parsed, root, legacy_warning);
     }
-    if parsed.json && uses_shared_json(parsed.command.as_str()) {
+    let grep_decisions =
+        parsed.command == "decisions" && parsed.command_args.iter().any(|arg| arg == "--grep");
+    if parsed.json && uses_shared_json(parsed.command.as_str()) && !grep_decisions {
         return run_shared_json_command(parsed, root, legacy_warning);
     }
     let scan_result = if parsed.command == "scan" {
@@ -327,7 +329,7 @@ fn render_loaded_project_command(
     legacy_warning: String,
 ) -> CliResult {
     match parsed.command.as_str() {
-        "get" => render_get(parsed, scan_result),
+        "get" => render_get(parsed, root, scan_result),
         "neighbourhood" => render_neighbourhood(parsed, scan_result),
         "files" => render_files(parsed, scan_result),
         "todos" => render_todos(parsed, scan_result),
@@ -336,7 +338,7 @@ fn render_loaded_project_command(
         "sources" => render_sources(parsed, scan_result),
         "rationale" => render_rationale(parsed, scan_result),
         "status" => Ok(render_status(parsed, scan_result, root)),
-        "context" => Ok(render_context(scan_result)),
+        "context" => Ok(render_context(root, scan_result)),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "health" => Ok(render_health(parsed, root, scan_result)),
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
@@ -626,7 +628,6 @@ fn uses_shared_json(command: &str) -> bool {
             | "summarise"
             | "health"
             | "remediate"
-            | "next"
     )
 }
 
