@@ -354,10 +354,10 @@ fn test_blueprint_change_path_only_no_finding() {
 
 #[test]
 fn test_blueprint_change_superseded_decision_covers_added_node() {
-    // The function message says "no decision artefact covers it" — a
-    // Superseded decision IS still a decision artefact.  The filter
-    // `Proposed | Accepted` wrongly excludes Superseded, causing the
-    // gate to fire even though the node was legitimately decided.
+    // Regression guard: Superseded decisions must still count as coverage.
+    // The coverage filter intentionally includes Proposed, Accepted, and
+    // Superseded so a later decision that supersedes an earlier one does not
+    // leave its nodes unprotected by the change gate.
     let mut g = empty_graph();
     let previous = snap(&[("app.existing", "Module")]);
     let current = snap(&[("app.existing", "Module"), ("app.new", "Module")]);

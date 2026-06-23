@@ -120,6 +120,51 @@ pub fn write_blueprint_snapshot(root: &Path, snapshot: &BlueprintSnapshot) -> io
     fs::write(path, json)
 }
 
+/// Version-1 blueprint snapshot, kept for explicit migration to v2.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct BlueprintSnapshotV1 {
+    version: u32,
+    nodes: BTreeMap<String, NodeFingerprintV1>,
+}
+
+/// Version-1 node fingerprint, kept for explicit migration to v2.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct NodeFingerprintV1 {
+    kind: String,
+    parent: Option<String>,
+    paths: Vec<String>,
+}
+
+/// Migrates a v1 blueprint snapshot to v2, adding an empty outbound-edge set
+/// to every node (v1 predates edge tracking).
+fn migrate_v1_to_v2(snapshot: BlueprintSnapshotV1) -> BlueprintSnapshot {
+    let mut nodes = BTreeMap::new();
+    for (id, fp) in snapshot.nodes {
+        nodes.insert(
+            id,
+            NodeFingerprint {
+                kind: fp.kind,
+                parent: fp.parent,
+                paths: fp.paths,
+                edges: Vec::new(),
+            },
+        );
+    }
+    BlueprintSnapshot { version: 2, nodes }
+}
+
+/// Peeks the `version` field from a JSON object without fully deserializing
+/// the payload.
+fn peek_version(content: &str) -> io::Result<u32> {
+    #[derive(serde::Deserialize)]
+    struct VersionOnly {
+        version: u32,
+    }
+    serde_json::from_str::<VersionOnly>(content)
+        .map(|v| v.version)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}")))
+}
+
 /// Reads blueprint snapshot state from JSON.
 ///
 /// Returns an empty snapshot when the state file does not exist.
@@ -134,18 +179,21 @@ pub fn read_blueprint_snapshot(root: &Path) -> io::Result<BlueprintSnapshot> {
         return Ok(BlueprintSnapshot::default());
     }
     let content = fs::read_to_string(path)?;
-    let snapshot: BlueprintSnapshot = serde_json::from_str(&content)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}")))?;
-    if snapshot.version != 1 && snapshot.version != 2 {
-        return Err(io::Error::new(
+    let version = peek_version(&content)?;
+    match version {
+        1 => {
+            let snapshot: BlueprintSnapshotV1 = serde_json::from_str(&content).map_err(|e| {
+                io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}"))
+            })?;
+            Ok(migrate_v1_to_v2(snapshot))
+        }
+        2 => serde_json::from_str(&content)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}"))),
+        other => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!(
-                "blueprint-snapshot.json: unsupported version {} (expected 1 or 2)",
-                snapshot.version
-            ),
-        ));
+            format!("blueprint-snapshot.json: unsupported version {other} (expected 1 or 2)"),
+        )),
     }
-    Ok(snapshot)
 }
 
 /// Migrates a single-hash node entry to target-level hash entries.
@@ -154,5 +202,70 @@ pub fn migrate_single_hash(hashes: &mut TargetHashes, node_id: &str, hash: Strin
     if !hashes.keys().any(|k| k.starts_with(&key)) {
         let target_key = format!("{node_id}:default");
         hashes.insert(target_key, hash);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn read_missing_snapshot_returns_empty_v2() {
+        let root = tempfile::tempdir().unwrap();
+        let snapshot = read_blueprint_snapshot(root.path()).unwrap();
+        assert!(snapshot.is_empty());
+        assert_eq!(snapshot.version, 2);
+    }
+
+    #[test]
+    fn v1_snapshot_migrates_to_v2_with_empty_edges() {
+        let root = tempfile::tempdir().unwrap();
+        let content =
+            r#"{"version":1,"nodes":{"app.api":{"kind":"Module","parent":null,"paths":["src"]}}}"#;
+        let path = root.path().join(".cairn/state/blueprint-snapshot.json");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, content).unwrap();
+
+        let snapshot = read_blueprint_snapshot(root.path()).unwrap();
+        assert_eq!(snapshot.version, 2);
+        let fp = snapshot.nodes.get("app.api").unwrap();
+        assert_eq!(fp.kind, "Module");
+        assert!(fp.edges.is_empty());
+    }
+
+    #[test]
+    fn v2_snapshot_round_trips_with_edges() {
+        let root = tempfile::tempdir().unwrap();
+        let mut nodes = BTreeMap::new();
+        nodes.insert(
+            "app.api".to_owned(),
+            NodeFingerprint {
+                kind: "Module".to_owned(),
+                parent: None,
+                paths: vec!["src".to_owned()],
+                edges: vec!["app.db".to_owned()],
+            },
+        );
+        let snapshot = BlueprintSnapshot { version: 2, nodes };
+        write_blueprint_snapshot(root.path(), &snapshot).unwrap();
+
+        let read = read_blueprint_snapshot(root.path()).unwrap();
+        assert_eq!(read.version, 2);
+        assert_eq!(read.nodes["app.api"].edges, vec!["app.db"]);
+    }
+
+    #[test]
+    fn unsupported_version_returns_error() {
+        let root = tempfile::tempdir().unwrap();
+        let content = r#"{"version":99,"nodes":{}}"#;
+        let path = root.path().join(".cairn/state/blueprint-snapshot.json");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, content).unwrap();
+
+        let err = read_blueprint_snapshot(root.path()).unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("unsupported version"), "{msg}");
+        assert!(msg.contains("99"), "{msg}");
     }
 }
