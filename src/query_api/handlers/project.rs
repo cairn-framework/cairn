@@ -23,14 +23,20 @@ pub(crate) fn status_json(root: &Path, scan_result: &scanner::ScanResult) -> Val
                 .collect()
         })
         .unwrap_or_default();
+    let backlog = crate::state::backlog::read(root);
+    let next_recommended = crate::state::backlog::ready(&backlog)
+        .first()
+        .map_or(Value::Null, |top| backlog_item_json(top));
     json!({
         "active_changes": [],
         "open_todos": open,
         "recent_log_entries": log_entries,
+        "next_recommended": next_recommended,
     })
 }
 
 pub(crate) fn context_json(
+    root: &Path,
     scan_result: &scanner::ScanResult,
     config: &scanner::config::Config,
 ) -> Value {
@@ -78,6 +84,9 @@ pub(crate) fn context_json(
         .collect();
 
     let (errors, warnings, info) = count_findings(&scan_result.graph.findings);
+    let backlog = crate::state::backlog::read(root);
+    let ready = crate::state::backlog::ready(&backlog);
+    let backlog_ready: Vec<Value> = ready.iter().map(|item| backlog_item_json(item)).collect();
 
     json!({
         "system_name": system_name,
@@ -98,6 +107,10 @@ pub(crate) fn context_json(
             "error": errors,
             "warning": warnings,
             "info": info,
+        },
+        "backlog": {
+            "ready_count": ready.len(),
+            "ready": backlog_ready,
         },
     })
 }

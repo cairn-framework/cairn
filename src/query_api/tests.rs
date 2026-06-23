@@ -219,3 +219,99 @@ fn test_requires_valid_map_neighbourhood_missing_from_mcp_path() {
         "neighbourhood must require a valid map on the MCP path too"
     );
 }
+
+// ── beads backlog json parity (segment 2) ─────────────────────────────────
+
+fn seed_backlog_project(tag: &str) -> std::path::PathBuf {
+    let tmp = std::env::temp_dir().join(format!("cairn-{tag}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    let _ = std::fs::create_dir_all(tmp.join(".beads"));
+    let _ = std::fs::write(
+        tmp.join("cairn.blueprint"),
+        "System Test \"T\" id \"t\" {\n}\n",
+    );
+    let _ = std::fs::write(
+        tmp.join(".beads/issues.jsonl"),
+        "{\"id\":\"cairn-aaa\",\"title\":\"Do thing\",\"status\":\"open\",\"priority\":2,\"issue_type\":\"task\",\"description\":\"Full body here\"}\n",
+    );
+    tmp
+}
+
+#[test]
+fn test_execute_context_includes_backlog() {
+    let tmp = seed_backlog_project("ctx-backlog");
+    let request = QueryRequest {
+        tool: "context".to_owned(),
+        ..QueryRequest::default()
+    };
+    let result = execute(
+        &tmp,
+        &tmp.join("cairn.blueprint"),
+        &tmp.join("meta/changes"),
+        &request,
+    )
+    .expect("context execute must succeed");
+    let backlog = result
+        .data
+        .get("backlog")
+        .expect("context json must include backlog");
+    assert_eq!(backlog.get("ready_count").and_then(Value::as_u64), Some(1));
+    let ready = backlog.get("ready").and_then(Value::as_array).unwrap();
+    assert_eq!(
+        ready[0].get("id").and_then(Value::as_str),
+        Some("cairn-aaa")
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn test_execute_status_includes_next_recommended() {
+    let tmp = seed_backlog_project("status-next");
+    let request = QueryRequest {
+        tool: "status".to_owned(),
+        ..QueryRequest::default()
+    };
+    let result = execute(
+        &tmp,
+        &tmp.join("cairn.blueprint"),
+        &tmp.join("meta/changes"),
+        &request,
+    )
+    .expect("status execute must succeed");
+    let nr = result
+        .data
+        .get("next_recommended")
+        .expect("status json must include next_recommended");
+    assert_eq!(nr.get("id").and_then(Value::as_str), Some("cairn-aaa"));
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn test_execute_get_resolves_bead_when_not_a_node() {
+    let tmp = seed_backlog_project("get-bead");
+    let request = QueryRequest {
+        tool: "get".to_owned(),
+        node: Some("cairn-aaa".to_owned()),
+        ..QueryRequest::default()
+    };
+    let result = execute(
+        &tmp,
+        &tmp.join("cairn.blueprint"),
+        &tmp.join("meta/changes"),
+        &request,
+    )
+    .expect("get must resolve a bead id via the backlog fallback");
+    assert_eq!(
+        result.data.get("id").and_then(Value::as_str),
+        Some("cairn-aaa")
+    );
+    assert_eq!(
+        result.data.get("status").and_then(Value::as_str),
+        Some("open")
+    );
+    assert_eq!(
+        result.data.get("description").and_then(Value::as_str),
+        Some("Full body here")
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}

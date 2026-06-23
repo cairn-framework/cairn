@@ -6,9 +6,10 @@ use super::super::*;
 use super::{scan_error_count, scan_info_count, scan_warning_count};
 
 // NOTE: render_context does not have access to Config, so it cannot show
-// project_context. The JSON endpoint (context_json) includes it. Accept the
-// divergence rather than threading Config through the CLI render layer.
-pub(crate) fn render_context(scan_result: &scanner::ScanResult) -> String {
+// project_context. The JSON endpoint (context_json) includes it. The beads
+// backlog summary below is likewise text-only. Accept the divergence rather
+// than threading Config through the CLI render layer.
+pub(crate) fn render_context(root: &Path, scan_result: &scanner::ScanResult) -> String {
     use std::fmt::Write as _;
 
     let system = scan_result
@@ -58,6 +59,13 @@ pub(crate) fn render_context(scan_result: &scanner::ScanResult) -> String {
     )
     .unwrap();
 
+    let backlog = crate::state::backlog::read(root);
+    let ready = crate::state::backlog::ready(&backlog);
+    let _ = write!(out, "\nBacklog: {} ready\n", ready.len());
+    for item in ready.iter().take(5) {
+        let _ = writeln!(out, "  {} [P{}] {}", item.id, item.priority, item.title);
+    }
+
     out
 }
 
@@ -83,6 +91,9 @@ pub(crate) fn render_status(
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default();
+    let backlog = crate::state::backlog::read(root);
+    let ready = crate::state::backlog::ready(&backlog);
+    let next_recommended = ready.first();
     if parsed.json {
         format!(
             "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{}}}\n",
@@ -91,14 +102,18 @@ pub(crate) fn render_status(
         )
     } else {
         format!(
-            "Status:\nActive changes:\nNone\nOpen todos:\n{}\nRecent log entries:\n{}\n",
+            "Status:\nActive changes:\nNone\nOpen todos:\n{}\nRecent log entries:\n{}\nNext recommended:\n{}\n",
             lines(
                 &open
                     .iter()
                     .map(super::super::format::todo_line)
                     .collect::<Vec<_>>()
             ),
-            lines(&log_entries)
+            lines(&log_entries),
+            next_recommended.map_or_else(
+                || "None".to_owned(),
+                |top| format!("{} [P{}] {}", top.id, top.priority, top.title)
+            )
         )
     }
 }
@@ -279,7 +294,7 @@ mod tests {
             system("sys", "MySystem", "A test system"),
             node_record("app"),
         ]);
-        let rendered = render_context(&scan);
+        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
         assert!(rendered.contains("MySystem (2 nodes, 0 edges)"));
         assert!(rendered.contains("A test system"));
         assert!(rendered.contains("Findings: 0 errors, 0 warnings, 0 info"));
@@ -293,14 +308,31 @@ mod tests {
         let mut app = node_record("app");
         app.paths = vec!["./src".to_owned()];
         let scan = scan_with_nodes(vec![system("sys", "Sys", ""), app]);
-        let rendered = render_context(&scan);
+        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
         assert!(rendered.contains("  app (app) [Synced] ./src"));
     }
 
     #[test]
     fn render_context_defaults_when_no_system() {
         let scan = scan_with_nodes(vec![node_record("app")]);
-        let rendered = render_context(&scan);
+        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
         assert!(rendered.contains("unknown (1 nodes, 0 edges)"));
+    }
+
+    #[test]
+    fn render_context_includes_backlog_section() {
+        let dir = std::env::temp_dir().join(format!("cairn-ctx-backlog-{}", std::process::id()));
+        let beads = dir.join(".beads");
+        std::fs::create_dir_all(&beads).unwrap();
+        std::fs::write(
+            beads.join("issues.jsonl"),
+            r#"{"id":"cairn-aaa","title":"Do thing","status":"open","priority":2,"issue_type":"task"}"#,
+        )
+        .unwrap();
+        let scan = scan_with_nodes(vec![node_record("app")]);
+        let rendered = render_context(&dir, &scan);
+        assert!(rendered.contains("Backlog: 1 ready"));
+        assert!(rendered.contains("cairn-aaa [P2] Do thing"));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

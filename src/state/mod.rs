@@ -8,6 +8,7 @@ use serde::{Serialize, de::DeserializeOwned};
 use std::{fmt, io, path::PathBuf};
 pub(crate) mod beads;
 pub use beads::BeadsStateBackend;
+pub(crate) mod backlog;
 #[cfg(test)]
 mod tests;
 

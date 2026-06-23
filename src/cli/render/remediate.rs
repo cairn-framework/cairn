@@ -82,7 +82,20 @@ pub(crate) fn render_next(
         .unwrap_or(false);
     if parsed.json {
         if clean {
-            return "{\"next\":null,\"clean\":true}\n".to_owned();
+            let items = crate::state::backlog::read(root);
+            let ready = crate::state::backlog::ready(&items);
+            return ready.first().map_or_else(
+                || "{\"next\":null,\"clean\":true,\"ready\":0}\n".to_owned(),
+                |top| {
+                    format!(
+                        "{{\"next\":{{\"bead\":\"{}\",\"title\":\"{}\",\"priority\":{},\"source\":\"beads-backlog\"}},\"clean\":true,\"ready\":{}}}\n",
+                        esc(&top.id),
+                        esc(&top.title),
+                        top.priority,
+                        ready.len()
+                    )
+                },
+            );
         }
         let remediate = query_api::remediate_json(root, &changes_dir, scan_result);
         let empty: Vec<serde_json::Value> = Vec::new();
@@ -94,7 +107,22 @@ pub(crate) fn render_next(
         return format!("{{\"next\":{first},\"clean\":false}}\n");
     }
     if clean {
-        return "Next: nothing to do. Project is clean.\n".to_owned();
+        let items = crate::state::backlog::read(root);
+        let ready = crate::state::backlog::ready(&items);
+        return ready.first().map_or_else(
+            || "Next: nothing to do. Project is clean.\n".to_owned(),
+            |top| {
+                let mut out = vec![
+                    format!("Next: {} [P{}] {}", top.id, top.priority, top.title),
+                    format!("  source: beads backlog ({} ready)", ready.len()),
+                    format!("  run: bd show {}", top.id),
+                ];
+                if let Some(node) = top.linked_node() {
+                    out.push(format!("  node: {node}"));
+                }
+                out.join("\n") + "\n"
+            },
+        );
     }
     let remediate = query_api::remediate_json(root, &changes_dir, scan_result);
     let empty: Vec<serde_json::Value> = Vec::new();
