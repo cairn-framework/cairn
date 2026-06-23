@@ -31,20 +31,27 @@ fn landing_dir() -> PathBuf {
     repo_root().join(LANDING).parent().unwrap().to_path_buf()
 }
 
-/// Collect every double-quoted value of `attr` (e.g. `src`, `href`) in `html`.
+/// Collect every double-quoted value of the attribute named exactly `attr`
+/// (e.g. `src`, `href`) in `html`. The name must sit on a word boundary, so
+/// `src` does not also match `data-src` nor `href` match `xlink:href`.
 fn attr_values(html: &str, attr: &str) -> Vec<String> {
     let needle = format!("{attr}=\"");
     let mut out = Vec::new();
-    let mut rest = html;
-    while let Some(i) = rest.find(&needle) {
-        let after = &rest[i + needle.len()..];
-        match after.find('"') {
-            Some(end) => {
-                out.push(after[..end].to_string());
-                rest = &after[end + 1..];
-            }
-            None => break,
+    let mut offset = 0;
+    while let Some(rel) = html[offset..].find(&needle) {
+        let start = offset + rel;
+        let on_boundary = !matches!(
+            html[..start].chars().next_back(),
+            Some(c) if c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == ':'
+        );
+        let value_start = start + needle.len();
+        let Some(end) = html[value_start..].find('"') else {
+            break;
+        };
+        if on_boundary {
+            out.push(html[value_start..value_start + end].to_string());
         }
+        offset = value_start + end + 1;
     }
     out
 }
@@ -84,14 +91,14 @@ fn local_asset_references_resolve() {
 
     let mut refs: Vec<String> = attr_values(&html, "src");
     refs.extend(attr_values(&html, "href"));
+    refs.retain(|v| is_local_file_ref(v));
 
-    let local: Vec<&String> = refs.iter().filter(|v| is_local_file_ref(v)).collect();
     assert!(
-        !local.is_empty(),
+        !refs.is_empty(),
         "expected at least one local asset reference on the landing page"
     );
 
-    for value in local {
+    for value in &refs {
         let resolved = dir.join(value);
         assert!(
             resolved.exists(),
