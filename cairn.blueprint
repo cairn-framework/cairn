@@ -112,6 +112,7 @@ cairn.kernel.scanner    -> cairn.kernel.blueprint   "Parses blueprint files"
 cairn.kernel.scanner    -> cairn.kernel.artefacts   "Loads artefact metadata"
 cairn.kernel.scanner    -> cairn.kernel.map         "Builds graph from parsed output"
 cairn.kernel.scanner    -> cairn.reconcile          "Invokes registered reconcilers"
+cairn.kernel.scanner    -> cairn.state            "Reads beads to flag orphan node labels"
 
 # Map consumes parser and artefact output
 cairn.kernel.map        -> cairn.kernel.blueprint   "Consumes parsed AST"

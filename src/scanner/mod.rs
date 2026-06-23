@@ -333,6 +333,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     checks::check_provenance_coverage(&mut graph, &artefacts);
     checks::check_claims(&mut graph, &artefacts, root);
     checks::check_gitignored_paths(&mut graph, &ast, &config.ignores);
+    checks::check_orphan_beads(&mut graph, root);
     let current_snapshot = compute_blueprint_snapshot(&ast);
     let previous_snapshot =
         state::read_blueprint_snapshot(root).map_err(|error| error.to_string())?;

@@ -106,6 +106,28 @@ pub(crate) fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactS
     }
 }
 
+pub(crate) fn check_orphan_beads(graph: &mut Graph, root: &Path) {
+    let node_ids: BTreeSet<&str> = graph.nodes.values().map(|node| node.id.as_str()).collect();
+    for bead in crate::state::backlog::read(root) {
+        let Some(node) = bead.linked_node() else {
+            continue;
+        };
+        if !node_ids.contains(node) {
+            graph.findings.push(crate::map::graph::Finding {
+                code: "CAIRN_BACKLOG_ORPHAN_NODE".to_owned(),
+                severity: crate::map::graph::FindingSeverity::Warning,
+                message: format!(
+                    "bead `{}` references unknown node `{}` via its cairn-node label",
+                    bead.id, node
+                ),
+                node: Some(node.to_owned()),
+                target: None,
+                path: None,
+            });
+        }
+    }
+}
+
 pub(crate) fn check_claims(graph: &mut Graph, artefacts: &ArtefactSet, root: &Path) {
     use std::collections::BTreeSet;
     for decision in &artefacts.decisions {
