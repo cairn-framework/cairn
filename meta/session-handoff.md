@@ -4,52 +4,60 @@ Branch: `main`, working tree clean. Local `main` == `origin/main`.
 
 ## What Was Done
 
-- **`cairn-dyc` shipped** (PR #137): deterministic bd upgrade plan.
-  - New decision `meta/decisions/bd-upgrade-plan.md` (`dec.bd-upgrade-plan`, node
-    `cairn.root`): keep jsonl-in-git, pin `export.auto`/`export.git-add` in
-    `.beads/config.yaml` so a future bd 1.0.5+ upgrade (auto-export default flips
-    to opt-in) cannot silently break jsonl sync, and **defer** the version bump
-    (`bd github` + `--defer` already exist in 1.0.4; no Dolt remote, so the
-    cross-clone migration hazard is dormant).
-  - `cairn-y1m` re-scoped: evaluate the existing `bd github`; the do/don't on a
-    second source of truth is a **maintainer** decision, still OPEN (P3).
-- **Pre-existing CI red cleared** (PR #138): `fix(map): use is_ok_and in
-  test_coverage`. CI's stable toolchain floated to rust 1.96.0, whose
-  `clippy::pedantic` flagged `map(..).unwrap_or(false)` (from `cairn-87n`),
-  blocking CI on **every** PR. Verified green on local 1.96.0.
-- **`cairn-kb0` fixed** (PR #139 + repo settings): GitHub Pages deploy.
-  - Root cause: the `github-pages` environment deployment-branch policy allowed
-    only `dev`, and Pages `source.branch` was `dev`. When `main` was restored as
-    default and `dev` retired, this config was not updated, so every push to
-    `main` failed env protection.
-  - Fix: deployment-branch policies `dev` -> `main`; Pages `source.branch`
-    `dev` -> `main` (build_type already `workflow`); dropped the dead `dev` push
-    trigger from `pages.yml`.
-  - Verified: `workflow_dispatch` deploy (run 28025803010) and the merge
-    push-to-main deploy (run 28026081679) both **succeeded**. Pages serves from
-    `main` again.
+- **`cairn-t59` shipped** (PR #141): resolved the graph-root-fingerprint spike
+  ("Dolt is git for SQL; should cairn be git for a knowledge graph?").
+  - New decision `meta/decisions/graph-root-fingerprint.md`
+    (`dec.graph-root-fingerprint`, nodes `cairn.kernel.scanner` +
+    `cairn.reconcile`). Ruling:
+    1. **Reject a versioned graph store** (Dolt-analogue): the reconciled graph
+       is derived, not authored; versioning a projection is the two-source-of-
+       truth trap.
+    2. **Close the real gap: gate dependency-edge drift.** Verified that declared
+       dependency edges are endpoint-validated only (`map/build.rs`
+       `validate_edges`) and rebuilt in-memory each scan; `BlueprintSnapshot`
+       records nodes only (`scanner/state.rs:65-70`) and the change gate iterates
+       node add/remove/parent/kind only (`scanner/checks.rs:48-67`). So changing
+       a node's declared edge set is a structural change with no covering-decision
+       gate. Fix via the existing snapshot/finding pattern (per-node granularity).
+    3. **Defer the aggregate graph-root fingerprint and any commit-binding:** 0
+       consumers in `src/`, and `DefaultHasher` (`reconcile/fingerprint.rs:23`,
+       SipHash) is toolchain-unstable, disqualifying a committed cross-machine
+       value. Recompute-and-compare at per-node/per-target granularity stays the
+       gate.
+  - **Pre-submit `/debate` reshaped the decision.** Two opposing `oracle`
+    steelmen ran; the conservative landed two verified structural catches (the
+    aggregate root is a consumer-less premature abstraction; a DefaultHasher
+    committed trailer is toolchain-unsafe), both adopted, and surfaced the real
+    win (dependency-edge drift is uncovered). The reject-store ruling survived.
+  - **`cairn-9v1` filed** (P3, maintainer-gated, discovered-from cairn-t59):
+    implement the dependency-edge-drift gate. The aggregate root + trailer remain
+    a recorded, deferred option, NOT filed for build.
 
 ## Current State
 
 - `cairn lint` / `cairn scan` clean (0 findings) on `main`.
-- 5 ready beads, all **P3 spikes** (research, marked "do not implement yet"):
+- 5 ready beads, all **P3**, all now **maintainer-directed**:
 
-  | Bead | Spike |
-  | --- | --- |
-  | `cairn-y1m` | adopt existing `bd github`? (second source of truth) |
-  | `cairn-1w3` | cairn warns when a tracked toolchain's lint isn't strict |
-  | `cairn-2z9` | beads as cairn's first-class task layer (per-node todos) |
-  | `cairn-t59` | git-native graph-root fingerprint |
-  | `cairn-y7p` | browser UI/UX iterative AI fix loop |
+  | Bead | Unit | Why it needs George |
+  | --- | --- | --- |
+  | `cairn-9v1` | implement dependency-edge-drift gate | implementation, gated on greenlight |
+  | `cairn-1w3` | spike: warn when a toolchain's lint isn't strict | product-scope call (project-health is one layer beyond architecture) |
+  | `cairn-2z9` | spike: beads as first-class task layer | bends the markdown-artefact invariant (spec.md:11) |
+  | `cairn-y1m` | spike: bead<->GitHub status sync | accept a second source of truth (maintainer call) |
+  | `cairn-y7p` | browser UI/UX iterative AI fix loop | large multi-iteration implementation + tooling choice |
 
 - No open PRs. No P0/P1/P2.
 
 ## Next: maintainer-directed
 
-The actionable backlog is empty (`cairn lint` clean; no P2). What remains are P3
-spikes previously left for George to direct. The loop should resume once George
-greenlights a specific spike for implementation (converts it from research to a
-coding unit) or files new work.
+`cairn-t59` was the one remaining spike whose ruling was a pure technical
+decision (verdict already reached, reinforcing the accepted no-second-source-of-
+truth principle), so the loop resolved it autonomously and kept implementation
+deferred. Every remaining ready bead is either a maintainer-gated implementation
+(`cairn-9v1`, `cairn-y7p`) or a spike whose ruling is a product/scope call
+reserved for George (`cairn-1w3`, `cairn-2z9`, `cairn-y1m`). The loop should
+resume once George greenlights a specific unit (converts a spike to a coding unit,
+or greenlights `cairn-9v1`) or files new work.
 
 ## Agent Entry Points
 
