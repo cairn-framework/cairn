@@ -1,30 +1,39 @@
 //! Cairn LSP server binary.
 //!
-//! This is a minimal stub implementation. Full LSP features (diagnostics,
-//! completion, hover, go-to-definition, document symbols) are planned for
-//! a future release once a compatible LSP type library is available.
+//! Serves Cairn findings as LSP diagnostics over stdio. OMP and other
+//! orchestrators can subscribe to `textDocument/publishDiagnostics` for
+//! on-write feedback.
 
 use std::{env, process};
 
+use lsp_server::Connection;
+
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.iter().any(|a| a == "--version" || a == "-V") {
+    let args: Vec<String> = env::args().skip(1).collect();
+    if args.iter().any(|arg| arg == "--version" || arg == "-V") {
         println!("{}", cairn::version_label());
         process::exit(0);
     }
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", cairn::version_label());
-        println!();
-        println!("Usage: cairn-lsp [options]");
-        println!();
-        println!("Options:");
-        println!("  --version  Print version");
-        println!("  --help     Print this help");
+    if args.iter().any(|arg| arg == "--help" || arg == "-h") {
+        eprintln!("{}", cairn::lsp::help_text());
         process::exit(0);
     }
-    eprintln!("cairn-lsp: Language server protocol support is not yet fully implemented.");
-    eprintln!(
-        "Planned features: diagnostics, completion, hover, go-to-definition, document symbols."
-    );
-    process::exit(1);
+
+    let opts = match cairn::lsp::LspOpts::from_args(&args) {
+        Ok(opts) => opts,
+        Err(message) => {
+            eprintln!("cairn-lsp: {message}");
+            process::exit(2);
+        }
+    };
+
+    let (connection, io_threads) = Connection::stdio();
+    if let Err(error) = cairn::lsp::run(&connection, &opts) {
+        eprintln!("cairn-lsp: {error}");
+        process::exit(1);
+    }
+    if let Err(error) = io_threads.join() {
+        eprintln!("cairn-lsp: io thread error: {error:?}");
+        process::exit(1);
+    }
 }

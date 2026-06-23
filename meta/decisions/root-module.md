@@ -14,7 +14,7 @@ cairn needs a single entry point that ties together the library, binary targets,
 
 ## Decision
 
-Keep a `cairn.root` module that claims `src/main.rs`, `src/lib.rs`, `src/error.rs`, `src/verification.rs`, `src/bin/cairn-lsp.rs`, and `src/signal.rs`.
+Keep a `cairn.root` module that claims `src/main.rs`, `src/lib.rs`, `src/error.rs`, `src/verification.rs`, and `src/signal.rs`.
 
 ## Rationale
 

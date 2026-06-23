@@ -60,6 +60,10 @@ tree-sitter-typescript = "0.23.2"
 tree-sitter-python = "0.25.0"
 tree-sitter-go = "0.25.0"
 serde_yaml = "0.9.34"
+lsp-server = "0.7.9"
+lsp-types = "0.97.0"
+camino = "1.2.3"
+crossbeam-channel = "0.5.15"
 
 [profile.release]
 lto = "fat"

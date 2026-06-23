@@ -25,6 +25,8 @@ pub mod cli;
 pub mod error;
 /// Hook engine and active-change conflict detection.
 pub mod hooks;
+/// LSP diagnostics server for OMP integration.
+pub mod lsp;
 /// Map graph construction and queries.
 pub mod map;
 /// MCP stdio transport.
