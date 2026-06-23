@@ -22,6 +22,8 @@ Branch: `main`, working tree clean. Local `main` == `origin/main`.
     boundary) addressed in `c7ac66a`; stale review dismissed; CI green
     (`check`/`dogfood`/`hooks`/`webui`/CodeRabbit all pass; `claude-review` is the
     known non-blocking hang on unprotected `main`).
+- **`cairn-81c` filed then re-diagnosed** (see below). Net: no code change, an
+  accurate diagnosis and a ready-to-execute plan recorded in the bead.
 
 ## Current State
 
@@ -33,21 +35,34 @@ Branch: `main`, working tree clean. Local `main` == `origin/main`.
   | --- | --- | --- |
   | `cairn-y7p` | webui AI fix loop (remainder) | deterministic slice now landed; the remaining browser->AI-critique->patch loop still needs (a) sanction for a Node + Playwright/puppeteer toolchain in this `package.json`-less Rust repo and (b) an AI vision provider/API (none exists; likely paid; conflicts with the deterministic-gates convention). The a11y static-audit half of the deterministic slice is still open as a smaller unit. |
   | `cairn-2z9` | spike: beads as first-class task layer | `in_progress`; its ruling bends the markdown-artefact invariant (spec.md:11), a maintainer architectural call. |
-  | `cairn-81c` | landing page design-token conformance | filed this session. `docs/landing/index.html` hardcodes ~52 hex colours; bringing it to conformance is large and design-sensitive (some may be intentional brand colours; needs token-mapping judgement + visual verification), so it is its own unit, not a small loop step. |
+  | `cairn-81c` | landing page design-token conformance | re-diagnosed (below). The fix is scoped and ready but changes the PUBLIC auto-deployed marketing site, so it needs a maintainer GO. |
 
-## Next: blocked on maintainer prerequisites
+## cairn-81c: re-diagnosed, ready for a GO
 
-The loop completed one clean iteration (the deterministic slice the prior handoff
-named as the unblocked option) and is stopped here because every remaining unit
-is the maintainer's call:
+The "52 hardcoded hex" premise was inaccurate. All 52 hex in
+`docs/landing/index.html` are inline CSS custom-property *definitions* across two
+theme blocks (`:root` dark, `[data-theme="light"]`); the page has ZERO hardcoded
+colour usages and already references `var(--token)` everywhere.
 
-- `cairn-y7p` remainder: sanction the Node/browser toolchain + name an AI vision
-  provider, or keep deferring. (Smaller unblocked sub-unit available: the a11y
-  static audit of `src/ui_assets`, same standalone-script shape as the token gate.)
-- `cairn-2z9`: rule on whether a non-markdown artefact source (native beads
-  loader) is acceptable, i.e. whether to bend spec.md:11.
-- `cairn-81c`: approve reworking the landing page's hardcoded colours to tokens
-  (and adding tokens for any brand colours that lack one).
+The real issue: the landing *forks* the design-system palette inline (against the
+`docs/design-system/README.md` do-not-fork rule and CLAUDE.md "marketing via
+`<link>`"), and the fork has drifted. Dark theme: 26/26 tokens match canonical
+exactly. Light theme: 21/26 drifted (small warm-tone deltas, e.g. `--stone-5`
+`#ffffff` vs canonical `#fcf8ed`).
+
+Scoped fix (in the bead notes): add `<link rel="stylesheet"
+href="../design-system/tokens.css">` (Pages serves all of `docs/`, so the
+relative path resolves); delete the inlined colour token defs from both theme
+blocks; keep page-specific non-colour tokens (`--t-*`, `--s-*`,
+`--r-edge/stone/round`, `--ease/--fast/--med/--slow`, `--font-*`, the rgba
+`--*-wash`). Do not link `components.css` (bespoke page, collision risk) or
+`fonts.css` (page already links Google Fonts). Effect: default dark view
+pixel-identical; light view reconciles to canonical. The page then has zero
+hardcoded hex and can be added to `scripts/check-design-tokens.sh`.
+
+Why it needs a GO: `pages.yml` deploys `docs/` on merge to `main`, so this is a
+real outward change to the live marketing page (the light theme shifts). The loop
+stopped here rather than push a guessed visual change to a public site.
 
 ## Agent Entry Points
 
