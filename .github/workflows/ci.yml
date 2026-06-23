@@ -49,3 +49,5 @@ jobs:
         run: npm install -g @biomejs/biome@2.4.4
       - name: biome check
         run: biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css
+      - name: design-token conformance
+        run: sh scripts/check-design-tokens.sh

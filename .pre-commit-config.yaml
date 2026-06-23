@@ -58,6 +58,13 @@ repos:
         pass_filenames: true
         stages: [pre-push]
 
+      - id: design-token-check
+        name: design-token conformance (webui)
+        entry: sh scripts/check-design-tokens.sh
+        language: system
+        files: ^src/ui_assets/style\.css$
+        pass_filenames: false
+
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

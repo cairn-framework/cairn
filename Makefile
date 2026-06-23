@@ -1,4 +1,4 @@
-.PHONY: check status status-phases status-worktrees status-untracked install-hooks biome-check biome-fix
+.PHONY: check status status-phases status-worktrees status-untracked install-hooks biome-check biome-fix tokens-check
 
 check:
 	cargo fmt --check
@@ -6,6 +6,7 @@ check:
 	cargo test
 	RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
 	biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css
+	sh scripts/check-design-tokens.sh
 
 # One-screen project status. Sub-targets are independently runnable so a failure
 # in one (e.g. corrupt worktree state) doesn't suppress the others.
@@ -40,6 +41,9 @@ install-hooks:
 
 biome-check:
 	biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css
+
+tokens-check:
+	sh scripts/check-design-tokens.sh
 
 biome-fix:
 	biome check --write --unsafe src/ui_assets/app.js
