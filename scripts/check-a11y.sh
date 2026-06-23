@@ -99,9 +99,10 @@ check_target() {
         rc=1
     fi
 
-    # Document-level checks apply only to full HTML documents. A JS/htm fragment
-    # has no <html> root and is exempt from them.
-    if printf '%s\n' "$stripped" | grep -qi '<html'; then
+    # Document-level checks apply only to full HTML documents. Detection matches
+    # the <html> root tag (a boundary char after `html`), not any `<html`
+    # substring, so a JS/htm fragment that merely mentions the text is exempt.
+    if printf '%s\n' "$stripped" | grep -qiE '<html[[:space:]>]'; then
         # WCAG 3.1.1: the <html> element must declare a lang attribute.
         if ! printf '%s\n' "$stripped" | grep -qiE '<html[^>]*[[:space:]]lang[[:space:]]*='; then
             printf '%s: <html> is missing a lang attribute (WCAG 3.1.1)\n' "$target" >&2

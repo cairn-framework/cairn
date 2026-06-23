@@ -45,6 +45,9 @@ fn test_check_a11y_script_behaviour() -> Result<(), Box<dyn std::error::Error>> 
         // still held to the element-level ones.
         ("fragment-img-alt", "const t = html`<div><img src=${url} alt=${label} /></div>`;\n".to_string(), true, ""),
         ("fragment-img-no-alt", "const t = html`<div><img src=${url} /></div>`;\n".to_string(), false, "alt"),
+        // A fragment that merely contains the substring <html (not a root tag)
+        // is not a document, so the lang/title checks do not apply: passes.
+        ("fragment-html-substring", "const note = \"render <htmlblock> later\";\n".to_string(), true, ""),
     ];
 
     for (name, body, should_pass, needle) in &cases {
