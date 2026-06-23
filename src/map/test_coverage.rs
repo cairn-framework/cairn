@@ -30,9 +30,7 @@ pub(crate) fn validate_test_coverage(graph: &mut Graph, root: &Path) {
             continue;
         }
         let has_tests = node.files.iter().filter(|f| is_rust_source(f)).any(|file| {
-            fs::read_to_string(root.join(file))
-                .map(|content| content.contains(MARKER))
-                .unwrap_or(false)
+            fs::read_to_string(root.join(file)).is_ok_and(|content| content.contains(MARKER))
         });
         if !has_tests {
             graph.findings.push(Finding {
