@@ -14,30 +14,26 @@ Branch: `main`, working tree clean. Local `main` == `origin/main`.
   - The maintainer's reserved adopt call stays open: if George ever wants the
     mirror, the sanctioned shape is a one-way `bd github push` projection,
     recorded by a future superseding decision.
-- **Bead bookkeeping** (`9a715eb`): closed `cairn-y1m` and reconciled
-  `.beads/issues.jsonl` export drift (prior-session `cairn-1w3` close and
-  `cairn-2z9` in-progress were not yet reflected in the committed export).
-
 ## Current State
 
 - `cairn lint` / `cairn scan` clean (0 findings) on `main`.
-- 1 ready bead, **P3**, **maintainer-directed**:
+- 1 ready bead, **P3**, **blocked on maintainer prerequisites**:
 
-  | Bead | Unit | Why it needs George |
+  | Bead | Unit | Why it is blocked |
   | --- | --- | --- |
-  | `cairn-y7p` | browser UI/UX iterative AI fix loop | large multi-iteration build; integration-point choice (standalone script vs cairn command) has `dec.no-orchestrator` scope-fit tension |
+  | `cairn-y7p` | browser UI/UX iterative AI fix loop | integration point chosen (standalone script), but the core browser->AI-critique->patch loop needs a Node + Playwright/puppeteer toolchain in this `package.json`-less Rust repo AND an AI vision provider/API (none exists; likely paid; conflicts with the deterministic-gates convention) |
 
 - `cairn-2z9` (spike: beads as first-class task layer) is **in_progress**; its
   ruling bends the markdown-artefact invariant (spec.md:11), a maintainer call.
 - No open PRs. No P0/P1/P2.
 
-## Next: maintainer-directed
+## Next: blocked on maintainer prerequisites
 
-The only ready unit (`cairn-y7p`) is a large implementation whose tooling and
-integration-point choices are George's to make, with a real scope-fit question
-against `dec.no-orchestrator` (does a webui AI fix loop belong inside cairn, or
-as a standalone script / external orchestrator pack?). The loop is stopped here
-pending that direction.
+`cairn-y7p` is released to `open` with a blocker note. Resuming it needs George
+to either (a) sanction the Node/browser toolchain + name an AI vision provider,
+or (b) reshape it to the deterministic slice (design-token / a11y static audit
+of `src/ui_assets`, buildable as a standalone script with no new heavy deps).
+The loop is stopped here pending that direction.
 
 ## Agent Entry Points
 
