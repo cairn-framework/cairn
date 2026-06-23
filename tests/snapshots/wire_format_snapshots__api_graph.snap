@@ -1,6 +1,6 @@
 ---
 source: tests/wire_format_snapshots.rs
-expression: json
+expression: value
 ---
 {
   "edges": [
@@ -88,5 +88,6 @@ expression: json
         "backend"
       ]
     }
-  ]
+  ],
+  "schema_version": 1
 }

@@ -1,6 +1,6 @@
 ---
 source: tests/wire_format_snapshots.rs
-expression: json
+expression: value
 ---
 {
   "artefacts": [
@@ -31,5 +31,6 @@ expression: json
       "type": "research"
     }
   ],
-  "node": "app.api"
+  "node": "app.api",
+  "schema_version": 1
 }
