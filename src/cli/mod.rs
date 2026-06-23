@@ -39,7 +39,7 @@ use commands::{
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
-    render_findings, string_array_json,
+    render_findings,
 };
 use render::{
     render_context, render_decisions, render_dependencies, render_files, render_get, render_health,
@@ -356,15 +356,7 @@ fn render_loaded_project_command(
                 .filter(|contract| contract.node == node.id)
                 .map(|contract| contract.body.clone())
                 .unwrap_or_default();
-            Ok(if parsed.json {
-                format!(
-                    "{{\"node\":\"{}\",\"contract\":\"{}\"}}\n",
-                    esc(&node.id),
-                    esc(&body)
-                )
-            } else {
-                format!("Contract for {}:\n{}\n", node.id, body)
-            })
+            Ok(format!("Contract for {}:\n{}\n", node.id, body))
         }),
         "islands" => {
             let response = query::islands(&scan_result.graph);
@@ -382,11 +374,7 @@ fn render_loaded_project_command(
             Ok(out)
         }
         "order" => match query::order(&scan_result.graph) {
-            Ok(response) => Ok(if parsed.json {
-                format!("{{\"nodes\":{}}}\n", string_array_json(&response.nodes))
-            } else {
-                format!("Order:\n{}\n", lines(&response.nodes))
-            }),
+            Ok(response) => Ok(format!("Order:\n{}\n", lines(&response.nodes))),
             Err(findings) => return findings_output(parsed.json, &findings),
         },
         "dependents" | "depends" => render_dependencies(parsed, scan_result),
@@ -1290,6 +1278,65 @@ app.api -> app.core "reports"
         assert!(
             root.join("meta/changes/archive/old-phase/proposal.md")
                 .exists()
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_contract_and_order_json_served_by_query_api() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let root = temp_root("contract-order-json")?;
+        write_project(&root)?;
+
+        // `contract --json` is served by query_api, which emits a `contracts`
+        // field. The removed CLI-local branch omitted it, so its presence
+        // proves the shared path is the single JSON source of truth.
+        let contract = run_in(&root, &["--json", "contract", "app.api"]);
+        assert_eq!(
+            contract.code, 0,
+            "contract json stderr: {}",
+            contract.stderr
+        );
+        let parsed: serde_json::Value = serde_json::from_str(contract.stdout.trim())
+            .unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from contract --json: {e}\n{}",
+                    contract.stdout
+                )
+            });
+        assert_eq!(parsed["node"], "app.api");
+        assert!(
+            parsed.get("contracts").is_some(),
+            "contract --json must carry query_api's `contracts` field, got: {}",
+            contract.stdout
+        );
+
+        // `order --json` is served by query_api: a `nodes` array.
+        let order = run_in(&root, &["--json", "order"]);
+        assert_eq!(order.code, 0, "order json stderr: {}", order.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(order.stdout.trim())
+            .unwrap_or_else(|e| panic!("invalid JSON from order --json: {e}\n{}", order.stdout));
+        assert!(
+            parsed["nodes"].is_array(),
+            "order --json must expose a `nodes` array, got: {}",
+            order.stdout
+        );
+
+        // The human paths still render their plain-text headers.
+        let contract_human = run_in(&root, &["contract", "app.api"]);
+        assert_eq!(contract_human.code, 0);
+        assert!(
+            contract_human.stdout.starts_with("Contract for app.api"),
+            "human contract output: {}",
+            contract_human.stdout
+        );
+        let order_human = run_in(&root, &["order"]);
+        assert_eq!(order_human.code, 0);
+        assert!(
+            order_human.stdout.starts_with("Order:"),
+            "human order output: {}",
+            order_human.stdout
         );
 
         Ok(())
