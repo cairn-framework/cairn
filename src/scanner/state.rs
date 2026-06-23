@@ -45,7 +45,8 @@ pub fn read_interface_hash(root: &Path) -> io::Result<TargetHashes> {
 }
 
 /// Fingerprint for a blueprint node's structural identity.
-/// Changes to kind or parent constitute a gated "shape change."
+/// Changes to kind, parent, or the outbound dependency-edge set constitute a
+/// gated "shape change."
 /// Paths are tracked for completeness but path-only changes are not gated.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct NodeFingerprint {
@@ -55,15 +56,19 @@ pub struct NodeFingerprint {
     pub parent: Option<String>,
     /// Sorted declared paths.
     pub paths: Vec<String>,
+    /// Sorted outbound dependency-edge target node IDs. Schema v2+; defaults
+    /// empty when reading a v1 snapshot, which predates edge-drift tracking.
+    #[serde(default)]
+    pub edges: Vec<String>,
 }
 
 /// Versioned snapshot of blueprint node fingerprints.
 ///
 /// The `version` field is serialized first so readers can inspect the schema
-/// version without a full parse (conventions §3). Current schema version: 1.
+/// version without a full parse (conventions §3). Current schema version: 2.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct BlueprintSnapshot {
-    /// Schema version. Current: 1.
+    /// Schema version. Current: 2.
     pub version: u32,
     /// Node-ID-to-fingerprint mapping.
     pub nodes: BTreeMap<String, NodeFingerprint>,
@@ -74,7 +79,7 @@ impl BlueprintSnapshot {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            version: 1,
+            version: 2,
             nodes: BTreeMap::new(),
         }
     }
@@ -131,11 +136,11 @@ pub fn read_blueprint_snapshot(root: &Path) -> io::Result<BlueprintSnapshot> {
     let content = fs::read_to_string(path)?;
     let snapshot: BlueprintSnapshot = serde_json::from_str(&content)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}")))?;
-    if snapshot.version != 1 {
+    if snapshot.version != 1 && snapshot.version != 2 {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!(
-                "blueprint-snapshot.json: unsupported version {} (expected 1)",
+                "blueprint-snapshot.json: unsupported version {} (expected 1 or 2)",
                 snapshot.version
             ),
         ));

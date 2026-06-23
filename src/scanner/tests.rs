@@ -198,6 +198,7 @@ fn snap(items: &[(&str, &str)]) -> BlueprintSnapshot {
                 kind: kind.to_string(),
                 parent: None,
                 paths: Vec::new(),
+                edges: Vec::new(),
             },
         );
     }
@@ -333,6 +334,7 @@ fn test_blueprint_change_path_only_no_finding() {
             kind: "Module".to_owned(),
             parent: None,
             paths: vec!["src/old".to_owned()],
+            edges: Vec::new(),
         },
     );
     let mut current = BlueprintSnapshot::new();
@@ -342,6 +344,7 @@ fn test_blueprint_change_path_only_no_finding() {
             kind: "Module".to_owned(),
             parent: None,
             paths: vec!["src/new".to_owned()], // different path, same kind/parent
+            edges: Vec::new(),
         },
     );
     let artefacts = artefacts_with(vec![decision("d1", &["x"], DecisionStatus::Accepted)]);
@@ -369,6 +372,97 @@ fn test_blueprint_change_superseded_decision_covers_added_node() {
         "superseded decision must count as coverage; got: {:?}",
         g.findings
     );
+}
+
+fn snap_e(items: &[(&str, &str, &[&str])]) -> BlueprintSnapshot {
+    let mut s = BlueprintSnapshot::new();
+    for (id, kind, edges) in items {
+        s.nodes.insert(
+            (*id).to_string(),
+            NodeFingerprint {
+                kind: (*kind).to_string(),
+                parent: None,
+                paths: Vec::new(),
+                edges: edges.iter().map(ToString::to_string).collect(),
+            },
+        );
+    }
+    s
+}
+
+#[test]
+fn test_blueprint_change_edge_added_uncovered_emits_finding() {
+    let mut g = empty_graph();
+    let previous = snap_e(&[("app.api", "Module", &[])]);
+    let current = snap_e(&[("app.api", "Module", &["app.db"])]);
+    let artefacts = artefacts_with(vec![decision("d1", &["x"], DecisionStatus::Accepted)]);
+    checks::check_blueprint_change_decisions(&mut g, &artefacts, &current, &previous);
+    assert_eq!(g.findings.len(), 1);
+    assert_eq!(g.findings[0].code, "CAIRN_BLUEPRINT_CHANGE_NO_DECISION");
+    assert_eq!(g.findings[0].node.as_deref(), Some("app.api"));
+}
+
+#[test]
+fn test_blueprint_change_edge_removed_uncovered_emits_finding() {
+    let mut g = empty_graph();
+    let previous = snap_e(&[("app.api", "Module", &["app.db"])]);
+    let current = snap_e(&[("app.api", "Module", &[])]);
+    let artefacts = artefacts_with(vec![decision("d1", &["x"], DecisionStatus::Accepted)]);
+    checks::check_blueprint_change_decisions(&mut g, &artefacts, &current, &previous);
+    assert_eq!(g.findings.len(), 1);
+    assert_eq!(g.findings[0].node.as_deref(), Some("app.api"));
+}
+
+#[test]
+fn test_blueprint_change_edge_covered_no_finding() {
+    let mut g = empty_graph();
+    let previous = snap_e(&[("app.api", "Module", &[])]);
+    let current = snap_e(&[("app.api", "Module", &["app.db"])]);
+    let artefacts = artefacts_with(vec![decision("d1", &["app.api"], DecisionStatus::Accepted)]);
+    checks::check_blueprint_change_decisions(&mut g, &artefacts, &current, &previous);
+    assert!(
+        g.findings.is_empty(),
+        "covered edge change must not be gated"
+    );
+}
+
+#[test]
+fn test_blueprint_change_edge_unchanged_no_finding() {
+    let mut g = empty_graph();
+    let previous = snap_e(&[("app.api", "Module", &["app.db"])]);
+    let current = snap_e(&[("app.api", "Module", &["app.db"])]);
+    let artefacts = artefacts_with(vec![decision("d1", &["x"], DecisionStatus::Accepted)]);
+    checks::check_blueprint_change_decisions(&mut g, &artefacts, &current, &previous);
+    assert!(g.findings.is_empty(), "unchanged edges must not be gated");
+}
+
+#[test]
+fn test_blueprint_change_edge_skipped_when_previous_pre_v2() {
+    let mut g = empty_graph();
+    let mut previous = snap_e(&[("app.api", "Module", &[])]);
+    previous.version = 1; // v1 baseline predates edge tracking
+    let current = snap_e(&[("app.api", "Module", &["app.db"])]);
+    let artefacts = artefacts_with(vec![decision("d1", &["x"], DecisionStatus::Accepted)]);
+    checks::check_blueprint_change_decisions(&mut g, &artefacts, &current, &previous);
+    assert!(
+        g.findings.is_empty(),
+        "edge drift must not fire against a pre-v2 baseline"
+    );
+}
+
+#[test]
+fn test_blueprint_change_shape_and_edge_change_emits_single_finding() {
+    let mut g = empty_graph();
+    let previous = snap_e(&[("app.api", "Module", &[])]);
+    let current = snap_e(&[("app.api", "Container", &["app.db"])]); // kind AND edges changed
+    let artefacts = artefacts_with(vec![decision("d1", &["x"], DecisionStatus::Accepted)]);
+    checks::check_blueprint_change_decisions(&mut g, &artefacts, &current, &previous);
+    assert_eq!(
+        g.findings.len(),
+        1,
+        "a single node must yield at most one finding"
+    );
+    assert_eq!(g.findings[0].node.as_deref(), Some("app.api"));
 }
 
 // ── check_provenance_coverage ─────────────────────────────────────────────
