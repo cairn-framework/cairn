@@ -26,6 +26,7 @@ All codes follow the pattern **`CXNNN`**:
 | B      | Brownfield       |
 | D      | Distribution     |
 | O      | CLI output / I/O |
+| L      | LSP / Language Server |
 
 ## Rules
 
@@ -99,3 +100,7 @@ _No codes allocated yet._
 ## CO -- CLI output / I/O
 
 - CO001 -- failed to write CLI output to disk -- phase-7.8 reforge cycle 4
+
+## CL -- LSP / Language Server
+
+- CL001 -- LSP protocol or transport error -- cairn-d7s

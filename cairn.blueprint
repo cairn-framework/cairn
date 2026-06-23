@@ -14,7 +14,6 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/lib.rs"
         path "./src/error.rs"
         path "./src/verification.rs"
-        path "./src/bin/cairn-lsp.rs"
         path "./src/signal.rs"
     }
 
@@ -76,6 +75,11 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
     Module MCP "MCP tool wrapper over query API" id "cairn.mcp" @integration {
         path "./src/mcp"
         path "./src/bin/cairn-mcp.rs"
+    }
+
+    Module LSP "LSP diagnostics server for OMP integration" id "cairn.lsp" @integration {
+        path "./src/lsp"
+        path "./src/bin/cairn-lsp.rs"
     }
 
     Module Macros "Proc-macro crate for compile-time attributes" id "cairn.macros" @build @no-test-coverage {

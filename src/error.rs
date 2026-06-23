@@ -49,6 +49,11 @@ pub enum CairnError {
         /// Underlying I/O error message.
         detail: String,
     },
+    /// LSP server protocol or transport error.
+    Lsp {
+        /// Human-readable detail.
+        message: String,
+    },
 }
 
 impl fmt::Display for CairnError {
@@ -77,6 +82,7 @@ impl fmt::Display for CairnError {
             Self::ChangeDiscovery { path, detail } => {
                 write!(f, "failed to read changes metadata at {path}: {detail}")
             }
+            Self::Lsp { message } => write!(f, "lsp server error: {message}"),
         }
     }
 }
@@ -93,6 +99,7 @@ impl CairnError {
             Self::ChangeDiscovery { .. } => "CC003",
             Self::ScannerLoad { .. } => "CK001",
             Self::WriteOutput { .. } => "CO001",
+            Self::Lsp { .. } => "CL001",
         }
     }
 }
@@ -121,5 +128,15 @@ mod tests {
         assert!(msg.contains("phase-x"));
         assert!(msg.contains('3'));
         assert!(msg.contains("suggested-edges.json"));
+    }
+
+    #[test]
+    fn test_lsp_error_code_is_cl001() {
+        let err = CairnError::Lsp {
+            message: "protocol error".to_owned(),
+        };
+        assert_eq!(err.code(), "CL001");
+        let msg = format!("{err}");
+        assert!(msg.contains("protocol error"));
     }
 }
