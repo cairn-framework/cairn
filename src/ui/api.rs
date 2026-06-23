@@ -20,7 +20,7 @@ pub(super) fn meta_json() -> String {
         })
         .collect::<Vec<_>>()
         .join(",");
-    format!("{{\"schema_version\":{SCHEMA_VERSION},\"available_commands\":[{commands}]}}")
+    format!("{{\"available_commands\":[{commands}]}}")
 }
 
 pub(super) fn graph_json(graph: &GraphResponse) -> String {
@@ -131,7 +131,7 @@ pub(super) fn status_json(project: &scanner::ScanResult) -> String {
         .filter(|finding| finding.severity == FindingSeverity::Info)
         .count();
     format!(
-        "{{\"schema_version\":{SCHEMA_VERSION},\"nodes\":{},\"edges\":{},\"findings\":{},\"errors\":{errors},\"warnings\":{warnings},\"infos\":{infos},\"interface_hash\":\"{}\"}}",
+        "{{\"nodes\":{},\"edges\":{},\"findings\":{},\"errors\":{errors},\"warnings\":{warnings},\"infos\":{infos},\"interface_hash\":\"{}\"}}",
         project.graph.nodes.len(),
         project.graph.outbound.values().map(Vec::len).sum::<usize>(),
         findings.len(),

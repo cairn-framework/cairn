@@ -18,5 +18,6 @@ expression: value
       "path": null,
       "severity": "error"
     }
-  ]
+  ],
+  "schema_version": 1
 }

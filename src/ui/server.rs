@@ -278,11 +278,30 @@ pub(super) fn asset(content_type: &'static str, body: &str) -> Response {
     }
 }
 
+/// Stamps the webui `schema_version` as the first key of a JSON object body so
+/// every `/api/*` envelope shares one versioned contract from one constant.
+/// `json` is the sole JSON `Response` constructor for the API surface, so the
+/// stamp is universal and future endpoints are covered automatically.
+fn versioned(body: &str) -> String {
+    // `assert!` (not `debug_assert!`): this guards the sole API JSON constructor,
+    // so the object precondition must hold in release too. It also makes the
+    // `&body[1..]` slice below panic-safe (an empty or multi-byte-first body
+    // fails here with a message instead of slicing on a non-char boundary).
+    assert!(
+        body.starts_with('{'),
+        "json() body must be a JSON object so the schema_version stamp is valid"
+    );
+    if body == "{}" {
+        return format!("{{\"schema_version\":{SCHEMA_VERSION}}}");
+    }
+    format!("{{\"schema_version\":{SCHEMA_VERSION},{}", &body[1..])
+}
+
 pub(super) fn json(status: u16, body: &str) -> Response {
     Response {
         status,
         content_type: "application/json; charset=utf-8",
-        body: body.to_owned(),
+        body: versioned(body),
     }
 }
 

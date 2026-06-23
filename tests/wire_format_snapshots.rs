@@ -49,6 +49,15 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
             value["path"] = json!("<blueprint>");
         }
 
+        // Every `/api/*` envelope carries a uniform top-level `schema_version`
+        // (stamped at the single `json()` choke point). The literal tracks the
+        // private `ui::SCHEMA_VERSION`; the snapshots pin the exact byte layout.
+        let version = value
+            .get("schema_version")
+            .and_then(Value::as_u64)
+            .unwrap_or_else(|| panic!("{snapshot_name} response missing numeric schema_version"));
+        assert_eq!(version, 1, "{snapshot_name} schema_version drifted");
+
         assert_json_snapshot!(*snapshot_name, value);
     }
     Ok(())

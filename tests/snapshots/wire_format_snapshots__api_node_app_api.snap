@@ -1,6 +1,6 @@
 ---
 source: tests/wire_format_snapshots.rs
-expression: json
+expression: value
 ---
 {
   "children": [],
@@ -18,6 +18,7 @@ expression: json
   "paths": [
     "./src/api"
   ],
+  "schema_version": 1,
   "state": "synced",
   "tags": [
     "backend"

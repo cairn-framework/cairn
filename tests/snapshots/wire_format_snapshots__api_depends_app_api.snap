@@ -1,6 +1,6 @@
 ---
 source: tests/wire_format_snapshots.rs
-expression: json
+expression: value
 ---
 {
   "node": "app.api",
@@ -12,5 +12,6 @@ expression: json
       "slug": "app.core",
       "state": "synced"
     }
-  ]
+  ],
+  "schema_version": 1
 }
