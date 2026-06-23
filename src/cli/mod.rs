@@ -698,9 +698,9 @@ mod tests {
                 .contains("\"id\":\"rename-app.api-to-app.api.v2\"")
         );
 
-        let archive = run_in(&root, &["archive", "phase-7.5a-test-fortification"]);
-        assert_eq!(archive.code, 1);
-        assert!(archive.stderr.contains("not available"));
+        let archive_usage = run_in(&root, &["archive"]);
+        assert_eq!(archive_usage.code, 2);
+        assert!(archive_usage.stderr.contains("usage: cairn archive"));
 
         let missing = run_in(&root, &["get"]);
         assert_eq!(missing.code, 1);
@@ -709,6 +709,54 @@ mod tests {
         let unknown = run_in(&root, &["unknown"]);
         assert_eq!(unknown.code, 2);
         assert!(unknown.stderr.contains("unknown command"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_archive_moves_completed_change() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("archive-move")?;
+        write_project(&root)?;
+        write_change(&root)?;
+
+        let archive = run_in(&root, &["archive", "phase-7.5a-test-fortification"]);
+        assert_eq!(archive.code, 0, "stderr: {}", archive.stderr);
+        assert!(archive.stdout.contains("Archived"));
+        assert!(
+            !root
+                .join("meta/changes/phase-7.5a-test-fortification")
+                .exists(),
+            "active change directory must move out of meta/changes"
+        );
+        let archive_root = root.join("meta/changes/archive");
+        assert!(archive_root.exists(), "archive directory must be created");
+        let moved = fs::read_dir(&archive_root)?
+            .filter_map(Result::ok)
+            .any(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .ends_with("phase-7.5a-test-fortification")
+            });
+        assert!(moved, "change must be archived under a dated directory");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_archive_json_envelope() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("archive-json")?;
+        write_project(&root)?;
+        write_change(&root)?;
+
+        let archive = run_in(
+            &root,
+            &["--json", "archive", "phase-7.5a-test-fortification"],
+        );
+        assert_eq!(archive.code, 0, "stderr: {}", archive.stderr);
+        assert!(archive.stdout.contains("\"command\":\"archive\""));
+        assert!(archive.stdout.contains("\"status\":\"ok\""));
+        assert!(archive.stdout.contains("\"archive_path\":"));
 
         Ok(())
     }
