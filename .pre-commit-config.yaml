@@ -65,6 +65,13 @@ repos:
         files: ^(src/ui_assets/style\.css|docs/landing/index\.html)$
         pass_filenames: false
 
+      - id: a11y-check
+        name: accessibility static audit (web surfaces)
+        entry: sh scripts/check-a11y.sh
+        language: system
+        files: ^(src/ui_assets/(index\.html|app\.js)|docs/landing/index\.html)$
+        pass_filenames: false
+
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

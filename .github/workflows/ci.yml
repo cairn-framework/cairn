@@ -51,3 +51,5 @@ jobs:
         run: biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css
       - name: design-token conformance
         run: sh scripts/check-design-tokens.sh
+      - name: accessibility static audit
+        run: sh scripts/check-a11y.sh
