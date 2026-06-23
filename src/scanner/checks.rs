@@ -30,8 +30,9 @@ pub(crate) fn check_blueprint_change_decisions(
         .flat_map(|d| d.nodes.iter().map(String::as_str))
         .collect();
 
+    let mut emitted: BTreeSet<String> = BTreeSet::new();
     let mut emit = |node_id: &str| {
-        if !covered.contains(node_id) {
+        if !covered.contains(node_id) && emitted.insert(node_id.to_owned()) {
             graph.findings.push(crate::map::graph::Finding {
                 code: "CAIRN_BLUEPRINT_CHANGE_NO_DECISION".to_owned(),
                 severity: crate::map::graph::FindingSeverity::Error,
@@ -63,6 +64,18 @@ pub(crate) fn check_blueprint_change_decisions(
             && (cur_fp.parent != prev_fp.parent || cur_fp.kind != prev_fp.kind)
         {
             emit(id);
+        }
+    }
+    // Dependency-edge drift. Schema v2 added per-node outbound-edge tracking; a
+    // pre-v2 baseline recorded no edges, so skip until a v2 snapshot is written
+    // to avoid flagging every edge as new on the first scan after upgrade.
+    if previous.version >= 2 {
+        for (id, cur_fp) in &current.nodes {
+            if let Some(prev_fp) = previous.nodes.get(id)
+                && cur_fp.edges != prev_fp.edges
+            {
+                emit(id);
+            }
         }
     }
 }

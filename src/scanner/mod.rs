@@ -393,6 +393,7 @@ pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
 fn walk_blueprint_nodes(
     nodes: &[blueprint::Node],
     parent: Option<&str>,
+    edges: &BTreeMap<String, Vec<String>>,
     snapshot: &mut state::BlueprintSnapshot,
 ) {
     for node in nodes {
@@ -410,14 +411,26 @@ fn walk_blueprint_nodes(
                 .to_owned(),
                 parent: parent.map(String::from),
                 paths,
+                edges: edges.get(&node.id).cloned().unwrap_or_default(),
             },
         );
-        walk_blueprint_nodes(&node.children, Some(&node.id), snapshot);
+        walk_blueprint_nodes(&node.children, Some(&node.id), edges, snapshot);
     }
 }
 
 fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot {
+    let mut edges: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for edge in &ast.edges {
+        edges
+            .entry(edge.from.clone())
+            .or_default()
+            .push(edge.to.clone());
+    }
+    for targets in edges.values_mut() {
+        targets.sort_unstable();
+        targets.dedup();
+    }
     let mut snapshot = state::BlueprintSnapshot::new();
-    walk_blueprint_nodes(&ast.nodes, None, &mut snapshot);
+    walk_blueprint_nodes(&ast.nodes, None, &edges, &mut snapshot);
     snapshot
 }
