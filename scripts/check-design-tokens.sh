@@ -60,9 +60,11 @@ if [ -n "$hex" ]; then
     failed=1
 fi
 
-# rem value: a number ending in `rem`, accepting leading-decimal forms (.5rem),
-# bounded so words like `--rem-x` or `1remington` are not flagged.
-rem=$(printf '%s\n' "$scrubbed" | grep -nE '(\.[0-9]+|[0-9]+(\.[0-9]+)?)rem([^A-Za-z]|$)' || true)
+# rem value: a (optionally negative) number ending in `rem`, accepting
+# leading-decimal forms (.5rem). Bounded on both sides by a non-identifier
+# character so identifiers that merely contain the text (e.g. `--rem-x`,
+# `.m1rem`, `1remington`) are not flagged, while a real `-1.5rem` still is.
+rem=$(printf '%s\n' "$scrubbed" | grep -nE '(^|[^0-9A-Za-z_-])-?(\.[0-9]+|[0-9]+(\.[0-9]+)?)rem([^0-9A-Za-z_-]|$)' || true)
 if [ -n "$rem" ]; then
     printf '%s: hardcoded rem value(s); use a design-system var(--token) instead:\n%s\n' "$target" "$rem" >&2
     failed=1

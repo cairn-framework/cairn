@@ -85,6 +85,25 @@ fn test_check_design_tokens_script_behaviour() -> Result<(), Box<dyn std::error:
         "an id selector with a non-hex name must not be flagged"
     );
 
+    // Identifiers that merely contain the text `rem` (a class like `.m1rem` or
+    // a custom property like `--gap-1rem`) are not hardcoded rem values and
+    // must pass: the rem matcher is bounded on both sides.
+    let rem_ident = write_css(
+        "rem_ident.css",
+        ".m1rem { color: var(--ink); }\na { --gap-1rem: var(--space-1); }\n",
+    )?;
+    assert!(
+        run_script(&rem_ident).status.success(),
+        "identifiers containing the text rem must not be flagged"
+    );
+
+    // A negative rem literal is still a hardcoded size and must fail.
+    let rem_neg = write_css("rem_neg.css", "a { margin-top: -1.5rem; }\n")?;
+    assert!(
+        !run_script(&rem_neg).status.success(),
+        "a negative rem literal must be caught"
+    );
+
     Ok(())
 }
 
