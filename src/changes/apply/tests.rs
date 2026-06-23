@@ -303,3 +303,74 @@ fn test_strip_frontmatter_always_ends_with_newline() {
     let result = strip_change_frontmatter("no newline at end");
     assert!(result.ends_with('\n'), "must end with newline: {result:?}");
 }
+
+// ── apply_archive blueprint preservation ──────────────────────────────────
+
+fn change_with_delta(delta: BlueprintDelta) -> Change {
+    Change {
+        id: "noop".to_owned(),
+        path: PathBuf::from("meta/changes/noop"),
+        title: "noop".to_owned(),
+        proposal: String::new(),
+        design: None,
+        delta,
+        artefacts: Vec::new(),
+        findings: Vec::new(),
+    }
+}
+
+const COMMENTED_BLUEPRINT: &str = "# header comment\n#\n# second line\n\nSystem App \"desc\" id \"app\" {\n    # inner comment\n    Module Core \"core\" id \"app.core\" {\n        path \"./src/core\"\n    }\n}\n";
+
+#[test]
+fn test_apply_archive_empty_delta_preserves_blueprint_verbatim() {
+    let dir = tempfile::tempdir().unwrap();
+    let blueprint = dir.path().join("cairn.blueprint");
+    fs::write(&blueprint, COMMENTED_BLUEPRINT).unwrap();
+
+    apply_archive(
+        dir.path(),
+        Path::new("cairn.blueprint"),
+        &change_with_delta(BlueprintDelta::default()),
+    )
+    .expect("empty-delta archive must succeed");
+
+    let after = fs::read_to_string(&blueprint).unwrap();
+    assert_eq!(
+        after, COMMENTED_BLUEPRINT,
+        "empty-delta archive must leave the blueprint byte-identical, comments included"
+    );
+}
+
+#[test]
+fn test_apply_archive_nonempty_delta_rewrites_blueprint() {
+    let dir = tempfile::tempdir().unwrap();
+    let blueprint = dir.path().join("cairn.blueprint");
+    fs::write(&blueprint, COMMENTED_BLUEPRINT).unwrap();
+
+    let mut delta = BlueprintDelta::default();
+    delta.removed_nodes.push("app.core".to_owned());
+    apply_archive(
+        dir.path(),
+        Path::new("cairn.blueprint"),
+        &change_with_delta(delta),
+    )
+    .expect("non-empty-delta archive must succeed");
+
+    let after = fs::read_to_string(&blueprint).unwrap();
+    assert_ne!(
+        after, COMMENTED_BLUEPRINT,
+        "non-empty-delta archive must rewrite the blueprint"
+    );
+    assert!(
+        !after.contains("app.core"),
+        "removed node must be absent from the rewritten blueprint"
+    );
+}
+
+#[test]
+fn test_blueprint_delta_is_empty() {
+    assert!(BlueprintDelta::default().is_empty());
+    let mut delta = BlueprintDelta::default();
+    delta.added_nodes.push(leaf("app.new"));
+    assert!(!delta.is_empty());
+}

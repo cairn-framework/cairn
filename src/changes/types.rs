@@ -42,6 +42,21 @@ pub struct BlueprintDelta {
     pub renamed_edges: Vec<EdgeRename>,
 }
 
+impl BlueprintDelta {
+    /// Returns `true` when the delta carries no node or edge operations.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.added_nodes.is_empty()
+            && self.modified_nodes.is_empty()
+            && self.removed_nodes.is_empty()
+            && self.renamed_nodes.is_empty()
+            && self.added_edges.is_empty()
+            && self.modified_edges.is_empty()
+            && self.removed_edges.is_empty()
+            && self.renamed_edges.is_empty()
+    }
+}
+
 /// Old and new ID pair.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Rename {
