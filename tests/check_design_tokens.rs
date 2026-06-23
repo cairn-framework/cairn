@@ -104,7 +104,36 @@ fn test_check_design_tokens_script_behaviour() -> Result<(), Box<dyn std::error:
         "a negative rem literal must be caught"
     );
 
+    // HTML comments are stripped too: a hex annotation inside an HTML comment
+    // (e.g. a colour note on a marketing page) is prose, not a hardcoded value,
+    // so it passes.
+    let html_comment = write_css(
+        "html_comment.html",
+        "<!-- brand amber is #f4b36a -->\n<div style=\"color:var(--prov-1)\"></div>\n",
+    )?;
+    assert!(run_script(&html_comment).status.success());
+
+    // A hardcoded hex inside an inline style attribute is a real violation and
+    // must fail even in an HTML surface.
+    let html_inline = write_css("html_inline.html", "<div style=\"color:#ff0000\">x</div>\n")?;
+    let html_inline_run = run_script(&html_inline);
+    assert!(!html_inline_run.status.success());
+    assert!(String::from_utf8(html_inline_run.stderr)?.contains("#ff0000"));
+
     Ok(())
+}
+
+/// The real landing page must stay design-token conformant: zero hardcoded hex
+/// or rem in `docs/landing/index.html`, which the default gate now covers.
+#[test]
+fn test_landing_page_is_token_conformant() {
+    let landing = Path::new("docs/landing/index.html");
+    let out = run_script(landing);
+    assert!(
+        out.status.success(),
+        "landing page should pass the design-token gate; stderr:\n{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
 }
 
 fn run_script(target: &Path) -> std::process::Output {

@@ -59,10 +59,10 @@ repos:
         stages: [pre-push]
 
       - id: design-token-check
-        name: design-token conformance (webui)
+        name: design-token conformance (web surfaces)
         entry: sh scripts/check-design-tokens.sh
         language: system
-        files: ^src/ui_assets/style\.css$
+        files: ^(src/ui_assets/style\.css|docs/landing/index\.html)$
         pass_filenames: false
 
 
