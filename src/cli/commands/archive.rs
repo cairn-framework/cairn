@@ -20,10 +20,31 @@ pub(crate) fn run_archive_command(
             stderr: legacy_warning,
         };
     }
-    err(
-        1,
-        &format!(
-            "archive `{change_id}` is not available until the change archive engine is installed"
-        ),
-    )
+    match crate::changes::archive(root, parsed.file.as_path(), change_id) {
+        Ok(report) => {
+            let stdout = if parsed.json {
+                format!(
+                    "{{\"command\":\"archive\",\"status\":\"ok\",\"data\":{{\"archive_path\":\"{}\",\"summary\":\"{}\"}}}}\n",
+                    esc(&report.archive_path.to_string_lossy()),
+                    esc(&report.summary)
+                )
+            } else {
+                format!(
+                    "Archived `{change_id}` to {}\n{}\n",
+                    report.archive_path.display(),
+                    report.summary
+                )
+            };
+            CliResult {
+                code: 0,
+                stdout,
+                stderr: legacy_warning,
+            }
+        }
+        Err(message) => {
+            let mut result = error_output(parsed.json, "CAIRN_COMMAND_FAILED", &message);
+            result.stderr = legacy_warning;
+            result
+        }
+    }
 }
