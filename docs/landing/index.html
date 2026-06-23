@@ -17,55 +17,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../design-system/tokens.css">
 <style>
 /* ===================================================================
-   CAIRN landing page. Tokens lifted from the design system.
+   CAIRN landing page. Colour tokens are sourced from the linked
+   design-system stylesheet (../design-system/tokens.css). Only the
+   page-specific type, spacing, radius, and motion tokens live here.
    Geological. Warm stone. Quiet.
    =================================================================== */
 
 :root {
-  /* Stone (dark) */
-  --stone-0:  #0d0c0a;
-  --stone-1:  #141310;
-  --stone-2:  #1b1915;
-  --stone-3:  #22201b;
-  --stone-4:  #2a2721;
-  --stone-5:  #342f27;
-
-  /* Seams */
-  --seam-faint: #2a2620;
-  --seam-thin:  #38332b;
-  --seam-clear: #4a4338;
-  --seam-carved: #5a5244;
-
-  /* Ink */
-  --ink-char:   #f2ece0;
-  --ink-aged:   #c9c0ae;
-  --ink-faded:  #908673;
-  --ink-mist:   #5f5849;
-  --ink-ghost:  #3d382f;
-
-  /* Chains */
-  --prov-1:    #f4b36a;
-  --prov-2:    #c4864a;
-  --prov-3:    #7d5530;
-  --prov-wash: rgba(196, 134, 74, 0.10);
-
-  --auth-1:    #88c4b4;
-  --auth-2:    #5a9687;
-  --auth-3:    #2f5448;
-  --auth-wash: rgba(90, 150, 135, 0.10);
-
-  --hinge-1:   #e8e1d2;
-  --hinge-2:   #b6ac96;
-  --hinge-wash: rgba(232, 225, 210, 0.06);
-
-  /* Signal */
-  --drift:      #d47854;
-  --drift-wash: rgba(212, 120, 84, 0.10);
-  --block:      #b84c38;
-  --settled:    #82a893;
-
   /* Type */
   --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
   --font-sans:  "IBM Plex Sans", system-ui, -apple-system, sans-serif;
@@ -96,45 +57,6 @@
   --fast: 180ms;
   --med:  320ms;
   --slow: 560ms;
-}
-
-[data-theme="light"] {
-  --stone-0:  #e8e2d3;
-  --stone-1:  #ede7d8;
-  --stone-2:  #f3ecdd;
-  --stone-3:  #f7f0e1;
-  --stone-4:  #fbf5e8;
-  --stone-5:  #ffffff;
-
-  --seam-faint: #d8d0bd;
-  --seam-thin:  #c8bea8;
-  --seam-clear: #b3a78d;
-  --seam-carved: #96875e;
-
-  --ink-char:   #1f1a12;
-  --ink-aged:   #43392a;
-  --ink-faded:  #6b5f48;
-  --ink-mist:   #8f8369;
-  --ink-ghost:  #b8ad90;
-
-  --prov-1:    #8e4e18;
-  --prov-2:    #a7652a;
-  --prov-3:    #c88e58;
-  --prov-wash: rgba(167, 101, 42, 0.08);
-
-  --auth-1:    #245d4e;
-  --auth-2:    #3a7a69;
-  --auth-3:    #66a090;
-  --auth-wash: rgba(58, 122, 105, 0.08);
-
-  --hinge-1:   #2a2418;
-  --hinge-2:   #5a5040;
-  --hinge-wash: rgba(42, 36, 24, 0.05);
-
-  --drift:      #a8461e;
-  --drift-wash: rgba(168, 70, 30, 0.10);
-  --block:      #8a2e18;
-  --settled:    #3d6b4e;
 }
 
 * { box-sizing: border-box; }
