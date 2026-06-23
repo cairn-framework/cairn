@@ -547,3 +547,43 @@ fn test_divergence_different_roles_no_finding() {
     let findings = detect_divergence(&[r1, r2], &[t1, t2], &Config::default());
     assert!(findings.is_empty(), "different roles must not be compared");
 }
+
+// ── check_orphan_beads ────────────────────────────────────────────────────
+
+fn write_beads(dir: &std::path::Path, lines: &[&str]) {
+    let beads = dir.join(".beads");
+    std::fs::create_dir_all(&beads).unwrap();
+    std::fs::write(beads.join("issues.jsonl"), lines.join("\n")).unwrap();
+}
+
+#[test]
+fn test_orphan_beads_warns_on_unknown_node_label() {
+    let dir = std::env::temp_dir().join(format!("cairn-orphanbeads-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    write_beads(
+        &dir,
+        &[
+            r#"{"id":"cairn-real","status":"open","labels":["cairn-node:app.api"]}"#,
+            r#"{"id":"cairn-orphan","status":"open","labels":["cairn-node:app.gone"]}"#,
+            r#"{"id":"cairn-unlinked","status":"open","labels":["misc"]}"#,
+        ],
+    );
+    let mut g = graph_with_leaf("app.api");
+    checks::check_orphan_beads(&mut g, &dir);
+    assert_eq!(g.findings.len(), 1, "only the orphan-labelled bead warns");
+    assert_eq!(g.findings[0].code, "CAIRN_BACKLOG_ORPHAN_NODE");
+    assert_eq!(g.findings[0].severity, FindingSeverity::Warning);
+    assert_eq!(g.findings[0].node.as_deref(), Some("app.gone"));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn test_orphan_beads_no_export_no_findings() {
+    let dir = std::env::temp_dir().join(format!("cairn-orphanbeads-empty-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let mut g = graph_with_leaf("app.api");
+    checks::check_orphan_beads(&mut g, &dir);
+    assert!(g.findings.is_empty(), "no export -> no findings");
+    let _ = std::fs::remove_dir_all(&dir);
+}
