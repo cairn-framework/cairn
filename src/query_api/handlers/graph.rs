@@ -119,8 +119,5 @@ pub(crate) fn islands_json(scan_result: &scanner::ScanResult) -> Value {
             })
         })
         .collect();
-    json!({
-        "schema_version": response.schema_version,
-        "islands": islands,
-    })
+    json!({ "islands": islands })
 }

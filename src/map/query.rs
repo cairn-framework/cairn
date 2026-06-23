@@ -99,13 +99,18 @@ pub struct IslandResponse {
 /// Islands query result.
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct IslandsResponse {
-    /// Wire schema version.
+    /// Domain-layer schema version (see `ISLANDS_SCHEMA_VERSION`); the
+    /// consumer wire version is owned by `query_api::SCHEMA_VERSION`.
     pub schema_version: u32,
     /// One entry per connected component, ordered by representative ID.
     pub islands: Vec<IslandResponse>,
 }
 
-/// Wire schema version for the islands response.
+/// Domain-layer schema version for the in-memory islands response.
+///
+/// This is the library invariant for `IslandsResponse`, not the consumer wire
+/// version: the `cairn islands --json` envelope is versioned by
+/// `query_api::SCHEMA_VERSION` at the query-API choke point.
 pub const ISLANDS_SCHEMA_VERSION: u32 = 1;
 
 /// Resolves and returns a node.
@@ -246,8 +251,9 @@ pub fn lint(graph: &Graph) -> LintResponse {
 ///
 /// Edges are treated as undirected for the purposes of grouping. Each
 /// island carries a node count and a representative (the lexicographically
-/// smallest node ID inside the component). The response is versioned via
-/// `schema_version` per the test contract.
+/// smallest node ID inside the component). `IslandsResponse` carries a
+/// domain-layer `schema_version`; the consumer-facing `cairn islands --json`
+/// envelope is versioned by `query_api::SCHEMA_VERSION`.
 #[must_use]
 pub fn islands(graph: &Graph) -> IslandsResponse {
     let component_index = compute_components(graph);

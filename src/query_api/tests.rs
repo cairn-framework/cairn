@@ -315,3 +315,51 @@ fn test_execute_get_resolves_bead_when_not_a_node() {
     );
     let _ = std::fs::remove_dir_all(&tmp);
 }
+
+#[test]
+fn test_execute_stamps_schema_version_on_read_commands() {
+    // The universal stamp lives at the `execute` choke point, so the
+    // `debug_assert!` there enforces the object-payload invariant for *every*
+    // tool exercised by any test. This test pins the stamp explicitly across a
+    // representative spread of node-free read tools.
+    let tmp = std::env::temp_dir().join(format!("cairn-schemaver-{}", std::process::id()));
+    let _ = std::fs::create_dir_all(&tmp);
+    let _ = std::fs::write(
+        tmp.join("cairn.blueprint"),
+        "System Test \"T\" id \"t\" {\n}\n",
+    );
+    let bp = tmp.join("cairn.blueprint");
+    let changes = tmp.join("meta/changes");
+    for tool in [
+        "status",
+        "order",
+        "islands",
+        "lint",
+        "context",
+        "health",
+        "watch",
+        "remediate",
+    ] {
+        let request = QueryRequest {
+            tool: tool.to_owned(),
+            ..QueryRequest::default()
+        };
+        let data = execute(&tmp, &bp, &changes, &request)
+            .unwrap_or_else(|error| panic!("{tool} execute must succeed: {error:?}"))
+            .data;
+        assert_eq!(
+            data.get("schema_version").and_then(Value::as_u64),
+            Some(u64::from(SCHEMA_VERSION)),
+            "{tool} --json data must carry the universal schema_version",
+        );
+        if tool == "islands" {
+            // Regression: the universal stamp owns schema_version, but the
+            // islands payload must still carry its component array.
+            assert!(
+                data.get("islands").is_some(),
+                "islands payload must retain its islands array",
+            );
+        }
+    }
+    let _ = std::fs::remove_dir_all(&tmp);
+}

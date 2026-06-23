@@ -43,6 +43,13 @@ use registry::{metadata_for_tool, registry_slice};
 use serialise::{backlog_item_detail_json, findings_json, node_json, relevant_rules};
 use util::{finding_error, findings_error, load_for, required};
 
+/// Schema version stamped on every query-API JSON `data` payload.
+///
+/// Both the CLI `--json` surface (which prints `data` directly) and the MCP
+/// envelope (which wraps `data`) carry this version on the top-level data
+/// object so consumers can branch on the output contract uniformly.
+pub const SCHEMA_VERSION: u32 = 1;
+
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SafetyClass {
@@ -211,7 +218,7 @@ pub fn execute(
         source_span: Some(root.join("cairn.config.yaml").display().to_string()),
         remediation: None,
     })?;
-    let data = execute_data(
+    let mut data = execute_data(
         root,
         blueprint_path,
         changes_dir,
@@ -219,6 +226,17 @@ pub fn execute(
         metadata,
         &loaded_config,
     )?;
+    // Stamp every command's data payload with the schema version so the CLI
+    // `--json` output and the MCP envelope share one versioned contract. Every
+    // `execute_data` arm returns a JSON object; assert that so a future arm
+    // returning a non-object (which would silently skip the stamp) is caught.
+    debug_assert!(
+        matches!(data, Value::Object(_)),
+        "execute_data must return a JSON object so the schema_version stamp applies",
+    );
+    if let Value::Object(map) = &mut data {
+        map.insert("schema_version".to_owned(), json!(SCHEMA_VERSION));
+    }
     let rules = relevant_rules(&loaded_config.rules, &request.tool);
     Ok(QueryResponse {
         project_context: loaded_config.context,
