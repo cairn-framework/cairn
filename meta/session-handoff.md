@@ -4,54 +4,66 @@ Branch: `main`, working tree clean. Local `main` == `origin/main`.
 
 ## What Was Done
 
-- **`cairn-y7p` a11y deterministic slice landed and merged** (PR #148, squash
-  merge `b38d8eb`): added `scripts/check-a11y.sh`, a deterministic,
-  dependency-free accessibility gate over the hand-authored web surfaces
-  (`src/ui_assets/index.html`, `src/ui_assets/app.js`,
-  `docs/landing/index.html`), mirroring the accepted `dec.webui-design-token-gate`
-  pattern. It sidesteps the "DOM is preact-rendered" objection by checking
-  source text (including the `htm` template literals in `app.js`), not a
-  rendered DOM, so it is neither fragile nor open-ended.
-  - Checks, all statically decidable WCAG criteria the surfaces already satisfy.
-    Element-level (every surface): 1.1.1 every `<img>` has `alt` (tag-aware,
-    multi-line safe; empty `alt=""` decorative passes), 2.4.3 no positive
-    `tabindex`. Document-level (full HTML documents only): 3.1.1 `<html lang>`,
-    2.4.2 a `<title>`, 1.4.4 viewport does not disable pinch zoom.
-  - Wired into the same three places as the token gate: pre-commit, the CI
-    `webui` job, and the Makefile `check` target (+ an `a11y-check` phony).
-    Covered by `tests/check_a11y.rs` (table-driven behaviour + real-surface
-    conformance). Recorded in `dec.webui-a11y-static-audit-gate`.
-  - Pre-submit review caught real bugs before merge: the adversarial reviewer
-    subagent found a zoom-regex false-positive (`maximum-scale=1.5` wrongly
-    blocked) and a `data-tabindex` false-positive; CodeRabbit found that
-    document detection matched any `<html` substring rather than the root tag.
-    All three were fixed and pinned with regression tests; CodeRabbit then
-    approved.
-  - Gates green: `cargo fmt`/`clippy -D warnings`/`test`/`doc -D warnings`,
-    `biome check`, `cairn scan` + `cairn hook all` clean. CI `check`, `webui`,
-    `hooks`, `dogfood` and CodeRabbit all green (`claude-review` is the known
-    non-blocking hang on unprotected `main`).
-- **Beads export caught up.** Appended the landing note to `cairn-y7p` and
-  regenerated `.beads/issues.jsonl` via `bd export` (one line changed; no
-  unexpected beads, no interactions drift).
+Three iterations landed and merged this session, fully landing
+`dec.beads-task-layer` (decision, then both implementation halves):
+
+- **`dec.beads-task-layer` ruling landed** (PR #149, squash `ae38af9`).
+  Resolved spike `cairn-2z9`: how to surface node-linked beads in cairn's
+  per-node task layer. Ruling: a **read-only derived view** over the existing
+  `.beads/issues.jsonl` reader (`src/state/backlog.rs`), not cairn Todo
+  artefacts and not an export bridge. Grounded in `dec.bead-github-sync`
+  (single source of truth) and the shipped `StateBackend` boundary ("content
+  stays as files unconditionally"; the `#97`/`#99` refocus to Beads-as-state-
+  backend). `spec.md:11` left intact (no Todo-source bend). `cairn-2z9` closed.
+  - Pre-submit adversarial debate (two oracle steelmen) caught a real factual
+    error in the first draft: it cited `dec.no-orchestrator`'s `ArtefactStore`
+    trait, but that trait does not exist in `src/`; the shipped abstraction is
+    `StateBackend` (state-only, content in files). Reframed to the read-only
+    view before landing.
+
+- **Read-only per-node beads view** (PR #150, squash `c0635fe`). Implements the
+  decision. `backlog::for_node` groups `BacklogItem`s by `cairn-node:<id>`
+  label; `ui/api::beads_response_json` serves `GET /api/node/<node>/beads`;
+  webui `BeadCard` + "Beads" section in the inspector; blueprint edge
+  `cairn.ui -> cairn.state`. Read-only, no Todo minting, no spec change.
+  Reviewer APPROVE; live E2E confirmed the endpoint. Bead `cairn-dqx`.
+
+- **Orphan task-bead scan warning** (PR #151, squash `da83c5d`). Completes the
+  decision's integrity rule 4. `checks::check_orphan_beads` emits a non-blocking
+  `CAIRN_BACKLOG_ORPHAN_NODE` warning when a bead's `cairn-node:<id>` label
+  resolves to a node not in the graph (mirrors `CAIRN_TODO_ORPHAN_NODE`).
+  Blueprint edge `cairn.kernel.scanner -> cairn.state`. Reviewer APPROVE; live
+  E2E confirmed the warning fires and is non-blocking. Bead `cairn-lgz`.
+
+- **Beads export caught up** after each merge (`chore(beads)` commits closing
+  `cairn-2z9`, `cairn-dqx`, `cairn-lgz`; reconciled via `bd export`, diff-
+  verified, no interactions drift).
+
+All gates green throughout: `cargo build`/`clippy -D warnings`/`test` (1380),
+biome v2.4.4, `check-design-tokens.sh`, `check-a11y.sh`, `cairn scan` +
+`cairn hook all` clean. CI `check`/`webui`/`hooks`/`dogfood`/CodeRabbit green
+on every PR (`claude-review` is the known non-blocking hang on unprotected
+`main`).
 
 ## Current State
 
-- `cairn lint` / `cairn scan` clean (0 findings) on `main`.
-- No open PRs.
-- Both deterministic halves of `cairn-y7p` are now done: the design-token gate
-  (PR #145/#146) and this a11y gate (PR #148). All remaining work is blocked on
-  a maintainer decision.
+- `cairn lint` / `cairn scan` clean (0 findings) on `main`. No open PRs.
+- `dec.beads-task-layer` is fully landed (decision + view + orphan warning). No
+  deferred sub-parts remain.
+- Backlog is down to one item, blocked on a maintainer decision:
 
   | Bead | Unit | Why it is blocked |
   | --- | --- | --- |
-  | `cairn-y7p` | webui AI fix loop (remainder) | Only the browser -> AI-critique -> patch -> reload loop is left. It needs (a) sanction for a Node + Playwright/puppeteer toolchain in this `package.json`-less Rust repo and (b) an AI vision provider/API (none exists; likely paid; conflicts with the deterministic-gates convention). Both are maintainer calls the bead says cannot be guessed. |
-  | `cairn-2z9` | spike: beads as first-class task layer | `in_progress`; its ruling bends the markdown-artefact invariant (`spec.md:11`), a maintainer architectural call. |
+  | `cairn-y7p` | webui AI fix loop (remainder) | Only the browser -> AI-critique -> patch -> reload loop is left. It needs (a) sanction for a Node + Playwright/puppeteer toolchain in this `package.json`-less Rust repo and (b) an AI vision provider/API (none exists; likely paid; conflicts with the deterministic-gates convention). Both deterministic halves (design-token gate PR #145/#146, a11y gate PR #148) already shipped. The remainder is a maintainer call the bead says cannot be guessed. |
+
+  The loop stopped here: lint clean, the only backlog item blocked on a
+  maintainer decision (the sanctioned stop condition).
 
 ## Agent Entry Points
 
 - `cairn context`; `cairn get <id>` / `cairn neighbourhood <id>` for detail.
 - Dev loop: `docs/agent/cairn-dev-workflow.md` via `/cairn-loop`. `bd ready` for work.
-- The web surfaces' a11y is now pinned by `scripts/check-a11y.sh` +
-  `tests/check_a11y.rs`; add new hand-authored surfaces to the script's default
-  target list (or scan one in isolation via `CAIRN_A11Y_TARGET`).
+- Node-linked beads now surface per node: `GET /api/node/<id>/beads` (webui
+  inspector "Beads" section) and a `CAIRN_BACKLOG_ORPHAN_NODE` scan warning for
+  labels that point at unknown nodes. To use it, tag a bead with a
+  `cairn-node:<id>` label (`bd update <id> --label cairn-node:<node-id>`).
