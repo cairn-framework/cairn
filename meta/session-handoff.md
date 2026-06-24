@@ -2,6 +2,12 @@
 
 Branch: `main`, working tree clean. Local `main` == `origin/main`.
 
+> Re-verified 2026-06-24: a fresh `/cairn-loop` invocation re-ran the full
+> evidence ladder (`cairn lint`/`scan --strict` 0 findings, `cairn next` clean,
+> `bd ready`/`bd list` 0 open of 117, no open PRs, clean `main`). Terminal stop
+> reaffirmed; maintainer explicitly chose to stop rather than open the deferred
+> trivia-model work below. No code changed this invocation.
+
 ## What Was Done
 
 One iteration this session. At orient the backlog held a single ready bead,
