@@ -841,7 +841,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
       <a href="#blueprint">blueprint</a>
       <a href="#install">install</a>
       <a href="https://github.com/cairn-framework/cairn" target="_blank" rel="noopener">github</a>
-      <a class="cta" href="https://github.com/cairn-framework/cairn/blob/dev/docs/spec.md" target="_blank" rel="noopener">Read the spec</a>
+      <a class="cta" href="https://github.com/cairn-framework/cairn/blob/main/docs/spec.md" target="_blank" rel="noopener">Read the spec</a>
     </div>
     <span class="version">a map of what you built</span>
   </nav>
@@ -849,25 +849,25 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ HERO ================ -->
   <section class="hero" style="border-top:0; padding-top:var(--s-8)">
     <div class="hero-text">
-      <div class="eyebrow">For people who refuse to let their system drift · first reality layer: code</div>
+      <div class="eyebrow">Keep the plan and the code in step · starts with your code</div>
 
       <div data-variant="v1" class="on">
         <h1>Your agent gets lost in your repo <em>every session</em>.<br>Give it the <strong>map</strong>.</h1>
-        <p class="lede">You wrote the ADR. Nobody reads it. Six months later you're the only one who remembers why <code>auth.tokens</code> can't call the cache directly, and your AI agent keeps confidently proposing that it should. Cairn turns an afternoon's worth of <strong>blueprint</strong> into a living <strong>map</strong>: reconciled against the code you actually shipped, queryable by every agent you hand the repo to.</p>
+        <p class="lede">You wrote down why the code works the way it does. Nobody reads it. Six months later, only you remember why <code>auth.tokens</code> must not call the cache, and your AI helper keeps trying to make it. Cairn turns one afternoon of writing a <strong>blueprint</strong> into a living <strong>map</strong>. It checks the map against the code you really shipped, and any AI helper you hand the repo to can read it.</p>
       </div>
 
       <div data-variant="v2">
-        <h1>Ship code that <strong>respects</strong> the architecture you meant.</h1>
-        <p class="lede">Claude Code. Cursor. Copilot. They all work best when the structure is explicit, not inferred from file names at 2am. You declare the shape of your system once. Cairn reconciles it against reality, blocks the merge when the two disagree, and hands your agents a graph they can actually use.</p>
+        <h1>Ship code that <strong>fits</strong> the plan you meant.</h1>
+        <p class="lede">Claude Code. Cursor. Copilot. They all work best when the plan is written down, not guessed from file names at 2am. You write the shape of your system once. Cairn checks it against the real code, blocks the merge when the two disagree, and hands your helpers a map they can use.</p>
       </div>
 
       <div data-variant="v3">
-        <h1>Two chains, <em>hinged</em> at every decision you commit to.</h1>
-        <p class="lede">Provenance is why you decided. Authority is what must stay true. They meet at a decision, and the decision is the moment your system tells the truth about itself. Cairn keeps both chains visible long after the Slack thread is gone.</p>
+        <h1>Two chains, joined at every choice you make.</h1>
+        <p class="lede">One chain is why you chose it. The other is what must stay true. They meet at a decision, and the decision is the moment your system tells the truth about itself. Cairn keeps both visible long after the Slack thread is gone.</p>
       </div>
 
       <div class="ctas">
-        <a class="btn primary" href="https://github.com/cairn-framework/cairn/blob/dev/docs/spec.md" target="_blank" rel="noopener">Read the spec →</a>
+        <a class="btn primary" href="https://github.com/cairn-framework/cairn/blob/main/docs/spec.md" target="_blank" rel="noopener">Read the spec →</a>
         <a class="btn ghost" href="https://github.com/cairn-framework/cairn" target="_blank" rel="noopener">github.com/cairn-framework/cairn</a>
       </div>
     </div>
@@ -887,12 +887,12 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ WHAT CAIRN IS ================ -->
   <section id="what">
     <div class="kicker">What it is</div>
-    <h2 class="section">For people who take their architecture <em>seriously</em> enough to write it down.</h2>
+    <h2 class="section">For people who care enough to write the plan <em>down</em>.</h2>
 
     <div class="what" style="margin-top:var(--s-7)">
-      <p>You already know the shape of your system. It lives in your head, in a half-updated ADR folder, in the Slack thread from March. You write a <strong>blueprint</strong> instead: a short declarative file that names your systems, containers, modules, the contracts between them, and the decisions that shaped them. Not prose that rots. A file your toolchain reads.</p>
-      <p>Cairn reconciles that blueprint against reality. The code on disk today. The contracts in <code>contracts/</code>. The decision records someone actually wrote. What comes back is a <strong>map</strong>: a graph of what exists, what's declared, what's drifted, and exactly where the two stopped agreeing.</p>
-      <p>When your agent needs to change <code>auth.session</code>, it stops re-reading <code>src/auth</code> from scratch. It asks the map: what's this module's contract, which decisions constrain it, what's its neighbourhood. It gets a typed answer and ships code that fits.</p>
+      <p>You already know the shape of your system. It lives in your head, in a half-finished notes folder, in that Slack thread from March. Write a <strong>blueprint</strong> instead. It is a short file that names your systems, your parts, the promises each part makes, and the choices behind them. Not notes that go stale. A file your tools can read.</p>
+      <p>Cairn checks that blueprint against what is really there: the code on disk today, the promises in <code>contracts/</code>, and the choices someone wrote down. What you get back is a <strong>map</strong>. It shows what exists, what you planned, what has drifted, and exactly where the two stopped matching.</p>
+      <p>When your AI helper needs to change <code>auth.session</code>, it stops reading <code>src/auth</code> from scratch. It asks the map: what does this part promise, which choices limit it, and what sits next to it. It gets a clear answer and ships code that fits.</p>
 
       <div class="three-nouns">
         <span class="noun prov">blueprint</span>
@@ -909,8 +909,8 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ TWO-CHAIN MODEL ================ -->
   <section id="chains">
     <div class="kicker">The two-chain model</div>
-    <h2 class="section">Every system has a chain of <em>why you decided</em> and a chain of <strong>what must stay true</strong>. Cairn keeps them honest with each other.</h2>
-    <p class="section-lede">This is the spine. The <em>provenance chain</em> runs upward from sources and research: the evidence that earned your decision the right to exist. The <strong>authority chain</strong> runs downward through blueprint, contract, and code: the rules that nobody gets to break silently. They meet at the moment you commit. That moment is a decision, and it is the one place your system gets to be honest about itself.</p>
+    <h2 class="section">Every system has a chain of <em>why you chose it</em> and a chain of <strong>what must stay true</strong>. Cairn keeps the two honest with each other.</h2>
+    <p class="section-lede">This is the backbone. One chain runs up from your sources and research: the proof that earned the choice. The other runs down through blueprint, contract, and code: the rules no one gets to break in secret. They meet the moment you commit. That moment is a decision, and it is the one place your system has to tell the truth about itself.</p>
 
     <div class="two-chain">
       <div class="chain-viz">
@@ -985,14 +985,14 @@ footer.site .fnav a:hover { color: var(--ink-char); }
       </div>
 
       <div class="chain-prose">
-        <div class="chain-head prov">Provenance: why you decided</div>
-        <p>Sources are the raw evidence. Research is how you made sense of them. Neither gets to decide anything on its own. They accumulate until a decision reads them and says <em>this is what we're going with</em>. When future-you asks <em>why is it this way</em>, the provenance chain is the answer that survives.</p>
+        <div class="chain-head prov">Why you chose it</div>
+        <p>Sources are the raw proof. Research is how you made sense of it. Neither one decides anything by itself. They pile up until a decision reads them and says <em>this is what we are going with</em>. When future-you asks <em>why is it like this</em>, this chain is the answer that lasts.</p>
 
-        <div class="chain-head hinge">The hinge: the decision you commit</div>
-        <p>A decision reads provenance and writes authority. It is the one place in the whole system where deliberation becomes obligation. Every authoritative statement in Cairn, every contract, every blueprint node, traces back to a decision. Every decision traces back to the evidence that earned it. Nothing in your architecture is allowed to just appear.</p>
+        <div class="chain-head hinge">The join: the decision you make</div>
+        <p>A decision reads the why and writes the what. It is the one place where thinking turns into a rule. Every rule in Cairn, every contract, every blueprint part, traces back to a decision. Every decision traces back to the proof that earned it. Nothing in your plan is allowed to just appear from nowhere.</p>
 
-        <div class="chain-head auth">Authority: what must stay true</div>
-        <p>The blueprint declares how the system is shaped. Contracts formalise the interfaces between modules. Code has to realise them. Cairn reconciles the three and tells you precisely where they disagree: as a <em>structural error</em>, an <em>interface contradiction</em>, or a <em>rationale tension</em>. The fence around the authority chain is the part that watches your back.</p>
+        <div class="chain-head auth">What must stay true</div>
+        <p>The blueprint says how the system is shaped. Contracts spell out how the parts connect. The code has to match. Cairn checks all three and tells you exactly where they disagree: as a <em>structural error</em>, an <em>interface contradiction</em>, or a <em>rationale tension</em>. This chain is the part that watches your back.</p>
       </div>
     </div>
   </section>
@@ -1000,8 +1000,8 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ BLUEPRINT TO MAP ================ -->
   <section id="blueprint">
     <div class="kicker">Blueprint → Map</div>
-    <h2 class="section">An afternoon's worth of declaration. A living map for the rest of the project.</h2>
-    <p class="section-lede">The <code>cairn.blueprint</code> file is declarative and human-readable. You can draft the first pass over one afternoon and a second coffee. What Cairn gives back is <code>map.md</code>: every node labelled <code>synced</code>, <code>ghost</code>, or <code>orphaned</code>, plus a ranked list of findings sitting right where agents and teammates can find them.</p>
+    <h2 class="section">One afternoon of writing. A living map for the rest of the project.</h2>
+    <p class="section-lede">The <code>cairn.blueprint</code> file is short and easy to read. You can write a first pass in one afternoon and a second coffee. Cairn gives back <code>map.md</code>: every part marked <code>synced</code>, <code>ghost</code>, or <code>orphaned</code>, plus a ranked list of findings, right where your team and your AI helpers can find them.</p>
 
     <div class="bp-map">
       <div class="panel">
@@ -1067,27 +1067,27 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <section id="findings">
     <div class="kicker">Findings · the system watching your back</div>
     <h2 class="section">A <em>contradiction</em> stops the merge. A <em>tension</em> taps you on the shoulder.</h2>
-    <p class="section-lede">Three kinds of wrong, kept distinct on purpose. Cairn is not a linter that nags. It is the thing that tells you when the code and the declaration have started lying to each other, and which of the two classes of lie it is. Flattening both to "warnings" is how architectural intent quietly rots.</p>
+    <p class="section-lede">Three kinds of wrong, kept apart on purpose. Cairn is not a linter that nags. It tells you when the code and the plan have started to disagree, and which kind of disagreement it is. Calling everything a "warning" is how a good plan quietly rots.</p>
 
     <div class="findings">
       <div class="finding structural">
         <div class="severity">Blocking</div>
         <h3>Structural error</h3>
-        <p>A node in the blueprint has no counterpart on disk. A contract points at a module ID that doesn't exist. The graph is malformed, and nothing downstream is trustworthy until it is fixed. The scan refuses to continue.</p>
+        <p>A part in the blueprint has nothing to match it on disk. A contract points at a part ID that does not exist. The map is broken, and nothing built on it can be trusted until you fix it. The scan stops here.</p>
         <span class="block-label">halts the scan</span>
       </div>
 
       <div class="finding contradiction">
         <div class="severity">Blocking</div>
         <h3>Interface contradiction</h3>
-        <p>The contract says one signature. The code ships another. The <code>interface hash</code> moved and nobody told the contract. This is drift caught in the act, and it is the merge-blocker you want firing before your agent confidently ships the version that breaks everything upstream.</p>
+        <p>The contract says one thing. The code does another. The <code>interface hash</code> changed and nobody updated the contract. This is drift caught in the act. It is the block you want before your AI helper ships the version that breaks everything above it.</p>
         <span class="block-label">halts the merge</span>
       </div>
 
       <div class="finding tension">
         <div class="severity">Advisory</div>
         <h3>Rationale tension</h3>
-        <p>Two decisions are arguing with each other. Or a decision's provenance no longer holds up. The code still compiles, but the story has drifted. Cairn flags it for review instead of blocking, so you can resolve it the next time you're already thinking about that module.</p>
+        <p>Two choices are fighting each other. Or the proof behind a choice no longer holds. The code still builds, but the story has drifted. Cairn flags this for review instead of blocking, so you can sort it the next time you are in that part anyway.</p>
         <span class="block-label">flags for review</span>
       </div>
     </div>
@@ -1096,29 +1096,29 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ BEYOND CODE / DOMAINS ================ -->
   <section id="domains">
     <div class="kicker">Beyond code</div>
-    <h2 class="section">Code is the first reality layer. Your research, your org, your product BOM are next.</h2>
-    <p class="section-lede">A <em>reconciler</em> is a plugin interface. It answers one question: given a node in the blueprint, what's actually there? Code is the reconciler that ships today. The kernel doesn't care. Anywhere "what we said" has to stay honest with "what is," the same machinery applies.</p>
+    <h2 class="section">Code is the first layer. Your research, your team, and your parts list come next.</h2>
+    <p class="section-lede">A <em>reconciler</em> is a plug-in. It answers one question: for a part in the blueprint, what is really there? Code is the reconciler that ships today. The core does not care which one you use. Anywhere "what we said" has to stay honest with "what is," the same machine works.</p>
 
     <div class="domains">
       <div class="domain first shipping">
-        <div class="dkicker">reality layer · code · shipping</div>
+        <div class="dkicker">layer · code · shipping</div>
         <h4>Source code</h4>
-        <p>Module paths, interface hashes, contract markdown. Reconcile the repo against what the blueprint said it would be, before your agent ships something it shouldn't.</p>
+        <p>Part paths, interface hashes, contract files. Check the repo against what the blueprint said it would be, before your AI helper ships something it should not.</p>
       </div>
       <div class="domain upcoming">
-        <div class="dkicker">reality layer · research · upcoming</div>
-        <h4>Research programmes</h4>
-        <p>Experiments, hypotheses, protocols as typed artefacts. Reconcile the claims in the paper draft against the evidence chain that is supposed to justify them.</p>
+        <div class="dkicker">layer · research · coming</div>
+        <h4>Research projects</h4>
+        <p>Experiments, ideas, and methods as typed records. Check the claims in the paper draft against the proof that is supposed to back them up.</p>
       </div>
       <div class="domain upcoming">
-        <div class="dkicker">reality layer · org · upcoming</div>
-        <h4>Organisational design</h4>
-        <p>Teams, charters, ownership. Reconcile the org chart you drew against who is actually responsible for what this quarter.</p>
+        <div class="dkicker">layer · team · coming</div>
+        <h4>Team design</h4>
+        <p>Teams, charters, and who owns what. Check the org chart you drew against who is really responsible this quarter.</p>
       </div>
       <div class="domain upcoming">
-        <div class="dkicker">reality layer · product · upcoming</div>
-        <h4>Product BOMs</h4>
-        <p>Parts, suppliers, regulatory certifications. Reconcile the bill of materials against the physical audit, and catch the divergence before the regulator does.</p>
+        <div class="dkicker">layer · product · coming</div>
+        <h4>Parts lists</h4>
+        <p>Parts, suppliers, and safety sign-offs. Check the parts list against the real audit, and catch the gap before the inspector does.</p>
       </div>
     </div>
   </section>
@@ -1127,12 +1127,12 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <section id="install">
     <div class="kicker">Get started</div>
     <h2 class="section">You can be scanning your repo in under a minute.</h2>
-    <p class="section-lede">One CLI. One file to author. One command to scan. Your first <code>map.md</code> lands on disk the first time you run it, and your agents can query it the next prompt.</p>
+    <p class="section-lede">One tool. One file to write. One command to scan. Your first <code>map.md</code> lands on disk the first time you run it, and your AI helpers can read it on the next prompt.</p>
 
     <div class="install-grid">
       <div class="code-card">
         <div class="card-head"><span class="dot"></span> install</div>
-<pre><span class="prompt">$</span> <span class="cmd">cargo install</span> <span class="flag">--git</span> <span class="arg">https://github.com/cairn-framework/cairn</span> <span class="flag">--branch</span> <span class="arg">dev</span>
+<pre><span class="prompt">$</span> <span class="cmd">cargo install</span> <span class="flag">--git</span> <span class="arg">https://github.com/cairn-framework/cairn.git</span>
 <span class="prompt">$</span> <span class="cmd">cairn init</span>                 <span class="comment"># scaffolds cairn.blueprint</span>
 <span class="prompt">$</span> <span class="cmd">cairn scan</span>                 <span class="comment"># reconcile, emit map.md</span></pre>
       </div>
@@ -1153,7 +1153,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
     <div class="inner">
       <div class="brand">Cairn. One stone stacked against forgetting what you built and why.</div>
       <div class="fnav">
-        <a href="https://github.com/cairn-framework/cairn/blob/dev/docs/spec.md" target="_blank" rel="noopener">spec</a>
+        <a href="https://github.com/cairn-framework/cairn/blob/main/docs/spec.md" target="_blank" rel="noopener">spec</a>
         <a href="https://github.com/cairn-framework/cairn" target="_blank" rel="noopener">github</a>
         <a href="../design-system/">design system</a>
       </div>
