@@ -342,7 +342,7 @@ fn test_apply_archive_empty_delta_preserves_blueprint_verbatim() {
 }
 
 #[test]
-fn test_apply_archive_nonempty_delta_rewrites_blueprint() {
+fn test_apply_archive_nonempty_delta_preserves_comments() {
     let dir = tempfile::tempdir().unwrap();
     let blueprint = dir.path().join("cairn.blueprint");
     fs::write(&blueprint, COMMENTED_BLUEPRINT).unwrap();
@@ -357,13 +357,144 @@ fn test_apply_archive_nonempty_delta_rewrites_blueprint() {
     .expect("non-empty-delta archive must succeed");
 
     let after = fs::read_to_string(&blueprint).unwrap();
-    assert_ne!(
-        after, COMMENTED_BLUEPRINT,
-        "non-empty-delta archive must rewrite the blueprint"
-    );
     assert!(
         !after.contains("app.core"),
-        "removed node must be absent from the rewritten blueprint"
+        "removed node must be absent: {after:?}"
+    );
+    assert!(
+        after.starts_with("# header comment\n#\n# second line\n\n"),
+        "header comments and blank line must survive a structural delta: {after:?}"
+    );
+    assert!(
+        after.contains("# inner comment"),
+        "comments outside the removed declaration must be preserved: {after:?}"
+    );
+}
+
+#[test]
+fn test_apply_blueprint_delta_modify_preserves_siblings() {
+    let base = "# top comment\nSystem App \"d\" id \"app\" {\n    Module A \"a\" id \"app.a\" {\n        path \"./a\"\n    }\n\n    # section B\n    Module B \"b\" id \"app.b\" {\n        path \"./b\"\n    }\n}\n";
+    let mut modified = leaf("app.a");
+    modified.name = "A".to_owned();
+    modified.description = "modified".to_owned();
+    let mut delta = BlueprintDelta::default();
+    delta.modified_nodes.push(modified);
+
+    let result = apply_blueprint_delta(base, &delta).expect("modify delta must apply");
+
+    assert!(
+        result.contains("# top comment"),
+        "leading comment preserved: {result:?}"
+    );
+    assert!(
+        result.contains("\n\n    # section B"),
+        "blank line and inter-sibling comment preserved: {result:?}"
+    );
+    assert!(
+        result.contains("Module A \"modified\" id \"app.a\""),
+        "modified node reflects the change: {result:?}"
+    );
+    assert!(
+        result.contains("    Module B \"b\" id \"app.b\" {\n        path \"./b\"\n    }"),
+        "untouched sibling kept verbatim: {result:?}"
+    );
+}
+
+#[test]
+fn test_apply_blueprint_delta_remove_edge_preserves_section_comment() {
+    let base = "System App \"d\" id \"app\" {\n    Module A \"a\" id \"app.a\" {}\n    Module B \"b\" id \"app.b\" {}\n}\n\n# wiring\napp.a -> app.b \"calls\"\napp.b -> app.a \"replies\"\n";
+    let mut delta = BlueprintDelta::default();
+    delta.removed_edges.push(mk_edge("app.a", "app.b", "calls"));
+
+    let result = apply_blueprint_delta(base, &delta).expect("edge-removal delta must apply");
+
+    assert!(
+        result.contains("# wiring"),
+        "edge-section comment preserved: {result:?}"
+    );
+    assert!(
+        result.contains("app.b -> app.a \"replies\""),
+        "surviving edge kept verbatim: {result:?}"
+    );
+    assert!(
+        !result.contains("app.a -> app.b"),
+        "removed edge absent: {result:?}"
+    );
+    assert!(
+        result.contains("    Module A \"a\" id \"app.a\" {}"),
+        "untouched nodes kept verbatim: {result:?}"
+    );
+}
+
+#[test]
+fn test_apply_blueprint_delta_modify_preserves_trivia_at_depth_three() {
+    // Mirrors the real cairn.blueprint shape: System > Container > Module.
+    let base = "# header\nSystem S \"s\" id \"s\" {\n    Container K \"k\" id \"s.k\" {\n        Module A \"a\" id \"s.k.a\" {\n            path \"./a\"\n        }\n\n        # inner section\n        Module B \"b\" id \"s.k.b\" {\n            path \"./b\"\n        }\n    }\n}\n";
+    let mut modified = leaf("s.k.a");
+    modified.name = "A".to_owned();
+    modified.description = "modified".to_owned();
+    let mut delta = BlueprintDelta::default();
+    delta.modified_nodes.push(modified);
+
+    let result = apply_blueprint_delta(base, &delta).expect("nested modify must apply");
+
+    assert!(
+        result.contains("# header"),
+        "top-level comment preserved: {result:?}"
+    );
+    assert!(
+        result.contains("\n\n        # inner section"),
+        "blank line and depth-2 section comment preserved: {result:?}"
+    );
+    assert!(
+        result.contains("Module A \"modified\" id \"s.k.a\""),
+        "deeply nested modified node reflects the change: {result:?}"
+    );
+    assert!(
+        result
+            .contains("        Module B \"b\" id \"s.k.b\" {\n            path \"./b\"\n        }"),
+        "untouched depth-3 sibling kept verbatim: {result:?}"
+    );
+}
+
+#[test]
+fn test_apply_blueprint_delta_two_edges_one_line_falls_back_correctly() {
+    // Two edges share a source line (legal but unconventional). The line-wise
+    // splice cannot apply a per-edge op here, so the verified fallback must
+    // still produce structurally correct output.
+    let base = "System App \"d\" id \"app\" {}\nx -> y \"a\" p -> q \"b\"\n";
+    let mut delta = BlueprintDelta::default();
+    delta.removed_edges.push(mk_edge("x", "y", "a"));
+
+    let result = apply_blueprint_delta(base, &delta).expect("delta must apply");
+
+    assert!(
+        !result.contains("x -> y"),
+        "removed edge must be gone: {result:?}"
+    );
+    assert!(
+        result.contains("p -> q \"b\""),
+        "surviving edge must remain: {result:?}"
+    );
+}
+
+#[test]
+fn test_apply_blueprint_delta_two_nodes_one_line_falls_back_correctly() {
+    // Two declarations share a source line; the splice would skip a sibling, so
+    // the verified fallback must still drop only the removed node.
+    let base = "System App \"d\" id \"app\" { Module A \"a\" id \"app.a\" {} Module B \"b\" id \"app.b\" {} }\n";
+    let mut delta = BlueprintDelta::default();
+    delta.removed_nodes.push("app.a".to_owned());
+
+    let result = apply_blueprint_delta(base, &delta).expect("delta must apply");
+
+    assert!(
+        !result.contains("app.a"),
+        "removed node must be gone: {result:?}"
+    );
+    assert!(
+        result.contains("id \"app.b\""),
+        "surviving sibling must remain: {result:?}"
     );
 }
 

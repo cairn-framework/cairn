@@ -2,6 +2,8 @@
 
 use super::*;
 
+mod preserve;
+
 pub(super) fn mutation_paths(root: &Path, blueprint_path: &Path, change: &Change) -> Vec<PathBuf> {
     let mut paths = vec![root.join(blueprint_path)];
     paths.extend(change.artefacts.iter().flat_map(|artefact| {
@@ -78,38 +80,7 @@ pub(super) fn apply_blueprint_delta(
     source: &str,
     delta: &BlueprintDelta,
 ) -> Result<String, String> {
-    let ast = parse_str("cairn.blueprint", source).map_err(|error| error.to_string())?;
-    let mut nodes = ast.nodes;
-    for rename in &delta.renamed_nodes {
-        rename_node_id(&mut nodes, &rename.from, &rename.to);
-    }
-    for id in &delta.removed_nodes {
-        remove_node(&mut nodes, id);
-    }
-    for node in &delta.modified_nodes {
-        replace_node(&mut nodes, node)?;
-    }
-    nodes.extend(delta.added_nodes.clone());
-    let mut edges = ast.edges;
-    for rename in &delta.renamed_nodes {
-        for edge in &mut edges {
-            edge.from = replace_exact_id(&edge.from, &rename.from, &rename.to);
-            edge.to = replace_exact_id(&edge.to, &rename.from, &rename.to);
-        }
-    }
-    for edge in &delta.removed_edges {
-        edges.retain(|candidate| !same_edge(candidate, edge));
-    }
-    for rename in &delta.renamed_edges {
-        edges.retain(|candidate| !same_edge(candidate, &rename.from));
-        edges.push(rename.to.clone());
-    }
-    for edge in &delta.modified_edges {
-        edges.retain(|candidate| !(candidate.from == edge.from && candidate.to == edge.to));
-        edges.push(edge.clone());
-    }
-    edges.extend(delta.added_edges.clone());
-    Ok(serialize_ast(&Ast { nodes, edges }))
+    preserve::apply_delta_preserving(source, delta)
 }
 
 pub(super) fn rename_node_id(nodes: &mut [Node], from: &str, to: &str) {
@@ -143,21 +114,6 @@ pub(super) fn replace_node(nodes: &mut [Node], replacement: &Node) -> Result<(),
 
 pub(super) fn same_edge(left: &Edge, right: &Edge) -> bool {
     left.from == right.from && left.to == right.to && left.description == right.description
-}
-
-pub(super) fn serialize_ast(ast: &Ast) -> String {
-    let mut output = String::new();
-    for node in &ast.nodes {
-        serialize_node(node, 0, &mut output);
-    }
-    for edge in &ast.edges {
-        let _ = writeln!(
-            output,
-            "{} -> {} {:?}",
-            edge.from, edge.to, edge.description
-        );
-    }
-    output
 }
 
 pub(super) fn serialize_node(node: &Node, indent: usize, output: &mut String) {
