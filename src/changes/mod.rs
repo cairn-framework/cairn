@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     artefacts::frontmatter,
-    blueprint::{Ast, Edge, Node, NodeKind, parser::parse_str},
+    blueprint::{Edge, Node, NodeKind, parser::parse_str},
     map::Graph,
     scanner,
 };
