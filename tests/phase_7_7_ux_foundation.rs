@@ -426,7 +426,7 @@ mod explorer {
             "banner must render a CTA element"
         );
         assert!(
-            js.contains("copyFinding") && js.contains("entry.cta"),
+            js.contains("copyFinding") && (js.contains("entry.cta") || js.contains("entry?.cta")),
             "CTA must be sourced from copy.toml findings.codes entries"
         );
     }

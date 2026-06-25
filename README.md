@@ -6,16 +6,30 @@
 
 <p align="center">
   <em>Your agent gets lost in your repo every session. Give it the map.</em><br>
-  <strong>The declarative constraint layer for AI-assisted codebases.</strong>
+  <strong>A living map of your code that AI helpers read before they build, and that catches them when they break the plan.</strong>
 </p>
 
 <!-- badges placeholder: build, crates.io, license once published -->
 
+## What is Cairn
+
+Picture a big codebase that many people and AI helpers all change at once. It is easy to break something, because nobody can see the whole thing at one time.
+
+Cairn is a map of your code that is always kept true. You write down the plan: what the parts are, what each one is for, and how they fit. Cairn then checks the real code against that plan. When the code and the plan stop matching, Cairn says so. And it hands the plan to every AI helper, so they start out knowing where they are instead of guessing.
+
+It works like a floor plan for a house. A floor plan shows you which walls hold the house up, so you do not knock down the wrong one. Cairn shows which parts of your code hold everything else up, so you (or an AI helper) do not break them by accident.
+
+Cairn does three things:
+
+1. **You write the plan.** What the parts are and how they fit.
+2. **Cairn keeps the plan and the code matching.** If they drift apart, it tells you.
+3. **It hands the plan to every helper.** So nobody gets lost or breaks things.
+
 ## Why Cairn
 
-Existing tools either *describe* or *act*. Knowledge graphs describe your codebase but never enforce anything. Coding agents act on your codebase but have no architectural guardrails. Static analysis checks syntax, not intent.
+Other tools do half the job. Knowledge graphs *describe* your code but never stop a bad change. Coding agents *change* your code but have no sense of the plan. Static analysis checks spelling and style, not whether a change fits.
 
-Cairn is the missing constraint layer. You declare architectural truth in a `cairn.blueprint`. Cairn reconciles that declaration against the code you actually shipped, gates commits when they drift, and gives every agent a queryable map grounded in reality, not inference.
+Cairn is the missing piece in the middle. You write the plan in a `cairn.blueprint` file. Cairn checks that plan against the code you actually shipped, blocks commits that break it, and gives every agent a map drawn from the real code, not a guess.
 
 | Gap | What exists today | What Cairn adds |
 |---|---|---|
@@ -30,10 +44,10 @@ blueprint  -->  reconcile  -->  gate  -->  query
 (declare)      (scan code)    (enforce)   (serve agents)
 ```
 
-1. **Declare.** Author a `cairn.blueprint` naming your systems, modules, contracts, and the decisions that shaped them.
-2. **Reconcile.** `cairn scan` walks the code, computes interface hashes, and flags every node as `synced`, `ghost`, or `orphaned`.
-3. **Gate.** Pre-commit hooks block on `interface contradictions` (breaking drift) and surface `rationale tensions` (advisory warnings).
-4. **Query.** `cairn get`, `cairn neighbourhood`, `cairn context` return typed JSON so agents ground on structure, not guesswork.
+1. **Write the plan (declare).** Make a `cairn.blueprint` that names your systems, modules, the promises each part makes, and the decisions behind them.
+2. **Check it (reconcile).** `cairn scan` reads the code and marks each part `synced` (matches the plan), `ghost` (planned but not built yet), or `orphaned` (built but not in the plan).
+3. **Guard it (gate).** A pre-commit check blocks changes that break the plan, and warns about changes that fight an old decision.
+4. **Ask it (query).** `cairn get`, `cairn neighbourhood`, and `cairn context` hand back clean data, so agents build on facts instead of guesses.
 
 ## Quickstart
 
@@ -43,23 +57,36 @@ cairn init                                                          # scaffold b
 cairn scan                                                          # reconcile against code
 ```
 
-Onboarding an existing codebase? `cairn init --from-code` discovers modules from your source tree and writes a reviewable proposal instead of a starter blueprint. `cairn onboard` then groups any leftover orphaned files with suggestions.
+Already have a codebase? `cairn init --from-code` reads your source tree and writes a draft plan for you to review, instead of an empty starter. `cairn onboard` then groups any leftover files and suggests where they fit.
 
-See [docs/quickstart.md](docs/quickstart.md) for prerequisites, alternative install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command reference in [docs/commands.md](docs/commands.md).
+See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command list in [docs/commands.md](docs/commands.md).
 
 ## Using Cairn with coding agents
 
-Cairn is built to be an agent's source of architectural truth, in both directions:
+Cairn is built to be an agent's source of truth about your code, both ways:
 
-- **Guidance in.** `cairn init` writes `.cairn/AGENTS.md`, a ready-made section for your project's `CLAUDE.md` or `AGENTS.md` that teaches agents the orientation commands (`cairn context`, `cairn get`, `cairn neighbourhood`), the keep-the-blueprint-in-sync rule, and the pre-commit gate.
-- **Typed answers out.** Every command takes `--json` and returns a stable envelope (`{"command", "status", "data"}`), so agents parse structure instead of prose. `cairn-mcp` exposes the same query API as MCP tools (see [docs/mcp.md](docs/mcp.md) and [docs/claude-code.md](docs/claude-code.md)).
-- **Friction back upstream.** When Cairn itself misbehaves on your project (a confusing message, a wrong finding, a missing capability), `cairn feedback "<what happened>"` records it in `.cairn/feedback.md` and prints a prefilled issue link for [this repo's tracker](https://github.com/cairn-framework/cairn/issues). The generated agent guide tells agents to do this instead of silently routing around problems, so every adopting project helps dogfood Cairn.
+- **Plan in.** `cairn init` writes `.cairn/AGENTS.md`, a ready-made section for your project's `CLAUDE.md` or `AGENTS.md`. It teaches agents the orientation commands (`cairn context`, `cairn get`, `cairn neighbourhood`), the rule to keep the plan in sync, and the pre-commit gate.
+- **Clean answers out.** Every command takes `--json` and returns a stable shape (`{"command", "status", "data"}`), so agents read structure instead of prose. `cairn-mcp` serves the same query API as MCP tools (see [docs/mcp.md](docs/mcp.md) and [docs/claude-code.md](docs/claude-code.md)).
+- **Problems back to us.** When Cairn itself trips up on your project (a confusing message, a wrong finding, a missing feature), `cairn feedback "<what happened>"` saves it to `.cairn/feedback.md` and prints a ready-to-file issue link for [this repo's tracker](https://github.com/cairn-framework/cairn/issues). The agent guide tells agents to do this instead of quietly working around the problem, so every project that uses Cairn helps improve it.
 
-A greenfield pattern that works well: declare your intended modules in the blueprint before any code exists. They show up as `ghost` nodes, agents treat them as a to-do list, and `cairn scan` confirms each one as it becomes real code.
+A pattern that works well for new code: write the parts you plan to build in the blueprint before any code exists. They show up as `ghost` nodes, agents treat them as a to-do list, and `cairn scan` confirms each one as it becomes real code.
+
+## What the map holds
+
+The map is more than shape. Every node carries real, file-backed content, all saved in git next to your code:
+
+- **What is there.** Systems, containers, modules, and how they depend on each other: the shape of what exists.
+- **What each part should do.** A `contract` per module (purpose, public interface, rules, tests), kept honest by drift detection.
+- **Why it is built this way.** `decision` records with typed history (`supersedes`, `informed_by`, `revisit_triggers`).
+- **What is left to do.** `todo` notes attached to nodes, plus `ghost` nodes for parts you mean to build but have not built yet.
+
+Because all of it is markdown in the repo, it gets git history, diff, blame, and branching for free, and it travels with the code instead of rotting in a separate tool. `cairn todos <id>` lists a node's open work; `cairn status` gathers open work, active changes, and recent activity across the whole map.
+
+Task trackers stay optional. If your team already runs one such as beads, Cairn shows its node-linked items as a read-only view in the inspector, without treating it as a second source of truth. The task content lives in Cairn; an outside tracker is just another place to show it.
 
 ## The Kubernetes analogy
 
-Cairn follows the same pattern as Kubernetes: declare desired state, reconcile continuously, and reject mutations that violate it.
+Cairn works the same way Kubernetes does: declare the state you want, keep checking the real state against it, and reject changes that break it.
 
 | Cairn | Kubernetes | Role |
 |---|---|---|
@@ -73,14 +100,14 @@ Cairn follows the same pattern as Kubernetes: declare desired state, reconcile c
 
 ## What it does
 
-- Parses a human-authored `cairn.blueprint` into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
-- Reconciles declared nodes against real files on disk and flags `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter.
-- Produces `map.md` with generated frontmatter, active changes, and ranked findings agents can consume.
-- Computes deterministic interface hashes and detects contract drift between revisions.
-- Surfaces `interface contradictions` (blocking) and `rationale tensions` (advisory) so commits that break the authority chain never land silently.
+- Reads a human-written `cairn.blueprint` into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
+- Checks declared nodes against real files on disk and marks `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter.
+- Writes `map.md` with generated frontmatter, active changes, and ranked findings agents can read.
+- Computes steady interface hashes and spots contract drift between revisions.
+- Surfaces `interface contradictions` (blocking) and `rationale tensions` (advisory), so commits that break the chain never land quietly.
 - Tracks structured changes (`meta/changes/`) with delta semantics and an acceptance gate (`cairn accept`).
-- Onboards brownfield codebases: `cairn init --from-code` extraction, `cairn refine` re-discovery, `cairn onboard` orphan triage, `cairn islands` for disconnected components.
-- Exposes every result as machine-readable JSON, as MCP tools (`cairn-mcp`), and in a local web explorer (`cairn ui`).
+- Onboards existing codebases: `cairn init --from-code` extraction, `cairn refine` re-discovery, `cairn onboard` orphan triage, `cairn islands` for disconnected parts.
+- Hands back every result as machine-readable JSON, as MCP tools (`cairn-mcp`), and in a local web explorer (`cairn ui`).
 
 ## Commands at a glance
 
@@ -91,6 +118,7 @@ Cairn follows the same pattern as Kubernetes: declare desired state, reconcile c
 | Inspect a node / its surroundings | `cairn get <id>`, `cairn neighbourhood <id>` |
 | Dependency questions | `cairn depends <id>`, `cairn dependents <id>`, `cairn order`, `cairn islands` |
 | Provenance questions | `cairn rationale <id>`, `cairn decisions <id>`, `cairn research <id>`, `cairn sources <id>` |
+| Work for a node or the whole graph | `cairn todos <id>`, `cairn status` |
 | Findings | `cairn lint`, `cairn check` |
 | Commit gates | `cairn hook structural\|interface\|tension\|all` |
 | Changes | `cairn change new <id>`, `cairn changes`, `cairn show <id>`, `cairn accept` |
@@ -108,9 +136,9 @@ Hooks enforce the integrity classes from `docs/spec.md`:
 - `cairn hook structural` exits `1` when structural errors or active-change conflicts exist.
 - `cairn hook interface` exits `1` when the current interface hash differs from `.cairn/state/interface-hashes.json`.
 - `cairn hook tension` prints advisory findings and always exits `0`.
-- `cairn hook all` runs all classes. Structural and interface failures determine the exit code; tensions do not fail the hook.
+- `cairn hook all` runs all classes. Structural and interface failures set the exit code; tensions do not fail the hook.
 
-Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `scripts/cairn-hook-all.sh` from Git hooks or agent task-end hooks so the same engine runs in every boundary.
+Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `scripts/cairn-hook-all.sh` from Git hooks or agent task-end hooks so the same engine runs at every boundary.
 
 ## See it
 
@@ -139,7 +167,7 @@ Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `s
 
 ## Status
 
-Specification v0.7 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped; Cairn is not yet on crates.io and the CLI surface may still move. This repository dogfoods Cairn: the root `cairn.blueprint` describes Cairn itself, and the commit gate runs `cairn hook all`.
+Specification v0.7 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped; Cairn is not yet on crates.io and the CLI surface may still move. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
 
 ## Development
 
@@ -159,11 +187,11 @@ make check
 
 `make check` runs `cargo fmt --check`, `RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features`, `cargo test`, and `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps`.
 
-Active change proposals live under `meta/changes/`; archived phases under `archive/openspec/` are historical record. Agent-side conventions live in `AGENTS.md`. For any UI, landing, or visual work, start at `docs/design-system/README.md`.
+Active change proposals live under `meta/changes/`; archived phases under `archive/openspec/` are kept as history. Agent-side conventions live in `AGENTS.md`. For any UI, landing, or visual work, start at `docs/design-system/README.md`.
 
 ## Design system
 
-All UI work grounds on `docs/design-system/`: tokens, fonts, components, and a single-page live reference. Colors, spacing, radius, and motion come from `docs/design-system/tokens.css`; nothing hardcodes hex values in components. See `docs/design-system/README.md` for consumption patterns for the marketing site, the embedded Rust web UI, and any future surface.
+All UI work grounds on `docs/design-system/`: tokens, fonts, components, and a single-page live reference. Colours, spacing, radius, and motion come from `docs/design-system/tokens.css`; nothing hardcodes hex values in components. See `docs/design-system/README.md` for consumption patterns for the marketing site, the embedded Rust web UI, and any future surface.
 
 ## Landing page
 
