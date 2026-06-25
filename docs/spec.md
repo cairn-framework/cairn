@@ -609,7 +609,7 @@ The scanner runs on demand or on filesystem change. It does nine things:
 ### 10.1 Node states
 
 - **synced**: declared in blueprint, path exists, reconciler found expected content.
-- **ghost**: declared in blueprint, path does not yet exist (planned but unimplemented).
+- **ghost**: declared in blueprint, path does not yet exist (planned but unimplemented). The webui renders ghost nodes with a calm "planned" affordance (a distinct colour, solid outline, no drift animation) to reflect that this is a healthy forward-looking state; absence and drift concerns surface separately as findings. This is a rendering convention only and adds no new normative state.
 - **orphaned**: reality content exists but no blueprint node claims it (via the all-files-claimed rule for the code reconciler).
 
 ### 10.2 Contradiction classes

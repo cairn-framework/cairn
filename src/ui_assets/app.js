@@ -536,9 +536,10 @@
   function ModuleNode({ node, selected, hovered, dimmed, findingSeverity, onSelect, onHover, dependentCount }) {
     const d = node.data;
     const recon = d.state || "synced";
-    const breath = recon !== "synced";
-    const statusColor = recon === "ghost" ? "var(--ghost)" : recon === "orphaned" ? "var(--orphaned)" : "var(--synced)";
-    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : recon === "ghost" ? "var(--ghost)" : recon === "orphaned" ? "var(--orphaned)" : "var(--seam-thin)";
+    const base = displayState(recon);
+    const breath = findingSeverity === "error" || findingSeverity === "warning" || base === "orphaned";
+    const statusColor = base === "planned" ? "var(--planned)" : base === "orphaned" ? "var(--orphaned)" : "var(--synced)";
+    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : base === "planned" ? "var(--planned)" : base === "orphaned" ? "var(--orphaned)" : "var(--seam-thin)";
 
     const counts = node.counts || { provenance: 0, authority: 0, decisions: 0, contracts: 0 };
     const provStrength = Math.max(0.15, balanceFromCount(counts.provenance) / 5);
@@ -556,7 +557,7 @@
               fill=${hovered ? "var(--stone-4)" : "var(--stone-3)"}
               stroke=${strokeColor}
               stroke-width=${selected ? 1.5 : 1}
-              stroke-dasharray=${recon === "ghost" ? "4 3" : recon === "orphaned" ? "2 3" : "0"}/>
+              stroke-dasharray=${base === "orphaned" ? "2 3" : "0"}/>
         <rect width=${node.width} height="1" fill="rgba(255,245,220,0.1)"/>
         <rect x="0" y="0" width="3" height=${node.height}
               fill="var(--prov-2)" opacity=${provStrength * 0.7 + 0.3}/>
@@ -587,16 +588,16 @@
         <text x="14" y="62" font-size="10.5" font-family="var(--font-mono)"
               fill="var(--ink-faded)" letter-spacing="0.4">${truncate(d.id, 28)}</text>
         ${
-          recon !== "synced"
+          base !== "synced"
             ? html`<g transform=${`translate(${node.width - 74}, 30)`}>
               <rect x="0" y="0" width="58" height="16" rx="3"
-                    fill=${recon === "ghost" ? "var(--ghost-wash)" : "var(--orphan-wash)"}
-                    stroke=${recon === "ghost" ? "var(--ghost)" : "var(--orphaned)"}
+                    fill=${base === "planned" ? "var(--planned-wash)" : "var(--orphan-wash)"}
+                    stroke=${base === "planned" ? "var(--planned)" : "var(--orphaned)"}
                     stroke-width="0.75"/>
               <text x="29" y="11" font-size="9" font-family="var(--font-mono)"
-                    fill=${recon === "ghost" ? "var(--ghost)" : "var(--orphaned)"}
+                    fill=${base === "planned" ? "var(--planned)" : "var(--orphaned)"}
                     letter-spacing="1.2" text-anchor="middle"
-                    style="text-transform:uppercase">${recon}</text>
+                    style="text-transform:uppercase">${base}</text>
             </g>`
             : null
         }
@@ -815,7 +816,7 @@
                   .slice(0, 48)
                   .map((m) => {
                     const active = selection && selection.id === m.id;
-                    const state = m.state || "synced";
+                    const state = displayState(m.state);
                     return html`<div key=${m.id}
                     class=${clsx("mini-dot", state, active && "active")}
                     style="height:22px"
@@ -829,7 +830,7 @@
         <div class="graph-legend">
           <span class="sw synced"></span> synced
           <span class="sep"></span>
-          <span class="sw ghost"></span> ghost
+          <span class="sw planned"></span> planned
           <span class="sep"></span>
           <span class="sw orphaned"></span> orphaned
         </div>
@@ -857,7 +858,7 @@
   }
 
   function reconBadge(state) {
-    const label = state || "unknown";
+    const label = displayState(state || "unknown");
     return html`<span class=${clsx("recon-badge", label)}>${label}</span>`;
   }
 
@@ -931,6 +932,13 @@
         ${reconBadge(entry.state || "synced")}
       </button>
     `;
+  }
+
+  // Wire state -> display state. Spec §10.1 defines ghost as "planned but
+  // unimplemented" (healthy), so render it as a calm "planned" affordance.
+  // Findings overlay independently; they are not folded in here.
+  function displayState(state) {
+    return state === "ghost" ? "planned" : state || "synced";
   }
 
   // Maps a finding severity string to the pill modifier class.
@@ -1036,8 +1044,8 @@
         ${node.description ? html`<p class="ins-desc">${node.description}</p>` : null}
 
         <div class="pill-row">
-          <span class=${clsx("pill", node.state || "synced")}>
-            <span class="dot"></span>${node.state || "synced"}
+          <span class=${clsx("pill", displayState(node.state))}>
+            <span class="dot"></span>${displayState(node.state)}
           </span>
           ${(node.tags || []).map((t) => html`<span class="pill" key=${t}>${t}</span>`)}
         </div>
