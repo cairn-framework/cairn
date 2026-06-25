@@ -58,3 +58,7 @@ __pycache__/
 
 # Beads / Dolt files (added by bd init)
 .beads/proxieddb/
+
+# Autoresearch webui visual-eval run outputs (screenshots + report, regenerated each run).
+# harness/fixtures/ IS committed (the frozen workload); only outputs are ignored.
+harness/out/

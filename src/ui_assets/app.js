@@ -500,12 +500,12 @@
               stroke-width=${selected ? 1.5 : 1}/>
         <rect width=${node.width} height="1" fill="rgba(255,245,220,0.08)"/>
         <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
-              fill="var(--ink-mist)" letter-spacing="2.5" style="text-transform:uppercase">SYSTEM</text>
+              fill="var(--ink-faded)" letter-spacing="2.5" style="text-transform:uppercase">SYSTEM</text>
         <text x="14" y="42" font-size="17" font-family="var(--font-serif)"
               fill="var(--ink-char)" font-weight="500" letter-spacing="-0.3"
               style="font-variation-settings: 'opsz' 24">${d.name}</text>
         <text x="14" y="58" font-size="10.5" font-family="var(--font-mono)"
-              fill="var(--ink-mist)" letter-spacing="0.5">${d.id}</text>
+              fill="var(--ink-faded)" letter-spacing="0.5">${d.id}</text>
       </g>
     `;
   }
@@ -523,12 +523,12 @@
               stroke-width=${selected ? 1.5 : 1}/>
         <rect width=${node.width} height="1" fill="rgba(255,245,220,0.08)"/>
         <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
-              fill="var(--ink-mist)" letter-spacing="2.5" style="text-transform:uppercase">CONTAINER</text>
+              fill="var(--ink-faded)" letter-spacing="2.5" style="text-transform:uppercase">CONTAINER</text>
         <text x="14" y="44" font-size="17" font-family="var(--font-serif)"
               fill="var(--ink-char)" font-weight="500" letter-spacing="-0.3"
               style="font-variation-settings: 'opsz' 24">${d.name}</text>
         <text x="14" y="62" font-size="10.5" font-family="var(--font-mono)"
-              fill="var(--ink-mist)" letter-spacing="0.5">${d.id}</text>
+              fill="var(--ink-faded)" letter-spacing="0.5">${d.id}</text>
       </g>
     `;
   }
@@ -563,9 +563,9 @@
         <rect x=${node.width - 3} y="0" width="3" height=${node.height}
               fill="var(--auth-2)" opacity=${authStrength * 0.7 + 0.3}/>
         <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
-              fill="var(--ink-mist)" letter-spacing="2" style="text-transform:uppercase">MODULE</text>
+              fill="var(--ink-faded)" letter-spacing="2" style="text-transform:uppercase">MODULE</text>
         <text x="64" y="20" font-size="10" font-family="var(--font-mono)"
-              fill="var(--ink-ghost)" letter-spacing="1">· ${truncate(d.id, 24)}</text>
+              fill="var(--ink-faded)" letter-spacing="1">· ${truncate(d.id, 24)}</text>
         <circle cx=${node.width - 16} cy="16" r="3.5" fill=${statusColor}/>
         ${
           breath
@@ -585,7 +585,7 @@
               fill="var(--ink-char)" font-weight="500" letter-spacing="-0.3"
               style="font-variation-settings: 'opsz' 20">${truncate(d.name, 22)}</text>
         <text x="14" y="62" font-size="10.5" font-family="var(--font-mono)"
-              fill="var(--ink-mist)" letter-spacing="0.4">${truncate(d.id, 28)}</text>
+              fill="var(--ink-faded)" letter-spacing="0.4">${truncate(d.id, 28)}</text>
         ${
           recon !== "synced"
             ? html`<g transform=${`translate(${node.width - 74}, 30)`}>
@@ -621,7 +621,7 @@
         <rect width=${node.width} height=${node.height} rx="6"
               fill="transparent" stroke="var(--seam-thin)" stroke-dasharray="4 4"/>
         <text x="14" y="32" font-size="11" font-family="var(--font-mono)"
-              fill="var(--ink-mist)" letter-spacing="1.5" style="text-transform:uppercase">
+              fill="var(--ink-faded)" letter-spacing="1.5" style="text-transform:uppercase">
           ${node.data.name}
         </text>
       </g>
@@ -762,7 +762,7 @@
                 <g key=${`ol-${i}`} class=${clsx("edge-label", isDimmed(e) && "dimmed")}
                    transform=${`translate(${m.x}, ${m.y})`}
                    opacity=${isTraced(e) || !edgeTrace ? 1 : 0.3}>
-                  <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-ghost)"
+                  <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-faded)"
                         text-anchor="middle" dy="-4">${e.description || ""}</text>
                 </g>`;
             })}
@@ -772,7 +772,7 @@
                 <g key=${`dl-${i}`} class=${clsx("edge-label", isDimmed(e) && "dimmed")}
                    transform=${`translate(${m.x}, ${m.y})`}
                    opacity=${isTraced(e) || !edgeTrace ? 1 : 0.3}>
-                  <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-ghost)"
+                  <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-faded)"
                         text-anchor="middle" dy="-4">${e.description || ""}</text>
                 </g>`;
             })}
@@ -972,13 +972,12 @@
       const f = pickNudgeFinding(lint.findings, nodeId);
       if (!f) return null;
       const entry = copyFinding(f.code);
-      if (!entry) return null;
       const vars = { node: f.node || "", path: f.path || "", target: f.target || "" };
       return {
         severity: f.severity,
-        heading: entry.heading || f.code,
-        body: substituteCopy(entry.body || f.message, vars),
-        cta: entry.cta || null,
+        heading: entry?.heading || f.code,
+        body: substituteCopy(entry?.body || f.message, vars),
+        cta: entry?.cta || null,
       };
     }, [lint, nodeId]);
 
@@ -1170,6 +1169,22 @@
     const rationaleMatch = /##\s*Rationale\s*\n([\s\S]*?)(?=\n##\s|\s*$)/i.exec(body);
     const condition = conditionMatch ? conditionMatch[2].trim() : null;
     const rationale = rationaleMatch ? rationaleMatch[1].trim() : body.trim();
+    const fm = decision.frontmatter || {};
+    const parseRefs = (v) =>
+      !v
+        ? []
+        : (Array.isArray(v)
+            ? v
+            : String(v)
+                .replace(/^\[|\]$/g, "")
+                .split(",")
+          )
+            .map((s) => String(s).trim())
+            .filter(Boolean);
+    const informedBy = parseRefs(fm.informed_by);
+    const supersedes = parseRefs(fm.supersedes);
+    const related = parseRefs(fm.related);
+    const revisit = parseRefs(fm.revisit_triggers);
 
     return html`
       <section class="inspector decision-detail">
@@ -1203,9 +1218,7 @@
         <div class="hinge-diagram">
           <div class="hinge-side prov">
             <div class="side-label">Provenance. evidence in</div>
-            <div class="hinge-item"><span class="n">·</span>sources cited</div>
-            <div class="hinge-item"><span class="n">·</span>research syntheses</div>
-            <div class="hinge-item"><span class="n">1</span>decision (this)</div>
+            ${informedBy.length ? informedBy.map((r) => html`<div class="hinge-item" key=${r}><span class="n">·</span>${r}</div>`) : html`<div class="hinge-item muted"><span class="n">·</span>no sources recorded</div>`}
           </div>
           <div class="hinge-axis">
             <div class="rod"></div>
@@ -1213,11 +1226,26 @@
           </div>
           <div class="hinge-side auth">
             <div class="side-label">Authority. rules out</div>
-            <div class="hinge-item"><span class="n">·</span>blueprint fragment</div>
-            <div class="hinge-item"><span class="n">·</span>contracts attached</div>
-            <div class="hinge-item"><span class="n">·</span>code reconciled</div>
+            ${
+              node
+                ? html`<${Fragment}>
+                    <div class="hinge-item"><span class="n">·</span>${node.id}</div>
+                    <div class="hinge-item"><span class="n">·</span>${node.state || "synced"} on disk</div>
+                  <//>`
+                : html`<div class="hinge-item muted"><span class="n">·</span>no module attached</div>`
+            }
           </div>
         </div>
+
+        ${
+          supersedes.length || related.length || revisit.length
+            ? html`<div class="decision-lineage">
+                ${supersedes.length ? html`<div class="lineage-row"><span class="caps">Supersedes</span><div class="ref-chips">${supersedes.map((r) => html`<span class="pill ref" key=${r}>${r}</span>`)}</div></div>` : null}
+                ${related.length ? html`<div class="lineage-row"><span class="caps">Related</span><div class="ref-chips">${related.map((r) => html`<span class="pill ref" key=${r}>${r}</span>`)}</div></div>` : null}
+                ${revisit.length ? html`<div class="lineage-row"><span class="caps">Revisit when</span><div class="ref-chips">${revisit.map((r) => html`<span class="pill ref" key=${r}>${r}</span>`)}</div></div>` : null}
+              </div>`
+            : null
+        }
 
         ${
           node
@@ -1430,7 +1458,7 @@
     const matches = graph
       ? graph.nodes.filter((n) => {
           if (!ql) return false;
-          return n.id.toLowerCase().includes(ql) || (n.name || "").toLowerCase().includes(ql) || (n.kind || "").toLowerCase().includes(ql);
+          return n.id.toLowerCase().includes(ql) || (n.name || "").toLowerCase().includes(ql) || (n.kind || "").toLowerCase().includes(ql) || (n.state || "").toLowerCase().includes(ql);
         })
       : [];
     const shown = matches.slice(0, 20);
@@ -1463,7 +1491,7 @@
                 setActiveIdx(0);
               }}
               onKeyDown=${onInputKey}
-              placeholder="search modules, containers, decisions"/>
+              placeholder="search by name, id, kind, or status"/>
             <kbd>esc</kbd>
           </div>
           ${
@@ -1471,9 +1499,9 @@
               ? html`<div class="cmd-palette-syntax">
                 <div class="caps">Query syntax</div>
                 <div class="syntax-grid">
-                  <span class="kw">module</span><span class="rest">show a module by id or name</span>
-                  <span class="kw">container</span><span class="rest">show a container</span>
-                  <span class="kw">ghost</span><span class="rest">list reconciliation gaps</span>
+                  <span class="kw">module · container</span><span class="rest">show by id or name</span>
+                  <span class="kw">ghost · orphaned</span><span class="rest">list reconciliation gaps</span>
+                  <span class="kw">synced</span><span class="rest">parts that match the plan</span>
                 </div>
               </div>`
               : html`<div class="cmd-palette-results">
@@ -1559,6 +1587,15 @@
       window.addEventListener("keydown", onKey);
       return () => window.removeEventListener("keydown", onKey);
     }, [open, onClose]);
+
+    useEffect(() => {
+      if (!open) return undefined;
+      const raf = requestAnimationFrame(() => {
+        const hi = document.querySelector(".blueprint-modal .modal-body .hi");
+        if (hi) hi.scrollIntoView({ block: "center" });
+      });
+      return () => cancelAnimationFrame(raf);
+    }, [open, focusModuleId]);
 
     if (!open) return null;
     const source = blueprint?.source;
