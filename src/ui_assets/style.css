@@ -698,6 +698,10 @@ kbd {
   background: var(--orphaned);
 }
 
+.graph-legend .sw.planned {
+  background: var(--planned);
+}
+
 .graph-legend .sep {
   width: 1px;
   height: 14px;
@@ -745,6 +749,10 @@ kbd {
 
 .mini-dot.orphaned {
   background: var(--orphaned);
+}
+
+.mini-dot.planned {
+  background: var(--planned);
 }
 
 .mini-dot.active {
@@ -983,6 +991,16 @@ kbd {
   background: var(--orphaned);
 }
 
+.pill.planned {
+  border-color: var(--planned);
+  color: var(--planned);
+  background: var(--planned-wash);
+}
+
+.pill.planned .dot {
+  background: var(--planned);
+}
+
 .pill.accepted {
   border-color: var(--hinge-2);
   color: var(--hinge-1);
@@ -1104,6 +1122,12 @@ kbd {
   color: var(--orphaned);
   background: var(--orphan-wash);
   border-color: var(--orphaned);
+}
+
+.recon-badge.planned {
+  color: var(--planned);
+  background: var(--planned-wash);
+  border-color: var(--planned);
 }
 
 .blueprint-code {

@@ -333,6 +333,37 @@ mod explorer {
         );
     }
 
+    /// Scenario: a ghost wire state renders as a calm "planned" affordance,
+    /// kept distinct from the finding/severity axis (ghost-red stays for errors).
+    #[test]
+    fn test_explorer__ghost_renders_as_planned_display_state() {
+        let js = include_str!("../src/ui_assets/app.js");
+        // The display-state helper maps the ghost wire state to "planned".
+        assert!(
+            js.contains("function displayState"),
+            "displayState helper must exist"
+        );
+        assert!(
+            js.contains(r#"state === "ghost" ? "planned""#),
+            "displayState must map the ghost wire state to planned"
+        );
+        // The legend exposes a planned swatch in place of a raw ghost swatch.
+        assert!(
+            js.contains("sw planned"),
+            "legend must render a planned swatch"
+        );
+        // The planned state paints with the dedicated --planned token.
+        assert!(
+            js.contains("var(--planned)"),
+            "planned state must paint with the --planned token"
+        );
+        // The severity axis is untouched: error findings still paint ghost-red.
+        assert!(
+            js.contains(r#"findingSeverity === "error" ? "var(--ghost)""#),
+            "finding-severity axis must remain ghost-red for errors"
+        );
+    }
+
     /// Scenario: Scope toggle filters to the selected node.
     #[test]
     fn test_explorer__scope_toggle_filters_to_selected_node() {
