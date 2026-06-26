@@ -24,6 +24,38 @@ Your change directory (`meta/changes/<change-id>/`) contains everything you need
 
 When implementing a feature phase, check `docs/conventions.md` for the test-first pre-phase convention. If a paired `phase-<N>.0-tests` change exists, remove the matching `#[cairn_planned(phase = <N>)]` attribute as the feature lands rather than rewriting those tests from scratch. The attribute is structured (proc-macro), not a comment; do not parse the `#[ignore]` reason string.
 
+## Project state and artefacts
+
+For project status, outstanding work, or the reasoning behind a decision, **query
+cairn directly**. Do not infer state from markdown files, strongholds, or memory;
+the graph is the source of truth.
+
+```bash
+cairn status              # project summary: nodes, findings, backlog. Start here.
+cairn changes             # active change proposals.
+cairn decisions <node>    # provenance chain for a node.
+cairn research <node>     # research linked to a node.
+cairn sources <node>      # external material a node cites.
+```
+
+If asked "what's next", start with `cairn status` and `cairn changes`, then your
+issue tracker. Any file under `docs/` or `archive/` is secondary context, never
+current state.
+
+When **creating** a decision, research finding, or source, place it in `meta/` following
+the convention in docs/conventions.md section 10 ("Artefact organization and provenance
+links"):
+
+- `meta/decisions/dec.<slug>.md` — requires `id`, `nodes:`, `status`, `date`.
+  Chain to evidence via `informed_by: [res.X, src.Y]`.
+- `meta/research/res.<slug>.md` — requires `id`, `nodes:`. Cite sources via
+  `sources: [src.Z]`.
+- `meta/sources/src.<slug>.md` — requires `id`, `file:`, `verification:`. No
+  `nodes:` field; anchors transitively through citations.
+
+Files are FLAT (no subfolders). Use slug namespacing for grouping
+(`res.gas-city.analysis`, not `research/gas-city/analysis.md`).
+
 ## UI and visual work: use the design system
 
 Any UI change (the webui at `src/ui_assets/`, any landing or marketing page, any new surface) pulls from the canonical design system at `docs/design-system/`. Do not re-invent styling.

@@ -40,7 +40,7 @@ Items from section 16 that remain open design questions, no resolution yet commi
 |----|------|-----------------------|--------|-----------------|-------|
 | Q-01 | Shared utilities pattern | 16.1 | open | Convention | Where "this is a module" vs "this is two helpers": convention, not grammar. Projects decide. May need guidance in docs. |
 | Q-02 | Todo coverage strictness | 16.2 | open | Phase 2 or 4 | Default is loose (warnings, no enforcement). Config allows strict. When/whether to promote strict to default is open. |
-| Q-03 | meta/ directory layout | 16.3 | open | Phase 1 | By artefact type first (`meta/decisions/kernel/`) vs by node first (`meta/kernel/parser/decisions/`). Real usage may surface winner. |
+| Q-03 | meta/ directory layout | 16.3 | resolved | mid-2026 | Closed by `dec.artefact-organization-and-provenance` (2026-06-26): flat artefact-type-first layout, non-recursive loader, slug namespacing. See docs/conventions.md section 10. |
 | Q-04 | Detailed schemas for agent review subtypes | 16.4 | open | Phase 2 | Overlaps D-01/D-02. When introspective review is generated, how it promotes to decisions, severity taxonomy for cross-model, multi-review aggregation. |
 | Q-05 | Product name | 16.5 | open | Pre-release | "Cairn" is a working placeholder. Decision needed before code ships. |
 

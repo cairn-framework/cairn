@@ -11,6 +11,40 @@ section to your CLAUDE.md or AGENTS.md, or reference it from there.
   neighbours. IDs are dotted (see `cairn.blueprint`).
 - Every command accepts `--json` for machine-readable output.
 
+## State and decisions
+
+For project status, outstanding work, or the reasoning behind a decision, query
+cairn directly. Do not infer state from freeform notes, scratch files, or
+memory; the graph is the source of truth.
+
+- `cairn status`: project summary (nodes, findings, backlog).
+- `cairn changes`: active change proposals.
+- `cairn decisions` and `cairn research`: the provenance chain (research feeds
+  decisions, which feed changes), listed per node.
+- `cairn sources <id>`: external material a node cites. The link is on the
+  graph; the content stays in the referenced file.
+
+If you are asked "what next", start with `cairn status` and `cairn changes`,
+then your issue tracker. Treat any scratch or `docs/` note as secondary
+context, never as current state.
+
+## Creating artefacts
+
+When recording a decision, research finding, or external source, place it in
+the correct typed directory under `meta/` and link it to the graph:
+
+- `meta/decisions/dec.<slug>.md` — decisions. Require `id`, `nodes:`, `status`,
+  `date`. Chain to research or sources via `informed_by: [res.X, src.Y]`.
+- `meta/research/res.<slug>.md` — research. Require `id`, `nodes:`. Cite
+  sources via `sources: [src.Z]`.
+- `meta/sources/src.<slug>.md` — external material. Require `id`, `file:`,
+  `verification`. Anchors transitively; carry no `nodes:` field.
+
+Files are FLAT (no subfolders). Use slug namespacing for grouping:
+`res.gas-city.analysis`, not `research/gas-city/analysis.md`.
+Non-artefact material (docs, specs, PDFs) enters provenance only as a `source`
+citation: never inline its content as a typed artefact.
+
 ## While coding
 
 - New source files must fall under a module `path` in `cairn.blueprint`.

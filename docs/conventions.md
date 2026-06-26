@@ -301,6 +301,130 @@ Hooks are managed via [prek](https://github.com/j178/prek) (Rust rewrite of pre-
 
 When proposal authoring captures an elicitation transcript (historically via the retired `cflx-proposal` skill, now the `cairn-propose` skill), the transcript lives at `meta/changes/<id>/research/genesis.md` with id `genesis-<change-id>`. The file lives in the change directory, archives with the change directory, and is not loaded by the cairn scanner. It provides human-readable and codex-readable provenance for the change's elicitation history.
 
-The `nodes` field of the genesis artefact carries the change ID as a placeholder, not a blueprint node ID. The apply-stage codex agent SHALL NOT re-point or rewrite this field. The file SHALL NOT be moved to `meta/research/` or any other location during apply or archive. Rationale and the option-A/B/C debate that produced this verdict live in `docs/strongholds/oq3-genesis-lifecycle.md`.
+The `nodes` field of the genesis artefact carries the change ID as a placeholder, not a blueprint node ID. The apply-stage codex agent SHALL NOT re-point or rewrite this field. The file SHALL NOT be moved to `meta/research/` or any other location during apply or archive. Rationale and the option-A/B/C debate that produced this verdict live in `archive/strongholds/oq3-genesis-lifecycle.md`.
 
 When a future phase implements artefact-delta processing in `cairn archive` and a scanner-visible `meta/research/genesis/` subtree exists, this convention may be revisited (see the forward-compatibility note in the linked stronghold). Until then, the change-directory-relative path is the durable home.
+
+---
+
+## 10. Artefact organization and provenance links
+
+This section is normative. It governs how cairn's typed provenance artefacts (decisions, research, sources) are laid out on disk and linked into the graph, and it documents the relationship between those rules and the shipped scanner. It is written to describe what the engine actually enforces. Where a rule is author-side policy that the scanner does not yet gate, this section says so plainly, so that the convention never asserts a mechanical guarantee the code does not provide. Reviews and todos are touched on where they intersect these rules; contracts participate in the separate two-chain (interface-hash) topology and are not provenance artefacts.
+
+Artefact TYPE is bound by the blueprint pointer FIELD that reaches a file (a `decisions` pointer makes a file a decision, `research` makes it research, `sources` a source), not by its directory name. Every rule below rests on that coupling.
+
+### Layout
+
+The canonical, scanner-loaded provenance artefacts live artefact-type-first and FLAT:
+
+- `meta/decisions/` : decision files, FLAT. id prefix `dec.`.
+- `meta/research/` : research files, FLAT. id prefix `res.`.
+- `meta/sources/` : source files, FLAT. id prefix `src.`.
+
+Filenames MUST be slug-only (for example `no-orchestrator.md`, `beads-repo.md`). The typed prefix lives ONLY in the `id:` frontmatter field (`id: dec.no-orchestrator`). A filename MUST NOT carry a `dec.`/`res.`/`src.` prefix. This matches every existing artefact; a filename-prefix rule would flag the entire current corpus.
+
+Decisions, research, and sources MUST NOT use topic subfolders. The loader's directory read is NON-RECURSIVE: a file placed in a subfolder of a pointer directory is silently ignored with no finding, so folder placement alone never makes a file an artefact. Topical grouping MUST instead be expressed by slug namespacing in the id and filename (for example `res.gas-city.analysis`, `res.gas-city.issue-slate`). The ONLY sanctioned way to load a file outside the top level of a pointer directory is an explicit per-file blueprint pointer to that exact file. There is no depth limit to enforce, because depth is not the failure mode: non-recursion is.
+
+Other typed material has a defined home but is governed by its own schema:
+
+- `meta/todos/<node>/` : todos, deliberately NODE-partitioned. This is an explicit exception to artefact-type-first flat layout.
+- `meta/reviews/` : reviews, FLAT (loaded only when a `reviews` pointer is wired).
+- `meta/contracts/` : per leaf-module contracts (two-chain topology; not a provenance artefact).
+- `meta/changes/<change-id>/` : one directory per change proposal; change-scoped artefacts archive with the change.
+
+The set of directories whose `.md` files are treated as artefacts is CLOSED and defined by the blueprint pointers. In cairn's own repository only `decisions`, `research`, and `sources` pointers are wired, so files under `meta/reviews/`, `meta/todos/`, and per-node contracts are present but not scanner-loaded. Operational and non-artefact material is EXEMPT and MUST NOT be treated as a typed artefact: `meta/campaigns/`, `meta/debates/` (including its subfolders), change directories (including the genesis transcript), and loose files such as `meta/ui-contract.md` and `meta/session-handoff.md`.
+
+Genesis exception. The elicitation transcript lives at `meta/changes/<id>/research/genesis.md` and is exempt across ALL axes (see conventions.md section 9 and archive/strongholds/oq3-genesis-lifecycle.md): its id is `genesis-<change-id>` (not a `res.` prefix), its `nodes` field carries the change id as a placeholder rather than a graph node, and it is NOT loaded by the scanner. The apply and archive stages MUST NOT re-point or relocate it.
+
+This section closes spec section 16 open question Q-03 in favour of flat artefact-type-first layout and supersedes the stale `meta/decisions/kernel/` example in that section; the spec MUST be amended to match.
+
+### Link model
+
+Every scanner-loaded artefact anchors to the graph and cites its provenance through TYPED, PER-TYPE fields. The fields differ by type and MUST be used as named; a field written on the wrong type is silently ignored by the loader.
+
+Decisions (`meta/decisions/`) carry:
+
+- `id` (REQUIRED), prefix `dec.`.
+- `nodes: [<graph-node-id>...]` (REQUIRED, non-empty; the graph anchor).
+- `status` (REQUIRED): one of `proposed`, `accepted`, `deprecated`, `superseded`.
+- `date` (REQUIRED).
+- `informed_by: [<id>...]` (the up-chain). Each entry MAY reference a research id OR a source id directly (skip-level is allowed; research is NOT a required intermediary). `informed_by` MAY be empty: not all decisions require written research.
+- `supersedes`, `refines`, `related`: arrays of DECISION ids (lateral edges). A `supersedes` target SHOULD itself carry `status: superseded`.
+- `orphaned` / `orphan_reason`: the sanctioned hatch for a decision whose nodes are all unknown (see below).
+
+Research (`meta/research/`) carries:
+
+- `id` (REQUIRED), prefix `res.`.
+- `nodes: [...]` (REQUIRED, non-empty).
+- `date` (REQUIRED).
+- `sources: [<source-id>...]` (the up-chain to sources). Research MUST cite at least one source UNLESS `method: primary`.
+- `method`: `primary` or `secondary` (default `secondary`). Research does NOT use `informed_by`.
+
+Sources (`meta/sources/`) carry:
+
+- `id` (REQUIRED), prefix `src.`.
+- `file` (REQUIRED): a URL for `external` sources, or a repo-relative path for `verified`/`unverified`.
+- `verification` (REQUIRED): `verified`, `external`, or `unverified`.
+- `type`, `date` (REQUIRED); `sha256` (REQUIRED when `verified`).
+
+Sources have NO loaded `nodes` field. The Source schema does not model one and the loader does not read it, so a `nodes:` line on a source is inert and MUST NOT be relied upon. A source anchors TRANSITIVELY by being cited (from `research.sources` or `decision.informed_by`); an un-cited source surfaces as an advisory orphan, not by a missing anchor.
+
+Reviews use a singular `node:` plus optional `related_change:` and carry no `id` and no plural `nodes`. Todos use a singular `node:` and carry no `id`. The 'every artefact has id + nodes' shape applies ONLY to decisions and research.
+
+Chain roots are SOURCES and PRIMARY research (both have no upstream). The provenance spine is `source -> research -> decision`; the lateral decision graph (`supersedes`, `refines`, `related`) and the decision status lifecycle express obsolescence and refinement that the spine alone cannot. Supersession is modelled as a `supersedes` edge together with `status: superseded` on the target.
+
+The decision-to-change terminal hop is OUT OF SCOPE for this section: change-directory files are governed by the change/delta convention, not the provenance link model.
+
+Typed id prefixes (`dec.`/`res.`/`src.`) MUST match the artefact type, and ids MUST be globally unique across the decision, research, and source union (the prefix is the only cross-type disambiguator, since `informed_by` resolves against that union). Both are AUTHOR-SIDE POLICY: neither prefix-conformance nor cross-artefact id uniqueness is gated by the scanner today (see Deterministic enforcement).
+
+### Flexibility
+
+The layout permits exactly the variation the engine can honour, and no more.
+
+- Decisions, research, and sources are FLAT. Topical grouping uses slug namespacing, never subfolders. A subfolder artefact loads ONLY via an explicit per-file blueprint pointer.
+- Todos are NODE-partitioned (`meta/todos/<node>/`), a deliberate exception to artefact-type-first.
+- Non-artefact material (docs/spec.md, external PDFs, competitor sites, internal design notes) MUST NOT be modelled as a typed artefact by inlining its content. It MAY enter provenance by being cited as a `source`. This is a permission, not a mandate, and authors SHOULD choose the verification mode honestly:
+  - `external` for content the project does not hold the bytes of; `file` MUST be a URL.
+  - `verified` for project-controlled local files whose bytes should be frozen; the scanner re-hashes the file on every scan, so any edit raises a sha256 mismatch until the hash is re-pinned. Use it only for genuinely immutable content.
+  - `unverified` for local files not yet pinned; it surfaces a perpetual advisory until resolved.
+  There is no friction-free tracked-local-file mode today (see open questions); until one exists, routine, frequently-edited internal docs SHOULD be cited sparingly to avoid a re-pin treadmill.
+- A genuinely cross-cutting decision (a project-wide policy with no natural module) MUST still carry a non-empty `nodes:`; the orphaned hatch does not waive that. Such a decision SHOULD anchor to the system root node, or set `orphaned: true` with an `orphan_reason` when its nodes are intentionally unknown.
+- Orphan research (research never cited by a decision) is LEGITIMATE per spec section 8.5 and MUST NOT be treated as an error.
+
+### Deterministic enforcement
+
+The convention distinguishes three tiers. Authors and reviewers MUST NOT assume policy-tier rules are caught by the scanner.
+
+Mechanically ENFORCED today (Error; fails `cairn scan`, `cairn lint`, and the commit/push gate):
+
+- `CAIRN_DECISION_MISSING_NODES` : a decision has an empty `nodes`.
+- `CAIRN_DECISION_ORPHANED` : a decision's nodes are all unknown and it is not validly orphaned.
+- `CAIRN_ARTEFACT_MISSING_NODES` : research has an empty `nodes`.
+- `CAIRN_ARTEFACT_UNKNOWN_NODE` : a research node id is unknown (raised per unknown node).
+- `CAIRN_RESEARCH_MISSING_SOURCES` : secondary research cites no sources.
+- `CAIRN_SOURCE_EXTERNAL_URL` : an `external` source's `file` is not a URL.
+- `CAIRN_SOURCE_SHA256_MISSING` / `CAIRN_SOURCE_SHA256_MISMATCH` / `CAIRN_SOURCE_READ_FAILED` : verified-source integrity.
+- `CAIRN_ARTEFACT_MISSING_FIELD` : a required frontmatter field is absent.
+- `CAIRN_REVIEW_UNKNOWN_NODE` : a review's node is unknown (only when a `reviews` pointer is wired).
+
+Note the multi-node asymmetry: a research artefact errors on EACH unknown node, whereas a decision errors only when ALL its nodes are unknown. This divergence is documented, and one consistent semantics SHOULD be chosen (see open questions).
+
+Mechanically DETECTED but ADVISORY (Warning or Info; recorded but does NOT fail the gate, because the gate counts only Error findings):
+
+- `CAIRN_DECISION_UNKNOWN_PROVENANCE` : an `informed_by` id resolves to no research or source.
+- `CAIRN_RESEARCH_UNKNOWN_SOURCE` : a `sources` id resolves to no source.
+- `CAIRN_DECISION_REFERENCE_UNKNOWN` / `CAIRN_DECISION_SUPERSEDES_STATUS` : lateral decision-edge integrity.
+- `CAIRN_SOURCE_ORPHAN` : a source is cited by nothing.
+- `CAIRN_TODO_ORPHAN_NODE` : a todo references an unknown node.
+- `CAIRN_SOURCE_UNVERIFIED` : an unverified source.
+
+The provenance up-chain is therefore MECHANICALLY DETECTED, not mechanically enforced: a dangling `informed_by` is flagged but does not block. Authors MUST NOT treat a clean gate as proof the up-chain resolves.
+
+NOT yet gated (author-side POLICY only; the scanner is silent):
+
+- Global id uniqueness across the decision/research/source union. Two files sharing an id both load and the duplicate is collapsed silently.
+- Typed-prefix conformance. An id is read verbatim; a mismatched or missing prefix is not detected.
+- Unwired or mis-placed artefacts. A file in a pointer-directory subfolder is dropped with no finding.
+- Artefact-id renames. `cairn rename` renames graph NODE ids only, and its frontmatter rewriter is substring-based, so it can corrupt `informed_by`/`sources` references where a node id is a substring of an artefact id. Artefact ids are immutable-by-policy until a safe cascade exists; renames are manual and unguarded.
+
+Codification. This section is the normative home of the rules above; it DOCUMENTS the shipped checks rather than proposing them. The `agent_guide.md` delivered by `cairn init` SHOULD carry only a short orienting note pointing here, not a restatement of the layout. To make the policy-tier rules mechanical, the following NET-NEW gates are recommended (tracked as open questions): `CAIRN_ARTEFACT_DUPLICATE_ID` (across the dec/res/src union), an id-prefix-conformance check, and an 'unwired artefact under a meta/ pointer root' check. The phrase 'mechanically verifiable' MUST NOT be applied to any rule until its gate exists; until then describe it as detected (advisory) or as policy.
