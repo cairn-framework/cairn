@@ -87,6 +87,7 @@ Error responses from the MCP/query path:
 | `refine` | `cairn_refine` | Re-run brownfield discovery |
 | `import-openspec` | `cairn_import_openspec` | Migrate openspec changes to meta/changes |
 | `feedback "<message>"` | — | Record cairn friction in `.cairn/feedback.md`, print upstream issue link |
+| `decision new <slug>` | — | Scaffold a new decision artefact (frontmatter + sections) |
 
 ### Draft lifecycle (semi-stable)
 

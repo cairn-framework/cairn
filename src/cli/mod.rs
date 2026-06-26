@@ -34,8 +34,9 @@ mod render;
 
 use commands::{
     init_project, legacy_blueprint_warning, run_archive_command, run_change_apply, run_change_new,
-    run_change_tasks, run_feedback_command, run_hook_command, run_import_openspec,
-    run_onboard_command, run_shared_json_command, run_ui_command, run_watch_command,
+    run_change_tasks, run_decision_command, run_feedback_command, run_hook_command,
+    run_import_openspec, run_onboard_command, run_shared_json_command, run_ui_command,
+    run_watch_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -148,6 +149,9 @@ pub fn run(args: &[String]) -> CliResult {
 
     if parsed.command == "change" {
         return run_change_command(&parsed, project_root);
+    }
+    if parsed.command == "decision" {
+        return run_decision_command(&parsed, project_root);
     }
     if parsed.command == "check" && !parsed.file.exists() {
         // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
@@ -447,6 +451,7 @@ fn render_loaded_project_command(
 const EXTRA_CLI_COMMANDS: &[&str] = &[
     "accept",
     "change",
+    "decision",
     "check",
     "export",
     "feedback",
@@ -485,6 +490,7 @@ fn command_description(name: &str) -> &'static str {
         "check" => "Inspect findings for a node or project",
         "context" => "Structured project overview for agents",
         "contract" => "Show the contract for a node",
+        "decision" => "Scaffold a new decision artefact",
         "decisions" => "List decisions linked to a node",
         "dependents" => "List nodes that depend on a given node",
         "depends" => "List nodes a given node depends on",

@@ -54,6 +54,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn todos <node>` | List todos linked to a node |
 | `cairn research <node>` | List research linked to a node |
 | `cairn sources <node>` | List sources linked to a node |
+| `cairn decision new <slug>` | Scaffold a new decision artefact |
 
 ### Changes
 
