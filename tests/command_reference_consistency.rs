@@ -208,7 +208,7 @@ fn test_integration_contract_exit_codes_match_cli() {
 fn test_tui_graph_viewer_design_note_exists_and_covers_questions() {
     let content = fs::read_to_string(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/docs/research/tui-graph-viewer.md"
+        "/archive/research/tui-graph-viewer.md"
     ))
     .unwrap();
     assert!(
