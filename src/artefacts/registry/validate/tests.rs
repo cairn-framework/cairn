@@ -373,3 +373,94 @@ fn test_verified_source_correct_sha256_no_finding() {
         set.findings
     );
 }
+
+// ── decision claim cross-check (CA004) ───────────────────────────────────
+
+fn write_registry(dir: &Path, rows: &str) {
+    let registry = dir.join("docs/registries");
+    std::fs::create_dir_all(&registry).unwrap();
+    let table = format!(
+        "# Declared Items\n\n| ID | Item | Source | Status | Phase | Notes |\n|----|------|--------|--------|-------|-------|\n{rows}",
+    );
+    std::fs::write(registry.join("declared-items.md"), table).unwrap();
+}
+
+#[test]
+fn test_claimed_closed_questions_requires_a_close_verb() {
+    let with_verb = claimed_closed_questions("This decision closes Q-03 for good.");
+    assert!(with_verb.contains("Q-03"), "close verb + Q-NN must match");
+
+    let no_verb = claimed_closed_questions("See Q-04 for related context.");
+    assert!(no_verb.is_empty(), "a bare Q-NN reference must not match");
+
+    let multi = claimed_closed_questions("Resolves Q-01 and Q-02 together.");
+    assert!(
+        multi.contains("Q-01") && multi.contains("Q-02"),
+        "all ids on a verb line match"
+    );
+}
+
+#[test]
+fn test_question_statuses_parses_status_column() {
+    let registry = "| Q-01 | thing | 16.1 | open | Phase 2 | note |\n| Q-03 | other | 16.3 | resolved | mid | closed by dec.x |\n";
+    let statuses = question_statuses(registry);
+    assert_eq!(statuses.get("Q-01").map(String::as_str), Some("open"));
+    assert_eq!(statuses.get("Q-03").map(String::as_str), Some("resolved"));
+}
+
+#[test]
+fn test_decision_claim_unresolved_emits_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    write_registry(
+        dir.path(),
+        "| Q-01 | thing | 16.1 | open | Phase 2 | note |\n",
+    );
+    let mut set = ArtefactSet::default();
+    let mut decision = make_decision("d1", &[], DecisionStatus::Accepted);
+    decision.body = "This decision closes Q-01.".to_owned();
+    set.decisions = vec![decision];
+    validate_decision_claims(dir.path(), &mut set);
+    assert!(
+        finding_codes(&set).contains(&"CAIRN_DECISION_CLAIM_UNRESOLVED"),
+        "claiming to close an open question must warn; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_decision_claim_resolved_no_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    write_registry(
+        dir.path(),
+        "| Q-01 | thing | 16.1 | resolved | mid | closed by dec.d1 |\n",
+    );
+    let mut set = ArtefactSet::default();
+    let mut decision = make_decision("d1", &[], DecisionStatus::Accepted);
+    decision.body = "This decision closes Q-01.".to_owned();
+    set.decisions = vec![decision];
+    validate_decision_claims(dir.path(), &mut set);
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_DECISION_CLAIM_UNRESOLVED"),
+        "a registry-resolved question must not warn; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_decision_claim_absent_question_emits_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    write_registry(
+        dir.path(),
+        "| Q-01 | thing | 16.1 | open | Phase 2 | note |\n",
+    );
+    let mut set = ArtefactSet::default();
+    let mut decision = make_decision("d1", &[], DecisionStatus::Accepted);
+    decision.body = "This decision resolves Q-99.".to_owned();
+    set.decisions = vec![decision];
+    validate_decision_claims(dir.path(), &mut set);
+    assert!(
+        finding_codes(&set).contains(&"CAIRN_DECISION_CLAIM_UNRESOLVED"),
+        "claiming to close a question absent from the registry must warn; got: {:?}",
+        set.findings
+    );
+}
