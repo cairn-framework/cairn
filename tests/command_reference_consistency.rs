@@ -42,6 +42,7 @@ fn registered_commands() -> Vec<String> {
     let extra = [
         "accept",
         "change",
+        "decision",
         "check",
         "export",
         "feedback",

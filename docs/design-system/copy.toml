@@ -171,3 +171,11 @@ cta = "File it upstream when convenient:"
 usage = "usage: cairn <command> [--file path] [--json]"
 unknown-command = "unknown command"
 migrate-dsl = "No blueprint file was found. Rename `cairn.dsl` to `cairn.blueprint`."
+
+# -- Decision scaffold --------------------------------------------------
+
+[decision]
+usage = "usage: cairn decision new <slug> [--node <id>] [--informed-by <id>]"
+invalid-slug = "decision slug must be kebab-case: lowercase letters and digits separated by single hyphens"
+exists = "a decision already exists at meta/decisions/dec.{slug}.md"
+created = "created meta/decisions/dec.{slug}.md; add the governing node id(s) and fill the sections, then run `cairn scan`"
