@@ -211,10 +211,11 @@ pub(crate) fn render_brief(
 ) -> String {
     let items = crate::state::backlog::read(root);
     let Some(bead) = resolve_brief_bead(parsed, &items) else {
-        let message = parsed.command_args.get(1).map_or_else(
-            || crate::cli::copy::lookup("brief.empty").to_owned(),
-            |id| crate::cli::copy::lookup("brief.not-found").replace("{id}", id),
-        );
+        let message = match parsed.command_args.get(1) {
+            Some(id) => crate::cli::copy::lookup("brief.not-found").replace("{id}", id),
+            None if items.is_empty() => crate::cli::copy::lookup("brief.empty").to_owned(),
+            None => crate::cli::copy::lookup("brief.none-ready").to_owned(),
+        };
         if parsed.json {
             return format!("{{\"brief\":null,\"message\":\"{}\"}}\n", esc(&message));
         }
@@ -274,6 +275,9 @@ struct BriefData<'a> {
     staleness: &'a str,
 }
 
+/// Renders a [`BriefData`] as the machine-readable `{"brief": {...}}` payload,
+/// carrying the gates and staleness note so a JSON consumer sees the same
+/// constraints as the human surface.
 fn format_brief_json(data: &BriefData) -> String {
     let decisions_json = serde_json::Value::Array(
         data.decisions
@@ -304,6 +308,8 @@ fn format_brief_json(data: &BriefData) -> String {
     format!("{payload}\n")
 }
 
+/// Renders a [`BriefData`] as the human-readable brief: header, readiness
+/// warning, linked node, task body, binding decisions, contract, and gates.
 fn format_brief_human(data: &BriefData) -> String {
     let bead = data.bead;
     let mut out = vec![
@@ -681,6 +687,33 @@ mod tests {
         let scan = scan_with(Vec::new(), Vec::new(), ContractSet::default());
         let out = render_brief(&brief_parsed(&["brief", "cairn-gated"], false), &dir, &scan);
         assert!(out.contains("not in the ready set"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_brief_no_arg_empty_backlog_says_clean() {
+        let dir = tmpdir("emptybacklog");
+        write_export(&dir, &[]);
+        let scan = scan_with(Vec::new(), Vec::new(), ContractSet::default());
+        let out = render_brief(&brief_parsed(&["brief"], false), &dir, &scan);
+        assert!(out.contains("backlog is empty"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_brief_no_arg_all_blocked_says_none_ready() {
+        let dir = tmpdir("allblocked");
+        write_export(
+            &dir,
+            &[
+                r#"{"id":"cairn-blocker","title":"B","status":"open","priority":1,"dependencies":[{"depends_on_id":"cairn-other","type":"blocks"}]}"#,
+                r#"{"id":"cairn-other","title":"O","status":"open","priority":2,"dependencies":[{"depends_on_id":"cairn-blocker","type":"blocks"}]}"#,
+            ],
+        );
+        let scan = scan_with(Vec::new(), Vec::new(), ContractSet::default());
+        let out = render_brief(&brief_parsed(&["brief"], false), &dir, &scan);
+        assert!(out.contains("No ready work"));
+        assert!(!out.contains("backlog is empty"));
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

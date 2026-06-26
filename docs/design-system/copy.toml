@@ -195,4 +195,5 @@ staleness-note = "Note: the beads export can lag live Dolt. `bd ready` is author
 unlinked-hint = "No graph node is linked to this bead, so no node-specific decisions or contract are surfaced. Bind one with `bd update {id} --label cairn-node:<node>` so future briefs load its constraints."
 not-found = "No bead matches `{id}`. Run `bd ready` to list available work."
 empty = "Nothing to do. The backlog is empty and the project is clean."
+none-ready = "No ready work: every open bead is blocked by a dependency. Run `bd ready` and `bd blocked` to see what is gated."
 not-ready = "Warning: this bead is not in the ready set (closed, or blocked by an open dependency). It may already be done or not yet actionable; check `bd ready` before working it."
