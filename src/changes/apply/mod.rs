@@ -5,7 +5,7 @@ use super::*;
 mod preserve;
 
 pub(super) fn mutation_paths(root: &Path, blueprint_path: &Path, change: &Change) -> Vec<PathBuf> {
-    let mut paths = vec![root.join(blueprint_path)];
+    let mut paths = vec![blueprint_path.to_path_buf()];
     paths.extend(change.artefacts.iter().flat_map(|artefact| {
         let mut paths = vec![artefact.target_path.clone()];
         if let Some(source) = &artefact.renamed_from {
@@ -58,19 +58,14 @@ pub(super) fn restore_snapshots(snapshots: &[Snapshot]) -> io::Result<()> {
     Ok(())
 }
 
-pub(super) fn apply_archive(
-    root: &Path,
-    blueprint_path: &Path,
-    change: &Change,
-) -> Result<(), String> {
+pub(super) fn apply_archive(blueprint_path: &Path, change: &Change) -> Result<(), String> {
     // An empty delta carries no blueprint operations, so re-serialising and
     // rewriting the file would only strip comments and formatting for no gain.
     // Skip the blueprint mutation entirely and leave the file byte-identical.
     if !change.delta.is_empty() {
-        let full_blueprint = root.join(blueprint_path);
-        let source = fs::read_to_string(&full_blueprint).map_err(|error| error.to_string())?;
+        let source = fs::read_to_string(blueprint_path).map_err(|error| error.to_string())?;
         let next = apply_blueprint_delta(&source, &change.delta)?;
-        atomic_write(&full_blueprint, &next)?;
+        atomic_write(blueprint_path, &next)?;
     }
     apply_artefact_operations(&change.artefacts)?;
     Ok(())
