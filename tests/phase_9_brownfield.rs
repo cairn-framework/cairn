@@ -183,6 +183,47 @@ mod init {
         assert!(dir.join("blueprint.delta").exists());
         assert!(dir.join("contracts/src_core.md").exists());
     }
+
+    /// Scenario: discover -> archive round-trip merges discovered nodes into the
+    /// blueprint. Regression for cairn-e12: init --from-code wrote a delta the
+    /// parser could not read and seeded no base blueprint, so the blueprint
+    /// never gained nodes.
+    #[test]
+    fn test_init__round_trip_archive_merges_nodes_into_blueprint() {
+        let root = temp_repo("round-trip");
+        populate_source_dir(&root, "src/alpha", 3);
+        populate_source_dir(&root, "src/beta", 3);
+
+        // init --from-code seeds a base blueprint and writes the change.
+        let change_id = bf_init::run_init_from_code(&root, false).unwrap();
+        assert!(
+            root.join("cairn.blueprint").exists(),
+            "init --from-code must seed a base blueprint"
+        );
+
+        // The emitted delta must be the canonical form the parser accepts.
+        let delta = fs::read_to_string(
+            root.join("meta/changes")
+                .join(&change_id)
+                .join("blueprint.delta"),
+        )
+        .unwrap();
+        assert!(
+            delta.contains("## ADDED Nodes"),
+            "delta must use the canonical ADDED Nodes header: {delta}"
+        );
+
+        // Archiving applies the delta: the blueprint gains the discovered nodes.
+        let report =
+            cairn::changes::archive(&root, std::path::Path::new("cairn.blueprint"), &change_id);
+        assert!(report.is_ok(), "archive must succeed: {report:?}");
+
+        let blueprint = fs::read_to_string(root.join("cairn.blueprint")).unwrap();
+        assert!(
+            blueprint.contains(r#"id "src.alpha""#) && blueprint.contains(r#"id "src.beta""#),
+            "blueprint must gain the discovered nodes: {blueprint}"
+        );
+    }
 }
 
 mod refine {

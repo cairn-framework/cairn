@@ -82,7 +82,7 @@ incomplete or dependent on later phases.
 | P-02 | Brownfield prompt template | 15 | open | Phase 9 | "The exact prompt template the summariser uses": explicitly deferred. |
 | P-03 | Brownfield structural candidate heuristics | 15 | open | Phase 9 | "The heuristics the reconciler uses to detect 'module-like' structural candidates": explicitly deferred. |
 | P-04 | Brownfield refine merge semantics | 15 | open | Phase 9 | "The merge semantics for `cairn refine`": explicitly deferred. |
-| P-05 | Brownfield-init change directory frontmatter schema | 15 | open | Phase 9 | "The frontmatter schema for the brownfield-init change directory": explicitly deferred. |
+| P-05 | Brownfield-init change directory frontmatter schema | 15 | resolved | Phase 9 | Closed by `dec.brownfield-init-round-trip` (2026-06-26): brownfield contract stubs carry `operation: added` and a `node:` reference; enforced for built-in and templated stubs so archive validation passes (cairn-e12). |
 | P-06 | Summariser drafting non-contract artefact types | 13 | open | Phase 8 | "The summariser can optionally draft other artefact types (e.g. research from a conversation transcript), but contracts are the primary use case." No schema or interface specified. |
 | P-07 | Multi-target interface divergence: error vs tension | 10.2 | open | Phase 6 | "Structural error if targets claim to implement the same contract but diverge; tension if intentional asymmetry is documented." How to declare intentional asymmetry is unspecified. |
 | P-08 | Cross-model review aggregation | 16.4 | open | Phase 2 | "How do multiple reviews on the same node aggregate": raised as open question, no design. |

@@ -368,6 +368,42 @@ fn test_artefact_refs_nodes_list_unknown_errors() {
     );
 }
 
+#[test]
+fn test_artefact_refs_added_node_in_same_change_succeeds() {
+    // An added contract may reference a node the same change adds (the brownfield
+    // round-trip case). It must validate against the post-delta graph.
+    let mut change = empty_change();
+    change.delta.added_nodes = vec![bp_node("app.new")];
+    change.artefacts = vec![artefact(
+        ChangeOperation::Added,
+        "/tmp/new.md",
+        "---\noperation: added\nnode: app.new\n---\n",
+    )];
+    let errors = validate_change(&change, &empty_graph());
+    assert!(
+        errors.is_empty(),
+        "artefact referencing a same-change-added node must not error; got: {errors:?}"
+    );
+}
+
+#[test]
+fn test_artefact_refs_removed_node_still_resolves() {
+    // Removing a node and an artefact that references it must not raise an
+    // unknown-node error: the reference resolves against the pre-delta graph.
+    let mut change = empty_change();
+    change.delta.removed_nodes = vec!["app.old".to_owned()];
+    change.artefacts = vec![artefact(
+        ChangeOperation::Removed,
+        "/tmp/old.md",
+        "---\noperation: removed\nnode: app.old\n---\n",
+    )];
+    let errors = validate_change(&change, &graph_with_nodes(&["app.old"]));
+    assert!(
+        !errors.iter().any(|e| e.contains("unknown node")),
+        "reference to a removed node must still resolve; got: {errors:?}"
+    );
+}
+
 // ── Pre-existing findings propagated ──────────────────────────────────────
 
 #[test]
