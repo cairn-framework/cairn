@@ -179,3 +179,20 @@ usage = "usage: cairn decision new <slug> [--node <id>] [--informed-by <id>]"
 invalid-slug = "decision slug must be kebab-case: lowercase letters and digits separated by single hyphens"
 exists = "a decision already exists at meta/decisions/dec.{slug}.md"
 created = "created meta/decisions/dec.{slug}.md; add the governing node id(s) and fill the sections, then run `cairn scan`"
+
+
+# -- Brief (fused next-unit orientation) --------------------------------
+
+[brief]
+gates = """
+Gates that will judge this unit (all must pass before merge):
+  cargo build                                          # zero warnings
+  cargo clippy --all-targets --all-features -- -D warnings
+  cargo test
+  cairn scan                                           # zero findings
+  cairn hook all                                       # exit 0"""
+staleness-note = "Note: the beads export can lag live Dolt. `bd ready` is authoritative; cross-check before committing to this unit."
+unlinked-hint = "No graph node is linked to this bead, so no node-specific decisions or contract are surfaced. Bind one with `bd update {id} --label cairn-node:<node>` so future briefs load its constraints."
+not-found = "No bead matches `{id}`. Run `bd ready` to list available work."
+empty = "Nothing to do. The backlog is empty and the project is clean."
+not-ready = "Warning: this bead is not in the ready set (closed, or blocked by an open dependency). It may already be done or not yet actionable; check `bd ready` before working it."

@@ -60,6 +60,8 @@ Error responses from the MCP/query path:
 | `health` | `cairn_health` | Comprehensive health assessment (clean flag, counts, findings) |
 | `remediate` | `cairn_remediate` | Ordered action plan from current findings |
 | `status` | `cairn_status` | Project summary (node count, finding count, etc.) |
+| `next` | — | The next ready unit of work from the backlog |
+| `brief [<id>]` | — | Fused next-unit brief: task, binding decisions, contract, gates |
 | `rationale <node>` | `cairn_rationale` | Provenance chain (decisions, research, sources) |
 | `todos <node>` | `cairn_todos` | Todo artefacts linked to the node |
 | `decisions <node>` | `cairn_decisions` | Decision artefacts linked to the node |
