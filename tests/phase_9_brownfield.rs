@@ -214,8 +214,7 @@ mod init {
         );
 
         // Archiving applies the delta: the blueprint gains the discovered nodes.
-        let report =
-            cairn::changes::archive(&root, std::path::Path::new("cairn.blueprint"), &change_id);
+        let report = cairn::changes::archive(&root, &root.join("cairn.blueprint"), &change_id);
         assert!(report.is_ok(), "archive must succeed: {report:?}");
 
         let blueprint = fs::read_to_string(root.join("cairn.blueprint")).unwrap();
@@ -291,6 +290,45 @@ mod refine {
         assert!(
             delta.contains("app.core") && delta.contains("src.kernel"),
             "delta should detect rename from app.core to src.kernel, got:\n{delta}"
+        );
+    }
+
+    /// Scenario: refine -> archive round-trip applies removals and additions to
+    /// the blueprint. Regression for cairn-h8o: refine emitted a non-canonical
+    /// delta the change parser could not read, so archiving was a no-op.
+    #[test]
+    fn test_refine__round_trip_archive_applies_delta() {
+        let root = temp_repo("refine-round-trip");
+        populate_source_dir(&root, "src/alpha", 3);
+        // An existing node whose path moved within the same parent dir is detected
+        // as a rename, which refine folds into a removal of the old node plus the
+        // addition of the new dir. This exercises the rename branch end to end.
+        let blueprint = "System App \"App\" id \"app\" {\n    Module Old \"Old\" id \"app.old\" {\n        path \"./src/old\"\n    }\n}\n";
+        std::fs::write(root.join("cairn.blueprint"), blueprint).unwrap();
+
+        let change_id = bf_refine::run_refine(&root).unwrap();
+        let delta = std::fs::read_to_string(
+            root.join("meta/changes")
+                .join(&change_id)
+                .join("blueprint.delta"),
+        )
+        .unwrap();
+        assert!(
+            delta.contains("## ADDED Nodes") && delta.contains("## REMOVED Nodes"),
+            "delta must use canonical headers: {delta}"
+        );
+
+        let report = cairn::changes::archive(&root, &root.join("cairn.blueprint"), &change_id);
+        assert!(report.is_ok(), "archive must succeed: {report:?}");
+
+        let result = std::fs::read_to_string(root.join("cairn.blueprint")).unwrap();
+        assert!(
+            result.contains(r#"id "src.alpha""#),
+            "blueprint must gain the discovered node: {result}"
+        );
+        assert!(
+            !result.contains(r#"id "app.old""#),
+            "blueprint must drop the renamed-away node: {result}"
         );
     }
 }

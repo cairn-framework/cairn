@@ -3,6 +3,7 @@
 //! Re-runs brownfield discovery and writes results to a timestamped
 //! change directory under `meta/changes/brownfield-refine-{secs}/`.
 
+use std::fmt::Write as _;
 use std::path::Path;
 
 use crate::error::CairnError;
@@ -167,41 +168,37 @@ fn flatten_nodes(nodes: &[crate::blueprint::Node]) -> Vec<(String, String)> {
     result
 }
 
-/// Render a blueprint delta from an extraction result, including renames
-/// and removals detected against the existing blueprint.
+/// Render a blueprint delta from an extraction result.
+///
+/// A detected rename is folded into a removal of the old node plus the addition
+/// of the new candidate (which already carries the moved path). Refine does not
+/// yet emit path-updating rename deltas: emitting `## RENAMED Nodes` together
+/// with the same target in `## ADDED Nodes` is rejected by change validation
+/// (`renamed node target already exists`). Fold-to-removal keeps every refine
+/// change archivable; true rename lineage is deferred to refine merge semantics
+/// (P-04).
 fn blueprint_delta_with_renames(
     extraction: &Extraction,
     renames: &[(String, String)],
     removals: &[String],
 ) -> String {
-    let mut lines = vec!["# Blueprint delta\n".to_owned()];
-
-    for (from, to) in renames {
-        lines.push(format!("~ {from} -> {to}"));
-    }
-
-    for id in removals {
-        lines.push(format!("- {id}"));
-    }
-
-    for candidate in &extraction.candidates {
-        lines.push(format!(
-            "+ {} \"{}\" id \"{}\" {{",
-            super::node_kind_from_path(&candidate.path),
-            candidate.name,
-            candidate.id
-        ));
-        lines.push(format!("    path \"{}\"", candidate.path));
-        for edge in &candidate.edges {
-            lines.push(format!(
-                "    edge -> {} \"{}\"",
-                edge.target, edge.description
-            ));
+    let mut out = String::new();
+    let removed_ids: Vec<&str> = removals
+        .iter()
+        .map(String::as_str)
+        .chain(renames.iter().map(|(from, _)| from.as_str()))
+        .collect();
+    if !removed_ids.is_empty() {
+        out.push_str("## REMOVED Nodes\n");
+        for id in removed_ids {
+            let _ = writeln!(out, "- {id}");
         }
-        lines.push("}\n".to_owned());
+        out.push('\n');
     }
-
-    lines.join("\n")
+    // Reuse the shared canonical emitter for the added nodes and edges so both
+    // brownfield commands stay in lockstep with the delta parser.
+    out.push_str(&super::blueprint_delta(extraction));
+    out
 }
 
 #[cfg(test)]
@@ -293,52 +290,64 @@ mod tests {
     // ── blueprint_delta_with_renames ──────────────────────────────────────────
 
     #[test]
-    fn test_delta_empty_extraction_produces_only_header() {
+    fn test_delta_empty_extraction_is_empty() {
         let out = blueprint_delta_with_renames(&empty_extraction(), &[], &[]);
         assert!(
-            out.starts_with("# Blueprint delta"),
-            "must start with header: {out:?}"
-        );
-        // No candidate sections.
-        assert!(
-            !out.contains("+ "),
-            "no candidate lines for empty extraction: {out:?}"
+            out.is_empty(),
+            "empty extraction with no renames or removals must produce no delta: {out:?}"
         );
     }
 
     #[test]
-    fn test_delta_rename_produces_tilde_line() {
+    fn test_delta_rename_folds_into_removal() {
+        // A detected rename is emitted as a removal of the old node; the new
+        // candidate is added separately (with its moved path). This keeps the
+        // change archivable (a rename target may not also be an added node).
+        let mut ext = empty_extraction();
+        ext.candidates = vec![candidate("new.node", "src/new")];
         let out = blueprint_delta_with_renames(
-            &empty_extraction(),
+            &ext,
             &[("old.node".to_owned(), "new.node".to_owned())],
             &[],
         );
         assert!(
-            out.contains("~ old.node -> new.node"),
-            "rename line: {out:?}"
+            out.contains("## REMOVED Nodes") && out.contains("- old.node"),
+            "rename source must be emitted as a removal: {out:?}"
+        );
+        assert!(
+            !out.contains("## RENAMED Nodes"),
+            "no RENAMED section is emitted (folded to removal): {out:?}"
+        );
+        assert!(
+            out.contains(r#"id "new.node""#),
+            "rename target is added with its new path: {out:?}"
         );
     }
 
     #[test]
-    fn test_delta_removal_produces_dash_line() {
+    fn test_delta_removal_produces_canonical_section() {
         let out = blueprint_delta_with_renames(&empty_extraction(), &[], &["dead.node".to_owned()]);
+        assert!(
+            out.contains("## REMOVED Nodes"),
+            "must use canonical REMOVED Nodes header: {out:?}"
+        );
         assert!(out.contains("- dead.node"), "removal line: {out:?}");
     }
 
     #[test]
-    fn test_delta_candidate_produces_plus_section() {
+    fn test_delta_candidate_produces_canonical_added_section() {
         let mut ext = empty_extraction();
         ext.candidates = vec![candidate("src.api", "src/api")];
         let out = blueprint_delta_with_renames(&ext, &[], &[]);
         assert!(
-            out.contains("+ "),
-            "candidate section must start with +: {out:?}"
+            out.contains("## ADDED Nodes"),
+            "candidate must use canonical ADDED Nodes header: {out:?}"
         );
         assert!(
             out.contains(r#"id "src.api""#),
             "candidate id quoted: {out:?}"
         );
-        assert!(out.contains(r#"path "src/api""#), "path line: {out:?}");
+        assert!(out.contains(r#"path "./src/api""#), "path line: {out:?}");
     }
 
     #[test]
@@ -348,16 +357,22 @@ mod tests {
         let mut ext = empty_extraction();
         ext.candidates = vec![candidate("src.api", "src/api")];
         let out = blueprint_delta_with_renames(&ext, &[], &[]);
-        assert!(out.contains("+ Container"), "api-path → Container: {out:?}");
+        assert!(
+            out.contains("Container SrcApi "),
+            "api-path → Container: {out:?}"
+        );
 
         let mut ext2 = empty_extraction();
         ext2.candidates = vec![candidate("src.worker", "src/worker")];
         let out2 = blueprint_delta_with_renames(&ext2, &[], &[]);
-        assert!(out2.contains("+ Module"), "non-api-path → Module: {out2:?}");
+        assert!(
+            out2.contains("Module SrcWorker "),
+            "non-api-path → Module: {out2:?}"
+        );
     }
 
     #[test]
-    fn test_delta_candidate_with_edge_produces_edge_line() {
+    fn test_delta_candidate_with_edge_produces_canonical_edge() {
         let mut cand = candidate("src.a", "src/a");
         cand.edges = vec![DiscoveredEdge {
             target: "src.b".to_owned(),
@@ -368,7 +383,11 @@ mod tests {
         ext.candidates = vec![cand];
         let out = blueprint_delta_with_renames(&ext, &[], &[]);
         assert!(
-            out.contains(r#"edge -> src.b "sibling module""#),
+            out.contains("## ADDED Edges"),
+            "must use canonical ADDED Edges header: {out:?}"
+        );
+        assert!(
+            out.contains(r#"src.a -> src.b "sibling module""#),
             "edge line: {out:?}"
         );
     }
