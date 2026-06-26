@@ -43,9 +43,9 @@ use format::{
     render_findings,
 };
 use render::{
-    render_context, render_decisions, render_dependencies, render_files, render_get, render_health,
-    render_neighbourhood, render_next, render_rationale, render_remediate, render_research,
-    render_sources, render_status, render_todos,
+    render_brief, render_context, render_decisions, render_dependencies, render_files, render_get,
+    render_health, render_neighbourhood, render_next, render_rationale, render_remediate,
+    render_research, render_sources, render_status, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -347,6 +347,7 @@ fn render_loaded_project_command(
         "health" => Ok(render_health(parsed, root, scan_result)),
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
         "next" => Ok(render_next(parsed, root, scan_result)),
+        "brief" => Ok(render_brief(parsed, root, scan_result)),
         "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
         | "draft_edit" | "draft_accept" | "summarise" => {
             return err(2, "this command currently requires --json");
@@ -450,12 +451,14 @@ fn render_loaded_project_command(
 /// Command names not in the query registry but handled by the CLI.
 const EXTRA_CLI_COMMANDS: &[&str] = &[
     "accept",
+    "brief",
     "change",
     "decision",
     "check",
     "export",
     "feedback",
     "import-openspec",
+    "next",
     "onboard",
     "refine",
     "watch",
@@ -483,6 +486,7 @@ fn all_command_names() -> Vec<&'static str> {
 /// Short description for each CLI command.
 fn command_description(name: &str) -> &'static str {
     match name {
+        "brief" => "Fused next-unit brief: task, decisions, contract, gates",
         "accept" => "Run acceptance gate for a change",
         "archive" => "Archive a completed change",
         "change" => "Scaffold a new change directory",
@@ -505,6 +509,7 @@ fn command_description(name: &str) -> &'static str {
         "import-openspec" => "Migrate openspec changes to meta/changes",
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
+        "next" => "Show the next ready unit of work",
         "onboard" => "Suggest blueprint entries for orphaned files",
         "refine" => "Re-run brownfield discovery and write a timestamped change",
         "order" => "Topological order of all nodes",

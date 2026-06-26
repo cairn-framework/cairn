@@ -41,12 +41,14 @@ fn registered_commands() -> Vec<String> {
     // EXTRA_CLI_COMMANDS from src/cli/mod.rs
     let extra = [
         "accept",
+        "brief",
         "change",
         "decision",
         "check",
         "export",
         "feedback",
         "import-openspec",
+        "next",
         "onboard",
         "refine",
         "watch",
