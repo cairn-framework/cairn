@@ -71,7 +71,7 @@ See the Error findings section above.
 
 ## Registry format
 
-Error codes are registered in `openspec/registries/error-codes.md` with the format:
+Error codes are registered in `docs/registries/error-codes.md` with the format:
 
 ```
 | CXNNN | CAIRN_FULL_CODE_NAME | severity | description | issue # |
