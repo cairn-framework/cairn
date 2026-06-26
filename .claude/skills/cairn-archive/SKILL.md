@@ -45,10 +45,11 @@ I'll help you archive a change that has been fully implemented and accepted.
 
 4. **Archive the change**
 
-   Move the change directory to the archive:
+   Run the archive command. It validates the change, applies the blueprint
+   delta, refreshes generated output, logs the archival, and moves the change
+   into the dated archive directory:
    ```bash
-   mkdir -p meta/changes/archive
-   mv meta/changes/<change-id> meta/changes/archive/
+   cairn archive <change-id>
    ```
 
 5. **Update any references**

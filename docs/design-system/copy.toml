@@ -155,6 +155,7 @@ Next steps:
   1. Describe your system in cairn.blueprint (a starter was written)
   2. Run `cairn scan` to reconcile the blueprint against your code
   3. Append .cairn/AGENTS.md to your agent instructions (CLAUDE.md or AGENTS.md)
+  4. Point your agent at .claude/skills/cairn-dev to follow the dev loop
 
 Existing codebase? `cairn init --from-code` discovers modules for you."""
 

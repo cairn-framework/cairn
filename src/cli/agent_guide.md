@@ -53,6 +53,20 @@ citation: never inline its content as a typed artefact.
 - Run `cairn scan` before committing. Zero findings is the target.
 - `cairn hook all` is the strict gate; exit 0 means the commit is safe.
 
+## The development loop
+
+`cairn init` writes the cairn dev-loop skills into `.claude/skills/` in this
+repo. They are your on-ramp to working with cairn the way it is meant to be
+used. Read `.claude/skills/cairn-dev/SKILL.md` first: it is the entry point and
+walks the loop that keeps the blueprint and the code in sync, orient, scope,
+propose, implement, test, verify, then record. The companion skills cover the
+steps in detail:
+
+- `cairn-explore`: navigate the graph and query project state.
+- `cairn-propose`: capture a change before you write code.
+- `cairn-apply`: implement a change and run its gates.
+- `cairn-archive`: archive a change once it is merged.
+
 ## Feeding back to cairn itself
 
 If cairn misbehaves, surprises you, or gets in your way (a confusing message,
