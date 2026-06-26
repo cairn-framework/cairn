@@ -3,6 +3,7 @@
 use std::process::{Command, ExitStatus};
 
 use crate::cli::{CliResult, format::esc};
+use crate::verification::VerificationState;
 
 /// Run the verification battery for `cairn accept`.
 pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
@@ -167,17 +168,6 @@ struct VerificationFinding {
     test: String,
     state: VerificationState,
     detail: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-enum VerificationState {
-    #[allow(dead_code)] // Reason: reserved for future sidecar integration.
-    Draft,
-    #[allow(dead_code)] // Reason: reserved for future sidecar integration.
-    Planned,
-    Passed,
-    Failed,
-    Blocked,
 }
 
 /// Truncate `s` to at most `max_bytes` bytes, respecting UTF-8 char boundaries.
