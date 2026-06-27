@@ -618,6 +618,40 @@ fn test_phase_2_loads_artefacts_and_query_commands() -> Result<(), Box<dyn std::
 }
 
 #[test]
+fn test_context_exposes_labeled_edges() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("context-edges")?;
+    write_phase_2_fixture(&root)?;
+
+    // --json: edges[] carries source, target, and label.
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "context"])
+        .output()?;
+    assert!(json.status.success());
+    let value: serde_json::Value = serde_json::from_slice(&json.stdout)?;
+    let edges = value["edges"].as_array().expect("edges array present");
+    assert!(
+        edges.iter().any(|e| e["source"] == "app.auth"
+            && e["target"] == "app.store"
+            && e["label"] == "persists"),
+        "labeled edge missing from --json context: {edges:?}"
+    );
+
+    // Human: labeled adjacency under the source node.
+    let human = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["context"])
+        .output()?;
+    assert!(human.status.success());
+    let human = String::from_utf8(human.stdout)?;
+    assert!(
+        human.contains("-> store  # persists") || human.contains("-> app.store  # persists"),
+        "labeled edge missing from human context: {human}"
+    );
+    Ok(())
+}
+
+#[test]
 fn test_phase_2_integrity_findings() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("artefact-integrity")?;
     write_phase_2_fixture(&root)?;
