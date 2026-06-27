@@ -78,24 +78,29 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
 
     Module CodeReconciler "Tree-sitter reconciler for Rust, TypeScript, Python, Go" id "cairn.reconcile" @reconciler @code {
         path "./src/reconcile"
+        contract "./meta/contracts/reconcile.md"
     }
 
     Module UI "Read-only web graph explorer and API server" id "cairn.ui" @ui {
         path "./src/ui"
+        contract "./meta/contracts/ui.md"
     }
 
     Module MCP "MCP tool wrapper over query API" id "cairn.mcp" @integration {
         path "./src/mcp"
         path "./src/bin/cairn-mcp.rs"
+        contract "./meta/contracts/mcp.md"
     }
 
     Module LSP "LSP diagnostics server for OMP integration" id "cairn.lsp" @integration {
         path "./src/lsp"
         path "./src/bin/cairn-lsp.rs"
+        contract "./meta/contracts/lsp.md"
     }
 
     Module Macros "Proc-macro crate for compile-time attributes" id "cairn.macros" @build @no-test-coverage {
         path "./cairn-macros"
+        contract "./meta/contracts/macros.md"
     }
 
     Module Brownfield "Orphan grouping, candidate heuristics, and onboard analysis" id "cairn.brownfield" {
@@ -120,6 +125,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
 
     Module Tests "Integration and smoke tests" id "cairn.tests" @test @no-test-coverage {
         path "./tests"
+        contract "./meta/contracts/tests.md"
     }
 }
 
