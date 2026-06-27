@@ -43,9 +43,9 @@ use format::{
     render_findings,
 };
 use render::{
-    render_brief, render_context, render_decisions, render_dependencies, render_files, render_get,
-    render_health, render_neighbourhood, render_next, render_rationale, render_remediate,
-    render_research, render_sources, render_status, render_todos,
+    render_backlog, render_brief, render_context, render_decisions, render_dependencies,
+    render_files, render_get, render_health, render_neighbourhood, render_next, render_rationale,
+    render_remediate, render_research, render_sources, render_status, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -343,6 +343,7 @@ fn render_loaded_project_command(
         "rationale" => render_rationale(parsed, scan_result),
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(root, scan_result)),
+        "backlog" => render_backlog(parsed, root, scan_result),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "health" => Ok(render_health(parsed, root, scan_result)),
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
@@ -451,6 +452,7 @@ fn render_loaded_project_command(
 /// Command names not in the query registry but handled by the CLI.
 const EXTRA_CLI_COMMANDS: &[&str] = &[
     "accept",
+    "backlog",
     "brief",
     "change",
     "decision",
@@ -487,6 +489,7 @@ fn all_command_names() -> Vec<&'static str> {
 fn command_description(name: &str) -> &'static str {
     match name {
         "brief" => "Fused next-unit brief: task, decisions, contract, gates",
+        "backlog" => "List beads (issues) linked to a node",
         "accept" => "Run acceptance gate for a change",
         "archive" => "Archive a completed change",
         "change" => "Scaffold a new change directory",

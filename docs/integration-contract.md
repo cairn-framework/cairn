@@ -64,6 +64,7 @@ Error responses from the MCP/query path:
 | `brief [<id>]` | n/a | Fused next-unit brief: task, binding decisions, contract, gates |
 | `rationale <node>` | `cairn_rationale` | Provenance chain (decisions, research, sources) |
 | `todos <node>` | `cairn_todos` | Todo artefacts linked to the node |
+| `backlog <node>` | n/a | Beads (issues) linked to the node via its `cairn-node:<id>` label |
 | `decisions <node>` | `cairn_decisions` | Decision artefacts linked to the node |
 | `research <node>` | `cairn_research` | Research artefacts linked to the node |
 | `sources <node>` | `cairn_sources` | Source artefacts linked to the node |

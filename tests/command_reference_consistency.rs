@@ -41,6 +41,7 @@ fn registered_commands() -> Vec<String> {
     // EXTRA_CLI_COMMANDS from src/cli/mod.rs
     let extra = [
         "accept",
+        "backlog",
         "brief",
         "change",
         "decision",

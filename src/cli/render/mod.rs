@@ -14,7 +14,7 @@ pub(crate) use artefacts::{
 };
 pub(crate) use health::render_health;
 pub(crate) use node::{render_files, render_get, render_neighbourhood};
-pub(crate) use project::{render_context, render_dependencies, render_status};
+pub(crate) use project::{render_backlog, render_context, render_dependencies, render_status};
 pub(crate) use remediate::{render_brief, render_next, render_remediate};
 
 pub(crate) fn scan_error_count(scan_result: &scanner::ScanResult) -> usize {

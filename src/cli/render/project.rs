@@ -86,6 +86,49 @@ pub(crate) fn render_context(root: &Path, scan_result: &scanner::ScanResult) -> 
     out
 }
 
+/// Renders the beads (issues) linked to a node via their `cairn-node:<id>`
+/// label, the CLI counterpart of the webui inspector's beads panel.
+pub(crate) fn render_backlog(
+    parsed: &ParsedArgs,
+    root: &Path,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    use std::fmt::Write as _;
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node = scan_result.graph.resolve(node)?;
+        let items = crate::state::backlog::read(root);
+        let beads = crate::state::backlog::for_node(&items, &node.id);
+        Ok(if parsed.json {
+            let arr = beads
+                .iter()
+                .map(|b| {
+                    format!(
+                        "{{\"id\":\"{}\",\"title\":\"{}\",\"status\":\"{}\",\"priority\":{},\"issue_type\":\"{}\"}}",
+                        esc(&b.id),
+                        esc(&b.title),
+                        esc(&b.status),
+                        b.priority,
+                        esc(&b.issue_type)
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join(",");
+            format!("{{\"node\":\"{}\",\"beads\":[{arr}]}}\n", esc(&node.id))
+        } else if beads.is_empty() {
+            format!(
+                "{}\n",
+                crate::cli::copy::lookup("empty-states.node-no-beads.body")
+            )
+        } else {
+            let mut out = format!("Beads for {}:\n", node.id);
+            for b in &beads {
+                let _ = writeln!(out, "  {} [P{}] [{}] {}", b.id, b.priority, b.status, b.title);
+            }
+            out
+        })
+    })
+}
+
 pub(crate) fn render_status(
     parsed: &ParsedArgs,
     scan_result: &scanner::ScanResult,
@@ -379,6 +422,79 @@ mod tests {
         let rendered = render_context(&dir, &scan);
         assert!(rendered.contains("Backlog: 1 ready"));
         assert!(rendered.contains("cairn-aaa [P2] Do thing"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    fn backlog_args(node: &str, json: bool) -> ParsedArgs {
+        let mut p = parsed(json);
+        p.command = "backlog".to_owned();
+        p.command_args = vec!["backlog".to_owned(), node.to_owned()];
+        p
+    }
+
+    fn with_beads(tag: &str, lines: &str) -> std::path::PathBuf {
+        let dir =
+            std::env::temp_dir().join(format!("cairn-backlog-render-{tag}-{}", std::process::id()));
+        let beads = dir.join(".beads");
+        std::fs::create_dir_all(&beads).unwrap();
+        std::fs::write(beads.join("issues.jsonl"), lines).unwrap();
+        dir
+    }
+
+    #[test]
+    fn render_backlog_lists_node_linked_beads() {
+        let dir = with_beads(
+            "human",
+            r#"{"id":"cairn-z","title":"Wire it","status":"open","priority":1,"issue_type":"task","labels":["cairn-node:app"]}"#,
+        );
+        let scan = scan_with_nodes(vec![node_record("app")]);
+        let rendered = render_backlog(&backlog_args("app", false), &dir, &scan).unwrap();
+        assert!(rendered.contains("Beads for app:"), "{rendered}");
+        assert!(
+            rendered.contains("cairn-z [P1] [open] Wire it"),
+            "{rendered}"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn render_backlog_json_emits_beads_array() {
+        let dir = with_beads(
+            "json",
+            r#"{"id":"cairn-z","title":"Wire it","status":"open","priority":1,"issue_type":"task","labels":["cairn-node:app"]}"#,
+        );
+        let scan = scan_with_nodes(vec![node_record("app")]);
+        let rendered = render_backlog(&backlog_args("app", true), &dir, &scan).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON");
+        assert_eq!(value["node"], "app");
+        let beads = value["beads"].as_array().expect("beads array");
+        assert_eq!(beads.len(), 1);
+        assert_eq!(beads[0]["id"], "cairn-z");
+        assert_eq!(beads[0]["title"], "Wire it");
+        assert_eq!(beads[0]["status"], "open");
+        assert_eq!(beads[0]["priority"], 1);
+        assert_eq!(beads[0]["issue_type"], "task");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn render_backlog_empty_node_uses_copy() {
+        let dir = with_beads(
+            "empty",
+            r#"{"id":"cairn-other","title":"X","status":"open","priority":2,"issue_type":"task","labels":["cairn-node:other"]}"#,
+        );
+        let scan = scan_with_nodes(vec![node_record("app")]);
+        let rendered = render_backlog(&backlog_args("app", false), &dir, &scan).unwrap();
+        let expected = crate::cli::copy::lookup("empty-states.node-no-beads.body");
+        assert!(rendered.contains(expected), "{rendered}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn render_backlog_unknown_node_errs() {
+        let dir = with_beads("unknown", "");
+        let scan = scan_with_nodes(vec![node_record("app")]);
+        assert!(render_backlog(&backlog_args("missing", false), &dir, &scan).is_err());
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
