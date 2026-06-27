@@ -85,16 +85,7 @@ pub(crate) fn render_backlog(
         Ok(if parsed.json {
             let arr = beads
                 .iter()
-                .map(|b| {
-                    format!(
-                        "{{\"id\":\"{}\",\"title\":\"{}\",\"status\":\"{}\",\"priority\":{},\"issue_type\":\"{}\"}}",
-                        esc(&b.id),
-                        esc(&b.title),
-                        esc(&b.status),
-                        b.priority,
-                        esc(&b.issue_type)
-                    )
-                })
+                .map(|b| b.to_json().to_string())
                 .collect::<Vec<_>>()
                 .join(",");
             format!("{{\"node\":\"{}\",\"beads\":[{arr}]}}\n", esc(&node.id))
@@ -106,7 +97,11 @@ pub(crate) fn render_backlog(
         } else {
             let mut out = format!("Beads for {}:\n", node.id);
             for b in &beads {
-                let _ = writeln!(out, "  {} [P{}] [{}] {}", b.id, b.priority, b.status, b.title);
+                let _ = writeln!(
+                    out,
+                    "  {} [P{}] [{}] {}",
+                    b.id, b.priority, b.status, b.title
+                );
             }
             out
         })

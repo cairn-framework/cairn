@@ -26,7 +26,7 @@ pub(crate) fn status_json(root: &Path, scan_result: &scanner::ScanResult) -> Val
     let backlog = crate::state::backlog::read(root);
     let next_recommended = crate::state::backlog::ready(&backlog)
         .first()
-        .map_or(Value::Null, |top| backlog_item_json(top));
+        .map_or(Value::Null, |top| top.to_json());
     json!({
         "active_changes": [],
         "open_todos": open,
@@ -100,7 +100,7 @@ pub(crate) fn context_json(
     let (errors, warnings, info) = count_findings(&scan_result.graph.findings);
     let backlog = crate::state::backlog::read(root);
     let ready = crate::state::backlog::ready(&backlog);
-    let backlog_ready: Vec<Value> = ready.iter().map(|item| backlog_item_json(item)).collect();
+    let backlog_ready: Vec<Value> = ready.iter().map(|item| item.to_json()).collect();
 
     json!({
         "system_name": system_name,
