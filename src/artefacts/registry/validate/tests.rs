@@ -266,6 +266,36 @@ fn test_decision_unknown_provenance_emits_warning() {
     assert!(finding_codes(&set).contains(&"CAIRN_DECISION_UNKNOWN_PROVENANCE"));
 }
 
+#[test]
+fn test_research_not_cited_by_decision_emits_info_orphan() {
+    let mut set = ArtefactSet::default();
+    set.research = vec![make_research("res.dangling", &["app.real"], &["src1"])];
+    // A decision exists but does not cite the research.
+    set.decisions = vec![make_decision("d1", &["app.real"], DecisionStatus::Accepted)];
+    validate_provenance_refs(&BTreeSet::new(), &node_ids(&["src1"]), &mut set);
+    let orphan = set
+        .findings
+        .iter()
+        .find(|f| f.code == "CAIRN_RESEARCH_ORPHAN")
+        .expect("uncited research must surface the orphan tension");
+    // spec:441: orphan research surfaces at info-level, not warning/error.
+    assert_eq!(orphan.severity, crate::map::graph::FindingSeverity::Info);
+}
+
+#[test]
+fn test_research_cited_by_decision_is_not_orphan() {
+    let mut set = ArtefactSet::default();
+    set.research = vec![make_research("res.cited", &["app.real"], &["src1"])];
+    let mut d = make_decision("d1", &["app.real"], DecisionStatus::Accepted);
+    d.informed_by = vec!["res.cited".to_owned()];
+    set.decisions = vec![d];
+    validate_provenance_refs(&BTreeSet::new(), &node_ids(&["src1"]), &mut set);
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_RESEARCH_ORPHAN"),
+        "research cited via informed_by must not be flagged"
+    );
+}
+
 // ── validate_sources ──────────────────────────────────────────────────────
 
 #[test]
