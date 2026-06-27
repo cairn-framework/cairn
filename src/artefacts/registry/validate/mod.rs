@@ -192,6 +192,25 @@ pub(super) fn validate_provenance_refs(
             }
         }
     }
+    // Research not linked from any decision surfaces as info-level (spec:441):
+    // an advisory nudge, not an error, because not all research produces a
+    // decision (spec:445). `informed_by` carries both research and source ids;
+    // a research id absent from every decision's `informed_by` is unlinked.
+    let cited_research: BTreeSet<String> = set
+        .decisions
+        .iter()
+        .flat_map(|decision| decision.informed_by.iter().cloned())
+        .collect();
+    for research in &set.research {
+        if !cited_research.contains(&research.id) {
+            set.findings.push(info(
+                "CAIRN_RESEARCH_ORPHAN",
+                format!("research `{}` is not linked from any decision", research.id),
+                None,
+                Some(research.path.clone()),
+            ));
+        }
+    }
     for decision in &set.decisions {
         for reference in &decision.informed_by {
             if !research_ids.contains(reference) && !source_ids.contains(reference) {
