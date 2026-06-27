@@ -105,3 +105,35 @@ fn scan_src_for_module_docs(
         }
     }
 }
+
+/// Dogfood guard: every `contract` pointer wired into cairn's own blueprint
+/// must resolve to a real file whose `node:` frontmatter matches the declaring
+/// node. A broken pointer (missing file, missing/mismatched node) surfaces as
+/// an error-severity finding from the contract loader; this test fails on any.
+#[test]
+fn test_blueprint_contract_pointers_resolve() {
+    use cairn::artefacts::contract::load_contracts;
+    use cairn::blueprint::parser::parse_file;
+    use cairn::map::graph::FindingSeverity;
+
+    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let ast = parse_file(manifest.join("cairn.blueprint")).expect("parse cairn.blueprint");
+    let set = load_contracts(&manifest, &ast);
+
+    let errors: Vec<String> = set
+        .findings
+        .iter()
+        .filter(|f| f.severity == FindingSeverity::Error)
+        .map(|f| format!("{}: {}", f.code, f.message))
+        .collect();
+    assert!(
+        errors.is_empty(),
+        "blueprint contract pointers produced {} error finding(s):\n{}",
+        errors.len(),
+        errors.join("\n")
+    );
+    assert!(
+        !set.contracts.is_empty(),
+        "expected cairn's blueprint to declare at least one contract pointer"
+    );
+}
