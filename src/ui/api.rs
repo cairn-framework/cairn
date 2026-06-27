@@ -174,21 +174,10 @@ pub(super) fn beads_response_json(root: &Path, node: &str) -> String {
     let items = backlog::read(root);
     let beads = backlog::for_node(&items, node)
         .iter()
-        .map(|item| bead_json(item))
+        .map(|item| item.to_json().to_string())
         .collect::<Vec<_>>()
         .join(",");
     format!("{{\"node\":\"{}\",\"beads\":[{beads}]}}", esc(node))
-}
-
-fn bead_json(item: &backlog::BacklogItem) -> String {
-    format!(
-        "{{\"id\":\"{}\",\"title\":\"{}\",\"status\":\"{}\",\"priority\":{},\"issue_type\":\"{}\"}}",
-        esc(&item.id),
-        esc(&item.title),
-        esc(&item.status),
-        item.priority,
-        esc(&item.issue_type)
-    )
 }
 
 pub(super) fn rationale_json(root: &Path, node: &str) -> String {

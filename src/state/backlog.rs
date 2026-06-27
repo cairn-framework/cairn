@@ -84,6 +84,23 @@ impl BacklogItem {
             .filter(|dep| dep.dep_type == "blocks")
             .any(|dep| open_ids.contains(dep.depends_on_id.as_str()))
     }
+
+    /// Serialises the bead's summary fields to a JSON value. This is the single
+    /// serialiser every read surface routes through (the CLI backlog/context
+    /// renderers, the webui inspector beads panel, and the query API), so the
+    /// bead JSON contract lives in exactly one place and cannot drift between
+    /// surfaces. `node` is the linked graph node, or `null` when unlinked.
+    #[must_use]
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::json!({
+            "id": self.id,
+            "title": self.title,
+            "status": self.status,
+            "priority": self.priority,
+            "issue_type": self.issue_type,
+            "node": self.linked_node(),
+        })
+    }
 }
 
 /// Reads all backlog items from `<root>/.beads/issues.jsonl`.
@@ -323,6 +340,34 @@ mod tests {
         // Orphan label resolves only to its own (nonexistent) node string, so a
         // real per-node view never surfaces it.
         assert_eq!(for_node(&items, "cairn.gone").len(), 1);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn to_json_emits_summary_fields_with_linked_node() {
+        let dir = tmpdir("tojson");
+        write_export(
+            &dir,
+            &[
+                r#"{"id":"cairn-a","title":"Wire it","status":"open","priority":2,"issue_type":"task","labels":["cairn-node:cairn.kernel.cli"]}"#,
+                r#"{"id":"cairn-b","title":"Loose","status":"closed","priority":0,"issue_type":"bug","labels":[]}"#,
+            ],
+        );
+        let items = read(&dir);
+        let linked = items[0].to_json();
+        assert_eq!(linked["id"], "cairn-a");
+        assert_eq!(linked["title"], "Wire it");
+        assert_eq!(linked["status"], "open");
+        assert_eq!(linked["priority"], 2);
+        assert_eq!(linked["issue_type"], "task");
+        assert_eq!(linked["node"], "cairn.kernel.cli");
+        // The summary serialiser carries exactly these six keys; detail adds
+        // description on top, so the summary must not leak it.
+        let obj = linked.as_object().expect("object");
+        assert_eq!(obj.len(), 6, "summary has six keys: {obj:?}");
+        assert!(!obj.contains_key("description"));
+        // An unlinked bead reports a null node rather than omitting the key.
+        assert_eq!(items[1].to_json()["node"], serde_json::Value::Null);
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
