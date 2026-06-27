@@ -4,6 +4,8 @@ nodes:
   - cairn.kernel.cli
 status: accepted
 date: 2026-06-10
+informed_by:
+  - res.agent-experiment-linklint
 ---
 
 # Close the dogfood loop from host projects via `cairn feedback`
