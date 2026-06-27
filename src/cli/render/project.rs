@@ -26,7 +26,7 @@ pub(crate) fn render_context(root: &Path, scan_result: &scanner::ScanResult) -> 
     let infos = scan_info_count(scan_result);
 
     let mut out = format!(
-        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings, {} info\n\nModules:\n",
+        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings, {} info\n\nStructure:\n",
         system_name,
         scan_result.graph.nodes.len(),
         edge_count,
@@ -36,14 +36,31 @@ pub(crate) fn render_context(root: &Path, scan_result: &scanner::ScanResult) -> 
         infos,
     );
 
+    // Strip the system-root id prefix (e.g. `cairn.`) for compact, readable
+    // identifiers. Full ids remain in `cairn context --json`.
+    let prefix = system.map(|s| format!("{}.", s.id)).unwrap_or_default();
+    let short = |id: &str| -> String { id.strip_prefix(&prefix).unwrap_or(id).to_owned() };
+
     for node in scan_result.graph.nodes.values() {
-        let paths = node.paths.join(", ");
-        writeln!(
-            out,
-            "  {} ({}) [{:?}] {}",
-            node.id, node.name, node.state, paths
-        )
-        .unwrap();
+        let state = if node.state == crate::map::graph::NodeState::Synced {
+            String::new()
+        } else {
+            format!(" [{:?}]", node.state)
+        };
+        writeln!(out, "  {}{}", short(&node.id), state).unwrap();
+        for edge in scan_result
+            .graph
+            .outbound
+            .get(&node.id)
+            .into_iter()
+            .flatten()
+        {
+            if edge.description.is_empty() {
+                writeln!(out, "    -> {}", short(&edge.to)).unwrap();
+            } else {
+                writeln!(out, "    -> {}  # {}", short(&edge.to), edge.description).unwrap();
+            }
+        }
     }
 
     let ac = &scan_result.artefacts;
@@ -304,12 +321,41 @@ mod tests {
     }
 
     #[test]
-    fn render_context_lists_module_lines() {
+    fn render_context_node_line_omits_path_and_synced_state() {
         let mut app = node_record("app");
         app.paths = vec!["./src".to_owned()];
         let scan = scan_with_nodes(vec![system("sys", "Sys", ""), app]);
         let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
-        assert!(rendered.contains("  app (app) [Synced] ./src"));
+        assert!(
+            rendered.contains("Structure:\n  app\n"),
+            "node line: {rendered}"
+        );
+        assert!(
+            !rendered.contains("./src"),
+            "path must be dropped: {rendered}"
+        );
+    }
+
+    #[test]
+    fn render_context_lists_labeled_dependencies() {
+        let mut scan = scan_with_nodes(vec![
+            system("sys", "Sys", ""),
+            node_record("app.a"),
+            node_record("app.b"),
+        ]);
+        scan.graph.outbound.insert(
+            "app.a".to_owned(),
+            vec![crate::map::graph::EdgeRef {
+                from: "app.a".to_owned(),
+                to: "app.b".to_owned(),
+                description: "calls".to_owned(),
+            }],
+        );
+        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
+        assert!(
+            rendered.contains("  app.a\n    -> app.b  # calls"),
+            "missing labeled edge under source: {rendered}"
+        );
     }
 
     #[test]

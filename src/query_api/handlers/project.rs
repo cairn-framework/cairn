@@ -83,6 +83,20 @@ pub(crate) fn context_json(
         })
         .collect();
 
+    let edges: Vec<Value> = scan_result
+        .graph
+        .outbound
+        .values()
+        .flatten()
+        .map(|e| {
+            json!({
+                "source": e.from,
+                "target": e.to,
+                "label": e.description,
+            })
+        })
+        .collect();
+
     let (errors, warnings, info) = count_findings(&scan_result.graph.findings);
     let backlog = crate::state::backlog::read(root);
     let ready = crate::state::backlog::ready(&backlog);
@@ -95,6 +109,7 @@ pub(crate) fn context_json(
         "node_count": scan_result.graph.nodes.len(),
         "edge_count": edge_count,
         "nodes": nodes,
+        "edges": edges,
         "artefact_counts": {
             "contracts": scan_result.artefacts.contracts.contracts.len(),
             "decisions": scan_result.artefacts.decisions.len(),
