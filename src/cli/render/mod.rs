@@ -4,6 +4,7 @@
 use super::*;
 
 mod artefacts;
+mod context_view;
 mod health;
 mod node;
 mod project;

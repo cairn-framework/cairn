@@ -5,11 +5,13 @@ use super::super::format::{lines, node_arg, string_array_json, todos_json};
 use super::super::*;
 use super::{scan_error_count, scan_info_count, scan_warning_count};
 
-// NOTE: render_context does not have access to Config, so it cannot show
-// project_context. The JSON endpoint (context_json) includes it. The beads
-// backlog summary below is likewise text-only. Accept the divergence rather
-// than threading Config through the CLI render layer.
-pub(crate) fn render_context(root: &Path, scan_result: &scanner::ScanResult) -> String {
+// NOTE: render_context has no Config access, so it cannot show project_context
+// (the context_json endpoint includes it). The backlog summary is text-only too.
+pub(crate) fn render_context(
+    parsed: &ParsedArgs,
+    root: &Path,
+    scan_result: &scanner::ScanResult,
+) -> String {
     use std::fmt::Write as _;
 
     let system = scan_result
@@ -36,32 +38,10 @@ pub(crate) fn render_context(root: &Path, scan_result: &scanner::ScanResult) -> 
         infos,
     );
 
-    // Strip the system-root id prefix (e.g. `cairn.`) for compact, readable
-    // identifiers. Full ids remain in `cairn context --json`.
     let prefix = system.map(|s| format!("{}.", s.id)).unwrap_or_default();
-    let short = |id: &str| -> String { id.strip_prefix(&prefix).unwrap_or(id).to_owned() };
-
-    for node in scan_result.graph.nodes.values() {
-        let state = if node.state == crate::map::graph::NodeState::Synced {
-            String::new()
-        } else {
-            format!(" [{:?}]", node.state)
-        };
-        writeln!(out, "  {}{}", short(&node.id), state).unwrap();
-        for edge in scan_result
-            .graph
-            .outbound
-            .get(&node.id)
-            .into_iter()
-            .flatten()
-        {
-            if edge.description.is_empty() {
-                writeln!(out, "    -> {}", short(&edge.to)).unwrap();
-            } else {
-                writeln!(out, "    -> {}  # {}", short(&edge.to), edge.description).unwrap();
-            }
-        }
-    }
+    let opts = super::context_view::ContextOpts::parse(&parsed.command_args);
+    let structure = super::context_view::render_structure(&scan_result.graph, &opts, &prefix);
+    out.push_str(&structure);
 
     let ac = &scan_result.artefacts;
     write!(
@@ -354,7 +334,7 @@ mod tests {
             system("sys", "MySystem", "A test system"),
             node_record("app"),
         ]);
-        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
+        let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
         assert!(rendered.contains("MySystem (2 nodes, 0 edges)"));
         assert!(rendered.contains("A test system"));
         assert!(rendered.contains("Findings: 0 errors, 0 warnings, 0 info"));
@@ -368,7 +348,7 @@ mod tests {
         let mut app = node_record("app");
         app.paths = vec!["./src".to_owned()];
         let scan = scan_with_nodes(vec![system("sys", "Sys", ""), app]);
-        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
+        let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
         assert!(
             rendered.contains("Structure:\n  app\n"),
             "node line: {rendered}"
@@ -394,7 +374,7 @@ mod tests {
                 description: "calls".to_owned(),
             }],
         );
-        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
+        let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
         assert!(
             rendered.contains("  app.a\n    -> app.b  # calls"),
             "missing labeled edge under source: {rendered}"
@@ -404,7 +384,7 @@ mod tests {
     #[test]
     fn render_context_defaults_when_no_system() {
         let scan = scan_with_nodes(vec![node_record("app")]);
-        let rendered = render_context(std::path::Path::new("/nonexistent"), &scan);
+        let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
         assert!(rendered.contains("unknown (1 nodes, 0 edges)"));
     }
 
@@ -419,7 +399,7 @@ mod tests {
         )
         .unwrap();
         let scan = scan_with_nodes(vec![node_record("app")]);
-        let rendered = render_context(&dir, &scan);
+        let rendered = render_context(&parsed(false), &dir, &scan);
         assert!(rendered.contains("Backlog: 1 ready"));
         assert!(rendered.contains("cairn-aaa [P2] Do thing"));
         let _ = std::fs::remove_dir_all(&dir);
