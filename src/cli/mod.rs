@@ -1091,7 +1091,12 @@ app.api -> app.core "reports"
         )?;
         fs::write(
             clean_root.join("cairn.blueprint"),
-            "System Clean \"clean project\" id \"clean\" {\n    Module Only \"only module\" id \"clean.only\" {\n        path \"./src\"\n    }\n}\n",
+            "System Clean \"clean project\" id \"clean\" {\n    Module Only \"only module\" id \"clean.only\" {\n        path \"./src\"\n        contract \"./contracts/clean.only.md\"\n    }\n}\n",
+        )?;
+        fs::create_dir_all(clean_root.join("contracts"))?;
+        fs::write(
+            clean_root.join("contracts/clean.only.md"),
+            "---\nnode: clean.only\n---\n\n# Only\n",
         )?;
         fs::write(
             clean_root.join("cairn.config.yaml"),

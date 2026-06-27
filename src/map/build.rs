@@ -32,6 +32,7 @@ pub fn build_graph(
     validate_path_ties(&mut graph);
     validate_contracts(&mut graph, root, contracts);
     super::test_coverage::validate_test_coverage(&mut graph, root);
+    super::contract_coverage::validate_contract_coverage(&mut graph);
     graph
 }
 

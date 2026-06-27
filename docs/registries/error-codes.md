@@ -45,6 +45,7 @@ _No codes allocated yet._
 
 - CK001 -- scanner failed to load project -- phase-7.8 reforge
 - CK002 -- blueprint path matches a .gitignore pattern (CAIRN_PATH_GITIGNORED) -- issue #45
+- CK003 -- leaf node owns code but declares no contract (CAIRN_CONTRACT_LEAF_UNCOVERED) -- bead cairn-481
 
 ## CA -- Artefacts
 
