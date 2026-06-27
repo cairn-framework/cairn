@@ -4,6 +4,7 @@ nodes:
   - cairn.kernel.map
 status: accepted
 date: 2026-06-27
+informed_by: []
 ---
 
 # Contract-coverage integrity rule for uncovered leaf nodes
