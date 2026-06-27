@@ -181,3 +181,4 @@
 {"id":"int-826b2671","kind":"field_change","created_at":"2026-06-27T14:28:01.723474Z","actor":"cairn-loop","issue_id":"cairn-aq5","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"added 'cairn backlog <node>' CLI command (human + --json), mirrors webui inspector"}}
 {"id":"int-a4a92fa2","kind":"field_change","created_at":"2026-06-27T15:14:03.896681Z","actor":"cairn-loop","issue_id":"cairn-y5f","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
 {"id":"int-a3a90987","kind":"field_change","created_at":"2026-06-27T15:40:13.35583Z","actor":"cairn-loop","issue_id":"cairn-mqy","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
+{"id":"int-74fe6466","kind":"field_change","created_at":"2026-06-27T15:57:53.224907Z","actor":"cairn-loop","issue_id":"cairn-c28","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
