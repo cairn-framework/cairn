@@ -37,34 +37,42 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
 
         Module Blueprint "Parses .blueprint files into AST node graph" id "cairn.kernel.blueprint" {
             path "./src/blueprint"
+            contract "./meta/contracts/kernel.blueprint.md"
         }
 
         Module Artefacts "Typed artefact registry and contract loader" id "cairn.kernel.artefacts" {
             path "./src/artefacts"
+            contract "./meta/contracts/kernel.artefacts.md"
         }
 
         Module Map "Graph construction, integrity checks, and query traversal" id "cairn.kernel.map" {
             path "./src/map"
+            contract "./meta/contracts/kernel.map.md"
         }
 
         Module Scanner "Orchestrates parse, reconcile, and graph-build pipeline" id "cairn.kernel.scanner" {
             path "./src/scanner"
+            contract "./meta/contracts/kernel.scanner.md"
         }
 
         Module Changes "Change directories, delta semantics, and archive" id "cairn.kernel.changes" {
             path "./src/changes"
+            contract "./meta/contracts/kernel.changes.md"
         }
 
         Module Hooks "Commit and task-boundary enforcement gates" id "cairn.kernel.hooks" {
             path "./src/hooks"
+            contract "./meta/contracts/kernel.hooks.md"
         }
 
         Module QueryAPI "Structured query handlers and serialisation" id "cairn.kernel.query" {
             path "./src/query_api"
+            contract "./meta/contracts/kernel.query.md"
         }
 
         Module CLI "Primary user surface and output formatting" id "cairn.kernel.cli" {
             path "./src/cli"
+            contract "./meta/contracts/kernel.cli.md"
         }
     }
 
