@@ -15,18 +15,22 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/error.rs"
         path "./src/verification.rs"
         path "./src/signal.rs"
+        contract "./meta/contracts/root.md"
     }
 
     Module SSE "Minimal SSE consumer for Gas City integration" id "cairn.sse" {
         path "./src/sse.rs"
+        contract "./meta/contracts/sse.md"
     }
 
     Module State "Pluggable state persistence backend" id "cairn.state" {
         path "./src/state"
+        contract "./meta/contracts/state.md"
     }
 
     Module Watch "Watch mode: periodic scan with finding-change events" id "cairn.watch" {
         path "./src/watch.rs"
+        contract "./meta/contracts/watch.md"
     }
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
         decisions "./meta/decisions"
@@ -88,18 +92,22 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
 
     Module Brownfield "Orphan grouping, candidate heuristics, and onboard analysis" id "cairn.brownfield" {
         path "./src/brownfield"
+        contract "./meta/contracts/brownfield.md"
     }
 
     Module Provenance "Trace sidecar primitives for the provenance chain" id "cairn.provenance" {
         path "./src/provenance"
+        contract "./meta/contracts/provenance.md"
     }
 
     Module SuggestedEdges "Suggested-edges queue: mutable triage workflows for AI-suggested graph edges" id "cairn.suggested-edges" {
         path "./src/suggested_edges"
+        contract "./meta/contracts/suggested-edges.md"
     }
 
     Module Summariser "LLM-assisted summarisation backend and request queue" id "cairn.summariser" {
         path "./src/summariser"
+        contract "./meta/contracts/summariser.md"
     }
 
     Module Tests "Integration and smoke tests" id "cairn.tests" @test @no-test-coverage {
