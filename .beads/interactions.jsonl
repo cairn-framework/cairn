@@ -176,3 +176,4 @@
 {"id":"int-bc2641c8","kind":"field_change","created_at":"2026-06-26T18:44:46.86976Z","actor":"cairn-loop","issue_id":"cairn-oax","extra":{"field":"status","new_value":"deferred","old_value":"open"}}
 {"id":"int-e1a7c7b7","kind":"field_change","created_at":"2026-06-26T18:45:36.016106Z","actor":"cairn-loop","issue_id":"cairn-qgn","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
 {"id":"int-163247d9","kind":"field_change","created_at":"2026-06-27T11:15:28.096616Z","actor":"cairn-loop","issue_id":"cairn-2on","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
+{"id":"int-c37e2ab1","kind":"field_change","created_at":"2026-06-27T13:11:33.507172Z","actor":"cairn-loop","issue_id":"cairn-481","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Implemented CAIRN_CONTRACT_LEAF_UNCOVERED (CK003); follow-up cairn-y5f tracks authoring the 22 contracts"}}

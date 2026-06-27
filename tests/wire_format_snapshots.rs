@@ -85,6 +85,7 @@ fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
         r#"System App "desc" id "app" @product {
     Module Core "core" id "app.core" @backend {
         path "./src/core"
+        contract "./meta/contracts/core.md"
     }
     Container Api "api" id "app.api" @backend {
         path "./src/api"
@@ -102,6 +103,10 @@ app.core -> app.api "serves"
     fs::write(
         root.join("meta/contracts/api.md"),
         "---\nnode: app.api\n---\n# API Contract\nGET /api/status returns health details.\n",
+    )?;
+    fs::write(
+        root.join("meta/contracts/core.md"),
+        "---\nnode: app.core\n---\n# Core Contract\n",
     )?;
     fs::write(
         root.join("meta/todos/todo.api.md"),

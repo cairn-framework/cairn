@@ -1,6 +1,7 @@
 //! Map graph construction, integrity checks, and query services.
 
 pub mod build;
+mod contract_coverage;
 pub mod graph;
 pub mod integrity;
 pub mod query;

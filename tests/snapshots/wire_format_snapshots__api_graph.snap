@@ -71,7 +71,9 @@ expression: value
     },
     {
       "children": [],
-      "contracts": [],
+      "contracts": [
+        "./meta/contracts/core.md"
+      ],
       "description": "core",
       "files": [
         "src/core/lib.rs"

@@ -350,7 +350,7 @@ fn test_internal_node_ownership_opt_in_controls_direct_files()
     Container Api "api" id "app.api" {
         path "./src"
         owns-files: true
-        Module Auth "auth" id "app.api.auth" {
+        Module Auth "auth" id "app.api.auth" @no-contract {
             path "./src/auth"
         }
     }
@@ -1183,6 +1183,7 @@ fn write_phase_2_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> 
     }
     Module Store "store" id "app.store" {
         path "./src/store"
+        contract "./meta/contracts/store.md"
     }
 }
 app.auth -> app.store "persists"
@@ -1191,6 +1192,10 @@ app.auth -> app.store "persists"
     fs::write(
         root.join("meta/contracts/auth.md"),
         "---\nnode: app.auth\n---\n# Auth Contract\n",
+    )?;
+    fs::write(
+        root.join("meta/contracts/store.md"),
+        "---\nnode: app.store\n---\n# Store Contract\n",
     )?;
     fs::write(
         root.join("meta/todos/todo.md"),
@@ -1922,7 +1927,7 @@ fn test_coverage_gate_no_test_coverage_tag_suppresses_finding()
     fs::write(root.join("src/lib.rs"), "pub fn run() {}\n")?;
     fs::write(
         root.join("cairn.blueprint"),
-        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" @no-test-coverage {\n        path \"./src\"\n    }\n}\n",
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" @no-test-coverage @no-contract {\n        path \"./src\"\n    }\n}\n",
     )?;
 
     let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
