@@ -223,12 +223,76 @@ task in this priority order:
 3. A `CAIRN_PROVENANCE_NO_DECISION` or other advisory the loop has been deferring.
 4. A small, self-contained improvement surfaced while doing the last iteration.
 
-Keep each iteration small and shippable. Stop the loop only when the backlog is
-empty and `cairn lint` is clean, when a gate is genuinely blocked on a decision
-that is the maintainer's to make, or when told to stop. Record where you stopped
-and why so the next session resumes cleanly.
+When the next candidate is blocked or deferred on a decision rather than on code,
+do not treat that as a stop. If the block is a *knowable gap* (the only obstacle
+is missing information or an unmade judgment that research can inform), resolving
+the gap is itself the next unit. See "When the next unit is a knowable gap" below.
 
-Exit criterion: the next iteration's success criterion is written. Go to phase 1.
+Keep each iteration small and shippable. Stop the loop only when one of these
+holds, and record where and why so the next session resumes cleanly:
+
+- the backlog is empty, `cairn lint` is clean, and no knowable gap remains to
+  investigate;
+- in an attended run, the loop has done the gap homework below and now needs a
+  maintainer ratification it cannot make for them (the stop is a question with
+  options, not a dead end); unattended, the loop never stops here, it persists the
+  recommendation and continues (see "Running the loop autonomously");
+- the only remaining work is a true external blocker the loop has already surfaced
+  with what it needs and why; or
+- you are told to stop.
+
+"Blocked on a maintainer decision" is never a valid *first* response. It is valid
+only after the loop has investigated, framed the options, and reduced the decision
+to a ratification.
+
+Exit criterion: the next iteration's success criterion is written, or a
+decision-ready recommendation has been surfaced. Go to phase 1.
+
+## When the next unit is a knowable gap
+
+Some units are blocked not by code but by an open decision: a deferred or
+maintainer-gated backlog item, an unresolved spec question, a design fork, or an
+advisory the loop keeps skipping because the right direction is unclear. The
+reflex to answer "it is blocked, you decide" wastes the loop. Classify the block
+first:
+
+- A **knowable gap** has, as its only obstacle, missing information or an unmade
+  judgment that investigation and reasoning can inform. The answer is
+  discoverable, or can at least be reduced to a small set of justified options.
+- A **true external blocker** cannot be researched away: a missing credential or
+  paid API, an upstream fix, an access or hardware dependency, a sanction only a
+  human can grant, or a pure priority or taste call with no fact that would move
+  it.
+
+For a true external blocker, surface it immediately and plainly: state exactly
+what is needed and why, then move to the next unit or stop. Do not manufacture
+busywork around it.
+
+For a knowable gap, resolving the gap is the unit. Run this sub-loop instead of
+stopping:
+
+1. **Investigate.** Pull the relevant code and artefacts (`cairn rationale`,
+   `cairn research`, `cairn sources`), the prior decisions, and any external
+   material the question cites. State the gap precisely: what is unknown, and why
+   it blocks the unit.
+2. **Debate.** Where the choice is genuinely contested, stress-test it rather than
+   shipping a first draft. Run an adversarial pass (reformer versus conservative
+   subagents; the `adversarial-decision-debate` and `decision-convergence-minutes`
+   skills) so the options survive a critic.
+3. **Recommend.** Produce a decision-ready package: the gap, two to four concrete
+   options, the trade-offs of each, and a recommended option with its
+   justification. Persist it the cairn-native way as a research or draft-decision
+   artefact under `meta/` so the reasoning is not lost.
+4. **Escalate with options.** Put the question to the maintainer with the
+   recommendation attached, via `AskUserQuestion`. The maintainer ratifies a
+   well-framed choice; they are not handed a blank blocker.
+5. **Resume.** On the answer, ratify the decision (promote the draft, close or
+   re-scope the item) and continue the loop with the now-unblocked unit or its
+   follow-ups.
+
+This keeps the loop honest: it never invents make-work, and it never dead-ends a
+decision it could have framed. The maintainer's input is reserved for the actual
+judgment, with the homework already done.
 
 ## Running the loop autonomously
 
@@ -256,6 +320,15 @@ Only after the gate is clean does the iteration commit to the working branch and
 move to phase 10. Each merge is still a real, durable action: keep commits small
 and one-unit, and escalate to the maintainer (via `AskUserQuestion`) when a
 choice is theirs to make rather than guessing.
+
+A knowable gap behaves the same way unattended, with one difference at the
+escalate step: there is no maintainer online to ratify. So the unattended loop
+does the investigate, debate, and recommend work, persists the decision-ready
+recommendation as a `meta/` research or draft-decision artefact and files a
+deferred bead that links to it, then continues to the next available unit. It
+never self-answers a choice that is the maintainer's, and it never halts the
+whole run waiting for an answer it cannot get. The framed recommendation is
+waiting, ratification-ready, when the maintainer next returns.
 
 ## When the loop reveals a finding it cannot clear
 

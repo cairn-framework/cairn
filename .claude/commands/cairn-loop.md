@@ -13,8 +13,11 @@ iteration ends by selecting the next unit of work and looping.
 **Input**: the argument after `/cairn-loop` is a description of the change to
 make, or a count of iterations to run (e.g. `/cairn-loop 5`). With no argument,
 draw the next unit from the backlog (`bd ready`) or, if empty, from the first
-finding `cairn lint` reports. Ask with the **AskUserQuestion tool** only when the
-next unit is genuinely ambiguous or the work would alter an accepted decision.
+finding `cairn lint` reports. When the next unit is blocked or deferred on a
+decision rather than on code, do not stop: if research can inform the choice,
+resolve that gap as the unit (investigate, debate, recommend), then ask with the
+**AskUserQuestion tool** attaching recommended options and justification. Ask
+without that homework only when the unit is genuinely ambiguous about intent.
 
 **Setup**
 
@@ -73,8 +76,15 @@ met. Track progress with `bd` (this repo's tracker), not TodoWrite.
 
 10. **Continue** — pick the next unit (a `cairn lint` finding first, else the
     backlog, else a deferred advisory or an improvement spotted this iteration)
-    and go to phase 1. Stop only when the backlog is empty and `cairn lint` is
-    clean, when a gate is blocked on a maintainer decision, or when told to stop.
+    and go to phase 1. If the next candidate is blocked on a decision rather than
+    code, treat resolving that gap as the unit (see the workflow doc, "When the
+    next unit is a knowable gap"): investigate, debate, recommend, and escalate
+    with options. Stop only when the backlog is empty and `cairn lint` is clean
+    with no knowable gap left, when the only remaining work is a true external
+    blocker already surfaced, or when told to stop. When attended and you have
+    surfaced a decision-ready recommendation that needs the maintainer's
+    ratification, stop and ask; when unattended, instead persist the
+    recommendation as a `meta/` artefact, file a deferred bead, and continue.
 
 **Output**
 
@@ -91,5 +101,6 @@ rather than waving it through.
   blueprint, never by ignoring a file.
 - Do not contradict an accepted decision without writing a superseding one.
 - The loop keeps working across iterations, but each merge is a real outward
-  action: keep PRs small, and escalate to the maintainer when a choice is theirs
-  to make.
+  action: keep PRs small. When a choice is the maintainer's, do the research and
+  frame the options first, then escalate with a recommendation. Never dead-end on
+  a bare "blocked".
