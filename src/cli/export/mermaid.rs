@@ -14,7 +14,7 @@ use super::ExportEnvelope;
 /// Sanitizes a CAIRN node ID (e.g. `cairn.kernel.map`) into a valid
 /// Mermaid identifier (e.g. `cairn_kernel_map`) by replacing `.` and
 /// `-` with `_`. All other characters are left as-is.
-fn mermaid_id(id: &str) -> String {
+pub(crate) fn mermaid_id(id: &str) -> String {
     id.replace(['.', '-'], "_")
 }
 

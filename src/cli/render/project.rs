@@ -40,7 +40,11 @@ pub(crate) fn render_context(
 
     let prefix = system.map(|s| format!("{}.", s.id)).unwrap_or_default();
     let opts = super::context_view::ContextOpts::parse(&parsed.command_args);
-    let structure = super::context_view::render_structure(&scan_result.graph, &opts, &prefix);
+    let structure = if opts.mermaid {
+        super::context_view::render_mermaid(&scan_result.graph, &opts, &prefix)
+    } else {
+        super::context_view::render_structure(&scan_result.graph, &opts, &prefix)
+    };
     out.push_str(&structure);
 
     let ac = &scan_result.artefacts;
