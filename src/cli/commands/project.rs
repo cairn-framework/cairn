@@ -120,6 +120,16 @@ mod tests {
             "emitted cairn-dev skill must carry its frontmatter"
         );
 
+        // The explore skill must teach provenance queries, not just structure,
+        // so a regenerated template cannot silently drop the rationale path.
+        let explore_skill =
+            std::fs::read_to_string(dir.path().join(".claude/skills/cairn-explore/SKILL.md"))
+                .unwrap();
+        assert!(
+            explore_skill.contains("cairn rationale"),
+            "emitted cairn-explore skill must teach the provenance query path"
+        );
+
         // The agent guide points the agent at the loop skills.
         let guide = std::fs::read_to_string(dir.path().join(".cairn/AGENTS.md")).unwrap();
         assert!(
