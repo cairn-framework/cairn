@@ -342,7 +342,7 @@ fn render_loaded_project_command(
         "sources" => render_sources(parsed, scan_result),
         "rationale" => render_rationale(parsed, scan_result),
         "status" => Ok(render_status(parsed, scan_result, root)),
-        "context" => Ok(render_context(root, scan_result)),
+        "context" => Ok(render_context(parsed, root, scan_result)),
         "backlog" => render_backlog(parsed, root, scan_result),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "health" => Ok(render_health(parsed, root, scan_result)),
@@ -553,6 +553,8 @@ fn help_text() -> String {
     out.push_str("  --changes-dir <path>  Changes directory (default: meta/changes)\n");
     out.push_str("  --json                Output in JSON format\n");
     out.push_str("  --strict              Exit 1 on Warning findings (scan/lint)\n");
+    out.push_str("  --depth <N|all>       context: cap structure depth (default 1)\n");
+    out.push_str("  --scope <node>        context: full detail for one subtree\n");
     out.push_str("  --version             Print version\n");
     out.push_str("  -h, --help            Print this help\n");
     out.push_str("\nExit codes:\n");
