@@ -465,8 +465,15 @@ mod tests {
         );
         let scan = scan_with_nodes(vec![node_record("app")]);
         let rendered = render_backlog(&backlog_args("app", true), &dir, &scan).unwrap();
-        assert!(rendered.contains("\"node\":\"app\""), "{rendered}");
-        assert!(rendered.contains("\"id\":\"cairn-z\""), "{rendered}");
+        let value: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON");
+        assert_eq!(value["node"], "app");
+        let beads = value["beads"].as_array().expect("beads array");
+        assert_eq!(beads.len(), 1);
+        assert_eq!(beads[0]["id"], "cairn-z");
+        assert_eq!(beads[0]["title"], "Wire it");
+        assert_eq!(beads[0]["status"], "open");
+        assert_eq!(beads[0]["priority"], 1);
+        assert_eq!(beads[0]["issue_type"], "task");
         let _ = std::fs::remove_dir_all(&dir);
     }
 
@@ -478,10 +485,8 @@ mod tests {
         );
         let scan = scan_with_nodes(vec![node_record("app")]);
         let rendered = render_backlog(&backlog_args("app", false), &dir, &scan).unwrap();
-        assert!(
-            rendered.contains("No beads link to this node."),
-            "{rendered}"
-        );
+        let expected = crate::cli::copy::lookup("empty-states.node-no-beads.body");
+        assert!(rendered.contains(expected), "{rendered}");
         let _ = std::fs::remove_dir_all(&dir);
     }
 
