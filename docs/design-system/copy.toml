@@ -159,6 +159,17 @@ Next steps:
 
 Existing codebase? `cairn init --from-code` discovers modules for you."""
 
+already = "Cairn is already initialized here (cairn.blueprint exists)."
+nothing-backfilled = "All scaffolding is already in place; nothing to do."
+backfilled = "Backfilled missing scaffolding:"
+next-steps-existing = """
+Next steps:
+  1. Run `cairn scan` to reconcile the blueprint against your code
+  2. Run `cairn status` to review findings and backlog
+  3. Append .cairn/AGENTS.md to your agent instructions (CLAUDE.md or AGENTS.md)
+
+Want to re-derive modules from code? `cairn init --from-code`."""
+
 # -- Feedback -------------------------------------------------------------
 
 [feedback]
