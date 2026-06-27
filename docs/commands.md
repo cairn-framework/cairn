@@ -54,6 +54,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn decisions <node>` | List decisions linked to a node |
 | `cairn todos <node>` | List todos linked to a node |
+| `cairn backlog <node>` | List beads (issues) linked to a node via its `cairn-node:<id>` label |
 | `cairn research <node>` | List research linked to a node |
 | `cairn sources <node>` | List sources linked to a node |
 | `cairn decision new <slug>` | Scaffold a new decision artefact |
