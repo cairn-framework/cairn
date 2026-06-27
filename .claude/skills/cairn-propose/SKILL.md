@@ -16,7 +16,7 @@ I'll create a change with artifacts:
 - design.md (how)
 - tasks.md (implementation steps)
 
-When ready to implement, run `cairn apply` or ask me to implement.
+When ready to implement, ask me to apply the change (the `cairn-apply` skill).
 
 ---
 
@@ -55,7 +55,7 @@ When ready to implement, run `cairn apply` or ask me to implement.
    - Change name and location (`meta/changes/<name>/`)
    - List of artifacts created with brief descriptions
    - What's ready: "All artifacts created! Ready for implementation."
-   - Prompt: "Run `cairn apply` or ask me to implement to start working on the tasks."
+   - Prompt: "All artifacts created. Ask me to apply the change to start working on the tasks."
 
 **Artifact Creation Guidelines**
 

@@ -43,7 +43,7 @@ Free-form markdown body explaining:
 node: node.id                   # required, the blueprint node this todo is for
 status: open                    # required: open | in_progress | done | blocked
 created: 2026-05-11             # required, ISO date
-satisfies: change-id            # optional, links to an openspec change
+satisfies: change-id            # optional, links to a cairn change
 ---
 
 Description of what needs to be done.

@@ -100,7 +100,7 @@ button:focus-visible {
   font-size: var(--t-micro);
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
 .mono {
@@ -137,6 +137,7 @@ kbd {
   inset: 0;
   display: grid;
   grid-template-rows: 56px 1fr;
+  grid-template-columns: minmax(0, 1fr);
   background: var(--stone-1);
   overflow: hidden;
 }
@@ -280,8 +281,8 @@ kbd {
   color: var(--prov-1);
 }
 
-.crumb-sep {
-  color: var(--ink-mist);
+.breadcrumb .crumb-sep {
+  color: var(--ink-faded);
   padding: 0 1px;
 }
 
@@ -321,7 +322,7 @@ kbd {
   flex: 1;
   font-family: var(--font-mono);
   font-size: var(--t-small);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -538,7 +539,7 @@ kbd {
 }
 
 .chain-banner .hinge {
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
 .chain-banner .hinge .rule {
@@ -572,11 +573,11 @@ kbd {
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
 .graph-sort .label {
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
 .graph-sort select {
@@ -697,6 +698,10 @@ kbd {
   background: var(--orphaned);
 }
 
+.graph-legend .sw.planned {
+  background: var(--planned);
+}
+
 .graph-legend .sep {
   width: 1px;
   height: 14px;
@@ -744,6 +749,10 @@ kbd {
 
 .mini-dot.orphaned {
   background: var(--orphaned);
+}
+
+.mini-dot.planned {
+  background: var(--planned);
 }
 
 .mini-dot.active {
@@ -864,7 +873,7 @@ kbd {
 .ins-close {
   background: transparent;
   border: none;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   font-size: var(--t-h3);
   line-height: 1;
   cursor: pointer;
@@ -906,7 +915,7 @@ kbd {
 .ins-slug {
   font-family: var(--font-mono);
   font-size: var(--t-small);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.04em;
 }
 
@@ -980,6 +989,16 @@ kbd {
 
 .pill.orphaned .dot {
   background: var(--orphaned);
+}
+
+.pill.planned {
+  border-color: var(--planned);
+  color: var(--planned);
+  background: var(--planned-wash);
+}
+
+.pill.planned .dot {
+  background: var(--planned);
 }
 
 .pill.accepted {
@@ -1105,14 +1124,20 @@ kbd {
   border-color: var(--orphaned);
 }
 
+.recon-badge.planned {
+  color: var(--planned);
+  background: var(--planned-wash);
+  border-color: var(--planned);
+}
+
 .blueprint-code {
   padding: var(--s-3) var(--s-4);
   font-family: var(--font-mono);
   font-size: var(--t-small);
   line-height: 1.65;
   color: var(--ink-aged);
-  white-space: pre;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   letter-spacing: 0.02em;
   margin: 0;
 }
@@ -1131,7 +1156,7 @@ kbd {
   color: var(--ink-char);
 }
 .blueprint-code .cm {
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   font-style: italic;
 }
 
@@ -1323,7 +1348,7 @@ button.path-row:hover {
 }
 
 .stat-cell .caps {
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   font-size: 10px;
   letter-spacing: 0.12em;
 }
@@ -1360,7 +1385,7 @@ button.path-row:hover {
 
 .ins-section-head .chev {
   width: 12px;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   font-family: var(--font-mono);
   font-size: 10px;
   display: inline-flex;
@@ -1397,7 +1422,7 @@ button.path-row:hover {
   padding: var(--s-3) 0;
   font-family: var(--font-serif);
   font-size: var(--t-small);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   font-style: italic;
 }
 
@@ -1466,7 +1491,7 @@ button.path-row:hover {
 .artefact-id {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1493,12 +1518,12 @@ button.path-row:hover {
 }
 .artefact-status.deprecated {
   background: transparent;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   border: 1px solid var(--seam-clear);
 }
 .artefact-status.superseded {
   background: transparent;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   border: 1px solid var(--seam-clear);
   text-decoration: line-through;
 }
@@ -1620,6 +1645,7 @@ button.path-row:hover {
 
 .recent-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-1);
 }
 
@@ -1643,7 +1669,7 @@ button.path-row:hover {
 .recent-row .r-id {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.08em;
   width: 88px;
   flex-shrink: 0;
@@ -1673,7 +1699,7 @@ button.path-row:hover {
   gap: var(--s-1);
   font-family: var(--font-mono);
   font-size: var(--t-micro);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.04em;
 }
 
@@ -1802,6 +1828,39 @@ button.path-row:hover {
   z-index: 2;
 }
 
+.hinge-item.muted {
+  color: var(--ink-faded);
+  font-style: italic;
+}
+
+.decision-lineage {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  background: var(--stone-1);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+}
+
+.lineage-row {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.lineage-row .ref-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.pill.ref {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-aged);
+  background: var(--stone-3);
+  border-color: var(--seam-thin);
+}
+
 .attached-modules {
   display: grid;
   gap: var(--s-2);
@@ -1849,7 +1908,7 @@ button.path-row:hover {
 .attached-module .slug {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.04em;
 }
 
@@ -2067,7 +2126,7 @@ button.path-row:hover {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--t-small);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
 .drawer-body {
@@ -2085,7 +2144,7 @@ button.path-row:hover {
   padding: var(--s-5);
   font-family: var(--font-serif);
   font-size: var(--t-small);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   font-style: italic;
   background: var(--stone-0);
 }
@@ -2129,7 +2188,7 @@ button.path-row:hover {
 .change-card .card-id {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -2228,7 +2287,7 @@ button.path-row:hover {
 }
 
 .cmd-palette-head input::placeholder {
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
 .cmd-palette-syntax {
@@ -2267,7 +2326,7 @@ button.path-row:hover {
 
 .result-group {
   padding: var(--s-3) var(--s-5) var(--s-1);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
 .result-row {
@@ -2324,7 +2383,7 @@ button.path-row:hover {
 .result-row .rhs {
   font-family: var(--font-mono);
   font-size: var(--t-micro);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.04em;
   flex-shrink: 0;
 }
@@ -2413,8 +2472,16 @@ button.path-row:hover {
   color: var(--ink-char);
 }
 .blueprint-modal pre .cm {
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   font-style: italic;
+}
+
+.blueprint-modal pre .hi {
+  display: inline-block;
+  width: 100%;
+  background: var(--stone-4);
+  box-shadow: inset 2px 0 0 var(--hinge-1);
+  border-radius: var(--r-edge);
 }
 
 .blueprint-modal .modal-foot {
@@ -2422,7 +2489,7 @@ button.path-row:hover {
   border-top: 1px solid var(--seam-thin);
   font-family: var(--font-mono);
   font-size: var(--t-micro);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
   letter-spacing: 0.08em;
   display: flex;
   gap: var(--s-4);
@@ -2452,6 +2519,23 @@ button.path-row:hover {
     grid-template-rows: auto auto;
   }
 
+  .topbar {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+    gap: var(--s-3);
+    padding: 0 var(--s-4);
+  }
+
+  .topbar-left,
+  .topbar-right,
+  .brand,
+  .cmd-trigger {
+    min-width: 0;
+  }
+
+  .chain-banner {
+    gap: var(--s-5);
+  }
+
   .inspector-wrap {
     border-left: 0;
     border-top: 1px solid var(--seam-thin);
@@ -2464,6 +2548,24 @@ button.path-row:hover {
 
   .graph-legend {
     right: var(--s-4);
+  }
+
+  .brand,
+  .blueprint-trigger,
+  .cmd-trigger,
+  .graph-zoom .reset,
+  .drawer-handle {
+    min-height: 44px;
+  }
+
+  .graph-zoom {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .graph-zoom button {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -2490,6 +2592,16 @@ button.path-row:hover {
 
   .topbar {
     min-height: 48px;
+    gap: var(--s-2);
+    padding: 0 var(--s-3);
+  }
+
+  .chain-banner {
+    gap: var(--s-4);
+  }
+
+  .chain-banner .label .rule {
+    display: none;
   }
 
   .tool-btn,

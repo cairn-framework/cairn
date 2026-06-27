@@ -27,6 +27,7 @@ pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: 
     validate_decision_refs(&decisions, set);
     validate_provenance_refs(&research_ids, &source_ids, set);
     validate_sources(root, &source_ids, set);
+    validate_decision_claims(root, set);
 }
 
 pub(super) fn validate_nodes(node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
@@ -292,6 +293,99 @@ pub(super) fn validate_verified_source(root: &Path, source: &Source, set: &mut A
             None,
             Some(source.path.clone()),
         )),
+    }
+}
+
+/// Cross-check decision prose that claims to close or resolve a spec
+/// open-question (`Q-NN`) against the declared-items registry. If a decision
+/// body claims closure but the registry still lists the question as anything
+/// other than `resolved` (or omits it), that is silent prose drift the manual
+/// ratify-a-convention procedure exists to prevent. CA004.
+pub(super) fn validate_decision_claims(root: &Path, set: &mut ArtefactSet) {
+    let registry_path = root.join("docs/registries/declared-items.md");
+    let Ok(registry) = fs::read_to_string(&registry_path) else {
+        // No registry to cross-check against: nothing to validate.
+        return;
+    };
+    let statuses = question_statuses(&registry);
+    let decisions = set.decisions.clone();
+    for decision in &decisions {
+        for question in claimed_closed_questions(&decision.body) {
+            let detail = match statuses.get(&question) {
+                Some(status) if status == "resolved" => continue,
+                Some(status) => {
+                    format!("the declared-items registry lists it as `{status}`")
+                }
+                None => "it is absent from the declared-items registry".to_owned(),
+            };
+            set.findings.push(error(
+                "CAIRN_DECISION_CLAIM_UNRESOLVED",
+                format!(
+                    "decision `{}` claims to close `{question}` but {detail}",
+                    decision.id
+                ),
+                None,
+                Some(decision.path.clone()),
+            ));
+        }
+    }
+}
+
+/// Parse `| Q-NN | item | source | status | ... |` rows from the declared-items
+/// registry into a question-id to status map.
+fn question_statuses(registry: &str) -> BTreeMap<String, String> {
+    let mut statuses = BTreeMap::new();
+    for line in registry.lines() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with("| Q-") {
+            continue;
+        }
+        let cells: Vec<&str> = trimmed
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect();
+        // Columns: ID | Item | Source | Status | Resolving Phase | Notes
+        if let [id, _item, _source, status, ..] = cells.as_slice() {
+            statuses.insert((*id).to_owned(), (*status).to_owned());
+        }
+    }
+    statuses
+}
+
+/// Extract the spec open-question ids a decision body claims to close or
+/// resolve: a `Q-NN` token on a line that also carries a `clos*`/`resolv*` verb.
+fn claimed_closed_questions(body: &str) -> BTreeSet<String> {
+    let mut found = BTreeSet::new();
+    for line in body.lines() {
+        let has_close_verb = line.split_whitespace().any(|word| {
+            let stem = word
+                .trim_matches(|c: char| !c.is_alphanumeric())
+                .to_lowercase();
+            stem.starts_with("clos") || stem.starts_with("resolv")
+        });
+        if has_close_verb {
+            collect_question_ids(line, &mut found);
+        }
+    }
+    found
+}
+
+/// Collect `Q-<digits>` tokens from a single line.
+fn collect_question_ids(line: &str, found: &mut BTreeSet<String>) {
+    let bytes = line.as_bytes();
+    let mut i = 0;
+    while i + 2 < bytes.len() {
+        if bytes[i] == b'Q' && bytes[i + 1] == b'-' && bytes[i + 2].is_ascii_digit() {
+            let mut j = i + 2;
+            while j < bytes.len() && bytes[j].is_ascii_digit() {
+                j += 1;
+            }
+            found.insert(line[i..j].to_owned());
+            i = j;
+        } else {
+            i += 1;
+        }
     }
 }
 #[cfg(test)]

@@ -490,7 +490,7 @@ module saas.api.auth {
     <section class="block" id="stones">
       <div class="section-kicker">11 . Stone node</div>
       <h2 class="section-title">Stone node</h2>
-      <p class="section-lede">Every node on the map. Four states: synced, ghost, drift, settled.</p>
+      <p class="section-lede">Every node on the map. States: synced, planned, ghost, drift, settled.</p>
 
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-4);">
 
@@ -520,6 +520,19 @@ module saas.api.auth {
             <div class="balance-bar prov"><div class="fill" style="width: 20%"></div></div>
             <div class="balance-hinge"></div>
             <div class="balance-bar auth"><div class="fill" style="width: 0%"></div></div>
+          </div>
+          <div class="counts"><span class="count"><span class="dot"></span>0 contracts</span></div>
+        </article>
+
+        <article class="stone-node planned">
+          <div class="kicker"><span class="kind">Module &middot; planned</span><span class="id">saas.api.search</span></div>
+          <div class="name">Search</div>
+          <div class="tag-row"><span class="stone-tag">@search</span></div>
+          <p class="desc">Declared in the blueprint, path not yet built. Healthy and forward-looking.</p>
+          <div class="balance">
+            <div class="balance-bar prov"><div class="fill" style="width: 35%"></div></div>
+            <div class="balance-hinge"></div>
+            <div class="balance-bar auth"><div class="fill" style="width: 10%"></div></div>
           </div>
           <div class="counts"><span class="count"><span class="dot"></span>0 contracts</span></div>
         </article>
@@ -883,6 +896,9 @@ module saas.api.auth {
 
         <dt>ghost<span class="alt">state</span></dt>
         <dd>Declared in the blueprint but not yet reconciled to code. Drawn dashed, with hatched fill.</dd>
+
+        <dt>planned<span class="alt">state</span></dt>
+        <dd>Declared in the blueprint, path not yet built. A healthy forward-looking state. Drawn solid and calm in a slate blueprint-blue, never as drift.</dd>
 
         <dt>synced<span class="alt">state</span></dt>
         <dd>Declared and reconciled. The default, quiet state.</dd>

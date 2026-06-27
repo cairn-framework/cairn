@@ -609,7 +609,7 @@ The scanner runs on demand or on filesystem change. It does nine things:
 ### 10.1 Node states
 
 - **synced**: declared in blueprint, path exists, reconciler found expected content.
-- **ghost**: declared in blueprint, path does not yet exist (planned but unimplemented).
+- **ghost**: declared in blueprint, path does not yet exist (planned but unimplemented). The webui renders ghost nodes with a calm "planned" affordance (a distinct colour, solid outline, no drift animation) to reflect that this is a healthy forward-looking state; absence and drift concerns surface separately as findings. This is a rendering convention only and adds no new normative state.
 - **orphaned**: reality content exists but no blueprint node claims it (via the all-files-claimed rule for the code reconciler).
 
 ### 10.2 Contradiction classes
@@ -807,7 +807,7 @@ Many v0.5.1 open questions were resolved in v0.6 through the scope correction. W
 
 2. **Todo coverage strictness.** Default is loose (warnings for orphans, no coverage enforcement). Projects wanting strict enforcement set it in config. When to promote strict to default, if ever, is open.
 
-3. **meta/ directory layout.** Current convention: organised by artefact type first, then by subsystem (`meta/decisions/kernel/`). Alternative: organised by node first, artefact type second (`meta/kernel/parser/decisions/`). Both have appeal. Spec does not mandate either. Real usage may surface a clear winner.
+3. **meta/ directory layout.** Resolved by `dec.artefact-organization-and-provenance` (2026-06-26). Flat artefact-type-first: `meta/decisions/`, `meta/research/`, `meta/sources/` each hold FLAT files; the loader is non-recursive; topical grouping uses slug namespacing in the id, not subfolders. The `meta/decisions/kernel/` example in earlier drafts of this section is superseded. Full normative rules in docs/conventions.md section 10.
 
 4. **Detailed schemas for agent review subtypes.** The `agent_introspective` and `agent_cross_model` review subtypes are declared in section 8.4 with a basic schema. Refinements needed once real usage exists: when exactly is introspective review generated (during apply, at verify, as a self-review step), how does it promote to proposed decisions, what severity taxonomy does cross-model review use, how do multiple reviews on the same node aggregate.
 

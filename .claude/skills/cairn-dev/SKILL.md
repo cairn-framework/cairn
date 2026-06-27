@@ -173,8 +173,8 @@ For projects without a blueprint:
 
 ```bash
 cairn init --from-code     # Discover modules, generate change proposal
-# Review openspec/changes/brownfield-init/blueprint.delta
-# Review generated contracts in openspec/changes/brownfield-init/contracts/
+# Review the generated blueprint.delta in meta/changes/<change-id>/
+# Review generated contracts in meta/changes/<change-id>/contracts/
 cairn scan                 # Verify the new blueprint
 ```
 

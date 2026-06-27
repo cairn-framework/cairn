@@ -1,0 +1,1 @@
+{"schema_version":1,"node":"cairn.kernel.artefacts","nodes":[{"id":"cairn.kernel.map","name":"Map","slug":"cairn.kernel.map","state":"synced","kind":"module"},{"id":"cairn.kernel.scanner","name":"Scanner","slug":"cairn.kernel.scanner","state":"synced","kind":"module"}]}

@@ -95,6 +95,7 @@ grep -c '#[0-9a-fA-F]\{6\}' docs/design-system/components.css
 | `--settled`   | Reconciled signal                                                   |
 | `--synced`    | Reconciliation state: declaration matches source reality            |
 | `--ghost`     | Reconciliation state: declared path or target is absent             |
+| `--planned`   | Reconciliation state: declared in blueprint, path not yet built     |
 | `--orphaned`  | Reconciliation state: source exists but no node owns it             |
 | `--t-*`       | Type scale (micro, small, body, lede, title, h3, h2, h1, display)   |
 | `--s-*`       | Spacing scale (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 / 128)      |

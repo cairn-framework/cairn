@@ -45,7 +45,12 @@ pub fn validate_change(change: &Change, graph: &Graph) -> Vec<String> {
     }
     existing_nodes.extend(added_nodes);
     validate_edges(&change.delta, &existing_nodes, graph, &mut errors);
-    validate_artefacts(&change.artefacts, graph, &mut errors);
+    // Artefact references resolve against the union of the pre- and post-delta
+    // graphs: an added contract may reference a node the change adds, while a
+    // removal's artefact may still reference the node being removed.
+    let mut artefact_nodes = existing_nodes.clone();
+    artefact_nodes.extend(graph.nodes.keys().cloned());
+    validate_artefacts(&change.artefacts, &artefact_nodes, &mut errors);
     errors
 }
 
@@ -99,7 +104,7 @@ pub(super) fn mark_node_touch(touched: &mut BTreeSet<String>, id: &str, errors: 
 
 pub(super) fn validate_artefacts(
     artefacts: &[ArtefactOperation],
-    graph: &Graph,
+    available_nodes: &BTreeSet<String>,
     errors: &mut Vec<String>,
 ) {
     let mut targets = BTreeSet::<PathBuf>::new();
@@ -145,13 +150,13 @@ pub(super) fn validate_artefacts(
                 }
             }
         }
-        validate_artefact_refs(artefact, graph, errors);
+        validate_artefact_refs(artefact, available_nodes, errors);
     }
 }
 
 pub(super) fn validate_artefact_refs(
     artefact: &ArtefactOperation,
-    graph: &Graph,
+    available_nodes: &BTreeSet<String>,
     errors: &mut Vec<String>,
 ) {
     let parsed = frontmatter::parse(&artefact.content);
@@ -166,7 +171,7 @@ pub(super) fn validate_artefact_refs(
             parsed.lists.get(key).cloned().unwrap_or_default()
         };
         for id in ids {
-            if !graph.nodes.contains_key(&id) {
+            if !available_nodes.contains(&id) {
                 errors.push(format!(
                     "artefact `{}` references unknown node `{id}`",
                     artefact.change_path.display()

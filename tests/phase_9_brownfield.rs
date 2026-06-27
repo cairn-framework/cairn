@@ -183,6 +183,46 @@ mod init {
         assert!(dir.join("blueprint.delta").exists());
         assert!(dir.join("contracts/src_core.md").exists());
     }
+
+    /// Scenario: discover -> archive round-trip merges discovered nodes into the
+    /// blueprint. Regression for cairn-e12: init --from-code wrote a delta the
+    /// parser could not read and seeded no base blueprint, so the blueprint
+    /// never gained nodes.
+    #[test]
+    fn test_init__round_trip_archive_merges_nodes_into_blueprint() {
+        let root = temp_repo("round-trip");
+        populate_source_dir(&root, "src/alpha", 3);
+        populate_source_dir(&root, "src/beta", 3);
+
+        // init --from-code seeds a base blueprint and writes the change.
+        let change_id = bf_init::run_init_from_code(&root, false).unwrap();
+        assert!(
+            root.join("cairn.blueprint").exists(),
+            "init --from-code must seed a base blueprint"
+        );
+
+        // The emitted delta must be the canonical form the parser accepts.
+        let delta = fs::read_to_string(
+            root.join("meta/changes")
+                .join(&change_id)
+                .join("blueprint.delta"),
+        )
+        .unwrap();
+        assert!(
+            delta.contains("## ADDED Nodes"),
+            "delta must use the canonical ADDED Nodes header: {delta}"
+        );
+
+        // Archiving applies the delta: the blueprint gains the discovered nodes.
+        let report = cairn::changes::archive(&root, &root.join("cairn.blueprint"), &change_id);
+        assert!(report.is_ok(), "archive must succeed: {report:?}");
+
+        let blueprint = fs::read_to_string(root.join("cairn.blueprint")).unwrap();
+        assert!(
+            blueprint.contains(r#"id "src.alpha""#) && blueprint.contains(r#"id "src.beta""#),
+            "blueprint must gain the discovered nodes: {blueprint}"
+        );
+    }
 }
 
 mod refine {
@@ -250,6 +290,45 @@ mod refine {
         assert!(
             delta.contains("app.core") && delta.contains("src.kernel"),
             "delta should detect rename from app.core to src.kernel, got:\n{delta}"
+        );
+    }
+
+    /// Scenario: refine -> archive round-trip applies removals and additions to
+    /// the blueprint. Regression for cairn-h8o: refine emitted a non-canonical
+    /// delta the change parser could not read, so archiving was a no-op.
+    #[test]
+    fn test_refine__round_trip_archive_applies_delta() {
+        let root = temp_repo("refine-round-trip");
+        populate_source_dir(&root, "src/alpha", 3);
+        // An existing node whose path moved within the same parent dir is detected
+        // as a rename, which refine folds into a removal of the old node plus the
+        // addition of the new dir. This exercises the rename branch end to end.
+        let blueprint = "System App \"App\" id \"app\" {\n    Module Old \"Old\" id \"app.old\" {\n        path \"./src/old\"\n    }\n}\n";
+        std::fs::write(root.join("cairn.blueprint"), blueprint).unwrap();
+
+        let change_id = bf_refine::run_refine(&root).unwrap();
+        let delta = std::fs::read_to_string(
+            root.join("meta/changes")
+                .join(&change_id)
+                .join("blueprint.delta"),
+        )
+        .unwrap();
+        assert!(
+            delta.contains("## ADDED Nodes") && delta.contains("## REMOVED Nodes"),
+            "delta must use canonical headers: {delta}"
+        );
+
+        let report = cairn::changes::archive(&root, &root.join("cairn.blueprint"), &change_id);
+        assert!(report.is_ok(), "archive must succeed: {report:?}");
+
+        let result = std::fs::read_to_string(root.join("cairn.blueprint")).unwrap();
+        assert!(
+            result.contains(r#"id "src.alpha""#),
+            "blueprint must gain the discovered node: {result}"
+        );
+        assert!(
+            !result.contains(r#"id "app.old""#),
+            "blueprint must drop the renamed-away node: {result}"
         );
     }
 }

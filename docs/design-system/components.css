@@ -472,6 +472,17 @@ pre code {
 .stone-node.ghost::before,
 .stone-node.ghost::after { background: var(--ink-ghost); }
 
+/* State: planned (declared in blueprint, path not yet present; intentionally
+   unbuilt and healthy). Solid border, calm, no breathing. */
+.stone-node.planned {
+  border-color: var(--planned);
+  background-color: var(--stone-3);
+}
+.stone-node.planned .name { color: var(--ink-aged); }
+.stone-node.planned::before,
+.stone-node.planned::after { background: var(--planned); }
+.stone-node.planned .kicker .kind { color: var(--planned); }
+
 /* State: drift (code diverged from blueprint) */
 .stone-node.drift {
   border-color: var(--drift);

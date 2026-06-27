@@ -327,17 +327,33 @@ fn test_apply_archive_empty_delta_preserves_blueprint_verbatim() {
     let blueprint = dir.path().join("cairn.blueprint");
     fs::write(&blueprint, COMMENTED_BLUEPRINT).unwrap();
 
-    apply_archive(
-        dir.path(),
-        Path::new("cairn.blueprint"),
-        &change_with_delta(BlueprintDelta::default()),
-    )
-    .expect("empty-delta archive must succeed");
+    apply_archive(&blueprint, &change_with_delta(BlueprintDelta::default()))
+        .expect("empty-delta archive must succeed");
 
     let after = fs::read_to_string(&blueprint).unwrap();
     assert_eq!(
         after, COMMENTED_BLUEPRINT,
         "empty-delta archive must leave the blueprint byte-identical, comments included"
+    );
+}
+
+#[test]
+fn test_mutation_paths_uses_blueprint_path_verbatim_not_root_joined() {
+    // The CLI derives `root` as `blueprint_path.parent()`, so `blueprint_path`
+    // is already the complete path. Re-joining it onto `root` would double-path
+    // a subdirectory blueprint ("sub/cairn.blueprint" -> "sub/sub/cairn.blueprint")
+    // and desync the snapshot path from what `load_project`/`apply_archive` read.
+    let root = Path::new("sub");
+    let blueprint = Path::new("sub/cairn.blueprint");
+    let paths = mutation_paths(
+        root,
+        blueprint,
+        &change_with_delta(BlueprintDelta::default()),
+    );
+    assert_eq!(
+        paths[0],
+        PathBuf::from("sub/cairn.blueprint"),
+        "blueprint snapshot path must equal blueprint_path, not root.join(blueprint_path)"
     );
 }
 
@@ -349,12 +365,8 @@ fn test_apply_archive_nonempty_delta_preserves_comments() {
 
     let mut delta = BlueprintDelta::default();
     delta.removed_nodes.push("app.core".to_owned());
-    apply_archive(
-        dir.path(),
-        Path::new("cairn.blueprint"),
-        &change_with_delta(delta),
-    )
-    .expect("non-empty-delta archive must succeed");
+    apply_archive(&blueprint, &change_with_delta(delta))
+        .expect("non-empty-delta archive must succeed");
 
     let after = fs::read_to_string(&blueprint).unwrap();
     assert!(

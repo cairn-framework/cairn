@@ -38,7 +38,7 @@ Start with [01-product-overview.md](./01-product-overview.md) for what the produ
 
 This file set rests on three layers of evidence, in increasing primacy:
 
-1. **Two prior Uruk-hai scout reports**, synthesised into [docs/strongholds/external-cairn-docs-research.md](../../strongholds/external-cairn-docs-research.md). Used as a baseline.
+1. **Two prior Uruk-hai scout reports**, synthesised into [../../strongholds/external-cairn-docs-research.md](../../strongholds/external-cairn-docs-research.md). Used as a baseline.
 2. **Public docs pages crawled by those scouts**, listed in [10-source-attribution.md](./10-source-attribution.md).
 3. **UI screenshots captured by the user during a hands-on trial**, transcribed verbatim in [working-notes.md](./working-notes.md) and saved in `screenshots/`.
 

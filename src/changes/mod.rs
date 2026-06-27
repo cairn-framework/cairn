@@ -122,7 +122,7 @@ pub fn archive(
     mutated.sort();
     mutated.dedup();
     let snapshots = snapshot_paths(&mutated).map_err(|error| error.to_string())?;
-    if let Err(error) = apply_archive(root, blueprint_path, &change).and_then(|()| {
+    if let Err(error) = apply_archive(blueprint_path, &change).and_then(|()| {
         let scan = scanner::load_project(root, blueprint_path)?;
         if scan.graph.has_errors() {
             let messages = scan

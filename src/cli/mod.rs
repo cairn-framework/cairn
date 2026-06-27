@@ -34,17 +34,18 @@ mod render;
 
 use commands::{
     init_project, legacy_blueprint_warning, run_archive_command, run_change_apply, run_change_new,
-    run_change_tasks, run_feedback_command, run_hook_command, run_import_openspec,
-    run_onboard_command, run_shared_json_command, run_ui_command, run_watch_command,
+    run_change_tasks, run_decision_command, run_feedback_command, run_hook_command,
+    run_import_openspec, run_onboard_command, run_shared_json_command, run_ui_command,
+    run_watch_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
     render_findings,
 };
 use render::{
-    render_context, render_decisions, render_dependencies, render_files, render_get, render_health,
-    render_neighbourhood, render_next, render_rationale, render_remediate, render_research,
-    render_sources, render_status, render_todos,
+    render_brief, render_context, render_decisions, render_dependencies, render_files, render_get,
+    render_health, render_neighbourhood, render_next, render_rationale, render_remediate,
+    render_research, render_sources, render_status, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -148,6 +149,9 @@ pub fn run(args: &[String]) -> CliResult {
 
     if parsed.command == "change" {
         return run_change_command(&parsed, project_root);
+    }
+    if parsed.command == "decision" {
+        return run_decision_command(&parsed, project_root);
     }
     if parsed.command == "check" && !parsed.file.exists() {
         // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
@@ -343,6 +347,7 @@ fn render_loaded_project_command(
         "health" => Ok(render_health(parsed, root, scan_result)),
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
         "next" => Ok(render_next(parsed, root, scan_result)),
+        "brief" => Ok(render_brief(parsed, root, scan_result)),
         "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
         | "draft_edit" | "draft_accept" | "summarise" => {
             return err(2, "this command currently requires --json");
@@ -446,11 +451,14 @@ fn render_loaded_project_command(
 /// Command names not in the query registry but handled by the CLI.
 const EXTRA_CLI_COMMANDS: &[&str] = &[
     "accept",
+    "brief",
     "change",
+    "decision",
     "check",
     "export",
     "feedback",
     "import-openspec",
+    "next",
     "onboard",
     "refine",
     "watch",
@@ -478,6 +486,7 @@ fn all_command_names() -> Vec<&'static str> {
 /// Short description for each CLI command.
 fn command_description(name: &str) -> &'static str {
     match name {
+        "brief" => "Fused next-unit brief: task, decisions, contract, gates",
         "accept" => "Run acceptance gate for a change",
         "archive" => "Archive a completed change",
         "change" => "Scaffold a new change directory",
@@ -485,6 +494,7 @@ fn command_description(name: &str) -> &'static str {
         "check" => "Inspect findings for a node or project",
         "context" => "Structured project overview for agents",
         "contract" => "Show the contract for a node",
+        "decision" => "Scaffold a new decision artefact",
         "decisions" => "List decisions linked to a node",
         "dependents" => "List nodes that depend on a given node",
         "depends" => "List nodes a given node depends on",
@@ -499,6 +509,7 @@ fn command_description(name: &str) -> &'static str {
         "import-openspec" => "Migrate openspec changes to meta/changes",
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
+        "next" => "Show the next ready unit of work",
         "onboard" => "Suggest blueprint entries for orphaned files",
         "refine" => "Re-run brownfield discovery and write a timestamped change",
         "order" => "Topological order of all nodes",
