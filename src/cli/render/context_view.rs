@@ -12,6 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
+use crate::cli::export::mermaid::mermaid_id;
 use crate::map::{Graph, NodeRecord, NodeState};
 
 /// Default depth cap: the system node plus its direct children (top two
@@ -24,6 +25,9 @@ pub(crate) struct ContextOpts {
     pub depth: usize,
     /// When set, render only this subtree at full detail.
     pub scope: Option<String>,
+    /// Render the projection as a fenced Mermaid diagram for humans instead
+    /// of the labelled-adjacency body the agent default emits.
+    pub mermaid: bool,
 }
 
 impl ContextOpts {
@@ -32,6 +36,7 @@ impl ContextOpts {
     pub(crate) fn parse(command_args: &[String]) -> Self {
         let mut depth = DEFAULT_DEPTH;
         let mut scope = None;
+        let mut mermaid = false;
         let mut iter = command_args.iter();
         while let Some(arg) = iter.next() {
             match arg.as_str() {
@@ -41,10 +46,15 @@ impl ContextOpts {
                     }
                 }
                 "--scope" => scope = iter.next().cloned(),
+                "--mermaid" => mermaid = true,
                 _ => {}
             }
         }
-        Self { depth, scope }
+        Self {
+            depth,
+            scope,
+            mermaid,
+        }
     }
 }
 
@@ -64,6 +74,94 @@ pub(crate) fn render_structure(graph: &Graph, opts: &ContextOpts, prefix: &str) 
         Some(scope) => render_scope(graph, scope, prefix),
         None => render_rolled(graph, opts.depth, prefix),
     }
+}
+
+/// Renders the same rolled-up (or scoped) projection as a fenced Mermaid
+/// `graph TD` diagram. Terminals that render Mermaid (for example OMP) draw it
+/// as a diagram, so this is the human-facing alternative to the labelled
+/// adjacency body; the agent default stays adjacency. Reuses the rollup
+/// helpers so the node set and edge collapsing match `render_structure`.
+pub(crate) fn render_mermaid(graph: &Graph, opts: &ContextOpts, prefix: &str) -> String {
+    let mut out = String::from("```mermaid\ngraph TD\n");
+    match &opts.scope {
+        Some(scope) => mermaid_scope(&mut out, graph, scope, prefix),
+        None => mermaid_rolled(&mut out, graph, opts.depth, prefix),
+    }
+    out.push_str("```\n");
+    out
+}
+
+fn mermaid_rolled(out: &mut String, graph: &Graph, depth: usize, prefix: &str) {
+    let rolled = rolled_edges(graph, depth);
+    let hidden = hidden_counts(graph, depth);
+    for node in graph.nodes.values() {
+        if node_level(graph, &node.id) > depth {
+            continue;
+        }
+        let mut label = format!("{}{}", short(prefix, &node.id), state_suffix(node));
+        if let Some(count) = hidden.get(&node.id) {
+            let _ = write!(label, " (+{count})");
+        }
+        let _ = writeln!(
+            out,
+            "  {}[\"{}\"]",
+            mermaid_id(&node.id),
+            escape_label(&label)
+        );
+    }
+    for (from, edges) in &rolled {
+        for (to, label) in edges {
+            write_mermaid_edge(out, from, to, label);
+        }
+    }
+}
+
+fn mermaid_scope(out: &mut String, graph: &Graph, scope: &str, prefix: &str) {
+    let Some(root_id) = resolve_scope(graph, scope, prefix) else {
+        let _ = writeln!(
+            out,
+            "  none[\"no node matches --scope {}\"]",
+            escape_label(scope)
+        );
+        return;
+    };
+    for node in graph.nodes.values() {
+        if !in_subtree(graph, &node.id, &root_id) {
+            continue;
+        }
+        let label = format!("{}{}", short(prefix, &node.id), state_suffix(node));
+        let _ = writeln!(
+            out,
+            "  {}[\"{}\"]",
+            mermaid_id(&node.id),
+            escape_label(&label)
+        );
+    }
+    for node in graph.nodes.values() {
+        if !in_subtree(graph, &node.id, &root_id) {
+            continue;
+        }
+        for edge in graph.outbound.get(&node.id).into_iter().flatten() {
+            write_mermaid_edge(out, &node.id, &edge.to, &edge.description);
+        }
+    }
+}
+
+fn write_mermaid_edge(out: &mut String, from: &str, to: &str, label: &str) {
+    let from = mermaid_id(from);
+    let to = mermaid_id(to);
+    if label.is_empty() {
+        let _ = writeln!(out, "  {from} --> {to}");
+    } else {
+        let _ = writeln!(out, "  {from} -->|\"{}\"| {to}", escape_label(label));
+    }
+}
+
+/// Neutralises characters that would break a quoted Mermaid label: a double
+/// quote (which closes the label) becomes a single quote, and a pipe (which
+/// delimits an edge label in `-->|...|`) becomes a slash.
+fn escape_label(label: &str) -> String {
+    label.replace('"', "'").replace('|', "/")
 }
 
 fn render_rolled(graph: &Graph, depth: usize, prefix: &str) -> String {
@@ -278,6 +376,7 @@ mod tests {
         let opts = ContextOpts {
             depth: 1,
             scope: None,
+            mermaid: false,
         };
         let out = render_structure(&graph, &opts, "app.");
         assert!(out.contains("  k\n"), "container shown: {out}");
@@ -294,6 +393,7 @@ mod tests {
         let opts = ContextOpts {
             depth: 1,
             scope: None,
+            mermaid: false,
         };
         let out = render_structure(&graph, &opts, "app.");
         assert!(
@@ -308,6 +408,7 @@ mod tests {
         let opts = ContextOpts {
             depth: 1,
             scope: None,
+            mermaid: false,
         };
         let out = render_structure(&graph, &opts, "app.");
         // `app.k.a -> app.k.b` collapses to k -> k and must not appear.
@@ -320,6 +421,7 @@ mod tests {
         let opts = ContextOpts {
             depth: usize::MAX,
             scope: None,
+            mermaid: false,
         };
         let out = render_structure(&graph, &opts, "app.");
         assert!(out.contains("  k.a\n"), "leaf shown at full depth: {out}");
@@ -333,6 +435,7 @@ mod tests {
         let opts = ContextOpts {
             depth: 1,
             scope: Some("k".to_owned()),
+            mermaid: false,
         };
         let out = render_structure(&graph, &opts, "app.");
         assert!(out.contains("  k\n"), "scope root shown: {out}");
@@ -350,6 +453,7 @@ mod tests {
         let opts = ContextOpts {
             depth: 1,
             scope: Some("nope".to_owned()),
+            mermaid: false,
         };
         let out = render_structure(&graph, &opts, "app.");
         assert!(out.contains("no node matches --scope nope"), "{out}");
@@ -374,5 +478,90 @@ mod tests {
             "app.k".to_owned(),
         ]);
         assert_eq!(opts.scope.as_deref(), Some("app.k"));
+    }
+
+    #[test]
+    fn test_parse_mermaid_flag() {
+        assert!(!ContextOpts::parse(&["context".to_owned()]).mermaid);
+        let on = ContextOpts::parse(&["context".to_owned(), "--mermaid".to_owned()]);
+        assert!(on.mermaid, "--mermaid sets the flag");
+    }
+
+    #[test]
+    fn test_mermaid_emits_fenced_rolled_graph() {
+        let graph = sample_graph();
+        let opts = ContextOpts {
+            depth: 1,
+            scope: None,
+            mermaid: true,
+        };
+        let out = render_mermaid(&graph, &opts, "app.");
+        assert!(
+            out.starts_with("```mermaid\ngraph TD\n") && out.trim_end().ends_with("```"),
+            "fenced mermaid block: {out}"
+        );
+        assert!(
+            out.contains("app_k[\"k (+2)\"]"),
+            "container node with collapsed count: {out}"
+        );
+        assert!(
+            out.contains("app_x[\"x\"]"),
+            "top-level leaf node declared: {out}"
+        );
+        assert!(
+            out.contains("app_k -->|\"calls\"| app_x"),
+            "rolled labelled edge: {out}"
+        );
+        assert!(
+            !out.contains("internal"),
+            "intra-container edge dropped at rollup: {out}"
+        );
+    }
+
+    #[test]
+    fn test_mermaid_scope_renders_subtree_nodes() {
+        let graph = sample_graph();
+        let opts = ContextOpts {
+            depth: 1,
+            scope: Some("k".to_owned()),
+            mermaid: true,
+        };
+        let out = render_mermaid(&graph, &opts, "app.");
+        assert!(
+            out.contains("app_k_a[\"k.a\"]"),
+            "subtree leaf declared: {out}"
+        );
+        assert!(
+            out.contains("app_k_a -->|\"internal\"| app_k_b"),
+            "intra-subtree edge shown: {out}"
+        );
+        assert!(
+            !out.contains("app_x["),
+            "out-of-subtree node not declared: {out}"
+        );
+    }
+
+    #[test]
+    fn test_mermaid_scope_unknown_node_emits_valid_placeholder() {
+        let graph = sample_graph();
+        let opts = ContextOpts {
+            depth: 1,
+            scope: Some("nope".to_owned()),
+            mermaid: true,
+        };
+        let out = render_mermaid(&graph, &opts, "app.");
+        assert!(
+            out.starts_with("```mermaid\ngraph TD\n"),
+            "still valid mermaid: {out}"
+        );
+        assert!(
+            out.contains("no node matches --scope nope"),
+            "placeholder node: {out}"
+        );
+    }
+
+    #[test]
+    fn test_escape_label_neutralises_quote_and_pipe() {
+        assert_eq!(escape_label("a \"b\" | c"), "a 'b' / c");
     }
 }

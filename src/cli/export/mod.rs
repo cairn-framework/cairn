@@ -9,7 +9,7 @@ use crate::{artefacts::registry::ArtefactType, map::graph::NodeRecord};
 mod builder;
 mod json;
 mod markdown;
-mod mermaid;
+pub(crate) mod mermaid;
 mod runner;
 
 pub use builder::build_export;
