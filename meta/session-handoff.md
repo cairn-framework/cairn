@@ -42,12 +42,15 @@ persisted. Do NOT self-execute: this is the maintainer's structural call.
 ## Loop status -> STOP (escalation pending)
 
 Re-invoked 2026-06-27 (attended). Escalated `dec.ghost-rule-tracking` for
-ratification via AskUserQuestion; the prompt **auto-selected after timeout** (no
-live ratification). Per the dev-loop unattended protocol the recommendation stays
-persisted and the beads stay deferred rather than self-executed. Sanctioned stop:
-backlog has no ready or actionable-without-ratification unit. Next session: if the
-maintainer ratifies (a)+(b), flip dec.ghost-rule-tracking to accepted, open the
-impl bead, build the registry + scan check, then resume cairn-9w9.
+ratification via AskUserQuestion; the prompt **auto-selected (a)+(b) after
+timeout** on this run too (still no live ratification). Per the dev-loop
+unattended protocol the recommendation stays persisted and the beads stay
+deferred rather than self-executed: minting the net-new scan check + registry
+(option (b)) on a timed-out default would be structure without a real
+maintainer yes, and option (a) is already in force. Sanctioned stop: backlog
+has no ready or actionable-without-ratification unit. Next session: if the
+maintainer ratifies (a)+(b) **live**, flip dec.ghost-rule-tracking to accepted,
+open the impl bead, build the registry + scan check, then resume cairn-9w9.
 
 ## Agent Entry Points
 
