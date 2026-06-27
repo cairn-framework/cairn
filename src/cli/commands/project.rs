@@ -60,6 +60,7 @@ const SKILL_FILES: &[(&str, &str)] = &[
 ];
 
 pub(crate) fn init_project(root: &Path) -> CliResult {
+    let already_initialized = root.join("cairn.blueprint").exists();
     let writes = [
         (
             "cairn.blueprint",
@@ -73,6 +74,7 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
         (".cairn/state/.gitkeep", ""),
         (".cairn/AGENTS.md", AGENT_GUIDE),
     ];
+    let mut backfilled: Vec<&str> = Vec::new();
     for &(path, content) in writes.iter().chain(SKILL_FILES) {
         let full = root.join(path);
         if let Some(parent) = full.parent()
@@ -83,15 +85,43 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
                 &format!("failed to create {}: {error}", parent.display()),
             );
         }
-        if !full.exists() && fs::write(&full, content).is_err() {
-            return err(1, &format!("failed to write {}", full.display()));
+        if !full.exists() {
+            if fs::write(&full, content).is_err() {
+                return err(1, &format!("failed to write {}", full.display()));
+            }
+            backfilled.push(path);
         }
+    }
+    if already_initialized {
+        return ok(reinit_message(&backfilled));
     }
     ok(format!(
         "{}\n\n{}\n",
         copy::lookup("init.done"),
         copy::lookup("init.next-steps")
     ))
+}
+
+/// Build the message for `cairn init` run in an already-initialized project:
+/// report what (if anything) was backfilled and the next steps that make sense
+/// when the blueprint already exists, instead of claiming a fresh scaffold.
+fn reinit_message(backfilled: &[&str]) -> String {
+    let mut msg = copy::lookup("init.already").to_string();
+    if backfilled.is_empty() {
+        msg.push('\n');
+        msg.push_str(copy::lookup("init.nothing-backfilled"));
+    } else {
+        msg.push_str("\n\n");
+        msg.push_str(copy::lookup("init.backfilled"));
+        for path in backfilled {
+            msg.push_str("\n  ");
+            msg.push_str(path);
+        }
+    }
+    msg.push_str("\n\n");
+    msg.push_str(copy::lookup("init.next-steps-existing"));
+    msg.push('\n');
+    msg
 }
 
 #[cfg(test)]
@@ -135,6 +165,71 @@ mod tests {
         assert!(
             guide.contains(".claude/skills/cairn-dev"),
             "agent guide must reference the dev loop skills"
+        );
+    }
+
+    #[test]
+    fn test_reinit_on_existing_project_does_not_claim_fresh_scaffold() {
+        let dir = tempfile::tempdir().unwrap();
+        // First init writes the full scaffold and reports a fresh project.
+        let first = init_project(dir.path());
+        assert_eq!(first.code, 0, "first init should succeed: {}", first.stderr);
+        assert!(
+            first.stdout.contains(copy::lookup("init.done")),
+            "fresh init should report the project was initialized"
+        );
+
+        // Second init in the same dir must recognize the existing blueprint,
+        // not re-announce a fresh scaffold or claim a starter was written.
+        let second = init_project(dir.path());
+        assert_eq!(second.code, 0, "re-init should succeed: {}", second.stderr);
+        assert!(
+            second.stdout.contains(copy::lookup("init.already")),
+            "re-init must report the project is already initialized"
+        );
+        assert!(
+            second
+                .stdout
+                .contains(copy::lookup("init.nothing-backfilled")),
+            "re-init with full scaffold present must report nothing to do"
+        );
+        assert!(
+            !second.stdout.contains("a starter was written"),
+            "re-init must not claim a starter blueprint was written"
+        );
+    }
+
+    #[test]
+    fn test_reinit_backfills_only_missing_scaffolding() {
+        let dir = tempfile::tempdir().unwrap();
+        // Simulate a project that has a blueprint but is missing the rest of
+        // the scaffold (e.g. created by hand or partially deleted).
+        std::fs::write(dir.path().join("cairn.blueprint"), "System X id \"x\" {}\n").unwrap();
+
+        let result = init_project(dir.path());
+        assert_eq!(result.code, 0, "re-init should succeed: {}", result.stderr);
+        assert!(
+            result.stdout.contains(copy::lookup("init.already")),
+            "re-init must report the project is already initialized"
+        );
+        assert!(
+            result.stdout.contains(copy::lookup("init.backfilled")),
+            "re-init with missing files must report what was backfilled"
+        );
+        // The existing blueprint must be preserved, not overwritten.
+        let blueprint = std::fs::read_to_string(dir.path().join("cairn.blueprint")).unwrap();
+        assert_eq!(
+            blueprint, "System X id \"x\" {}\n",
+            "existing blueprint must not be clobbered on re-init"
+        );
+        // Missing scaffolding is backfilled.
+        assert!(
+            dir.path().join("cairn.config.yaml").exists(),
+            "missing config must be backfilled"
+        );
+        assert!(
+            dir.path().join(".cairn/AGENTS.md").exists(),
+            "missing agent guide must be backfilled"
         );
     }
 }
