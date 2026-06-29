@@ -53,14 +53,18 @@ pub(crate) fn decisions_json(decisions: &[Decision]) -> String {
             .iter()
             .map(|decision| {
                 format!(
-                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"related\":{}}}",
+                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"related\":{},\"revisited\":{}}}",
                     esc(&decision.id),
                     decision_status(decision.status),
                     string_array_json(&decision.nodes),
                     string_array_json(&decision.informed_by),
                     string_array_json(&decision.supersedes),
                     string_array_json(&decision.refines),
-                    string_array_json(&decision.related)
+                    string_array_json(&decision.related),
+                    decision
+                        .revisited
+                        .as_deref()
+                        .map_or_else(|| "null".to_owned(), |value| format!("\"{}\"", esc(value)))
                 )
             })
             .collect::<Vec<_>>()
@@ -274,6 +278,36 @@ mod tests {
         assert!(json.contains("\"status\":\"accepted\""));
         assert!(json.contains("\"nodes\":[\"app\"]"));
         assert!(json.contains("\"supersedes\":[\"old\"]"));
+        assert!(
+            json.contains("\"revisited\":null"),
+            "absent revisited serializes as null: {json}"
+        );
+    }
+
+    #[test]
+    fn test_decisions_json_serializes_populated_revisited() {
+        let decision = Decision {
+            path: "./decision.md".to_owned(),
+            id: "adopt-rust".to_owned(),
+            status: DecisionStatus::Accepted,
+            nodes: vec!["app".to_owned()],
+            date: "2026-01-01".to_owned(),
+            revisited: Some("2026-06-29".to_owned()),
+            revisit_triggers: Vec::new(),
+            informed_by: Vec::new(),
+            supersedes: Vec::new(),
+            refines: Vec::new(),
+            related: Vec::new(),
+            orphaned: false,
+            orphan_reason: None,
+            claims: None,
+            body: String::new(),
+        };
+        let json = decisions_json(&[decision]);
+        assert!(
+            json.contains("\"revisited\":\"2026-06-29\""),
+            "populated revisited serializes as the date string: {json}"
+        );
     }
 
     // ── reviews_json ─────────────────────────────────────────────────────────

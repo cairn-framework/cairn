@@ -1193,6 +1193,7 @@
     const supersedes = parseRefs(fm.supersedes);
     const related = parseRefs(fm.related);
     const revisit = parseRefs(fm.revisit_triggers);
+    const revisited = fm.revisited ? String(fm.revisited).trim() : "";
 
     return html`
       <section class="inspector decision-detail">
@@ -1246,11 +1247,12 @@
         </div>
 
         ${
-          supersedes.length || related.length || revisit.length
+          supersedes.length || related.length || revisit.length || revisited
             ? html`<div class="decision-lineage">
                 ${supersedes.length ? html`<div class="lineage-row"><span class="caps">Supersedes</span><div class="ref-chips">${supersedes.map((r) => html`<span class="pill ref" key=${r}>${r}</span>`)}</div></div>` : null}
                 ${related.length ? html`<div class="lineage-row"><span class="caps">Related</span><div class="ref-chips">${related.map((r) => html`<span class="pill ref" key=${r}>${r}</span>`)}</div></div>` : null}
                 ${revisit.length ? html`<div class="lineage-row"><span class="caps">Revisit when</span><div class="ref-chips">${revisit.map((r) => html`<span class="pill ref" key=${r}>${r}</span>`)}</div></div>` : null}
+                ${revisited ? html`<div class="lineage-row"><span class="caps">Last revisited</span><div class="ref-chips"><span class="pill ref">${revisited}</span></div></div>` : null}
               </div>`
             : null
         }
