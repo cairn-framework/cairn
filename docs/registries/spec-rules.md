@@ -25,10 +25,20 @@ passes scan into tracked cairn state, the way the spec mandates (spec.md:24). Se
 - `pending`: the rule is Designed but not yet built. While its enforcer is absent
   it surfaces `CAIRN_SPEC_RULE_UNIMPLEMENTED` at **Info** severity: a visible,
   tracked advisory that does not block `--strict`. When implemented, add the
-  `Code` and promote the row to `enforced`; the finding then clears.
+  `Code` and promote the row to `enforced`; the finding then clears. `pending`
+  does not promise an imminent build: a Designed rule may be **deliberately
+  deferred** (its build parked behind a prerequisite capability) with the
+  rationale recorded in a decision artefact. The Info finding stays the honest
+  tracker either way, so deferral needs no separate status. Example:
+  `spec:634` is deferred by `dec.revisit-trigger-correlator-deferred` pending a
+  relevance-judging capability, yet remains `pending` because the rule is Designed.
 - `declared`: named in the spec at Declared maturity (see
   `docs/registries/declared-items.md`), not yet designed enough to enforce.
-  Exempt: listed for completeness, never flagged.
+  Exempt: listed for completeness, never flagged. This is the principled line
+  between `spec:634` (`pending`: the tension is Designed) and `spec:635`/`spec:636`
+  (`declared`: their edge-divergence / docstring-drift checks depend on the
+  semantic-analysis strategy that spec section 17 deliberately leaves uncommitted,
+  so they are not yet designed enough to enforce).
 
 Detection is emission-anchored: a code counts as emitted only where the `"CODE"`
 literal is immediately preceded by `error(`, `warning(`, `info(`, or `code:` in
