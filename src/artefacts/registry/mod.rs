@@ -9,6 +9,7 @@ use std::{
 use crate::blueprint::Ast;
 
 use super::{contract::ContractSet, frontmatter};
+mod changes;
 mod io;
 mod parse;
 mod sha256;
@@ -16,6 +17,7 @@ mod sha256;
 pub mod types;
 mod validate;
 
+use changes::load_changes;
 use io::list;
 use io::{collect_ids, markdown_paths, optional, parse_file, path_string, pointers, required};
 use parse::{
@@ -38,6 +40,7 @@ pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> Artefac
     load_reviews(root, ast, &mut set);
     load_research(root, ast, &mut set);
     load_sources(root, ast, &mut set);
+    load_changes(root, &mut set);
     validate_integrity(root, &ids, &mut set);
     set
 }
