@@ -2,9 +2,10 @@
 id: dec.revisit-trigger-relevance
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-06-29
 informed_by: [res.spec-designed-audit]
+superseded_by: [dec.revisit-trigger-correlator-deferred]
 ---
 # spec:634 revisit-trigger relevance: build the correlator, sequenced behind cairn-1me (not deferred)
 
