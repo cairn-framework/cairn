@@ -190,3 +190,5 @@
 {"id":"int-48027aa5","kind":"field_change","created_at":"2026-06-29T07:45:31.070449Z","actor":"cairn-loop","issue_id":"cairn-iy2","extra":{"field":"status","new_value":"closed","old_value":"deferred","reason":"Implemented (a)+(b): spec-rule registry + CK004 scan check. Merged PR #190."}}
 {"id":"int-9bd3f367","kind":"field_change","created_at":"2026-06-29T10:19:00.896997Z","actor":"cairn-loop","issue_id":"cairn-bss","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
 {"id":"int-393526b5","kind":"field_change","created_at":"2026-06-29T10:38:15.885388Z","actor":"cairn-loop","issue_id":"cairn-9ey","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
+{"id":"int-be986259","kind":"field_change","created_at":"2026-06-29T11:07:01.775206Z","actor":"cairn-loop","issue_id":"cairn-9w9","extra":{"field":"status","new_value":"closed","old_value":"deferred","reason":"Closed"}}
+{"id":"int-e968f8f7","kind":"field_change","created_at":"2026-06-29T11:10:11.918855Z","actor":"cairn-loop","issue_id":"cairn-9w9","extra":{"field":"status","new_value":"open","old_value":"deferred"}}
