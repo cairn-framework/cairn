@@ -5,6 +5,7 @@ mod contract_coverage;
 pub mod graph;
 pub mod integrity;
 pub mod query;
+mod spec_rule_coverage;
 mod test_coverage;
 
 pub use build::build_graph;

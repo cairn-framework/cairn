@@ -33,6 +33,7 @@ pub fn build_graph(
     validate_contracts(&mut graph, root, contracts);
     super::test_coverage::validate_test_coverage(&mut graph, root);
     super::contract_coverage::validate_contract_coverage(&mut graph);
+    super::spec_rule_coverage::validate_spec_rule_coverage(&mut graph, root);
     graph
 }
 
