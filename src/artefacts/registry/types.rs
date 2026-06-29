@@ -253,6 +253,27 @@ pub struct Source {
     pub body: String,
 }
 
+/// Active change directory loaded into the scan substrate.
+///
+/// A lightweight, text-only view of a `meta/changes/<id>/` directory: enough for
+/// scan checks (e.g. revisit-trigger relevance) and queries to consume changes
+/// uniformly from the [`ArtefactSet`], without pulling in the change-application
+/// machinery (deltas, artefact operations) owned by the `changes` module.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ChangeRecord {
+    /// Change ID, derived from the directory name.
+    pub id: String,
+    /// Change directory path, formed by joining the scan root with
+    /// `meta/changes/<id>` (root-relative when the scan root is relative).
+    pub path: String,
+    /// Proposal title (first heading), falling back to the ID.
+    pub title: String,
+    /// Proposal markdown body.
+    pub proposal: String,
+    /// Optional design markdown body.
+    pub design: Option<String>,
+}
+
 /// Loaded Phase 2 artefacts.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ArtefactSet {
@@ -268,6 +289,8 @@ pub struct ArtefactSet {
     pub research: Vec<Research>,
     /// Sources.
     pub sources: Vec<Source>,
+    /// Active changes loaded from `meta/changes/`.
+    pub changes: Vec<ChangeRecord>,
     /// Loading and validation findings.
     pub findings: Vec<Finding>,
 }
