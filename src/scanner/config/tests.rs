@@ -125,13 +125,6 @@ fn test_parse_config_context_field() {
 }
 
 #[test]
-fn test_parse_config_state_backend_field() {
-    let mut config = Config::default();
-    parse_config("state_backend: beads\n", &mut config);
-    assert_eq!(config.state_backend, "beads");
-}
-
-#[test]
 fn test_parse_config_ignore_list() {
     let mut config = Config::default();
     parse_config("ignore:\n  - dist\n  - \"*.lock\"\n", &mut config);

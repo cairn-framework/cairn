@@ -160,6 +160,7 @@ fn bare_node(id: &str) -> NodeRecord {
         contracts: Vec::new(),
         state: NodeState::Synced,
         files: Vec::new(),
+        symbols: Vec::new(),
         span: Span::point("test", 1, 1),
     }
 }
@@ -220,6 +221,7 @@ fn decision(id: &str, nodes: &[&str], status: DecisionStatus) -> Decision {
         related: Vec::new(),
         orphaned: false,
         orphan_reason: None,
+        gap: false,
         claims: None,
         body: String::new(),
     }
@@ -251,6 +253,7 @@ fn report_and_target(
         language: Language::Rust,
         reconciler_id: ReconcilerId("rust-code".to_owned()),
         claimed_files: Vec::new(),
+        symbol_records: std::sync::Arc::new(Vec::new()),
         symbols: std::sync::Arc::new(Vec::new()),
         hash: hash.to_owned(),
     };

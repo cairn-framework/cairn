@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     ReconcileError, ReconcileReport, ReconcileRequest, Reconciler, ReconcilerId,
-    fingerprint::InterfaceFingerprint,
+    fingerprint::InterfaceFingerprint, symbol::normalize_symbol,
 };
 
 const PUBLIC_ITEM_KINDS: &[&str] = &[
@@ -62,21 +62,27 @@ impl Reconciler for RustCodeReconciler<'_> {
                 })?;
             let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
             let mut node_symbols = BTreeMap::<String, Vec<String>>::new();
+            let mut node_symbol_records = BTreeMap::<String, Vec<super::SymbolRecord>>::new();
             let mut findings = Vec::new();
             let mut symbols = Vec::new();
             let mut source = String::new();
             for file in rust_files {
                 let rel = normalize(file.strip_prefix(request.root).unwrap_or(&file));
                 if let Some(owner) = most_specific_owner(&owners, &rel) {
-                    let file_symbols = public_symbols(&mut parser, &file, &mut source)?;
+                    let (file_symbols, file_records) =
+                        public_symbols(&mut parser, &file, &mut source, &rel)?;
                     claimed_files
                         .entry(owner.clone())
                         .or_default()
                         .push(rel.into_owned());
                     node_symbols
-                        .entry(owner)
+                        .entry(owner.clone())
                         .or_default()
                         .extend(file_symbols.clone());
+                    node_symbol_records
+                        .entry(owner)
+                        .or_default()
+                        .extend(file_records);
                     symbols.extend(file_symbols);
                 } else {
                     findings.push(Finding {
@@ -93,11 +99,15 @@ impl Reconciler for RustCodeReconciler<'_> {
             for node_syms in node_symbols.values_mut() {
                 node_syms.sort_unstable();
             }
+            for records in node_symbol_records.values_mut() {
+                records.sort_by(|a, b| a.signature.cmp(&b.signature));
+            }
             return Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_sorted(&symbols),
                 claimed_files,
                 symbols: std::sync::Arc::new(symbols),
                 node_symbols,
+                node_symbol_records,
                 findings,
             });
         }
@@ -118,21 +128,28 @@ impl Reconciler for RustCodeReconciler<'_> {
                         })?;
                     let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
                     let mut node_symbols = BTreeMap::<String, Vec<String>>::new();
+                    let mut node_symbol_records =
+                        BTreeMap::<String, Vec<super::SymbolRecord>>::new();
                     let mut findings = Vec::new();
                     let mut symbols = Vec::new();
                     let mut source = String::new();
                     for file in chunk {
                         let rel = normalize(file.strip_prefix(request.root).unwrap_or(file));
                         if let Some(owner) = most_specific_owner(owners_ref, &rel) {
-                            let file_symbols = public_symbols(&mut parser, file, &mut source)?;
+                            let (file_symbols, file_records) =
+                                public_symbols(&mut parser, file, &mut source, &rel)?;
                             claimed_files
                                 .entry(owner.clone())
                                 .or_default()
                                 .push(rel.into_owned());
                             node_symbols
-                                .entry(owner)
+                                .entry(owner.clone())
                                 .or_default()
                                 .extend(file_symbols.clone());
+                            node_symbol_records
+                                .entry(owner)
+                                .or_default()
+                                .extend(file_records);
                             symbols.extend(file_symbols);
                         } else {
                             findings.push(Finding {
@@ -147,20 +164,34 @@ impl Reconciler for RustCodeReconciler<'_> {
                             });
                         }
                     }
-                    Ok::<_, ReconcileError>((claimed_files, findings, symbols, node_symbols))
+                    Ok::<_, ReconcileError>((
+                        claimed_files,
+                        findings,
+                        symbols,
+                        node_symbols,
+                        node_symbol_records,
+                    ))
                 }));
             }
             let mut all_claimed = BTreeMap::<String, Vec<String>>::new();
             let mut all_findings = Vec::new();
             let mut all_symbols = Vec::new();
             let mut all_node_symbols = BTreeMap::<String, Vec<String>>::new();
+            let mut all_node_symbol_records = BTreeMap::<String, Vec<super::SymbolRecord>>::new();
             for handle in handles {
-                let (claimed, findings, symbols, node_symbols) = handle.join().unwrap()?;
+                let (claimed, findings, symbols, node_symbols, node_symbol_records) =
+                    handle.join().unwrap()?;
                 for (owner, files) in claimed {
                     all_claimed.entry(owner).or_default().extend(files);
                 }
                 for (owner, syms) in node_symbols {
                     all_node_symbols.entry(owner).or_default().extend(syms);
+                }
+                for (owner, records) in node_symbol_records {
+                    all_node_symbol_records
+                        .entry(owner)
+                        .or_default()
+                        .extend(records);
                 }
                 all_findings.extend(findings);
                 all_symbols.extend(symbols);
@@ -169,11 +200,15 @@ impl Reconciler for RustCodeReconciler<'_> {
             for node_syms in all_node_symbols.values_mut() {
                 node_syms.sort_unstable();
             }
+            for records in all_node_symbol_records.values_mut() {
+                records.sort_by(|a, b| a.signature.cmp(&b.signature));
+            }
             Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_sorted(&all_symbols),
                 claimed_files: all_claimed,
                 symbols: std::sync::Arc::new(all_symbols),
                 node_symbols: all_node_symbols,
+                node_symbol_records: all_node_symbol_records,
                 findings: all_findings,
             })
         })
@@ -254,7 +289,8 @@ fn public_symbols(
     parser: &mut tree_sitter::Parser,
     path: &Path,
     source: &mut String,
-) -> Result<Vec<String>, ReconcileError> {
+    file_rel: &str,
+) -> Result<(Vec<String>, Vec<super::SymbolRecord>), ReconcileError> {
     source.clear();
     let mut file = fs::File::open(path).map_err(|error| ReconcileError {
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
@@ -268,7 +304,7 @@ fn public_symbols(
     // symbols that our reconciler cares about (macro_rules! is already
     // excluded from PUBLIC_ITEM_KINDS).
     if !source.as_bytes().windows(4).any(|w| w == b"pub ") {
-        return Ok(Vec::new());
+        return Ok((Vec::new(), Vec::new()));
     }
     let tree = parser
         .parse(source.as_bytes(), None)
@@ -277,14 +313,23 @@ fn public_symbols(
             message: format!("failed to parse `{}`", path.display()),
         })?;
     let mut symbols = Vec::new();
-    collect_public_symbols(tree.root_node(), source.as_bytes(), &mut symbols)?;
-    Ok(symbols)
+    let mut records = Vec::new();
+    collect_public_symbols(
+        tree.root_node(),
+        source.as_bytes(),
+        &mut symbols,
+        &mut records,
+        file_rel,
+    )?;
+    Ok((symbols, records))
 }
 
 fn collect_public_symbols(
     node: tree_sitter::Node<'_>,
     source: &[u8],
     symbols: &mut Vec<String>,
+    records: &mut Vec<super::SymbolRecord>,
+    file_rel: &str,
 ) -> Result<(), ReconcileError> {
     if node.child_count() == 0 {
         return Ok(());
@@ -297,12 +342,42 @@ fn collect_public_symbols(
         if is_target && child.kind() == "visibility_modifier" {
             has_pub = true;
         }
-        collect_public_symbols(child, source, symbols)?;
+        collect_public_symbols(child, source, symbols, records, file_rel)?;
     }
     if is_target && has_pub {
-        symbols.push(interface_symbol(node, source));
+        let signature = interface_symbol(node, source);
+        let name = node
+            .child_by_field_name("name")
+            .and_then(|n| n.utf8_text(source).ok())
+            .unwrap_or_default()
+            .to_owned();
+        records.push(super::SymbolRecord {
+            name,
+            kind: symbol_kind(kind),
+            signature: signature.clone(),
+            file: file_rel.to_owned(),
+            line: u32::try_from(node.start_position().row).unwrap_or(u32::MAX) + 1,
+            end_line: u32::try_from(node.end_position().row).unwrap_or(u32::MAX) + 1,
+        });
+        symbols.push(signature);
     }
     Ok(())
+}
+
+/// Maps a Rust tree-sitter node kind to a language-agnostic [`super::SymbolKind`].
+fn symbol_kind(ts_kind: &str) -> super::SymbolKind {
+    match ts_kind {
+        "function_item" => super::SymbolKind::Function,
+        "struct_item" => super::SymbolKind::Struct,
+        "enum_item" => super::SymbolKind::Enum,
+        "trait_item" => super::SymbolKind::Trait,
+        "type_item" => super::SymbolKind::Type,
+        "const_item" => super::SymbolKind::Const,
+        "static_item" => super::SymbolKind::Static,
+        "mod_item" => super::SymbolKind::Module,
+        "union_item" => super::SymbolKind::Union,
+        _ => super::SymbolKind::Other,
+    }
 }
 fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
     let signature = node
@@ -342,37 +417,6 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
     }
     parts.join(" ")
 }
-fn normalize_symbol(text: &str) -> String {
-    // Fast path: text is already normalized (no consecutive whitespace,
-    // no leading/trailing whitespace).
-    let bytes = text.as_bytes();
-    if !bytes.is_empty()
-        && !bytes[0].is_ascii_whitespace()
-        && !bytes[bytes.len() - 1].is_ascii_whitespace()
-        && !bytes
-            .windows(2)
-            .any(|w| w[0].is_ascii_whitespace() && w[1].is_ascii_whitespace())
-    {
-        return text.to_owned();
-    }
-    let mut result = String::with_capacity(text.len());
-    let mut in_whitespace = true;
-    for ch in text.chars() {
-        if ch.is_whitespace() {
-            if !in_whitespace && !result.is_empty() {
-                result.push(' ');
-            }
-            in_whitespace = true;
-        } else {
-            result.push(ch);
-            in_whitespace = false;
-        }
-    }
-    if result.ends_with(' ') {
-        result.pop();
-    }
-    result
-}
 fn trim_dot(path: &str) -> String {
     path.trim_start_matches("./").to_owned()
 }
@@ -388,21 +432,6 @@ fn normalize(path: &Path) -> std::borrow::Cow<'_, str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn normalize_symbol_collapses_consecutive_whitespace() {
-        assert_eq!(normalize_symbol("fn   foo"), "fn foo");
-    }
-
-    #[test]
-    fn normalize_symbol_trims_leading_and_trailing_whitespace() {
-        assert_eq!(normalize_symbol("  fn foo  "), "fn foo");
-    }
-
-    #[test]
-    fn normalize_symbol_already_normalized_returns_input_owned() {
-        assert_eq!(normalize_symbol("fn foo"), "fn foo");
-    }
 
     #[test]
     fn trim_dot_strips_leading_dot_slash() {

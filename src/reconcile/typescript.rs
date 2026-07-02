@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     ReconcileError, ReconcileReport, ReconcileRequest, Reconciler, ReconcilerId,
-    fingerprint::InterfaceFingerprint,
+    fingerprint::InterfaceFingerprint, symbol::normalize_symbol,
 };
 
 const EXPORTABLE_KINDS: &[&str] = &[
@@ -45,6 +45,7 @@ impl Reconciler for TypeScriptReconciler<'_> {
         ReconcilerId("typescript-code".to_owned())
     }
 
+    #[allow(clippy::too_many_lines)] // Reason: parallel per-chunk processing and merge kept together for clarity
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
         let ts_files = discover_ts_files(request.root, request.ignores)?;
@@ -65,20 +66,27 @@ impl Reconciler for TypeScriptReconciler<'_> {
                         })?;
                     let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
                     let mut node_symbols = BTreeMap::<String, Vec<String>>::new();
+                    let mut node_symbol_records =
+                        BTreeMap::<String, Vec<super::SymbolRecord>>::new();
                     let mut findings = Vec::new();
                     let mut symbols = Vec::new();
                     for file in chunk {
                         let rel = normalize(file.strip_prefix(request.root).unwrap_or(file));
                         if let Some(owner) = most_specific_owner(owners_ref, &rel) {
-                            let file_symbols = public_symbols(&mut parser, file)?;
+                            let (file_symbols, file_records) =
+                                public_symbols(&mut parser, file, &rel)?;
                             claimed_files
                                 .entry(owner.clone())
                                 .or_default()
                                 .push(rel.into_owned());
                             node_symbols
-                                .entry(owner)
+                                .entry(owner.clone())
                                 .or_default()
                                 .extend(file_symbols.clone());
+                            node_symbol_records
+                                .entry(owner)
+                                .or_default()
+                                .extend(file_records);
                             symbols.extend(file_symbols);
                         } else {
                             findings.push(Finding {
@@ -93,20 +101,34 @@ impl Reconciler for TypeScriptReconciler<'_> {
                             });
                         }
                     }
-                    Ok::<_, ReconcileError>((claimed_files, findings, symbols, node_symbols))
+                    Ok::<_, ReconcileError>((
+                        claimed_files,
+                        findings,
+                        symbols,
+                        node_symbols,
+                        node_symbol_records,
+                    ))
                 }));
             }
             let mut all_claimed = BTreeMap::<String, Vec<String>>::new();
             let mut all_findings = Vec::new();
             let mut all_symbols = Vec::new();
             let mut all_node_symbols = BTreeMap::<String, Vec<String>>::new();
+            let mut all_node_symbol_records = BTreeMap::<String, Vec<super::SymbolRecord>>::new();
             for handle in handles {
-                let (claimed, findings, symbols, node_symbols) = handle.join().unwrap()?;
+                let (claimed, findings, symbols, node_symbols, node_symbol_records) =
+                    handle.join().unwrap()?;
                 for (owner, files) in claimed {
                     all_claimed.entry(owner).or_default().extend(files);
                 }
                 for (owner, syms) in node_symbols {
                     all_node_symbols.entry(owner).or_default().extend(syms);
+                }
+                for (owner, records) in node_symbol_records {
+                    all_node_symbol_records
+                        .entry(owner)
+                        .or_default()
+                        .extend(records);
                 }
                 all_findings.extend(findings);
                 all_symbols.extend(symbols);
@@ -115,11 +137,15 @@ impl Reconciler for TypeScriptReconciler<'_> {
             for node_syms in all_node_symbols.values_mut() {
                 node_syms.sort_unstable();
             }
+            for records in all_node_symbol_records.values_mut() {
+                records.sort_by(|a, b| a.signature.cmp(&b.signature));
+            }
             Ok(ReconcileReport {
                 fingerprint: InterfaceFingerprint::from_sorted(&all_symbols),
                 claimed_files: all_claimed,
                 symbols: std::sync::Arc::new(all_symbols),
                 node_symbols: all_node_symbols,
+                node_symbol_records: all_node_symbol_records,
                 findings: all_findings,
             })
         })
@@ -204,7 +230,8 @@ fn walk(
 fn public_symbols(
     parser: &mut tree_sitter::Parser,
     path: &Path,
-) -> Result<Vec<String>, ReconcileError> {
+    file_rel: &str,
+) -> Result<(Vec<String>, Vec<super::SymbolRecord>), ReconcileError> {
     let source = fs::read_to_string(path).map_err(|error| ReconcileError {
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
         message: format!("failed to read `{}`: {error}", path.display()),
@@ -214,14 +241,23 @@ fn public_symbols(
         message: format!("failed to parse `{}`", path.display()),
     })?;
     let mut symbols = Vec::new();
-    collect_public_symbols(tree.root_node(), source.as_bytes(), &mut symbols)?;
-    Ok(symbols)
+    let mut records = Vec::new();
+    collect_public_symbols(
+        tree.root_node(),
+        source.as_bytes(),
+        &mut symbols,
+        &mut records,
+        file_rel,
+    )?;
+    Ok((symbols, records))
 }
 
 fn collect_public_symbols(
     node: tree_sitter::Node<'_>,
     source: &[u8],
     symbols: &mut Vec<String>,
+    records: &mut Vec<super::SymbolRecord>,
+    file_rel: &str,
 ) -> Result<(), ReconcileError> {
     if node.child_count() == 0 {
         return Ok(());
@@ -234,12 +270,75 @@ fn collect_public_symbols(
         if is_target && (child.kind() == "visibility_modifier" || child.kind() == "export") {
             is_exportable = true;
         }
-        collect_public_symbols(child, source, symbols)?;
+        collect_public_symbols(child, source, symbols, records, file_rel)?;
     }
     if is_target && is_exportable {
-        symbols.push(interface_symbol(node, source));
+        let signature = interface_symbol(node, source);
+        let (name, symbol_kind) = symbol_name_and_kind(node, source);
+        records.push(super::SymbolRecord {
+            name,
+            kind: symbol_kind,
+            signature: signature.clone(),
+            file: file_rel.to_owned(),
+            line: u32::try_from(node.start_position().row).unwrap_or(u32::MAX) + 1,
+            end_line: u32::try_from(node.end_position().row).unwrap_or(u32::MAX) + 1,
+        });
+        symbols.push(signature);
     }
     Ok(())
+}
+
+/// Resolves the (name, kind) pair for a TypeScript exportable node. For
+/// `export_statement`, both are derived from the wrapped declaration child
+/// rather than the wrapper itself.
+fn symbol_name_and_kind(node: tree_sitter::Node<'_>, source: &[u8]) -> (String, super::SymbolKind) {
+    let declared = if node.kind() == "export_statement" {
+        node.children(&mut node.walk())
+            .find(|c| {
+                matches!(
+                    c.kind(),
+                    "class_declaration"
+                        | "function_declaration"
+                        | "interface_declaration"
+                        | "type_alias_declaration"
+                        | "enum_declaration"
+                        | "variable_declaration"
+                        | "lexical_declaration"
+                )
+            })
+            .unwrap_or(node)
+    } else {
+        node
+    };
+    let name = declared
+        .child_by_field_name("name")
+        .or_else(|| {
+            if node.kind() == "export_statement" {
+                node.children(&mut node.walk())
+                    .find(|c| c.kind() == "identifier" || c.kind() == "string_literal")
+            } else {
+                None
+            }
+        })
+        .and_then(|n| n.utf8_text(source).ok())
+        .map_or_else(
+            || node.utf8_text(source).unwrap_or("").to_owned(),
+            str::to_owned,
+        );
+    (name, symbol_kind(declared.kind()))
+}
+
+/// Maps a TypeScript tree-sitter node kind to a language-agnostic [`super::SymbolKind`].
+fn symbol_kind(ts_kind: &str) -> super::SymbolKind {
+    match ts_kind {
+        "function_declaration" => super::SymbolKind::Function,
+        "class_declaration" => super::SymbolKind::Class,
+        "interface_declaration" => super::SymbolKind::Interface,
+        "type_alias_declaration" => super::SymbolKind::Type,
+        "enum_declaration" => super::SymbolKind::Enum,
+        "variable_declaration" | "lexical_declaration" => super::SymbolKind::Variable,
+        _ => super::SymbolKind::Other,
+    }
 }
 
 #[must_use]
@@ -263,10 +362,6 @@ fn interface_symbol(node: tree_sitter::Node<'_>, source: &[u8]) -> String {
 
     let signature = format!("{kind}:{name}");
     normalize_symbol(&signature)
-}
-
-fn normalize_symbol(text: &str) -> String {
-    text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn trim_dot(path: &str) -> String {

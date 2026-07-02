@@ -1,5 +1,9 @@
 ---
 node: cairn.kernel.map
+interface:
+  - "pub fn build_graph( ast: &Ast, root: &Path, contracts: &ContractSet, claimed_files: &mut BTreeMap<String, Vec<String>>, external_findings: Vec<Finding>, ) -> Graph"
+  - "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>"
+  - "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>"
 ---
 
 # Contract: cairn.kernel.map

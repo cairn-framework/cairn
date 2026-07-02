@@ -149,6 +149,9 @@ pub struct Decision {
     pub orphaned: bool,
     /// Orphan reason.
     pub orphan_reason: Option<String>,
+    /// Whether this decision records an unresolved generative gap
+    /// (`cairn gap`). Cleared by editing `gap: false` or deleting the file.
+    pub gap: bool,
 
     /// Optional folder-enumeration claims.
     pub claims: Option<Claims>,

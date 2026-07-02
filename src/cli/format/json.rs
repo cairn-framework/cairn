@@ -211,6 +211,7 @@ mod tests {
             children: vec!["child".to_owned()],
             paths: Vec::new(),
             owns_files: false,
+            symbols: Vec::new(),
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: vec!["src/lib.rs".to_owned()],
@@ -270,6 +271,7 @@ mod tests {
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,
+            gap: false,
             claims: None,
             body: String::new(),
         };
@@ -300,6 +302,7 @@ mod tests {
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,
+            gap: false,
             claims: None,
             body: String::new(),
         };

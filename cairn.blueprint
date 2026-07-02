@@ -15,6 +15,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/error.rs"
         path "./src/verification.rs"
         path "./src/signal.rs"
+        path "./src/copy.rs"
         contract "./meta/contracts/root.md"
     }
 
@@ -31,6 +32,11 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
     Module Watch "Watch mode: periodic scan with finding-change events" id "cairn.watch" {
         path "./src/watch.rs"
         contract "./meta/contracts/watch.md"
+    }
+
+    Module Workspace "Multi-project workspace aggregation (cairn.workspace)" id "cairn.workspace" {
+        path "./src/workspace"
+        contract "./meta/contracts/workspace.md"
     }
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
         decisions "./meta/decisions"

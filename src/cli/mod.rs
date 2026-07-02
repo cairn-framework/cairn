@@ -27,25 +27,30 @@ use crate::query_api::requires_valid_map;
 /// Command metadata.
 mod accept;
 mod commands;
-pub(crate) mod copy;
 pub mod export;
 mod format;
 mod render;
 
+// Re-exported so existing `super::copy::`/`crate::cli::copy::` call sites
+// across cli submodules resolve unchanged; the module itself lives at
+// `crate::copy` (shared with query_api, which also needs copy lookups).
+pub(crate) use crate::copy;
+
 use commands::{
-    init_project, legacy_blueprint_warning, run_archive_command, run_change_apply, run_change_new,
-    run_change_tasks, run_decision_command, run_feedback_command, run_hook_command,
+    init_project, legacy_blueprint_warning, run_archive_command, run_change_new,
+    run_decision_command, run_feedback_command, run_gap_command, run_hook_command,
     run_import_openspec, run_onboard_command, run_shared_json_command, run_ui_command,
-    run_watch_command,
+    run_watch_command, run_workspace_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
     render_findings,
 };
 use render::{
-    render_backlog, render_brief, render_context, render_decisions, render_dependencies,
-    render_files, render_get, render_health, render_neighbourhood, render_next, render_rationale,
-    render_remediate, render_research, render_sources, render_status, render_todos,
+    render_backlog, render_brief, render_bundle, render_context, render_decisions,
+    render_dependencies, render_files, render_get, render_health, render_neighbourhood,
+    render_next, render_rationale, render_remediate, render_research, render_sources,
+    render_status, render_symbols, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -153,6 +158,9 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "decision" {
         return run_decision_command(&parsed, project_root);
     }
+    if parsed.command == "workspace" {
+        return run_workspace_command(&parsed, project_root);
+    }
     if parsed.command == "check" && !parsed.file.exists() {
         // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
         // warning that run_project_command emits at line 145-148.
@@ -214,23 +222,11 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
     match subcommand {
         Some("new") => {
             let Some(id) = change_id else {
-                return err(1, "usage: cairn change new <change-id>");
+                return err(2, "usage: cairn change new <change-id>");
             };
             run_change_new(project_root, id)
         }
-        Some("tasks") => {
-            let Some(id) = change_id else {
-                return err(1, "usage: cairn change tasks <change-id>");
-            };
-            run_change_tasks(project_root, id)
-        }
-        Some("apply") => {
-            let Some(id) = change_id else {
-                return err(1, "usage: cairn change apply <change-id>");
-            };
-            run_change_apply(project_root, id)
-        }
-        _ => err(1, "usage: cairn change <new|tasks|apply> <change-id>"),
+        _ => err(2, "usage: cairn change new <change-id>"),
     }
 }
 struct ParsedArgs {
@@ -336,6 +332,9 @@ fn render_loaded_project_command(
         "get" => render_get(parsed, root, scan_result),
         "neighbourhood" => render_neighbourhood(parsed, scan_result),
         "files" => render_files(parsed, scan_result),
+        "symbols" => render_symbols(parsed, scan_result),
+        "bundle" => render_bundle(parsed, scan_result),
+        "gap" => return run_gap_command(parsed, root, scan_result),
         "todos" => render_todos(parsed, scan_result),
         "decisions" => render_decisions(parsed, scan_result),
         "research" => render_research(parsed, scan_result),
@@ -381,6 +380,33 @@ fn render_loaded_project_command(
         }
         "order" => match query::order(&scan_result.graph) {
             Ok(response) => Ok(format!("Order:\n{}\n", lines(&response.nodes))),
+            Err(findings) => return findings_output(parsed.json, &findings),
+        },
+        "frontier" => match query::frontier(&scan_result.graph) {
+            Ok(response) => {
+                let mut out = String::from("Ready:\n");
+                if response.ready.is_empty() {
+                    out.push_str("  (none)\n");
+                } else {
+                    for entry in &response.ready {
+                        let _ = writeln!(out, "  {} (tier {})", entry.node, entry.tier);
+                    }
+                }
+                out.push_str("\nBlocked:\n");
+                if response.blocked.is_empty() {
+                    out.push_str("  (none)\n");
+                } else {
+                    for entry in &response.blocked {
+                        let _ = writeln!(
+                            out,
+                            "  {}: blocked by {}",
+                            entry.node,
+                            entry.blocking.join(", ")
+                        );
+                    }
+                }
+                Ok(out)
+            }
             Err(findings) => return findings_output(parsed.json, &findings),
         },
         "dependents" | "depends" => render_dependencies(parsed, scan_result),
@@ -459,11 +485,13 @@ const EXTRA_CLI_COMMANDS: &[&str] = &[
     "check",
     "export",
     "feedback",
+    "gap",
     "import-openspec",
     "next",
     "onboard",
     "refine",
     "watch",
+    "workspace",
 ];
 
 /// MCP-only tools that should not appear in CLI command lists.
@@ -505,10 +533,16 @@ fn command_description(name: &str) -> &'static str {
         "export" => "Export project data",
         "feedback" => "Record cairn friction and get an upstream issue link",
         "files" => "List files owned by a node",
+        "symbols" => "List public symbols extracted from a node",
+        "bundle" => {
+            "Generate bundle: contract, decisions, dependency interfaces, and gates for a node"
+        }
+        "gap" => "Log an unresolved question as a proposed decision artefact",
         "get" => "Inspect a node by ID",
         "hook" => "Run reconciliation hooks",
         "init" => "Scaffold a new cairn project",
         "islands" => "Show connected components of the map graph",
+        "frontier" => "Show buildable-now and blocked ghost nodes",
         "import-openspec" => "Migrate openspec changes to meta/changes",
         "lint" => "Lint the blueprint and report findings",
         "neighbourhood" => "Show a node and its neighbours",
@@ -532,6 +566,7 @@ fn command_description(name: &str) -> &'static str {
         "todos" => "List todos linked to a node",
         "ui" => "Launch the web UI",
         "watch" => "Watch for finding changes and emit events",
+        "workspace" => "Aggregate status, lint, and frontier queries across a cairn.workspace",
         _ => "",
     }
 }
@@ -607,10 +642,13 @@ fn uses_shared_json(command: &str) -> bool {
             | "contract"
             | "docstring"
             | "files"
+            | "symbols"
+            | "bundle"
             | "dependents"
             | "depends"
             | "order"
             | "islands"
+            | "frontier"
             | "lint"
             | "scan"
             | "status"
@@ -665,7 +703,9 @@ mod tests {
             ("dependents", vec!["dependents", "app.api"]),
             ("depends", vec!["depends", "app.api"]),
             ("contract", vec!["contract", "app.api"]),
+            ("bundle", vec!["bundle", "app.api"]),
             ("order", vec!["order"]),
+            ("frontier", vec!["frontier"]),
             ("lint", vec!["lint"]),
             ("scan", vec!["scan"]),
             ("hook", vec!["hook", "all"]),

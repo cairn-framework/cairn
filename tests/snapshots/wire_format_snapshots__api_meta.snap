@@ -1,6 +1,5 @@
 ---
 source: tests/wire_format_snapshots.rs
-assertion_line: 52
 expression: value
 ---
 {
@@ -36,6 +35,18 @@ expression: value
       "safety": "ReadOnly"
     },
     {
+      "name": "symbols",
+      "request": "NodeRequest",
+      "response": "SymbolsResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "bundle",
+      "request": "NodeRequest",
+      "response": "BundleResponse",
+      "safety": "ReadOnly"
+    },
+    {
       "name": "dependents",
       "request": "DependencyRequest",
       "response": "DependencyResponse",
@@ -57,6 +68,12 @@ expression: value
       "name": "islands",
       "request": "IslandsRequest",
       "response": "IslandsResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "frontier",
+      "request": "FrontierRequest",
+      "response": "FrontierResponse",
       "safety": "ReadOnly"
     },
     {

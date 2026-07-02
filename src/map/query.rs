@@ -2,7 +2,7 @@
 //! Typed query services over map graphs.
 
 use super::{
-    graph::{Finding, Graph, NodeRecord},
+    graph::{Finding, Graph, NodeRecord, NodeState},
     integrity,
 };
 
@@ -31,6 +31,15 @@ pub struct FilesResponse {
     pub node: String,
     /// Claimed files.
     pub files: Vec<String>,
+}
+
+/// Symbol list response.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SymbolsResponse {
+    /// Node ID.
+    pub node: String,
+    /// Extracted public symbols.
+    pub symbols: Vec<crate::reconcile::SymbolRecord>,
 }
 
 /// Dependency response.
@@ -78,6 +87,33 @@ pub struct GraphResponse {
 pub struct OrderResponse {
     /// Ordered node IDs.
     pub nodes: Vec<String>,
+}
+
+/// One node in a `frontier()` response.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FrontierEntry {
+    /// Node ID.
+    pub node: String,
+    /// Human-readable name.
+    pub name: String,
+    /// Dependency tier: 1 + the longest chain of outbound edges below this
+    /// node (0 for a node with no outbound edges).
+    pub tier: usize,
+    /// Whether the node declares a contract pointer.
+    pub has_contract: bool,
+    /// Non-synced outbound targets blocking this node. Empty for `ready`
+    /// entries.
+    pub blocking: Vec<String>,
+}
+
+/// Buildable-now / blocked query over ghost nodes.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FrontierResponse {
+    /// Ghost nodes whose outbound targets are all synced, tiered by
+    /// dependency depth (shallowest first).
+    pub ready: Vec<FrontierEntry>,
+    /// Remaining ghost nodes, each naming its non-synced outbound targets.
+    pub blocked: Vec<FrontierEntry>,
 }
 
 /// Lint response.
@@ -159,6 +195,19 @@ pub fn files(graph: &Graph, node: &str) -> Result<FilesResponse, Finding> {
     })
 }
 
+/// Returns structured public symbols extracted for the node.
+///
+/// # Errors
+///
+/// Returns a finding when the node cannot be resolved.
+pub fn symbols(graph: &Graph, node: &str) -> Result<SymbolsResponse, Finding> {
+    let node = graph.resolve(node)?;
+    Ok(SymbolsResponse {
+        node: node.id.clone(),
+        symbols: node.symbols.clone(),
+    })
+}
+
 /// Returns nodes the subject depends on.
 ///
 /// # Errors
@@ -237,6 +286,83 @@ pub fn graph(graph: &Graph) -> GraphResponse {
 /// Returns cycle findings when the dependency graph is cyclic.
 pub fn order(graph: &Graph) -> Result<OrderResponse, Vec<Finding>> {
     integrity::topological_order(graph).map(|nodes| OrderResponse { nodes })
+}
+
+/// Buildable-now / blocked query over ghost nodes: `ready` holds `Ghost`
+/// nodes whose outbound targets are all `Synced`, tiered by dependency
+/// depth; `blocked` holds the remaining `Ghost` nodes, each naming its
+/// non-synced outbound targets.
+///
+/// # Errors
+///
+/// Returns cycle findings, in the same shape as [`order`], when the
+/// dependency graph is cyclic (tiering is undefined on a cycle).
+pub fn frontier(graph: &Graph) -> Result<FrontierResponse, Vec<Finding>> {
+    integrity::topological_order(graph)?;
+    let tiers = compute_tiers(graph);
+    let mut ready = Vec::new();
+    let mut blocked = Vec::new();
+    for node in graph.nodes.values() {
+        if node.state != NodeState::Ghost {
+            continue;
+        }
+        let blocking: Vec<String> = graph
+            .outbound
+            .get(&node.id)
+            .into_iter()
+            .flatten()
+            .filter_map(|edge| graph.nodes.get(&edge.to))
+            .filter(|target| target.state != NodeState::Synced)
+            .map(|target| target.id.clone())
+            .collect();
+        let entry = FrontierEntry {
+            node: node.id.clone(),
+            name: node.name.clone(),
+            tier: tiers.get(&node.id).copied().unwrap_or(0),
+            has_contract: !node.contracts.is_empty(),
+            blocking,
+        };
+        if entry.blocking.is_empty() {
+            ready.push(entry);
+        } else {
+            blocked.push(entry);
+        }
+    }
+    ready.sort_by(|a, b| a.tier.cmp(&b.tier).then_with(|| a.node.cmp(&b.node)));
+    blocked.sort_by(|a, b| a.node.cmp(&b.node));
+    Ok(FrontierResponse { ready, blocked })
+}
+
+/// Dependency tier per node: 1 + the deepest tier among its outbound
+/// targets, or 0 for a node with no outbound edges. Assumes an acyclic
+/// graph (callers check for cycles first).
+fn compute_tiers(graph: &Graph) -> std::collections::BTreeMap<String, usize> {
+    let mut tiers = std::collections::BTreeMap::new();
+    for id in graph.nodes.keys() {
+        compute_tier(id, graph, &mut tiers);
+    }
+    tiers
+}
+
+fn compute_tier(
+    id: &str,
+    graph: &Graph,
+    tiers: &mut std::collections::BTreeMap<String, usize>,
+) -> usize {
+    if let Some(&tier) = tiers.get(id) {
+        return tier;
+    }
+    let tier = graph
+        .outbound
+        .get(id)
+        .into_iter()
+        .flatten()
+        .filter(|edge| graph.nodes.contains_key(&edge.to))
+        .map(|edge| compute_tier(&edge.to, graph, tiers) + 1)
+        .max()
+        .unwrap_or(0);
+    tiers.insert(id.to_owned(), tier);
+    tier
 }
 
 /// Returns grouped lint findings, including cycles.
@@ -435,6 +561,7 @@ mod tests {
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: Vec::new(),
+            symbols: Vec::new(),
             span: Span::point("test", 1, 1),
         }
     }
@@ -893,5 +1020,58 @@ mod tests {
         let g = make_graph(&["a"], &[("a", "a")]);
         let resp = depends(&g, "a", true).expect("must resolve");
         assert!(resp.nodes.is_empty(), "self-loop must produce empty result");
+    }
+
+    // ── frontier ──────────────────────────────────────────────────────────
+
+    #[test]
+    fn frontier_all_synced_graph_returns_empty_both() {
+        let g = make_graph(&["a", "b"], &[("a", "b")]);
+        let resp = frontier(&g).expect("acyclic graph must resolve");
+        assert!(resp.ready.is_empty());
+        assert!(resp.blocked.is_empty());
+    }
+
+    #[test]
+    fn frontier_ghost_with_synced_deps_is_ready_and_tiered() {
+        // c -> b -> a, all synced except c (ghost). c's only dependency (b)
+        // is synced, so c is ready. tier = longest outbound chain below the
+        // node: tier(a)=0, tier(b)=1, tier(c)=2.
+        let mut g = make_graph(&["a", "b", "c"], &[("c", "b"), ("b", "a")]);
+        g.nodes.get_mut("c").unwrap().state = NodeState::Ghost;
+        let resp = frontier(&g).expect("acyclic graph must resolve");
+        assert!(resp.blocked.is_empty());
+        assert_eq!(resp.ready.len(), 1);
+        assert_eq!(resp.ready[0].node, "c");
+        assert_eq!(resp.ready[0].tier, 2);
+        assert!(resp.ready[0].blocking.is_empty());
+    }
+
+    #[test]
+    fn frontier_ghost_with_unsynced_dep_is_blocked_naming_dependency() {
+        // b -> a; both ghost. b is blocked on a (also unsynced).
+        let mut g = make_graph(&["a", "b"], &[("b", "a")]);
+        g.nodes.get_mut("a").unwrap().state = NodeState::Ghost;
+        g.nodes.get_mut("b").unwrap().state = NodeState::Ghost;
+        let resp = frontier(&g).expect("acyclic graph must resolve");
+        // "a" has no outbound edges, so it is trivially ready (no blockers)
+        // even though it is Ghost; "b" depends on the still-Ghost "a".
+        assert_eq!(resp.ready.len(), 1, "a has no dependencies, must be ready");
+        assert_eq!(resp.ready[0].node, "a");
+        assert_eq!(resp.blocked.len(), 1, "b must be blocked");
+        assert_eq!(resp.blocked[0].node, "b");
+        assert_eq!(resp.blocked[0].blocking, vec!["a".to_owned()]);
+    }
+
+    #[test]
+    fn frontier_cyclic_graph_propagates_structural_error_like_order() {
+        let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
+        let order_err = order(&g).expect_err("cycle must fail order()");
+        let frontier_err = frontier(&g).expect_err("cycle must fail frontier()");
+        assert_eq!(
+            order_err.iter().map(|f| &f.code).collect::<Vec<_>>(),
+            frontier_err.iter().map(|f| &f.code).collect::<Vec<_>>(),
+            "frontier must propagate the same structural-cycle error shape as order"
+        );
     }
 }

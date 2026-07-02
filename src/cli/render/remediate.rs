@@ -212,9 +212,9 @@ pub(crate) fn render_brief(
     let items = crate::state::backlog::read(root);
     let Some(bead) = resolve_brief_bead(parsed, &items) else {
         let message = match parsed.command_args.get(1) {
-            Some(id) => crate::cli::copy::lookup("brief.not-found").replace("{id}", id),
-            None if items.is_empty() => crate::cli::copy::lookup("brief.empty").to_owned(),
-            None => crate::cli::copy::lookup("brief.none-ready").to_owned(),
+            Some(id) => crate::copy::lookup("brief.not-found").replace("{id}", id),
+            None if items.is_empty() => crate::copy::lookup("brief.empty").to_owned(),
+            None => crate::copy::lookup("brief.none-ready").to_owned(),
         };
         if parsed.json {
             return format!("{{\"brief\":null,\"message\":\"{}\"}}\n", esc(&message));
@@ -245,8 +245,8 @@ pub(crate) fn render_brief(
             .filter(|contract| contract.node == node.id)
             .map(|contract| contract.body.trim().to_owned())
     });
-    let gates = crate::cli::copy::lookup("brief.gates");
-    let staleness = crate::cli::copy::lookup("brief.staleness-note");
+    let gates = crate::copy::lookup("brief.gates");
+    let staleness = crate::copy::lookup("brief.staleness-note");
 
     let data = BriefData {
         bead: &bead,
@@ -317,13 +317,13 @@ fn format_brief_human(data: &BriefData) -> String {
         format!("  run: bd show {}", bead.id),
     ];
     if !data.ready_now {
-        out.push(format!("  {}", crate::cli::copy::lookup("brief.not-ready")));
+        out.push(format!("  {}", crate::copy::lookup("brief.not-ready")));
     }
     match data.node {
         Some(node) => out.push(format!("  node: {}", node.id)),
         None => out.push(format!(
             "  node: (unlinked) {}",
-            crate::cli::copy::lookup("brief.unlinked-hint").replace("{id}", &bead.id)
+            crate::copy::lookup("brief.unlinked-hint").replace("{id}", &bead.id)
         )),
     }
     out.push(String::new());
@@ -441,6 +441,7 @@ mod tests {
             contracts,
             state: NodeState::Synced,
             files: Vec::new(),
+            symbols: Vec::new(),
             span: crate::blueprint::Span::point("test", 1, 1),
         }
     }
@@ -498,6 +499,7 @@ mod tests {
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,
+            gap: false,
             claims: None,
             body: body.to_owned(),
         }
@@ -572,6 +574,7 @@ mod tests {
                 declared_by: "cairn.kernel.cli".to_owned(),
                 node: "cairn.kernel.cli".to_owned(),
                 body: "Public interface: parse_args".to_owned(),
+                interface: Vec::new(),
             },
         );
         let decisions = vec![decision(

@@ -52,10 +52,13 @@ Error responses from the MCP/query path:
 | `neighbourhood <node>` | `cairn_neighbourhood` | Node + inbound/outbound edges |
 | `contract <node>` | `cairn_contract` | Contract body text |
 | `files <node>` | `cairn_files` | File paths owned by the node |
+| `symbols <node>` | `cairn_symbols` | Public symbols extracted from the node (name, kind, signature, file, line) |
+| `bundle <node>` | `cairn_bundle` | Contract, decisions, dependency interfaces, and gates composed for one node |
 | `depends <node>` | `cairn_depends` | Outbound dependency edges |
 | `dependents <node>` | `cairn_dependents` | Inbound dependency edges |
 | `order` | `cairn_order` | Topological sort of all nodes |
 | `islands` | `cairn_islands` | Disconnected graph components |
+| `frontier` | `cairn_frontier` | Buildable-now (ready) and blocked ghost nodes, tiered by dependency depth |
 | `lint` | `cairn_lint` | All findings (errors + warnings + info) |
 | `health` | `cairn_health` | Comprehensive health assessment (clean flag, counts, findings) |
 | `remediate` | `cairn_remediate` | Ordered action plan from current findings |
@@ -77,6 +80,7 @@ Error responses from the MCP/query path:
 | `summarise <node>` | `cairn_summarise` | Generate a contract summary for a node |
 | `ui` | — | Launch the web UI server |
 | `watch` | `cairn_watch` | Watch for finding changes and emit events |
+| `workspace <status\|lint\|frontier>` | — | Aggregate status, lint, and frontier queries across a `cairn.workspace`'s member projects |
 
 ### Mutating commands (modify filesystem)
 
@@ -91,6 +95,7 @@ Error responses from the MCP/query path:
 | `import-openspec` | `cairn_import_openspec` | Migrate openspec changes to meta/changes |
 | `feedback "<message>"` | — | Record cairn friction in `.cairn/feedback.md`, print upstream issue link |
 | `decision new <slug>` | — | Scaffold a new decision artefact (frontmatter + sections) |
+| `gap <node> --question "<text>"` | — | Log an unresolved question as a `gap: true`, `status: proposed` decision artefact |
 
 ### Draft lifecycle (semi-stable)
 

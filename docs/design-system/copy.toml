@@ -68,6 +68,11 @@ heading = "No inbound dependencies"
 body = "No other nodes depend on this one."
 cta = "cairn dependents <node>"
 
+[empty-states.node-no-symbols]
+heading = "No symbols"
+body = "No public symbols were extracted from this node."
+cta = "cairn symbols <node>"
+
 [empty-states.map-clean]
 heading = "Map clean"
 body = "All nodes reconciled. No drift detected."

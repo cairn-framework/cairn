@@ -6,7 +6,7 @@ use super::*;
 use api::{
     artefact_response_json, beads_response_json, contract_response_json, dependency_json,
     finding_json, graph_json, lint_json, meta_json, node_json, project_finding, rationale_json,
-    status_json,
+    status_json, symbols_response_json,
 };
 use serialise::{esc, percent_decode};
 use std::{cell::RefCell, time::SystemTime};
@@ -185,6 +185,7 @@ impl Server {
                 |response| json(200, &node_json(&response.node)),
             ),
             "contract" => json(200, &contract_response_json(project, &node)),
+            "symbols" => json(200, &symbols_response_json(project, &node)),
             "decisions" => json(200, &artefact_response_json(&self.root, "decisions", &node)),
             "todos" => json(200, &artefact_response_json(&self.root, "todos", &node)),
             "research" => json(200, &artefact_response_json(&self.root, "research", &node)),

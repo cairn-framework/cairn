@@ -10,10 +10,10 @@ use super::{Target, TargetReport, blueprint, config, detect_divergence};
 
 /// Cache version for reconciler cache format.
 ///
-/// Bumped from 3 to 4 when `ReconcileReport` gained `node_symbols`, because
-/// old cached reports deserialize with an empty `node_symbols` map and would
-/// otherwise produce degenerate per-node interface hashes.
-const RECONCILER_CACHE_VERSION: u32 = 4;
+/// Bumped from 3 to 4 when `ReconcileReport` gained `node_symbols`.
+/// Bumped from 4 to 5 when `ReconcileReport` gained `node_symbol_records`,
+/// to force a clean rescan rather than silently producing empty symbol records.
+const RECONCILER_CACHE_VERSION: u32 = 5;
 /// Persistent cache entry for reconciler results.
 #[derive(serde::Serialize, serde::Deserialize)]
 struct ReconcilerCacheEntry {
@@ -240,6 +240,13 @@ pub(crate) fn build_reports_from_cache(
                 reconciler_id: target.reconciler_id.clone(),
                 claimed_files: owned_files,
                 symbols: std::sync::Arc::new(owned_symbols),
+                symbol_records: std::sync::Arc::new(
+                    report
+                        .node_symbol_records
+                        .get(&target.id.node_id)
+                        .cloned()
+                        .unwrap_or_default(),
+                ),
                 hash,
             });
         }

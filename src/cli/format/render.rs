@@ -227,6 +227,7 @@ mod tests {
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,
+            gap: false,
             claims: None,
             body: String::new(),
         };
@@ -292,6 +293,7 @@ mod tests {
             children: Vec::new(),
             paths: Vec::new(),
             owns_files: false,
+            symbols: Vec::new(),
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: Vec::new(),

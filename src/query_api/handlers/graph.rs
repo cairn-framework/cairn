@@ -121,3 +121,21 @@ pub(crate) fn islands_json(scan_result: &scanner::ScanResult) -> Value {
         .collect();
     json!({ "islands": islands })
 }
+
+pub(crate) fn frontier_json(scan_result: &scanner::ScanResult) -> Result<Value, QueryError> {
+    let response =
+        query::frontier(&scan_result.graph).map_err(|findings| findings_error(&findings))?;
+    let entry_json = |e: &query::FrontierEntry| {
+        json!({
+            "node": e.node,
+            "name": e.name,
+            "tier": e.tier,
+            "has_contract": e.has_contract,
+            "blocking": e.blocking,
+        })
+    };
+    Ok(json!({
+        "ready": response.ready.iter().map(entry_json).collect::<Vec<_>>(),
+        "blocked": response.blocked.iter().map(entry_json).collect::<Vec<_>>(),
+    }))
+}

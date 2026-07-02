@@ -134,7 +134,7 @@ fn title_from_slug(slug: &str) -> String {
 }
 
 /// Current UTC date as `YYYY-MM-DD`, mirroring the changes archiver.
-fn today_utc() -> String {
+pub(super) fn today_utc() -> String {
     std::process::Command::new("date")
         .args(["-u", "+%F"])
         .output()

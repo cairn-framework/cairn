@@ -226,6 +226,41 @@ pub(crate) fn render_files(
     })
 }
 
+pub(crate) fn render_symbols(
+    parsed: &ParsedArgs,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    node_arg(&parsed.command_args).and_then(|node| {
+        let node_record = scan_result.graph.resolve(node)?;
+        let mut output = format!("Symbols for {}:\n", node_record.id);
+        if node_record.symbols.is_empty() {
+            output.push_str("  (none)\n");
+            return Ok(output);
+        }
+        let mut by_file: std::collections::BTreeMap<&str, Vec<&crate::reconcile::SymbolRecord>> =
+            std::collections::BTreeMap::new();
+        for symbol in &node_record.symbols {
+            by_file
+                .entry(symbol.file.as_str())
+                .or_default()
+                .push(symbol);
+        }
+        for (file, symbols) in by_file {
+            use std::fmt::Write;
+            writeln!(output, "  {file}:").unwrap();
+            for symbol in symbols {
+                writeln!(
+                    output,
+                    "    {}  {:?}  {}",
+                    symbol.name, symbol.kind, symbol.line
+                )
+                .unwrap();
+            }
+        }
+        Ok(output)
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -248,6 +283,7 @@ mod tests {
             children: Vec::new(),
             paths: Vec::new(),
             owns_files: false,
+            symbols: Vec::new(),
             contracts: Vec::new(),
             state: NodeState::Synced,
             files,
@@ -298,6 +334,7 @@ mod tests {
                 .iter()
                 .map(std::string::ToString::to_string)
                 .collect(),
+            symbol_records: Arc::new(Vec::new()),
             symbols: Arc::new(Vec::new()),
             hash: "abcd1234".to_owned(),
         }

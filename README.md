@@ -101,11 +101,13 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 ## What it does
 
 - Reads a human-written `cairn.blueprint` into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
-- Checks declared nodes against real files on disk and marks `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter.
-- Writes `map.md` with generated frontmatter, active changes, and ranked findings agents can read.
-- Computes steady interface hashes and spots contract drift between revisions.
+- Checks declared nodes against real files on disk and marks `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter, extracting structured public symbols (`cairn symbols <id>`) rather than flattening them into a hash.
+- Writes `map.md` (human-readable) and a committed, deterministic `map.json` snapshot with generated frontmatter, active changes, and ranked findings agents can read.
+- Computes steady interface hashes and spots contract drift between revisions; contracts can declare an `interface:` block checked against extracted symbols.
 - Surfaces `interface contradictions` (blocking) and `rationale tensions` (advisory), so commits that break the chain never land quietly.
-- Tracks structured changes (`meta/changes/`) with delta semantics and an acceptance gate (`cairn accept`).
+- Tracks structured changes (`meta/changes/`) with delta semantics and an acceptance gate (`cairn accept`); the change system is format, validation, and apply/archive only, not a task scheduler.
+- Gives agents what they need to build a ghost node: `cairn bundle <id>` (contract, decisions, and dependency interfaces in one call) and `cairn gap <id> --question` to log a genuine underspecification instead of guessing. `cairn frontier` reports what is buildable now versus blocked on an unbuilt dependency.
+- Aggregates status, lint, and frontier queries across several related projects with `cairn workspace`, when `cairn.workspace` declares member projects.
 - Onboards existing codebases: `cairn init --from-code` extraction, `cairn refine` re-discovery, `cairn onboard` orphan triage, `cairn islands` for disconnected parts.
 - Hands back every result as machine-readable JSON, as MCP tools (`cairn-mcp`), and in a local web explorer (`cairn ui`).
 
@@ -116,13 +118,15 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 | Orientation for a session | `cairn context` |
 | Reconcile blueprint against code | `cairn scan` (`--strict` for CI) |
 | Inspect a node / its surroundings | `cairn get <id>`, `cairn neighbourhood <id>` |
-| Dependency questions | `cairn depends <id>`, `cairn dependents <id>`, `cairn order`, `cairn islands` |
+| Dependency questions | `cairn depends <id>`, `cairn dependents <id>`, `cairn order`, `cairn islands`, `cairn frontier` |
 | Provenance questions | `cairn rationale <id>`, `cairn decisions <id>`, `cairn research <id>`, `cairn sources <id>` |
-| Work for a node or the whole graph | `cairn todos <id>`, `cairn status` |
+| Work for a node or the whole graph | `cairn todos <id>`, `cairn status`, `cairn symbols <id>` |
 | Findings | `cairn lint`, `cairn check` |
 | Commit gates | `cairn hook structural\|interface\|tension\|all` |
 | Changes | `cairn change new <id>`, `cairn changes`, `cairn show <id>`, `cairn accept` |
 | Brownfield | `cairn init --from-code`, `cairn refine`, `cairn onboard` |
+| Generate from intent | `cairn bundle <id>`, `cairn gap <id> --question "<text>"` |
+| Multi-project workspaces | `cairn workspace status\|lint\|frontier` |
 | Export | `cairn export --format json\|md\|mermaid` |
 | Web explorer | `cairn ui --port 3000` |
 | Report Cairn friction | `cairn feedback "<message>"` |
@@ -167,7 +171,7 @@ Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `s
 
 ## Status
 
-Specification v0.7 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped; Cairn is not yet on crates.io and the CLI surface may still move. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
+Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped; Cairn is not yet on crates.io and the CLI surface may still move. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
 
 ## Development
 
@@ -199,7 +203,7 @@ The marketing landing lives at `docs/landing/index.html`. It is static HTML cons
 
 ## Reference
 
-- `docs/spec.md`: Cairn v0.7 specification
+- `docs/spec.md`: Cairn v0.8 specification
 - `docs/quickstart.md`: install and first-run walkthrough
 - `docs/blueprint.md`: blueprint grammar reference
 - `docs/commands.md`: CLI command reference

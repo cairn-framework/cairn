@@ -151,6 +151,29 @@ pub(super) fn contract_response_json(project: &scanner::ScanResult, node: &str) 
     format!("{{\"node\":\"{}\",\"artefacts\":[{artefacts}]}}", esc(node))
 }
 
+pub(super) fn symbols_response_json(project: &scanner::ScanResult, node: &str) -> String {
+    let symbols = query::symbols(&project.graph, node).map_or_else(|_| Vec::new(), |r| r.symbols);
+    let symbols_json = symbols
+        .iter()
+        .map(|symbol| {
+            format!(
+                "{{\"name\":\"{}\",\"kind\":\"{}\",\"signature\":\"{}\",\"file\":\"{}\",\"line\":{},\"end_line\":{}}}",
+                esc(&symbol.name),
+                symbol_kind_name(symbol.kind),
+                esc(&symbol.signature),
+                esc(&symbol.file),
+                symbol.line,
+                symbol.end_line
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",");
+    format!(
+        "{{\"node\":\"{}\",\"symbols\":[{symbols_json}]}}",
+        esc(node)
+    )
+}
+
 pub(super) fn contract_json(contract: &Contract) -> String {
     format!(
         "{{\"type\":\"contract\",\"path\":\"{}\",\"title\":\"{}\",\"frontmatter\":{{\"node\":\"{}\"}},\"body\":\"{}\"}}",

@@ -251,15 +251,9 @@ fn test_command_reference_doc_lists_all_commands() {
         doc.contains("cairn watch"),
         "command reference must mention cairn watch"
     );
-    // Verify change subcommands.
-    assert!(
-        doc.contains("cairn change tasks"),
-        "command reference must mention cairn change tasks"
-    );
-    assert!(
-        doc.contains("cairn change apply"),
-        "command reference must mention cairn change apply"
-    );
+    // Change subcommands: only `new` remains (format-only, per
+    // dec.change-format-only); `tasks`/`apply` were deleted with the
+    // beads workflow wiring.
     // Verify migration command.
     assert!(
         doc.contains("cairn import-openspec"),
