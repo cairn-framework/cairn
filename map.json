@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "interface_hash": "464e800f75908ad6",
+  "interface_hash": "0ccb6a6430187f8a",
   "nodes": [
     {
       "id": "cairn",
@@ -3207,13 +3207,15 @@
         "./src/error.rs",
         "./src/verification.rs",
         "./src/signal.rs",
-        "./src/copy.rs"
+        "./src/copy.rs",
+        "./src/report.rs"
       ],
       "files": [
         "src/copy.rs",
         "src/error.rs",
         "src/lib.rs",
         "src/main.rs",
+        "src/report.rs",
         "src/signal.rs",
         "src/verification.rs"
       ],
@@ -3222,20 +3224,28 @@
       ],
       "symbols": [
         {
+          "name": "ISSUE_BASE",
+          "kind": "const",
+          "signature": "pub const ISSUE_BASE",
+          "file": "src/report.rs",
+          "line": 11,
+          "end_line": 11
+        },
+        {
           "name": "package_name",
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 70,
-          "end_line": 72
+          "line": 72,
+          "end_line": 74
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "CairnError",
@@ -3262,12 +3272,28 @@
           "end_line": 104
         },
         {
+          "name": "install_panic_hook",
+          "kind": "function",
+          "signature": "pub fn install_panic_hook()",
+          "file": "src/report.rs",
+          "line": 32,
+          "end_line": 66
+        },
+        {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
           "line": 14,
           "end_line": 18
+        },
+        {
+          "name": "issue_url",
+          "kind": "function",
+          "signature": "pub fn issue_url(title: &str, body: &str) -> String",
+          "file": "src/report.rs",
+          "line": 17,
+          "end_line": 23
         },
         {
           "name": "lookup",
@@ -3282,8 +3308,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "artefacts",
@@ -3398,100 +3424,116 @@
           "end_line": 41
         },
         {
+          "name": "report",
+          "kind": "module",
+          "signature": "pub mod report",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "sse",
           "kind": "module",
           "signature": "pub mod sse",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 63,
-          "end_line": 63
+          "line": 65,
+          "end_line": 65
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 62,
+          "end_line": 62
+        },
+        {
+          "name": "ISSUE_BASE",
+          "kind": "const",
+          "signature": "pub const ISSUE_BASE",
+          "file": "src/report.rs",
+          "line": 11,
+          "end_line": 11
         },
         {
           "name": "package_name",
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 70,
-          "end_line": 72
+          "line": 72,
+          "end_line": 74
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "CairnError",
@@ -3518,12 +3560,28 @@
           "end_line": 104
         },
         {
+          "name": "install_panic_hook",
+          "kind": "function",
+          "signature": "pub fn install_panic_hook()",
+          "file": "src/report.rs",
+          "line": 32,
+          "end_line": 66
+        },
+        {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
           "line": 14,
           "end_line": 18
+        },
+        {
+          "name": "issue_url",
+          "kind": "function",
+          "signature": "pub fn issue_url(title: &str, body: &str) -> String",
+          "file": "src/report.rs",
+          "line": 17,
+          "end_line": 23
         },
         {
           "name": "lookup",
@@ -3538,8 +3596,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "artefacts",
@@ -3654,100 +3712,116 @@
           "end_line": 41
         },
         {
+          "name": "report",
+          "kind": "module",
+          "signature": "pub mod report",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "sse",
           "kind": "module",
           "signature": "pub mod sse",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 63,
-          "end_line": 63
+          "line": 65,
+          "end_line": 65
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 62,
+          "end_line": 62
+        },
+        {
+          "name": "ISSUE_BASE",
+          "kind": "const",
+          "signature": "pub const ISSUE_BASE",
+          "file": "src/report.rs",
+          "line": 11,
+          "end_line": 11
         },
         {
           "name": "package_name",
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 70,
-          "end_line": 72
+          "line": 72,
+          "end_line": 74
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "CairnError",
@@ -3774,12 +3848,28 @@
           "end_line": 104
         },
         {
+          "name": "install_panic_hook",
+          "kind": "function",
+          "signature": "pub fn install_panic_hook()",
+          "file": "src/report.rs",
+          "line": 32,
+          "end_line": 66
+        },
+        {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
           "line": 14,
           "end_line": 18
+        },
+        {
+          "name": "issue_url",
+          "kind": "function",
+          "signature": "pub fn issue_url(title: &str, body: &str) -> String",
+          "file": "src/report.rs",
+          "line": 17,
+          "end_line": 23
         },
         {
           "name": "lookup",
@@ -3794,8 +3884,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "artefacts",
@@ -3910,100 +4000,116 @@
           "end_line": 41
         },
         {
+          "name": "report",
+          "kind": "module",
+          "signature": "pub mod report",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "sse",
           "kind": "module",
           "signature": "pub mod sse",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 63,
-          "end_line": 63
+          "line": 65,
+          "end_line": 65
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 62,
+          "end_line": 62
+        },
+        {
+          "name": "ISSUE_BASE",
+          "kind": "const",
+          "signature": "pub const ISSUE_BASE",
+          "file": "src/report.rs",
+          "line": 11,
+          "end_line": 11
         },
         {
           "name": "package_name",
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 70,
-          "end_line": 72
+          "line": 72,
+          "end_line": 74
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "CairnError",
@@ -4030,12 +4136,28 @@
           "end_line": 104
         },
         {
+          "name": "install_panic_hook",
+          "kind": "function",
+          "signature": "pub fn install_panic_hook()",
+          "file": "src/report.rs",
+          "line": 32,
+          "end_line": 66
+        },
+        {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
           "line": 14,
           "end_line": 18
+        },
+        {
+          "name": "issue_url",
+          "kind": "function",
+          "signature": "pub fn issue_url(title: &str, body: &str) -> String",
+          "file": "src/report.rs",
+          "line": 17,
+          "end_line": 23
         },
         {
           "name": "lookup",
@@ -4050,8 +4172,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "artefacts",
@@ -4166,100 +4288,116 @@
           "end_line": 41
         },
         {
+          "name": "report",
+          "kind": "module",
+          "signature": "pub mod report",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "sse",
           "kind": "module",
           "signature": "pub mod sse",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 63,
-          "end_line": 63
+          "line": 65,
+          "end_line": 65
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 62,
+          "end_line": 62
+        },
+        {
+          "name": "ISSUE_BASE",
+          "kind": "const",
+          "signature": "pub const ISSUE_BASE",
+          "file": "src/report.rs",
+          "line": 11,
+          "end_line": 11
         },
         {
           "name": "package_name",
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 70,
-          "end_line": 72
+          "line": 72,
+          "end_line": 74
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "CairnError",
@@ -4286,12 +4424,28 @@
           "end_line": 104
         },
         {
+          "name": "install_panic_hook",
+          "kind": "function",
+          "signature": "pub fn install_panic_hook()",
+          "file": "src/report.rs",
+          "line": 32,
+          "end_line": 66
+        },
+        {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
           "line": 14,
           "end_line": 18
+        },
+        {
+          "name": "issue_url",
+          "kind": "function",
+          "signature": "pub fn issue_url(title: &str, body: &str) -> String",
+          "file": "src/report.rs",
+          "line": 17,
+          "end_line": 23
         },
         {
           "name": "lookup",
@@ -4306,8 +4460,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "artefacts",
@@ -4422,100 +4576,116 @@
           "end_line": 41
         },
         {
+          "name": "report",
+          "kind": "module",
+          "signature": "pub mod report",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "sse",
           "kind": "module",
           "signature": "pub mod sse",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 63,
-          "end_line": 63
+          "line": 65,
+          "end_line": 65
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 62,
+          "end_line": 62
+        },
+        {
+          "name": "ISSUE_BASE",
+          "kind": "const",
+          "signature": "pub const ISSUE_BASE",
+          "file": "src/report.rs",
+          "line": 11,
+          "end_line": 11
         },
         {
           "name": "package_name",
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 70,
-          "end_line": 72
+          "line": 72,
+          "end_line": 74
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "CairnError",
@@ -4542,12 +4712,28 @@
           "end_line": 104
         },
         {
+          "name": "install_panic_hook",
+          "kind": "function",
+          "signature": "pub fn install_panic_hook()",
+          "file": "src/report.rs",
+          "line": 32,
+          "end_line": 66
+        },
+        {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
           "line": 14,
           "end_line": 18
+        },
+        {
+          "name": "issue_url",
+          "kind": "function",
+          "signature": "pub fn issue_url(title: &str, body: &str) -> String",
+          "file": "src/report.rs",
+          "line": 17,
+          "end_line": 23
         },
         {
           "name": "lookup",
@@ -4562,8 +4748,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "artefacts",
@@ -4678,84 +4864,380 @@
           "end_line": 41
         },
         {
+          "name": "report",
+          "kind": "module",
+          "signature": "pub mod report",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "sse",
           "kind": "module",
           "signature": "pub mod sse",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 63,
-          "end_line": 63
+          "line": 65,
+          "end_line": 65
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 62,
+          "end_line": 62
+        },
+        {
+          "name": "ISSUE_BASE",
+          "kind": "const",
+          "signature": "pub const ISSUE_BASE",
+          "file": "src/report.rs",
+          "line": 11,
+          "end_line": 11
+        },
+        {
+          "name": "package_name",
+          "kind": "function",
+          "signature": "pub const fn package_name() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 72,
+          "end_line": 74
+        },
+        {
+          "name": "package_version",
+          "kind": "function",
+          "signature": "pub const fn package_version() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 78,
+          "end_line": 80
+        },
+        {
+          "name": "CairnError",
+          "kind": "enum",
+          "signature": "pub enum CairnError",
+          "file": "src/error.rs",
+          "line": 17,
+          "end_line": 57
+        },
+        {
+          "name": "VerificationState",
+          "kind": "enum",
+          "signature": "pub enum VerificationState",
+          "file": "src/verification.rs",
+          "line": 7,
+          "end_line": 18
+        },
+        {
+          "name": "code",
+          "kind": "function",
+          "signature": "pub fn code(&self) -> &'static str",
+          "file": "src/error.rs",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "install_panic_hook",
+          "kind": "function",
+          "signature": "pub fn install_panic_hook()",
+          "file": "src/report.rs",
+          "line": 32,
+          "end_line": 66
+        },
+        {
+          "name": "install_sigint_handler",
+          "kind": "function",
+          "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
+          "file": "src/signal.rs",
+          "line": 14,
+          "end_line": 18
+        },
+        {
+          "name": "issue_url",
+          "kind": "function",
+          "signature": "pub fn issue_url(title: &str, body: &str) -> String",
+          "file": "src/report.rs",
+          "line": 17,
+          "end_line": 23
+        },
+        {
+          "name": "lookup",
+          "kind": "function",
+          "signature": "pub fn lookup(key: &str) -> &str",
+          "file": "src/copy.rs",
+          "line": 22,
+          "end_line": 41
+        },
+        {
+          "name": "version_label",
+          "kind": "function",
+          "signature": "pub fn version_label() -> String",
+          "file": "src/lib.rs",
+          "line": 84,
+          "end_line": 86
+        },
+        {
+          "name": "artefacts",
+          "kind": "module",
+          "signature": "pub mod artefacts",
+          "file": "src/lib.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "blueprint",
+          "kind": "module",
+          "signature": "pub mod blueprint",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "brownfield",
+          "kind": "module",
+          "signature": "pub mod brownfield",
+          "file": "src/lib.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "changes",
+          "kind": "module",
+          "signature": "pub mod changes",
+          "file": "src/lib.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "cli",
+          "kind": "module",
+          "signature": "pub mod cli",
+          "file": "src/lib.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "copy",
+          "kind": "module",
+          "signature": "pub mod copy",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
+          "name": "error",
+          "kind": "module",
+          "signature": "pub mod error",
+          "file": "src/lib.rs",
+          "line": 27,
+          "end_line": 27
+        },
+        {
+          "name": "hooks",
+          "kind": "module",
+          "signature": "pub mod hooks",
+          "file": "src/lib.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "lsp",
+          "kind": "module",
+          "signature": "pub mod lsp",
+          "file": "src/lib.rs",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "map",
+          "kind": "module",
+          "signature": "pub mod map",
+          "file": "src/lib.rs",
+          "line": 33,
+          "end_line": 33
+        },
+        {
+          "name": "mcp",
+          "kind": "module",
+          "signature": "pub mod mcp",
+          "file": "src/lib.rs",
+          "line": 35,
+          "end_line": 35
+        },
+        {
+          "name": "provenance",
+          "kind": "module",
+          "signature": "pub mod provenance",
+          "file": "src/lib.rs",
+          "line": 37,
+          "end_line": 37
+        },
+        {
+          "name": "query_api",
+          "kind": "module",
+          "signature": "pub mod query_api",
+          "file": "src/lib.rs",
+          "line": 39,
+          "end_line": 39
+        },
+        {
+          "name": "reconcile",
+          "kind": "module",
+          "signature": "pub mod reconcile",
+          "file": "src/lib.rs",
+          "line": 41,
+          "end_line": 41
+        },
+        {
+          "name": "report",
+          "kind": "module",
+          "signature": "pub mod report",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
+          "name": "scanner",
+          "kind": "module",
+          "signature": "pub mod scanner",
+          "file": "src/lib.rs",
+          "line": 45,
+          "end_line": 45
+        },
+        {
+          "name": "signal",
+          "kind": "module",
+          "signature": "pub mod signal",
+          "file": "src/lib.rs",
+          "line": 47,
+          "end_line": 47
+        },
+        {
+          "name": "sse",
+          "kind": "module",
+          "signature": "pub mod sse",
+          "file": "src/lib.rs",
+          "line": 49,
+          "end_line": 49
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "signature": "pub mod state",
+          "file": "src/lib.rs",
+          "line": 51,
+          "end_line": 51
+        },
+        {
+          "name": "suggested_edges",
+          "kind": "module",
+          "signature": "pub mod suggested_edges",
+          "file": "src/lib.rs",
+          "line": 53,
+          "end_line": 53
+        },
+        {
+          "name": "summariser",
+          "kind": "module",
+          "signature": "pub mod summariser",
+          "file": "src/lib.rs",
+          "line": 55,
+          "end_line": 55
+        },
+        {
+          "name": "ui",
+          "kind": "module",
+          "signature": "pub mod ui",
+          "file": "src/lib.rs",
+          "line": 57,
+          "end_line": 57
+        },
+        {
+          "name": "verification",
+          "kind": "module",
+          "signature": "pub mod verification",
+          "file": "src/lib.rs",
+          "line": 65,
+          "end_line": 65
+        },
+        {
+          "name": "watch",
+          "kind": "module",
+          "signature": "pub mod watch",
+          "file": "src/lib.rs",
+          "line": 59,
+          "end_line": 59
+        },
+        {
+          "name": "workspace",
+          "kind": "module",
+          "signature": "pub mod workspace",
+          "file": "src/lib.rs",
+          "line": 62,
+          "end_line": 62
         }
       ]
     },

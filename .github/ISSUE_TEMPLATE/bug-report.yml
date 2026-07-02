@@ -1,0 +1,40 @@
+name: Bug report
+description: Something didn't work the way you expected.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you see? Paste the exact command and output if you have it.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: cairn version
+      description: Run `cairn --version` and paste the output.
+      placeholder: cairn 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: macOS 15, Ubuntu 24.04, ...
+    validations:
+      required: true
+  - type: input
+    id: blueprint-size
+    attributes:
+      label: Blueprint size (rough)
+      description: Roughly how many nodes does your cairn.blueprint declare? A guess is fine.
+      placeholder: "~40 nodes"
+    validations:
+      required: false

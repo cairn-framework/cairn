@@ -1132,9 +1132,10 @@ footer.site .fnav a:hover { color: var(--ink-char); }
     <div class="install-grid">
       <div class="code-card">
         <div class="card-head"><span class="dot"></span> install</div>
-<pre><span class="prompt">$</span> <span class="cmd">cargo install</span> <span class="flag">--git</span> <span class="arg">https://github.com/cairn-framework/cairn.git</span>
+<pre><span class="prompt">$</span> <span class="cmd">curl</span> <span class="flag">--proto</span> <span class="arg">'=https'</span> <span class="flag">--tlsv1.2</span> <span class="flag">-LsSf</span> <span class="arg">https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh</span> <span class="comment">| sh</span>
 <span class="prompt">$</span> <span class="cmd">cairn init</span>                 <span class="comment"># scaffolds cairn.blueprint</span>
-<span class="prompt">$</span> <span class="cmd">cairn scan</span>                 <span class="comment"># reconcile, emit map.md</span></pre>
+<span class="prompt">$</span> <span class="cmd">cairn scan</span>                 <span class="comment"># reconcile, emit map.md</span>
+<span class="comment"># building from source? cargo install --git https://github.com/cairn-framework/cairn.git</span></pre>
       </div>
 
       <div class="code-card">

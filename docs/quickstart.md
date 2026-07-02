@@ -4,20 +4,29 @@ Get Cairn running and scan your first project in under five minutes.
 
 ## Prerequisites
 
-- **Rust toolchain.** Cairn uses edition 2024, which requires `rustc` 1.85 or later. Install or update via [rustup](https://rustup.rs/).
-- **Git.** Needed for cloning the repo and for Cairn's own reconciliation.
+- **Git.** Needed for cloning the repo (source install only) and for Cairn's own reconciliation.
 
-Verify your Rust version:
+## Install
+
+Cairn is not yet published on crates.io. Prebuilt binaries are the fastest path; building from source is the fallback.
+
+### Prebuilt binary (recommended)
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
+```
+
+No Rust toolchain required. Installs `cairn`, `cairn-mcp`, and `cairn-lsp` for macOS (arm64, x86_64) and Linux (x86_64, arm64). Windows is not yet supported.
+
+### From source
+
+Requires the Rust toolchain: Cairn uses edition 2024, which needs `rustc` 1.85 or later. Install or update via [rustup](https://rustup.rs/), then verify:
 
 ```sh
 rustc --version   # should print 1.85.0 or later
 ```
 
-## Install
-
-Cairn is not yet published on crates.io. Install from the GitHub repository using one of these methods.
-
-### From Git (recommended)
+#### From Git
 
 ```sh
 cargo install --git https://github.com/cairn-framework/cairn.git
@@ -29,7 +38,7 @@ This builds three release binaries and places them in `~/.cargo/bin/`, which is 
 - `cairn-mcp` -- MCP server for agent integration
 - `cairn-lsp` -- language server protocol support (stub)
 
-### Manual build
+#### Manual build
 
 ```sh
 git clone https://github.com/cairn-framework/cairn.git
@@ -147,7 +156,7 @@ Open `http://localhost:3000` in a browser to explore the reconciled graph intera
 - Read the [specification](spec.md) for the conceptual model (two chains, artefact types, reconciliation).
 - Run `cairn scan` before each commit to catch drift early. See [hooks](hooks.md) for Git hook integration.
 - Use `cairn context` as an entry point for AI coding agents working in your repo, and append `.cairn/AGENTS.md` to your agent instructions.
-- When Cairn itself surprises you or gets in your way, run `cairn feedback "<what happened>"`. It records the friction in `.cairn/feedback.md` and prints a prefilled issue link for the upstream tracker.
+- When Cairn itself surprises you or gets in your way, run `cairn feedback "<what happened>"`. It records the friction in `.cairn/feedback.md` and prints a prefilled issue link for the upstream tracker. If `cairn` crashes, it prints the same kind of link on its own. Nothing is ever sent automatically: every report is a link you choose to open yourself.
 
 ## Other binaries
 

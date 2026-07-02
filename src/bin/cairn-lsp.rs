@@ -9,6 +9,7 @@ use std::{env, process};
 use lsp_server::Connection;
 
 fn main() {
+    cairn::report::install_panic_hook();
     let args: Vec<String> = env::args().skip(1).collect();
     if args.iter().any(|arg| arg == "--version" || arg == "-V") {
         println!("{}", cairn::version_label());

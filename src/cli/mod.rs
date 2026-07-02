@@ -846,11 +846,9 @@ mod tests {
         let first = run_in(&root, &["feedback", "scan said X,", "expected Y"]);
         assert_eq!(first.code, 0);
         assert!(first.stdout.contains(".cairn/feedback.md"));
-        assert!(
-            first
-                .stdout
-                .contains("https://github.com/cairn-framework/cairn/issues/new?title=scan%20said")
-        );
+        assert!(first.stdout.contains(
+            "https://github.com/cairn-framework/cairn/issues/new?labels=feedback&title=scan%20said"
+        ));
 
         let second = run_in(&root, &["--json", "feedback", "ui crashed"]);
         assert_eq!(second.code, 0);

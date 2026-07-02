@@ -72,6 +72,10 @@ opt-level = "s"
 strip = true
 panic = "abort"
 
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+
 [dev-dependencies]
 insta = { version = "1", features = ["json", "yaml", "redactions"] }
 tempfile = "3"

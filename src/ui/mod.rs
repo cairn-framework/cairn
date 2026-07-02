@@ -272,6 +272,10 @@ mod tests {
         assert!(graph.body.contains("\"nodes\""));
         assert!(asset.head.contains("text/css"));
         assert!(meta.body.contains("\"schema_version\":1"));
+        assert!(
+            meta.body
+                .contains(&format!("\"version\":\"{}\"", env!("CARGO_PKG_VERSION")))
+        );
 
         Ok(())
     }

@@ -16,6 +16,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         path "./src/verification.rs"
         path "./src/signal.rs"
         path "./src/copy.rs"
+        path "./src/report.rs"
         contract "./meta/contracts/root.md"
     }
 

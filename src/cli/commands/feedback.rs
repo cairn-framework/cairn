@@ -4,7 +4,7 @@
 use super::super::*;
 
 /// Upstream issue tracker for `cairn feedback` reports.
-const FEEDBACK_ISSUE_BASE: &str = "https://github.com/cairn-framework/cairn/issues/new";
+const FEEDBACK_ISSUE_BASE: &str = crate::report::ISSUE_BASE;
 
 pub(crate) fn run_feedback_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
     let message = parsed.command_args[1..].join(" ").trim().to_owned();
@@ -55,11 +55,7 @@ pub(crate) fn run_feedback_command(parsed: &ParsedArgs, root: &Path) -> CliResul
         .take(80)
         .collect();
     let body = format!("{message}\n\nRecorded by `cairn feedback` (cairn {version}).");
-    let issue_url = format!(
-        "{FEEDBACK_ISSUE_BASE}?title={}&body={}",
-        encode_query_component(&title),
-        encode_query_component(&body)
-    );
+    let issue_url = crate::report::issue_url(&title, &body);
     if parsed.json {
         return ok(format!(
             "{{\"command\":\"feedback\",\"status\":\"ok\",\"data\":{{\"recorded\":\".cairn/feedback.md\",\"issue_url\":\"{}\"}}}}\n",
@@ -71,20 +67,4 @@ pub(crate) fn run_feedback_command(parsed: &ParsedArgs, root: &Path) -> CliResul
         copy::lookup("feedback.recorded"),
         copy::lookup("feedback.cta")
     ))
-}
-
-/// Percent-encodes a string for use as a URL query parameter value.
-fn encode_query_component(value: &str) -> String {
-    let mut out = String::with_capacity(value.len());
-    for byte in value.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
-                out.push(byte as char);
-            }
-            _ => {
-                let _ = write!(out, "%{byte:02X}");
-            }
-        }
-    }
-    out
 }

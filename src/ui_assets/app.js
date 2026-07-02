@@ -125,6 +125,13 @@
     return encodeURIComponent(id);
   }
 
+  const ISSUE_BASE = "https://github.com/cairn-framework/cairn/issues/new";
+
+  function openReportIssue(version) {
+    const body = encodeURIComponent(`cairn ${version || "unknown"} webui`);
+    window.open(`${ISSUE_BASE}?labels=feedback&title=&body=${body}`, "_blank", "noopener");
+  }
+
   async function fetchJson(url, options) {
     const response = await fetch(url, options);
     if (!response.ok && response.status !== 404) {
@@ -144,6 +151,10 @@
 
   async function fetchLint() {
     return fetchJson("/api/lint");
+  }
+
+  async function fetchMeta() {
+    return fetchJson("/api/meta");
   }
 
   async function fetchNodeArtefacts(id, kind) {
@@ -427,7 +438,7 @@
   // Top bar
   // ==========================================================================
 
-  function TopBar({ status, selection, nodesById, onClear, onOpenCmd, onOpenBlueprint }) {
+  function TopBar({ status, selection, nodesById, onClear, onOpenCmd, onOpenBlueprint, version }) {
     const crumbs = [];
     const node = selection ? nodesById.get(selection.id) : null;
     if (node) {
@@ -480,6 +491,9 @@
           </button>
         </div>
         <div class="topbar-right">
+          <button class="blueprint-trigger" onClick=${() => openReportIssue(version)} title="Report an issue">
+            <span class="caps">${copy("webui.report.topbar")}</span>
+          </button>
           <button class="blueprint-trigger" onClick=${onOpenBlueprint} title="View blueprint source">
             <span class="caps">.blueprint</span>
           </button>
@@ -1445,7 +1459,7 @@
   // Command palette
   // ==========================================================================
 
-  function CommandPalette({ open, graph, onClose, onSelect }) {
+  function CommandPalette({ open, graph, onClose, onSelect, version }) {
     const [q, setQ] = useState("");
     const [activeIdx, setActiveIdx] = useState(0);
     const inputRef = useRef(null);
@@ -1475,13 +1489,17 @@
 
     if (!open) return null;
     const ql = q.toLowerCase();
-    const matches = graph
+    const nodeMatches = graph
       ? graph.nodes.filter((n) => {
           if (!ql) return false;
           return n.id.toLowerCase().includes(ql) || (n.name || "").toLowerCase().includes(ql) || (n.kind || "").toLowerCase().includes(ql) || (n.state || "").toLowerCase().includes(ql);
         })
       : [];
-    const shown = matches.slice(0, 20);
+    const reportActionMatches = ql !== "" && ["report", "issue", "bug", "feedback"].some((kw) => kw.includes(ql));
+    const actionLabel = copy("webui.report.palette");
+    const actions = reportActionMatches ? [{ __action: "report-issue", label: actionLabel }] : [];
+    const shown = [...actions, ...nodeMatches].slice(0, 20);
+    const shownNodes = nodeMatches.slice(0, Math.max(0, 20 - actions.length));
 
     const onInputKey = (e) => {
       if (e.isComposing || e.keyCode === 229) return;
@@ -1494,7 +1512,11 @@
       } else if (e.key === "Enter") {
         const hit = shown[activeIdx];
         if (hit) {
-          onSelect(hit.id);
+          if (hit.__action === "report-issue") {
+            openReportIssue(version);
+          } else {
+            onSelect(hit.id);
+          }
           onClose();
         }
       }
@@ -1526,23 +1548,49 @@
               </div>`
               : html`<div class="cmd-palette-results">
                 ${
-                  matches.length === 0
+                  shown.length === 0
                     ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches.body")}</div>`
                     : html`<${Fragment}>
-                      <div class="caps result-group">Nodes</div>
-                      ${shown.map(
-                        (n, i) => html`
-                        <button class=${clsx("result-row", i === activeIdx && "active")} key=${n.id}
-                          onClick=${() => {
-                            onSelect(n.id);
-                            onClose();
-                          }}>
-                          <span class=${clsx("badge", n.kind === "module" ? "node" : n.kind === "decision" ? "decision" : "node")}>${n.kind}</span>
-                          <span class="title">${n.name}</span>
-                          <span class="rhs">${n.id}</span>
-                        </button>
-                      `,
-                      )}
+                      ${
+                        actions.length === 0
+                          ? null
+                          : html`<${Fragment}>
+                            <div class="caps result-group">Actions</div>
+                            ${actions.map(
+                              (a, i) => html`
+                              <button class=${clsx("result-row", i === activeIdx && "active")} key="action-report-issue"
+                                onClick=${() => {
+                                  openReportIssue(version);
+                                  onClose();
+                                }}>
+                                <span class="badge">↗</span>
+                                <span class="title">${a.label}</span>
+                                <span class="rhs">report</span>
+                              </button>
+                            `,
+                            )}
+                          <//>`
+                      }
+                      ${
+                        shownNodes.length === 0
+                          ? null
+                          : html`<${Fragment}>
+                            <div class="caps result-group">Nodes</div>
+                            ${shownNodes.map(
+                              (n, i) => html`
+                              <button class=${clsx("result-row", actions.length + i === activeIdx && "active")} key=${n.id}
+                                onClick=${() => {
+                                  onSelect(n.id);
+                                  onClose();
+                                }}>
+                                <span class=${clsx("badge", n.kind === "module" ? "node" : n.kind === "decision" ? "decision" : "node")}>${n.kind}</span>
+                                <span class="title">${n.name}</span>
+                                <span class="rhs">${n.id}</span>
+                              </button>
+                            `,
+                            )}
+                          <//>`
+                      }
                     <//>`
                 }
               </div>`
@@ -1649,6 +1697,7 @@
     const [graph, setGraph] = useState(null);
     const [status, setStatus] = useState(null);
     const [lint, setLint] = useState(null);
+    const [meta, setMeta] = useState(null);
     const [error, setError] = useState(null);
 
     const [selectionId, setSelectionId] = useState(null);
@@ -1687,6 +1736,20 @@
         cancelled = true;
       };
     }, [bootTick]);
+
+    useEffect(() => {
+      let cancelled = false;
+      fetchMeta()
+        .then((m) => {
+          if (!cancelled) setMeta(m);
+        })
+        .catch(() => {
+          // Report-issue links fall back to an "unknown" version; not worth surfacing an error for.
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, []);
 
     useEffect(() => {
       try {
@@ -1845,6 +1908,7 @@
           onClear=${(id) => setSelectionId(id || null)}
           onOpenCmd=${() => setCmdOpen(true)}
           onOpenBlueprint=${openBlueprint}
+          version=${meta?.version}
         />
         <div class="main">
           ${
@@ -1886,6 +1950,7 @@
           graph=${graph}
           onClose=${() => setCmdOpen(false)}
           onSelect=${(id) => setSelectionId(id)}
+          version=${meta?.version}
         />
         <${BlueprintModal}
           open=${blueprintOpen}

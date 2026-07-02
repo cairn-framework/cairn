@@ -9,7 +9,11 @@
   <strong>A living map of your code that AI helpers read before they build, and that catches them when they break the plan.</strong>
 </p>
 
-<!-- badges placeholder: build, crates.io, license once published -->
+<p align="center">
+  <a href="https://github.com/cairn-framework/cairn/actions/workflows/ci.yml"><img src="https://github.com/cairn-framework/cairn/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/cairn-framework/cairn/releases/latest"><img src="https://img.shields.io/github/v/release/cairn-framework/cairn" alt="Latest release"></a>
+  <a href="https://github.com/cairn-framework/cairn/blob/main/LICENSE-MIT"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue" alt="License"></a>
+</p>
 
 ## What is Cairn
 
@@ -52,7 +56,7 @@ blueprint  -->  reconcile  -->  gate  -->  query
 ## Quickstart
 
 ```sh
-cargo install --git https://github.com/cairn-framework/cairn.git   # install
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
 cairn init                                                          # scaffold blueprint + config + agent guide
 cairn scan                                                          # reconcile against code
 ```
@@ -172,6 +176,12 @@ Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `s
 ## Status
 
 Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped; Cairn is not yet on crates.io and the CLI surface may still move. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
+
+## Feedback
+
+Something confusing or broken? Run `cairn feedback "<what you expected, what happened instead>"`. It saves your note to `.cairn/feedback.md` and prints a link you can open to file it upstream. If `cairn` crashes, it prints the same kind of link on its own.
+
+Nothing is ever sent for you. No telemetry, no background network calls. Every report is a link you choose to open in your own browser.
 
 ## Development
 

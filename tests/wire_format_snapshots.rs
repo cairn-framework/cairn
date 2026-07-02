@@ -58,7 +58,11 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or_else(|| panic!("{snapshot_name} response missing numeric schema_version"));
         assert_eq!(version, 1, "{snapshot_name} schema_version drifted");
 
-        assert_json_snapshot!(*snapshot_name, value);
+        if *snapshot_name == "api_meta" {
+            assert_json_snapshot!(*snapshot_name, value, { ".version" => "[version]" });
+        } else {
+            assert_json_snapshot!(*snapshot_name, value);
+        }
     }
     Ok(())
 }

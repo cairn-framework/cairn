@@ -39,6 +39,8 @@ pub mod provenance;
 pub mod query_api;
 /// Code reconciliation interfaces.
 pub mod reconcile;
+/// Shared issue-reporting helpers: prefilled issue links and a panic hook.
+pub mod report;
 /// Project scanner orchestration and generated outputs.
 pub mod scanner;
 /// POSIX SIGINT handling without Foundation/ObjC dependencies.

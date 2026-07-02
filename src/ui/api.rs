@@ -20,7 +20,10 @@ pub(super) fn meta_json() -> String {
         })
         .collect::<Vec<_>>()
         .join(",");
-    format!("{{\"available_commands\":[{commands}]}}")
+    format!(
+        "{{\"version\":\"{}\",\"available_commands\":[{commands}]}}",
+        esc(crate::package_version())
+    )
 }
 
 pub(super) fn graph_json(graph: &GraphResponse) -> String {

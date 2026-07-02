@@ -182,6 +182,13 @@ usage = "usage: cairn feedback \"<what you expected, what happened instead>\""
 recorded = "Feedback recorded in .cairn/feedback.md"
 cta = "File it upstream when convenient:"
 
+# -- Crash report ---------------------------------------------------------
+
+[report.crash]
+heading = "cairn {version} crashed:"
+cta = "Nothing was sent. Open this link to report it:"
+transparency = "No telemetry, no network calls. Every report is a link you open yourself. You can also run cairn feedback \"<what happened>\" any time."
+
 # -- Errors -------------------------------------------------------------
 
 [errors]
@@ -214,3 +221,9 @@ not-found = "No bead matches `{id}`. Run `bd ready` to list available work."
 empty = "Nothing to do. The backlog is empty and the project is clean."
 none-ready = "No ready work: every open bead is blocked by a dependency. Run `bd ready` and `bd blocked` to see what is gated."
 not-ready = "Warning: this bead is not in the ready set (closed, or blocked by an open dependency). It may already be done or not yet actionable; check `bd ready` before working it."
+
+# -- Webui: report an issue ----------------------------------------------
+
+[webui.report]
+topbar = "Report an issue"
+palette = "Report an issue"

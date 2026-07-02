@@ -22,6 +22,10 @@ the typed services in the rest of the crate.
 - `verification.rs`: `VerificationState` (`Draft`, `Planned`, `Passed`,
   `Failed`, `Blocked`), serde-serialisable, used to classify test state.
 - `signal.rs`: SIGINT handling without a Foundation/ObjC dependency.
+- `report.rs`: `ISSUE_BASE`, `issue_url()` (prefilled GitHub issue links,
+  always opened by the user, never sent automatically), and
+  `install_panic_hook()` (crash report + issue link on stderr, then defers
+  to the previously installed hook so `RUST_BACKTRACE` output is preserved).
 - `main.rs`: the `cairn` binary entry point; dispatches into `cli`.
 
 ## Invariants
@@ -41,6 +45,10 @@ domain logic of its own.
 
 ## Tests
 
-Unit tests colocated in `src/lib.rs` (version label and re-export surface) and
-`src/verification.rs` (serde round-trip across all five states). The error type
-is exercised transitively by every subsystem that returns `CairnError`.
+Unit tests colocated in `src/lib.rs` (version label and re-export surface),
+`src/verification.rs` (serde round-trip across all five states), and
+`src/report.rs` (`issue_url` percent-encoding and label presence). The error
+type is exercised transitively by every subsystem that returns `CairnError`.
+The panic hook is verified manually (crash heading, prefilled link, and
+transparency line on stderr) since spawning a real panicking process is not
+worth an integration test.
