@@ -2,6 +2,7 @@
 id: dec.workspace-aggregation
 nodes:
   - cairn.kernel
+  - cairn.workspace
 status: accepted
 date: 2026-07-02
 informed_by: [res.vision-refactor-audit]

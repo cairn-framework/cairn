@@ -46,6 +46,7 @@ impl Reconciler for GoReconciler<'_> {
         ReconcilerId("go-code".to_owned())
     }
 
+    #[allow(clippy::too_many_lines)] // Reason: parallel per-chunk processing and merge kept together for clarity
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
         let go_files = discover_go_files(request.root, request.ignores)?;

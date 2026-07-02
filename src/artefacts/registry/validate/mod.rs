@@ -28,6 +28,7 @@ pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: 
     validate_provenance_refs(&research_ids, &source_ids, set);
     validate_sources(root, &source_ids, set);
     validate_decision_claims(root, set);
+    validate_gaps(set);
 }
 
 pub(super) fn validate_nodes(node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
@@ -160,6 +161,23 @@ pub(super) fn validate_decision_refs(
                     Some(decision.path.clone()),
                 ));
             }
+        }
+    }
+}
+
+/// Emits `CAIRN_GAP_UNRESOLVED` for every decision artefact `cairn gap`
+/// wrote (`gap: true` frontmatter) that is still `status: proposed`. The
+/// finding clears when the artefact is edited to `status: accepted` (the
+/// question resolved) or deleted.
+pub(super) fn validate_gaps(set: &mut ArtefactSet) {
+    for decision in &set.decisions {
+        if decision.gap && decision.status == DecisionStatus::Proposed {
+            set.findings.push(warning(
+                "CAIRN_GAP_UNRESOLVED",
+                format!("gap `{}` is unresolved", decision.id),
+                decision.nodes.first().cloned(),
+                Some(decision.path.clone()),
+            ));
         }
     }
 }

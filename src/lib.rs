@@ -21,6 +21,8 @@ pub mod brownfield;
 pub mod changes;
 /// CLI command registry and renderer helpers.
 pub mod cli;
+/// Compile-time copy lookup from `docs/design-system/copy.toml`.
+pub mod copy;
 /// Shared error type.
 pub mod error;
 /// Hook engine and active-change conflict detection.
@@ -53,6 +55,9 @@ pub mod summariser;
 pub mod ui;
 /// Watch mode: periodic scan with finding-change events.
 pub mod watch;
+
+/// Multi-project workspace aggregation (`cairn.workspace`).
+pub mod workspace;
 
 /// Verification state types.
 pub mod verification;

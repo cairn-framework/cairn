@@ -40,9 +40,12 @@ delete `StateBackend`, `StateRecord`, `FilesystemStateBackend`,
 `storage_backend()`, and `src/state/beads.rs` in full. `cairn change new`
 keeps scaffolding `proposal.md`/`design.md`/`tasks.md`/`specs/` (a format
 concern) but stops seeding bead task lines from `tasks.md`. `cairn change
-apply` keeps delta/artefact application, drops bead-task listing. `cairn
-accept` stays: it validates suggested-edges triage and runs gates, which is
-gating, not scheduling.
+tasks` and `cairn change apply` are deleted outright: their entire bodies
+are `list_child_tasks`/`claim_change` respectively, with no other behaviour
+to preserve. Delta/artefact application is a distinct, untouched command:
+`cairn archive <change-id>` (`crate::changes::archive`), not `cairn change
+apply`. `cairn accept` also stays: it validates suggested-edges triage and
+runs gates, which is gating, not scheduling.
 
 ## Rationale
 

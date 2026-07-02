@@ -41,6 +41,12 @@ expression: value
       "safety": "ReadOnly"
     },
     {
+      "name": "bundle",
+      "request": "NodeRequest",
+      "response": "BundleResponse",
+      "safety": "ReadOnly"
+    },
+    {
       "name": "dependents",
       "request": "DependencyRequest",
       "response": "DependencyResponse",
@@ -62,6 +68,12 @@ expression: value
       "name": "islands",
       "request": "IslandsRequest",
       "response": "IslandsResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "frontier",
+      "request": "FrontierRequest",
+      "response": "FrontierResponse",
       "safety": "ReadOnly"
     },
     {

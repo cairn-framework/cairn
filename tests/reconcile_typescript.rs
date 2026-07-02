@@ -301,13 +301,7 @@ fn test_ts_symbol_record_signature_matches_fingerprint_string() {
         .map(|r| r.signature.clone())
         .collect();
     sig_from_records.sort_unstable();
-    let mut sig_from_flat: Vec<String> = report
-        .node_symbols
-        .get("app.api")
-        .unwrap()
-        .iter()
-        .cloned()
-        .collect();
+    let mut sig_from_flat: Vec<String> = report.node_symbols.get("app.api").unwrap().clone();
     sig_from_flat.sort_unstable();
     assert_eq!(
         sig_from_records, sig_from_flat,

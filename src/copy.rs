@@ -9,7 +9,7 @@ use std::sync::LazyLock;
 
 /// Parsed copy table, initialised on first access.
 static COPY: LazyLock<toml::Table> = LazyLock::new(|| {
-    include_str!("../../docs/design-system/copy.toml")
+    include_str!("../docs/design-system/copy.toml")
         .parse::<toml::Table>()
         .expect("copy.toml must be valid TOML")
 });

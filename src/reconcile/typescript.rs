@@ -45,6 +45,7 @@ impl Reconciler for TypeScriptReconciler<'_> {
         ReconcilerId("typescript-code".to_owned())
     }
 
+    #[allow(clippy::too_many_lines)] // Reason: parallel per-chunk processing and merge kept together for clarity
     fn reconcile(&self, request: ReconcileRequest<'_>) -> Result<ReconcileReport, ReconcileError> {
         let owners = eligible_owners(self.ast);
         let ts_files = discover_ts_files(request.root, request.ignores)?;

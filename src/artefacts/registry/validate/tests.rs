@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: registry validation test suite covering integrity, decision, provenance, source, and gap checks together; splitting by validator would duplicate the shared fixture helpers.
 //! Tests for artefact registry validation.
 
 #![allow(clippy::field_reassign_with_default)]
@@ -64,6 +65,7 @@ fn make_decision(id: &str, nodes: &[&str], status: DecisionStatus) -> Decision {
         related: Vec::new(),
         orphaned: false,
         orphan_reason: None,
+        gap: false,
         claims: None,
         body: String::new(),
     }
@@ -224,6 +226,56 @@ fn test_decision_supersedes_superseded_no_warning() {
         !finding_codes(&set).contains(&"CAIRN_DECISION_SUPERSEDES_STATUS"),
         "superseding a Superseded decision must produce no warning"
     );
+}
+
+// ── validate_gaps ────────────────────────────────────────────────────────
+
+#[test]
+fn test_proposed_gap_emits_unresolved_warning() {
+    let mut set = ArtefactSet::default();
+    let mut d = make_decision(
+        "dec.gap-app-real-what-now",
+        &["app.real"],
+        DecisionStatus::Proposed,
+    );
+    d.gap = true;
+    set.decisions = vec![d];
+    validate_gaps(&mut set);
+    let finding = set
+        .findings
+        .iter()
+        .find(|f| f.code == "CAIRN_GAP_UNRESOLVED")
+        .expect("proposed gap must warn");
+    assert_eq!(
+        finding.severity,
+        crate::map::graph::FindingSeverity::Warning
+    );
+    assert_eq!(finding.node.as_deref(), Some("app.real"));
+}
+
+#[test]
+fn test_accepted_gap_emits_no_warning() {
+    let mut set = ArtefactSet::default();
+    let mut d = make_decision(
+        "dec.gap-app-real-what-now",
+        &["app.real"],
+        DecisionStatus::Accepted,
+    );
+    d.gap = true;
+    set.decisions = vec![d];
+    validate_gaps(&mut set);
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_GAP_UNRESOLVED"),
+        "accepting the gap decision must clear the warning"
+    );
+}
+
+#[test]
+fn test_non_gap_decision_emits_no_warning() {
+    let mut set = ArtefactSet::default();
+    set.decisions = vec![make_decision("d1", &["app.real"], DecisionStatus::Proposed)];
+    validate_gaps(&mut set);
+    assert!(!finding_codes(&set).contains(&"CAIRN_GAP_UNRESOLVED"));
 }
 
 // ── validate_provenance_refs ──────────────────────────────────────────────

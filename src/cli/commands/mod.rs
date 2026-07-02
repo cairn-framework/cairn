@@ -8,21 +8,25 @@ mod archive;
 mod change;
 mod decision;
 mod feedback;
+mod gap;
 mod hook;
 mod import;
 mod onboard;
 mod project;
 mod watch;
+mod workspace;
 
 pub(crate) use archive::run_archive_command;
-pub(crate) use change::{run_change_apply, run_change_new, run_change_tasks};
+pub(crate) use change::run_change_new;
 pub(crate) use decision::run_decision_command;
 pub(crate) use feedback::run_feedback_command;
+pub(crate) use gap::run_gap_command;
 pub(crate) use hook::run_hook_command;
 pub(crate) use import::run_import_openspec;
 pub(crate) use onboard::run_onboard_command;
 pub(crate) use project::{init_project, run_ui_command};
 pub(crate) use watch::run_watch_command;
+pub(crate) use workspace::run_workspace_command;
 
 pub(crate) fn run_shared_json_command(
     parsed: &ParsedArgs,

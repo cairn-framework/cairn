@@ -20,7 +20,7 @@ fn temp_root(name: &str) -> PathBuf {
     root
 }
 
-fn write_minimal_project(root: &PathBuf) {
+fn write_minimal_project(root: &std::path::Path) {
     fs::write(
         root.join("cairn.blueprint"),
         "System App \"T\" id \"t\" {}\n",

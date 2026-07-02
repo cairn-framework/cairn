@@ -41,6 +41,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn get <node>` | Inspect a node by ID |
 | `cairn files <node>` | List files owned by a node |
 | `cairn symbols <node>` | List public symbols extracted from a node |
+| `cairn bundle <node>` | Generate bundle: contract, decisions, dependency interfaces, and gates for a node |
 | `cairn contract <node>` | Show the contract for a node |
 | `cairn neighbourhood <node>` | Show a node and its neighbours |
 | `cairn depends <node>` | List nodes a given node depends on |
@@ -48,6 +49,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn rationale <node>` | Show rationale chain for a node |
 | `cairn order` | Topological order of all nodes |
 | `cairn islands` | Show connected components of the map graph |
+| `cairn frontier` | Show buildable-now (ready) and blocked ghost nodes |
 
 ### Artefacts
 
@@ -59,6 +61,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn research <node>` | List research linked to a node |
 | `cairn sources <node>` | List sources linked to a node |
 | `cairn decision new <slug>` | Scaffold a new decision artefact |
+| `cairn gap <node> --question "<text>"` | Log an unresolved question as a proposed decision artefact |
 
 ### Changes
 
@@ -113,6 +116,7 @@ These commands require the `--json` flag.
 | `cairn import-openspec` | Migrate openspec changes to meta/changes/ |
 | `cairn docstring <node>` | Generate a docstring for a node |
 | `cairn feedback "<message>"` | Record cairn friction in `.cairn/feedback.md` and print a prefilled upstream issue link |
+| `cairn workspace <status\|lint\|frontier>` | Aggregate status, lint, and frontier queries across a `cairn.workspace` |
 
 ### MAS orchestration
 | Command | Description |

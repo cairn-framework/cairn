@@ -6,35 +6,23 @@ node: cairn.state
 
 ## Purpose
 
-Pluggable state persistence backend. The `StateBackend` enum abstracts artefact
-state storage (status, claim, ready-queries) away from the filesystem default,
-allowing a beads key-value backend as an alternative. Content (markdown bodies,
-blueprint text) stays as files unconditionally; only structured record state is
-routed through this layer. It also hosts the read-only beads issue backlog
-loader.
+Read-only view over the beads issue backlog. `dec.change-format-only`
+deletes the pluggable `StateBackend` record-storage abstraction (filesystem
+and beads backends, and the `create_change_epic`/`create_task_beads`/
+`list_child_tasks`/`claim_change` workflow methods that created, seeded, and
+claimed beads on behalf of the change system): creating, claiming, and
+sequencing work items is workflow, and cairn does not do workflow
+(`dec.no-orchestrator`). What survives is `dec.beads-task-layer`'s read-only
+per-node task view: beads (bd) stays the sole source of truth for tasks;
+cairn only reads the passive `.beads/issues.jsonl` export.
 
 ## Public interface
 
-- `StateBackend`: enum over `Filesystem(FilesystemStateBackend)` and
-  `Beads(BeadsStateBackend)`, dispatching `load`, `save`, `list`, `remove`,
-  `query_by_type`, `query_by_label`, and `query_by_dependency`.
-- `StateError`: error enum with `Io(io::Error)` and `Serialization(String)`;
-  implements `Display`, `Error` (with `source`), and `From` for `io::Error` and
-  `serde_json::Error`.
-- `StateRecord`: trait providing `record_type`, `labels`, and `dependencies` for
-  queryable records.
-- `FilesystemStateBackend`: JSON files under a root, keyed by filename.
-- `BeadsStateBackend`: JSON strings in the beads kv store via the `bd` CLI,
-  keyed with a `cairn:state:` prefix.
-- `storage_backend(name, root)`: factory, `filesystem` (default) or `beads`.
 - `backlog`: read-only loader exposing `BacklogItem`, `Dependency`, `read`,
   `ready`, `find`, and `for_node`.
 
 ## Invariants
 
-- `load` returns `Ok(None)` for a missing record; `remove` is idempotent.
-- `save` overwrites existing records.
-- The beads backend prefixes every key with `cairn:state:`.
 - `backlog` is strictly read-only: beads stays the source of truth, malformed
   JSONL lines are skipped, and a missing export yields an empty vec.
 - A bead omitting priority defaults to 99 (lowest urgency).
@@ -42,14 +30,12 @@ loader.
 
 ## Dependencies
 
-Inbound only at the blueprint level: `cairn.kernel.scanner` reads beads to flag
-orphan node labels and `cairn.ui` reads node-linked beads for the inspector.
-This node itself has no outgoing blueprint edges; the beads backend shells out
-to the external `bd` binary for kv operations.
+Inbound only at the blueprint level: `cairn.kernel.scanner` reads beads to
+flag orphan node labels and `cairn.ui` reads node-linked beads for the
+inspector. This node itself has no outgoing blueprint edges.
 
 ## Tests
 
-Unit tests live in `src/state/tests.rs` (`#[cfg(test)] mod tests` wired in
-`mod.rs`) covering backend round-trips and queries, plus a `#[cfg(test)]` module
-in `src/state/backlog.rs` covering parsing, readiness ordering, lookup by id,
-and per-node label filtering.
+Unit tests live in a `#[cfg(test)]` module in `src/state/backlog.rs`,
+covering parsing, readiness ordering, lookup by id, and per-node label
+filtering.

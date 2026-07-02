@@ -104,6 +104,7 @@ pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
                     orphaned: optional(&parsed.values, "orphaned")
                         .is_some_and(|value| value == "true"),
                     orphan_reason: optional(&parsed.values, "orphan_reason"),
+                    gap: optional(&parsed.values, "gap").is_some_and(|value| value == "true"),
 
                     claims: parse_claims(&parsed.values, &parsed.lists, &path),
                     body: parsed.body,

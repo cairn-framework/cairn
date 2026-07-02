@@ -92,7 +92,7 @@ pub(crate) fn render_backlog(
         } else if beads.is_empty() {
             format!(
                 "{}\n",
-                crate::cli::copy::lookup("empty-states.node-no-beads.body")
+                crate::copy::lookup("empty-states.node-no-beads.body")
             )
         } else {
             let mut out = format!("Beads for {}:\n", node.id);
@@ -466,7 +466,7 @@ mod tests {
         );
         let scan = scan_with_nodes(vec![node_record("app")]);
         let rendered = render_backlog(&backlog_args("app", false), &dir, &scan).unwrap();
-        let expected = crate::cli::copy::lookup("empty-states.node-no-beads.body");
+        let expected = crate::copy::lookup("empty-states.node-no-beads.body");
         assert!(rendered.contains(expected), "{rendered}");
         let _ = std::fs::remove_dir_all(&dir);
     }

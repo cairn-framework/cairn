@@ -48,11 +48,13 @@ fn registered_commands() -> Vec<String> {
         "check",
         "export",
         "feedback",
+        "gap",
         "import-openspec",
         "next",
         "onboard",
         "refine",
         "watch",
+        "workspace",
     ];
     for cmd in extra {
         if !names.contains(&cmd.to_owned()) {

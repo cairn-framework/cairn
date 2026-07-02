@@ -271,6 +271,7 @@ mod tests {
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,
+            gap: false,
             claims: None,
             body: String::new(),
         };
@@ -301,6 +302,7 @@ mod tests {
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,
+            gap: false,
             claims: None,
             body: String::new(),
         };

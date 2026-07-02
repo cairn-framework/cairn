@@ -34,9 +34,10 @@ mod util;
 
 use change_queries::dispatch_change_tool;
 use handlers::{
-    context_json, contract_json, decisions_response_json, dependency_json, docstring_json,
-    files_json, hook_json, islands_json, neighbourhood_json, rationale_json,
-    research_response_json, sources_response_json, status_json, symbols_json, todos_response_json,
+    bundle_json, context_json, contract_json, decisions_response_json, dependency_json,
+    docstring_json, files_json, frontier_json, hook_json, islands_json, neighbourhood_json,
+    rationale_json, research_response_json, sources_response_json, status_json, symbols_json,
+    todos_response_json,
 };
 pub(crate) use handlers::{health_json, remediate_json};
 use registry::{metadata_for_tool, registry_slice};
@@ -303,12 +304,14 @@ fn execute_data(
         "docstring" => docstring_json(&scan_result, request),
         "files" => files_json(&scan_result, required(request.node.as_ref(), "node")?),
         "symbols" => symbols_json(&scan_result, required(request.node.as_ref(), "node")?),
+        "bundle" => bundle_json(&scan_result, required(request.node.as_ref(), "node")?),
         "dependents" => dependency_json(&scan_result, request, false),
         "depends" => dependency_json(&scan_result, request, true),
         "order" => query::order(&scan_result.graph)
             .map(|response| json!({ "nodes": response.nodes }))
             .map_err(|findings| findings_error(&findings)),
         "islands" => Ok(islands_json(&scan_result)),
+        "frontier" => frontier_json(&scan_result),
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
             Ok(json!({ "findings": findings_json(&response.findings) }))
