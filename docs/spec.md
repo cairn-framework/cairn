@@ -1,4 +1,4 @@
-# Cairn: Spec v0.7
+# Cairn: Spec v0.8
 
 > Working draft. The name *Cairn* is a placeholder; the spec will stand if it changes. Cairn is the declarative constraint layer for AI-assisted codebases: it lets you declare architectural truth in a blueprint, reconciles that declaration against shipped code, and gates commits when the two diverge. v0.6 is a scope revision following a frame correction: capability scope and implementation phasing are now separate concerns. Several items previously labelled "v2" or "deferred" were genuinely in-scope capabilities whose implementation happens later in the build order; labelling them as out-of-scope was mistakenly conflating "not yet built" with "not part of the product." v0.6 brings those back in: brownfield extraction, multi-target paths, edge validation, docstring generation, a rename operation, and cross-model peer review as a review subtype. The kernel architecture from v0.5 stands unchanged.
 
@@ -134,13 +134,17 @@ Cairn is deterministic-typed at the bottom, configurable-templated in the middle
 - Multi-target modules: a single module with implementations across multiple languages or reconcilers.
 - Docstring generation and drift detection: the framework emits docstring templates grounded in map facts, and surfaces drift when authored docstrings diverge from the map.
 - Edge validation: the reconciler verifies declared edges are realised in the reality layer and surfaces discrepancies.
+- Symbol-granular reality layer: reconcilers extract structured public symbols (name, kind, signature, file, line), queryable via `cairn symbols <node>` and persisted in `map.json`.
+- A persisted map snapshot (`map.json`) as a committed, deterministic measurement record alongside `map.md`.
+- Generation bundles (`cairn bundle <node>`) and the gap protocol (`cairn gap <node> --question <text>`) so an agent implementing a ghost node has everything it needs, and logs underspecification instead of guessing.
+- Workspace aggregation (`cairn.workspace`) across member projects: enumeration and aggregate status/lint/frontier, no cross-project blueprint edges in v1.
 - Rename propagation: restructuring the blueprint produces a single atomic change that updates all references across artefacts.
 
 **Non-goals**
 
 - A visual dashboard. Rendering the map as an interactive visual graph is a distribution concern for a downstream tool that consumes Cairn's JSON output, not a kernel capability.
 - Multi-agent orchestration. The framework serves agents; it does not run them. Workflow tools like OpenSpec and cavekit occupy this space and are complementary consumers of Cairn.
-- Function-level mapping in the blueprint itself. The blueprint is for module-level intent. Below-module data lives in reconciler output and is accessible via `cairn files <node>`.
+- Function-level mapping in the blueprint itself. The blueprint is for module-level intent. Below-module data lives in the reality layer: reconcilers extract structured public symbols, persisted in `map.json` and queryable via `cairn files <node>` and `cairn symbols <node>`. Detail is a zoom parameter of queries, never of the blueprint.
 - Procedural workflows. The blueprint is a map, not a recipe. Workflow systems are complementary, not absorbed.
 - Project management features. Todos are tied to architectural work; general project admin lives elsewhere.
 
@@ -184,6 +188,7 @@ A **summariser** is a pluggable ninth component, invoked by hooks when interface
         scan-cache.json
     log.md
 ./map.md                     # Generated: map snapshot
+./map.json                   # Generated: machine-readable map snapshot
 ```
 
 **Project config**
@@ -603,7 +608,7 @@ The scanner runs on demand or on filesystem change. It does nine things:
 5. **Validates declared edges against reality-layer dependencies.** The reconciler compares declared edges to observed dependencies and surfaces divergence as rationale tension. (Declared, see section 17.)
 6. **Checks docstrings against map facts.** For modules with authored docstrings, the reconciler compares the facts claimed in the docstring (module name, dependencies, tags) to the map. Divergence surfaces as rationale tension. (Declared, see section 17.)
 7. Runs every artefact type's integrity rules and the global integrity rules.
-8. Regenerates `map.md` at the project root and appends events to `.cairn/log.md`.
+8. Regenerates `map.md` and `map.json` at the project root and appends events to `.cairn/log.md`.
 9. Writes updated state (interface hashes, scan cache) to `.cairn/state/`.
 
 ### 10.1 Node states
@@ -726,6 +731,11 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn refine`: re-runs brownfield extraction against the current codebase, proposing a delta against the existing blueprint rather than a fresh draft. (Declared, see section 17.)
 - `cairn lint`: runs every integrity rule. Groups findings by class (structural, interface, tension).
 - `cairn scan`: rescans, regenerates the map, `map.md`, and `.cairn/state/`.
+- `cairn symbols <node>`: structured public symbols (name, kind, signature, file, line) extracted by the reconciler for the node.
+- `cairn bundle <node>`: a complete generation bundle for the node (node metadata, contract, decisions, rationale, dependency interfaces, gates) so an agent can implement a ghost node without guessing.
+- `cairn gap <node> --question <text>`: logs decision-required underspecification as a proposed decision artefact instead of letting an agent guess.
+- `cairn frontier`: nodes buildable now (ghost with all dependencies synced) and nodes blocked, ordered by dependency tier. Answers "what is buildable now, in what order" without running anything (`dec.no-orchestrator` still holds; this is a traversal query, not a scheduler).
+- `cairn workspace <status|lint|frontier>`: aggregates the same queries across the member projects declared in `cairn.workspace`.
 
 **Design principle.** Small composable queries. Default responses are tight. Anything heavy is opt-in. The agent pulls what it needs.
 
@@ -842,6 +852,17 @@ All downstream. Pick when the kernel is proven.
 ---
 
 ## Changelog
+
+**v0.8**
+
+Vision refactor: the reality layer becomes symbol-granular instead of discarding structured extraction, the reconciliation output persists as a committed `map.json` measurement record, contracts gain an optional `interface:` block verified against extracted symbols, and two new query families give agents everything needed to implement a ghost node (`cairn bundle`, `cairn gap`) and to know what is buildable now (`cairn frontier`). `cairn.workspace` adds enumeration and aggregation across member projects. The change system is trimmed to format-only: scheduling and claiming work items is workflow, not something Cairn's change directories do; the read-only backlog view over beads is unaffected. `dec.no-orchestrator` is reaffirmed, not reversed, throughout.
+
+- Added `cairn symbols <node>`, backed by a `SymbolRecord` (name/kind/signature/file/line) that survives extraction instead of being flattened into a hash input.
+- Added the committed, deterministic `map.json` snapshot alongside `map.md`.
+- Added an optional `interface:` frontmatter block on contracts, verified against extracted symbols; mismatches surface as `CAIRN_CONTRACT_INTERFACE_DRIFT`.
+- Added `cairn bundle <node>` (generation bundle) and `cairn gap <node> --question <text>` (logged underspecification) plus the `CAIRN_GAP_UNRESOLVED` lint rule.
+- Added `cairn frontier` (buildable-now / blocked query over ghost nodes) and `cairn.workspace` (`cairn workspace status|lint|frontier`).
+- Removed the change system's workflow logic (beads epic/claim wiring) and the production-dead `StateBackend` machinery; the change system is now format, validation, and apply/archive only. The read-only backlog view (`cairn backlog <node>`) is unchanged.
 
 **v0.6**
 
