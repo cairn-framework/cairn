@@ -65,6 +65,10 @@ cairn init                                                          # scaffold b
 cairn scan                                                          # reconcile against code
 ```
 
+<p align="center">
+  <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
+</p>
+
 Already have a codebase? `cairn init --from-code` reads your source tree and writes a draft plan for you to review, instead of an empty starter. `cairn onboard` then groups any leftover files and suggests where they fit.
 
 See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command list in [docs/commands.md](docs/commands.md).
