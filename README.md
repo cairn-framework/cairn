@@ -15,6 +15,10 @@
   <a href="https://github.com/cairn-framework/cairn/blob/main/LICENSE-MIT"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue" alt="License"></a>
 </p>
 
+<p align="center">
+  <img src="docs/assets/demo/tour.gif" alt="cairn status, cairn scan, cairn get, and cairn lint in a terminal" width="820">
+</p>
+
 ## What is Cairn
 
 Picture a big codebase that many people and AI helpers all change at once. It is easy to break something, because nobody can see the whole thing at one time.
@@ -148,6 +152,10 @@ Hooks enforce the integrity classes from `docs/spec.md`:
 
 Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `scripts/cairn-hook-all.sh` from Git hooks or agent task-end hooks so the same engine runs at every boundary.
 
+<p align="center">
+  <img src="docs/assets/demo/drift.gif" alt="a copy-paste id collision makes cairn scan surface Error findings and cairn hook structural block, then pass once fixed" width="820">
+</p>
+
 ## See it
 
 <table>
@@ -156,7 +164,7 @@ Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `s
       <a href="docs/landing/index.html"><img src="docs/assets/screenshots/landing-full.png" alt="Cairn landing page"></a>
       <p><strong>Landing page</strong><br>
       <code>docs/landing/index.html</code><br>
-      Hosted at <a href="https://cairn-framework.github.io/cairn/">cairn-framework.github.io/cairn</a> once GitHub Pages is enabled.</p>
+      Live at <a href="https://cairn-framework.github.io/cairn/">cairn-framework.github.io/cairn</a>.</p>
     </td>
     <td width="33%" valign="top">
       <a href="docs/design-system/README.md"><img src="docs/assets/screenshots/design-system.png" alt="Cairn design system showcase"></a>
@@ -165,7 +173,7 @@ Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `s
       Tokens, fonts, components, and a live reference page every Cairn surface grounds on.</p>
     </td>
     <td width="33%" valign="top">
-      <img src="docs/assets/screenshots/webui-graph.png" alt="Cairn Graph Explorer webui">
+      <img src="docs/assets/demo/webui.gif" alt="Cairn Graph Explorer webui: graph, node inspector, command palette with Report an issue, blueprint modal">
       <p><strong>Graph Explorer</strong><br>
       <code>cairn ui</code><br>
       Local browser UI for walking the reconciled map. Runs against the current scan.</p>
@@ -209,7 +217,7 @@ All UI work grounds on `docs/design-system/`: tokens, fonts, components, and a s
 
 ## Landing page
 
-The marketing landing lives at `docs/landing/index.html`. It is static HTML consuming the design system. Deployment is wired through the GitHub Actions Pages workflow at `.github/workflows/pages.yml`. Once Pages is enabled in repo Settings, the site is live at `https://cairn-framework.github.io/cairn/`.
+The marketing landing lives at `docs/landing/index.html`. It is static HTML consuming the design system. Deployment is wired through the GitHub Actions Pages workflow at `.github/workflows/pages.yml`; the site is live at `https://cairn-framework.github.io/cairn/` and redeploys on every push to `main`.
 
 ## Reference
 
