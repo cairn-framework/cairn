@@ -5,7 +5,7 @@
 
 use cairn::{
     blueprint::{Ast, NodeKind, Span, ast::Node},
-    reconcile::{ReconcileRequest, Reconciler, go::GoReconciler},
+    reconcile::{ReconcileRequest, Reconciler, SymbolKind, go::GoReconciler},
 };
 use std::fs;
 
@@ -185,5 +185,84 @@ fn test_go_ignored_file_excluded_from_symbols() {
             .all(|s| !s.contains("ShouldBeIgnored")),
         "ignored file symbols must not appear; got: {:?}",
         report.symbols
+    );
+}
+
+/// ── Symbol record tests (Phase 1) ──────────────────────────────────────────
+
+#[test]
+fn test_go_fn_symbol_record_has_correct_fields() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("handler.go"),
+        "package api\n\nfunc Greet(name string) string { return name }\n",
+    )
+    .unwrap();
+    let ast = single_node_ast("app.api", ".");
+    let report = GoReconciler::new(&ast)
+        .reconcile(go_request(dir.path(), &[]))
+        .unwrap();
+    let records = report
+        .node_symbol_records
+        .get("app.api")
+        .expect("node_symbol_records must contain app.api");
+    assert_eq!(records.len(), 1, "exactly one record expected");
+    let rec = &records[0];
+    assert_eq!(rec.name, "Greet", "name must be 'Greet'");
+    assert_eq!(rec.kind, SymbolKind::Function, "kind must be Function");
+    assert_eq!(rec.line, 3, "start line must be 3");
+}
+
+#[test]
+fn test_go_type_record_has_type_kind() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("handler.go"),
+        "package api\n\ntype Config struct { Timeout int }\n",
+    )
+    .unwrap();
+    let ast = single_node_ast("app.api", ".");
+    let report = GoReconciler::new(&ast)
+        .reconcile(go_request(dir.path(), &[]))
+        .unwrap();
+    let records = report.node_symbol_records.get("app.api").unwrap();
+    let rec = records
+        .iter()
+        .find(|r| r.name == "Config")
+        .expect("record for Config must exist");
+    assert_eq!(rec.kind, SymbolKind::Type);
+}
+
+#[test]
+fn test_go_symbol_record_signature_matches_fingerprint_string() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("handler.go"),
+        "package api\n\nfunc Alpha() {}\nfunc Beta() {}\n",
+    )
+    .unwrap();
+    let ast = single_node_ast("app.api", ".");
+    let report = GoReconciler::new(&ast)
+        .reconcile(go_request(dir.path(), &[]))
+        .unwrap();
+    let mut sig_from_records: Vec<String> = report
+        .node_symbol_records
+        .get("app.api")
+        .unwrap()
+        .iter()
+        .map(|r| r.signature.clone())
+        .collect();
+    sig_from_records.sort_unstable();
+    let mut sig_from_flat: Vec<String> = report
+        .node_symbols
+        .get("app.api")
+        .unwrap()
+        .iter()
+        .cloned()
+        .collect();
+    sig_from_flat.sort_unstable();
+    assert_eq!(
+        sig_from_records, sig_from_flat,
+        "record signatures must match the flat symbol strings fed to the fingerprint"
     );
 }

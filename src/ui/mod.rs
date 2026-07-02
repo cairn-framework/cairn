@@ -299,6 +299,29 @@ mod tests {
     }
 
     #[test]
+    fn test_ui_symbols_endpoint_returns_extracted_symbols() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("symbols-endpoint")?;
+        write_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/symbols")?;
+
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        assert!(response.body.contains("\"schema_version\":1"));
+        assert!(response.body.contains("\"node\":\"app.api\""));
+        assert!(response.body.contains("\"name\":\"serve\""));
+        assert!(response.body.contains("\"kind\":\"function\""));
+
+        Ok(())
+    }
+
+    #[test]
     fn test_ui_rejects_unsupported_methods() -> Result<(), Box<dyn Error>> {
         let root = temp_root("unsupported-method")?;
         write_project(&root)?;

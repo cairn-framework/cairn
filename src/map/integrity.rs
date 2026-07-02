@@ -113,6 +113,7 @@ mod tests {
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: Vec::new(),
+            symbols: Vec::new(),
             span: Span::point("test", 1, 1),
         }
     }

@@ -324,6 +324,8 @@ Contracts are purely human-authored. Machine state (interface hashes, scan resul
 
 **Freshness rule.** When the module's interface hash changes, the scanner raises an **interface contradiction** between the code and the contract. The contradiction must be resolved (updating the contract or reverting the change) before the next commit.
 
+**Interface rule.** A contract may declare an optional `interface:` frontmatter list naming the node's load-bearing public symbols. Each entry is a signature verified against the node's extracted symbols; an entry with no matching symbol is a warning. The list is opt-in and partial: a contract with no `interface:` block is never checked, and a symbol not named in the list is never a finding.
+
 ### 8.2 Todo (authority)
 
 Directory of markdown files per node. One todo per file.

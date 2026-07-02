@@ -4,11 +4,13 @@ pub mod code;
 pub mod fingerprint;
 pub mod go;
 pub mod python;
+pub mod symbol;
 pub mod target;
 pub mod typescript;
 
 /// Fixture reconciler demonstrating the extension API.
 pub mod fixture;
+pub use symbol::{SymbolKind, SymbolRecord, normalize_symbol};
 
 use std::{error::Error, fmt, path::Path};
 
@@ -37,6 +39,9 @@ pub struct ReconcileReport {
     /// Public symbols attributed to each node ID. Used to compute per-node
     /// interface fingerprints.
     pub node_symbols: std::collections::BTreeMap<String, Vec<String>>,
+    /// Structured public symbols attributed to each node ID.
+    #[serde(default)]
+    pub node_symbol_records: std::collections::BTreeMap<String, Vec<SymbolRecord>>,
     /// Interface fingerprint.
     pub fingerprint: fingerprint::InterfaceFingerprint,
     /// Reconciliation findings.

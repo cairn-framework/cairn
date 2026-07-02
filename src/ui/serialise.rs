@@ -31,6 +31,27 @@ pub(super) const fn severity_name(severity: FindingSeverity) -> &'static str {
     }
 }
 
+/// Stable lowercase wire name for a symbol kind, matching `SymbolKind`'s
+/// `#[serde(rename_all = "lowercase")]` representation.
+pub(super) const fn symbol_kind_name(kind: crate::reconcile::SymbolKind) -> &'static str {
+    use crate::reconcile::SymbolKind;
+    match kind {
+        SymbolKind::Function => "function",
+        SymbolKind::Struct => "struct",
+        SymbolKind::Class => "class",
+        SymbolKind::Enum => "enum",
+        SymbolKind::Trait => "trait",
+        SymbolKind::Interface => "interface",
+        SymbolKind::Type => "type",
+        SymbolKind::Const => "const",
+        SymbolKind::Static => "static",
+        SymbolKind::Module => "module",
+        SymbolKind::Union => "union",
+        SymbolKind::Variable => "variable",
+        SymbolKind::Other => "other",
+    }
+}
+
 pub(super) const fn graph_edge_kind_name(kind: GraphEdgeKind) -> &'static str {
     match kind {
         GraphEdgeKind::Ownership => "ownership",

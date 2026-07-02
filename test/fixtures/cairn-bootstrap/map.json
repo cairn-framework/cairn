@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "interface_hash": "bd60acb658c79e45",
+  "nodes": [
+    {
+      "id": "cairn",
+      "kind": "system",
+      "name": "Cairn",
+      "state": "synced",
+      "paths": [],
+      "files": [],
+      "contracts": [],
+      "symbols": []
+    },
+    {
+      "id": "cairn.code-reconciler",
+      "kind": "module",
+      "name": "CodeReconciler",
+      "state": "ghost",
+      "paths": [
+        "./src/reconcile"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/reconcilers/code.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel",
+      "kind": "container",
+      "name": "Kernel",
+      "state": "synced",
+      "paths": [],
+      "files": [],
+      "contracts": [],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.artefacts",
+      "kind": "module",
+      "name": "Artefacts",
+      "state": "ghost",
+      "paths": [
+        "./src/artefacts"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/artefacts.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.changes",
+      "kind": "module",
+      "name": "Changes",
+      "state": "ghost",
+      "paths": [
+        "./src/changes"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/changes.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.cli",
+      "kind": "module",
+      "name": "CLI",
+      "state": "ghost",
+      "paths": [
+        "./src/cli"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/cli.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.hooks",
+      "kind": "module",
+      "name": "Hooks",
+      "state": "ghost",
+      "paths": [
+        "./src/hooks"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/hooks.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.parser",
+      "kind": "module",
+      "name": "Parser",
+      "state": "ghost",
+      "paths": [
+        "./src/blueprint"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/parser.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.query",
+      "kind": "module",
+      "name": "Query",
+      "state": "ghost",
+      "paths": [
+        "./src/query_api"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/query.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.reconciler",
+      "kind": "module",
+      "name": "Reconciler",
+      "state": "synced",
+      "paths": [],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/reconciler.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.scanner",
+      "kind": "module",
+      "name": "Scanner",
+      "state": "ghost",
+      "paths": [
+        "./src/scanner"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/kernel/scanner.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.summariser",
+      "kind": "module",
+      "name": "Summariser",
+      "state": "ghost",
+      "paths": [
+        "./src/summariser"
+      ],
+      "files": [],
+      "contracts": [
+        "./meta/contracts/summariser.md"
+      ],
+      "symbols": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "cairn.code-reconciler",
+      "to": "cairn.kernel.reconciler",
+      "description": "Implements"
+    },
+    {
+      "from": "cairn.kernel.changes",
+      "to": "cairn.kernel.scanner",
+      "description": "Validates before archive"
+    },
+    {
+      "from": "cairn.kernel.cli",
+      "to": "cairn.kernel.query",
+      "description": "Exposes queries as commands"
+    },
+    {
+      "from": "cairn.kernel.hooks",
+      "to": "cairn.kernel.scanner",
+      "description": "Gates on integrity"
+    },
+    {
+      "from": "cairn.kernel.query",
+      "to": "cairn.kernel.scanner",
+      "description": "Reads map"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.kernel.parser",
+      "description": "Consumes parsed blueprint"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.kernel.artefacts",
+      "description": "Validates artefacts"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.kernel.reconciler",
+      "description": "Invokes registered reconcilers"
+    },
+    {
+      "from": "cairn.summariser",
+      "to": "cairn.kernel.scanner",
+      "description": "Proposes contract updates on contradictions"
+    }
+  ],
+  "findings": [
+    {
+      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+      "severity": "warning",
+      "message": "artefact pointer `./meta/decisions/kernel/artefacts/` is missing",
+      "node": null,
+      "path": "./meta/decisions/kernel/artefacts/"
+    },
+    {
+      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+      "severity": "warning",
+      "message": "artefact pointer `./meta/decisions/kernel/changes/` is missing",
+      "node": null,
+      "path": "./meta/decisions/kernel/changes/"
+    },
+    {
+      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+      "severity": "warning",
+      "message": "artefact pointer `./meta/decisions/kernel/parser/` is missing",
+      "node": null,
+      "path": "./meta/decisions/kernel/parser/"
+    },
+    {
+      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+      "severity": "warning",
+      "message": "artefact pointer `./meta/decisions/kernel/reconciler/` is missing",
+      "node": null,
+      "path": "./meta/decisions/kernel/reconciler/"
+    },
+    {
+      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+      "severity": "warning",
+      "message": "artefact pointer `./meta/decisions/reconcilers/code/` is missing",
+      "node": null,
+      "path": "./meta/decisions/reconcilers/code/"
+    },
+    {
+      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+      "severity": "warning",
+      "message": "artefact pointer `./meta/research/kernel/reconciler/` is missing",
+      "node": null,
+      "path": "./meta/research/kernel/reconciler/"
+    },
+    {
+      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+      "severity": "warning",
+      "message": "artefact pointer `./meta/research/reconcilers/code/` is missing",
+      "node": null,
+      "path": "./meta/research/reconcilers/code/"
+    },
+    {
+      "code": "CAIRN_CONTRACT_MISSING",
+      "severity": "warning",
+      "message": "contract pointer `./meta/contracts/kernel/artefacts.md` is missing for `cairn.kernel.artefacts`",
+      "node": "cairn.kernel.artefacts",
+      "path": "./meta/contracts/kernel/artefacts.md"
+    },
+    {
+      "code": "CAIRN_CONTRACT_MISSING",
+      "severity": "warning",
+      "message": "contract pointer `./meta/contracts/kernel/changes.md` is missing for `cairn.kernel.changes`",
+      "node": "cairn.kernel.changes",
+      "path": "./meta/contracts/kernel/changes.md"
+    },
+    {
+      "code": "CAIRN_CONTRACT_MISSING",
+      "severity": "warning",
+      "message": "contract pointer `./meta/contracts/kernel/cli.md` is missing for `cairn.kernel.cli`",
+      "node": "cairn.kernel.cli",
+      "path": "./meta/contracts/kernel/cli.md"
+    },
+    {
+      "code": "CAIRN_CONTRACT_MISSING",
+      "severity": "warning",
+      "message": "contract pointer `./meta/contracts/kernel/hooks.md` is missing for `cairn.kernel.hooks`",
+      "node": "cairn.kernel.hooks",
+      "path": "./meta/contracts/kernel/hooks.md"
+    },
+    {
+      "code": "CAIRN_CONTRACT_MISSING",
+      "severity": "warning",
+      "message": "contract pointer `./meta/contracts/kernel/query.md` is missing for `cairn.kernel.query`",
+      "node": "cairn.kernel.query",
+      "path": "./meta/contracts/kernel/query.md"
+    },
+    {
+      "code": "CAIRN_CONTRACT_MISSING",
+      "severity": "warning",
+      "message": "contract pointer `./meta/contracts/summariser.md` is missing for `cairn.summariser`",
+      "node": "cairn.summariser",
+      "path": "./meta/contracts/summariser.md"
+    }
+  ]
+}

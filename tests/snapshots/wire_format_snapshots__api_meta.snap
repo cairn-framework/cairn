@@ -1,6 +1,5 @@
 ---
 source: tests/wire_format_snapshots.rs
-assertion_line: 52
 expression: value
 ---
 {
@@ -33,6 +32,12 @@ expression: value
       "name": "files",
       "request": "NodeRequest",
       "response": "FilesResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "symbols",
+      "request": "NodeRequest",
+      "response": "SymbolsResponse",
       "safety": "ReadOnly"
     },
     {

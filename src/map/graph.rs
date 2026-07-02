@@ -93,6 +93,8 @@ pub struct NodeRecord {
     pub state: NodeState,
     /// Claimed files.
     pub files: Vec<String>,
+    /// Extracted public symbols for this node.
+    pub symbols: Vec<crate::reconcile::SymbolRecord>,
     /// Declaration span.
     pub span: Span,
 }
@@ -199,6 +201,7 @@ mod tests {
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: Vec::new(),
+            symbols: Vec::new(),
             span: Span::point("test", 1, 1),
         }
     }

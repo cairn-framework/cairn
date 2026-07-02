@@ -4,6 +4,7 @@ pub(crate) mod cache;
 pub(crate) mod checks;
 pub mod config;
 pub mod outputs;
+pub mod snapshot;
 pub mod state;
 #[cfg(test)]
 mod tests;
@@ -42,6 +43,8 @@ pub struct TargetReport {
     pub symbols: std::sync::Arc<Vec<String>>,
     /// Interface hash for this target.
     pub hash: String,
+    /// Structured public symbols exported by this target.
+    pub symbol_records: std::sync::Arc<Vec<crate::reconcile::SymbolRecord>>,
 }
 
 /// Result of a scan or graph load.
@@ -149,6 +152,11 @@ fn reconcile_targets(
             .get(&target.id.node_id)
             .cloned()
             .unwrap_or_default();
+        let owned_symbol_records = report
+            .node_symbol_records
+            .get(&target.id.node_id)
+            .cloned()
+            .unwrap_or_default();
         let hash =
             crate::reconcile::fingerprint::InterfaceFingerprint::from_symbols(&owned_symbols).hash;
         reports.push(TargetReport {
@@ -157,6 +165,7 @@ fn reconcile_targets(
             reconciler_id: target.reconciler_id.clone(),
             claimed_files: owned_files,
             symbols: std::sync::Arc::new(owned_symbols),
+            symbol_records: std::sync::Arc::new(owned_symbol_records),
             hash,
         });
     }
@@ -330,6 +339,13 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         files.dedup();
     }
     let mut graph = build_graph(&ast, root, &contracts, &mut claimed_files, all_findings);
+    // Populate per-node symbols from reconciled target reports.
+    for report in &target_reports {
+        if let Some(node) = graph.nodes.get_mut(&report.target_id.node_id) {
+            node.symbols.extend(report.symbol_records.iter().cloned());
+        }
+    }
+    checks::check_contract_interface_drift(&mut graph, &contracts);
     checks::check_provenance_coverage(&mut graph, &artefacts);
     checks::check_claims(&mut graph, &artefacts, root);
     checks::check_gitignored_paths(&mut graph, &ast, &config.ignores);
@@ -380,6 +396,12 @@ pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
         });
         s.spawn(|| {
             if let Err(e) = outputs::append_log(root, &result.graph) {
+                errs.lock().unwrap().push(format!("{e}"));
+            }
+        });
+        s.spawn(|| {
+            let map_snapshot = snapshot::build(&result.graph, &result.interface_hash);
+            if let Err(e) = snapshot::write(root, &map_snapshot) {
                 errs.lock().unwrap().push(format!("{e}"));
             }
         });

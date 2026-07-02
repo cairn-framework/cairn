@@ -60,8 +60,9 @@ does not count.
 | Research must cite at least one source unless primary | spec:61 | `CAIRN_RESEARCH_MISSING_SOURCES` | enforced |
 | Decision must cite at least one research or source | spec:61 | `CAIRN_DECISION_UNKNOWN_PROVENANCE` | enforced |
 | Leaf node should declare a contract | spec:318 | `CAIRN_CONTRACT_LEAF_UNCOVERED` | enforced |
+| Contract interface entry should match an extracted symbol | spec:327 | `CAIRN_CONTRACT_INTERFACE_DRIFT` | enforced |
 | Synced module should carry test coverage | spec:318 | `CAIRN_TEST_COVERAGE_MISSING` | enforced |
-| Todo references exactly one valid node | spec:339 | `CAIRN_TODO_ORPHAN_NODE` | enforced |
+| Todo references exactly one valid node | spec:341 | `CAIRN_TODO_ORPHAN_NODE` | enforced |
 | Source referenced by at least one research or decision | spec:474 | `CAIRN_SOURCE_ORPHAN` | enforced |
 | External source file must be a URL | spec:474 | `CAIRN_SOURCE_EXTERNAL_URL` | enforced |
 | Unverified source persists as a tension | spec:474 | `CAIRN_SOURCE_UNVERIFIED` | enforced |

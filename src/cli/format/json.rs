@@ -211,6 +211,7 @@ mod tests {
             children: vec!["child".to_owned()],
             paths: Vec::new(),
             owns_files: false,
+            symbols: Vec::new(),
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: vec!["src/lib.rs".to_owned()],

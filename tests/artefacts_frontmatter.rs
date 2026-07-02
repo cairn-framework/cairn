@@ -131,6 +131,19 @@ fn test_block_list_id_field_items() {
 }
 
 #[test]
+fn test_block_list_quoted_item_with_colon_is_plain_scalar() {
+    // A quoted item that happens to contain a colon (e.g. a Rust function
+    // signature) must be kept whole, not misparsed as an `id:` sub-field pair.
+    let src = "---\ninterface:\n  - \"fn handle(a: &str) -> String\"\n  - \"fn other()\"\n---\n";
+    let fm = frontmatter::parse(src);
+    assert_eq!(
+        list(&fm, "interface"),
+        Some(vec!["fn handle(a: &str) -> String", "fn other()"]),
+        "quoted list items containing a colon must not be dropped or split"
+    );
+}
+
+#[test]
 fn test_block_list_inline_comment_stripped() {
     let src = "---\ntags:\n- arch # main\n- db\n---\n";
     let fm = frontmatter::parse(src);

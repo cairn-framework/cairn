@@ -92,6 +92,17 @@ pub(crate) fn files_json(
     }))
 }
 
+pub(crate) fn symbols_json(
+    scan_result: &scanner::ScanResult,
+    node: &str,
+) -> Result<Value, QueryError> {
+    let node_record = scan_result.graph.resolve(node).map_err(finding_error)?;
+    Ok(json!({
+        "node": node_record.id,
+        "symbols": node_record.symbols,
+    }))
+}
+
 pub(crate) fn rationale_json(
     scan_result: &scanner::ScanResult,
     node: &str,

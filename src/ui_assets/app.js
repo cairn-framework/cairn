@@ -158,6 +158,12 @@
     return response.beads;
   }
 
+  async function fetchNodeSymbols(id) {
+    const response = await fetchJson(`/api/node/${percentEncodeId(id)}/symbols`);
+    if (!response || !Array.isArray(response.symbols)) return [];
+    return response.symbols;
+  }
+
   async function fetchDepends(id) {
     const response = await fetchJson(`/api/depends/${percentEncodeId(id)}`);
     if (!response || !Array.isArray(response.nodes)) return [];
@@ -1011,7 +1017,7 @@
   }
 
   function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onViewBlueprint, onClose }) {
-    const { contracts, decisions, todos, beads, research, sources, depends, dependents } = detail;
+    const { contracts, decisions, todos, beads, research, sources, depends, dependents, symbols } = detail;
 
     const provCount = (sources?.length || 0) + (research?.length || 0);
     const authCount = (contracts?.length || 0) + (decisions?.length || 0);
@@ -1160,6 +1166,10 @@
 
         <${Section} label="Dependents" count=${dependents?.length || 0}>
           ${(dependents || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-inbound.body")}</div>` : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
+        <//>
+
+        <${Section} label="Symbols" count=${(symbols || []).length}>
+          ${(symbols || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-symbols.body")}</div>` : (symbols || []).map((s) => html`<div class="artefact-meta" key=${s.name + s.file}>${s.name} &middot; ${s.kind} &middot; ${s.file}:${s.line}</div>`)}
         <//>
         `
         }
@@ -1752,8 +1762,9 @@
         fetchNodeArtefacts(selectionId, "sources"),
         fetchDepends(selectionId).catch(() => []),
         fetchDependents(selectionId).catch(() => []),
+        fetchNodeSymbols(selectionId).catch(() => []),
       ])
-        .then(([contracts, decisions, todos, beads, research, sources, depends, dependents]) => {
+        .then(([contracts, decisions, todos, beads, research, sources, depends, dependents, symbols]) => {
           if (cancelled) return;
           setDetail({
             contracts,
@@ -1764,6 +1775,7 @@
             sources,
             depends,
             dependents,
+            symbols,
           });
         })
         .catch(() => {

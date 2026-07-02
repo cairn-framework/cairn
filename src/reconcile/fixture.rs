@@ -44,6 +44,7 @@ impl Reconciler for FixtureReconciler {
             claimed_files: std::collections::BTreeMap::new(),
             symbols: std::sync::Arc::new(Vec::new()),
             node_symbols: std::collections::BTreeMap::new(),
+            node_symbol_records: std::collections::BTreeMap::new(),
             fingerprint: super::fingerprint::InterfaceFingerprint::from_symbols(&[]),
             findings,
         })

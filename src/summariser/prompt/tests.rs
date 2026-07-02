@@ -30,6 +30,7 @@ fn sample_node(id: &str) -> NodeRecord {
         contracts: vec!["contracts/auth.md".to_owned()],
         state: NodeState::Synced,
         files: vec![],
+        symbols: vec![],
         span: crate::blueprint::Span::point("test", 1, 1),
     }
 }
@@ -133,6 +134,7 @@ fn test_build_request_uses_contract_body_from_set() {
             declared_by: "app.auth".to_owned(),
             node: "app.auth".to_owned(),
             body: "# Auth\n\nHandles login.".to_owned(),
+            interface: Vec::new(),
         },
     );
 
@@ -420,6 +422,7 @@ fn test_build_request_truncates_contract_when_prompt_too_large() {
             declared_by: "app.auth".to_owned(),
             node: "app.auth".to_owned(),
             body: "a".repeat(1_000),
+            interface: Vec::new(),
         },
     );
 

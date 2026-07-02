@@ -327,6 +327,7 @@ mod tests {
             children: Vec::new(),
             paths: Vec::new(),
             owns_files: false,
+            symbols: Vec::new(),
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: Vec::new(),

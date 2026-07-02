@@ -45,7 +45,7 @@ use format::{
 use render::{
     render_backlog, render_brief, render_context, render_decisions, render_dependencies,
     render_files, render_get, render_health, render_neighbourhood, render_next, render_rationale,
-    render_remediate, render_research, render_sources, render_status, render_todos,
+    render_remediate, render_research, render_sources, render_status, render_symbols, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -336,6 +336,7 @@ fn render_loaded_project_command(
         "get" => render_get(parsed, root, scan_result),
         "neighbourhood" => render_neighbourhood(parsed, scan_result),
         "files" => render_files(parsed, scan_result),
+        "symbols" => render_symbols(parsed, scan_result),
         "todos" => render_todos(parsed, scan_result),
         "decisions" => render_decisions(parsed, scan_result),
         "research" => render_research(parsed, scan_result),
@@ -505,6 +506,7 @@ fn command_description(name: &str) -> &'static str {
         "export" => "Export project data",
         "feedback" => "Record cairn friction and get an upstream issue link",
         "files" => "List files owned by a node",
+        "symbols" => "List public symbols extracted from a node",
         "get" => "Inspect a node by ID",
         "hook" => "Run reconciliation hooks",
         "init" => "Scaffold a new cairn project",
@@ -607,6 +609,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "contract"
             | "docstring"
             | "files"
+            | "symbols"
             | "dependents"
             | "depends"
             | "order"

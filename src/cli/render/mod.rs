@@ -14,7 +14,7 @@ pub(crate) use artefacts::{
     render_decisions, render_rationale, render_research, render_sources, render_todos,
 };
 pub(crate) use health::render_health;
-pub(crate) use node::{render_files, render_get, render_neighbourhood};
+pub(crate) use node::{render_files, render_get, render_neighbourhood, render_symbols};
 pub(crate) use project::{render_backlog, render_context, render_dependencies, render_status};
 pub(crate) use remediate::{render_brief, render_next, render_remediate};
 

@@ -24,6 +24,10 @@ pub struct Contract {
     pub node: String,
     /// Markdown body.
     pub body: String,
+    /// Optional declared public interface (frontmatter `interface:` list),
+    /// verified against extracted symbols. Empty when the block is absent
+    /// (opt-in, not a finding).
+    pub interface: Vec<String>,
 }
 
 /// Contract loader result.
@@ -88,6 +92,7 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                         declared_by: node_id,
                         node: contract_node,
                         body: parsed.body,
+                        interface: parsed.lists.get("interface").cloned().unwrap_or_default(),
                     },
                 );
             }

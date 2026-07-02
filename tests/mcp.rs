@@ -90,6 +90,7 @@ fn registry_lists_read_only_tools_without_mutations() {
     assert!(!tools.iter().any(|tool| tool.mcp_name == "cairn_scan"));
     assert!(!tools.iter().any(|tool| tool.mcp_name == "cairn_archive"));
     assert!(!tools.iter().any(|tool| tool.mcp_name == "cairn_rename"));
+    assert!(tools.iter().any(|tool| tool.mcp_name == "cairn_symbols"));
 }
 
 #[test]

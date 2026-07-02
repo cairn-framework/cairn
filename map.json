@@ -1,0 +1,5712 @@
+{
+  "schema_version": 1,
+  "interface_hash": "2f99a9b48ed94b7b",
+  "nodes": [
+    {
+      "id": "cairn",
+      "kind": "system",
+      "name": "Cairn",
+      "state": "synced",
+      "paths": [],
+      "files": [],
+      "contracts": [],
+      "symbols": []
+    },
+    {
+      "id": "cairn.brownfield",
+      "kind": "module",
+      "name": "Brownfield",
+      "state": "synced",
+      "paths": [
+        "./src/brownfield"
+      ],
+      "files": [
+        "src/brownfield/discovery.rs",
+        "src/brownfield/heuristics.rs",
+        "src/brownfield/init.rs",
+        "src/brownfield/interview.rs",
+        "src/brownfield/mod.rs",
+        "src/brownfield/onboard.rs",
+        "src/brownfield/refine.rs",
+        "src/brownfield/suggest.rs",
+        "src/brownfield/summarise.rs",
+        "src/brownfield/templates.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/brownfield.md"
+      ],
+      "symbols": [
+        {
+          "name": "CONFIDENCE_HIGH",
+          "kind": "const",
+          "signature": "pub const CONFIDENCE_HIGH f64",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 18,
+          "end_line": 18
+        },
+        {
+          "name": "CONFIDENCE_MEDIUM",
+          "kind": "const",
+          "signature": "pub const CONFIDENCE_MEDIUM f64",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "DIRECTORY_DEPTH_LIMIT",
+          "kind": "const",
+          "signature": "pub const DIRECTORY_DEPTH_LIMIT usize",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 9,
+          "end_line": 9
+        },
+        {
+          "name": "EDGE_OBSERVATION_THRESHOLD",
+          "kind": "const",
+          "signature": "pub const EDGE_OBSERVATION_THRESHOLD usize",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 13,
+          "end_line": 13
+        },
+        {
+          "name": "MAX_BYTES_PER_FILE",
+          "kind": "const",
+          "signature": "pub const MAX_BYTES_PER_FILE usize",
+          "file": "src/brownfield/summarise.rs",
+          "line": 18,
+          "end_line": 18
+        },
+        {
+          "name": "MAX_FILES_PER_CANDIDATE",
+          "kind": "const",
+          "signature": "pub const MAX_FILES_PER_CANDIDATE usize",
+          "file": "src/brownfield/summarise.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "MIN_CANDIDATE_FILE_COUNT",
+          "kind": "const",
+          "signature": "pub const MIN_CANDIDATE_FILE_COUNT usize",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 5,
+          "end_line": 5
+        },
+        {
+          "name": "confidence",
+          "kind": "function",
+          "signature": "pub const fn confidence(&self) -> CandidateConfidence",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 103,
+          "end_line": 105
+        },
+        {
+          "name": "file_count",
+          "kind": "function",
+          "signature": "pub const fn file_count(&self) -> usize",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 97,
+          "end_line": 99
+        },
+        {
+          "name": "CandidateConfidence",
+          "kind": "enum",
+          "signature": "pub enum CandidateConfidence",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 30,
+          "end_line": 37
+        },
+        {
+          "name": "ClusterSuggestion",
+          "kind": "enum",
+          "signature": "pub enum ClusterSuggestion",
+          "file": "src/brownfield/onboard.rs",
+          "line": 51,
+          "end_line": 59
+        },
+        {
+          "name": "MatchRule",
+          "kind": "enum",
+          "signature": "pub enum MatchRule",
+          "file": "src/brownfield/templates.rs",
+          "line": 16,
+          "end_line": 21
+        },
+        {
+          "name": "abandon_session",
+          "kind": "function",
+          "signature": "pub fn abandon_session(change_dir: &Path)",
+          "file": "src/brownfield/interview.rs",
+          "line": 182,
+          "end_line": 187
+        },
+        {
+          "name": "analyze",
+          "kind": "function",
+          "signature": "pub fn analyze(findings: &[Finding]) -> OnboardReport",
+          "file": "src/brownfield/onboard.rs",
+          "line": 63,
+          "end_line": 95
+        },
+        {
+          "name": "blueprint_delta",
+          "kind": "function",
+          "signature": "pub fn blueprint_delta(extraction: &Extraction) -> String",
+          "file": "src/brownfield/mod.rs",
+          "line": 97,
+          "end_line": 131
+        },
+        {
+          "name": "build_request",
+          "kind": "function",
+          "signature": "pub fn build_request( candidate: &DiscoveredCandidate, root: &Path, max_files: usize, max_bytes_per_file: usize, ) -> SummariserRequest",
+          "file": "src/brownfield/summarise.rs",
+          "line": 33,
+          "end_line": 55
+        },
+        {
+          "name": "classify_score",
+          "kind": "function",
+          "signature": "pub fn classify_score(score: f64) -> CandidateConfidence",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 135,
+          "end_line": 143
+        },
+        {
+          "name": "complete_session",
+          "kind": "function",
+          "signature": "pub fn complete_session( change_dir: &Path, session: &InterviewSession, _change_id: &str, ) -> Result<(), CairnError>",
+          "file": "src/brownfield/interview.rs",
+          "line": 153,
+          "end_line": 177
+        },
+        {
+          "name": "coupling_score",
+          "kind": "function",
+          "signature": "pub fn coupling_score(internal_imports: usize, external_imports: usize) -> f64",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 127,
+          "end_line": 131
+        },
+        {
+          "name": "directory",
+          "kind": "function",
+          "signature": "pub fn directory(&self) -> &str",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 91,
+          "end_line": 93
+        },
+        {
+          "name": "discover",
+          "kind": "function",
+          "signature": "pub fn discover(root: &Path) -> Result<Extraction, CairnError>",
+          "file": "src/brownfield/discovery.rs",
+          "line": 86,
+          "end_line": 130
+        },
+        {
+          "name": "enrich_candidate",
+          "kind": "function",
+          "signature": "pub fn enrich_candidate( backend: &dyn SummariserBackend, candidate: &DiscoveredCandidate, root: &Path, timeout: Duration, ) -> EnrichedCandidate",
+          "file": "src/brownfield/summarise.rs",
+          "line": 81,
+          "end_line": 112
+        },
+        {
+          "name": "id",
+          "kind": "function",
+          "signature": "pub fn id(&self) -> &str",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 85,
+          "end_line": 87
+        },
+        {
+          "name": "load_templates",
+          "kind": "function",
+          "signature": "pub fn load_templates(root: &Path) -> Vec<ContractTemplate>",
+          "file": "src/brownfield/templates.rs",
+          "line": 111,
+          "end_line": 123
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new( directory: impl Into<String>, file_count: usize, confidence: CandidateConfidence, ) -> Self",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 60,
+          "end_line": 73
+        },
+        {
+          "name": "record_answer",
+          "kind": "function",
+          "signature": "pub fn record_answer( change_dir: &Path, session: &InterviewSession, answer: &str, ) -> Result<InterviewSession, CairnError>",
+          "file": "src/brownfield/interview.rs",
+          "line": 122,
+          "end_line": 145
+        },
+        {
+          "name": "render_human",
+          "kind": "function",
+          "signature": "pub fn render_human(report: &OnboardReport) -> String",
+          "file": "src/brownfield/onboard.rs",
+          "line": 117,
+          "end_line": 176
+        },
+        {
+          "name": "render_json",
+          "kind": "function",
+          "signature": "pub fn render_json(report: &OnboardReport) -> String",
+          "file": "src/brownfield/onboard.rs",
+          "line": 180,
+          "end_line": 229
+        },
+        {
+          "name": "render_stub",
+          "kind": "function",
+          "signature": "pub fn render_stub(candidate: &DiscoveredCandidate, templates: &[ContractTemplate]) -> String",
+          "file": "src/brownfield/templates.rs",
+          "line": 47,
+          "end_line": 53
+        },
+        {
+          "name": "resume_session",
+          "kind": "function",
+          "signature": "pub fn resume_session(change_dir: &Path) -> Result<Option<InterviewSession>, CairnError>",
+          "file": "src/brownfield/interview.rs",
+          "line": 93,
+          "end_line": 111
+        },
+        {
+          "name": "run_init_from_code",
+          "kind": "function",
+          "signature": "pub fn run_init_from_code(root: &Path, force: bool) -> Result<String, CairnError>",
+          "file": "src/brownfield/init.rs",
+          "line": 35,
+          "end_line": 73
+        },
+        {
+          "name": "run_refine",
+          "kind": "function",
+          "signature": "pub fn run_refine(root: &Path) -> Result<String, CairnError>",
+          "file": "src/brownfield/refine.rs",
+          "line": 25,
+          "end_line": 31
+        },
+        {
+          "name": "start_session",
+          "kind": "function",
+          "signature": "pub fn start_session( change_dir: &Path, change_id: &str, questions: &[String], ) -> Result<InterviewSession, CairnError>",
+          "file": "src/brownfield/interview.rs",
+          "line": 54,
+          "end_line": 83
+        },
+        {
+          "name": "stub_contract",
+          "kind": "function",
+          "signature": "pub fn stub_contract(candidate: &DiscoveredCandidate) -> String",
+          "file": "src/brownfield/mod.rs",
+          "line": 41,
+          "end_line": 48
+        },
+        {
+          "name": "suggest_edges",
+          "kind": "function",
+          "signature": "pub fn suggest_edges( extraction: &Extraction, trace_phase: &str, stage: &str, ) -> Vec<SuggestedEdgeEntry>",
+          "file": "src/brownfield/suggest.rs",
+          "line": 29,
+          "end_line": 86
+        },
+        {
+          "name": "with_id",
+          "kind": "function",
+          "signature": "pub fn with_id(mut self, id: impl Into<String>) -> Self",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 78,
+          "end_line": 81
+        },
+        {
+          "name": "write_change",
+          "kind": "function",
+          "signature": "pub fn write_change( root: &std::path::Path, change_id: &str, extraction: &Extraction, templates: &[templates::ContractTemplate], ) -> Result<(), CairnError>",
+          "file": "src/brownfield/mod.rs",
+          "line": 56,
+          "end_line": 93
+        },
+        {
+          "name": "write_suggested_edges",
+          "kind": "function",
+          "signature": "pub fn write_suggested_edges( change_dir: &std::path::Path, extraction: &Extraction, trace_phase: &str, stage: &str, ) -> Result<(), crate::error::CairnError>",
+          "file": "src/brownfield/suggest.rs",
+          "line": 97,
+          "end_line": 127
+        },
+        {
+          "name": "discovery",
+          "kind": "module",
+          "signature": "pub mod discovery",
+          "file": "src/brownfield/mod.rs",
+          "line": 13,
+          "end_line": 13
+        },
+        {
+          "name": "init",
+          "kind": "module",
+          "signature": "pub mod init",
+          "file": "src/brownfield/mod.rs",
+          "line": 16,
+          "end_line": 16
+        },
+        {
+          "name": "interview",
+          "kind": "module",
+          "signature": "pub mod interview",
+          "file": "src/brownfield/mod.rs",
+          "line": 18,
+          "end_line": 18
+        },
+        {
+          "name": "onboard",
+          "kind": "module",
+          "signature": "pub mod onboard",
+          "file": "src/brownfield/mod.rs",
+          "line": 20,
+          "end_line": 20
+        },
+        {
+          "name": "refine",
+          "kind": "module",
+          "signature": "pub mod refine",
+          "file": "src/brownfield/mod.rs",
+          "line": 22,
+          "end_line": 22
+        },
+        {
+          "name": "suggest",
+          "kind": "module",
+          "signature": "pub mod suggest",
+          "file": "src/brownfield/mod.rs",
+          "line": 24,
+          "end_line": 24
+        },
+        {
+          "name": "summarise",
+          "kind": "module",
+          "signature": "pub mod summarise",
+          "file": "src/brownfield/mod.rs",
+          "line": 26,
+          "end_line": 26
+        },
+        {
+          "name": "templates",
+          "kind": "module",
+          "signature": "pub mod templates",
+          "file": "src/brownfield/mod.rs",
+          "line": 28,
+          "end_line": 28
+        },
+        {
+          "name": "Candidate",
+          "kind": "struct",
+          "signature": "pub struct Candidate",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 48,
+          "end_line": 53
+        },
+        {
+          "name": "ContractTemplate",
+          "kind": "struct",
+          "signature": "pub struct ContractTemplate",
+          "file": "src/brownfield/templates.rs",
+          "line": 25,
+          "end_line": 33
+        },
+        {
+          "name": "DiscoveredCandidate",
+          "kind": "struct",
+          "signature": "pub struct DiscoveredCandidate",
+          "file": "src/brownfield/discovery.rs",
+          "line": 28,
+          "end_line": 45
+        },
+        {
+          "name": "DiscoveredEdge",
+          "kind": "struct",
+          "signature": "pub struct DiscoveredEdge",
+          "file": "src/brownfield/discovery.rs",
+          "line": 49,
+          "end_line": 56
+        },
+        {
+          "name": "EnrichedCandidate",
+          "kind": "struct",
+          "signature": "pub struct EnrichedCandidate",
+          "file": "src/brownfield/summarise.rs",
+          "line": 59,
+          "end_line": 68
+        },
+        {
+          "name": "Extraction",
+          "kind": "struct",
+          "signature": "pub struct Extraction",
+          "file": "src/brownfield/discovery.rs",
+          "line": 60,
+          "end_line": 65
+        },
+        {
+          "name": "InterviewSession",
+          "kind": "struct",
+          "signature": "pub struct InterviewSession",
+          "file": "src/brownfield/interview.rs",
+          "line": 32,
+          "end_line": 44
+        },
+        {
+          "name": "OnboardReport",
+          "kind": "struct",
+          "signature": "pub struct OnboardReport",
+          "file": "src/brownfield/onboard.rs",
+          "line": 31,
+          "end_line": 36
+        },
+        {
+          "name": "OrphanCluster",
+          "kind": "struct",
+          "signature": "pub struct OrphanCluster",
+          "file": "src/brownfield/onboard.rs",
+          "line": 40,
+          "end_line": 47
+        },
+        {
+          "name": "Turn",
+          "kind": "struct",
+          "signature": "pub struct Turn",
+          "file": "src/brownfield/interview.rs",
+          "line": 22,
+          "end_line": 28
+        },
+        {
+          "name": "path_derived_id",
+          "kind": "function",
+          "signature": "pub(crate) fn path_derived_id(directory: &str) -> String",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 108,
+          "end_line": 114
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel",
+      "kind": "container",
+      "name": "Kernel",
+      "state": "synced",
+      "paths": [],
+      "files": [],
+      "contracts": [],
+      "symbols": []
+    },
+    {
+      "id": "cairn.kernel.artefacts",
+      "kind": "module",
+      "name": "Artefacts",
+      "state": "synced",
+      "paths": [
+        "./src/artefacts"
+      ],
+      "files": [
+        "src/artefacts/contract.rs",
+        "src/artefacts/frontmatter.rs",
+        "src/artefacts/mod.rs",
+        "src/artefacts/registry/changes.rs",
+        "src/artefacts/registry/io.rs",
+        "src/artefacts/registry/mod.rs",
+        "src/artefacts/registry/parse.rs",
+        "src/artefacts/registry/sha256.rs",
+        "src/artefacts/registry/types.rs",
+        "src/artefacts/registry/validate/mod.rs",
+        "src/artefacts/registry/validate/tests.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.artefacts.md"
+      ],
+      "symbols": [
+        {
+          "name": "ArtefactType",
+          "kind": "enum",
+          "signature": "pub enum ArtefactType",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 10,
+          "end_line": 23
+        },
+        {
+          "name": "ClaimsMode",
+          "kind": "enum",
+          "signature": "pub enum ClaimsMode",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 105,
+          "end_line": 110
+        },
+        {
+          "name": "DecisionStatus",
+          "kind": "enum",
+          "signature": "pub enum DecisionStatus",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 92,
+          "end_line": 101
+        },
+        {
+          "name": "ResearchMethod",
+          "kind": "enum",
+          "signature": "pub enum ResearchMethod",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 212,
+          "end_line": 218
+        },
+        {
+          "name": "ReviewType",
+          "kind": "enum",
+          "signature": "pub enum ReviewType",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 161,
+          "end_line": 168
+        },
+        {
+          "name": "SourceVerification",
+          "kind": "enum",
+          "signature": "pub enum SourceVerification",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 222,
+          "end_line": 229
+        },
+        {
+          "name": "TodoStatus",
+          "kind": "enum",
+          "signature": "pub enum TodoStatus",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 62,
+          "end_line": 71
+        },
+        {
+          "name": "load_artefacts",
+          "kind": "function",
+          "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 32,
+          "end_line": 46
+        },
+        {
+          "name": "load_contracts",
+          "kind": "function",
+          "signature": "pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet",
+          "file": "src/artefacts/contract.rs",
+          "line": 44,
+          "end_line": 111
+        },
+        {
+          "name": "parse",
+          "kind": "function",
+          "signature": "pub fn parse(source: &str) -> Frontmatter",
+          "file": "src/artefacts/frontmatter.rs",
+          "line": 18,
+          "end_line": 94
+        },
+        {
+          "name": "contract",
+          "kind": "module",
+          "signature": "pub mod contract",
+          "file": "src/artefacts/mod.rs",
+          "line": 3,
+          "end_line": 3
+        },
+        {
+          "name": "frontmatter",
+          "kind": "module",
+          "signature": "pub mod frontmatter",
+          "file": "src/artefacts/mod.rs",
+          "line": 4,
+          "end_line": 4
+        },
+        {
+          "name": "registry",
+          "kind": "module",
+          "signature": "pub mod registry",
+          "file": "src/artefacts/mod.rs",
+          "line": 5,
+          "end_line": 5
+        },
+        {
+          "name": "types",
+          "kind": "module",
+          "signature": "pub mod types",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "ArtefactLoadRequest",
+          "kind": "struct",
+          "signature": "pub struct ArtefactLoadRequest<'a>",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 27,
+          "end_line": 32
+        },
+        {
+          "name": "ArtefactRecord",
+          "kind": "struct",
+          "signature": "pub struct ArtefactRecord",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 36,
+          "end_line": 43
+        },
+        {
+          "name": "ArtefactSet",
+          "kind": "struct",
+          "signature": "pub struct ArtefactSet",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 279,
+          "end_line": 296
+        },
+        {
+          "name": "ChangeRecord",
+          "kind": "struct",
+          "signature": "pub struct ChangeRecord",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 263,
+          "end_line": 275
+        },
+        {
+          "name": "Claims",
+          "kind": "struct",
+          "signature": "pub struct Claims",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 114,
+          "end_line": 121
+        },
+        {
+          "name": "Contract",
+          "kind": "struct",
+          "signature": "pub struct Contract",
+          "file": "src/artefacts/contract.rs",
+          "line": 18,
+          "end_line": 31
+        },
+        {
+          "name": "ContractSet",
+          "kind": "struct",
+          "signature": "pub struct ContractSet",
+          "file": "src/artefacts/contract.rs",
+          "line": 35,
+          "end_line": 40
+        },
+        {
+          "name": "Decision",
+          "kind": "struct",
+          "signature": "pub struct Decision",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 125,
+          "end_line": 157
+        },
+        {
+          "name": "Frontmatter",
+          "kind": "struct",
+          "signature": "pub struct Frontmatter",
+          "file": "src/artefacts/frontmatter.rs",
+          "line": 7,
+          "end_line": 14
+        },
+        {
+          "name": "Research",
+          "kind": "struct",
+          "signature": "pub struct Research",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 191,
+          "end_line": 208
+        },
+        {
+          "name": "Review",
+          "kind": "struct",
+          "signature": "pub struct Review",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 172,
+          "end_line": 187
+        },
+        {
+          "name": "Source",
+          "kind": "struct",
+          "signature": "pub struct Source",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 233,
+          "end_line": 254
+        },
+        {
+          "name": "Todo",
+          "kind": "struct",
+          "signature": "pub struct Todo",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 75,
+          "end_line": 88
+        },
+        {
+          "name": "ArtefactLoader",
+          "kind": "trait",
+          "signature": "pub trait ArtefactLoader",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 49,
+          "end_line": 58
+        },
+        {
+          "name": "ArtefactError",
+          "kind": "type",
+          "signature": "pub type ArtefactError String",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 46,
+          "end_line": 46
+        },
+        {
+          "name": "load_decisions",
+          "kind": "function",
+          "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 77,
+          "end_line": 114
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel.blueprint",
+      "kind": "module",
+      "name": "Blueprint",
+      "state": "synced",
+      "paths": [
+        "./src/blueprint"
+      ],
+      "files": [
+        "src/blueprint/ast.rs",
+        "src/blueprint/error.rs",
+        "src/blueprint/lexer.rs",
+        "src/blueprint/mod.rs",
+        "src/blueprint/parser.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.blueprint.md"
+      ],
+      "symbols": [
+        {
+          "name": "NodeKind",
+          "kind": "enum",
+          "signature": "pub enum NodeKind",
+          "file": "src/blueprint/ast.rs",
+          "line": 43,
+          "end_line": 52
+        },
+        {
+          "name": "ParseErrorKind",
+          "kind": "enum",
+          "signature": "pub enum ParseErrorKind",
+          "file": "src/blueprint/error.rs",
+          "line": 9,
+          "end_line": 21
+        },
+        {
+          "name": "TokenKind",
+          "kind": "enum",
+          "signature": "pub enum TokenKind",
+          "file": "src/blueprint/lexer.rs",
+          "line": 10,
+          "end_line": 33
+        },
+        {
+          "name": "parse_file",
+          "kind": "function",
+          "signature": "pub fn parse_file(path: impl AsRef<Path>) -> Result<Ast, ParseError>",
+          "file": "src/blueprint/parser.rs",
+          "line": 17,
+          "end_line": 46
+        },
+        {
+          "name": "parse_str",
+          "kind": "function",
+          "signature": "pub fn parse_str(file: &str, source: &str) -> Result<Ast, ParseError>",
+          "file": "src/blueprint/parser.rs",
+          "line": 53,
+          "end_line": 59
+        },
+        {
+          "name": "point",
+          "kind": "function",
+          "signature": "pub fn point(file: impl Into<String>, line: usize, column: usize) -> Self",
+          "file": "src/blueprint/ast.rs",
+          "line": 21,
+          "end_line": 29
+        },
+        {
+          "name": "tokenize",
+          "kind": "function",
+          "signature": "pub fn tokenize(file: &str, source: &str) -> Result<Vec<Token>, ParseError>",
+          "file": "src/blueprint/lexer.rs",
+          "line": 49,
+          "end_line": 66
+        },
+        {
+          "name": "unexpected",
+          "kind": "function",
+          "signature": "pub fn unexpected( span: Span, expected: impl Into<String>, encountered: impl Into<String>, ) -> Self",
+          "file": "src/blueprint/error.rs",
+          "line": 39,
+          "end_line": 55
+        },
+        {
+          "name": "ast",
+          "kind": "module",
+          "signature": "pub mod ast",
+          "file": "src/blueprint/mod.rs",
+          "line": 3,
+          "end_line": 3
+        },
+        {
+          "name": "error",
+          "kind": "module",
+          "signature": "pub mod error",
+          "file": "src/blueprint/mod.rs",
+          "line": 4,
+          "end_line": 4
+        },
+        {
+          "name": "lexer",
+          "kind": "module",
+          "signature": "pub mod lexer",
+          "file": "src/blueprint/mod.rs",
+          "line": 5,
+          "end_line": 5
+        },
+        {
+          "name": "parser",
+          "kind": "module",
+          "signature": "pub mod parser",
+          "file": "src/blueprint/mod.rs",
+          "line": 6,
+          "end_line": 6
+        },
+        {
+          "name": "Ast",
+          "kind": "struct",
+          "signature": "pub struct Ast",
+          "file": "src/blueprint/ast.rs",
+          "line": 34,
+          "end_line": 39
+        },
+        {
+          "name": "Edge",
+          "kind": "struct",
+          "signature": "pub struct Edge",
+          "file": "src/blueprint/ast.rs",
+          "line": 94,
+          "end_line": 103
+        },
+        {
+          "name": "Field",
+          "kind": "struct",
+          "signature": "pub struct Field",
+          "file": "src/blueprint/ast.rs",
+          "line": 83,
+          "end_line": 90
+        },
+        {
+          "name": "Node",
+          "kind": "struct",
+          "signature": "pub struct Node",
+          "file": "src/blueprint/ast.rs",
+          "line": 56,
+          "end_line": 79
+        },
+        {
+          "name": "ParseError",
+          "kind": "struct",
+          "signature": "pub struct ParseError",
+          "file": "src/blueprint/error.rs",
+          "line": 25,
+          "end_line": 34
+        },
+        {
+          "name": "Span",
+          "kind": "struct",
+          "signature": "pub struct Span",
+          "file": "src/blueprint/ast.rs",
+          "line": 5,
+          "end_line": 16
+        },
+        {
+          "name": "Token",
+          "kind": "struct",
+          "signature": "pub struct Token",
+          "file": "src/blueprint/lexer.rs",
+          "line": 37,
+          "end_line": 42
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel.changes",
+      "kind": "module",
+      "name": "Changes",
+      "state": "synced",
+      "paths": [
+        "./src/changes"
+      ],
+      "files": [
+        "src/changes/apply/mod.rs",
+        "src/changes/apply/preserve.rs",
+        "src/changes/apply/tests.rs",
+        "src/changes/artefact_ops.rs",
+        "src/changes/delta.rs",
+        "src/changes/delta/tests.rs",
+        "src/changes/mod.rs",
+        "src/changes/rename.rs",
+        "src/changes/tests.rs",
+        "src/changes/types.rs",
+        "src/changes/validate/mod.rs",
+        "src/changes/validate/tests.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.changes.md"
+      ],
+      "symbols": [
+        {
+          "name": "ChangeOperation",
+          "kind": "enum",
+          "signature": "pub enum ChangeOperation",
+          "file": "src/changes/types.rs",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "active_changes_lines",
+          "kind": "function",
+          "signature": "pub fn active_changes_lines(changes: &[Change]) -> Vec<String>",
+          "file": "src/changes/mod.rs",
+          "line": 327,
+          "end_line": 339
+        },
+        {
+          "name": "archive",
+          "kind": "function",
+          "signature": "pub fn archive( root: &Path, blueprint_path: &Path, change_id: &str, ) -> Result<ArchiveReport, String>",
+          "file": "src/changes/mod.rs",
+          "line": 107,
+          "end_line": 167
+        },
+        {
+          "name": "create_rename_change",
+          "kind": "function",
+          "signature": "pub fn create_rename_change( root: &Path, blueprint_path: &Path, old_id: &str, new_id: &str, ) -> Result<Change, String>",
+          "file": "src/changes/mod.rs",
+          "line": 175,
+          "end_line": 222
+        },
+        {
+          "name": "discover",
+          "kind": "function",
+          "signature": "pub fn discover(root: &Path) -> io::Result<Vec<Change>>",
+          "file": "src/changes/mod.rs",
+          "line": 40,
+          "end_line": 63
+        },
+        {
+          "name": "is_empty",
+          "kind": "function",
+          "signature": "pub fn is_empty(&self) -> bool",
+          "file": "src/changes/types.rs",
+          "line": 48,
+          "end_line": 57
+        },
+        {
+          "name": "load_change",
+          "kind": "function",
+          "signature": "pub fn load_change(root: &Path, path: PathBuf) -> Change",
+          "file": "src/changes/mod.rs",
+          "line": 67,
+          "end_line": 100
+        },
+        {
+          "name": "operation_summary",
+          "kind": "function",
+          "signature": "pub fn operation_summary(change: &Change) -> String",
+          "file": "src/changes/mod.rs",
+          "line": 226,
+          "end_line": 255
+        },
+        {
+          "name": "operations_for_nodes",
+          "kind": "function",
+          "signature": "pub fn operations_for_nodes(changes: &[Change], nodes: &BTreeSet<String>) -> Vec<String>",
+          "file": "src/changes/mod.rs",
+          "line": 259,
+          "end_line": 323
+        },
+        {
+          "name": "parse_blueprint_delta",
+          "kind": "function",
+          "signature": "pub fn parse_blueprint_delta(file: &str, source: &str) -> Result<BlueprintDelta, String>",
+          "file": "src/changes/delta.rs",
+          "line": 13,
+          "end_line": 31
+        },
+        {
+          "name": "validate_change",
+          "kind": "function",
+          "signature": "pub fn validate_change(change: &Change, graph: &Graph) -> Vec<String>",
+          "file": "src/changes/validate/mod.rs",
+          "line": 9,
+          "end_line": 55
+        },
+        {
+          "name": "ArchiveReport",
+          "kind": "struct",
+          "signature": "pub struct ArchiveReport",
+          "file": "src/changes/types.rs",
+          "line": 108,
+          "end_line": 113
+        },
+        {
+          "name": "ArtefactOperation",
+          "kind": "struct",
+          "signature": "pub struct ArtefactOperation",
+          "file": "src/changes/types.rs",
+          "line": 80,
+          "end_line": 91
+        },
+        {
+          "name": "BlueprintDelta",
+          "kind": "struct",
+          "signature": "pub struct BlueprintDelta",
+          "file": "src/changes/types.rs",
+          "line": 26,
+          "end_line": 43
+        },
+        {
+          "name": "Change",
+          "kind": "struct",
+          "signature": "pub struct Change",
+          "file": "src/changes/types.rs",
+          "line": 5,
+          "end_line": 22
+        },
+        {
+          "name": "EdgeRename",
+          "kind": "struct",
+          "signature": "pub struct EdgeRename",
+          "file": "src/changes/types.rs",
+          "line": 71,
+          "end_line": 76
+        },
+        {
+          "name": "Rename",
+          "kind": "struct",
+          "signature": "pub struct Rename",
+          "file": "src/changes/types.rs",
+          "line": 62,
+          "end_line": 67
+        },
+        {
+          "name": "clean_list_line",
+          "kind": "function",
+          "signature": "pub(super) fn clean_list_line(line: &str) -> String",
+          "file": "src/changes/delta.rs",
+          "line": 153,
+          "end_line": 161
+        },
+        {
+          "name": "clean_scalar",
+          "kind": "function",
+          "signature": "pub(super) fn clean_scalar(value: &str) -> String",
+          "file": "src/changes/delta.rs",
+          "line": 163,
+          "end_line": 170
+        },
+        {
+          "name": "delta_sections",
+          "kind": "function",
+          "signature": "pub(super) fn delta_sections(source: &str) -> BTreeMap<String, String>",
+          "file": "src/changes/delta.rs",
+          "line": 33,
+          "end_line": 48
+        },
+        {
+          "name": "flatten_nodes",
+          "kind": "function",
+          "signature": "pub(super) fn flatten_nodes(nodes: Vec<Node>) -> Vec<Node>",
+          "file": "src/changes/delta.rs",
+          "line": 172,
+          "end_line": 179
+        },
+        {
+          "name": "graph_edge_exists",
+          "kind": "function",
+          "signature": "pub(super) fn graph_edge_exists(graph: &Graph, edge: &Edge) -> bool",
+          "file": "src/changes/validate/mod.rs",
+          "line": 91,
+          "end_line": 97
+        },
+        {
+          "name": "mark_node_touch",
+          "kind": "function",
+          "signature": "pub(super) fn mark_node_touch(touched: &mut BTreeSet<String>, id: &str, errors: &mut Vec<String>)",
+          "file": "src/changes/validate/mod.rs",
+          "line": 99,
+          "end_line": 103
+        },
+        {
+          "name": "parse_edge_renames",
+          "kind": "function",
+          "signature": "pub(super) fn parse_edge_renames( file: &str, section: Option<&str>, ) -> Result<Vec<EdgeRename>, String>",
+          "file": "src/changes/delta.rs",
+          "line": 111,
+          "end_line": 142
+        },
+        {
+          "name": "parse_edge_section",
+          "kind": "function",
+          "signature": "pub(super) fn parse_edge_section(file: &str, section: Option<&str>) -> Result<Vec<Edge>, String>",
+          "file": "src/changes/delta.rs",
+          "line": 67,
+          "end_line": 82
+        },
+        {
+          "name": "parse_id_lines",
+          "kind": "function",
+          "signature": "pub(super) fn parse_id_lines(section: Option<&str>) -> Vec<String>",
+          "file": "src/changes/delta.rs",
+          "line": 84,
+          "end_line": 91
+        },
+        {
+          "name": "parse_node_section",
+          "kind": "function",
+          "signature": "pub(super) fn parse_node_section(file: &str, section: Option<&str>) -> Result<Vec<Node>, String>",
+          "file": "src/changes/delta.rs",
+          "line": 50,
+          "end_line": 65
+        },
+        {
+          "name": "parse_rename_lines",
+          "kind": "function",
+          "signature": "pub(super) fn parse_rename_lines(section: Option<&str>) -> Result<Vec<Rename>, String>",
+          "file": "src/changes/delta.rs",
+          "line": 93,
+          "end_line": 109
+        },
+        {
+          "name": "uncomment_lines",
+          "kind": "function",
+          "signature": "pub(super) fn uncomment_lines(source: &str) -> String",
+          "file": "src/changes/delta.rs",
+          "line": 144,
+          "end_line": 151
+        },
+        {
+          "name": "validate_artefact_refs",
+          "kind": "function",
+          "signature": "pub(super) fn validate_artefact_refs( artefact: &ArtefactOperation, available_nodes: &BTreeSet<String>, errors: &mut Vec<String>, )",
+          "file": "src/changes/validate/mod.rs",
+          "line": 157,
+          "end_line": 182
+        },
+        {
+          "name": "validate_artefacts",
+          "kind": "function",
+          "signature": "pub(super) fn validate_artefacts( artefacts: &[ArtefactOperation], available_nodes: &BTreeSet<String>, errors: &mut Vec<String>, )",
+          "file": "src/changes/validate/mod.rs",
+          "line": 105,
+          "end_line": 155
+        },
+        {
+          "name": "validate_edges",
+          "kind": "function",
+          "signature": "pub(super) fn validate_edges( delta: &BlueprintDelta, available_nodes: &BTreeSet<String>, graph: &Graph, errors: &mut Vec<String>, )",
+          "file": "src/changes/validate/mod.rs",
+          "line": 57,
+          "end_line": 89
+        },
+        {
+          "name": "Snapshot",
+          "kind": "struct",
+          "signature": "pub(super) struct Snapshot",
+          "file": "src/changes/types.rs",
+          "line": 116,
+          "end_line": 119
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel.cli",
+      "kind": "module",
+      "name": "CLI",
+      "state": "synced",
+      "paths": [
+        "./src/cli"
+      ],
+      "files": [
+        "src/cli/accept.rs",
+        "src/cli/commands/archive.rs",
+        "src/cli/commands/change.rs",
+        "src/cli/commands/decision.rs",
+        "src/cli/commands/feedback.rs",
+        "src/cli/commands/hook.rs",
+        "src/cli/commands/import.rs",
+        "src/cli/commands/mod.rs",
+        "src/cli/commands/onboard.rs",
+        "src/cli/commands/project.rs",
+        "src/cli/commands/watch.rs",
+        "src/cli/copy.rs",
+        "src/cli/export/builder.rs",
+        "src/cli/export/json.rs",
+        "src/cli/export/markdown.rs",
+        "src/cli/export/mermaid.rs",
+        "src/cli/export/mod.rs",
+        "src/cli/export/runner.rs",
+        "src/cli/format/json.rs",
+        "src/cli/format/mod.rs",
+        "src/cli/format/render.rs",
+        "src/cli/format/util.rs",
+        "src/cli/mod.rs",
+        "src/cli/render/artefacts.rs",
+        "src/cli/render/context_view.rs",
+        "src/cli/render/health.rs",
+        "src/cli/render/mod.rs",
+        "src/cli/render/node.rs",
+        "src/cli/render/project.rs",
+        "src/cli/render/remediate.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.cli.md"
+      ],
+      "symbols": [
+        {
+          "name": "SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const SCHEMA_VERSION u32",
+          "file": "src/cli/export/mod.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "registry",
+          "kind": "function",
+          "signature": "pub const fn registry() -> &'static [CommandMetadata]",
+          "file": "src/cli/mod.rs",
+          "line": 66,
+          "end_line": 68
+        },
+        {
+          "name": "build_export",
+          "kind": "function",
+          "signature": "pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, CairnError>",
+          "file": "src/cli/export/builder.rs",
+          "line": 34,
+          "end_line": 54
+        },
+        {
+          "name": "lookup",
+          "kind": "function",
+          "signature": "pub fn lookup(key: &str) -> &str",
+          "file": "src/cli/copy.rs",
+          "line": 22,
+          "end_line": 41
+        },
+        {
+          "name": "render_json",
+          "kind": "function",
+          "signature": "pub fn render_json(envelope: &ExportEnvelope) -> String",
+          "file": "src/cli/export/json.rs",
+          "line": 16,
+          "end_line": 44
+        },
+        {
+          "name": "render_markdown",
+          "kind": "function",
+          "signature": "pub fn render_markdown(envelope: &ExportEnvelope) -> String",
+          "file": "src/cli/export/markdown.rs",
+          "line": 19,
+          "end_line": 33
+        },
+        {
+          "name": "render_mermaid",
+          "kind": "function",
+          "signature": "pub fn render_mermaid(envelope: &ExportEnvelope) -> String",
+          "file": "src/cli/export/mermaid.rs",
+          "line": 37,
+          "end_line": 57
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub fn run(args: &[String]) -> CliResult",
+          "file": "src/cli/mod.rs",
+          "line": 75,
+          "end_line": 209
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub fn run(args: &[String], file: &Path, changes_dir: &Path, json: bool) -> CliResult",
+          "file": "src/cli/export/runner.rs",
+          "line": 25,
+          "end_line": 43
+        },
+        {
+          "name": "run_accept_gate",
+          "kind": "function",
+          "signature": "pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult",
+          "file": "src/cli/accept.rs",
+          "line": 9,
+          "end_line": 90
+        },
+        {
+          "name": "export",
+          "kind": "module",
+          "signature": "pub mod export",
+          "file": "src/cli/mod.rs",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "ArtefactEntry",
+          "kind": "struct",
+          "signature": "pub struct ArtefactEntry",
+          "file": "src/cli/export/mod.rs",
+          "line": 57,
+          "end_line": 66
+        },
+        {
+          "name": "ChangeEntry",
+          "kind": "struct",
+          "signature": "pub struct ChangeEntry",
+          "file": "src/cli/export/mod.rs",
+          "line": 70,
+          "end_line": 77
+        },
+        {
+          "name": "CliResult",
+          "kind": "struct",
+          "signature": "pub struct CliResult",
+          "file": "src/cli/mod.rs",
+          "line": 55,
+          "end_line": 62
+        },
+        {
+          "name": "EdgeEntry",
+          "kind": "struct",
+          "signature": "pub struct EdgeEntry",
+          "file": "src/cli/export/mod.rs",
+          "line": 46,
+          "end_line": 53
+        },
+        {
+          "name": "ExportEnvelope",
+          "kind": "struct",
+          "signature": "pub struct ExportEnvelope",
+          "file": "src/cli/export/mod.rs",
+          "line": 27,
+          "end_line": 42
+        },
+        {
+          "name": "CommandMetadata",
+          "kind": "type",
+          "signature": "pub type CommandMetadata",
+          "file": "src/cli/mod.rs",
+          "line": 52,
+          "end_line": 52
+        },
+        {
+          "name": "blueprint_root",
+          "kind": "function",
+          "signature": "pub(crate) fn blueprint_root(file: &Path) -> &Path",
+          "file": "src/cli/export/mod.rs",
+          "line": 79,
+          "end_line": 83
+        },
+        {
+          "name": "current_timestamp_rfc3339",
+          "kind": "function",
+          "signature": "pub(crate) fn current_timestamp_rfc3339() -> String",
+          "file": "src/cli/export/builder.rs",
+          "line": 197,
+          "end_line": 202
+        },
+        {
+          "name": "mermaid_id",
+          "kind": "function",
+          "signature": "pub(crate) fn mermaid_id(id: &str) -> String",
+          "file": "src/cli/export/mermaid.rs",
+          "line": 17,
+          "end_line": 19
+        },
+        {
+          "name": "parse",
+          "kind": "function",
+          "signature": "pub(crate) fn parse(command_args: &[String]) -> Self",
+          "file": "src/cli/render/context_view.rs",
+          "line": 36,
+          "end_line": 58
+        },
+        {
+          "name": "render_mermaid",
+          "kind": "function",
+          "signature": "pub(crate) fn render_mermaid(graph: &Graph, opts: &ContextOpts, prefix: &str) -> String",
+          "file": "src/cli/render/context_view.rs",
+          "line": 84,
+          "end_line": 92
+        },
+        {
+          "name": "render_structure",
+          "kind": "function",
+          "signature": "pub(crate) fn render_structure(graph: &Graph, opts: &ContextOpts, prefix: &str) -> String",
+          "file": "src/cli/render/context_view.rs",
+          "line": 72,
+          "end_line": 77
+        },
+        {
+          "name": "copy",
+          "kind": "module",
+          "signature": "pub(crate) mod copy",
+          "file": "src/cli/mod.rs",
+          "line": 30,
+          "end_line": 30
+        },
+        {
+          "name": "mermaid",
+          "kind": "module",
+          "signature": "pub(crate) mod mermaid",
+          "file": "src/cli/export/mod.rs",
+          "line": 12,
+          "end_line": 12
+        },
+        {
+          "name": "ContextOpts",
+          "kind": "struct",
+          "signature": "pub(crate) struct ContextOpts",
+          "file": "src/cli/render/context_view.rs",
+          "line": 23,
+          "end_line": 31
+        },
+        {
+          "name": "artefact_type_label",
+          "kind": "function",
+          "signature": "pub(super) fn artefact_type_label(t: ArtefactType) -> &'static str",
+          "file": "src/cli/export/builder.rs",
+          "line": 173,
+          "end_line": 182
+        },
+        {
+          "name": "artefact_type_order",
+          "kind": "function",
+          "signature": "pub(super) fn artefact_type_order(t: ArtefactType) -> u8",
+          "file": "src/cli/export/builder.rs",
+          "line": 162,
+          "end_line": 171
+        },
+        {
+          "name": "node_kind_label",
+          "kind": "function",
+          "signature": "pub(super) fn node_kind_label(kind: NodeKind) -> &'static str",
+          "file": "src/cli/export/json.rs",
+          "line": 129,
+          "end_line": 136
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel.hooks",
+      "kind": "module",
+      "name": "Hooks",
+      "state": "synced",
+      "paths": [
+        "./src/hooks"
+      ],
+      "files": [
+        "src/hooks/architecture.rs",
+        "src/hooks/mod.rs",
+        "src/hooks/render.rs",
+        "src/hooks/tests.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.hooks.md"
+      ],
+      "symbols": [
+        {
+          "name": "exit_code",
+          "kind": "function",
+          "signature": "pub const fn exit_code(&self) -> u8",
+          "file": "src/hooks/mod.rs",
+          "line": 64,
+          "end_line": 69
+        },
+        {
+          "name": "ExitDecision",
+          "kind": "enum",
+          "signature": "pub enum ExitDecision",
+          "file": "src/hooks/mod.rs",
+          "line": 37,
+          "end_line": 42
+        },
+        {
+          "name": "HookKind",
+          "kind": "enum",
+          "signature": "pub enum HookKind",
+          "file": "src/hooks/mod.rs",
+          "line": 22,
+          "end_line": 33
+        },
+        {
+          "name": "architecture_findings",
+          "kind": "function",
+          "signature": "pub fn architecture_findings( old_ast: &Ast, new_ast: &Ast, decisions: &[Decision], escape_hatch: bool, ) -> Vec<Finding>",
+          "file": "src/hooks/architecture.rs",
+          "line": 33,
+          "end_line": 110
+        },
+        {
+          "name": "architecture_findings_from_project",
+          "kind": "function",
+          "signature": "pub fn architecture_findings_from_project(root: &Path) -> Vec<Finding>",
+          "file": "src/hooks/architecture.rs",
+          "line": 142,
+          "end_line": 164
+        },
+        {
+          "name": "detect_active_change_conflicts",
+          "kind": "function",
+          "signature": "pub fn detect_active_change_conflicts(changes_dir: &Path) -> Vec<Finding>",
+          "file": "src/hooks/mod.rs",
+          "line": 133,
+          "end_line": 170
+        },
+        {
+          "name": "render_human",
+          "kind": "function",
+          "signature": "pub fn render_human(report: &HookReport) -> String",
+          "file": "src/hooks/render.rs",
+          "line": 12,
+          "end_line": 32
+        },
+        {
+          "name": "render_json",
+          "kind": "function",
+          "signature": "pub fn render_json(report: &HookReport) -> String",
+          "file": "src/hooks/render.rs",
+          "line": 36,
+          "end_line": 63
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub fn run( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> HookReport",
+          "file": "src/hooks/mod.rs",
+          "line": 74,
+          "end_line": 129
+        },
+        {
+          "name": "HookReport",
+          "kind": "struct",
+          "signature": "pub struct HookReport",
+          "file": "src/hooks/mod.rs",
+          "line": 46,
+          "end_line": 59
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel.map",
+      "kind": "module",
+      "name": "Map",
+      "state": "synced",
+      "paths": [
+        "./src/map"
+      ],
+      "files": [
+        "src/map/build.rs",
+        "src/map/contract_coverage.rs",
+        "src/map/graph.rs",
+        "src/map/integrity.rs",
+        "src/map/mod.rs",
+        "src/map/query.rs",
+        "src/map/spec_rule_coverage.rs",
+        "src/map/test_coverage.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.map.md"
+      ],
+      "symbols": [
+        {
+          "name": "ISLANDS_SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const ISLANDS_SCHEMA_VERSION u32",
+          "file": "src/map/query.rs",
+          "line": 123,
+          "end_line": 123
+        },
+        {
+          "name": "name",
+          "kind": "function",
+          "signature": "pub const fn name(self) -> &'static str",
+          "file": "src/map/graph.rs",
+          "line": 42,
+          "end_line": 48
+        },
+        {
+          "name": "FindingSeverity",
+          "kind": "enum",
+          "signature": "pub enum FindingSeverity",
+          "file": "src/map/graph.rs",
+          "line": 21,
+          "end_line": 28
+        },
+        {
+          "name": "GraphEdgeKind",
+          "kind": "enum",
+          "signature": "pub enum GraphEdgeKind",
+          "file": "src/map/query.rs",
+          "line": 56,
+          "end_line": 61
+        },
+        {
+          "name": "NodeState",
+          "kind": "enum",
+          "signature": "pub enum NodeState",
+          "file": "src/map/graph.rs",
+          "line": 9,
+          "end_line": 16
+        },
+        {
+          "name": "build_graph",
+          "kind": "function",
+          "signature": "pub fn build_graph( ast: &Ast, root: &Path, contracts: &ContractSet, claimed_files: &mut BTreeMap<String, Vec<String>>, external_findings: Vec<Finding>, ) -> Graph",
+          "file": "src/map/build.rs",
+          "line": 13,
+          "end_line": 38
+        },
+        {
+          "name": "cycle_findings",
+          "kind": "function",
+          "signature": "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>",
+          "file": "src/map/integrity.rs",
+          "line": 7,
+          "end_line": 63
+        },
+        {
+          "name": "dependents",
+          "kind": "function",
+          "signature": "pub fn dependents( graph: &Graph, node: &str, transitive: bool, ) -> Result<DependencyResponse, Finding>",
+          "file": "src/map/query.rs",
+          "line": 202,
+          "end_line": 212
+        },
+        {
+          "name": "depends",
+          "kind": "function",
+          "signature": "pub fn depends(graph: &Graph, node: &str, transitive: bool) -> Result<DependencyResponse, Finding>",
+          "file": "src/map/query.rs",
+          "line": 189,
+          "end_line": 195
+        },
+        {
+          "name": "files",
+          "kind": "function",
+          "signature": "pub fn files(graph: &Graph, node: &str) -> Result<FilesResponse, Finding>",
+          "file": "src/map/query.rs",
+          "line": 163,
+          "end_line": 169
+        },
+        {
+          "name": "get",
+          "kind": "function",
+          "signature": "pub fn get(graph: &Graph, node: &str) -> Result<NodeResponse, Finding>",
+          "file": "src/map/query.rs",
+          "line": 130,
+          "end_line": 134
+        },
+        {
+          "name": "graph",
+          "kind": "function",
+          "signature": "pub fn graph(graph: &Graph) -> GraphResponse",
+          "file": "src/map/query.rs",
+          "line": 216,
+          "end_line": 253
+        },
+        {
+          "name": "has_errors",
+          "kind": "function",
+          "signature": "pub fn has_errors(&self) -> bool",
+          "file": "src/map/graph.rs",
+          "line": 169,
+          "end_line": 173
+        },
+        {
+          "name": "islands",
+          "kind": "function",
+          "signature": "pub fn islands(graph: &Graph) -> IslandsResponse",
+          "file": "src/map/query.rs",
+          "line": 280,
+          "end_line": 304
+        },
+        {
+          "name": "lint",
+          "kind": "function",
+          "signature": "pub fn lint(graph: &Graph) -> LintResponse",
+          "file": "src/map/query.rs",
+          "line": 266,
+          "end_line": 270
+        },
+        {
+          "name": "neighbourhood",
+          "kind": "function",
+          "signature": "pub fn neighbourhood(graph: &Graph, node: &str) -> Result<NeighbourhoodResponse, Finding>",
+          "file": "src/map/query.rs",
+          "line": 141,
+          "end_line": 156
+        },
+        {
+          "name": "neighbourhood_with_options",
+          "kind": "function",
+          "signature": "pub fn neighbourhood_with_options( graph: &Graph, node: &str, include_orphans: bool, ) -> Result<NeighbourhoodResponse, Finding>",
+          "file": "src/map/query.rs",
+          "line": 317,
+          "end_line": 327
+        },
+        {
+          "name": "order",
+          "kind": "function",
+          "signature": "pub fn order(graph: &Graph) -> Result<OrderResponse, Vec<Finding>>",
+          "file": "src/map/query.rs",
+          "line": 260,
+          "end_line": 262
+        },
+        {
+          "name": "resolve",
+          "kind": "function",
+          "signature": "pub fn resolve(&self, value: &str) -> Result<&NodeRecord, Finding>",
+          "file": "src/map/graph.rs",
+          "line": 134,
+          "end_line": 165
+        },
+        {
+          "name": "symbols",
+          "kind": "function",
+          "signature": "pub fn symbols(graph: &Graph, node: &str) -> Result<SymbolsResponse, Finding>",
+          "file": "src/map/query.rs",
+          "line": 176,
+          "end_line": 182
+        },
+        {
+          "name": "topological_order",
+          "kind": "function",
+          "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
+          "file": "src/map/integrity.rs",
+          "line": 70,
+          "end_line": 81
+        },
+        {
+          "name": "build",
+          "kind": "module",
+          "signature": "pub mod build",
+          "file": "src/map/mod.rs",
+          "line": 3,
+          "end_line": 3
+        },
+        {
+          "name": "graph",
+          "kind": "module",
+          "signature": "pub mod graph",
+          "file": "src/map/mod.rs",
+          "line": 5,
+          "end_line": 5
+        },
+        {
+          "name": "integrity",
+          "kind": "module",
+          "signature": "pub mod integrity",
+          "file": "src/map/mod.rs",
+          "line": 6,
+          "end_line": 6
+        },
+        {
+          "name": "query",
+          "kind": "module",
+          "signature": "pub mod query",
+          "file": "src/map/mod.rs",
+          "line": 7,
+          "end_line": 7
+        },
+        {
+          "name": "DependencyResponse",
+          "kind": "struct",
+          "signature": "pub struct DependencyResponse",
+          "file": "src/map/query.rs",
+          "line": 47,
+          "end_line": 52
+        },
+        {
+          "name": "EdgeRef",
+          "kind": "struct",
+          "signature": "pub struct EdgeRef",
+          "file": "src/map/graph.rs",
+          "line": 104,
+          "end_line": 111
+        },
+        {
+          "name": "FilesResponse",
+          "kind": "struct",
+          "signature": "pub struct FilesResponse",
+          "file": "src/map/query.rs",
+          "line": 29,
+          "end_line": 34
+        },
+        {
+          "name": "Finding",
+          "kind": "struct",
+          "signature": "pub struct Finding",
+          "file": "src/map/graph.rs",
+          "line": 53,
+          "end_line": 67
+        },
+        {
+          "name": "Graph",
+          "kind": "struct",
+          "signature": "pub struct Graph",
+          "file": "src/map/graph.rs",
+          "line": 115,
+          "end_line": 126
+        },
+        {
+          "name": "GraphEdgeResponse",
+          "kind": "struct",
+          "signature": "pub struct GraphEdgeResponse",
+          "file": "src/map/query.rs",
+          "line": 65,
+          "end_line": 74
+        },
+        {
+          "name": "GraphResponse",
+          "kind": "struct",
+          "signature": "pub struct GraphResponse",
+          "file": "src/map/query.rs",
+          "line": 78,
+          "end_line": 83
+        },
+        {
+          "name": "IslandResponse",
+          "kind": "struct",
+          "signature": "pub struct IslandResponse",
+          "file": "src/map/query.rs",
+          "line": 101,
+          "end_line": 106
+        },
+        {
+          "name": "IslandsResponse",
+          "kind": "struct",
+          "signature": "pub struct IslandsResponse",
+          "file": "src/map/query.rs",
+          "line": 110,
+          "end_line": 116
+        },
+        {
+          "name": "LintResponse",
+          "kind": "struct",
+          "signature": "pub struct LintResponse",
+          "file": "src/map/query.rs",
+          "line": 94,
+          "end_line": 97
+        },
+        {
+          "name": "NeighbourhoodResponse",
+          "kind": "struct",
+          "signature": "pub struct NeighbourhoodResponse",
+          "file": "src/map/query.rs",
+          "line": 18,
+          "end_line": 25
+        },
+        {
+          "name": "NodeRecord",
+          "kind": "struct",
+          "signature": "pub struct NodeRecord",
+          "file": "src/map/graph.rs",
+          "line": 71,
+          "end_line": 100
+        },
+        {
+          "name": "NodeResponse",
+          "kind": "struct",
+          "signature": "pub struct NodeResponse",
+          "file": "src/map/query.rs",
+          "line": 11,
+          "end_line": 14
+        },
+        {
+          "name": "OrderResponse",
+          "kind": "struct",
+          "signature": "pub struct OrderResponse",
+          "file": "src/map/query.rs",
+          "line": 87,
+          "end_line": 90
+        },
+        {
+          "name": "SymbolsResponse",
+          "kind": "struct",
+          "signature": "pub struct SymbolsResponse",
+          "file": "src/map/query.rs",
+          "line": 38,
+          "end_line": 43
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel.query",
+      "kind": "module",
+      "name": "QueryAPI",
+      "state": "synced",
+      "paths": [
+        "./src/query_api"
+      ],
+      "files": [
+        "src/query_api/change_queries.rs",
+        "src/query_api/handlers/artefacts.rs",
+        "src/query_api/handlers/graph.rs",
+        "src/query_api/handlers/mod.rs",
+        "src/query_api/handlers/node.rs",
+        "src/query_api/handlers/project.rs",
+        "src/query_api/handlers/remediate.rs",
+        "src/query_api/mod.rs",
+        "src/query_api/registry.rs",
+        "src/query_api/serialise.rs",
+        "src/query_api/tests.rs",
+        "src/query_api/util.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.query.md"
+      ],
+      "symbols": [
+        {
+          "name": "SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const SCHEMA_VERSION u32",
+          "file": "src/query_api/mod.rs",
+          "line": 51,
+          "end_line": 51
+        },
+        {
+          "name": "registry",
+          "kind": "function",
+          "signature": "pub const fn registry() -> &'static [ToolMetadata]",
+          "file": "src/query_api/mod.rs",
+          "line": 163,
+          "end_line": 165
+        },
+        {
+          "name": "QueryFlag",
+          "kind": "enum",
+          "signature": "pub enum QueryFlag",
+          "file": "src/query_api/mod.rs",
+          "line": 102,
+          "end_line": 119
+        },
+        {
+          "name": "SafetyClass",
+          "kind": "enum",
+          "signature": "pub enum SafetyClass",
+          "file": "src/query_api/mod.rs",
+          "line": 55,
+          "end_line": 60
+        },
+        {
+          "name": "envelope_json",
+          "kind": "function",
+          "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
+          "file": "src/query_api/mod.rs",
+          "line": 251,
+          "end_line": 258
+        },
+        {
+          "name": "error_json",
+          "kind": "function",
+          "signature": "pub fn error_json(error: &QueryError) -> Value",
+          "file": "src/query_api/mod.rs",
+          "line": 262,
+          "end_line": 269
+        },
+        {
+          "name": "execute",
+          "kind": "function",
+          "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
+          "file": "src/query_api/mod.rs",
+          "line": 189,
+          "end_line": 247
+        },
+        {
+          "name": "visible_tools",
+          "kind": "function",
+          "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
+          "file": "src/query_api/mod.rs",
+          "line": 176,
+          "end_line": 182
+        },
+        {
+          "name": "QueryError",
+          "kind": "struct",
+          "signature": "pub struct QueryError",
+          "file": "src/query_api/mod.rs",
+          "line": 142,
+          "end_line": 151
+        },
+        {
+          "name": "QueryRequest",
+          "kind": "struct",
+          "signature": "pub struct QueryRequest",
+          "file": "src/query_api/mod.rs",
+          "line": 79,
+          "end_line": 98
+        },
+        {
+          "name": "QueryResponse",
+          "kind": "struct",
+          "signature": "pub struct QueryResponse",
+          "file": "src/query_api/mod.rs",
+          "line": 129,
+          "end_line": 138
+        },
+        {
+          "name": "ToolMetadata",
+          "kind": "struct",
+          "signature": "pub struct ToolMetadata",
+          "file": "src/query_api/mod.rs",
+          "line": 64,
+          "end_line": 75
+        }
+      ]
+    },
+    {
+      "id": "cairn.kernel.scanner",
+      "kind": "module",
+      "name": "Scanner",
+      "state": "synced",
+      "paths": [
+        "./src/scanner"
+      ],
+      "files": [
+        "src/scanner/cache.rs",
+        "src/scanner/checks.rs",
+        "src/scanner/config/mod.rs",
+        "src/scanner/config/tests.rs",
+        "src/scanner/mod.rs",
+        "src/scanner/outputs.rs",
+        "src/scanner/snapshot.rs",
+        "src/scanner/state.rs",
+        "src/scanner/tests.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/kernel.scanner.md"
+      ],
+      "symbols": [
+        {
+          "name": "SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const SCHEMA_VERSION u32",
+          "file": "src/scanner/snapshot.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "append_log",
+          "kind": "function",
+          "signature": "pub fn append_log(root: &Path, graph: &Graph) -> io::Result<()>",
+          "file": "src/scanner/outputs.rs",
+          "line": 78,
+          "end_line": 96
+        },
+        {
+          "name": "build",
+          "kind": "function",
+          "signature": "pub fn build(graph: &Graph, interface_hash: &str) -> MapSnapshot",
+          "file": "src/scanner/snapshot.rs",
+          "line": 69,
+          "end_line": 101
+        },
+        {
+          "name": "is_empty",
+          "kind": "function",
+          "signature": "pub fn is_empty(&self) -> bool",
+          "file": "src/scanner/state.rs",
+          "line": 89,
+          "end_line": 91
+        },
+        {
+          "name": "is_ignored",
+          "kind": "function",
+          "signature": "pub fn is_ignored(path: &str, ignores: &[String]) -> bool",
+          "file": "src/scanner/config/mod.rs",
+          "line": 116,
+          "end_line": 131
+        },
+        {
+          "name": "is_intentional_asymmetry",
+          "kind": "function",
+          "signature": "pub fn is_intentional_asymmetry( &self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf], ) -> Option<&IntentionalAsymmetry>",
+          "file": "src/scanner/config/mod.rs",
+          "line": 466,
+          "end_line": 475
+        },
+        {
+          "name": "load",
+          "kind": "function",
+          "signature": "pub fn load(root: &Path) -> Result<Config, ConfigError>",
+          "file": "src/scanner/config/mod.rs",
+          "line": 87,
+          "end_line": 112
+        },
+        {
+          "name": "load_project",
+          "kind": "function",
+          "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
+          "file": "src/scanner/mod.rs",
+          "line": 301,
+          "end_line": 371
+        },
+        {
+          "name": "matches",
+          "kind": "function",
+          "signature": "pub fn matches(&self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf]) -> bool",
+          "file": "src/scanner/config/mod.rs",
+          "line": 447,
+          "end_line": 460
+        },
+        {
+          "name": "migrate_single_hash",
+          "kind": "function",
+          "signature": "pub fn migrate_single_hash(hashes: &mut TargetHashes, node_id: &str, hash: String)",
+          "file": "src/scanner/state.rs",
+          "line": 200,
+          "end_line": 206
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new() -> Self",
+          "file": "src/scanner/state.rs",
+          "line": 80,
+          "end_line": 85
+        },
+        {
+          "name": "read_blueprint_snapshot",
+          "kind": "function",
+          "signature": "pub fn read_blueprint_snapshot(root: &Path) -> io::Result<BlueprintSnapshot>",
+          "file": "src/scanner/state.rs",
+          "line": 176,
+          "end_line": 197
+        },
+        {
+          "name": "read_interface_hash",
+          "kind": "function",
+          "signature": "pub fn read_interface_hash(root: &Path) -> io::Result<TargetHashes>",
+          "file": "src/scanner/state.rs",
+          "line": 36,
+          "end_line": 45
+        },
+        {
+          "name": "scan",
+          "kind": "function",
+          "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
+          "file": "src/scanner/mod.rs",
+          "line": 378,
+          "end_line": 414
+        },
+        {
+          "name": "write",
+          "kind": "function",
+          "signature": "pub fn write(root: &Path, snapshot: &MapSnapshot) -> io::Result<()>",
+          "file": "src/scanner/snapshot.rs",
+          "line": 108,
+          "end_line": 119
+        },
+        {
+          "name": "write_blueprint_snapshot",
+          "kind": "function",
+          "signature": "pub fn write_blueprint_snapshot(root: &Path, snapshot: &BlueprintSnapshot) -> io::Result<()>",
+          "file": "src/scanner/state.rs",
+          "line": 105,
+          "end_line": 121
+        },
+        {
+          "name": "write_interface_hash",
+          "kind": "function",
+          "signature": "pub fn write_interface_hash(root: &Path, hashes: &TargetHashes) -> io::Result<()>",
+          "file": "src/scanner/state.rs",
+          "line": 13,
+          "end_line": 29
+        },
+        {
+          "name": "write_map",
+          "kind": "function",
+          "signature": "pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()>",
+          "file": "src/scanner/outputs.rs",
+          "line": 15,
+          "end_line": 71
+        },
+        {
+          "name": "config",
+          "kind": "module",
+          "signature": "pub mod config",
+          "file": "src/scanner/mod.rs",
+          "line": 5,
+          "end_line": 5
+        },
+        {
+          "name": "outputs",
+          "kind": "module",
+          "signature": "pub mod outputs",
+          "file": "src/scanner/mod.rs",
+          "line": 6,
+          "end_line": 6
+        },
+        {
+          "name": "snapshot",
+          "kind": "module",
+          "signature": "pub mod snapshot",
+          "file": "src/scanner/mod.rs",
+          "line": 7,
+          "end_line": 7
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "signature": "pub mod state",
+          "file": "src/scanner/mod.rs",
+          "line": 8,
+          "end_line": 8
+        },
+        {
+          "name": "BlueprintSnapshot",
+          "kind": "struct",
+          "signature": "pub struct BlueprintSnapshot",
+          "file": "src/scanner/state.rs",
+          "line": 70,
+          "end_line": 75
+        },
+        {
+          "name": "Config",
+          "kind": "struct",
+          "signature": "pub struct Config",
+          "file": "src/scanner/config/mod.rs",
+          "line": 35,
+          "end_line": 50
+        },
+        {
+          "name": "ConfigError",
+          "kind": "struct",
+          "signature": "pub struct ConfigError",
+          "file": "src/scanner/config/mod.rs",
+          "line": 67,
+          "end_line": 72
+        },
+        {
+          "name": "IntentionalAsymmetry",
+          "kind": "struct",
+          "signature": "pub struct IntentionalAsymmetry",
+          "file": "src/scanner/config/mod.rs",
+          "line": 22,
+          "end_line": 31
+        },
+        {
+          "name": "MapSnapshot",
+          "kind": "struct",
+          "signature": "pub struct MapSnapshot",
+          "file": "src/scanner/snapshot.rs",
+          "line": 22,
+          "end_line": 33
+        },
+        {
+          "name": "NodeFingerprint",
+          "kind": "struct",
+          "signature": "pub struct NodeFingerprint",
+          "file": "src/scanner/state.rs",
+          "line": 52,
+          "end_line": 63
+        },
+        {
+          "name": "ScanResult",
+          "kind": "struct",
+          "signature": "pub struct ScanResult",
+          "file": "src/scanner/mod.rs",
+          "line": 52,
+          "end_line": 67
+        },
+        {
+          "name": "SnapshotEdge",
+          "kind": "struct",
+          "signature": "pub struct SnapshotEdge",
+          "file": "src/scanner/snapshot.rs",
+          "line": 58,
+          "end_line": 65
+        },
+        {
+          "name": "SnapshotNode",
+          "kind": "struct",
+          "signature": "pub struct SnapshotNode",
+          "file": "src/scanner/snapshot.rs",
+          "line": 37,
+          "end_line": 54
+        },
+        {
+          "name": "TargetConfig",
+          "kind": "struct",
+          "signature": "pub struct TargetConfig",
+          "file": "src/scanner/config/mod.rs",
+          "line": 9,
+          "end_line": 18
+        },
+        {
+          "name": "TargetReport",
+          "kind": "struct",
+          "signature": "pub struct TargetReport",
+          "file": "src/scanner/mod.rs",
+          "line": 33,
+          "end_line": 48
+        },
+        {
+          "name": "TargetHashes",
+          "kind": "type",
+          "signature": "pub type TargetHashes",
+          "file": "src/scanner/state.rs",
+          "line": 6,
+          "end_line": 6
+        },
+        {
+          "name": "cache",
+          "kind": "module",
+          "signature": "pub(crate) mod cache",
+          "file": "src/scanner/mod.rs",
+          "line": 3,
+          "end_line": 3
+        },
+        {
+          "name": "checks",
+          "kind": "module",
+          "signature": "pub(crate) mod checks",
+          "file": "src/scanner/mod.rs",
+          "line": 4,
+          "end_line": 4
+        }
+      ]
+    },
+    {
+      "id": "cairn.lsp",
+      "kind": "module",
+      "name": "LSP",
+      "state": "synced",
+      "paths": [
+        "./src/lsp",
+        "./src/bin/cairn-lsp.rs"
+      ],
+      "files": [
+        "src/bin/cairn-lsp.rs",
+        "src/lsp/diagnostics.rs",
+        "src/lsp/mod.rs",
+        "src/lsp/server.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/lsp.md"
+      ],
+      "symbols": [
+        {
+          "name": "MIN_INTERVAL_SECS",
+          "kind": "const",
+          "signature": "pub const MIN_INTERVAL_SECS u64",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 24,
+          "end_line": 24
+        },
+        {
+          "name": "from_args",
+          "kind": "function",
+          "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
+          "file": "src/lsp/mod.rs",
+          "line": 41,
+          "end_line": 69
+        },
+        {
+          "name": "help_text",
+          "kind": "function",
+          "signature": "pub fn help_text() -> String",
+          "file": "src/lsp/mod.rs",
+          "line": 74,
+          "end_line": 80
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(sender: Sender<Message>) -> Self",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 35,
+          "end_line": 40
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub fn run(connection: &Connection, opts: &LspOpts) -> Result<(), CairnError>",
+          "file": "src/lsp/server.rs",
+          "line": 31,
+          "end_line": 67
+        },
+        {
+          "name": "scan_and_publish",
+          "kind": "function",
+          "signature": "pub fn scan_and_publish( &mut self, root: &Utf8Path, blueprint: &Utf8Path, ) -> Result<bool, CairnError>",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 49,
+          "end_line": 72
+        },
+        {
+          "name": "start_watch_thread",
+          "kind": "function",
+          "signature": "pub fn start_watch_thread( sender: Sender<Message>, root: Utf8PathBuf, interval: Duration, stop: Arc<AtomicBool>, )",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 93,
+          "end_line": 116
+        },
+        {
+          "name": "diagnostics",
+          "kind": "module",
+          "signature": "pub mod diagnostics",
+          "file": "src/lsp/mod.rs",
+          "line": 8,
+          "end_line": 8
+        },
+        {
+          "name": "server",
+          "kind": "module",
+          "signature": "pub mod server",
+          "file": "src/lsp/mod.rs",
+          "line": 9,
+          "end_line": 9
+        },
+        {
+          "name": "DiagnosticPublisher",
+          "kind": "struct",
+          "signature": "pub struct DiagnosticPublisher",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 27,
+          "end_line": 30
+        },
+        {
+          "name": "LspOpts",
+          "kind": "struct",
+          "signature": "pub struct LspOpts",
+          "file": "src/lsp/mod.rs",
+          "line": 19,
+          "end_line": 24
+        },
+        {
+          "name": "MIN_INTERVAL_SECS",
+          "kind": "const",
+          "signature": "pub const MIN_INTERVAL_SECS u64",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 24,
+          "end_line": 24
+        },
+        {
+          "name": "from_args",
+          "kind": "function",
+          "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
+          "file": "src/lsp/mod.rs",
+          "line": 41,
+          "end_line": 69
+        },
+        {
+          "name": "help_text",
+          "kind": "function",
+          "signature": "pub fn help_text() -> String",
+          "file": "src/lsp/mod.rs",
+          "line": 74,
+          "end_line": 80
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(sender: Sender<Message>) -> Self",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 35,
+          "end_line": 40
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub fn run(connection: &Connection, opts: &LspOpts) -> Result<(), CairnError>",
+          "file": "src/lsp/server.rs",
+          "line": 31,
+          "end_line": 67
+        },
+        {
+          "name": "scan_and_publish",
+          "kind": "function",
+          "signature": "pub fn scan_and_publish( &mut self, root: &Utf8Path, blueprint: &Utf8Path, ) -> Result<bool, CairnError>",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 49,
+          "end_line": 72
+        },
+        {
+          "name": "start_watch_thread",
+          "kind": "function",
+          "signature": "pub fn start_watch_thread( sender: Sender<Message>, root: Utf8PathBuf, interval: Duration, stop: Arc<AtomicBool>, )",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 93,
+          "end_line": 116
+        },
+        {
+          "name": "diagnostics",
+          "kind": "module",
+          "signature": "pub mod diagnostics",
+          "file": "src/lsp/mod.rs",
+          "line": 8,
+          "end_line": 8
+        },
+        {
+          "name": "server",
+          "kind": "module",
+          "signature": "pub mod server",
+          "file": "src/lsp/mod.rs",
+          "line": 9,
+          "end_line": 9
+        },
+        {
+          "name": "DiagnosticPublisher",
+          "kind": "struct",
+          "signature": "pub struct DiagnosticPublisher",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 27,
+          "end_line": 30
+        },
+        {
+          "name": "LspOpts",
+          "kind": "struct",
+          "signature": "pub struct LspOpts",
+          "file": "src/lsp/mod.rs",
+          "line": 19,
+          "end_line": 24
+        }
+      ]
+    },
+    {
+      "id": "cairn.macros",
+      "kind": "module",
+      "name": "Macros",
+      "state": "synced",
+      "paths": [
+        "./cairn-macros"
+      ],
+      "files": [
+        "cairn-macros/src/lib.rs",
+        "cairn-macros/tests/planned_attribute.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/macros.md"
+      ],
+      "symbols": [
+        {
+          "name": "cairn_planned",
+          "kind": "function",
+          "signature": "pub fn cairn_planned(args: TokenStream, input: TokenStream) -> TokenStream",
+          "file": "cairn-macros/src/lib.rs",
+          "line": 11,
+          "end_line": 82
+        }
+      ]
+    },
+    {
+      "id": "cairn.mcp",
+      "kind": "module",
+      "name": "MCP",
+      "state": "synced",
+      "paths": [
+        "./src/mcp",
+        "./src/bin/cairn-mcp.rs"
+      ],
+      "files": [
+        "src/bin/cairn-mcp.rs",
+        "src/mcp/mod.rs",
+        "src/mcp/tests.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/mcp.md"
+      ],
+      "symbols": [
+        {
+          "name": "config_from_args",
+          "kind": "function",
+          "signature": "pub fn config_from_args(args: &[String]) -> Result<ServerConfig, String>",
+          "file": "src/mcp/mod.rs",
+          "line": 116,
+          "end_line": 145
+        },
+        {
+          "name": "handle_line",
+          "kind": "function",
+          "signature": "pub fn handle_line(line: &str, config: &ServerConfig) -> Value",
+          "file": "src/mcp/mod.rs",
+          "line": 72,
+          "end_line": 109
+        },
+        {
+          "name": "serve",
+          "kind": "function",
+          "signature": "pub fn serve<R, W>(reader: R, writer: &mut W, config: &ServerConfig) -> io::Result<()> where R: BufRead, W: Write,",
+          "file": "src/mcp/mod.rs",
+          "line": 53,
+          "end_line": 68
+        },
+        {
+          "name": "serve_stdio",
+          "kind": "function",
+          "signature": "pub fn serve_stdio(config: &ServerConfig) -> io::Result<()>",
+          "file": "src/mcp/mod.rs",
+          "line": 42,
+          "end_line": 46
+        },
+        {
+          "name": "ServerConfig",
+          "kind": "struct",
+          "signature": "pub struct ServerConfig",
+          "file": "src/mcp/mod.rs",
+          "line": 15,
+          "end_line": 24
+        },
+        {
+          "name": "config_from_args",
+          "kind": "function",
+          "signature": "pub fn config_from_args(args: &[String]) -> Result<ServerConfig, String>",
+          "file": "src/mcp/mod.rs",
+          "line": 116,
+          "end_line": 145
+        },
+        {
+          "name": "handle_line",
+          "kind": "function",
+          "signature": "pub fn handle_line(line: &str, config: &ServerConfig) -> Value",
+          "file": "src/mcp/mod.rs",
+          "line": 72,
+          "end_line": 109
+        },
+        {
+          "name": "serve",
+          "kind": "function",
+          "signature": "pub fn serve<R, W>(reader: R, writer: &mut W, config: &ServerConfig) -> io::Result<()> where R: BufRead, W: Write,",
+          "file": "src/mcp/mod.rs",
+          "line": 53,
+          "end_line": 68
+        },
+        {
+          "name": "serve_stdio",
+          "kind": "function",
+          "signature": "pub fn serve_stdio(config: &ServerConfig) -> io::Result<()>",
+          "file": "src/mcp/mod.rs",
+          "line": 42,
+          "end_line": 46
+        },
+        {
+          "name": "ServerConfig",
+          "kind": "struct",
+          "signature": "pub struct ServerConfig",
+          "file": "src/mcp/mod.rs",
+          "line": 15,
+          "end_line": 24
+        }
+      ]
+    },
+    {
+      "id": "cairn.provenance",
+      "kind": "module",
+      "name": "Provenance",
+      "state": "synced",
+      "paths": [
+        "./src/provenance"
+      ],
+      "files": [
+        "src/provenance/mod.rs",
+        "src/provenance/trace.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/provenance.md"
+      ],
+      "symbols": [
+        {
+          "name": "TRACE_SIDECAR_VERSION",
+          "kind": "const",
+          "signature": "pub const TRACE_SIDECAR_VERSION u32",
+          "file": "src/provenance/trace.rs",
+          "line": 8,
+          "end_line": 8
+        },
+        {
+          "name": "TraceError",
+          "kind": "enum",
+          "signature": "pub enum TraceError",
+          "file": "src/provenance/trace.rs",
+          "line": 73,
+          "end_line": 85
+        },
+        {
+          "name": "TraceStage",
+          "kind": "enum",
+          "signature": "pub enum TraceStage",
+          "file": "src/provenance/trace.rs",
+          "line": 13,
+          "end_line": 22
+        },
+        {
+          "name": "read_sidecar",
+          "kind": "function",
+          "signature": "pub fn read_sidecar(path: &Path) -> Result<TraceSidecar, TraceError>",
+          "file": "src/provenance/trace.rs",
+          "line": 110,
+          "end_line": 121
+        },
+        {
+          "name": "StageRecord",
+          "kind": "struct",
+          "signature": "pub struct StageRecord",
+          "file": "src/provenance/trace.rs",
+          "line": 29,
+          "end_line": 50
+        },
+        {
+          "name": "TraceSidecar",
+          "kind": "struct",
+          "signature": "pub struct TraceSidecar",
+          "file": "src/provenance/trace.rs",
+          "line": 55,
+          "end_line": 69
+        }
+      ]
+    },
+    {
+      "id": "cairn.reconcile",
+      "kind": "module",
+      "name": "CodeReconciler",
+      "state": "synced",
+      "paths": [
+        "./src/reconcile"
+      ],
+      "files": [
+        "src/reconcile/code.rs",
+        "src/reconcile/fingerprint.rs",
+        "src/reconcile/fixture.rs",
+        "src/reconcile/go.rs",
+        "src/reconcile/mod.rs",
+        "src/reconcile/python.rs",
+        "src/reconcile/symbol.rs",
+        "src/reconcile/target.rs",
+        "src/reconcile/typescript.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/reconcile.md"
+      ],
+      "symbols": [
+        {
+          "name": "DEFAULT_CONTRACT_ROLE",
+          "kind": "const",
+          "signature": "pub const DEFAULT_CONTRACT_ROLE",
+          "file": "src/reconcile/target.rs",
+          "line": 8,
+          "end_line": 8
+        },
+        {
+          "name": "SUPPORTED_LANGUAGES",
+          "kind": "const",
+          "signature": "pub const SUPPORTED_LANGUAGES",
+          "file": "src/reconcile/target.rs",
+          "line": 130,
+          "end_line": 130
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub const fn new(ast: &'a Ast) -> Self",
+          "file": "src/reconcile/code.rs",
+          "line": 40,
+          "end_line": 42
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub const fn new(ast: &'a Ast) -> Self",
+          "file": "src/reconcile/go.rs",
+          "line": 39,
+          "end_line": 41
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub const fn new(ast: &'a Ast) -> Self",
+          "file": "src/reconcile/python.rs",
+          "line": 30,
+          "end_line": 32
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub const fn new(ast: &'a Ast) -> Self",
+          "file": "src/reconcile/typescript.rs",
+          "line": 38,
+          "end_line": 40
+        },
+        {
+          "name": "Language",
+          "kind": "enum",
+          "signature": "pub enum Language",
+          "file": "src/reconcile/target.rs",
+          "line": 35,
+          "end_line": 44
+        },
+        {
+          "name": "SymbolKind",
+          "kind": "enum",
+          "signature": "pub enum SymbolKind",
+          "file": "src/reconcile/symbol.rs",
+          "line": 23,
+          "end_line": 50
+        },
+        {
+          "name": "as_str",
+          "kind": "function",
+          "signature": "pub fn as_str(&self) -> &'static str",
+          "file": "src/reconcile/target.rs",
+          "line": 74,
+          "end_line": 81
+        },
+        {
+          "name": "as_str",
+          "kind": "function",
+          "signature": "pub fn as_str(&self) -> String",
+          "file": "src/reconcile/target.rs",
+          "line": 28,
+          "end_line": 30
+        },
+        {
+          "name": "from_extension",
+          "kind": "function",
+          "signature": "pub fn from_extension(path: &Path) -> Option<Self>",
+          "file": "src/reconcile/target.rs",
+          "line": 49,
+          "end_line": 58
+        },
+        {
+          "name": "from_language_str",
+          "kind": "function",
+          "signature": "pub fn from_language_str(s: &str) -> Option<Self>",
+          "file": "src/reconcile/target.rs",
+          "line": 62,
+          "end_line": 70
+        },
+        {
+          "name": "from_sorted",
+          "kind": "function",
+          "signature": "pub fn from_sorted(symbols: &[String]) -> Self",
+          "file": "src/reconcile/fingerprint.rs",
+          "line": 22,
+          "end_line": 28
+        },
+        {
+          "name": "from_symbols",
+          "kind": "function",
+          "signature": "pub fn from_symbols(symbols: &[String]) -> Self",
+          "file": "src/reconcile/fingerprint.rs",
+          "line": 15,
+          "end_line": 19
+        },
+        {
+          "name": "language_error_message",
+          "kind": "function",
+          "signature": "pub fn language_error_message() -> String",
+          "file": "src/reconcile/target.rs",
+          "line": 134,
+          "end_line": 139
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(id: impl Into<String>) -> Self",
+          "file": "src/reconcile/fixture.rs",
+          "line": 23,
+          "end_line": 25
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(node_id: String, path: std::path::PathBuf) -> Self",
+          "file": "src/reconcile/target.rs",
+          "line": 22,
+          "end_line": 24
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(node_id: String, path: std::path::PathBuf, language: Language) -> Self",
+          "file": "src/reconcile/target.rs",
+          "line": 111,
+          "end_line": 119
+        },
+        {
+          "name": "normalize_symbol",
+          "kind": "function",
+          "signature": "pub fn normalize_symbol(text: &str) -> String",
+          "file": "src/reconcile/symbol.rs",
+          "line": 58,
+          "end_line": 88
+        },
+        {
+          "name": "reconciler_id",
+          "kind": "function",
+          "signature": "pub fn reconciler_id(&self) -> ReconcilerId",
+          "file": "src/reconcile/target.rs",
+          "line": 85,
+          "end_line": 92
+        },
+        {
+          "name": "with_contract_role",
+          "kind": "function",
+          "signature": "pub fn with_contract_role(mut self, role: String) -> Self",
+          "file": "src/reconcile/target.rs",
+          "line": 123,
+          "end_line": 126
+        },
+        {
+          "name": "code",
+          "kind": "module",
+          "signature": "pub mod code",
+          "file": "src/reconcile/mod.rs",
+          "line": 3,
+          "end_line": 3
+        },
+        {
+          "name": "fingerprint",
+          "kind": "module",
+          "signature": "pub mod fingerprint",
+          "file": "src/reconcile/mod.rs",
+          "line": 4,
+          "end_line": 4
+        },
+        {
+          "name": "fixture",
+          "kind": "module",
+          "signature": "pub mod fixture",
+          "file": "src/reconcile/mod.rs",
+          "line": 12,
+          "end_line": 12
+        },
+        {
+          "name": "go",
+          "kind": "module",
+          "signature": "pub mod go",
+          "file": "src/reconcile/mod.rs",
+          "line": 5,
+          "end_line": 5
+        },
+        {
+          "name": "python",
+          "kind": "module",
+          "signature": "pub mod python",
+          "file": "src/reconcile/mod.rs",
+          "line": 6,
+          "end_line": 6
+        },
+        {
+          "name": "symbol",
+          "kind": "module",
+          "signature": "pub mod symbol",
+          "file": "src/reconcile/mod.rs",
+          "line": 7,
+          "end_line": 7
+        },
+        {
+          "name": "target",
+          "kind": "module",
+          "signature": "pub mod target",
+          "file": "src/reconcile/mod.rs",
+          "line": 8,
+          "end_line": 8
+        },
+        {
+          "name": "typescript",
+          "kind": "module",
+          "signature": "pub mod typescript",
+          "file": "src/reconcile/mod.rs",
+          "line": 9,
+          "end_line": 9
+        },
+        {
+          "name": "FixtureReconciler",
+          "kind": "struct",
+          "signature": "pub struct FixtureReconciler",
+          "file": "src/reconcile/fixture.rs",
+          "line": 16,
+          "end_line": 18
+        },
+        {
+          "name": "GoReconciler",
+          "kind": "struct",
+          "signature": "pub struct GoReconciler<'a>",
+          "file": "src/reconcile/go.rs",
+          "line": 32,
+          "end_line": 34
+        },
+        {
+          "name": "InterfaceFingerprint",
+          "kind": "struct",
+          "signature": "pub struct InterfaceFingerprint",
+          "file": "src/reconcile/fingerprint.rs",
+          "line": 8,
+          "end_line": 11
+        },
+        {
+          "name": "PythonReconciler",
+          "kind": "struct",
+          "signature": "pub struct PythonReconciler<'a>",
+          "file": "src/reconcile/python.rs",
+          "line": 23,
+          "end_line": 25
+        },
+        {
+          "name": "ReconcileError",
+          "kind": "struct",
+          "signature": "pub struct ReconcileError",
+          "file": "src/reconcile/mod.rs",
+          "line": 74,
+          "end_line": 79
+        },
+        {
+          "name": "ReconcileReport",
+          "kind": "struct",
+          "signature": "pub struct ReconcileReport",
+          "file": "src/reconcile/mod.rs",
+          "line": 33,
+          "end_line": 49
+        },
+        {
+          "name": "ReconcileRequest",
+          "kind": "struct",
+          "signature": "pub struct ReconcileRequest<'a>",
+          "file": "src/reconcile/mod.rs",
+          "line": 24,
+          "end_line": 29
+        },
+        {
+          "name": "ReconcilerId",
+          "kind": "struct",
+          "signature": "pub struct ReconcilerId",
+          "file": "src/reconcile/mod.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "RustCodeReconciler",
+          "kind": "struct",
+          "signature": "pub struct RustCodeReconciler<'a>",
+          "file": "src/reconcile/code.rs",
+          "line": 33,
+          "end_line": 35
+        },
+        {
+          "name": "SymbolRecord",
+          "kind": "struct",
+          "signature": "pub struct SymbolRecord",
+          "file": "src/reconcile/symbol.rs",
+          "line": 5,
+          "end_line": 18
+        },
+        {
+          "name": "Target",
+          "kind": "struct",
+          "signature": "pub struct Target",
+          "file": "src/reconcile/target.rs",
+          "line": 97,
+          "end_line": 106
+        },
+        {
+          "name": "TargetId",
+          "kind": "struct",
+          "signature": "pub struct TargetId",
+          "file": "src/reconcile/target.rs",
+          "line": 12,
+          "end_line": 17
+        },
+        {
+          "name": "TypeScriptReconciler",
+          "kind": "struct",
+          "signature": "pub struct TypeScriptReconciler<'a>",
+          "file": "src/reconcile/typescript.rs",
+          "line": 31,
+          "end_line": 33
+        },
+        {
+          "name": "Reconciler",
+          "kind": "trait",
+          "signature": "pub trait Reconciler",
+          "file": "src/reconcile/mod.rs",
+          "line": 90,
+          "end_line": 100
+        },
+        {
+          "name": "deserialize",
+          "kind": "function",
+          "signature": "pub(crate) fn deserialize<'de, D: serde::Deserializer<'de>>( deserializer: D, ) -> Result<Arc<Vec<String>>, D::Error>",
+          "file": "src/reconcile/mod.rs",
+          "line": 64,
+          "end_line": 69
+        },
+        {
+          "name": "serialize",
+          "kind": "function",
+          "signature": "pub(crate) fn serialize<S: serde::Serializer>( value: &Arc<Vec<String>>, serializer: S, ) -> Result<S::Ok, S::Error>",
+          "file": "src/reconcile/mod.rs",
+          "line": 56,
+          "end_line": 61
+        }
+      ]
+    },
+    {
+      "id": "cairn.root",
+      "kind": "module",
+      "name": "Root",
+      "state": "synced",
+      "paths": [
+        "./src/main.rs",
+        "./src/lib.rs",
+        "./src/error.rs",
+        "./src/verification.rs",
+        "./src/signal.rs"
+      ],
+      "files": [
+        "src/error.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "src/signal.rs",
+        "src/verification.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/root.md"
+      ],
+      "symbols": [
+        {
+          "name": "package_name",
+          "kind": "function",
+          "signature": "pub const fn package_name() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 65,
+          "end_line": 67
+        },
+        {
+          "name": "package_version",
+          "kind": "function",
+          "signature": "pub const fn package_version() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 71,
+          "end_line": 73
+        },
+        {
+          "name": "CairnError",
+          "kind": "enum",
+          "signature": "pub enum CairnError",
+          "file": "src/error.rs",
+          "line": 17,
+          "end_line": 57
+        },
+        {
+          "name": "VerificationState",
+          "kind": "enum",
+          "signature": "pub enum VerificationState",
+          "file": "src/verification.rs",
+          "line": 7,
+          "end_line": 18
+        },
+        {
+          "name": "code",
+          "kind": "function",
+          "signature": "pub fn code(&self) -> &'static str",
+          "file": "src/error.rs",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "install_sigint_handler",
+          "kind": "function",
+          "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
+          "file": "src/signal.rs",
+          "line": 14,
+          "end_line": 18
+        },
+        {
+          "name": "version_label",
+          "kind": "function",
+          "signature": "pub fn version_label() -> String",
+          "file": "src/lib.rs",
+          "line": 77,
+          "end_line": 79
+        },
+        {
+          "name": "artefacts",
+          "kind": "module",
+          "signature": "pub mod artefacts",
+          "file": "src/lib.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "blueprint",
+          "kind": "module",
+          "signature": "pub mod blueprint",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "brownfield",
+          "kind": "module",
+          "signature": "pub mod brownfield",
+          "file": "src/lib.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "changes",
+          "kind": "module",
+          "signature": "pub mod changes",
+          "file": "src/lib.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "cli",
+          "kind": "module",
+          "signature": "pub mod cli",
+          "file": "src/lib.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "error",
+          "kind": "module",
+          "signature": "pub mod error",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
+          "name": "hooks",
+          "kind": "module",
+          "signature": "pub mod hooks",
+          "file": "src/lib.rs",
+          "line": 27,
+          "end_line": 27
+        },
+        {
+          "name": "lsp",
+          "kind": "module",
+          "signature": "pub mod lsp",
+          "file": "src/lib.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "map",
+          "kind": "module",
+          "signature": "pub mod map",
+          "file": "src/lib.rs",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "mcp",
+          "kind": "module",
+          "signature": "pub mod mcp",
+          "file": "src/lib.rs",
+          "line": 33,
+          "end_line": 33
+        },
+        {
+          "name": "provenance",
+          "kind": "module",
+          "signature": "pub mod provenance",
+          "file": "src/lib.rs",
+          "line": 35,
+          "end_line": 35
+        },
+        {
+          "name": "query_api",
+          "kind": "module",
+          "signature": "pub mod query_api",
+          "file": "src/lib.rs",
+          "line": 37,
+          "end_line": 37
+        },
+        {
+          "name": "reconcile",
+          "kind": "module",
+          "signature": "pub mod reconcile",
+          "file": "src/lib.rs",
+          "line": 39,
+          "end_line": 39
+        },
+        {
+          "name": "scanner",
+          "kind": "module",
+          "signature": "pub mod scanner",
+          "file": "src/lib.rs",
+          "line": 41,
+          "end_line": 41
+        },
+        {
+          "name": "signal",
+          "kind": "module",
+          "signature": "pub mod signal",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
+          "name": "sse",
+          "kind": "module",
+          "signature": "pub mod sse",
+          "file": "src/lib.rs",
+          "line": 45,
+          "end_line": 45
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "signature": "pub mod state",
+          "file": "src/lib.rs",
+          "line": 47,
+          "end_line": 47
+        },
+        {
+          "name": "suggested_edges",
+          "kind": "module",
+          "signature": "pub mod suggested_edges",
+          "file": "src/lib.rs",
+          "line": 49,
+          "end_line": 49
+        },
+        {
+          "name": "summariser",
+          "kind": "module",
+          "signature": "pub mod summariser",
+          "file": "src/lib.rs",
+          "line": 51,
+          "end_line": 51
+        },
+        {
+          "name": "ui",
+          "kind": "module",
+          "signature": "pub mod ui",
+          "file": "src/lib.rs",
+          "line": 53,
+          "end_line": 53
+        },
+        {
+          "name": "verification",
+          "kind": "module",
+          "signature": "pub mod verification",
+          "file": "src/lib.rs",
+          "line": 58,
+          "end_line": 58
+        },
+        {
+          "name": "watch",
+          "kind": "module",
+          "signature": "pub mod watch",
+          "file": "src/lib.rs",
+          "line": 55,
+          "end_line": 55
+        },
+        {
+          "name": "package_name",
+          "kind": "function",
+          "signature": "pub const fn package_name() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 65,
+          "end_line": 67
+        },
+        {
+          "name": "package_version",
+          "kind": "function",
+          "signature": "pub const fn package_version() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 71,
+          "end_line": 73
+        },
+        {
+          "name": "CairnError",
+          "kind": "enum",
+          "signature": "pub enum CairnError",
+          "file": "src/error.rs",
+          "line": 17,
+          "end_line": 57
+        },
+        {
+          "name": "VerificationState",
+          "kind": "enum",
+          "signature": "pub enum VerificationState",
+          "file": "src/verification.rs",
+          "line": 7,
+          "end_line": 18
+        },
+        {
+          "name": "code",
+          "kind": "function",
+          "signature": "pub fn code(&self) -> &'static str",
+          "file": "src/error.rs",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "install_sigint_handler",
+          "kind": "function",
+          "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
+          "file": "src/signal.rs",
+          "line": 14,
+          "end_line": 18
+        },
+        {
+          "name": "version_label",
+          "kind": "function",
+          "signature": "pub fn version_label() -> String",
+          "file": "src/lib.rs",
+          "line": 77,
+          "end_line": 79
+        },
+        {
+          "name": "artefacts",
+          "kind": "module",
+          "signature": "pub mod artefacts",
+          "file": "src/lib.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "blueprint",
+          "kind": "module",
+          "signature": "pub mod blueprint",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "brownfield",
+          "kind": "module",
+          "signature": "pub mod brownfield",
+          "file": "src/lib.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "changes",
+          "kind": "module",
+          "signature": "pub mod changes",
+          "file": "src/lib.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "cli",
+          "kind": "module",
+          "signature": "pub mod cli",
+          "file": "src/lib.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "error",
+          "kind": "module",
+          "signature": "pub mod error",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
+          "name": "hooks",
+          "kind": "module",
+          "signature": "pub mod hooks",
+          "file": "src/lib.rs",
+          "line": 27,
+          "end_line": 27
+        },
+        {
+          "name": "lsp",
+          "kind": "module",
+          "signature": "pub mod lsp",
+          "file": "src/lib.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "map",
+          "kind": "module",
+          "signature": "pub mod map",
+          "file": "src/lib.rs",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "mcp",
+          "kind": "module",
+          "signature": "pub mod mcp",
+          "file": "src/lib.rs",
+          "line": 33,
+          "end_line": 33
+        },
+        {
+          "name": "provenance",
+          "kind": "module",
+          "signature": "pub mod provenance",
+          "file": "src/lib.rs",
+          "line": 35,
+          "end_line": 35
+        },
+        {
+          "name": "query_api",
+          "kind": "module",
+          "signature": "pub mod query_api",
+          "file": "src/lib.rs",
+          "line": 37,
+          "end_line": 37
+        },
+        {
+          "name": "reconcile",
+          "kind": "module",
+          "signature": "pub mod reconcile",
+          "file": "src/lib.rs",
+          "line": 39,
+          "end_line": 39
+        },
+        {
+          "name": "scanner",
+          "kind": "module",
+          "signature": "pub mod scanner",
+          "file": "src/lib.rs",
+          "line": 41,
+          "end_line": 41
+        },
+        {
+          "name": "signal",
+          "kind": "module",
+          "signature": "pub mod signal",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
+          "name": "sse",
+          "kind": "module",
+          "signature": "pub mod sse",
+          "file": "src/lib.rs",
+          "line": 45,
+          "end_line": 45
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "signature": "pub mod state",
+          "file": "src/lib.rs",
+          "line": 47,
+          "end_line": 47
+        },
+        {
+          "name": "suggested_edges",
+          "kind": "module",
+          "signature": "pub mod suggested_edges",
+          "file": "src/lib.rs",
+          "line": 49,
+          "end_line": 49
+        },
+        {
+          "name": "summariser",
+          "kind": "module",
+          "signature": "pub mod summariser",
+          "file": "src/lib.rs",
+          "line": 51,
+          "end_line": 51
+        },
+        {
+          "name": "ui",
+          "kind": "module",
+          "signature": "pub mod ui",
+          "file": "src/lib.rs",
+          "line": 53,
+          "end_line": 53
+        },
+        {
+          "name": "verification",
+          "kind": "module",
+          "signature": "pub mod verification",
+          "file": "src/lib.rs",
+          "line": 58,
+          "end_line": 58
+        },
+        {
+          "name": "watch",
+          "kind": "module",
+          "signature": "pub mod watch",
+          "file": "src/lib.rs",
+          "line": 55,
+          "end_line": 55
+        },
+        {
+          "name": "package_name",
+          "kind": "function",
+          "signature": "pub const fn package_name() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 65,
+          "end_line": 67
+        },
+        {
+          "name": "package_version",
+          "kind": "function",
+          "signature": "pub const fn package_version() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 71,
+          "end_line": 73
+        },
+        {
+          "name": "CairnError",
+          "kind": "enum",
+          "signature": "pub enum CairnError",
+          "file": "src/error.rs",
+          "line": 17,
+          "end_line": 57
+        },
+        {
+          "name": "VerificationState",
+          "kind": "enum",
+          "signature": "pub enum VerificationState",
+          "file": "src/verification.rs",
+          "line": 7,
+          "end_line": 18
+        },
+        {
+          "name": "code",
+          "kind": "function",
+          "signature": "pub fn code(&self) -> &'static str",
+          "file": "src/error.rs",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "install_sigint_handler",
+          "kind": "function",
+          "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
+          "file": "src/signal.rs",
+          "line": 14,
+          "end_line": 18
+        },
+        {
+          "name": "version_label",
+          "kind": "function",
+          "signature": "pub fn version_label() -> String",
+          "file": "src/lib.rs",
+          "line": 77,
+          "end_line": 79
+        },
+        {
+          "name": "artefacts",
+          "kind": "module",
+          "signature": "pub mod artefacts",
+          "file": "src/lib.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "blueprint",
+          "kind": "module",
+          "signature": "pub mod blueprint",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "brownfield",
+          "kind": "module",
+          "signature": "pub mod brownfield",
+          "file": "src/lib.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "changes",
+          "kind": "module",
+          "signature": "pub mod changes",
+          "file": "src/lib.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "cli",
+          "kind": "module",
+          "signature": "pub mod cli",
+          "file": "src/lib.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "error",
+          "kind": "module",
+          "signature": "pub mod error",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
+          "name": "hooks",
+          "kind": "module",
+          "signature": "pub mod hooks",
+          "file": "src/lib.rs",
+          "line": 27,
+          "end_line": 27
+        },
+        {
+          "name": "lsp",
+          "kind": "module",
+          "signature": "pub mod lsp",
+          "file": "src/lib.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "map",
+          "kind": "module",
+          "signature": "pub mod map",
+          "file": "src/lib.rs",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "mcp",
+          "kind": "module",
+          "signature": "pub mod mcp",
+          "file": "src/lib.rs",
+          "line": 33,
+          "end_line": 33
+        },
+        {
+          "name": "provenance",
+          "kind": "module",
+          "signature": "pub mod provenance",
+          "file": "src/lib.rs",
+          "line": 35,
+          "end_line": 35
+        },
+        {
+          "name": "query_api",
+          "kind": "module",
+          "signature": "pub mod query_api",
+          "file": "src/lib.rs",
+          "line": 37,
+          "end_line": 37
+        },
+        {
+          "name": "reconcile",
+          "kind": "module",
+          "signature": "pub mod reconcile",
+          "file": "src/lib.rs",
+          "line": 39,
+          "end_line": 39
+        },
+        {
+          "name": "scanner",
+          "kind": "module",
+          "signature": "pub mod scanner",
+          "file": "src/lib.rs",
+          "line": 41,
+          "end_line": 41
+        },
+        {
+          "name": "signal",
+          "kind": "module",
+          "signature": "pub mod signal",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
+          "name": "sse",
+          "kind": "module",
+          "signature": "pub mod sse",
+          "file": "src/lib.rs",
+          "line": 45,
+          "end_line": 45
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "signature": "pub mod state",
+          "file": "src/lib.rs",
+          "line": 47,
+          "end_line": 47
+        },
+        {
+          "name": "suggested_edges",
+          "kind": "module",
+          "signature": "pub mod suggested_edges",
+          "file": "src/lib.rs",
+          "line": 49,
+          "end_line": 49
+        },
+        {
+          "name": "summariser",
+          "kind": "module",
+          "signature": "pub mod summariser",
+          "file": "src/lib.rs",
+          "line": 51,
+          "end_line": 51
+        },
+        {
+          "name": "ui",
+          "kind": "module",
+          "signature": "pub mod ui",
+          "file": "src/lib.rs",
+          "line": 53,
+          "end_line": 53
+        },
+        {
+          "name": "verification",
+          "kind": "module",
+          "signature": "pub mod verification",
+          "file": "src/lib.rs",
+          "line": 58,
+          "end_line": 58
+        },
+        {
+          "name": "watch",
+          "kind": "module",
+          "signature": "pub mod watch",
+          "file": "src/lib.rs",
+          "line": 55,
+          "end_line": 55
+        },
+        {
+          "name": "package_name",
+          "kind": "function",
+          "signature": "pub const fn package_name() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 65,
+          "end_line": 67
+        },
+        {
+          "name": "package_version",
+          "kind": "function",
+          "signature": "pub const fn package_version() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 71,
+          "end_line": 73
+        },
+        {
+          "name": "CairnError",
+          "kind": "enum",
+          "signature": "pub enum CairnError",
+          "file": "src/error.rs",
+          "line": 17,
+          "end_line": 57
+        },
+        {
+          "name": "VerificationState",
+          "kind": "enum",
+          "signature": "pub enum VerificationState",
+          "file": "src/verification.rs",
+          "line": 7,
+          "end_line": 18
+        },
+        {
+          "name": "code",
+          "kind": "function",
+          "signature": "pub fn code(&self) -> &'static str",
+          "file": "src/error.rs",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "install_sigint_handler",
+          "kind": "function",
+          "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
+          "file": "src/signal.rs",
+          "line": 14,
+          "end_line": 18
+        },
+        {
+          "name": "version_label",
+          "kind": "function",
+          "signature": "pub fn version_label() -> String",
+          "file": "src/lib.rs",
+          "line": 77,
+          "end_line": 79
+        },
+        {
+          "name": "artefacts",
+          "kind": "module",
+          "signature": "pub mod artefacts",
+          "file": "src/lib.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "blueprint",
+          "kind": "module",
+          "signature": "pub mod blueprint",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "brownfield",
+          "kind": "module",
+          "signature": "pub mod brownfield",
+          "file": "src/lib.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "changes",
+          "kind": "module",
+          "signature": "pub mod changes",
+          "file": "src/lib.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "cli",
+          "kind": "module",
+          "signature": "pub mod cli",
+          "file": "src/lib.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "error",
+          "kind": "module",
+          "signature": "pub mod error",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
+          "name": "hooks",
+          "kind": "module",
+          "signature": "pub mod hooks",
+          "file": "src/lib.rs",
+          "line": 27,
+          "end_line": 27
+        },
+        {
+          "name": "lsp",
+          "kind": "module",
+          "signature": "pub mod lsp",
+          "file": "src/lib.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "map",
+          "kind": "module",
+          "signature": "pub mod map",
+          "file": "src/lib.rs",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "mcp",
+          "kind": "module",
+          "signature": "pub mod mcp",
+          "file": "src/lib.rs",
+          "line": 33,
+          "end_line": 33
+        },
+        {
+          "name": "provenance",
+          "kind": "module",
+          "signature": "pub mod provenance",
+          "file": "src/lib.rs",
+          "line": 35,
+          "end_line": 35
+        },
+        {
+          "name": "query_api",
+          "kind": "module",
+          "signature": "pub mod query_api",
+          "file": "src/lib.rs",
+          "line": 37,
+          "end_line": 37
+        },
+        {
+          "name": "reconcile",
+          "kind": "module",
+          "signature": "pub mod reconcile",
+          "file": "src/lib.rs",
+          "line": 39,
+          "end_line": 39
+        },
+        {
+          "name": "scanner",
+          "kind": "module",
+          "signature": "pub mod scanner",
+          "file": "src/lib.rs",
+          "line": 41,
+          "end_line": 41
+        },
+        {
+          "name": "signal",
+          "kind": "module",
+          "signature": "pub mod signal",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
+          "name": "sse",
+          "kind": "module",
+          "signature": "pub mod sse",
+          "file": "src/lib.rs",
+          "line": 45,
+          "end_line": 45
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "signature": "pub mod state",
+          "file": "src/lib.rs",
+          "line": 47,
+          "end_line": 47
+        },
+        {
+          "name": "suggested_edges",
+          "kind": "module",
+          "signature": "pub mod suggested_edges",
+          "file": "src/lib.rs",
+          "line": 49,
+          "end_line": 49
+        },
+        {
+          "name": "summariser",
+          "kind": "module",
+          "signature": "pub mod summariser",
+          "file": "src/lib.rs",
+          "line": 51,
+          "end_line": 51
+        },
+        {
+          "name": "ui",
+          "kind": "module",
+          "signature": "pub mod ui",
+          "file": "src/lib.rs",
+          "line": 53,
+          "end_line": 53
+        },
+        {
+          "name": "verification",
+          "kind": "module",
+          "signature": "pub mod verification",
+          "file": "src/lib.rs",
+          "line": 58,
+          "end_line": 58
+        },
+        {
+          "name": "watch",
+          "kind": "module",
+          "signature": "pub mod watch",
+          "file": "src/lib.rs",
+          "line": 55,
+          "end_line": 55
+        },
+        {
+          "name": "package_name",
+          "kind": "function",
+          "signature": "pub const fn package_name() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 65,
+          "end_line": 67
+        },
+        {
+          "name": "package_version",
+          "kind": "function",
+          "signature": "pub const fn package_version() -> &'static str",
+          "file": "src/lib.rs",
+          "line": 71,
+          "end_line": 73
+        },
+        {
+          "name": "CairnError",
+          "kind": "enum",
+          "signature": "pub enum CairnError",
+          "file": "src/error.rs",
+          "line": 17,
+          "end_line": 57
+        },
+        {
+          "name": "VerificationState",
+          "kind": "enum",
+          "signature": "pub enum VerificationState",
+          "file": "src/verification.rs",
+          "line": 7,
+          "end_line": 18
+        },
+        {
+          "name": "code",
+          "kind": "function",
+          "signature": "pub fn code(&self) -> &'static str",
+          "file": "src/error.rs",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "install_sigint_handler",
+          "kind": "function",
+          "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
+          "file": "src/signal.rs",
+          "line": 14,
+          "end_line": 18
+        },
+        {
+          "name": "version_label",
+          "kind": "function",
+          "signature": "pub fn version_label() -> String",
+          "file": "src/lib.rs",
+          "line": 77,
+          "end_line": 79
+        },
+        {
+          "name": "artefacts",
+          "kind": "module",
+          "signature": "pub mod artefacts",
+          "file": "src/lib.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "blueprint",
+          "kind": "module",
+          "signature": "pub mod blueprint",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "brownfield",
+          "kind": "module",
+          "signature": "pub mod brownfield",
+          "file": "src/lib.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "changes",
+          "kind": "module",
+          "signature": "pub mod changes",
+          "file": "src/lib.rs",
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "cli",
+          "kind": "module",
+          "signature": "pub mod cli",
+          "file": "src/lib.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "error",
+          "kind": "module",
+          "signature": "pub mod error",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
+          "name": "hooks",
+          "kind": "module",
+          "signature": "pub mod hooks",
+          "file": "src/lib.rs",
+          "line": 27,
+          "end_line": 27
+        },
+        {
+          "name": "lsp",
+          "kind": "module",
+          "signature": "pub mod lsp",
+          "file": "src/lib.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "map",
+          "kind": "module",
+          "signature": "pub mod map",
+          "file": "src/lib.rs",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "mcp",
+          "kind": "module",
+          "signature": "pub mod mcp",
+          "file": "src/lib.rs",
+          "line": 33,
+          "end_line": 33
+        },
+        {
+          "name": "provenance",
+          "kind": "module",
+          "signature": "pub mod provenance",
+          "file": "src/lib.rs",
+          "line": 35,
+          "end_line": 35
+        },
+        {
+          "name": "query_api",
+          "kind": "module",
+          "signature": "pub mod query_api",
+          "file": "src/lib.rs",
+          "line": 37,
+          "end_line": 37
+        },
+        {
+          "name": "reconcile",
+          "kind": "module",
+          "signature": "pub mod reconcile",
+          "file": "src/lib.rs",
+          "line": 39,
+          "end_line": 39
+        },
+        {
+          "name": "scanner",
+          "kind": "module",
+          "signature": "pub mod scanner",
+          "file": "src/lib.rs",
+          "line": 41,
+          "end_line": 41
+        },
+        {
+          "name": "signal",
+          "kind": "module",
+          "signature": "pub mod signal",
+          "file": "src/lib.rs",
+          "line": 43,
+          "end_line": 43
+        },
+        {
+          "name": "sse",
+          "kind": "module",
+          "signature": "pub mod sse",
+          "file": "src/lib.rs",
+          "line": 45,
+          "end_line": 45
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "signature": "pub mod state",
+          "file": "src/lib.rs",
+          "line": 47,
+          "end_line": 47
+        },
+        {
+          "name": "suggested_edges",
+          "kind": "module",
+          "signature": "pub mod suggested_edges",
+          "file": "src/lib.rs",
+          "line": 49,
+          "end_line": 49
+        },
+        {
+          "name": "summariser",
+          "kind": "module",
+          "signature": "pub mod summariser",
+          "file": "src/lib.rs",
+          "line": 51,
+          "end_line": 51
+        },
+        {
+          "name": "ui",
+          "kind": "module",
+          "signature": "pub mod ui",
+          "file": "src/lib.rs",
+          "line": 53,
+          "end_line": 53
+        },
+        {
+          "name": "verification",
+          "kind": "module",
+          "signature": "pub mod verification",
+          "file": "src/lib.rs",
+          "line": 58,
+          "end_line": 58
+        },
+        {
+          "name": "watch",
+          "kind": "module",
+          "signature": "pub mod watch",
+          "file": "src/lib.rs",
+          "line": 55,
+          "end_line": 55
+        }
+      ]
+    },
+    {
+      "id": "cairn.sse",
+      "kind": "module",
+      "name": "SSE",
+      "state": "synced",
+      "paths": [
+        "./src/sse.rs"
+      ],
+      "files": [
+        "src/sse.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/sse.md"
+      ],
+      "symbols": [
+        {
+          "name": "SseError",
+          "kind": "enum",
+          "signature": "pub enum SseError",
+          "file": "src/sse.rs",
+          "line": 21,
+          "end_line": 26
+        },
+        {
+          "name": "connect",
+          "kind": "function",
+          "signature": "pub fn connect(url: &str) -> Result<std::io::BufReader<std::net::TcpStream>, SseError>",
+          "file": "src/sse.rs",
+          "line": 122,
+          "end_line": 159
+        },
+        {
+          "name": "parse_events",
+          "kind": "function",
+          "signature": "pub fn parse_events<R: BufRead>(reader: &mut R) -> Result<Vec<SseEvent>, SseError>",
+          "file": "src/sse.rs",
+          "line": 50,
+          "end_line": 105
+        },
+        {
+          "name": "SseEvent",
+          "kind": "struct",
+          "signature": "pub struct SseEvent",
+          "file": "src/sse.rs",
+          "line": 10,
+          "end_line": 17
+        }
+      ]
+    },
+    {
+      "id": "cairn.state",
+      "kind": "module",
+      "name": "State",
+      "state": "synced",
+      "paths": [
+        "./src/state"
+      ],
+      "files": [
+        "src/state/backlog.rs",
+        "src/state/beads.rs",
+        "src/state/mod.rs",
+        "src/state/tests.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/state.md"
+      ],
+      "symbols": [
+        {
+          "name": "StateBackend",
+          "kind": "enum",
+          "signature": "pub enum StateBackend",
+          "file": "src/state/mod.rs",
+          "line": 72,
+          "end_line": 77
+        },
+        {
+          "name": "StateError",
+          "kind": "enum",
+          "signature": "pub enum StateError",
+          "file": "src/state/mod.rs",
+          "line": 17,
+          "end_line": 22
+        },
+        {
+          "name": "claim_change",
+          "kind": "function",
+          "signature": "pub fn claim_change(&self, epic_id: &str) -> Result<(), StateError>",
+          "file": "src/state/beads.rs",
+          "line": 327,
+          "end_line": 360
+        },
+        {
+          "name": "create_change_epic",
+          "kind": "function",
+          "signature": "pub fn create_change_epic(&self, change_id: &str) -> Result<String, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 196,
+          "end_line": 221
+        },
+        {
+          "name": "create_task_beads",
+          "kind": "function",
+          "signature": "pub fn create_task_beads( &self, epic_id: &str, tasks: &[&str], ) -> Result<Vec<String>, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 228,
+          "end_line": 280
+        },
+        {
+          "name": "find",
+          "kind": "function",
+          "signature": "pub fn find(root: &Path, id: &str) -> Option<BacklogItem>",
+          "file": "src/state/backlog.rs",
+          "line": 140,
+          "end_line": 142
+        },
+        {
+          "name": "for_node",
+          "kind": "function",
+          "signature": "pub fn for_node<'a>(items: &'a [BacklogItem], node: &str) -> Vec<&'a BacklogItem>",
+          "file": "src/state/backlog.rs",
+          "line": 150,
+          "end_line": 157
+        },
+        {
+          "name": "is_blocked",
+          "kind": "function",
+          "signature": "pub fn is_blocked(&self, open_ids: &HashSet<&str>) -> bool",
+          "file": "src/state/backlog.rs",
+          "line": 81,
+          "end_line": 86
+        },
+        {
+          "name": "is_open",
+          "kind": "function",
+          "signature": "pub fn is_open(&self) -> bool",
+          "file": "src/state/backlog.rs",
+          "line": 73,
+          "end_line": 75
+        },
+        {
+          "name": "linked_node",
+          "kind": "function",
+          "signature": "pub fn linked_node(&self) -> Option<&str>",
+          "file": "src/state/backlog.rs",
+          "line": 65,
+          "end_line": 69
+        },
+        {
+          "name": "list",
+          "kind": "function",
+          "signature": "pub fn list(&self) -> Result<Vec<String>, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 93,
+          "end_line": 115
+        },
+        {
+          "name": "list",
+          "kind": "function",
+          "signature": "pub fn list(&self) -> Result<Vec<String>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 111,
+          "end_line": 116
+        },
+        {
+          "name": "list",
+          "kind": "function",
+          "signature": "pub fn list(&self) -> Result<Vec<String>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 235,
+          "end_line": 249
+        },
+        {
+          "name": "list_child_tasks",
+          "kind": "function",
+          "signature": "pub fn list_child_tasks(&self, epic_id: &str) -> Result<Vec<(String, String)>, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 287,
+          "end_line": 319
+        },
+        {
+          "name": "load",
+          "kind": "function",
+          "signature": "pub fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 47,
+          "end_line": 66
+        },
+        {
+          "name": "load",
+          "kind": "function",
+          "signature": "pub fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 86,
+          "end_line": 91
+        },
+        {
+          "name": "load",
+          "kind": "function",
+          "signature": "pub fn load<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 204,
+          "end_line": 213
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(root: PathBuf) -> Self",
+          "file": "src/state/beads.rs",
+          "line": 20,
+          "end_line": 25
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(root: PathBuf) -> Self",
+          "file": "src/state/mod.rs",
+          "line": 190,
+          "end_line": 192
+        },
+        {
+          "name": "query_by_dependency",
+          "kind": "function",
+          "signature": "pub fn query_by_dependency<T: StateRecord>( &self, dependency: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 176,
+          "end_line": 189
+        },
+        {
+          "name": "query_by_dependency",
+          "kind": "function",
+          "signature": "pub fn query_by_dependency<T: StateRecord>( &self, dependency: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 169,
+          "end_line": 177
+        },
+        {
+          "name": "query_by_dependency",
+          "kind": "function",
+          "signature": "pub fn query_by_dependency<T: StateRecord>( &self, dependency: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 313,
+          "end_line": 326
+        },
+        {
+          "name": "query_by_label",
+          "kind": "function",
+          "signature": "pub fn query_by_label<T: StateRecord>( &self, label: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 155,
+          "end_line": 168
+        },
+        {
+          "name": "query_by_label",
+          "kind": "function",
+          "signature": "pub fn query_by_label<T: StateRecord>( &self, label: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 153,
+          "end_line": 161
+        },
+        {
+          "name": "query_by_label",
+          "kind": "function",
+          "signature": "pub fn query_by_label<T: StateRecord>( &self, label: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 292,
+          "end_line": 305
+        },
+        {
+          "name": "query_by_type",
+          "kind": "function",
+          "signature": "pub fn query_by_type<T: StateRecord>( &self, record_type: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/beads.rs",
+          "line": 134,
+          "end_line": 147
+        },
+        {
+          "name": "query_by_type",
+          "kind": "function",
+          "signature": "pub fn query_by_type<T: StateRecord>( &self, record_type: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 137,
+          "end_line": 145
+        },
+        {
+          "name": "query_by_type",
+          "kind": "function",
+          "signature": "pub fn query_by_type<T: StateRecord>( &self, record_type: &str, ) -> Result<Vec<(String, T)>, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 271,
+          "end_line": 284
+        },
+        {
+          "name": "read",
+          "kind": "function",
+          "signature": "pub fn read(root: &Path) -> Vec<BacklogItem>",
+          "file": "src/state/backlog.rs",
+          "line": 111,
+          "end_line": 120
+        },
+        {
+          "name": "ready",
+          "kind": "function",
+          "signature": "pub fn ready(items: &[BacklogItem]) -> Vec<&BacklogItem>",
+          "file": "src/state/backlog.rs",
+          "line": 124,
+          "end_line": 136
+        },
+        {
+          "name": "remove",
+          "kind": "function",
+          "signature": "pub fn remove(&self, key: &str) -> Result<(), StateError>",
+          "file": "src/state/beads.rs",
+          "line": 123,
+          "end_line": 126
+        },
+        {
+          "name": "remove",
+          "kind": "function",
+          "signature": "pub fn remove(&self, key: &str) -> Result<(), StateError>",
+          "file": "src/state/mod.rs",
+          "line": 124,
+          "end_line": 129
+        },
+        {
+          "name": "remove",
+          "kind": "function",
+          "signature": "pub fn remove(&self, key: &str) -> Result<(), StateError>",
+          "file": "src/state/mod.rs",
+          "line": 257,
+          "end_line": 263
+        },
+        {
+          "name": "save",
+          "kind": "function",
+          "signature": "pub fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError>",
+          "file": "src/state/beads.rs",
+          "line": 74,
+          "end_line": 85
+        },
+        {
+          "name": "save",
+          "kind": "function",
+          "signature": "pub fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError>",
+          "file": "src/state/mod.rs",
+          "line": 99,
+          "end_line": 104
+        },
+        {
+          "name": "save",
+          "kind": "function",
+          "signature": "pub fn save<T: Serialize>(&self, key: &str, value: &T) -> Result<(), StateError>",
+          "file": "src/state/mod.rs",
+          "line": 221,
+          "end_line": 228
+        },
+        {
+          "name": "storage_backend",
+          "kind": "function",
+          "signature": "pub fn storage_backend(name: &str, root: PathBuf) -> Result<StateBackend, StateError>",
+          "file": "src/state/mod.rs",
+          "line": 338,
+          "end_line": 346
+        },
+        {
+          "name": "to_json",
+          "kind": "function",
+          "signature": "pub fn to_json(&self) -> serde_json::Value",
+          "file": "src/state/backlog.rs",
+          "line": 94,
+          "end_line": 103
+        },
+        {
+          "name": "BacklogItem",
+          "kind": "struct",
+          "signature": "pub struct BacklogItem",
+          "file": "src/state/backlog.rs",
+          "line": 24,
+          "end_line": 48
+        },
+        {
+          "name": "BeadsStateBackend",
+          "kind": "struct",
+          "signature": "pub struct BeadsStateBackend",
+          "file": "src/state/beads.rs",
+          "line": 12,
+          "end_line": 15
+        },
+        {
+          "name": "Dependency",
+          "kind": "struct",
+          "signature": "pub struct Dependency",
+          "file": "src/state/backlog.rs",
+          "line": 52,
+          "end_line": 59
+        },
+        {
+          "name": "FilesystemStateBackend",
+          "kind": "struct",
+          "signature": "pub struct FilesystemStateBackend",
+          "file": "src/state/mod.rs",
+          "line": 183,
+          "end_line": 185
+        },
+        {
+          "name": "StateRecord",
+          "kind": "trait",
+          "signature": "pub trait StateRecord: DeserializeOwned",
+          "file": "src/state/mod.rs",
+          "line": 55,
+          "end_line": 68
+        },
+        {
+          "name": "backlog",
+          "kind": "module",
+          "signature": "pub(crate) mod backlog",
+          "file": "src/state/mod.rs",
+          "line": 11,
+          "end_line": 11
+        },
+        {
+          "name": "beads",
+          "kind": "module",
+          "signature": "pub(crate) mod beads",
+          "file": "src/state/mod.rs",
+          "line": 9,
+          "end_line": 9
+        }
+      ]
+    },
+    {
+      "id": "cairn.suggested-edges",
+      "kind": "module",
+      "name": "SuggestedEdges",
+      "state": "synced",
+      "paths": [
+        "./src/suggested_edges"
+      ],
+      "files": [
+        "src/suggested_edges/mod.rs",
+        "src/suggested_edges/types.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/suggested-edges.md"
+      ],
+      "symbols": [
+        {
+          "name": "SUGGESTED_EDGES_QUEUE_VERSION",
+          "kind": "const",
+          "signature": "pub const SUGGESTED_EDGES_QUEUE_VERSION u32",
+          "file": "src/suggested_edges/mod.rs",
+          "line": 14,
+          "end_line": 14
+        },
+        {
+          "name": "QueueError",
+          "kind": "enum",
+          "signature": "pub enum QueueError",
+          "file": "src/suggested_edges/types.rs",
+          "line": 71,
+          "end_line": 83
+        },
+        {
+          "name": "TriageState",
+          "kind": "enum",
+          "signature": "pub enum TriageState",
+          "file": "src/suggested_edges/types.rs",
+          "line": 14,
+          "end_line": 24
+        },
+        {
+          "name": "count_pending",
+          "kind": "function",
+          "signature": "pub fn count_pending(queue: &SuggestedEdgesQueue) -> usize",
+          "file": "src/suggested_edges/mod.rs",
+          "line": 43,
+          "end_line": 49
+        },
+        {
+          "name": "queue_path_for_change",
+          "kind": "function",
+          "signature": "pub fn queue_path_for_change(change_dir: &Path) -> std::path::PathBuf",
+          "file": "src/suggested_edges/mod.rs",
+          "line": 53,
+          "end_line": 55
+        },
+        {
+          "name": "read_from_change",
+          "kind": "function",
+          "signature": "pub fn read_from_change(change_dir: &Path) -> Result<Option<SuggestedEdgesQueue>, QueueError>",
+          "file": "src/suggested_edges/mod.rs",
+          "line": 63,
+          "end_line": 65
+        },
+        {
+          "name": "read_queue",
+          "kind": "function",
+          "signature": "pub fn read_queue(path: &Path) -> Result<Option<SuggestedEdgesQueue>, QueueError>",
+          "file": "src/suggested_edges/mod.rs",
+          "line": 23,
+          "end_line": 37
+        },
+        {
+          "name": "validate_strict",
+          "kind": "function",
+          "signature": "pub fn validate_strict(change_id: &str, change_dir: &Path) -> Result<(), crate::error::CairnError>",
+          "file": "src/suggested_edges/mod.rs",
+          "line": 120,
+          "end_line": 144
+        },
+        {
+          "name": "write_to_change",
+          "kind": "function",
+          "signature": "pub fn write_to_change(change_dir: &Path, queue: &SuggestedEdgesQueue) -> Result<(), QueueError>",
+          "file": "src/suggested_edges/mod.rs",
+          "line": 75,
+          "end_line": 85
+        },
+        {
+          "name": "EdgeProvenance",
+          "kind": "struct",
+          "signature": "pub struct EdgeProvenance",
+          "file": "src/suggested_edges/types.rs",
+          "line": 28,
+          "end_line": 33
+        },
+        {
+          "name": "SuggestedEdgeEntry",
+          "kind": "struct",
+          "signature": "pub struct SuggestedEdgeEntry",
+          "file": "src/suggested_edges/types.rs",
+          "line": 37,
+          "end_line": 57
+        },
+        {
+          "name": "SuggestedEdgesQueue",
+          "kind": "struct",
+          "signature": "pub struct SuggestedEdgesQueue",
+          "file": "src/suggested_edges/types.rs",
+          "line": 61,
+          "end_line": 67
+        }
+      ]
+    },
+    {
+      "id": "cairn.summariser",
+      "kind": "module",
+      "name": "Summariser",
+      "state": "synced",
+      "paths": [
+        "./src/summariser"
+      ],
+      "files": [
+        "src/summariser/accept.rs",
+        "src/summariser/backend/mod.rs",
+        "src/summariser/backend/tests.rs",
+        "src/summariser/config.rs",
+        "src/summariser/generate.rs",
+        "src/summariser/mod.rs",
+        "src/summariser/prompt/mod.rs",
+        "src/summariser/prompt/tests.rs",
+        "src/summariser/request.rs",
+        "src/summariser/store.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/summariser.md"
+      ],
+      "symbols": [
+        {
+          "name": "DRAFT_SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const DRAFT_SCHEMA_VERSION u32",
+          "file": "src/summariser/store.rs",
+          "line": 90,
+          "end_line": 90
+        },
+        {
+          "name": "SUMMARISER_SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const SUMMARISER_SCHEMA_VERSION u32",
+          "file": "src/summariser/request.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "err",
+          "kind": "function",
+          "signature": "pub const fn err(error: SummariserBackendError) -> Self",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 150,
+          "end_line": 154
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub const fn new(command: String, args: Vec<String>) -> Self",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 180,
+          "end_line": 182
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub const fn new(config: HostedConfig) -> Self",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 307,
+          "end_line": 309
+        },
+        {
+          "name": "ok",
+          "kind": "function",
+          "signature": "pub const fn ok(response: SummariserResponse) -> Self",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 142,
+          "end_line": 146
+        },
+        {
+          "name": "timeout",
+          "kind": "function",
+          "signature": "pub const fn timeout(&self) -> Option<Duration>",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 41,
+          "end_line": 46
+        },
+        {
+          "name": "AcceptError",
+          "kind": "enum",
+          "signature": "pub enum AcceptError",
+          "file": "src/summariser/accept.rs",
+          "line": 22,
+          "end_line": 39
+        },
+        {
+          "name": "Draft",
+          "kind": "enum",
+          "signature": "pub enum Draft",
+          "file": "src/summariser/store.rs",
+          "line": 97,
+          "end_line": 108
+        },
+        {
+          "name": "DraftStatus",
+          "kind": "enum",
+          "signature": "pub enum DraftStatus",
+          "file": "src/summariser/store.rs",
+          "line": 25,
+          "end_line": 34
+        },
+        {
+          "name": "DraftStoreError",
+          "kind": "enum",
+          "signature": "pub enum DraftStoreError",
+          "file": "src/summariser/store.rs",
+          "line": 271,
+          "end_line": 283
+        },
+        {
+          "name": "DraftTransitionError",
+          "kind": "enum",
+          "signature": "pub enum DraftTransitionError",
+          "file": "src/summariser/store.rs",
+          "line": 49,
+          "end_line": 57
+        },
+        {
+          "name": "GenerateError",
+          "kind": "enum",
+          "signature": "pub enum GenerateError",
+          "file": "src/summariser/generate.rs",
+          "line": 16,
+          "end_line": 21
+        },
+        {
+          "name": "PromptError",
+          "kind": "enum",
+          "signature": "pub enum PromptError",
+          "file": "src/summariser/prompt/mod.rs",
+          "line": 19,
+          "end_line": 22
+        },
+        {
+          "name": "SummariserBackendError",
+          "kind": "enum",
+          "signature": "pub enum SummariserBackendError",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 51,
+          "end_line": 70
+        },
+        {
+          "name": "SummariserMode",
+          "kind": "enum",
+          "signature": "pub enum SummariserMode",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 16,
+          "end_line": 36
+        },
+        {
+          "name": "accept",
+          "kind": "function",
+          "signature": "pub fn accept( root: &Path, draft_id: &str, blueprint_path: &Path, edited: bool, ) -> Result<String, AcceptError>",
+          "file": "src/summariser/accept.rs",
+          "line": 79,
+          "end_line": 153
+        },
+        {
+          "name": "accepted_interface_hash",
+          "kind": "function",
+          "signature": "pub fn accepted_interface_hash(&self) -> &str",
+          "file": "src/summariser/store.rs",
+          "line": 212,
+          "end_line": 214
+        },
+        {
+          "name": "assert_draft_tool_safety_classes",
+          "kind": "function",
+          "signature": "pub fn assert_draft_tool_safety_classes()",
+          "file": "src/summariser/mod.rs",
+          "line": 64,
+          "end_line": 93
+        },
+        {
+          "name": "assert_draft_tools_registered",
+          "kind": "function",
+          "signature": "pub fn assert_draft_tools_registered()",
+          "file": "src/summariser/mod.rs",
+          "line": 37,
+          "end_line": 54
+        },
+        {
+          "name": "build_request",
+          "kind": "function",
+          "signature": "pub fn build_request( node_id: &str, draft_type: &str, request_id: &str, graph: &Graph, config: &Config, root: &Path, contracts: &ContractSet, max_prompt_bytes: usize, max_sample_bytes_per_file: usize, ) -> Result<SummariserRequest, PromptError>",
+          "file": "src/summariser/prompt/mod.rs",
+          "line": 47,
+          "end_line": 80
+        },
+        {
+          "name": "editable_dir",
+          "kind": "function",
+          "signature": "pub fn editable_dir(&self) -> std::path::PathBuf",
+          "file": "src/summariser/store.rs",
+          "line": 324,
+          "end_line": 326
+        },
+        {
+          "name": "editable_path",
+          "kind": "function",
+          "signature": "pub fn editable_path(&self, draft_id: &str, artefact_type: &str) -> std::path::PathBuf",
+          "file": "src/summariser/store.rs",
+          "line": 449,
+          "end_line": 452
+        },
+        {
+          "name": "generate",
+          "kind": "function",
+          "signature": "pub fn generate( backend: &dyn SummariserBackend, request: &SummariserRequest, timeout: Duration, store: &DraftStore, draft_id: &str, created_at: &str, ) -> Result<String, GenerateError>",
+          "file": "src/summariser/generate.rs",
+          "line": 55,
+          "end_line": 77
+        },
+        {
+          "name": "header",
+          "kind": "function",
+          "signature": "pub fn header(&self) -> &DraftHeader",
+          "file": "src/summariser/store.rs",
+          "line": 205,
+          "end_line": 207
+        },
+        {
+          "name": "id",
+          "kind": "function",
+          "signature": "pub fn id(&self) -> &str",
+          "file": "src/summariser/store.rs",
+          "line": 248,
+          "end_line": 255
+        },
+        {
+          "name": "list",
+          "kind": "function",
+          "signature": "pub fn list(&self) -> Result<Vec<Draft>, DraftStoreError>",
+          "file": "src/summariser/store.rs",
+          "line": 404,
+          "end_line": 423
+        },
+        {
+          "name": "load",
+          "kind": "function",
+          "signature": "pub fn load(root: &Path) -> Result<Self, String>",
+          "file": "src/summariser/config.rs",
+          "line": 92,
+          "end_line": 130
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new( header: DraftHeader, accepted_interface_hash: String, ) -> Result<Self, EmptyInterfaceHash>",
+          "file": "src/summariser/store.rs",
+          "line": 190,
+          "end_line": 201
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(root: impl Into<std::path::PathBuf>) -> Self",
+          "file": "src/summariser/store.rs",
+          "line": 312,
+          "end_line": 314
+        },
+        {
+          "name": "overwrite",
+          "kind": "function",
+          "signature": "pub fn overwrite(&self, draft: &Draft) -> Result<std::path::PathBuf, DraftStoreError>",
+          "file": "src/summariser/store.rs",
+          "line": 368,
+          "end_line": 373
+        },
+        {
+          "name": "pending_dir",
+          "kind": "function",
+          "signature": "pub fn pending_dir(&self) -> std::path::PathBuf",
+          "file": "src/summariser/store.rs",
+          "line": 318,
+          "end_line": 320
+        },
+        {
+          "name": "read",
+          "kind": "function",
+          "signature": "pub fn read(&self, draft_id: &str) -> Result<Draft, DraftStoreError>",
+          "file": "src/summariser/store.rs",
+          "line": 388,
+          "end_line": 397
+        },
+        {
+          "name": "read_draft",
+          "kind": "function",
+          "signature": "pub fn read_draft(path: &Path) -> Result<Draft, DraftStoreError>",
+          "file": "src/summariser/store.rs",
+          "line": 468,
+          "end_line": 473
+        },
+        {
+          "name": "status",
+          "kind": "function",
+          "signature": "pub fn status(&self) -> DraftStatus",
+          "file": "src/summariser/store.rs",
+          "line": 259,
+          "end_line": 266
+        },
+        {
+          "name": "validate_transition",
+          "kind": "function",
+          "signature": "pub fn validate_transition(from: DraftStatus, to: DraftStatus) -> Result<(), DraftTransitionError>",
+          "file": "src/summariser/store.rs",
+          "line": 80,
+          "end_line": 87
+        },
+        {
+          "name": "write",
+          "kind": "function",
+          "signature": "pub fn write(&self, draft: &Draft) -> Result<std::path::PathBuf, DraftStoreError>",
+          "file": "src/summariser/store.rs",
+          "line": 342,
+          "end_line": 358
+        },
+        {
+          "name": "write_editable",
+          "kind": "function",
+          "signature": "pub fn write_editable(&self, draft: &Draft) -> Result<std::path::PathBuf, DraftStoreError>",
+          "file": "src/summariser/store.rs",
+          "line": 432,
+          "end_line": 445
+        },
+        {
+          "name": "AcceptedDraft",
+          "kind": "struct",
+          "signature": "pub struct AcceptedDraft",
+          "file": "src/summariser/store.rs",
+          "line": 158,
+          "end_line": 161
+        },
+        {
+          "name": "CodeSample",
+          "kind": "struct",
+          "signature": "pub struct CodeSample",
+          "file": "src/summariser/request.rs",
+          "line": 24,
+          "end_line": 29
+        },
+        {
+          "name": "DisabledBackend",
+          "kind": "struct",
+          "signature": "pub struct DisabledBackend",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 116,
+          "end_line": 116
+        },
+        {
+          "name": "DiscardedDraft",
+          "kind": "struct",
+          "signature": "pub struct DiscardedDraft",
+          "file": "src/summariser/store.rs",
+          "line": 236,
+          "end_line": 243
+        },
+        {
+          "name": "DraftHeader",
+          "kind": "struct",
+          "signature": "pub struct DraftHeader",
+          "file": "src/summariser/store.rs",
+          "line": 112,
+          "end_line": 129
+        },
+        {
+          "name": "DraftStore",
+          "kind": "struct",
+          "signature": "pub struct DraftStore",
+          "file": "src/summariser/store.rs",
+          "line": 304,
+          "end_line": 306
+        },
+        {
+          "name": "EditableDraft",
+          "kind": "struct",
+          "signature": "pub struct EditableDraft",
+          "file": "src/summariser/store.rs",
+          "line": 141,
+          "end_line": 147
+        },
+        {
+          "name": "EmptyInterfaceHash",
+          "kind": "struct",
+          "signature": "pub struct EmptyInterfaceHash",
+          "file": "src/summariser/store.rs",
+          "line": 173,
+          "end_line": 173
+        },
+        {
+          "name": "FakeBackend",
+          "kind": "struct",
+          "signature": "pub struct FakeBackend",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 135,
+          "end_line": 137
+        },
+        {
+          "name": "HostedBackend",
+          "kind": "struct",
+          "signature": "pub struct HostedBackend",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 299,
+          "end_line": 301
+        },
+        {
+          "name": "HostedConfig",
+          "kind": "struct",
+          "signature": "pub struct HostedConfig",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 281,
+          "end_line": 290
+        },
+        {
+          "name": "LocalCommandBackend",
+          "kind": "struct",
+          "signature": "pub struct LocalCommandBackend",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 171,
+          "end_line": 174
+        },
+        {
+          "name": "PendingDraft",
+          "kind": "struct",
+          "signature": "pub struct PendingDraft",
+          "file": "src/summariser/store.rs",
+          "line": 133,
+          "end_line": 137
+        },
+        {
+          "name": "SummariserRequest",
+          "kind": "struct",
+          "signature": "pub struct SummariserRequest",
+          "file": "src/summariser/request.rs",
+          "line": 36,
+          "end_line": 66
+        },
+        {
+          "name": "SummariserResponse",
+          "kind": "struct",
+          "signature": "pub struct SummariserResponse",
+          "file": "src/summariser/request.rs",
+          "line": 75,
+          "end_line": 86
+        },
+        {
+          "name": "SummariserSettings",
+          "kind": "struct",
+          "signature": "pub struct SummariserSettings",
+          "file": "src/summariser/config.rs",
+          "line": 61,
+          "end_line": 70
+        },
+        {
+          "name": "TransitionRecord",
+          "kind": "struct",
+          "signature": "pub struct TransitionRecord",
+          "file": "src/summariser/store.rs",
+          "line": 38,
+          "end_line": 45
+        },
+        {
+          "name": "SummariserBackend",
+          "kind": "trait",
+          "signature": "pub trait SummariserBackend",
+          "file": "src/summariser/backend/mod.rs",
+          "line": 97,
+          "end_line": 111
+        }
+      ]
+    },
+    {
+      "id": "cairn.tests",
+      "kind": "module",
+      "name": "Tests",
+      "state": "synced",
+      "paths": [
+        "./tests"
+      ],
+      "files": [
+        "tests/artefacts_contract.rs",
+        "tests/artefacts_frontmatter.rs",
+        "tests/blueprint_lexer.rs",
+        "tests/blueprint_parser.rs",
+        "tests/change_format.rs",
+        "tests/check_a11y.rs",
+        "tests/check_design_tokens.rs",
+        "tests/check_file_sizes.rs",
+        "tests/command_reference_consistency.rs",
+        "tests/conventions.rs",
+        "tests/decision_claims.rs",
+        "tests/dogfood_gate.rs",
+        "tests/fixtures_smoke.rs",
+        "tests/gitignore_lint.rs",
+        "tests/graph_explorer.rs",
+        "tests/hooks_architecture.rs",
+        "tests/kernel.rs",
+        "tests/landing_assets.rs",
+        "tests/mcp.rs",
+        "tests/phase_10_distribution.rs",
+        "tests/phase_7_6_ai_provenance.rs",
+        "tests/phase_7_7_ux_foundation.rs",
+        "tests/phase_7_8_cairn_export.rs",
+        "tests/phase_8_summariser.rs",
+        "tests/phase_9_brownfield.rs",
+        "tests/reconcile_go.rs",
+        "tests/reconcile_python.rs",
+        "tests/reconcile_rust.rs",
+        "tests/reconcile_target_fingerprint.rs",
+        "tests/reconcile_typescript.rs",
+        "tests/scanner_interface_hash.rs",
+        "tests/ui_mobile.rs",
+        "tests/watch.rs",
+        "tests/wire_format_snapshots.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/tests.md"
+      ],
+      "symbols": []
+    },
+    {
+      "id": "cairn.ui",
+      "kind": "module",
+      "name": "UI",
+      "state": "synced",
+      "paths": [
+        "./src/ui"
+      ],
+      "files": [
+        "src/ui/api.rs",
+        "src/ui/mod.rs",
+        "src/ui/serialise.rs",
+        "src/ui/server.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/ui.md"
+      ],
+      "symbols": [
+        {
+          "name": "address",
+          "kind": "function",
+          "signature": "pub const fn address(&self) -> SocketAddr",
+          "file": "src/ui/mod.rs",
+          "line": 189,
+          "end_line": 191
+        },
+        {
+          "name": "UiError",
+          "kind": "enum",
+          "signature": "pub enum UiError",
+          "file": "src/ui/mod.rs",
+          "line": 135,
+          "end_line": 149
+        },
+        {
+          "name": "from_args",
+          "kind": "function",
+          "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
+          "file": "src/ui/mod.rs",
+          "line": 112,
+          "end_line": 130
+        },
+        {
+          "name": "serve_current_thread",
+          "kind": "function",
+          "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
+          "file": "src/ui/mod.rs",
+          "line": 208,
+          "end_line": 221
+        },
+        {
+          "name": "start_background",
+          "kind": "function",
+          "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
+          "file": "src/ui/mod.rs",
+          "line": 228,
+          "end_line": 241
+        },
+        {
+          "name": "stop",
+          "kind": "function",
+          "signature": "pub fn stop(mut self)",
+          "file": "src/ui/mod.rs",
+          "line": 194,
+          "end_line": 200
+        },
+        {
+          "name": "url",
+          "kind": "function",
+          "signature": "pub fn url(&self) -> String",
+          "file": "src/ui/mod.rs",
+          "line": 183,
+          "end_line": 185
+        },
+        {
+          "name": "ServerHandle",
+          "kind": "struct",
+          "signature": "pub struct ServerHandle",
+          "file": "src/ui/mod.rs",
+          "line": 174,
+          "end_line": 178
+        },
+        {
+          "name": "UiOptions",
+          "kind": "struct",
+          "signature": "pub struct UiOptions",
+          "file": "src/ui/mod.rs",
+          "line": 87,
+          "end_line": 94
+        }
+      ]
+    },
+    {
+      "id": "cairn.watch",
+      "kind": "module",
+      "name": "Watch",
+      "state": "synced",
+      "paths": [
+        "./src/watch.rs"
+      ],
+      "files": [
+        "src/watch.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/watch.md"
+      ],
+      "symbols": [
+        {
+          "name": "WatchEvent",
+          "kind": "enum",
+          "signature": "pub enum WatchEvent",
+          "file": "src/watch.rs",
+          "line": 65,
+          "end_line": 82
+        },
+        {
+          "name": "diff_findings",
+          "kind": "function",
+          "signature": "pub fn diff_findings(old: &[Finding], new: &[Finding]) -> Vec<WatchEvent>",
+          "file": "src/watch.rs",
+          "line": 91,
+          "end_line": 144
+        },
+        {
+          "name": "from_args",
+          "kind": "function",
+          "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
+          "file": "src/watch.rs",
+          "line": 33,
+          "end_line": 59
+        },
+        {
+          "name": "WatchOpts",
+          "kind": "struct",
+          "signature": "pub struct WatchOpts",
+          "file": "src/watch.rs",
+          "line": 11,
+          "end_line": 16
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "cairn.brownfield",
+      "to": "cairn.kernel.map",
+      "description": "Reads orphan findings"
+    },
+    {
+      "from": "cairn.kernel.changes",
+      "to": "cairn.kernel.scanner",
+      "description": "Validates deltas before archive"
+    },
+    {
+      "from": "cairn.kernel.changes",
+      "to": "cairn.kernel.blueprint",
+      "description": "Parses blueprint deltas"
+    },
+    {
+      "from": "cairn.kernel.changes",
+      "to": "cairn.kernel.map",
+      "description": "Reads graph state"
+    },
+    {
+      "from": "cairn.kernel.cli",
+      "to": "cairn.kernel.query",
+      "description": "Exposes queries as CLI commands"
+    },
+    {
+      "from": "cairn.kernel.cli",
+      "to": "cairn.kernel.scanner",
+      "description": "Orchestrates scan runs"
+    },
+    {
+      "from": "cairn.kernel.cli",
+      "to": "cairn.kernel.hooks",
+      "description": "Runs hook checks"
+    },
+    {
+      "from": "cairn.kernel.cli",
+      "to": "cairn.ui",
+      "description": "Launches graph explorer"
+    },
+    {
+      "from": "cairn.kernel.cli",
+      "to": "cairn.brownfield",
+      "description": "Dispatches onboard command"
+    },
+    {
+      "from": "cairn.kernel.hooks",
+      "to": "cairn.kernel.scanner",
+      "description": "Gates commits on scan integrity"
+    },
+    {
+      "from": "cairn.kernel.hooks",
+      "to": "cairn.kernel.map",
+      "description": "Reads findings"
+    },
+    {
+      "from": "cairn.kernel.map",
+      "to": "cairn.kernel.blueprint",
+      "description": "Consumes parsed AST"
+    },
+    {
+      "from": "cairn.kernel.map",
+      "to": "cairn.kernel.artefacts",
+      "description": "Validates contracts against code"
+    },
+    {
+      "from": "cairn.kernel.query",
+      "to": "cairn.kernel.scanner",
+      "description": "Reads scan state"
+    },
+    {
+      "from": "cairn.kernel.query",
+      "to": "cairn.kernel.map",
+      "description": "Traverses graph"
+    },
+    {
+      "from": "cairn.kernel.query",
+      "to": "cairn.kernel.changes",
+      "description": "Reads change state"
+    },
+    {
+      "from": "cairn.kernel.query",
+      "to": "cairn.kernel.hooks",
+      "description": "Reads hook findings"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.kernel.blueprint",
+      "description": "Parses blueprint files"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.kernel.artefacts",
+      "description": "Loads artefact metadata"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.kernel.map",
+      "description": "Builds graph from parsed output"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.reconcile",
+      "description": "Invokes registered reconcilers"
+    },
+    {
+      "from": "cairn.kernel.scanner",
+      "to": "cairn.state",
+      "description": "Reads beads to flag orphan node labels"
+    },
+    {
+      "from": "cairn.mcp",
+      "to": "cairn.kernel.query",
+      "description": "Wraps queries as MCP tools"
+    },
+    {
+      "from": "cairn.reconcile",
+      "to": "cairn.kernel.map",
+      "description": "Reports findings to graph"
+    },
+    {
+      "from": "cairn.ui",
+      "to": "cairn.kernel.scanner",
+      "description": "Runs scans for API responses"
+    },
+    {
+      "from": "cairn.ui",
+      "to": "cairn.kernel.map",
+      "description": "Serves graph data"
+    },
+    {
+      "from": "cairn.ui",
+      "to": "cairn.state",
+      "description": "Reads node-linked beads for the inspector"
+    }
+  ],
+  "findings": [
+    {
+      "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
+      "severity": "info",
+      "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer",
+      "node": null,
+      "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
+      "path": "docs/registries/spec-rules.md"
+    }
+  ]
+}

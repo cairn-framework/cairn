@@ -87,6 +87,7 @@ fn insert_node(
             contracts: node.contracts.clone(),
             state,
             files,
+            symbols: Vec::new(),
             span: node.span.clone(),
         },
     );

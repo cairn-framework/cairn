@@ -39,7 +39,8 @@ pub fn parse(source: &str) -> Frontmatter {
             let trimmed = line.trim();
             if let Some(stripped) = trimmed.strip_prefix("- ") {
                 if let Some(key) = &active_list {
-                    if let Some((item_key, item_value)) = stripped.split_once(':') {
+                    let is_quoted = stripped.starts_with('"') || stripped.starts_with('\'');
+                    if !is_quoted && let Some((item_key, item_value)) = stripped.split_once(':') {
                         if item_key.trim() == "id" {
                             lists
                                 .entry(key.clone())

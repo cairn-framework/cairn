@@ -441,6 +441,7 @@ mod tests {
             contracts,
             state: NodeState::Synced,
             files: Vec::new(),
+            symbols: Vec::new(),
             span: crate::blueprint::Span::point("test", 1, 1),
         }
     }
@@ -572,6 +573,7 @@ mod tests {
                 declared_by: "cairn.kernel.cli".to_owned(),
                 node: "cairn.kernel.cli".to_owned(),
                 body: "Public interface: parse_args".to_owned(),
+                interface: Vec::new(),
             },
         );
         let decisions = vec![decision(

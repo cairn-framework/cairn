@@ -40,6 +40,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn get <node>` | Inspect a node by ID |
 | `cairn files <node>` | List files owned by a node |
+| `cairn symbols <node>` | List public symbols extracted from a node |
 | `cairn contract <node>` | Show the contract for a node |
 | `cairn neighbourhood <node>` | Show a node and its neighbours |
 | `cairn depends <node>` | List nodes a given node depends on |
@@ -65,8 +66,6 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn changes` | List active changes |
 | `cairn change new <change-id>` | Scaffold a new change directory |
-| `cairn change tasks <change-id>` | List task beads for a change |
-| `cairn change apply <change-id>` | Claim a change and all its open tasks |
 | `cairn show <change-id>` | Show details of a change |
 | `cairn accept [<change-id>]` | Run acceptance gate for a change |
 | `cairn archive <change-id>` | Archive a completed change |

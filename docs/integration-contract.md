@@ -52,6 +52,7 @@ Error responses from the MCP/query path:
 | `neighbourhood <node>` | `cairn_neighbourhood` | Node + inbound/outbound edges |
 | `contract <node>` | `cairn_contract` | Contract body text |
 | `files <node>` | `cairn_files` | File paths owned by the node |
+| `symbols <node>` | `cairn_symbols` | Public symbols extracted from the node (name, kind, signature, file, line) |
 | `depends <node>` | `cairn_depends` | Outbound dependency edges |
 | `dependents <node>` | `cairn_dependents` | Inbound dependency edges |
 | `order` | `cairn_order` | Topological sort of all nodes |

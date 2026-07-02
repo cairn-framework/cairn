@@ -33,6 +33,15 @@ pub struct FilesResponse {
     pub files: Vec<String>,
 }
 
+/// Symbol list response.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SymbolsResponse {
+    /// Node ID.
+    pub node: String,
+    /// Extracted public symbols.
+    pub symbols: Vec<crate::reconcile::SymbolRecord>,
+}
+
 /// Dependency response.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DependencyResponse {
@@ -156,6 +165,19 @@ pub fn files(graph: &Graph, node: &str) -> Result<FilesResponse, Finding> {
     Ok(FilesResponse {
         node: node.id.clone(),
         files: node.files.clone(),
+    })
+}
+
+/// Returns structured public symbols extracted for the node.
+///
+/// # Errors
+///
+/// Returns a finding when the node cannot be resolved.
+pub fn symbols(graph: &Graph, node: &str) -> Result<SymbolsResponse, Finding> {
+    let node = graph.resolve(node)?;
+    Ok(SymbolsResponse {
+        node: node.id.clone(),
+        symbols: node.symbols.clone(),
     })
 }
 
@@ -435,6 +457,7 @@ mod tests {
             contracts: Vec::new(),
             state: NodeState::Synced,
             files: Vec::new(),
+            symbols: Vec::new(),
             span: Span::point("test", 1, 1),
         }
     }
