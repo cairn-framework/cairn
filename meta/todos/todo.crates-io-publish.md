@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: done
 created: 2026-07-03
 ---
 
@@ -74,7 +74,22 @@ crates.io's write path specifically (reads are unaffected).
 lands server-side despite a client-side error is detected and skipped
 rather than double-attempted; this only takes effect on the *next*
 tagged release (`workflow_call` resolves at the caller's commit SHA,
-same constraint as the UA fix). v0.1.3 stays open/blocked until a
-`gh run rerun` succeeds once crates.io's write path recovers.
+same constraint as the UA fix).
 
+**Resolved in v0.1.4 (2026-07-03):** the 503s turned out not to be a
+pure transient outage after all. The 4th retry surfaced the real
+root cause: a 413 Payload Too Large. The default package (no
+`include`/`exclude` in Cargo.toml) shipped the entire repo (demo
+GIFs/MP4s, a PDF, .beads bookkeeping, archived research
+screenshots, test fixtures): 1147 files, 42.7MiB compressed, well
+over crates.io's 10MB upload cap. Fixed in `ee176f1` by adding an
+`include` allowlist scoped to what `src/**` needs to compile plus
+its `include_str!`-embedded runtime assets (webui HTML/JS/CSS, the
+agent guide, the 8 bundled skill files). Verified via a real
+`cargo package` build (not --no-verify): 286 files, 491.9KiB
+compressed, compiles standalone. v0.1.4's release run published
+both crates successfully: `cairn-macros` 0.1.0 (already live,
+skipped) and `cairn-framework` 0.1.4 (new). Both confirmed live on
+crates.io via the API (200). `cargo install cairn-framework
+--version 0.1.4` verified in a scratch CARGO_HOME.
 bd:cairn-m99
