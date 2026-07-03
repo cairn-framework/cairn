@@ -2524,10 +2524,12 @@ button.path-row:hover {
      it has zero in-flow content height; against the `auto` row above that
      collapses the canvas toward 0px, which then renders the fixed-position
      SYSTEM node (and the bottom-anchored zoom/legend docks) squeezed into
-     the same few pixels (cairn-380). Match `.inspector-wrap`'s 60vh cap
-     below with a floor so the stacked canvas always has room to breathe. */
+     the same few pixels (cairn-380). A fixed floor (not `vh`, so it stays
+     in lockstep with `.inspector-wrap`'s budget below rather than both
+     scaling independently and jointly overflowing `.app`'s `overflow:
+     hidden` on short viewports) gives the stacked canvas room to breathe. */
   .graph-canvas {
-    min-height: 40vh;
+    min-height: 240px;
   }
 
   .topbar {
@@ -2550,7 +2552,13 @@ button.path-row:hover {
   .inspector-wrap {
     border-left: 0;
     border-top: 1px solid var(--seam-thin);
-    max-height: 60vh;
+    /* `.app`'s 56px topbar row plus `.graph-canvas`'s 240px floor above
+       leaves this much of the viewport; sized so the two stacked rows can
+       never together exceed `.app`'s `overflow: hidden` box (which would
+       silently crop the bottom of this panel, not scroll it, since the
+       clip happens at the grid-row level, above this element's own
+       `overflow-y: auto`). */
+    max-height: calc(100vh - 56px - 240px);
   }
 
   .changes-drawer {
