@@ -41,12 +41,18 @@ jobs:
         run: |
           set -euo pipefail
 
+          # crates.io's API enforces a data-access policy that 403s
+          # requests carrying a generic/default User-Agent (e.g. bare
+          # `curl/<version>`); a descriptive one is required. See
+          # https://crates.io/data-access.
+          UA="cairn-framework/cairn cargo-publish CI (https://github.com/cairn-framework/cairn)"
+
           # crates.io sparse-index path for a 4+ char name is
           # <first 2 chars>/<next 2 chars>/<name>.
           wait_for_index() {
             local name="$1" version="$2" path="${1:0:2}/${1:2:2}/${1}"
             for _ in $(seq 1 18); do
-              if curl -sf "https://index.crates.io/${path}" | grep -q "\"vers\":\"${version}\""; then
+              if curl -sf -A "$UA" "https://index.crates.io/${path}" | grep -q "\"vers\":\"${version}\""; then
                 return 0
               fi
               sleep 10
@@ -63,7 +69,7 @@ jobs:
           already_published() {
             local crate="$1" version="$2" code
             for _ in 1 2 3; do
-              code=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/${crate}/${version}" || echo "000")
+              code=$(curl -s -o /dev/null -A "$UA" -w "%{http_code}" "https://crates.io/api/v1/crates/${crate}/${version}" || echo "000")
               case "$code" in
                 200) return 0 ;;
                 404) return 1 ;;
