@@ -29,4 +29,23 @@ dry-runs. v0.1.1 ships without a crates.io presence; prebuilt binaries
 (curl/PowerShell installer) and the Homebrew tap
 (`cairn-framework/homebrew-tap`) are the supported install paths meanwhile.
 
+**Automation added (2026-07-03):** publishing is now wired into the
+release pipeline as a custom dist publish-job
+(`.github/workflows/cargo-publish.yml`, `publish-jobs = ["homebrew",
+"./cargo-publish"]` in `dist-workspace.toml`). It runs automatically on
+every future tagged release, right where `publish-homebrew-formula`
+runs, publishing `cairn-macros` then `cairn-framework` in dependency
+order. It is idempotent (checks the crates.io API per crate/version and
+skips an already-published one, so `cairn-macros` staying at 0.1.0
+across future `cairn-framework` releases will not hard-fail) and skips
+prereleases like the Homebrew job does. Peer-reviewed clean (idempotency,
+publish order, prerelease gating, secret handling, permissions scope all
+verified against the live crates.io API and the pre-existing
+`legacy-installer-continuity.yml`/`publish-homebrew-formula` patterns).
+`CARGO_REGISTRY_TOKEN` was added to the repo secrets on 2026-07-03
+(verified via `gh secret list`). v0.1.1 itself will NOT be retroactively
+published (that release already shipped without CI's cargo-publish
+step); this stays open/blocked until the next tagged release actually
+runs the job and confirms both crates land on crates.io.
+
 bd:cairn-m99

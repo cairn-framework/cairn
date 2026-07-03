@@ -23,5 +23,9 @@ post-announce-jobs = ["./legacy-installer-continuity"]
 # Homebrew tap: publishes a Formula to cairn-framework/homebrew-tap on
 # every release (cairn-jj4). The publishing token (write access to the
 # tap repo) is HOMEBREW_TAP_TOKEN in this repo's GitHub Actions secrets.
+# Also publishes cairn-macros then cairn-framework to crates.io on every
+# release (custom job, since cargo-dist has no builtin crates.io
+# publisher); needs the CARGO_REGISTRY_TOKEN repo secret. See
+# .github/workflows/cargo-publish.yml and meta/todos/todo.crates-io-publish.md.
 tap = "cairn-framework/homebrew-tap"
-publish-jobs = ["homebrew"]
+publish-jobs = ["homebrew", "./cargo-publish"]

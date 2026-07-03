@@ -1,0 +1,91 @@
+name: Publish to crates.io
+
+# Custom dist publish-job (see dist-workspace.toml's `publish-jobs`).
+# Publishes cairn-macros then cairn-framework to crates.io on every
+# release, in that dependency order (cairn-framework depends on
+# cairn-macros by path+version). Idempotent: skips a crate/version that
+# is already live, so cairn-macros (which stays pinned at 0.1.0 across
+# many cairn-framework releases) does not hard-fail once it has been
+# published once. Requires the CARGO_REGISTRY_TOKEN repo secret (a
+# crates.io API token with publish-new + publish-update scopes; see
+# meta/todos/todo.crates-io-publish.md for how to create one).
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+
+jobs:
+  publish-crates:
+    runs-on: ubuntu-latest
+    # dist generates a prerelease guard at the call site (release.yml's
+    # custom-cargo-publish job), matching the builtin homebrew job.
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Fail fast if token is missing
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "::error::CARGO_REGISTRY_TOKEN secret is not set (repo Settings -> Secrets and variables -> Actions); see meta/todos/todo.crates-io-publish.md" >&2
+            exit 1
+          fi
+      - name: Publish cairn-macros then cairn-framework (idempotent)
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # crates.io sparse-index path for a 4+ char name is
+          # <first 2 chars>/<next 2 chars>/<name>.
+          wait_for_index() {
+            local name="$1" version="$2" path="${1:0:2}/${1:2:2}/${1}"
+            for _ in $(seq 1 18); do
+              if curl -sf "https://index.crates.io/${path}" | grep -q "\"vers\":\"${version}\""; then
+                return 0
+              fi
+              sleep 10
+            done
+            echo "::error::timed out waiting for ${name} ${version} to appear in the crates.io index" >&2
+            return 1
+          }
+
+          # Distinguishes "already published" (200) from "not yet
+          # published" (404) from a transient failure (any other code,
+          # or curl itself failing on network/DNS/TLS); retries a
+          # transient failure a few times before giving up loudly,
+          # rather than guessing either way.
+          already_published() {
+            local crate="$1" version="$2" code
+            for _ in 1 2 3; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/${crate}/${version}" || echo "000")
+              case "$code" in
+                200) return 0 ;;
+                404) return 1 ;;
+              esac
+              sleep 5
+            done
+            echo "::error::crates.io returned unexpected status ${code} checking ${crate} ${version}; not guessing published state" >&2
+            exit 1
+          }
+
+          publish_if_missing() {
+            local crate="$1" version="$2"
+            if already_published "${crate}" "${version}"; then
+              echo "${crate} ${version} is already on crates.io, skipping publish"
+              return 0
+            fi
+            cargo publish -p "${crate}"
+            wait_for_index "${crate}" "${version}"
+          }
+
+          macros_version=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[] | select(.name == "cairn-macros") | .version')
+          framework_version=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[] | select(.name == "cairn-framework") | .version')
+
+          publish_if_missing cairn-macros "${macros_version}"
+          publish_if_missing cairn-framework "${framework_version}"
