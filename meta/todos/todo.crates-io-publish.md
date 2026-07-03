@@ -43,9 +43,22 @@ publish order, prerelease gating, secret handling, permissions scope all
 verified against the live crates.io API and the pre-existing
 `legacy-installer-continuity.yml`/`publish-homebrew-formula` patterns).
 `CARGO_REGISTRY_TOKEN` was added to the repo secrets on 2026-07-03
-(verified via `gh secret list`). v0.1.1 itself will NOT be retroactively
+(verified via `gh secret list`). v0.1.1 itself was never retroactively
 published (that release already shipped without CI's cargo-publish
-step); this stays open/blocked until the next tagged release actually
-runs the job and confirms both crates land on crates.io.
+step).
+
+**v0.1.2 hit a real bug (2026-07-03):** its release run was the first
+to exercise the job and failed: crates.io's API enforces a data-access
+policy that 403s a generic User-Agent (a bare `curl/<version>` counts
+as one); the `already_published()` existence-check curl call didn't
+set one, so the release failed before either crate published (the
+GitHub release, binaries, and Homebrew formula all still shipped fine
+for v0.1.2, since that job runs independently). Fixed in
+`cargo-publish.yml` by adding `-A "$UA"` to both curl call sites.
+Because a local relative-path `workflow_call` ref resolves at the
+caller's commit SHA, the fix could not be applied by re-running the
+v0.1.2 tag's workflow run; v0.1.3 was cut to retry cleanly. This stays
+open/blocked until v0.1.3's release run confirms both crates land on
+crates.io.
 
 bd:cairn-m99
