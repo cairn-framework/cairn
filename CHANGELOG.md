@@ -1,5 +1,10 @@
 # Changelog
 
+
+## v0.1.4
+
+- Fixed crates.io publish (second fix): `cairn-framework`'s published package was 42.7MiB compressed (the default package ships the whole repo: demo GIFs/MP4s, a PDF, .beads bookkeeping, archived research screenshots, test fixtures), over crates.io's 10MB upload cap. Cargo.toml now carries an `include` allowlist scoped to what `src/**` needs to compile plus its `include_str!`-embedded runtime assets (webui, agent guide, the bundled skills). Packaged tree is now 491.9KiB compressed and verified to compile standalone. `cairn-macros` (already at 0.1.0) is unaffected. v0.1.3 never published `cairn-framework` (4 attempts: 3 transient crates.io 503s, then the 413); both crates land on crates.io starting with this release.
+- Hardened `cargo-publish.yml` with retry/backoff around `cargo publish` itself (up to 3 attempts, re-checking already_published at the top of each iteration so a publish that landed server-side despite a client-side error is detected and skipped, not double-attempted).
 ## v0.1.3
 
 - Fixed crates.io publish automation (added in v0.1.2, landed in this release): crates.io's API enforces a data-access policy that rejects requests with a generic User-Agent (a bare `curl/<version>` counts as generic); `cargo-publish.yml`'s existence-check and index-poll curl calls now identify themselves. v0.1.2's release run hit this as a 403 before either crate was published, so `cairn-macros` and `cairn-framework` go live on crates.io for the first time starting with this release, not v0.1.2 as originally stated.
