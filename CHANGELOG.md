@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.1
+
+- Native task front door: this repo's own development now tracks work in cairn's native Todo artefacts (`meta/todos/todo.<slug>.md`, `docs/spec.md` §8.2) instead of beads. New `cairn todo new <slug> --node <id>` command scaffolds a todo, exactly symmetric with `cairn decision new`. `cairn next`/`cairn brief` prefer open native todos, falling back to the beads backlog only when `.beads/issues.jsonl` exists and no native todo is open. Beads remain a supported, read-only per-node view (`cairn backlog`) for projects that want it.
+- `cairn changes` and `cairn show` now render human-readable output instead of erroring "this command currently requires --json"; the other eight JSON-only commands are documented as such in `docs/commands.md`.
+- `cairn health` and `cairn remediate` now have real `--help` descriptions (were empty).
+- `docs/commands.md`: removed duplicate health/remediate rows, added the missing global flags (`--changes-dir`, `--depth`, `--scope`, `--version`).
+- Webui: fixed the graph canvas collapsing under the fixed HUD row on short/narrow viewports, which pushed the SYSTEM node and zoom/legend docks into an overlapping cluster.
+- Windows support: `x86_64-pc-windows-msvc` added to the release matrix (prebuilt binaries plus a PowerShell installer). `signal-hook` (SIGINT handling) is now cfg-gated to Unix; Windows gets a no-op stub since Ctrl-C's default OS behaviour already terminates the process.
+- Renamed the crates.io package to `cairn-framework` (the names `cairn` and `cairn-cli` were already taken) and made it publish-ready (`cairn-macros` version-pinned, `[package.metadata.dist] formula` set, `--dry-run` verified); installed binaries keep the `cairn`/`cairn-mcp`/`cairn-lsp` names regardless. The v0.1.0-era shell installer URL (`cairn-installer.sh`) keeps resolving via an automated re-upload step. See `meta/todos/todo.crates-io-publish.md` for live-publish status.
+- Homebrew: `brew install cairn-framework/tap/cairn` now works via a published tap (`cairn-framework/homebrew-tap`).
+- Identity: `docs/spec.md` and `README.md` each gained one sentence naming cairn's internal mechanism (a declarative reconciliation controller); the public "map" framing and tagline are unchanged.
+
 ## v0.1.0
 
 - Added `cairn feedback "<message>"`: records friction in `.cairn/feedback.md` and prints a prefilled upstream issue link, closing the dogfood loop from host projects (decision: `meta/decisions/feedback-loop.md`).

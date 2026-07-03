@@ -12,8 +12,16 @@ Prebuilt binaries are the fastest path; `cargo install` from crates.io or buildi
 
 ### Prebuilt binary (recommended)
 
+macOS and Linux:
+
 ```sh
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
+```
+
+Windows (PowerShell):
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/cairn-framework/cairn/releases/latest/download/cairn-framework-installer.ps1 | iex"
 ```
 
 No Rust toolchain required. Installs `cairn`, `cairn-mcp`, and `cairn-lsp` for macOS (arm64, x86_64), Linux (x86_64, arm64), and Windows (x86_64).
