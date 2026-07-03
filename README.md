@@ -52,6 +52,8 @@ blueprint  -->  reconcile  -->  gate  -->  query
 (declare)      (scan code)    (enforce)   (serve agents)
 ```
 
+Cairn is a closed loop: you declare the architecture you want, it measures the one you shipped, and it blocks drift at the commit boundary. The map is what that loop produces and what your agents read.
+
 1. **Write the plan (declare).** Make a `cairn.blueprint` that names your systems, modules, the promises each part makes, and the decisions behind them.
 2. **Check it (reconcile).** `cairn scan` reads the code and marks each part `synced` (matches the plan), `ghost` (planned but not built yet), or `orphaned` (built but not in the plan).
 3. **Guard it (gate).** A pre-commit check blocks changes that break the plan, and warns about changes that fight an old decision.

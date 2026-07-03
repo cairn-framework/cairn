@@ -46,6 +46,8 @@ This distinction dictates what belongs in the map and what does not. Anything th
 
 The practical consequence is a hard ceiling on the blueprint's complexity. If a feature being proposed is "how to do X," it belongs in an agent prompt, a skill, or a script. If it is "what X is and how it relates to Y," it belongs in the map.
 
+Mechanically, cairn is a declarative reconciliation controller: the blueprint is the setpoint, the scan is the sensor, findings are the error signal, the gate is the boundary, and the actuator is deliberately external (a human or an agent, never cairn).
+
 ## 3. The two chains: provenance and authority
 
 v0.4 presented a single six-layer hierarchy running from raw sources through code. That framing conflated two different kinds of truth. A source is evidence; a contract is a norm. The framework cannot mechanically verify that research faithfully reflects a source (that requires reading the source and forming a judgment), but it *can* mechanically verify that code matches a contract. Presenting both under one word overclaimed enforcement.
