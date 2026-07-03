@@ -17,6 +17,10 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `--file <path>` | Blueprint file path (default: `cairn.blueprint`) |
 | `--json` | Output JSON instead of human-readable text |
 | `--strict` | Exit non-zero on Warning findings (scan/lint only) |
+| `--changes-dir <path>` | Changes directory (default: `meta/changes`) |
+| `--depth <N\|all>` | `context`: cap structure depth (default 1) |
+| `--scope <node>` | `context`: full detail for one subtree |
+| `--version` | Print version |
 | `--help` | Show help text |
 
 ## Commands
@@ -118,11 +122,7 @@ These commands require the `--json` flag.
 | `cairn feedback "<message>"` | Record cairn friction in `.cairn/feedback.md` and print a prefilled upstream issue link |
 | `cairn workspace <status\|lint\|frontier>` | Aggregate status, lint, and frontier queries across a `cairn.workspace` |
 
-### MAS orchestration
-| Command | Description |
-|---------|-------------|
-| `cairn health` | Report project health (JSON only) |
-| `cairn remediate` | Suggest remediation actions for findings (JSON only) |
+### Clean-state workflow
 
 The `health` command produces a comprehensive health report combining lint findings, hook results, and module state counts. Use it to verify the project is in a clean state before merging.
 
@@ -132,7 +132,6 @@ The `remediate` command analyzes findings and produces a prioritized list of act
 2. `init_from_code` or `refine` - Reconcile blueprint drift with code.
 3. `summarise` - Update contracts after interface changes.
 4. `add_decision` - Record decisions for blueprint changes.
-#### Clean-state workflow
 
 ```bash
 # 1. Check current health

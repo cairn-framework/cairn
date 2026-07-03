@@ -517,6 +517,8 @@ fn all_command_names() -> Vec<&'static str> {
 fn command_description(name: &str) -> &'static str {
     match name {
         "brief" => "Fused next-unit brief: task, decisions, contract, gates",
+        "health" => "Comprehensive health check: lint, hooks, and module state",
+        "remediate" => "Generate an ordered action plan from current findings",
         "backlog" => "List beads (issues) linked to a node",
         "accept" => "Run acceptance gate for a change",
         "archive" => "Archive a completed change",

@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: single-purpose render surface for remediation/next-action queries; a mechanical split would fragment one cohesive algorithm across files
 //! Remediation and next-action query renderers.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]

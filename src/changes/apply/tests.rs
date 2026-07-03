@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: extracted test module for blueprint delta application (convention: tests.rs split from parent when parent exceeds the line limit)
 //! Tests for blueprint delta application and AST serialization helpers.
 
 use super::*;

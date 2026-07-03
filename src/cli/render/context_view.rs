@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: single-purpose render surface for `cairn context` rollup/projection; a mechanical split would fragment one cohesive algorithm across files
 //! Container-level rollup and depth/scope projection for `cairn context`.
 //!
 //! `cairn context` renders the whole graph. On a large monorepo a flat

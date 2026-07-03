@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: extracted test module for scanner orchestration (convention: tests.rs split from parent when parent exceeds the line limit)
 //! Tests for scanner orchestration: deduplication, divergence, blueprint-change gating, and provenance coverage.
 
 use std::collections::BTreeMap;

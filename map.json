@@ -1439,24 +1439,24 @@
           "kind": "function",
           "signature": "pub(crate) fn parse(command_args: &[String]) -> Self",
           "file": "src/cli/render/context_view.rs",
-          "line": 36,
-          "end_line": 58
+          "line": 37,
+          "end_line": 59
         },
         {
           "name": "render_mermaid",
           "kind": "function",
           "signature": "pub(crate) fn render_mermaid(graph: &Graph, opts: &ContextOpts, prefix: &str) -> String",
           "file": "src/cli/render/context_view.rs",
-          "line": 84,
-          "end_line": 92
+          "line": 85,
+          "end_line": 93
         },
         {
           "name": "render_structure",
           "kind": "function",
           "signature": "pub(crate) fn render_structure(graph: &Graph, opts: &ContextOpts, prefix: &str) -> String",
           "file": "src/cli/render/context_view.rs",
-          "line": 72,
-          "end_line": 77
+          "line": 73,
+          "end_line": 78
         },
         {
           "name": "run_gap_command",
@@ -1479,8 +1479,8 @@
           "kind": "struct",
           "signature": "pub(crate) struct ContextOpts",
           "file": "src/cli/render/context_view.rs",
-          "line": 23,
-          "end_line": 31
+          "line": 24,
+          "end_line": 32
         },
         {
           "name": "artefact_type_label",
