@@ -15,8 +15,9 @@ pub(crate) fn render_changes(root: &Path) -> String {
     match crate::changes::discover(root) {
         Ok(changes) if changes.is_empty() => {
             format!(
-                "{}\n",
-                crate::copy::lookup("empty-states.cli-no-changes.body")
+                "{}\n{}\n",
+                crate::copy::lookup("empty-states.cli-no-changes.body"),
+                crate::copy::lookup("empty-states.cli-no-changes.cta")
             )
         }
         Ok(changes) => {
@@ -108,8 +109,9 @@ mod tests {
         assert_eq!(
             out,
             format!(
-                "{}\n",
-                crate::copy::lookup("empty-states.cli-no-changes.body")
+                "{}\n{}\n",
+                crate::copy::lookup("empty-states.cli-no-changes.body"),
+                crate::copy::lookup("empty-states.cli-no-changes.cta")
             )
         );
         let _ = std::fs::remove_dir_all(&dir);
@@ -163,6 +165,51 @@ mod tests {
         assert!(out.contains("Change: my-change"));
         assert!(out.contains("Closes a gap."));
         assert!(out.contains("Do the thing."));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_render_show_renders_findings() {
+        let dir = tmpdir("findings");
+        let change_dir = dir.join("meta/changes/broken-delta");
+        std::fs::create_dir_all(&change_dir).unwrap();
+        std::fs::write(
+            change_dir.join("proposal.md"),
+            "# Proposal: broken-delta\n\n## Motivation\n\nWhy.\n",
+        )
+        .unwrap();
+        // A malformed delta file fails to parse, which `load_change` records
+        // as a finding on the `Change` rather than propagating an error.
+        std::fs::write(
+            change_dir.join("blueprint.delta"),
+            "## ADDED Nodes\n\nModule Bad \"Bad\" id \"bad\" {\n",
+        )
+        .unwrap();
+        let out = render_show(&parsed(&["show", "broken-delta"]), &dir).unwrap();
+        assert!(out.contains("Findings:"), "{out}");
+        assert!(out.contains("- "), "{out}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_render_changes_reports_discover_error() {
+        let dir = tmpdir("discover-err");
+        // `meta/changes` as a file (not a directory) makes `fs::read_dir`
+        // fail inside `crate::changes::discover`.
+        std::fs::create_dir_all(dir.join("meta")).unwrap();
+        std::fs::write(dir.join("meta/changes"), "not a directory").unwrap();
+        let out = render_changes(&dir);
+        assert!(out.contains("failed to discover changes"), "{out}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_render_show_reports_discover_error() {
+        let dir = tmpdir("show-discover-err");
+        std::fs::create_dir_all(dir.join("meta")).unwrap();
+        std::fs::write(dir.join("meta/changes"), "not a directory").unwrap();
+        let finding = render_show(&parsed(&["show", "anything"]), &dir).expect_err("must error");
+        assert_eq!(finding.code, "CAIRN_CHANGES_DISCOVERY_FAILED");
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

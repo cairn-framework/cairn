@@ -1278,6 +1278,7 @@
         "src/cli/render/mod.rs",
         "src/cli/render/node.rs",
         "src/cli/render/project.rs",
+        "src/cli/render/project/tests.rs",
         "src/cli/render/remediate.rs"
       ],
       "contracts": [

@@ -8,6 +8,7 @@ informed_by:
   - res.task-front-door
 related:
   - dec.beads-task-layer
+  - dec.bd-upgrade-plan
   - dec.change-format-only
   - dec.native-task-state-and-agent-guidance
 ---

@@ -12,7 +12,8 @@ iteration ends by selecting the next unit of work and looping.
 
 **Input**: the argument after `/cairn-loop` is a description of the change to
 make, or a count of iterations to run (e.g. `/cairn-loop 5`). With no argument,
-draw the next unit from the backlog (`bd ready`) or, if empty, from the first
+draw the next unit from `cairn status` / `cairn todos <node>` (this repo's
+native task tracker) or, if empty, from the first
 finding `cairn lint` reports. When the next unit is blocked or deferred on a
 decision rather than on code, do not stop: if research can inform the choice,
 resolve that gap as the unit (investigate, debate, recommend), then ask with the
@@ -31,7 +32,10 @@ export PATH="$PWD/target/release:$PATH"
 **Steps**
 
 Work the ten phases in order. Do not advance until a phase's exit criterion is
-met. Track progress with `bd` (this repo's tracker), not TodoWrite.
+met. Ephemeral in-session phase tracking (e.g. TodoWrite) is fine for this
+loop's own step-by-step progress. Durable cross-session work items go through
+`cairn todo new <slug> --node <id>` and status edits to the resulting
+`meta/todos/todo.<slug>.md` (this repo's tracker), not bd.
 
 1. **Orient** — `cairn context` and `cairn lint --json`. Record the baseline
    finding count (target zero) and name the node(s) you will touch. Triage any

@@ -967,11 +967,43 @@ mod tests {
         assert_eq!(value["brief"]["source"], "native-todos");
         assert_eq!(value["brief"]["node"], "app.core");
         assert_eq!(value["brief"]["ready"], true);
+        assert_eq!(value["brief"]["todo"], "meta/todos/todo.app.core.md");
+        assert_eq!(value["brief"]["title"], "Wire the thing");
 
         // An explicit id argument still targets the beads backlog: todos have
         // no id to address directly.
         let named = render_brief(&brief_parsed(&["brief", "cairn-a"], false), &dir, &scan);
         assert!(named.contains("Brief: cairn-a [P1] Alpha"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_brief_native_todo_unlinked_node_shows_hint() {
+        // A todo whose `node:` does not resolve against the blueprint graph
+        // (e.g. the node was renamed or removed after the todo was filed)
+        // must still render, falling through to the "(unlinked)" hint the
+        // beads path already exercises, rather than panicking or silently
+        // dropping the task.
+        let dir = tmpdir("brief-todo-unlinked");
+        write_export(&dir, &[]);
+        let scan = scan_with_todos(
+            Vec::new(),
+            Vec::new(),
+            ContractSet::default(),
+            vec![todo_fixture("app.gone", "2026-01-01", "# Orphaned task")],
+        );
+        let human = render_brief(&brief_parsed(&["brief"], false), &dir, &scan);
+        assert!(human.contains("Brief: Orphaned task"));
+        assert!(human.contains("source: native todos"));
+        assert!(human.contains("(unlinked)"));
+        assert!(human.contains("meta/todos/todo.app.gone.md"));
+        assert!(human.contains("none linked"));
+
+        let json = render_brief(&brief_parsed(&["brief"], true), &dir, &scan);
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(value["brief"]["source"], "native-todos");
+        assert!(value["brief"]["node"].is_null());
+        assert_eq!(value["brief"]["todo"], "meta/todos/todo.app.gone.md");
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

@@ -4,8 +4,9 @@ nodes:
   - cairn.root
 status: accepted
 date: 2026-06-23
+revisited: 2026-07-03
 informed_by: [res.gas-city-cairn-integration]
-related: [dec.no-orchestrator, dec.bead-github-sync]
+related: [dec.no-orchestrator, dec.bead-github-sync, dec.native-todos-first]
 revisit_triggers:
   - "A maintainer wants node-linked beads to become a first-class Todo artefact *source* (which would require ratifying a spec.md:11 / §8.2 amendment first, since shipped StateBackend keeps artefact content in files unconditionally)"
   - "bd drops the passive `.beads/issues.jsonl` export or the `cairn-node:<id>` label convention the view depends on"
@@ -163,10 +164,11 @@ ratified spec amendment.
   Dolt DB. Accepted: this is the same reality layer the dev loop already reads
   (PR #140), and the read-only view never writes a competing copy. Reconciliation
   is the existing `bd export -o` discipline, not a cairn concern.
-- **View vs Todo confusion.** A per-node beads view sitting beside an (unused)
-  Todo panel could read as two task surfaces. Mitigated by this repo declaring no
-  `todos` pointers (the Todo panel is empty) and by the view being labelled as a
-  beads view, not todos.
+- **View vs Todo confusion.** A per-node beads view sitting beside a Todo panel
+  could read as two task surfaces. Mitigated at the time of this decision by
+  this repo declaring no `todos` pointers (the Todo panel was empty); as of
+  `dec.native-todos-first` (2026-07-03) the pointer is wired and the panel is
+  the primary surface, with the beads view labelled and subordinate to it.
 
 ## Consequences
 

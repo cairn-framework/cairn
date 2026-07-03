@@ -219,7 +219,8 @@ The loop keeps working. Pick the next unit and return to phase 1. Choose the nex
 task in this priority order:
 
 1. Any finding `cairn lint` reports against the merged state (clear drift first).
-2. The next open item in the backlog (`bd ready`, or the repo's tracker).
+2. The next open item in the backlog (`cairn status`, `cairn todos <node>`;
+   `bd ready` only for a project that separately runs beads).
 3. A `CAIRN_PROVENANCE_NO_DECISION` or other advisory the loop has been deferring.
 4. A small, self-contained improvement surfaced while doing the last iteration.
 

@@ -4,6 +4,8 @@ nodes:
   - cairn.root
 status: accepted
 date: 2026-06-23
+revisited: 2026-07-03
+related: [dec.native-todos-first]
 revisit_triggers:
   - "A concrete need requires a bd feature only present in 1.0.5+ (e.g. server-validated custom issue types)"
   - "cairn adopts a Dolt remote (refs/dolt/* on origin), making cross-clone migration safety load-bearing"
@@ -14,7 +16,13 @@ revisit_triggers:
 
 ## Context
 
-This repo tracks work in beads (`bd`). The installed tool is **1.0.4** (2026-05-07);
+This repo tracked work in beads (`bd`) at the time of this decision; as of
+`dec.native-todos-first` (2026-07-03) this repo's own task tracking moved to
+native Todo artefacts, and this opening premise no longer holds. The upgrade
+procedure below (jsonl-in-git, pinned export config) remains valid guidance
+for any project, including this one, that runs beads as the optional
+read-only integration `dec.beads-task-layer` describes. The installed tool
+is **1.0.4** (2026-05-07);
 the latest stable is **1.0.5** (2026-05-28), and an unreleased 1.0.6 line adds
 cross-clone Dolt remote merge-safety work. Bead `cairn-dyc` asked for a deliberate
 upgrade plan rather than a blind `bd upgrade`, because crossing minor versions here

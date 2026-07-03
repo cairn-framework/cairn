@@ -382,7 +382,10 @@ Typed id prefixes (`dec.`/`res.`/`src.`) MUST match the artefact type, and ids M
 The layout permits exactly the variation the engine can honour, and no more.
 
 - Decisions, research, and sources are FLAT. Topical grouping uses slug namespacing, never subfolders. A subfolder artefact loads ONLY via an explicit per-file blueprint pointer.
-- Todos are NODE-partitioned (`meta/todos/<node>/`), a deliberate exception to artefact-type-first.
+- Todos are FLAT (`dec.native-todos-first`, 2026-07-03), one file per todo,
+  disambiguated by its own `node:` frontmatter field rather than directory
+  placement; the loader is non-recursive like decisions/research/sources, so
+  a node-partitioned subdirectory would be silently unwired.
 - Non-artefact material (docs/spec.md, external PDFs, competitor sites, internal design notes) MUST NOT be modelled as a typed artefact by inlining its content. It MAY enter provenance by being cited as a `source`. This is a permission, not a mandate, and authors SHOULD choose the verification mode honestly:
   - `external` for content the project does not hold the bytes of; `file` MUST be a URL.
   - `verified` for project-controlled local files whose bytes should be frozen; the scanner re-hashes the file on every scan, so any edit raises a sha256 mismatch until the hash is re-pinned. Use it only for genuinely immutable content.
