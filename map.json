@@ -3287,16 +3287,16 @@
           "kind": "function",
           "signature": "pub fn install_sigint_handler(_flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 40,
-          "end_line": 42
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 24,
-          "end_line": 28
+          "line": 25,
+          "end_line": 29
         },
         {
           "name": "issue_url",
@@ -3583,16 +3583,16 @@
           "kind": "function",
           "signature": "pub fn install_sigint_handler(_flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 40,
-          "end_line": 42
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 24,
-          "end_line": 28
+          "line": 25,
+          "end_line": 29
         },
         {
           "name": "issue_url",
@@ -3879,16 +3879,16 @@
           "kind": "function",
           "signature": "pub fn install_sigint_handler(_flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 40,
-          "end_line": 42
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 24,
-          "end_line": 28
+          "line": 25,
+          "end_line": 29
         },
         {
           "name": "issue_url",
@@ -4175,16 +4175,16 @@
           "kind": "function",
           "signature": "pub fn install_sigint_handler(_flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 40,
-          "end_line": 42
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 24,
-          "end_line": 28
+          "line": 25,
+          "end_line": 29
         },
         {
           "name": "issue_url",
@@ -4471,16 +4471,16 @@
           "kind": "function",
           "signature": "pub fn install_sigint_handler(_flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 40,
-          "end_line": 42
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 24,
-          "end_line": 28
+          "line": 25,
+          "end_line": 29
         },
         {
           "name": "issue_url",
@@ -4767,16 +4767,16 @@
           "kind": "function",
           "signature": "pub fn install_sigint_handler(_flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 40,
-          "end_line": 42
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 24,
-          "end_line": 28
+          "line": 25,
+          "end_line": 29
         },
         {
           "name": "issue_url",
@@ -5063,16 +5063,16 @@
           "kind": "function",
           "signature": "pub fn install_sigint_handler(_flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 40,
-          "end_line": 42
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "install_sigint_handler",
           "kind": "function",
           "signature": "pub fn install_sigint_handler(flag: Arc<AtomicBool>) -> Result<(), String>",
           "file": "src/signal.rs",
-          "line": 24,
-          "end_line": 28
+          "line": 25,
+          "end_line": 29
         },
         {
           "name": "issue_url",

@@ -8,10 +8,11 @@
 //! build step against POSIX `siginfo_t`, unavailable on Windows). Windows
 //! gets a no-op stub below: `Ctrl-C` still terminates the process via the
 //! OS default handler, it just skips this crate's flag-based graceful-
-//! shutdown path. Advisory-only for both callers (`src/ui/mod.rs`,
-//! `src/cli/commands/watch.rs`): each already treats a handler-registration
-//! failure as non-fatal (falls back to the OS default Ctrl-C behaviour), so
-//! a stub that always succeeds preserves that same fallback shape.
+//! shutdown path. This does not rely on any error tolerance the callers
+//! currently have on this path (`src/ui/mod.rs` propagates a real
+//! registration error via `?`, `src/cli/commands/watch.rs` returns a hard
+//! CLI error): the stub is infallible, so that error path is simply
+//! unreachable on non-Unix targets, not tolerated by the callers.
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
