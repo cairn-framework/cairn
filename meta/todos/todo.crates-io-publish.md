@@ -61,4 +61,20 @@ v0.1.2 tag's workflow run; v0.1.3 was cut to retry cleanly. This stays
 open/blocked until v0.1.3's release run confirms both crates land on
 crates.io.
 
+**v0.1.3 hit a second, unrelated issue (2026-07-03):** the UA fix
+worked (no 403), and `cairn-macros` 0.1.0 published successfully
+(confirmed live via the crates.io API), but the `cairn-framework`
+0.1.3 upload then failed 3 times in a row with a 503 "backend write
+error" from crates.io's Varnish layer, not flagged on
+status.crates.io. This looks like a real, if unlisted, outage on
+crates.io's write path specifically (reads are unaffected).
+`cargo-publish.yml` was hardened in `a5fc3ef` to retry the actual
+`cargo publish` call up to 3x with backoff, re-checking
+`already_published()` at the top of each iteration so a publish that
+lands server-side despite a client-side error is detected and skipped
+rather than double-attempted; this only takes effect on the *next*
+tagged release (`workflow_call` resolves at the caller's commit SHA,
+same constraint as the UA fix). v0.1.3 stays open/blocked until a
+`gh run rerun` succeeds once crates.io's write path recovers.
+
 bd:cairn-m99
