@@ -2519,6 +2519,17 @@ button.path-row:hover {
     grid-template-rows: auto auto;
   }
 
+  /* `.graph-canvas`'s only children are absolutely positioned (graph-bg,
+     chain-banner, graph-svg, graph-zoom, graph-minimap, graph-legend), so
+     it has zero in-flow content height; against the `auto` row above that
+     collapses the canvas toward 0px, which then renders the fixed-position
+     SYSTEM node (and the bottom-anchored zoom/legend docks) squeezed into
+     the same few pixels (cairn-380). Match `.inspector-wrap`'s 60vh cap
+     below with a floor so the stacked canvas always has room to breathe. */
+  .graph-canvas {
+    min-height: 40vh;
+  }
+
   .topbar {
     grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
     gap: var(--s-3);
