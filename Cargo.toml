@@ -20,7 +20,7 @@ use_self = { level = "deny" }
 
 [package]
 name = "cairn-framework"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 description = "Foundation package for the Cairn architecture graph tool."
 license = "MIT OR Apache-2.0"
