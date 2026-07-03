@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.2
+
+- `cairn-macros` and `cairn-framework` are now published to crates.io on every tagged release: a custom cargo-dist publish-job (`.github/workflows/cargo-publish.yml`) publishes in dependency order and skips a crate/version already live, so `cairn-macros` staying unchanged across future releases will not hard-fail. This release is the first to carry it; both crates go live on crates.io starting now. `cargo install cairn-framework` works as an alternative to the shell/PowerShell/Homebrew installers.
+
 ## v0.1.1
 
 - Native task front door: this repo's own development now tracks work in cairn's native Todo artefacts (`meta/todos/todo.<slug>.md`, `docs/spec.md` §8.2) instead of beads. New `cairn todo new <slug> --node <id>` command scaffolds a todo, exactly symmetric with `cairn decision new`. `cairn next`/`cairn brief` prefer open native todos, falling back to the beads backlog only when `.beads/issues.jsonl` exists and no native todo is open. Beads remain a supported, read-only per-node view (`cairn backlog`) for projects that want it.
