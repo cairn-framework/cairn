@@ -25,6 +25,15 @@ jobs:
       # Quality gates run locally via prek pre-push hook.
       # Re-add as a CI step once needed.
 
+  windows-check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: check
+        run: cargo check --all-targets --all-features
+
   hooks:
     runs-on: ubuntu-latest
     needs: check

@@ -50,7 +50,6 @@ workspace = true
 
 [dependencies]
 cairn-macros = { path = "cairn-macros" }
-signal-hook = { version = "0.3", default-features = false, features = ["extended-siginfo-raw"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.8"
@@ -64,6 +63,14 @@ lsp-server = "0.7.9"
 lsp-types = "0.97.0"
 camino = "1.2.3"
 crossbeam-channel = "0.5.15"
+
+[target.'cfg(unix)'.dependencies]
+# POSIX-only: SIGINT handling in src/signal.rs. Windows gets a no-op stub
+# (Ctrl-C still terminates the process; it just skips the flag-based
+# graceful-shutdown path). `extended-siginfo-raw` pulls in a `cc`
+# build-dependency that compiles against POSIX siginfo_t, unavailable on
+# Windows.
+signal-hook = { version = "0.3", default-features = false, features = ["extended-siginfo-raw"] }
 
 [profile.release]
 lto = "fat"
