@@ -30,6 +30,33 @@ homepage = "https://github.com/cairn-framework/cairn"
 keywords = ["architecture", "graph", "blueprint", "cli", "rust"]
 categories = ["command-line-utilities", "development-tools"]
 
+# Default package would ship the whole repo (demo GIFs/MP4s, PDFs,
+# .beads bookkeeping, archived research screenshots, test fixtures):
+# 42MB+ packaged, over crates.io's 10MB upload cap. Allowlist just
+# what `src/**` needs to compile plus its `include_str!`-embedded
+# runtime assets (webui, agent guide, `cairn init`'s bundled skills).
+include = [
+    "src/**/*.rs",
+    "src/cli/agent_guide.md",
+    "src/ui_assets/index.html",
+    "src/ui_assets/app.js",
+    "src/ui_assets/style.css",
+    "src/ui_assets/vendor/*.js",
+    "docs/design-system/copy.toml",
+    "docs/design-system/tokens.css",
+    "docs/design-system/components.css",
+    ".claude/skills/cairn-dev/SKILL.md",
+    ".claude/skills/cairn-dev/references/*.md",
+    ".claude/skills/cairn-explore/SKILL.md",
+    ".claude/skills/cairn-propose/SKILL.md",
+    ".claude/skills/cairn-apply/SKILL.md",
+    ".claude/skills/cairn-archive/SKILL.md",
+    "README.md",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "CHANGELOG.md",
+]
+
 [package.metadata.dist]
 # The default Homebrew formula name derives from the crates.io package
 # name (cairn-framework); override to match the primary CLI binary so
