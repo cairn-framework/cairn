@@ -8,7 +8,7 @@ cargo-dist-version = "0.32.0"
 # CI backends to support
 ci = "github"
 # The installers to generate for each app
-installers = ["shell", "powershell"]
+installers = ["shell", "powershell", "homebrew"]
 # Target platforms to build apps for (Rust target-triple syntax)
 targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
 # Path that installers should place binaries in
@@ -20,3 +20,8 @@ install-updater = false
 # shell installer under its legacy v0.1.0 name (cairn-installer.sh) after
 # every release so the existing public curl URL keeps resolving.
 post-announce-jobs = ["./legacy-installer-continuity"]
+# Homebrew tap: publishes a Formula to cairn-framework/homebrew-tap on
+# every release (cairn-jj4). The publishing token (write access to the
+# tap repo) is HOMEBREW_TAP_TOKEN in this repo's GitHub Actions secrets.
+tap = "cairn-framework/homebrew-tap"
+publish-jobs = ["homebrew"]

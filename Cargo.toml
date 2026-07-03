@@ -30,6 +30,12 @@ homepage = "https://github.com/cairn-framework/cairn"
 keywords = ["architecture", "graph", "blueprint", "cli", "rust"]
 categories = ["command-line-utilities", "development-tools"]
 
+[package.metadata.dist]
+# The default Homebrew formula name derives from the crates.io package
+# name (cairn-framework); override to match the primary CLI binary so
+# `brew install cairn-framework/tap/cairn` is the resulting command.
+formula = "cairn"
+
 [lib]
 name = "cairn"
 path = "src/lib.rs"
