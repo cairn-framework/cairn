@@ -3239,16 +3239,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 78,
-          "end_line": 80
+          "line": 80,
+          "end_line": 82
         },
         {
           "name": "CairnError",
@@ -3319,8 +3319,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 84,
-          "end_line": 86
+          "line": 86,
+          "end_line": 88
         },
         {
           "name": "artefacts",
@@ -3535,16 +3535,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 78,
-          "end_line": 80
+          "line": 80,
+          "end_line": 82
         },
         {
           "name": "CairnError",
@@ -3615,8 +3615,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 84,
-          "end_line": 86
+          "line": 86,
+          "end_line": 88
         },
         {
           "name": "artefacts",
@@ -3831,16 +3831,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 78,
-          "end_line": 80
+          "line": 80,
+          "end_line": 82
         },
         {
           "name": "CairnError",
@@ -3911,8 +3911,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 84,
-          "end_line": 86
+          "line": 86,
+          "end_line": 88
         },
         {
           "name": "artefacts",
@@ -4127,16 +4127,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 78,
-          "end_line": 80
+          "line": 80,
+          "end_line": 82
         },
         {
           "name": "CairnError",
@@ -4207,8 +4207,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 84,
-          "end_line": 86
+          "line": 86,
+          "end_line": 88
         },
         {
           "name": "artefacts",
@@ -4423,16 +4423,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 78,
-          "end_line": 80
+          "line": 80,
+          "end_line": 82
         },
         {
           "name": "CairnError",
@@ -4503,8 +4503,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 84,
-          "end_line": 86
+          "line": 86,
+          "end_line": 88
         },
         {
           "name": "artefacts",
@@ -4719,16 +4719,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 78,
-          "end_line": 80
+          "line": 80,
+          "end_line": 82
         },
         {
           "name": "CairnError",
@@ -4799,8 +4799,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 84,
-          "end_line": 86
+          "line": 86,
+          "end_line": 88
         },
         {
           "name": "artefacts",
@@ -5015,16 +5015,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 78,
-          "end_line": 80
+          "line": 80,
+          "end_line": 82
         },
         {
           "name": "CairnError",
@@ -5095,8 +5095,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 84,
-          "end_line": 86
+          "line": 86,
+          "end_line": 88
         },
         {
           "name": "artefacts",

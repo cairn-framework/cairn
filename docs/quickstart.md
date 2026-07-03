@@ -8,7 +8,7 @@ Get Cairn running and scan your first project in under five minutes.
 
 ## Install
 
-Cairn is not yet published on crates.io. Prebuilt binaries are the fastest path; building from source is the fallback.
+Prebuilt binaries are the fastest path; `cargo install` from crates.io or building from source are the fallbacks.
 
 ### Prebuilt binary (recommended)
 
@@ -16,15 +16,23 @@ Cairn is not yet published on crates.io. Prebuilt binaries are the fastest path;
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
 ```
 
-No Rust toolchain required. Installs `cairn`, `cairn-mcp`, and `cairn-lsp` for macOS (arm64, x86_64) and Linux (x86_64, arm64). Windows is not yet supported.
+No Rust toolchain required. Installs `cairn`, `cairn-mcp`, and `cairn-lsp` for macOS (arm64, x86_64), Linux (x86_64, arm64), and Windows (x86_64).
 
-### From source
-
-Requires the Rust toolchain: Cairn uses edition 2024, which needs `rustc` 1.85 or later. Install or update via [rustup](https://rustup.rs/), then verify:
+Everything below requires the Rust toolchain: Cairn uses edition 2024, which needs `rustc` 1.85 or later. Install or update via [rustup](https://rustup.rs/), then verify:
 
 ```sh
 rustc --version   # should print 1.85.0 or later
 ```
+
+### From crates.io
+
+```sh
+cargo install cairn-framework
+```
+
+The crates.io package is named `cairn-framework`; the installed binaries keep the `cairn`/`cairn-mcp`/`cairn-lsp` names.
+
+### From source
 
 #### From Git
 

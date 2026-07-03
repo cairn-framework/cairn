@@ -1,0 +1,41 @@
+name: Legacy installer name continuity
+
+# Custom dist post-announce-job (see dist-workspace.toml's `post-announce-jobs`).
+# The v0.1.0 release shipped its shell installer as `cairn-installer.sh`
+# (README/quickstart/landing page all curl that exact filename off
+# `releases/latest/download/`). Renaming the crates.io package to
+# `cairn-framework` makes dist derive artifact names from the package name
+# instead, so the real installer is now `cairn-framework-installer.sh`.
+# This job re-uploads that same file under the legacy name after every
+# release, so the old public URL keeps resolving forever.
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+
+jobs:
+  reupload-legacy-installer-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-upload shell installer as cairn-installer.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PLAN: ${{ inputs.plan }}
+        run: |
+          set -euo pipefail
+          tag=$(echo "$PLAN" | jq -r '.announcement_tag')
+          new_name=$(echo "$PLAN" | jq -r '
+            [.artifacts[] | select(.kind == "installer" and (.name // "" | endswith(".sh")))]
+            | .[0].name
+          ')
+          if [ -z "$new_name" ] || [ "$new_name" = "null" ]; then
+            echo "::error::no shell installer artifact found in dist plan" >&2
+            exit 1
+          fi
+          gh release download "$tag" --repo "${{ github.repository }}" \
+            --pattern "$new_name" --output cairn-installer.sh --clobber
+          gh release upload "$tag" --repo "${{ github.repository }}" \
+            cairn-installer.sh --clobber

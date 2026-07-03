@@ -294,3 +294,12 @@ jobs:
         with:
           persist-credentials: false
           submodules: recursive
+
+  custom-legacy-installer-continuity:
+    needs:
+      - plan
+      - announce
+    uses: ./.github/workflows/legacy-installer-continuity.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit

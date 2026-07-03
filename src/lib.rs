@@ -67,10 +67,12 @@ pub mod verification;
 /// Re-export the `cairn_planned` attribute macro.
 pub use cairn_macros::cairn_planned;
 
-/// Returns the Cargo package name compiled into this crate.
+/// Returns the product/binary name (`cairn`), decoupled from the crates.io
+/// package name (`cairn-framework`) so the CLI's `--version` output and
+/// deterministic log labels stay stable across a package rename.
 #[must_use]
 pub const fn package_name() -> &'static str {
-    env!("CARGO_PKG_NAME")
+    "cairn"
 }
 
 /// Returns the Cargo package version compiled into this crate.

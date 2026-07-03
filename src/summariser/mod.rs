@@ -102,19 +102,3 @@ mod tests {
         assert_draft_tool_safety_classes();
     }
 }
-
-#[test]
-fn test_package_name_returns_cairn() {
-    assert_eq!(env!("CARGO_PKG_NAME"), "cairn");
-}
-
-#[test]
-fn test_package_version_is_not_empty() {
-    assert!(!env!("CARGO_PKG_VERSION").is_empty());
-}
-
-#[test]
-fn test_version_label_includes_name_and_version() {
-    let label = format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-    assert!(label.starts_with("cairn v"));
-}

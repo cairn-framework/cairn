@@ -15,3 +15,8 @@ targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-da
 install-path = "CARGO_HOME"
 # Whether to install an updater program
 install-updater = false
+# Renaming the crates.io package (cairn -> cairn-framework) changed the
+# derived installer/artifact filenames; this custom job re-uploads the
+# shell installer under its legacy v0.1.0 name (cairn-installer.sh) after
+# every release so the existing public curl URL keeps resolving.
+post-announce-jobs = ["./legacy-installer-continuity"]
