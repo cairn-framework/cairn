@@ -53,6 +53,7 @@ fn registered_commands() -> Vec<String> {
         "next",
         "onboard",
         "refine",
+        "todo",
         "watch",
         "workspace",
     ];

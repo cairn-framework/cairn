@@ -4,8 +4,9 @@ nodes:
   - cairn.root
 status: accepted
 date: 2026-06-25
+revisited: 2026-07-03
 informed_by: [res.native-task-state-gap]
-related: [dec.beads-task-layer, dec.bd-upgrade-plan, dec.lsp-diagnostics-server]
+related: [dec.beads-task-layer, dec.bd-upgrade-plan, dec.lsp-diagnostics-server, dec.native-todos-first]
 revisit_triggers:
   - "A maintainer ratifies the storage-backend decision (filesystem default, bd optional) that is currently memory-only; this decision should then `related` it and the AGENTS.md reconciliation can cite it by id"
   - "A code-map extension is proposed: index symbol definitions (enum variants, struct fields, function signatures, call sites) so cairn can answer source-structure questions like 'what variants does NodeState have?' or 'how is node state derived?' in one call instead of manual source reads. The problem it solves: agents investigating repo state currently grep source files for structural facts that a symbol index would return deterministically, duplicating effort and inviting drift between the graph and the code. Research direction: extend the scanner to emit a per-symbol index (definition, kind, file, span, variants/fields) alongside the existing blueprint + artefact graph, and expose it via `cairn` query surfaces so `cairn rationale` and a new `cairn symbols <query>` can return structural facts the way they already return provenance facts. This is deferred because it is a larger capability bet and rulings 1 to 3 close the immediate gap without it."
@@ -69,7 +70,7 @@ cairn change (`meta/changes/native-task-state/`), not here.
 
 2. **Reconcile task-tracking guidance to the native Todo type; beads become
    optional.** The authority for task tracking is the cairn native Todo artefact
-   type (markdown under `meta/todos/<node>/`, surfaced per node in the webui
+   type (markdown under `meta/todos/`, surfaced per node in the webui
    Todos panel), per `dec.beads-task-layer`. Beads (`bd`) are an optional
    power-backend and a read-only derived navigational view, not the mandatory
    tracker. AGENTS.md guidance should be reconciled to the accepted decisions:
@@ -79,6 +80,11 @@ cairn change (`meta/changes/native-task-state/`), not here.
    convention should become a decision so the guidance has a single authority to
    cite. This does not remove bd support; it corrects the mandate to match the
    decisions.
+
+   **Implemented by `dec.native-todos-first` (2026-07-03):** repo task
+   tracking moved to native Todo artefacts, `cairn todo new` shipped as the
+   scaffolding verb, beads demoted to the conditional read-only integration
+   this ruling anticipated, and the `AGENTS.md` mandate was replaced.
 
 3. **Add a cairn-first agent guidance rule for state questions.** Agents should
    query cairn (`cairn rationale <node>`, `cairn context`, `cairn scan`,

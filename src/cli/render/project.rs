@@ -132,7 +132,21 @@ pub(crate) fn render_status(
         .unwrap_or_default();
     let backlog = crate::state::backlog::read(root);
     let ready = crate::state::backlog::ready(&backlog);
-    let next_recommended = ready.first();
+    let native_todos = super::remediate::open_native_todos(scan_result);
+    let next_recommended = native_todos.first().map_or_else(
+        || {
+            ready
+                .first()
+                .map(|top| format!("{} [P{}] {}", top.id, top.priority, top.title))
+        },
+        |top| {
+            Some(format!(
+                "{} (native todo, node: {})",
+                super::remediate::decision_summary(&top.body),
+                top.node
+            ))
+        },
+    );
     if parsed.json {
         format!(
             "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{}}}\n",
@@ -149,10 +163,7 @@ pub(crate) fn render_status(
                     .collect::<Vec<_>>()
             ),
             lines(&log_entries),
-            next_recommended.map_or_else(
-                || "None".to_owned(),
-                |top| format!("{} [P{}] {}", top.id, top.priority, top.title)
-            )
+            next_recommended.unwrap_or_else(|| "None".to_owned())
         )
     }
 }

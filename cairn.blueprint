@@ -8,6 +8,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
     research "./meta/research"
     research "./meta/research/gas-city-cairn-integration/analysis.md"
     sources "./meta/sources"
+    todos "./meta/todos"
 
     Module Root "Crate entry points, shared error types, and verification" id "cairn.root" {
         path "./src/main.rs"

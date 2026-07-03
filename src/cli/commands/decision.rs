@@ -52,7 +52,7 @@ fn run_decision_new(
 
 /// True when `slug` is non-empty kebab-case: `[a-z0-9]+(-[a-z0-9]+)*`. Rejects
 /// leading/trailing or doubled hyphens so the derived id and heading are sound.
-fn is_kebab_slug(slug: &str) -> bool {
+pub(super) fn is_kebab_slug(slug: &str) -> bool {
     !slug.is_empty()
         && slug.split('-').all(|segment| {
             !segment.is_empty()
@@ -65,7 +65,7 @@ fn is_kebab_slug(slug: &str) -> bool {
 /// Collects every value following each occurrence of `flag` in `args`,
 /// splitting comma-separated values so `--node a,b` and `--node a --node b`
 /// behave the same.
-fn flag_values(args: &[String], flag: &str) -> Vec<String> {
+pub(super) fn flag_values(args: &[String], flag: &str) -> Vec<String> {
     let mut values = Vec::new();
     let mut iter = args.iter().peekable();
     while let Some(arg) = iter.next() {
@@ -120,7 +120,7 @@ fn decision_stub(slug: &str, nodes: &[String], informed_by: &[String], date: &st
 }
 
 /// Turns a kebab-case slug into a Title Case heading.
-fn title_from_slug(slug: &str) -> String {
+pub(super) fn title_from_slug(slug: &str) -> String {
     slug.split('-')
         .filter(|word| !word.is_empty())
         .map(|word| {

@@ -5,6 +5,7 @@ use super::*;
 
 mod artefacts;
 mod bundle;
+mod changes_view;
 mod context_view;
 mod health;
 mod node;
@@ -15,6 +16,7 @@ pub(crate) use artefacts::{
     render_decisions, render_rationale, render_research, render_sources, render_todos,
 };
 pub(crate) use bundle::render_bundle;
+pub(crate) use changes_view::{render_changes, render_show};
 pub(crate) use health::render_health;
 pub(crate) use node::{render_files, render_get, render_neighbourhood, render_symbols};
 pub(crate) use project::{render_backlog, render_context, render_dependencies, render_status};

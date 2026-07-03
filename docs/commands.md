@@ -61,11 +61,17 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn decisions <node>` | List decisions linked to a node |
 | `cairn todos <node>` | List todos linked to a node |
-| `cairn backlog <node>` | List beads (issues) linked to a node via its `cairn-node:<id>` label |
 | `cairn research <node>` | List research linked to a node |
 | `cairn sources <node>` | List sources linked to a node |
 | `cairn decision new <slug>` | Scaffold a new decision artefact |
+| `cairn todo new <slug> --node <id>` | Scaffold a new todo artefact |
 | `cairn gap <node> --question "<text>"` | Log an unresolved question as a proposed decision artefact |
+
+### Optional integrations
+
+| Command | Description |
+|---------|-------------|
+| `cairn backlog <node>` | List beads (issues) linked to a node via its `cairn-node:<id>` label. Reads `.beads/issues.jsonl` when present; this repo's own task tracking uses native Todo artefacts (`cairn todo new`, above), not beads. |
 
 ### Changes
 
@@ -115,10 +121,10 @@ These commands require the `--json` flag.
 |---------|-------------|
 | `cairn export` | Export project data |
 | `cairn ui` | Launch the web UI |
-| `cairn rename <old-id> <new-id>` | Rename a node ID across the project |
+| `cairn rename <old-id> <new-id>` | Rename a node ID across the project (JSON-only) |
 | `cairn watch` | Watch for finding changes and emit JSON events |
 | `cairn import-openspec` | Migrate openspec changes to meta/changes/ |
-| `cairn docstring <node>` | Generate a docstring for a node |
+| `cairn docstring <node>` | Generate a docstring for a node (JSON-only) |
 | `cairn feedback "<message>"` | Record cairn friction in `.cairn/feedback.md` and print a prefilled upstream issue link |
 | `cairn workspace <status\|lint\|frontier>` | Aggregate status, lint, and frontier queries across a `cairn.workspace` |
 

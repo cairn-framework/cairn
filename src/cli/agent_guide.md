@@ -25,8 +25,8 @@ memory; the graph is the source of truth.
   graph; the content stays in the referenced file.
 
 If you are asked "what next", start with `cairn status` and `cairn changes`,
-then your issue tracker. Treat any scratch or `docs/` note as secondary
-context, never as current state.
+then `cairn todos <node>` / open todo artefacts under `meta/todos/`. Treat any
+scratch or `docs/` note as secondary context, never as current state.
 
 ## Creating artefacts
 
@@ -39,6 +39,9 @@ the correct typed directory under `meta/` and link it to the graph:
   sources via `sources: [src.Z]`.
 - `meta/sources/src.<slug>.md` — external material. Require `id`, `file:`,
   `verification`. Anchors transitively; carry no `nodes:` field.
+- `meta/todos/todo.<slug>.md` — durable per-node tasks. Require `node:`,
+  `status:`, `created:`. Scaffold with `cairn todo new <slug> --node <id>`;
+  status changes are file edits (open, in_progress, done, blocked).
 
 Files are FLAT (no subfolders). Use slug namespacing for grouping:
 `res.gas-city.analysis`, not `research/gas-city/analysis.md`.

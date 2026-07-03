@@ -35,13 +35,14 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Provenance trail** | `cairn rationale <node>` | `--json` |
 | **Decisions** | `cairn decisions <node>` | `--json`, `--status accepted` |
 | **Todos** | `cairn todos <node>` | `--json`, `--status open` |
+| **New todo** | `cairn todo new <slug> --node <id>` | scaffolds `meta/todos/todo.<slug>.md` |
 | **Research** | `cairn research <node>` | `--json` |
 | **Sources** | `cairn sources <node>` | `--json` |
 | **Contracts** | `cairn contract <node>` | `--json` |
 | **Project status** | `cairn status` | `--json` |
 | **Commit gate** | `cairn hook <structural\|interface\|tension\|all>` | `--json` |
-| **Active changes** | `cairn changes` | `--json` (required) |
-| **Change details** | `cairn show <change-id>` | `--json` (required) |
+| **Active changes** | `cairn changes` | `--json` |
+| **Change details** | `cairn show <change-id>` | `--json` |
 | **Brownfield onboard** | `cairn onboard` | `--json` |
 | **Record cairn friction** | `cairn feedback "<message>"` | `--json`; logs to `.cairn/feedback.md`, prints upstream issue link |
 | **Brownfield extract** | `cairn init --from-code` | `--force` (overwrite existing) |
@@ -141,6 +142,8 @@ satisfies: <change-id>    # optional: links to a change
 
 Description of the work item.
 ```
+
+Scaffold with `cairn todo new <slug> --node <id>`, which writes `meta/todos/todo.<slug>.md`. Status changes are file edits; there is no separate close verb.
 
 ### Research
 

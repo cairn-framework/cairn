@@ -39,17 +39,17 @@ pub(crate) use crate::copy;
 use commands::{
     init_project, legacy_blueprint_warning, run_archive_command, run_change_new,
     run_decision_command, run_feedback_command, run_gap_command, run_hook_command,
-    run_import_openspec, run_onboard_command, run_shared_json_command, run_ui_command,
-    run_watch_command, run_workspace_command,
+    run_import_openspec, run_onboard_command, run_shared_json_command, run_todo_command,
+    run_ui_command, run_watch_command, run_workspace_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
     render_findings,
 };
 use render::{
-    render_backlog, render_brief, render_bundle, render_context, render_decisions,
+    render_backlog, render_brief, render_bundle, render_changes, render_context, render_decisions,
     render_dependencies, render_files, render_get, render_health, render_neighbourhood,
-    render_next, render_rationale, render_remediate, render_research, render_sources,
+    render_next, render_rationale, render_remediate, render_research, render_show, render_sources,
     render_status, render_symbols, render_todos,
 };
 
@@ -157,6 +157,9 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "decision" {
         return run_decision_command(&parsed, project_root);
+    }
+    if parsed.command == "todo" {
+        return run_todo_command(&parsed, project_root);
     }
     if parsed.command == "workspace" {
         return run_workspace_command(&parsed, project_root);
@@ -348,8 +351,10 @@ fn render_loaded_project_command(
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
         "next" => Ok(render_next(parsed, root, scan_result)),
         "brief" => Ok(render_brief(parsed, root, scan_result)),
-        "changes" | "show" | "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard"
-        | "draft_edit" | "draft_accept" | "summarise" => {
+        "changes" => Ok(render_changes(root)),
+        "show" => render_show(parsed, root),
+        "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard" | "draft_edit"
+        | "draft_accept" | "summarise" => {
             return err(2, "this command currently requires --json");
         }
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
@@ -490,6 +495,7 @@ const EXTRA_CLI_COMMANDS: &[&str] = &[
     "next",
     "onboard",
     "refine",
+    "todo",
     "watch",
     "workspace",
 ];
@@ -528,6 +534,7 @@ fn command_description(name: &str) -> &'static str {
         "context" => "Structured project overview for agents",
         "contract" => "Show the contract for a node",
         "decision" => "Scaffold a new decision artefact",
+        "todo" => "Scaffold a new todo artefact",
         "decisions" => "List decisions linked to a node",
         "dependents" => "List nodes that depend on a given node",
         "depends" => "List nodes a given node depends on",

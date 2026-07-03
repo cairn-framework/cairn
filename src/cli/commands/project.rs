@@ -64,13 +64,14 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
     let writes = [
         (
             "cairn.blueprint",
-            "# Describe your system here. Every source file (tests included) should\n# fall under some module's path. Grammar reference:\n# https://github.com/cairn-framework/cairn/blob/HEAD/docs/blueprint.md\nSystem Example \"Starter architecture\" id \"example\" {\n    Module App \"Starter app\" id \"example.app\" {\n        path \"./src\"\n    }\n}\n",
+            "# Describe your system here. Every source file (tests included) should\n# fall under some module's path. Grammar reference:\n# https://github.com/cairn-framework/cairn/blob/HEAD/docs/blueprint.md\nSystem Example \"Starter architecture\" id \"example\" {\n    todos \"./meta/todos\"\n\n    Module App \"Starter app\" id \"example.app\" {\n        path \"./src\"\n    }\n}\n",
         ),
         (
             "cairn.config.yaml",
             "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"\"\nrules: {}\n",
         ),
         ("meta/contracts/.gitkeep", ""),
+        ("meta/todos/.gitkeep", ""),
         (".cairn/state/.gitkeep", ""),
         (".cairn/AGENTS.md", AGENT_GUIDE),
     ];
@@ -165,6 +166,24 @@ mod tests {
         assert!(
             guide.contains(".claude/skills/cairn-dev"),
             "agent guide must reference the dev loop skills"
+        );
+    }
+
+    #[test]
+    fn test_init_starter_blueprint_wires_todos_pointer() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = init_project(dir.path());
+        assert_eq!(result.code, 0, "init should succeed: {}", result.stderr);
+
+        let blueprint = std::fs::read_to_string(dir.path().join("cairn.blueprint")).unwrap();
+        assert!(
+            blueprint.contains("todos \"./meta/todos\""),
+            "starter blueprint must wire a todos pointer so a fresh `cairn todo new` \
+             is actually picked up by `cairn todos <node>`"
+        );
+        assert!(
+            dir.path().join("meta/todos").is_dir(),
+            "init must precreate meta/todos so a fresh scan has no pointer-missing warning"
         );
     }
 

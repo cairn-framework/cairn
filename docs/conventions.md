@@ -327,12 +327,12 @@ Decisions, research, and sources MUST NOT use topic subfolders. The loader's dir
 
 Other typed material has a defined home but is governed by its own schema:
 
-- `meta/todos/<node>/` : todos, deliberately NODE-partitioned. This is an explicit exception to artefact-type-first flat layout.
+- `meta/todos/` : todos, FLAT (`dec.native-todos-first`, 2026-07-03). One file per todo, disambiguated by its own `node:` frontmatter field rather than directory placement; the loader is non-recursive like decisions/research/sources, so a node-partitioned subfolder would be silently unwired. Filenames use `todo.<slug>.md` by convention (no `id:` field; todos are addressed by node, not id).
 - `meta/reviews/` : reviews, FLAT (loaded only when a `reviews` pointer is wired).
 - `meta/contracts/` : per leaf-module contracts (two-chain topology; not a provenance artefact).
 - `meta/changes/<change-id>/` : one directory per change proposal; change-scoped artefacts archive with the change.
 
-The set of directories whose `.md` files are treated as artefacts is CLOSED and defined by the blueprint pointers. In cairn's own repository the `decisions`, `research`, `sources`, and (as of cairn-y5f) per-node `contract` pointers are wired, so contract files under `meta/contracts/` are scanner-loaded once a node declares a `contract` pointer; files under `meta/reviews/` and `meta/todos/` remain present but not scanner-loaded. Operational and non-artefact material is EXEMPT and MUST NOT be treated as a typed artefact: `meta/campaigns/`, `meta/debates/` (including its subfolders), change directories (including the genesis transcript), and loose files such as `meta/ui-contract.md` and `meta/session-handoff.md`.
+The set of directories whose `.md` files are treated as artefacts is CLOSED and defined by the blueprint pointers. In cairn's own repository the `decisions`, `research`, `sources`, `todos`, and (as of cairn-y5f) per-node `contract` pointers are wired, so contract files under `meta/contracts/` are scanner-loaded once a node declares a `contract` pointer. Files under `meta/reviews/` remain present but not scanner-loaded. Operational and non-artefact material is EXEMPT and MUST NOT be treated as a typed artefact: `meta/campaigns/`, `meta/debates/` (including its subfolders), change directories (including the genesis transcript), and loose files such as `meta/ui-contract.md` and `meta/session-handoff.md`.
 
 Genesis exception. The elicitation transcript lives at `meta/changes/<id>/research/genesis.md` and is exempt across ALL axes (see conventions.md section 9 and archive/strongholds/oq3-genesis-lifecycle.md): its id is `genesis-<change-id>` (not a `res.` prefix), its `nodes` field carries the change id as a placeholder rather than a graph node, and it is NOT loaded by the scanner. The apply and archive stages MUST NOT re-point or relocate it.
 

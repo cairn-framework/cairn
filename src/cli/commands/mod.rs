@@ -13,6 +13,7 @@ mod hook;
 mod import;
 mod onboard;
 mod project;
+mod todo;
 mod watch;
 mod workspace;
 
@@ -25,6 +26,7 @@ pub(crate) use hook::run_hook_command;
 pub(crate) use import::run_import_openspec;
 pub(crate) use onboard::run_onboard_command;
 pub(crate) use project::{init_project, run_ui_command};
+pub(crate) use todo::run_todo_command;
 pub(crate) use watch::run_watch_command;
 pub(crate) use workspace::run_workspace_command;
 

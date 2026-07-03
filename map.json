@@ -1256,6 +1256,7 @@
         "src/cli/commands/mod.rs",
         "src/cli/commands/onboard.rs",
         "src/cli/commands/project.rs",
+        "src/cli/commands/todo.rs",
         "src/cli/commands/watch.rs",
         "src/cli/commands/workspace.rs",
         "src/cli/export/builder.rs",
@@ -1271,6 +1272,7 @@
         "src/cli/mod.rs",
         "src/cli/render/artefacts.rs",
         "src/cli/render/bundle.rs",
+        "src/cli/render/changes_view.rs",
         "src/cli/render/context_view.rs",
         "src/cli/render/health.rs",
         "src/cli/render/mod.rs",
@@ -1336,7 +1338,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 80,
-          "end_line": 217
+          "end_line": 220
         },
         {
           "name": "run",
