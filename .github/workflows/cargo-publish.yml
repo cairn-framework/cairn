@@ -82,12 +82,26 @@ jobs:
 
           publish_if_missing() {
             local crate="$1" version="$2"
-            if already_published "${crate}" "${version}"; then
-              echo "${crate} ${version} is already on crates.io, skipping publish"
-              return 0
-            fi
-            cargo publish -p "${crate}"
-            wait_for_index "${crate}" "${version}"
+            for _ in 1 2 3; do
+              if already_published "${crate}" "${version}"; then
+                echo "${crate} ${version} is already on crates.io, skipping publish"
+                return 0
+              fi
+              # cargo publish itself has no retry logic; crates.io's
+              # write path occasionally 5xxs transiently (observed:
+              # Varnish "backend write error"). Re-checking
+              # already_published on each loop iteration means a
+              # publish that actually succeeded despite a client-side
+              # error is detected and skipped, not double-attempted.
+              if cargo publish -p "${crate}"; then
+                wait_for_index "${crate}" "${version}"
+                return $?
+              fi
+              echo "cargo publish failed for ${crate} ${version}, retrying after a delay" >&2
+              sleep 15
+            done
+            echo "::error::cargo publish repeatedly failed for ${crate} ${version}" >&2
+            exit 1
           }
 
           macros_version=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[] | select(.name == "cairn-macros") | .version')
