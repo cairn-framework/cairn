@@ -21,7 +21,10 @@ Three redundancies:
   recorded per the query JSON schema versioning convention
   (`meta/decisions/query-json-schema-version.md`), not a free rename.
 - `check <node>` is `lint` filtered by node (same
-  `scanner::load_project` data). Fold into `lint --node <id>`.
+  `scanner::load_project` data). Fold into `lint --node <id>`, BUT
+  preserve `check`'s missing-blueprint preflight
+  (`src/cli/mod.rs:167-216`): the `cairn.dsl` rename guidance and the
+  `empty-states.cli-no-blueprint` copy must survive on the new path.
 - `depends` and `dependents` share one handler differing by a boolean
   (`src/query_api/handlers/graph.rs:95`). Merge into
   `deps <id> --direction in|out` (default out).

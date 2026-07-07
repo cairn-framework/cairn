@@ -24,6 +24,12 @@ mandatory, not optional.
 - All draft MCP tool names stay: `cairn_draft_accept` plus the
   registry-exposed draft query tools asserted by
   `tests/phase_8_summariser.rs:352-380` and `docs/mcp.md:50-52`.
+- Risk split: `drafts`/`draft_show`/`draft_edit`/`draft_discard` are
+  the genuinely low-risk renames. `draft_accept` and `summarise` carry
+  extra contract work: both are registered query_api tools
+  (`src/query_api/registry.rs`) and `tests/mcp.rs` pins the
+  `draft_accept` MCP schema; keep tool ids and schemas byte-stable
+  while only the CLI spelling moves.
 - No deprecation aliases: clean cutover, per house convention.
 - Update in the same commit (guards that WILL fail otherwise):
   - `tests/command_reference_consistency.rs`, `docs/commands.md`
