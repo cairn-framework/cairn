@@ -2,7 +2,6 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
-use super::render::review_type;
 use super::util::esc;
 use crate::query_api::{decision_status, source_verification, todo_status};
 
@@ -85,26 +84,6 @@ pub(crate) fn research_json(research: &[Research]) -> String {
                     string_array_json(&item.nodes),
                     string_array_json(&item.sources),
                     esc(&item.date)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-pub(crate) fn reviews_json(reviews: &[Review]) -> String {
-    format!(
-        "[{}]",
-        reviews
-            .iter()
-            .map(|review| {
-                format!(
-                    "{{\"path\":\"{}\",\"node\":\"{}\",\"review_type\":\"{}\",\"date\":\"{}\",\"reviewer\":\"{}\"}}",
-                    esc(&review.path),
-                    esc(&review.node),
-                    review_type(review.review_type),
-                    esc(&review.date),
-                    esc(&review.reviewer)
                 )
             })
             .collect::<Vec<_>>()
@@ -312,25 +291,6 @@ mod tests {
             json.contains("\"revisited\":\"2026-06-29\""),
             "populated revisited serializes as the date string: {json}"
         );
-    }
-
-    // ── reviews_json ─────────────────────────────────────────────────────────
-
-    #[test]
-    fn test_reviews_json_serializes_review_type_and_node() {
-        let review = Review {
-            path: "./review.md".to_owned(),
-            node: "app".to_owned(),
-            review_type: ReviewType::Human,
-            date: "2026-01-01".to_owned(),
-            reviewer: "alice".to_owned(),
-            related_change: None,
-            body: String::new(),
-        };
-        let json = reviews_json(&[review]);
-        assert!(json.contains("\"node\":\"app\""));
-        assert!(json.contains("\"review_type\":\"human\""));
-        assert!(json.contains("\"reviewer\":\"alice\""));
     }
 
     // ── sources_json ─────────────────────────────────────────────────────────

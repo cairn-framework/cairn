@@ -1,7 +1,7 @@
 //! Node-level query renderers.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{lines, node_arg, node_json, render_node, string_array_json};
+use super::super::format::{lines, node_arg, render_node, string_array_json};
 use super::super::*;
 use super::{scan_error_count, scan_error_warning};
 use crate::query_api::{neighbourhood_ids, research_for_nodes};
@@ -33,11 +33,15 @@ fn render_backlog_item(item: &crate::state::backlog::BacklogItem) -> String {
     )
 }
 
-// Reason: neighbourhood rendering spans human + JSON branches for many node
-// fields; extracting each branch would fragment the output logic.
-#[allow(clippy::too_many_lines)]
+/// Node-scoped active-change operation lines for a neighbourhood.
+fn change_lines_for(root: &Path, node_ids: &std::collections::BTreeSet<String>) -> Vec<String> {
+    let changes = crate::changes::discover(root).unwrap_or_default();
+    crate::changes::operations_for_nodes(&changes, node_ids)
+}
+
 pub(crate) fn render_neighbourhood(
     parsed: &ParsedArgs,
+    root: &Path,
     scan_result: &scanner::ScanResult,
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
@@ -104,42 +108,28 @@ pub(crate) fn render_neighbourhood(
                 Vec::new()
             };
             let error_count = scan_error_count(scan_result);
-            let warnings = scan_error_warning(error_count, parsed.json);
-            if parsed.json {
-                let active_changes = if include_changes {
-                    ",\"active_changes\":[]"
-                } else {
-                    ""
-                };
+            // --json neighbourhood routes to query_api via uses_shared_json
+            // (src/cli/mod.rs), so only the human branch is reachable here.
+            let warnings = scan_error_warning(error_count, false);
+            let active_changes = if include_changes {
                 format!(
-                    "{{\"node\":{},\"inbound\":{},\"outbound\":{},\"contracts\":{},\"decisions\":{},\"todos\":{},\"research\":{},\"reviews\":{}{active_changes}{warnings}}}\n",
-                    node_json(&response.node),
-                    string_array_json(&response.inbound),
-                    string_array_json(&response.outbound),
-                    string_array_json(&response.node.contracts),
-                    super::super::format::decisions_json(&decisions),
-                    super::super::format::todos_json(&todos),
-                    super::super::format::research_json(&research),
-                    super::super::format::reviews_json(&reviews)
+                    "\nActive changes:\n{}",
+                    lines(&change_lines_for(root, &node_ids))
                 )
             } else {
-                let active_changes = if include_changes {
-                    "\nActive changes:\nNone"
-                } else {
-                    ""
-                };
-                format!(
-                    "Node: {}\nInbound:\n{}\nOutbound:\n{}\nContracts:\n{}\nAccepted decisions:\n{}\nTodos:\n{}\nResearch:\n{}\nReviews:\n{}{active_changes}{warnings}\n",
-                    response.node.id,
-                    lines(&response.inbound),
-                    lines(&response.outbound),
-                    lines(&response.node.contracts),
-                    lines(&decisions.iter().map(super::super::format::decision_line).collect::<Vec<_>>()),
-                    lines(&todos.iter().map(super::super::format::todo_line).collect::<Vec<_>>()),
-                    lines(&research.iter().map(super::super::format::research_line).collect::<Vec<_>>()),
-                    lines(&reviews.iter().map(super::super::format::review_line).collect::<Vec<_>>())
-                )
-            }
+                String::new()
+            };
+            format!(
+                "Node: {}\nInbound:\n{}\nOutbound:\n{}\nContracts:\n{}\nAccepted decisions:\n{}\nTodos:\n{}\nResearch:\n{}\nReviews:\n{}{active_changes}{warnings}\n",
+                response.node.id,
+                lines(&response.inbound),
+                lines(&response.outbound),
+                lines(&response.node.contracts),
+                lines(&decisions.iter().map(super::super::format::decision_line).collect::<Vec<_>>()),
+                lines(&todos.iter().map(super::super::format::todo_line).collect::<Vec<_>>()),
+                lines(&research.iter().map(super::super::format::research_line).collect::<Vec<_>>()),
+                lines(&reviews.iter().map(super::super::format::review_line).collect::<Vec<_>>())
+            )
         })
     })
 }

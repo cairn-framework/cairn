@@ -615,6 +615,49 @@ fn test_status_reports_active_changes() -> Result<(), Box<dyn std::error::Error>
 }
 
 #[test]
+fn test_neighbourhood_include_changes_scoped_to_node() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("neighbourhood-include-changes")?;
+    write_phase_2_fixture(&root)?;
+    // Touches app.auth, which is in the queried neighbourhood.
+    write_change(&root, "drop-auth", "## REMOVED Nodes\napp.auth\n", &[])?;
+    // Touches a node outside the neighbourhood; must not appear.
+    write_change(&root, "drop-other", "## REMOVED Nodes\napp.other\n", &[])?;
+
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "neighbourhood", "app.auth", "--include-changes"])
+        .output()?;
+    assert!(json.status.success());
+    let json = String::from_utf8(json.stdout)?;
+    assert!(json.contains("drop-auth: removed node app.auth"), "{json}");
+    assert!(!json.contains("drop-other"), "{json}");
+    assert!(!json.contains("\"active_changes\":[]"), "{json}");
+
+    let human = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["neighbourhood", "app.auth", "--include-changes"])
+        .output()?;
+    assert!(human.status.success());
+    let human = String::from_utf8(human.stdout)?;
+    assert!(
+        human.contains("Active changes:\n- drop-auth: removed node app.auth"),
+        "{human}"
+    );
+    assert!(!human.contains("drop-other"), "{human}");
+
+    // Without the flag, the section stays absent.
+    let bare = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["neighbourhood", "app.auth"])
+        .output()?;
+    assert!(bare.status.success());
+    let bare = String::from_utf8(bare.stdout)?;
+    assert!(!bare.contains("Active changes"), "{bare}");
+
+    Ok(())
+}
+
+#[test]
 fn test_context_exposes_labeled_edges() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("context-edges")?;
     write_phase_2_fixture(&root)?;
