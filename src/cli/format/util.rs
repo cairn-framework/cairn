@@ -14,81 +14,9 @@ pub(crate) fn node_arg(args: &[String]) -> Result<&str, Finding> {
     })
 }
 
-pub(crate) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
-    let mut ids = BTreeSet::from([node.to_owned()]);
-    if let Some(edges) = graph.inbound.get(node) {
-        ids.extend(edges.iter().map(|edge| edge.from.clone()));
-    }
-    if let Some(edges) = graph.outbound.get(node) {
-        ids.extend(edges.iter().map(|edge| edge.to.clone()));
-    }
-    ids
-}
-
-pub(crate) fn research_for_nodes(
-    scan_result: &scanner::ScanResult,
-    nodes: &BTreeSet<String>,
-) -> Vec<Research> {
-    scan_result
-        .artefacts
-        .research
-        .iter()
-        .filter(|research| research.nodes.iter().any(|node| nodes.contains(node)))
-        .cloned()
-        .collect()
-}
-
-pub(crate) fn sources_for_nodes(
-    scan_result: &scanner::ScanResult,
-    nodes: &BTreeSet<String>,
-) -> Vec<Source> {
-    let source_ids = scan_result
-        .artefacts
-        .research
-        .iter()
-        .filter(|research| research.nodes.iter().any(|node| nodes.contains(node)))
-        .flat_map(|research| research.sources.iter().cloned())
-        .chain(
-            scan_result
-                .artefacts
-                .decisions
-                .iter()
-                .filter(|decision| decision.nodes.iter().any(|node| nodes.contains(node)))
-                .flat_map(|decision| decision.informed_by.iter().cloned()),
-        )
-        .collect::<BTreeSet<_>>();
-    scan_result
-        .artefacts
-        .sources
-        .iter()
-        .filter(|source| source_ids.contains(&source.id))
-        .cloned()
-        .collect()
-}
-
 pub(crate) fn flag_value<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
     args.windows(2)
         .find_map(|pair| (pair[0] == flag).then_some(pair[1].as_str()))
-}
-
-pub(crate) fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
-    match value {
-        "open" => Some(TodoStatus::Open),
-        "in_progress" => Some(TodoStatus::InProgress),
-        "done" => Some(TodoStatus::Done),
-        "blocked" => Some(TodoStatus::Blocked),
-        _ => None,
-    }
-}
-
-pub(crate) fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus> {
-    match value {
-        "proposed" => Some(DecisionStatus::Proposed),
-        "accepted" => Some(DecisionStatus::Accepted),
-        "deprecated" => Some(DecisionStatus::Deprecated),
-        "superseded" => Some(DecisionStatus::Superseded),
-        _ => None,
-    }
 }
 
 pub(crate) fn findings_output(json: bool, findings: &[Finding]) -> CliResult {
@@ -179,7 +107,6 @@ pub(crate) fn esc(value: &str) -> std::borrow::Cow<'_, str> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::render::{decision_status, todo_status};
     use super::*;
 
     // ── esc ───────────────────────────────────────────────────────────────────
@@ -292,85 +219,6 @@ mod tests {
     fn test_flag_value_returns_first_occurrence_when_repeated() {
         let args = args(&["--format", "json", "--format", "mermaid"]);
         assert_eq!(flag_value(&args, "--format"), Some("json"));
-    }
-
-    // ── parse_todo_status_filter ─────────────────────────────────────────────
-
-    #[test]
-    fn test_parse_todo_status_filter_all_variants() {
-        assert_eq!(parse_todo_status_filter("open"), Some(TodoStatus::Open));
-        assert_eq!(
-            parse_todo_status_filter("in_progress"),
-            Some(TodoStatus::InProgress)
-        );
-        assert_eq!(parse_todo_status_filter("done"), Some(TodoStatus::Done));
-        assert_eq!(
-            parse_todo_status_filter("blocked"),
-            Some(TodoStatus::Blocked)
-        );
-    }
-
-    #[test]
-    fn test_parse_todo_status_filter_unknown_returns_none() {
-        assert_eq!(parse_todo_status_filter("in-progress"), None);
-        assert_eq!(parse_todo_status_filter(""), None);
-        assert_eq!(parse_todo_status_filter("Open"), None); // case-sensitive
-    }
-
-    // ── parse_decision_status_filter ─────────────────────────────────────────
-
-    #[test]
-    fn test_parse_decision_status_filter_all_variants() {
-        assert_eq!(
-            parse_decision_status_filter("proposed"),
-            Some(DecisionStatus::Proposed)
-        );
-        assert_eq!(
-            parse_decision_status_filter("accepted"),
-            Some(DecisionStatus::Accepted)
-        );
-        assert_eq!(
-            parse_decision_status_filter("deprecated"),
-            Some(DecisionStatus::Deprecated)
-        );
-        assert_eq!(
-            parse_decision_status_filter("superseded"),
-            Some(DecisionStatus::Superseded)
-        );
-    }
-
-    #[test]
-    fn test_parse_decision_status_filter_unknown_returns_none() {
-        assert_eq!(parse_decision_status_filter("Accepted"), None);
-        assert_eq!(parse_decision_status_filter(""), None);
-    }
-
-    // ── status roundtrips ─────────────────────────────────────────────────────
-
-    #[test]
-    fn test_todo_status_roundtrip() {
-        for (status, name) in [
-            (TodoStatus::Open, "open"),
-            (TodoStatus::InProgress, "in_progress"),
-            (TodoStatus::Done, "done"),
-            (TodoStatus::Blocked, "blocked"),
-        ] {
-            assert_eq!(todo_status(status), name);
-            assert_eq!(parse_todo_status_filter(name), Some(status));
-        }
-    }
-
-    #[test]
-    fn test_decision_status_roundtrip() {
-        for (status, name) in [
-            (DecisionStatus::Proposed, "proposed"),
-            (DecisionStatus::Accepted, "accepted"),
-            (DecisionStatus::Deprecated, "deprecated"),
-            (DecisionStatus::Superseded, "superseded"),
-        ] {
-            assert_eq!(decision_status(status), name);
-            assert_eq!(parse_decision_status_filter(name), Some(status));
-        }
     }
 
     // ── node_arg ─────────────────────────────────────────────────────────────

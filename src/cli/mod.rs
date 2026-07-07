@@ -10,8 +10,7 @@ use std::{
 
 use crate::{
     artefacts::registry::{
-        Decision, DecisionStatus, Research, Review, ReviewType, Source, SourceVerification, Todo,
-        TodoStatus,
+        Decision, DecisionStatus, Research, Review, ReviewType, Source, Todo, TodoStatus,
     },
     hooks::{self, HookKind},
     map::{

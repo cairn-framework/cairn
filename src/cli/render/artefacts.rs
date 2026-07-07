@@ -2,11 +2,14 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::format::{
-    decision_line, decisions_json, flag_value, lines, node_arg, parse_decision_status_filter,
-    parse_todo_status_filter, research_for_nodes, research_json, research_line, source_line,
-    sources_for_nodes, sources_json, todo_line, todos_json,
+    decision_line, decisions_json, flag_value, lines, node_arg, research_json, research_line,
+    source_line, sources_json, todo_line, todos_json,
 };
 use super::super::*;
+use crate::query_api::{
+    neighbourhood_ids, parse_decision_status_filter, parse_todo_status_filter, research_for_nodes,
+    sources_for_nodes,
+};
 
 pub(crate) fn render_todos(
     parsed: &ParsedArgs,
@@ -167,7 +170,7 @@ pub(crate) fn render_rationale(
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
         let node = scan_result.graph.resolve(node)?;
-        let node_ids = super::super::format::neighbourhood_ids(&scan_result.graph, &node.id);
+        let node_ids = neighbourhood_ids(&scan_result.graph, &node.id);
         let decisions = scan_result
             .artefacts
             .decisions

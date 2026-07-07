@@ -4,6 +4,7 @@
 use super::super::*;
 use super::json::node_json;
 use super::util::esc;
+use crate::query_api::{decision_status, source_verification, todo_status};
 
 pub(crate) fn render_node(node: &NodeRecord, json: bool) -> String {
     if json {
@@ -89,37 +90,11 @@ pub(crate) fn source_line(source: &Source) -> String {
     )
 }
 
-pub(crate) const fn todo_status(status: TodoStatus) -> &'static str {
-    match status {
-        TodoStatus::Open => "open",
-        TodoStatus::InProgress => "in_progress",
-        TodoStatus::Done => "done",
-        TodoStatus::Blocked => "blocked",
-    }
-}
-
-pub(crate) const fn decision_status(status: DecisionStatus) -> &'static str {
-    match status {
-        DecisionStatus::Proposed => "proposed",
-        DecisionStatus::Accepted => "accepted",
-        DecisionStatus::Deprecated => "deprecated",
-        DecisionStatus::Superseded => "superseded",
-    }
-}
-
 pub(crate) const fn review_type(review_type: ReviewType) -> &'static str {
     match review_type {
         ReviewType::Human => "human",
         ReviewType::AgentIntrospective => "agent_introspective",
         ReviewType::AgentCrossModel => "agent_cross_model",
-    }
-}
-
-pub(crate) const fn source_verification(verification: SourceVerification) -> &'static str {
-    match verification {
-        SourceVerification::Verified => "verified",
-        SourceVerification::External => "external",
-        SourceVerification::Unverified => "unverified",
     }
 }
 
@@ -133,34 +108,6 @@ mod tests {
     };
 
     #[test]
-    fn test_todo_status_roundtrip() {
-        use super::super::util::parse_todo_status_filter;
-        for (status, name) in [
-            (TodoStatus::Open, "open"),
-            (TodoStatus::InProgress, "in_progress"),
-            (TodoStatus::Done, "done"),
-            (TodoStatus::Blocked, "blocked"),
-        ] {
-            assert_eq!(todo_status(status), name);
-            assert_eq!(parse_todo_status_filter(name), Some(status));
-        }
-    }
-
-    #[test]
-    fn test_decision_status_roundtrip() {
-        use super::super::util::parse_decision_status_filter;
-        for (status, name) in [
-            (DecisionStatus::Proposed, "proposed"),
-            (DecisionStatus::Accepted, "accepted"),
-            (DecisionStatus::Deprecated, "deprecated"),
-            (DecisionStatus::Superseded, "superseded"),
-        ] {
-            assert_eq!(decision_status(status), name);
-            assert_eq!(parse_decision_status_filter(name), Some(status));
-        }
-    }
-
-    #[test]
     fn test_review_type_display_strings() {
         assert_eq!(review_type(ReviewType::Human), "human");
         assert_eq!(
@@ -170,22 +117,6 @@ mod tests {
         assert_eq!(
             review_type(ReviewType::AgentCrossModel),
             "agent_cross_model"
-        );
-    }
-
-    #[test]
-    fn test_source_verification_display_strings() {
-        assert_eq!(
-            source_verification(SourceVerification::Verified),
-            "verified"
-        );
-        assert_eq!(
-            source_verification(SourceVerification::External),
-            "external"
-        );
-        assert_eq!(
-            source_verification(SourceVerification::Unverified),
-            "unverified"
         );
     }
 

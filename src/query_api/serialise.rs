@@ -100,7 +100,7 @@ pub(super) fn findings_json(findings: &[Finding]) -> Vec<Value> {
         .collect()
 }
 
-pub(super) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
+pub(crate) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
     let mut ids = BTreeSet::from([node.to_owned()]);
     if let Some(edges) = graph.inbound.get(node) {
         ids.extend(edges.iter().map(|edge| edge.from.clone()));
@@ -111,7 +111,7 @@ pub(super) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeS
     ids
 }
 
-pub(super) fn research_for_nodes(
+pub(crate) fn research_for_nodes(
     scan_result: &scanner::ScanResult,
     nodes: &BTreeSet<String>,
 ) -> Vec<Research> {
@@ -124,7 +124,7 @@ pub(super) fn research_for_nodes(
         .collect()
 }
 
-pub(super) fn sources_for_nodes(
+pub(crate) fn sources_for_nodes(
     scan_result: &scanner::ScanResult,
     nodes: &BTreeSet<String>,
 ) -> Vec<Source> {
@@ -190,7 +190,7 @@ pub(crate) fn requires_valid_map(command: &str) -> bool {
     )
 }
 
-pub(super) fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
+pub(crate) fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
     match value {
         "open" => Some(TodoStatus::Open),
         "in_progress" => Some(TodoStatus::InProgress),
@@ -200,7 +200,7 @@ pub(super) fn parse_todo_status_filter(value: &str) -> Option<TodoStatus> {
     }
 }
 
-pub(super) fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus> {
+pub(crate) fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus> {
     match value {
         "proposed" => Some(DecisionStatus::Proposed),
         "accepted" => Some(DecisionStatus::Accepted),
@@ -210,7 +210,7 @@ pub(super) fn parse_decision_status_filter(value: &str) -> Option<DecisionStatus
     }
 }
 
-pub(super) const fn todo_status(status: TodoStatus) -> &'static str {
+pub(crate) const fn todo_status(status: TodoStatus) -> &'static str {
     match status {
         TodoStatus::Open => "open",
         TodoStatus::InProgress => "in_progress",
@@ -219,7 +219,7 @@ pub(super) const fn todo_status(status: TodoStatus) -> &'static str {
     }
 }
 
-pub(super) const fn decision_status(status: DecisionStatus) -> &'static str {
+pub(crate) const fn decision_status(status: DecisionStatus) -> &'static str {
     match status {
         DecisionStatus::Proposed => "proposed",
         DecisionStatus::Accepted => "accepted",
@@ -228,7 +228,7 @@ pub(super) const fn decision_status(status: DecisionStatus) -> &'static str {
     }
 }
 
-pub(super) const fn source_verification(verification: SourceVerification) -> &'static str {
+pub(crate) const fn source_verification(verification: SourceVerification) -> &'static str {
     match verification {
         SourceVerification::Verified => "verified",
         SourceVerification::External => "external",
@@ -250,5 +250,65 @@ pub(super) const fn hook_decision_name(decision: ExitDecision) -> &'static str {
     match decision {
         ExitDecision::Pass => "pass",
         ExitDecision::Block => "block",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_todo_status_roundtrip() {
+        for (status, name) in [
+            (TodoStatus::Open, "open"),
+            (TodoStatus::InProgress, "in_progress"),
+            (TodoStatus::Done, "done"),
+            (TodoStatus::Blocked, "blocked"),
+        ] {
+            assert_eq!(todo_status(status), name);
+            assert_eq!(parse_todo_status_filter(name), Some(status));
+        }
+    }
+
+    #[test]
+    fn test_decision_status_roundtrip() {
+        for (status, name) in [
+            (DecisionStatus::Proposed, "proposed"),
+            (DecisionStatus::Accepted, "accepted"),
+            (DecisionStatus::Deprecated, "deprecated"),
+            (DecisionStatus::Superseded, "superseded"),
+        ] {
+            assert_eq!(decision_status(status), name);
+            assert_eq!(parse_decision_status_filter(name), Some(status));
+        }
+    }
+
+    #[test]
+    fn test_parse_todo_status_filter_unknown_returns_none() {
+        assert_eq!(parse_todo_status_filter("in-progress"), None);
+        assert_eq!(parse_todo_status_filter(""), None);
+        assert_eq!(parse_todo_status_filter("Open"), None); // case-sensitive
+    }
+
+    #[test]
+    fn test_parse_decision_status_filter_unknown_returns_none() {
+        assert_eq!(parse_decision_status_filter("Accepted"), None);
+        assert_eq!(parse_decision_status_filter(""), None);
+    }
+
+    #[test]
+    fn test_source_verification_display_strings() {
+        assert_eq!(
+            source_verification(SourceVerification::Verified),
+            "verified"
+        );
+        assert_eq!(
+            source_verification(SourceVerification::External),
+            "external"
+        );
+        assert_eq!(
+            source_verification(SourceVerification::Unverified),
+            "unverified"
+        );
     }
 }
