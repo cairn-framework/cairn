@@ -128,10 +128,10 @@ mod tests {
                         && command.cli_name != "rename"
                         && command.cli_name != "init_from_code"
                         && command.cli_name != "refine"
-                        && command.cli_name != "draft_discard"
-                        && command.cli_name != "draft_edit"
-                        && command.cli_name != "draft_accept"
-                        && command.cli_name != "summarise"
+                        && command.cli_name != "draft discard"
+                        && command.cli_name != "draft edit"
+                        && command.cli_name != "draft accept"
+                        && command.cli_name != "draft create"
                 })
                 .all(|command| command.safety == cli::SafetyClass::ReadOnly)
         );

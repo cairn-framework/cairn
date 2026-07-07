@@ -30,16 +30,68 @@ pub(crate) use todo::run_todo_command;
 pub(crate) use watch::run_watch_command;
 pub(crate) use workspace::run_workspace_command;
 
+pub(crate) fn run_draft_command(
+    parsed: &ParsedArgs,
+    root: &Path,
+    legacy_warning: String,
+) -> CliResult {
+    let subcommand = parsed.command_args.get(1).map(String::as_str);
+    let tool = match subcommand {
+        Some("list") => "draft list",
+        Some("show") => "draft show",
+        Some("edit") => "draft edit",
+        Some("discard") => "draft discard",
+        Some("accept") => "draft accept",
+        Some("create") => "draft create",
+        _ => {
+            return err(
+                2,
+                "usage: cairn draft <list|show|edit|discard|accept|create> [args]",
+            );
+        }
+    };
+    if !parsed.json {
+        return err(2, "this command currently requires --json");
+    }
+    let node = parsed.command_args.get(2).cloned();
+    let request = crate::query_api::QueryRequest {
+        tool: tool.to_owned(),
+        node,
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: shared_flags(&parsed.command_args),
+        mutating: matches!(subcommand, Some("discard" | "edit" | "accept" | "create")),
+    };
+    execute_json_request(parsed, root, legacy_warning, &request)
+}
+
 pub(crate) fn run_shared_json_command(
     parsed: &ParsedArgs,
     root: &Path,
     legacy_warning: String,
 ) -> CliResult {
     let request = shared_request(parsed);
+    execute_json_request(parsed, root, legacy_warning, &request)
+}
+
+/// Executes a query-API request and formats the JSON envelope for the CLI.
+///
+/// `request.tool` equals `parsed.command` for shared commands and the
+/// compound `cli_name` (e.g. `draft list`) for subcommand dispatch; either way
+/// [`shared_exit_code`] resolves the correct exit code.
+fn execute_json_request(
+    parsed: &ParsedArgs,
+    root: &Path,
+    legacy_warning: String,
+    request: &crate::query_api::QueryRequest,
+) -> CliResult {
     let changes_dir = root.join(&parsed.changes_dir);
-    match crate::query_api::execute(root, &parsed.file, &changes_dir, &request) {
+    match crate::query_api::execute(root, &parsed.file, &changes_dir, request) {
         Ok(response) => CliResult {
-            code: shared_exit_code(parsed.command.as_str(), &response.data),
+            code: shared_exit_code(&request.tool, &response.data),
             stdout: format!("{}\n", response.data),
             stderr: legacy_warning,
         },
@@ -70,10 +122,7 @@ pub(crate) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
             .map(ToOwned::to_owned),
         language: flag_value(&parsed.command_args, "--language").map(ToOwned::to_owned),
         flags: shared_flags(&parsed.command_args),
-        mutating: matches!(
-            parsed.command.as_str(),
-            "scan" | "rename" | "draft_discard" | "draft_edit" | "draft_accept" | "summarise"
-        ),
+        mutating: matches!(parsed.command.as_str(), "scan" | "rename"),
     }
 }
 

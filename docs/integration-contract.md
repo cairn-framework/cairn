@@ -77,8 +77,7 @@ Error responses from the MCP/query path:
 | `docstring <node>` | `cairn_docstring` | Generate a docstring for a node |
 | `export` | `cairn_export` | Export project data (JSON or Markdown) |
 | `onboard` | `cairn_onboard` | Suggest blueprint entries for orphaned files |
-| `summarise <node>` | `cairn_summarise` | Generate a contract summary for a node |
-| `ui` | — | Launch the web UI server |
+| `ui` | - | Launch the web UI server |
 | `watch` | `cairn_watch` | Watch for finding changes and emit events |
 | `workspace <status\|lint\|frontier>` | — | Aggregate status, lint, and frontier queries across a `cairn.workspace`'s member projects |
 
@@ -101,11 +100,12 @@ Error responses from the MCP/query path:
 
 | CLI | MCP tool | Effect |
 |---|---|---|
-| `drafts` | `cairn_drafts` | List pending draft proposals |
-| `draft_show <draft>` | `cairn_draft_show` | Show a draft proposal |
-| `draft_edit <draft>` | `cairn_draft_edit` | Open a draft in your editor |
-| `draft_discard <draft>` | `cairn_draft_discard` | Discard a draft proposal |
-| `draft_accept <draft>` | `cairn_draft_accept` | Accept a draft and apply it |
+| `draft list` | `cairn_drafts` | List pending draft proposals |
+| `draft show <draft>` | `cairn_draft_show` | Show a draft proposal |
+| `draft edit <draft>` | `cairn_draft_edit` | Open a draft in your editor |
+| `draft discard <draft>` | `cairn_draft_discard` | Discard a draft proposal |
+| `draft accept <draft>` | `cairn_draft_accept` | Accept a draft and apply it |
+| `draft create <node>` | `cairn_summarise` | Generate a contract summary for a node |
 
 ### Gate commands
 

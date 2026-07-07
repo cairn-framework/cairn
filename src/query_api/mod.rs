@@ -331,7 +331,7 @@ fn execute_data(
         "hook" => hook_json(root, changes_dir, &scan_result, request),
         "health" => Ok(health_json(root, changes_dir, &scan_result)),
         "remediate" => Ok(remediate_json(root, changes_dir, &scan_result)),
-        "summarise" => {
+        "draft create" => {
             let node_id = required(request.node.as_ref(), "node")?;
             let settings =
                 crate::summariser::SummariserSettings::load(root).map_err(|e| QueryError {

@@ -104,16 +104,16 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 
 ### Summariser and drafts (JSON-only)
 
-These commands require the `--json` flag.
+These commands require the `--json` flag and are grouped under one `draft` command.
 
 | Command | Description |
 |---------|-------------|
-| `cairn summarise <node>` | Generate a contract summary for a node |
-| `cairn drafts` | List pending draft proposals |
-| `cairn draft_show <draft-id>` | Show a draft proposal |
-| `cairn draft_edit <draft-id>` | Open a draft in your editor |
-| `cairn draft_accept <draft-id>` | Accept a draft and apply it |
-| `cairn draft_discard <draft-id>` | Discard a draft proposal |
+| `cairn draft create <node>` | Generate a contract summary for a node |
+| `cairn draft list` | List pending draft proposals |
+| `cairn draft show <draft-id>` | Show a draft proposal |
+| `cairn draft edit <draft-id>` | Open a draft in your editor |
+| `cairn draft accept <draft-id>` | Accept a draft and apply it |
+| `cairn draft discard <draft-id>` | Discard a draft proposal |
 
 ### Other
 
@@ -136,7 +136,7 @@ The `remediate` command analyzes findings and produces a prioritized list of act
 
 1. `fix_blueprint` - Parse or integrity errors must be fixed manually first.
 2. `init_from_code` or `refine` - Reconcile blueprint drift with code.
-3. `summarise` - Update contracts after interface changes.
+3. `draft create --json` - Update contracts after interface changes.
 4. `add_decision` - Record decisions for blueprint changes.
 
 ```bash
@@ -144,7 +144,7 @@ The `remediate` command analyzes findings and produces a prioritized list of act
 cairn health --json
 # 2. If not clean, get remediation actions
 cairn remediate --json
-# 3. Execute suggested actions (e.g., refine, summarise)
+# 3. Execute suggested actions (e.g., refine, draft create)
 cairn refine
 # 4. Verify clean state
 cairn health --json

@@ -5756,8 +5756,8 @@
           "kind": "function",
           "signature": "pub fn assert_draft_tool_safety_classes()",
           "file": "src/summariser/mod.rs",
-          "line": 64,
-          "end_line": 93
+          "line": 69,
+          "end_line": 105
         },
         {
           "name": "assert_draft_tools_registered",
@@ -5765,7 +5765,7 @@
           "signature": "pub fn assert_draft_tools_registered()",
           "file": "src/summariser/mod.rs",
           "line": 37,
-          "end_line": 54
+          "end_line": 58
         },
         {
           "name": "build_request",
