@@ -136,7 +136,7 @@ The `remediate` command analyzes findings and produces a prioritized list of act
 
 1. `fix_blueprint` - Parse or integrity errors must be fixed manually first.
 2. `init_from_code` or `refine` - Reconcile blueprint drift with code.
-3. `draft create` - Update contracts after interface changes.
+3. `draft create --json` - Update contracts after interface changes.
 4. `add_decision` - Record decisions for blueprint changes.
 
 ```bash
