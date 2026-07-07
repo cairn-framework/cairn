@@ -27,8 +27,19 @@ pub(crate) fn status_json(root: &Path, scan_result: &scanner::ScanResult) -> Val
     let next_recommended = crate::state::backlog::ready(&backlog)
         .first()
         .map_or(Value::Null, |top| top.to_json());
+    let active_changes = crate::changes::discover(root)
+        .unwrap_or_default()
+        .iter()
+        .map(|change| {
+            json!({
+                "id": change.id,
+                "title": change.title,
+                "summary": crate::changes::operation_summary(change),
+            })
+        })
+        .collect::<Vec<_>>();
     json!({
-        "active_changes": [],
+        "active_changes": active_changes,
         "open_todos": open,
         "recent_log_entries": log_entries,
         "next_recommended": next_recommended,
