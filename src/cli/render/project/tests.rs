@@ -114,19 +114,52 @@ fn todo(status: TodoStatus) -> Todo {
 
 #[test]
 fn render_status_human_lists_open_and_in_progress_todos() {
+    let dir = std::env::temp_dir().join(format!("cairn-status-todos-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
     let scan = scan_with_todos(vec![todo(TodoStatus::Open), todo(TodoStatus::Done)]);
-    let rendered = render_status(&parsed(false), &scan, std::path::Path::new("."));
+    let rendered = render_status(&parsed(false), &scan, &dir);
     assert!(rendered.contains("Status:"));
     assert!(rendered.contains("[open]"));
     assert!(!rendered.contains("[done]"));
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 #[test]
 fn render_status_human_empty_todos_renders_none() {
+    let dir = std::env::temp_dir().join(format!("cairn-status-notodos-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
     let scan = scan_with_todos(Vec::new());
-    let rendered = render_status(&parsed(false), &scan, std::path::Path::new("."));
+    let rendered = render_status(&parsed(false), &scan, &dir);
     assert!(rendered.contains("Open todos:"));
     assert!(!rendered.contains("[open]"));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn render_status_human_lists_active_changes() {
+    let dir = std::env::temp_dir().join(format!("cairn-status-changes-{}", std::process::id()));
+    let change_dir = dir.join("meta/changes/my-change");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&change_dir).unwrap();
+    std::fs::write(change_dir.join("proposal.md"), "# Proposal: my-change\n").unwrap();
+    let scan = scan_with_todos(Vec::new());
+    let rendered = render_status(&parsed(false), &scan, &dir);
+    assert!(rendered.contains("my-change"), "{rendered}");
+    assert!(!rendered.contains("Active changes:\nNone"), "{rendered}");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn render_status_human_no_changes_renders_none() {
+    let dir = std::env::temp_dir().join(format!("cairn-status-nochanges-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let scan = scan_with_todos(Vec::new());
+    let rendered = render_status(&parsed(false), &scan, &dir);
+    assert!(rendered.contains("Active changes:\nNone"), "{rendered}");
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 #[test]

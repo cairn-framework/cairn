@@ -588,6 +588,33 @@ fn test_phase_2_loads_artefacts_and_query_commands() -> Result<(), Box<dyn std::
 }
 
 #[test]
+fn test_status_reports_active_changes() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("status-active-changes")?;
+    write_phase_2_fixture(&root)?;
+    write_change(&root, "add-widget", "", &[])?;
+
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "status"])
+        .output()?;
+    assert!(json.status.success());
+    let json = String::from_utf8(json.stdout)?;
+    assert!(json.contains("\"add-widget\""), "{json}");
+    assert!(!json.contains("\"active_changes\":[]"), "{json}");
+
+    let human = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["status"])
+        .output()?;
+    assert!(human.status.success());
+    let human = String::from_utf8(human.stdout)?;
+    assert!(human.contains("add-widget"), "{human}");
+    assert!(!human.contains("Active changes:\nNone"), "{human}");
+
+    Ok(())
+}
+
+#[test]
 fn test_context_exposes_labeled_edges() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("context-edges")?;
     write_phase_2_fixture(&root)?;
