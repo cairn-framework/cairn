@@ -252,7 +252,7 @@ pub(crate) fn remediate_json(
     if has_interface_changes && !summarise_nodes.is_empty() {
         let commands: Vec<String> = summarise_nodes
             .iter()
-            .map(|n| format!("cairn draft create {n}"))
+            .map(|n| format!("cairn draft create {n} --json"))
             .collect();
         actions.push(json!({
             "priority": 3,
