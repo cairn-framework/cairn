@@ -61,6 +61,10 @@ const SCENARIOS = [
   { name: "decision-detail", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openDecision" },
   { name: "findings-populated", width: 1440, height: 900, mobile: false, server: "demo", action: "openFindings", requireFindings: true },
   { name: "node-finding", width: 1440, height: 900, mobile: false, server: "demo", select: "cairn.root", requireNudge: true },
+  // "cairn.sse" is a fixture-only node id: it lives in the frozen
+  // fixtures-demo capture as a ghost and was deleted from the live
+  // blueprint on 2026-07-07 (dec.simplify-cut-sse). Do not "fix" it to a
+  // live node; a fixture refresh must keep a ghost-state subject.
   { name: "ghost-node", width: 1440, height: 900, mobile: false, server: "demo", select: "cairn.sse" },
 ];
 

@@ -1,7 +1,6 @@
 ---
 id: dec.close-blueprint-drift
 nodes:
-  - cairn.sse
   - cairn.state
   - cairn.watch
 status: accepted
@@ -29,6 +28,8 @@ Declare all three as top-level modules under the `cairn` System node.
 All three modules are actively imported and used:
 
 - `sse` is exported from `lib.rs` and consumed by the Gas City adapter.
+  (Falsified 2026-07-07: no such adapter existed and the module had zero
+  internal callers; the node was cut by `dec.simplify-cut-sse`.)
 - `state` is used by CLI commands for beads-backed persistence and by the scanner for snapshot state.
 - `watch` is used by the CLI `cairn watch` command and by the query API for finding-delta events.
 

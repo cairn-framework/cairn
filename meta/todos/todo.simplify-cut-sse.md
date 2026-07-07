@@ -1,6 +1,6 @@
 ---
-node: cairn.sse
-status: open
+node: cairn.root
+status: done
 created: 2026-07-06
 ---
 
@@ -37,3 +37,15 @@ conflict if branched concurrently.
 
 Acceptance: `cargo test` green, `cairn scan --strict` clean, no reference
 to `sse` remains under `src/` or `cairn.blueprint`.
+
+Resolution (2026-07-07): confirmed dead and cut. Step 0 evidence: zero
+internal callers (only the `pub mod sse` export in `src/lib.rs`); the
+gas-city research made no code changes; issue #101 (SSE consumer spike,
+part of epic #95) is aspirational, not a live consumer; and the spike's
+direction was cairn-as-client of Gas City's stream, so no external system
+links `cairn::sse`. `dec.close-blueprint-drift`'s "consumed by the Gas
+City adapter" claim (2026-06-03) was already falsified by the 2026-07-06
+four-audit investigation ratified in todo.simplify-architecture. Deleted
+`src/sse.rs`, the `pub mod sse` line, `meta/contracts/sse.md`, and the
+`cairn.sse` blueprint node (no edges referenced it); re-anchored this todo
+to `cairn.root`.
