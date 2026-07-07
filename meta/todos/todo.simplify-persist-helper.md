@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-06
 ---
 
@@ -46,3 +46,18 @@ Constraints:
 Acceptance: the enumerated call sites above all go through
 `src/persist`; store tests for summariser, scanner, and changes green;
 `cairn scan --strict` clean; roughly 300-500 LOC net removed.
+
+Resolution (2026-07-07): `src/persist.rs` exposes `atomic_write`,
+`atomic_write_bytes`, `write_json` (pretty, atomic, skip-if-identical),
+`read_json`, `parse_json`, `read_toml`, `read_versioned_json` (single-read
+version peek plus content). All eight enumerated call sites migrated;
+`changes/apply`'s `atomic_write` moved in as the model implementation; the
+brownfield interview's documented-but-missing atomic write is fixed;
+suggested_edges' `unique_temp_path`/COUNTER helpers deleted. Scanner
+state's v1-to-v2 migration tests pass unchanged. Blueprint gained
+`Module Persist id cairn.persist @no-contract`
+(dec.simplify-persist-module). The 300-500 net LOC estimate did not hold:
+tracked call-site source shrank while the new module adds ~290 lines
+(roughly half tests); net positive. The duplication removal and the
+single-implementation invariant were the point; code was not compressed
+to chase the estimate.

@@ -21,6 +21,10 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         contract "./meta/contracts/root.md"
     }
 
+    Module Persist "Shared file-persistence helpers: atomic writes and versioned JSON state files" id "cairn.persist" @no-contract {
+        path "./src/persist.rs"
+    }
+
     Module State "Pluggable state persistence backend" id "cairn.state" {
         path "./src/state"
         contract "./meta/contracts/state.md"

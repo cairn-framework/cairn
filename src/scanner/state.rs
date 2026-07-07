@@ -1,6 +1,7 @@
 //! Machine state persistence.
 
-use std::{collections::BTreeMap, fs, io, path::Path};
+use crate::persist;
+use std::{collections::BTreeMap, io, path::Path};
 
 /// Type alias for target-to-hash mapping.
 pub type TargetHashes = BTreeMap<String, String>;
@@ -11,21 +12,8 @@ pub type TargetHashes = BTreeMap<String, String>;
 ///
 /// Returns an I/O error when the state directory or JSON file cannot be written.
 pub fn write_interface_hash(root: &Path, hashes: &TargetHashes) -> io::Result<()> {
-    let dir = root.join(".cairn/state");
-    fs::create_dir_all(&dir)?;
-    let path = dir.join("interface-hashes.json");
-    let json = serde_json::to_string(hashes).map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("serialization failed: {e}"),
-        )
-    })?;
-    if let Ok(existing) = fs::read_to_string(&path)
-        && existing == json
-    {
-        return Ok(());
-    }
-    fs::write(path, json)
+    let path = root.join(".cairn/state/interface-hashes.json");
+    persist::write_json(&path, hashes)
 }
 
 /// Reads interface hash state from JSON.
@@ -38,10 +26,7 @@ pub fn read_interface_hash(root: &Path) -> io::Result<TargetHashes> {
     if !path.exists() {
         return Ok(BTreeMap::new());
     }
-    let content = fs::read_to_string(path)?;
-    let hashes: BTreeMap<String, String> = serde_json::from_str(&content)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}")))?;
-    Ok(hashes)
+    persist::read_json(&path)
 }
 
 /// Fingerprint for a blueprint node's structural identity.
@@ -103,21 +88,8 @@ impl Default for BlueprintSnapshot {
 ///
 /// Returns an I/O error when the state directory or JSON file cannot be written.
 pub fn write_blueprint_snapshot(root: &Path, snapshot: &BlueprintSnapshot) -> io::Result<()> {
-    let dir = root.join(".cairn/state");
-    fs::create_dir_all(&dir)?;
-    let path = dir.join("blueprint-snapshot.json");
-    let json = serde_json::to_string(snapshot).map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("serialization failed: {e}"),
-        )
-    })?;
-    if let Ok(existing) = fs::read_to_string(&path)
-        && existing == json
-    {
-        return Ok(());
-    }
-    fs::write(path, json)
+    let path = root.join(".cairn/state/blueprint-snapshot.json");
+    persist::write_json(&path, snapshot)
 }
 
 /// Version-1 blueprint snapshot, kept for explicit migration to v2.
@@ -153,18 +125,6 @@ fn migrate_v1_to_v2(snapshot: BlueprintSnapshotV1) -> BlueprintSnapshot {
     BlueprintSnapshot { version: 2, nodes }
 }
 
-/// Peeks the `version` field from a JSON object without fully deserializing
-/// the payload.
-fn peek_version(content: &str) -> io::Result<u32> {
-    #[derive(serde::Deserialize)]
-    struct VersionOnly {
-        version: u32,
-    }
-    serde_json::from_str::<VersionOnly>(content)
-        .map(|v| v.version)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}")))
-}
-
 /// Reads blueprint snapshot state from JSON.
 ///
 /// Returns an empty snapshot when the state file does not exist.
@@ -175,20 +135,15 @@ fn peek_version(content: &str) -> io::Result<u32> {
 /// carries an unsupported schema version.
 pub fn read_blueprint_snapshot(root: &Path) -> io::Result<BlueprintSnapshot> {
     let path = root.join(".cairn/state/blueprint-snapshot.json");
-    if !path.exists() {
+    let Some((version, content)) = persist::read_versioned_json(&path)? else {
         return Ok(BlueprintSnapshot::default());
-    }
-    let content = fs::read_to_string(path)?;
-    let version = peek_version(&content)?;
+    };
     match version {
         1 => {
-            let snapshot: BlueprintSnapshotV1 = serde_json::from_str(&content).map_err(|e| {
-                io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}"))
-            })?;
+            let snapshot: BlueprintSnapshotV1 = persist::parse_json(&content, &path)?;
             Ok(migrate_v1_to_v2(snapshot))
         }
-        2 => serde_json::from_str(&content)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid JSON: {e}"))),
+        2 => persist::parse_json(&content, &path),
         other => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("blueprint-snapshot.json: unsupported version {other} (expected 1 or 2)"),

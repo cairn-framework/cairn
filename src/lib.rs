@@ -33,6 +33,8 @@ pub mod lsp;
 pub mod map;
 /// MCP stdio transport.
 pub mod mcp;
+/// Shared file-persistence helpers.
+pub mod persist;
 /// AI provenance: trace sidecar schemas.
 pub mod provenance;
 /// Shared structured query API and MCP tool registry.

@@ -15,7 +15,7 @@ use crate::{
         graph::{Finding, FindingSeverity},
         query::{self, FrontierEntry},
     },
-    scanner,
+    persist, scanner,
 };
 
 /// Emitted for a workspace member whose root or blueprint fails to load.
@@ -57,10 +57,13 @@ impl Workspace {
     /// Returns an error string when the file cannot be read, or does not
     /// parse as a `cairn.workspace` document (`[[project]] name / root`).
     pub fn load(path: &Path) -> Result<Self, String> {
-        let source = std::fs::read_to_string(path)
-            .map_err(|error| format!("failed to read {}: {error}", path.display()))?;
-        let parsed: WorkspaceToml = toml::from_str(&source)
-            .map_err(|error| format!("failed to parse {}: {error}", path.display()))?;
+        let parsed: WorkspaceToml = persist::read_toml(path).map_err(|error| {
+            if error.kind() == std::io::ErrorKind::InvalidData {
+                error.to_string()
+            } else {
+                format!("failed to read {}: {error}", path.display())
+            }
+        })?;
         let base = path.parent().unwrap_or_else(|| Path::new("."));
         let projects = parsed
             .project

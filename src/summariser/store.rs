@@ -19,6 +19,8 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+use crate::persist;
+
 /// Lifecycle state of a draft.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -343,8 +345,11 @@ impl DraftStore {
         let dir = self.pending_dir();
         fs::create_dir_all(&dir).map_err(|e| DraftStoreError::Io(e.to_string()))?;
         let path = dir.join(format!("{}.json", draft.id()));
-        let body = serde_json::to_string_pretty(draft)
+        let mut body = serde_json::to_string_pretty(draft)
             .map_err(|e| DraftStoreError::Serialize(e.to_string()))?;
+        // Trailing newline matches persist::write_json's on-disk format so
+        // first-write and overwrite paths produce identical bytes.
+        body.push('\n');
         let mut file = match OpenOptions::new().write(true).create_new(true).open(&path) {
             Ok(f) => f,
             Err(e) if e.kind() == ErrorKind::AlreadyExists => {
@@ -373,9 +378,7 @@ impl DraftStore {
     }
 
     fn write_inner(path: &Path, draft: &Draft) -> Result<std::path::PathBuf, DraftStoreError> {
-        let body = serde_json::to_string_pretty(draft)
-            .map_err(|e| DraftStoreError::Serialize(e.to_string()))?;
-        fs::write(path, body).map_err(|e| DraftStoreError::Io(e.to_string()))?;
+        persist::write_json(path, draft).map_err(|e| serialize_err(&e))?;
         Ok(path.to_path_buf())
     }
 
@@ -390,10 +393,7 @@ impl DraftStore {
         if !path.exists() {
             return Err(DraftStoreError::NotFound(draft_id.to_owned()));
         }
-        let body = fs::read_to_string(&path).map_err(|e| DraftStoreError::Io(e.to_string()))?;
-        let draft: Draft =
-            serde_json::from_str(&body).map_err(|e| DraftStoreError::Parse(e.to_string()))?;
-        Ok(draft)
+        persist::read_json(&path).map_err(|e| parse_err(&e))
     }
 
     /// Lists all drafts in the pending directory, sorted by ID.
@@ -413,9 +413,7 @@ impl DraftStore {
             if path.extension().and_then(|s| s.to_str()) != Some("json") {
                 continue;
             }
-            let body = fs::read_to_string(&path).map_err(|e| DraftStoreError::Io(e.to_string()))?;
-            let draft: Draft =
-                serde_json::from_str(&body).map_err(|e| DraftStoreError::Parse(e.to_string()))?;
+            let draft: Draft = persist::read_json(&path).map_err(|e| parse_err(&e))?;
             entries.push(draft);
         }
         entries.sort_by(|a, b| a.id().cmp(b.id()));
@@ -466,10 +464,25 @@ fn editable_extension(artefact_type: &str) -> &'static str {
 /// Returns `DraftStoreError::Io` for read failures and `Parse` for
 /// malformed JSON.
 pub fn read_draft(path: &Path) -> Result<Draft, DraftStoreError> {
-    let body = fs::read_to_string(path).map_err(|e| DraftStoreError::Io(e.to_string()))?;
-    let draft: Draft =
-        serde_json::from_str(&body).map_err(|e| DraftStoreError::Parse(e.to_string()))?;
-    Ok(draft)
+    persist::read_json(path).map_err(|e| parse_err(&e))
+}
+
+/// Maps a `persist::read_json` error: `InvalidData` means malformed JSON.
+fn parse_err(e: &std::io::Error) -> DraftStoreError {
+    if e.kind() == ErrorKind::InvalidData {
+        DraftStoreError::Parse(e.to_string())
+    } else {
+        DraftStoreError::Io(e.to_string())
+    }
+}
+
+/// Maps a `persist::write_json` error: `InvalidData` means serialisation failed.
+fn serialize_err(e: &std::io::Error) -> DraftStoreError {
+    if e.kind() == ErrorKind::InvalidData {
+        DraftStoreError::Serialize(e.to_string())
+    } else {
+        DraftStoreError::Io(e.to_string())
+    }
 }
 
 #[cfg(test)]

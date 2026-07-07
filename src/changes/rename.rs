@@ -2,8 +2,8 @@
 
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
-use super::apply::atomic_write;
 use super::*;
+use crate::persist;
 
 pub(super) fn read_to_string(path: &Path, findings: &mut Vec<String>) -> String {
     fs::read_to_string(path).unwrap_or_else(|error| {
@@ -68,7 +68,7 @@ pub(super) fn copy_referencing_artefacts_from(
         let target = change_path.join(relative);
         let updated = update_frontmatter_reference(&content, old_id, new_id);
         let updated = insert_operation(&updated, "modified", None);
-        atomic_write(&target, &updated)?;
+        persist::atomic_write(&target, &updated).map_err(|error| error.to_string())?;
     }
     Ok(())
 }
