@@ -1,6 +1,7 @@
 //! Apply a change to the blueprint and artefacts.
 
 use super::*;
+use crate::persist;
 
 mod preserve;
 
@@ -40,10 +41,7 @@ pub(super) fn restore_snapshots(snapshots: &[Snapshot]) -> io::Result<()> {
     for snapshot in snapshots {
         match &snapshot.content {
             Some(content) => {
-                if let Some(parent) = snapshot.path.parent() {
-                    fs::create_dir_all(parent)?;
-                }
-                atomic_write_bytes(&snapshot.path, content)?;
+                persist::atomic_write_bytes(&snapshot.path, content)?;
             }
             None if snapshot.path.exists() => {
                 if snapshot.path.is_dir() {
@@ -65,7 +63,7 @@ pub(super) fn apply_archive(blueprint_path: &Path, change: &Change) -> Result<()
     if !change.delta.is_empty() {
         let source = fs::read_to_string(blueprint_path).map_err(|error| error.to_string())?;
         let next = apply_blueprint_delta(&source, &change.delta)?;
-        atomic_write(blueprint_path, &next)?;
+        persist::atomic_write(blueprint_path, &next).map_err(|error| error.to_string())?;
     }
     apply_artefact_operations(&change.artefacts)?;
     Ok(())
@@ -215,7 +213,7 @@ pub(super) fn apply_artefact_operations(artefacts: &[ArtefactOperation]) -> Resu
 
 pub(super) fn write_artefact_target(artefact: &ArtefactOperation) -> Result<(), String> {
     let content = strip_change_frontmatter(&artefact.content);
-    atomic_write(&artefact.target_path, &content)
+    persist::atomic_write(&artefact.target_path, &content).map_err(|error| error.to_string())
 }
 
 pub(super) fn strip_change_frontmatter(source: &str) -> String {
@@ -275,19 +273,6 @@ pub(super) fn append_archive_log(root: &Path, change: &Change) -> Result<(), Str
         operation_summary(change)
     )
     .map_err(|error| error.to_string())
-}
-
-pub(super) fn atomic_write(path: &Path, content: &str) -> Result<(), String> {
-    atomic_write_bytes(path, content.as_bytes()).map_err(|error| error.to_string())
-}
-
-pub(super) fn atomic_write_bytes(path: &Path, content: &[u8]) -> io::Result<()> {
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    let tmp = path.with_extension("tmp-cairn-write");
-    fs::write(&tmp, content)?;
-    fs::rename(tmp, path)
 }
 
 #[cfg(test)]

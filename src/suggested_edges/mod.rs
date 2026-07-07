@@ -6,7 +6,9 @@
 
 mod types;
 
-use std::{fs, path::Path};
+use std::{io, path::Path};
+
+use crate::persist;
 
 pub use types::{EdgeProvenance, QueueError, SuggestedEdgeEntry, SuggestedEdgesQueue, TriageState};
 
@@ -24,9 +26,10 @@ pub fn read_queue(path: &Path) -> Result<Option<SuggestedEdgesQueue>, QueueError
     if !path.exists() {
         return Ok(None);
     }
-    let body = fs::read_to_string(path).map_err(|e| QueueError::Io(e.to_string()))?;
-    let queue: SuggestedEdgesQueue =
-        serde_json::from_str(&body).map_err(|e| QueueError::Parse(e.to_string()))?;
+    let queue: SuggestedEdgesQueue = persist::read_json(path).map_err(|e| match e.kind() {
+        io::ErrorKind::InvalidData => QueueError::Parse(e.to_string()),
+        _ => QueueError::Io(e.to_string()),
+    })?;
     if queue.version > SUGGESTED_EDGES_QUEUE_VERSION {
         return Err(QueueError::UnsupportedVersion {
             found: queue.version,
@@ -64,46 +67,16 @@ pub fn read_from_change(change_dir: &Path) -> Result<Option<SuggestedEdgesQueue>
     read_queue(&queue_path_for_change(change_dir))
 }
 
-/// Writes the queue for a change directory atomically. The temp-file
-/// path carries pid + nanos + counter suffix so concurrent writers
-/// do not race on the same `.json.tmp` filename.
+/// Writes the queue for a change directory atomically.
 ///
 /// # Errors
 ///
 /// Returns `QueueError::Io` when the directory cannot be created or
-/// either filesystem operation fails.
+/// the file cannot be written.
 pub fn write_to_change(change_dir: &Path, queue: &SuggestedEdgesQueue) -> Result<(), QueueError> {
-    if !change_dir.exists() {
-        fs::create_dir_all(change_dir).map_err(|e| QueueError::Io(e.to_string()))?;
-    }
-    let final_path = queue_path_for_change(change_dir);
-    let temp_path = unique_temp_path(&final_path);
-    let body = serde_json::to_string_pretty(queue).map_err(|e| QueueError::Io(e.to_string()))?;
-    fs::write(&temp_path, body).map_err(|e| QueueError::Io(e.to_string()))?;
-    fs::rename(&temp_path, &final_path).map_err(|e| QueueError::Io(e.to_string()))?;
+    let path = queue_path_for_change(change_dir);
+    persist::write_json(&path, queue).map_err(|e| QueueError::Io(e.to_string()))?;
     Ok(())
-}
-
-fn unique_temp_path(final_path: &Path) -> std::path::PathBuf {
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
-    // pid alone is insufficient for cross-thread uniqueness, and
-    // SystemTime::now() may report identical nanos on consecutive
-    // sub-microsecond calls. The atomic counter guarantees uniqueness
-    // across threads in the same process; pid + nanos guards against
-    // cross-process collisions.
-    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or_default();
-    let pid = std::process::id();
-    let stem = final_path
-        .file_name()
-        .map(std::ffi::OsStr::to_string_lossy)
-        .unwrap_or_default();
-    let parent = final_path.parent().unwrap_or_else(|| Path::new("."));
-    parent.join(format!("{stem}.{pid}.{nanos}.{seq}.tmp"))
 }
 
 /// Returns `Ok(())` when the queue (if present) has zero pending
@@ -145,6 +118,8 @@ pub fn validate_strict(change_id: &str, change_dir: &Path) -> Result<(), crate::
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use super::*;
 
     fn sample_entry(state: TriageState) -> SuggestedEdgeEntry {

@@ -5,7 +5,7 @@
 //! is pure; writing lives here so `scan()` can call it the same way it calls
 //! `outputs::write_map`.
 
-use std::{fs, io, path::Path};
+use std::{io, path::Path};
 
 use crate::{
     blueprint::NodeKind,
@@ -106,16 +106,8 @@ pub fn build(graph: &Graph, interface_hash: &str) -> MapSnapshot {
 ///
 /// Returns an I/O error when the file cannot be serialised or written.
 pub fn write(root: &Path, snapshot: &MapSnapshot) -> io::Result<()> {
-    let mut body = serde_json::to_string_pretty(snapshot)
-        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
-    body.push('\n');
     let path = root.join("map.json");
-    if let Ok(existing) = fs::read_to_string(&path)
-        && existing == body
-    {
-        return Ok(());
-    }
-    fs::write(path, body)
+    crate::persist::write_json(&path, snapshot)
 }
 
 const fn node_kind_label(kind: NodeKind) -> &'static str {
@@ -137,6 +129,8 @@ const fn node_state_label(state: NodeState) -> &'static str {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use super::*;
     use crate::{
         blueprint::Span,

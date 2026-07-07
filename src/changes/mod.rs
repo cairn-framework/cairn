@@ -22,9 +22,10 @@ mod rename;
 mod types;
 mod validate;
 
+use crate::persist;
 use apply::{
-    append_archive_log, apply_archive, archive_path, atomic_write, mutation_paths,
-    replace_exact_id, restore_snapshots, snapshot_paths,
+    append_archive_log, apply_archive, archive_path, mutation_paths, replace_exact_id,
+    restore_snapshots, snapshot_paths,
 };
 use artefact_ops::parse_artefact_operations;
 pub use delta::parse_blueprint_delta;
@@ -191,10 +192,11 @@ pub fn create_rename_change(
         return Err(format!("change `{change_id}` already exists"));
     }
     fs::create_dir_all(&change_path).map_err(|error| error.to_string())?;
-    atomic_write(
+    persist::atomic_write(
         &change_path.join("proposal.md"),
         &format!("# Proposal: Rename {old_id} to {new_id}\n\nRename `{old_id}` to `{new_id}`.\n"),
-    )?;
+    )
+    .map_err(|error| error.to_string())?;
     let mut delta = format!("## RENAMED Nodes\n- {old_id} -> {new_id}\n");
     let mut changed_edges = Vec::new();
     for edges in scan.graph.outbound.values() {
@@ -216,7 +218,8 @@ pub fn create_rename_change(
             );
         }
     }
-    atomic_write(&change_path.join("blueprint.delta"), &delta)?;
+    persist::atomic_write(&change_path.join("blueprint.delta"), &delta)
+        .map_err(|error| error.to_string())?;
     copy_referencing_artefacts(root, &change_path, old_id, new_id)?;
     Ok(load_change(root, change_path))
 }

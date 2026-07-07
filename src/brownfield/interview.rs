@@ -96,13 +96,8 @@ pub fn resume_session(change_dir: &Path) -> Result<Option<InterviewSession>, Cai
         return Ok(None);
     }
 
-    let text = std::fs::read_to_string(&path).map_err(|e| CairnError::ChangeDiscovery {
-        path: path.to_string_lossy().into_owned(),
-        detail: e.to_string(),
-    })?;
-
     let session: InterviewSession =
-        serde_json::from_str(&text).map_err(|e| CairnError::ChangeDiscovery {
+        crate::persist::read_json(&path).map_err(|e| CairnError::ChangeDiscovery {
             path: path.to_string_lossy().into_owned(),
             detail: e.to_string(),
         })?;
@@ -213,17 +208,10 @@ fn render_genesis(session: &InterviewSession) -> String {
 /// Write the session file atomically.
 fn write_session(change_dir: &Path, session: &InterviewSession) -> Result<(), CairnError> {
     let path = change_dir.join(SESSION_FILE);
-    let json = serde_json::to_string_pretty(session).map_err(|e| CairnError::WriteOutput {
+    crate::persist::write_json(&path, session).map_err(|e| CairnError::WriteOutput {
         path: path.to_string_lossy().into_owned(),
         detail: e.to_string(),
-    })?;
-
-    std::fs::write(&path, json).map_err(|e| CairnError::WriteOutput {
-        path: path.to_string_lossy().into_owned(),
-        detail: e.to_string(),
-    })?;
-
-    Ok(())
+    })
 }
 
 #[cfg(test)]

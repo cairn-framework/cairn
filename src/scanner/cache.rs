@@ -7,6 +7,7 @@ use std::{
 };
 
 use super::{Target, TargetReport, blueprint, config, detect_divergence};
+use crate::persist;
 
 /// Cache version for reconciler cache format.
 ///
@@ -173,8 +174,7 @@ pub(crate) fn try_load_reconciler_cache(
     key: &str,
 ) -> Option<BTreeMap<String, crate::reconcile::ReconcileReport>> {
     let path = root.join(".cairn/state/reconciler-cache.json");
-    let content = std::fs::read_to_string(path).ok()?;
-    let entry: ReconcilerCacheEntry = serde_json::from_str(&content).ok()?;
+    let entry: ReconcilerCacheEntry = persist::read_json(&path).ok()?;
     if entry.version != RECONCILER_CACHE_VERSION || entry.key != key {
         return None;
     }
@@ -192,21 +192,8 @@ pub(crate) fn write_reconciler_cache(
         key: key.to_owned(),
         reports: reports.clone(),
     };
-    let Ok(json) = serde_json::to_string(&entry) else {
-        return;
-    };
-    let dir = root.join(".cairn/state");
-    if std::fs::create_dir_all(&dir).is_err() {
-        return;
-    }
-    let path = dir.join("reconciler-cache.json");
-    // Skip write when content is identical (same pattern as state.rs).
-    if let Ok(existing) = std::fs::read_to_string(&path)
-        && existing == json
-    {
-        return;
-    }
-    let _ = std::fs::write(path, json);
+    let path = root.join(".cairn/state/reconciler-cache.json");
+    let _ = persist::write_json(&path, &entry);
 }
 
 /// Rebuilds the `(Vec<TargetReport>, Vec<Finding>)` from cached reconciler reports.
