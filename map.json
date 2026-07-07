@@ -1298,8 +1298,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 71,
-          "end_line": 73
+          "line": 70,
+          "end_line": 72
         },
         {
           "name": "build_export",
@@ -1338,8 +1338,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 80,
-          "end_line": 220
+          "line": 79,
+          "end_line": 219
         },
         {
           "name": "run",
@@ -1362,8 +1362,8 @@
           "kind": "module",
           "signature": "pub mod export",
           "file": "src/cli/mod.rs",
-          "line": 30,
-          "end_line": 30
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "ArtefactEntry",
@@ -1386,8 +1386,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 60,
-          "end_line": 67
+          "line": 59,
+          "end_line": 66
         },
         {
           "name": "EdgeEntry",
@@ -1410,8 +1410,8 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 56,
+          "end_line": 56
         },
         {
           "name": "blueprint_root",
@@ -2043,32 +2043,32 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 252,
-          "end_line": 259
+          "line": 255,
+          "end_line": 262
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 263,
-          "end_line": 270
+          "line": 266,
+          "end_line": 273
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 190,
-          "end_line": 248
+          "line": 193,
+          "end_line": 251
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 177,
-          "end_line": 183
+          "line": 180,
+          "end_line": 186
         },
         {
           "name": "QueryError",

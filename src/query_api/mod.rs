@@ -165,12 +165,15 @@ pub const fn registry() -> &'static [ToolMetadata] {
     registry_slice()
 }
 
-/// Returns whether `command` requires a clean, error-free graph before running.
-///
-/// Used by both the CLI dispatch loop and the MCP query-API path.
-/// Canonical list lives in `serialise`; this re-export makes it accessible
-/// from `crate::query_api::requires_valid_map`.
-pub(crate) use serialise::requires_valid_map;
+/// Canonical implementations live in `serialise`; these re-exports make
+/// them accessible as `crate::query_api::<name>` so the CLI render layer
+/// shares them instead of keeping copies (todo.simplify-dedup-format-util).
+/// `requires_valid_map` is additionally used by both the CLI dispatch loop
+/// and the MCP query-API path to gate commands on a clean graph.
+pub(crate) use serialise::{
+    decision_status, neighbourhood_ids, parse_decision_status_filter, parse_todo_status_filter,
+    requires_valid_map, research_for_nodes, source_verification, sources_for_nodes, todo_status,
+};
 
 /// Returns tools visible for a server configuration.
 #[must_use]

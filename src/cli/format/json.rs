@@ -2,8 +2,9 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
-use super::render::{decision_status, review_type, source_verification, todo_status};
+use super::render::review_type;
 use super::util::esc;
+use crate::query_api::{decision_status, source_verification, todo_status};
 
 pub(crate) fn node_json(node: &NodeRecord) -> String {
     format!(

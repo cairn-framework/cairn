@@ -1,11 +1,10 @@
 //! Node-level query renderers.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{
-    lines, neighbourhood_ids, node_arg, node_json, render_node, string_array_json,
-};
+use super::super::format::{lines, node_arg, node_json, render_node, string_array_json};
 use super::super::*;
 use super::{scan_error_count, scan_error_warning};
+use crate::query_api::{neighbourhood_ids, research_for_nodes};
 
 pub(crate) fn render_get(
     parsed: &ParsedArgs,
@@ -89,7 +88,7 @@ pub(crate) fn render_neighbourhood(
                 Vec::new()
             };
             let research = if include_research {
-                super::super::format::research_for_nodes(scan_result, &node_ids)
+                research_for_nodes(scan_result, &node_ids)
             } else {
                 Vec::new()
             };
