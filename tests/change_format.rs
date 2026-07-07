@@ -129,3 +129,119 @@ fn test_state_backend_config_key_is_removed() {
     // config loads successfully and context is still parsed.
     assert_eq!(config.context, "ctx");
 }
+
+#[test]
+fn test_changes_dir_flag_respected_by_discover_surfaces() {
+    let root = temp_root("changes-dir-flag");
+    write_minimal_project(&root);
+
+    // The change lives under a non-default directory; every surface that
+    // lists active changes must honour `--changes-dir`.
+    let custom = root.join("custom-changes");
+    let change_dir = custom.join("demo-change");
+    fs::create_dir_all(&change_dir).unwrap();
+    fs::write(change_dir.join("proposal.md"), "# Proposal: Demo Change\n").unwrap();
+    fs::write(change_dir.join("blueprint.delta"), "## REMOVED Nodes\nt\n").unwrap();
+
+    let base = [
+        "--file".to_owned(),
+        root.join("cairn.blueprint").to_string_lossy().to_string(),
+        "--changes-dir".to_owned(),
+        custom.to_string_lossy().to_string(),
+    ];
+
+    let run = |extra: &[&str]| {
+        let mut args = base.to_vec();
+        args.extend(extra.iter().map(ToString::to_string));
+        cairn::cli::run(&args)
+    };
+
+    let changes_text = run(&["changes"]);
+    assert_eq!(changes_text.code, 0, "changes: {}", changes_text.stderr);
+    assert!(
+        changes_text.stdout.contains("demo-change"),
+        "`cairn changes` must list changes from --changes-dir: {}",
+        changes_text.stdout
+    );
+
+    let changes_json = run(&["--json", "changes"]);
+    assert_eq!(
+        changes_json.code, 0,
+        "changes --json: {}",
+        changes_json.stderr
+    );
+    assert!(
+        changes_json.stdout.contains("demo-change"),
+        "`cairn --json changes` must list changes from --changes-dir: {}",
+        changes_json.stdout
+    );
+
+    let show = run(&["show", "demo-change"]);
+    assert_eq!(
+        show.code, 0,
+        "`cairn show` must find a change under --changes-dir: {} {}",
+        show.stdout, show.stderr
+    );
+
+    let status = run(&["status"]);
+    assert_eq!(status.code, 0, "status: {}", status.stderr);
+    assert!(
+        status.stdout.contains("demo-change"),
+        "`cairn status` must list active changes from --changes-dir: {}",
+        status.stdout
+    );
+
+    let neighbourhood = run(&["neighbourhood", "t", "--include-changes"]);
+    assert_eq!(
+        neighbourhood.code, 0,
+        "neighbourhood: {}",
+        neighbourhood.stderr
+    );
+    assert!(
+        neighbourhood.stdout.contains("demo-change"),
+        "`cairn neighbourhood --include-changes` must surface changes from --changes-dir: {}",
+        neighbourhood.stdout
+    );
+
+    for surface in [
+        vec!["--json", "status"],
+        vec!["--json", "show", "demo-change"],
+        vec!["--json", "neighbourhood", "t", "--include-changes"],
+    ] {
+        let result = run(&surface);
+        assert_eq!(result.code, 0, "{surface:?}: {}", result.stderr);
+        assert!(
+            result.stdout.contains("demo-change"),
+            "{surface:?} must surface changes from --changes-dir: {}",
+            result.stdout
+        );
+    }
+
+    // Archiving from --changes-dir must move the change into the archive
+    // folder under that directory, not the default meta/changes/archive.
+    let noop_dir = custom.join("noop-change");
+    fs::create_dir_all(&noop_dir).unwrap();
+    fs::write(noop_dir.join("proposal.md"), "# Proposal: Noop Change\n").unwrap();
+    let archive = run(&["archive", "noop-change"]);
+    assert_eq!(
+        archive.code, 0,
+        "archive from --changes-dir must succeed: {} {}",
+        archive.stdout, archive.stderr
+    );
+    assert!(
+        !noop_dir.exists(),
+        "archived change must leave --changes-dir"
+    );
+    let archived: Vec<_> = fs::read_dir(custom.join("archive"))
+        .expect("archive folder must be created under --changes-dir")
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    assert!(
+        archived.iter().any(|name| name.ends_with("-noop-change")),
+        "archive destination must live under --changes-dir: {archived:?}"
+    );
+    assert!(
+        !root.join("meta/changes/archive").exists(),
+        "default meta/changes/archive must stay untouched"
+    );
+}

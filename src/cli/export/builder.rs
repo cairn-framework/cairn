@@ -19,10 +19,7 @@ use super::{ArtefactEntry, ChangeEntry, EdgeEntry, ExportEnvelope, SCHEMA_VERSIO
 /// Builds a full export envelope by scanning the project and reading active changes.
 ///
 /// `changes_dir` is the literal path to the active-changes folder
-/// (e.g., `meta/changes`). Cycle 3 fix: previously this was passed
-/// through `changes::discover`, which itself joins `meta/changes`
-/// internally, producing the wrong-path lookup `meta/changes/meta/changes`.
-/// The folder is now enumerated directly here.
+/// (e.g., `meta/changes`), passed straight to `changes::discover`.
 ///
 /// # Errors
 ///
@@ -54,36 +51,10 @@ pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, C
 }
 
 fn enumerate_changes(project_root: &Path, changes_dir: &Path) -> Result<Vec<Change>, CairnError> {
-    if !changes_dir.exists() {
-        return Ok(Vec::new());
-    }
-    let entries = std::fs::read_dir(changes_dir).map_err(|e| CairnError::ChangeDiscovery {
+    changes::discover(project_root, changes_dir).map_err(|e| CairnError::ChangeDiscovery {
         path: changes_dir.to_string_lossy().into_owned(),
         detail: e.to_string(),
-    })?;
-    let mut out = Vec::new();
-    for entry in entries {
-        let entry = entry.map_err(|e| CairnError::ChangeDiscovery {
-            path: changes_dir.to_string_lossy().into_owned(),
-            detail: e.to_string(),
-        })?;
-        let path = entry.path();
-        let Ok(file_type) = entry.file_type() else {
-            continue;
-        };
-        if !file_type.is_dir() {
-            continue;
-        }
-        if path.file_name().is_some_and(|name| name == "archive") {
-            continue;
-        }
-        if !path.join("proposal.md").exists() {
-            continue;
-        }
-        out.push(changes::load_change(project_root, path));
-    }
-    out.sort_by(|left, right| left.id.cmp(&right.id));
-    Ok(out)
+    })
 }
 
 fn flatten_edges(graph: &Graph) -> Vec<EdgeEntry> {

@@ -33,18 +33,18 @@ use rename::{artefact_content_refs, copy_referencing_artefacts, proposal_title, 
 pub(crate) use types::*;
 pub use validate::validate_change;
 
-/// Discovers active changes under `meta/changes`.
+/// Discovers active changes under `changes_dir` (the resolved
+/// `--changes-dir` path, `meta/changes` by default).
 ///
 /// # Errors
 ///
-/// Returns an I/O error if `meta/changes` exists but cannot be read.
-pub fn discover(root: &Path) -> io::Result<Vec<Change>> {
-    let changes_root = root.join("meta/changes");
-    if !changes_root.exists() {
+/// Returns an I/O error if `changes_dir` exists but cannot be read.
+pub fn discover(root: &Path, changes_dir: &Path) -> io::Result<Vec<Change>> {
+    if !changes_dir.exists() {
         return Ok(Vec::new());
     }
     let mut changes = Vec::new();
-    for entry in fs::read_dir(changes_root)? {
+    for entry in fs::read_dir(changes_dir)? {
         let entry = entry?;
         let file_type = entry.file_type()?;
         if !file_type.is_dir() {
@@ -108,9 +108,10 @@ pub fn load_change(root: &Path, path: PathBuf) -> Change {
 pub fn archive(
     root: &Path,
     blueprint_path: &Path,
+    changes_dir: &Path,
     change_id: &str,
 ) -> Result<ArchiveReport, String> {
-    let changes = discover(root).map_err(|error| error.to_string())?;
+    let changes = discover(root, changes_dir).map_err(|error| error.to_string())?;
     let Some(change) = changes.into_iter().find(|change| change.id == change_id) else {
         return Err(format!("change `{change_id}` was not found"));
     };
@@ -142,7 +143,7 @@ pub fn archive(
             .map_err(|restore| format!("archive failed: {error}; rollback failed: {restore}"))?;
         return Err(error);
     }
-    let archive_path = archive_path(root, &change.id);
+    let archive_path = archive_path(changes_dir, &change.id);
     if archive_path.exists() {
         restore_snapshots(&snapshots).map_err(|restore| {
             format!(

@@ -983,31 +983,31 @@
           "kind": "function",
           "signature": "pub fn active_changes_lines(changes: &[Change]) -> Vec<String>",
           "file": "src/changes/mod.rs",
-          "line": 330,
-          "end_line": 342
+          "line": 331,
+          "end_line": 343
         },
         {
           "name": "archive",
           "kind": "function",
-          "signature": "pub fn archive( root: &Path, blueprint_path: &Path, change_id: &str, ) -> Result<ArchiveReport, String>",
+          "signature": "pub fn archive( root: &Path, blueprint_path: &Path, changes_dir: &Path, change_id: &str, ) -> Result<ArchiveReport, String>",
           "file": "src/changes/mod.rs",
           "line": 108,
-          "end_line": 168
+          "end_line": 169
         },
         {
           "name": "create_rename_change",
           "kind": "function",
           "signature": "pub fn create_rename_change( root: &Path, blueprint_path: &Path, old_id: &str, new_id: &str, ) -> Result<Change, String>",
           "file": "src/changes/mod.rs",
-          "line": 176,
-          "end_line": 225
+          "line": 177,
+          "end_line": 226
         },
         {
           "name": "discover",
           "kind": "function",
-          "signature": "pub fn discover(root: &Path) -> io::Result<Vec<Change>>",
+          "signature": "pub fn discover(root: &Path, changes_dir: &Path) -> io::Result<Vec<Change>>",
           "file": "src/changes/mod.rs",
-          "line": 41,
+          "line": 42,
           "end_line": 64
         },
         {
@@ -1031,16 +1031,16 @@
           "kind": "function",
           "signature": "pub fn operation_summary(change: &Change) -> String",
           "file": "src/changes/mod.rs",
-          "line": 229,
-          "end_line": 258
+          "line": 230,
+          "end_line": 259
         },
         {
           "name": "operations_for_nodes",
           "kind": "function",
           "signature": "pub fn operations_for_nodes(changes: &[Change], nodes: &BTreeSet<String>) -> Vec<String>",
           "file": "src/changes/mod.rs",
-          "line": 262,
-          "end_line": 326
+          "line": 263,
+          "end_line": 327
         },
         {
           "name": "parse_blueprint_delta",
@@ -1306,8 +1306,8 @@
           "kind": "function",
           "signature": "pub fn build_export(file: &Path, changes_dir: &Path) -> Result<ExportEnvelope, CairnError>",
           "file": "src/cli/export/builder.rs",
-          "line": 34,
-          "end_line": 54
+          "line": 31,
+          "end_line": 51
         },
         {
           "name": "render_json",
@@ -1426,8 +1426,8 @@
           "kind": "function",
           "signature": "pub(crate) fn current_timestamp_rfc3339() -> String",
           "file": "src/cli/export/builder.rs",
-          "line": 197,
-          "end_line": 202
+          "line": 168,
+          "end_line": 173
         },
         {
           "name": "mermaid_id",
@@ -1490,16 +1490,16 @@
           "kind": "function",
           "signature": "pub(super) fn artefact_type_label(t: ArtefactType) -> &'static str",
           "file": "src/cli/export/builder.rs",
-          "line": 173,
-          "end_line": 182
+          "line": 144,
+          "end_line": 153
         },
         {
           "name": "artefact_type_order",
           "kind": "function",
           "signature": "pub(super) fn artefact_type_order(t: ArtefactType) -> u8",
           "file": "src/cli/export/builder.rs",
-          "line": 162,
-          "end_line": 171
+          "line": 133,
+          "end_line": 142
         },
         {
           "name": "node_kind_label",

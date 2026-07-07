@@ -214,7 +214,12 @@ mod init {
         );
 
         // Archiving applies the delta: the blueprint gains the discovered nodes.
-        let report = cairn::changes::archive(&root, &root.join("cairn.blueprint"), &change_id);
+        let report = cairn::changes::archive(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &change_id,
+        );
         assert!(report.is_ok(), "archive must succeed: {report:?}");
 
         let blueprint = fs::read_to_string(root.join("cairn.blueprint")).unwrap();
@@ -318,7 +323,12 @@ mod refine {
             "delta must use canonical headers: {delta}"
         );
 
-        let report = cairn::changes::archive(&root, &root.join("cairn.blueprint"), &change_id);
+        let report = cairn::changes::archive(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &change_id,
+        );
         assert!(report.is_ok(), "archive must succeed: {report:?}");
 
         let result = std::fs::read_to_string(root.join("cairn.blueprint")).unwrap();

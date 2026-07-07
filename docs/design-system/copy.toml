@@ -120,7 +120,7 @@ cta = ""
 
 [empty-states.cli-no-changes]
 heading = "No active changes"
-body = "No active changes under meta/changes/."
+body = "No active changes in the changes directory."
 cta = "Run `cairn change new <change-id>` to propose one."
 
 # -- Findings -----------------------------------------------------------

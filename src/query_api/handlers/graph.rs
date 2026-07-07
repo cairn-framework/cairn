@@ -21,6 +21,7 @@ pub(crate) fn count_findings(findings: &[crate::map::graph::Finding]) -> (usize,
 
 pub(crate) fn neighbourhood_json(
     root: &Path,
+    changes_dir: &Path,
     scan_result: &scanner::ScanResult,
     request: &QueryRequest,
 ) -> Result<Value, QueryError> {
@@ -77,7 +78,7 @@ pub(crate) fn neighbourhood_json(
         "reviews": reviews.iter().map(review_json).collect::<Vec<_>>(),
     });
     if request.has(QueryFlag::IncludeChanges) {
-        let changes = crate::changes::discover(root).unwrap_or_default();
+        let changes = crate::changes::discover(root, changes_dir).unwrap_or_default();
         data["active_changes"] = json!(crate::changes::operations_for_nodes(&changes, &node_ids));
     }
     let error_count = scan_result

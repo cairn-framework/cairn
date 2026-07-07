@@ -302,7 +302,7 @@ fn execute_data(
                 |node| Ok(node_json(&node.node)),
             )
         }
-        "neighbourhood" => neighbourhood_json(root, &scan_result, request),
+        "neighbourhood" => neighbourhood_json(root, changes_dir, &scan_result, request),
         "contract" => contract_json(&scan_result, required(request.node.as_ref(), "node")?),
         "docstring" => docstring_json(&scan_result, request),
         "files" => files_json(&scan_result, required(request.node.as_ref(), "node")?),
@@ -319,7 +319,7 @@ fn execute_data(
             let response = query::lint(&scan_result.graph);
             Ok(json!({ "findings": findings_json(&response.findings) }))
         }
-        "status" => Ok(status_json(root, &scan_result)),
+        "status" => Ok(status_json(root, changes_dir, &scan_result)),
         "context" => Ok(context_json(root, &scan_result, loaded_config)),
         "rationale" => rationale_json(&scan_result, required(request.node.as_ref(), "node")?),
         "todos" => todos_response_json(&scan_result, request),
