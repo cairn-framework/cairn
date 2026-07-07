@@ -7,6 +7,7 @@ created: 2026-07-06
 # Dedup format/util Helpers Against query_api/serialise
 
 Part of todo.simplify-architecture (wave 1). Depends on: nothing.
+Follow the shared rules in todo.simplify-architecture.
 
 `src/cli/format/util.rs:17-60` duplicates helpers that already exist in
 `src/query_api/serialise.rs`: `neighbourhood_ids`, `research_for_nodes`,

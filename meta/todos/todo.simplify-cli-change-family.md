@@ -9,6 +9,7 @@ created: 2026-07-06
 Part of todo.simplify-architecture (wave 2).
 Depends on: todo.simplify-cli-draft-family (establishes the subcommand
 pattern and its test/doc update recipe on a zero-risk family first).
+Follow the shared rules in todo.simplify-architecture.
 
 Six top-level names describe one lifecycle: `change`, `changes`, `show`,
 `archive`, `accept`, `rename`. Consolidate as:

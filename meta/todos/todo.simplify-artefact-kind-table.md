@@ -7,6 +7,7 @@ created: 2026-07-06
 # Data-Driven ArtefactKind Table Replaces Per-Type Code
 
 Part of todo.simplify-architecture (wave 1). Depends on: nothing.
+Follow the shared rules in todo.simplify-architecture.
 
 The frontmatter parser (`src/artefacts/frontmatter.rs`) is shared, but
 todo, decision, gap, research, source, and review each carry a bespoke

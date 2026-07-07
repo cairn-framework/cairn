@@ -10,6 +10,7 @@ Part of todo.simplify-architecture (wave 4, last).
 Depends on: todo.simplify-dedup-format-util and
 todo.simplify-cli-registry-table. Do this per command, measuring, not as
 a big bang.
+Follow the shared rules in todo.simplify-architecture.
 
 The CLI human path (`src/cli/mod.rs:328-483` dispatching into
 `src/cli/render/`) queries the engine directly, parallel to the
@@ -33,7 +34,10 @@ Scope discipline (this is the task where the estimate was corrected):
   it replaces, leave that command alone and note it here.
 
 Guards: CLI snapshot tests under `src/cli/snapshots`,
-`src/cli/render/project/tests.rs`, `tests/dogfood_gate.rs`.
+`src/cli/render/project/tests.rs`, and `scripts/dogfood.sh` (pre-push:
+`cairn lint` + `cairn hook all` against the working-tree binary).
+Note `tests/dogfood_gate.rs` only lints the dogfood script's text; it
+does not exercise renderers.
 
 Acceptance: migrated commands read only canonical JSON; human output
 unchanged (snapshots) or deliberately improved; net LOC reduction
