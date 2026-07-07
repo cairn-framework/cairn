@@ -45,8 +45,6 @@ pub mod report;
 pub mod scanner;
 /// POSIX SIGINT handling without Foundation/ObjC dependencies.
 pub mod signal;
-/// SSE event consumer for orchestrator integration spikes.
-pub mod sse;
 /// Pluggable state persistence backend.
 pub mod state;
 /// Suggested-edges queue: mutable triage workflows for AI-suggested graph edges.

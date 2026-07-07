@@ -21,11 +21,6 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
         contract "./meta/contracts/root.md"
     }
 
-    Module SSE "Minimal SSE consumer for Gas City integration" id "cairn.sse" {
-        path "./src/sse.rs"
-        contract "./meta/contracts/sse.md"
-    }
-
     Module State "Pluggable state persistence backend" id "cairn.state" {
         path "./src/state"
         contract "./meta/contracts/state.md"
