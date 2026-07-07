@@ -1,5 +1,5 @@
 //! Phase 8 Summariser: pluggable backends, draft store, and typed
-//! request/response for `cairn summarise`. The cairn library provides
+//! request/response for `cairn draft create`. The cairn library provides
 //! the framework; specific local_command and hosted backends land in
 //! future commits.
 
@@ -32,7 +32,7 @@ pub use store::{
 ///
 /// # Panics
 ///
-/// Panics if `draft_discard`, `draft_edit`, or `draft_accept` are not
+/// Panics if `draft discard`, `draft edit`, `draft accept`, or `draft create` are not
 /// present in the tool registry.
 pub fn assert_draft_tools_registered() {
     let names: std::collections::HashSet<_> = crate::query_api::registry()
@@ -40,16 +40,20 @@ pub fn assert_draft_tools_registered() {
         .map(|entry| entry.cli_name)
         .collect();
     assert!(
-        names.contains("draft_discard"),
-        "draft_discard must be registered"
+        names.contains("draft discard"),
+        "draft discard must be registered"
     );
     assert!(
-        names.contains("draft_edit"),
-        "draft_edit must be registered"
+        names.contains("draft edit"),
+        "draft edit must be registered"
     );
     assert!(
-        names.contains("draft_accept"),
-        "draft_accept must be registered"
+        names.contains("draft accept"),
+        "draft accept must be registered"
+    );
+    assert!(
+        names.contains("draft create"),
+        "draft create must be registered"
     );
 }
 
@@ -59,8 +63,9 @@ pub fn assert_draft_tools_registered() {
 ///
 /// # Panics
 ///
-/// Panics if `drafts` or `draft_show` are not read-only, or if
-/// `draft_discard`, `draft_edit`, or `draft_accept` are not mutating.
+/// Panics if `draft list` or `draft show` are not read-only, or if
+/// `draft discard`, `draft edit`, `draft accept`, or `draft create` are not
+/// mutating.
 pub fn assert_draft_tool_safety_classes() {
     use crate::query_api::SafetyClass;
     let readonly: std::collections::HashSet<_> = crate::query_api::visible_tools(false)
@@ -73,22 +78,29 @@ pub fn assert_draft_tool_safety_classes() {
         .map(|tool| tool.cli_name)
         .collect();
 
-    assert!(readonly.contains("drafts"), "drafts must be read-only");
     assert!(
-        readonly.contains("draft_show"),
-        "draft_show must be read-only"
+        readonly.contains("draft list"),
+        "draft list must be read-only"
     );
     assert!(
-        mutating.contains("draft_discard"),
-        "draft_discard must be mutating"
+        readonly.contains("draft show"),
+        "draft show must be read-only"
     );
     assert!(
-        mutating.contains("draft_edit"),
-        "draft_edit must be mutating"
+        mutating.contains("draft discard"),
+        "draft discard must be mutating"
     );
     assert!(
-        mutating.contains("draft_accept"),
-        "draft_accept must be mutating"
+        mutating.contains("draft edit"),
+        "draft edit must be mutating"
+    );
+    assert!(
+        mutating.contains("draft accept"),
+        "draft accept must be mutating"
+    );
+    assert!(
+        mutating.contains("draft create"),
+        "draft create must be mutating"
     );
 }
 

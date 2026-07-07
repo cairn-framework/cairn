@@ -85,11 +85,11 @@ pub(super) fn dispatch_change_tool(
         }
         "changes" => Some(discover_changes(root)),
         "show" => Some(show_change(root, request.change.as_ref())),
-        "drafts" => Some(list_drafts(root)),
-        "draft_show" => Some(show_draft(root, request.node.as_ref())),
-        "draft_discard" => Some(discard_draft(root, request.node.as_ref())),
-        "draft_edit" => Some(edit_draft(root, request.node.as_ref())),
-        "draft_accept" => Some(accept_draft(root, blueprint_path, request)),
+        "draft list" => Some(list_drafts(root)),
+        "draft show" => Some(show_draft(root, request.node.as_ref())),
+        "draft discard" => Some(discard_draft(root, request.node.as_ref())),
+        "draft edit" => Some(edit_draft(root, request.node.as_ref())),
+        "draft accept" => Some(accept_draft(root, blueprint_path, request)),
         _ => None,
     }
 }

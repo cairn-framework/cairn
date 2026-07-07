@@ -5,7 +5,7 @@
 //! request/response shapes, `DraftStore`, the typestate-tagged `Draft`
 //! variants, and `Conflict` semantics) run as plain `#[test]` and
 //! enforce their invariants on every `cargo test`. Tests that bind to
-//! the still-pending CLI surface (`cairn summarise`, `cairn draft
+//! the still-pending CLI surface (`cairn draft create`, `cairn draft
 //! accept/edit/discard`, MCP tool-registry filtering, contract
 //! validation + rollback) carry `#[cairn_planned(phase = 800)]` and
 //! stay skipped under `cargo test`; they fail with `unimplemented!`

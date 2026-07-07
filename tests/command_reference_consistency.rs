@@ -32,9 +32,18 @@ fn documented_commands() -> Vec<String> {
 
 /// Extracts CLI command names from the binary registry.
 fn registered_commands() -> Vec<String> {
+    const DRAFT_COMMANDS: &[&str] = &[
+        "draft list",
+        "draft show",
+        "draft edit",
+        "draft discard",
+        "draft accept",
+        "draft create",
+    ];
     let mut names: Vec<String> = cairn::cli::registry()
         .iter()
         .filter(|t| t.cli_name != "init_from_code")
+        .filter(|t| !DRAFT_COMMANDS.contains(&t.cli_name))
         .map(|t| t.cli_name.to_owned())
         .collect();
 
@@ -46,6 +55,7 @@ fn registered_commands() -> Vec<String> {
         "change",
         "decision",
         "check",
+        "draft",
         "export",
         "feedback",
         "gap",

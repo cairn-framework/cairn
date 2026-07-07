@@ -70,7 +70,7 @@ impl From<DraftTransitionError> for AcceptError {
 /// Accepts a draft by replacing its target contract with the generated text.
 ///
 /// When `edited` is `true`, reads the contract text from the editable file
-/// written by `draft_edit` instead of the draft's stored `draft_text`.
+/// written by `draft edit` instead of the draft's stored `draft_text`.
 ///
 /// # Errors
 ///

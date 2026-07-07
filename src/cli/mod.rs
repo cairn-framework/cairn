@@ -37,9 +37,9 @@ pub(crate) use crate::copy;
 
 use commands::{
     init_project, legacy_blueprint_warning, run_archive_command, run_change_new,
-    run_decision_command, run_feedback_command, run_gap_command, run_hook_command,
-    run_import_openspec, run_onboard_command, run_shared_json_command, run_todo_command,
-    run_ui_command, run_watch_command, run_workspace_command,
+    run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
+    run_hook_command, run_import_openspec, run_onboard_command, run_shared_json_command,
+    run_todo_command, run_ui_command, run_watch_command, run_workspace_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
@@ -303,6 +303,9 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     }
     let grep_decisions =
         parsed.command == "decisions" && parsed.command_args.iter().any(|arg| arg == "--grep");
+    if parsed.command == "draft" {
+        return run_draft_command(parsed, root, legacy_warning);
+    }
     if parsed.json && uses_shared_json(parsed.command.as_str()) && !grep_decisions {
         return run_shared_json_command(parsed, root, legacy_warning);
     }
@@ -352,8 +355,7 @@ fn render_loaded_project_command(
         "brief" => Ok(render_brief(parsed, root, scan_result)),
         "changes" => Ok(render_changes(root)),
         "show" => render_show(parsed, root),
-        "docstring" | "rename" | "drafts" | "draft_show" | "draft_discard" | "draft_edit"
-        | "draft_accept" | "summarise" => {
+        "docstring" | "rename" => {
             return err(2, "this command currently requires --json");
         }
         "contract" => node_arg(&parsed.command_args).and_then(|node| {
@@ -487,6 +489,7 @@ const EXTRA_CLI_COMMANDS: &[&str] = &[
     "change",
     "decision",
     "check",
+    "draft",
     "export",
     "feedback",
     "gap",
@@ -507,6 +510,9 @@ fn all_command_names() -> Vec<&'static str> {
     let mut names: Vec<&str> = registry()
         .iter()
         .filter(|t| !MCP_ONLY_TOOLS.contains(&t.cli_name))
+        // Compound cli_names (e.g. "draft list") are subcommands, not
+        // top-level commands.
+        .filter(|t| !t.cli_name.contains(' '))
         .map(|t| t.cli_name)
         .collect();
     for cmd in EXTRA_CLI_COMMANDS {
@@ -565,12 +571,7 @@ fn command_description(name: &str) -> &'static str {
         "show" => "Show details of a change",
         "sources" => "List sources linked to a node",
         "status" => "Show project status summary",
-        "summarise" => "Generate a contract summary for a node",
-        "drafts" => "List pending draft proposals",
-        "draft_show" => "Show a draft proposal",
-        "draft_discard" => "Discard a draft proposal",
-        "draft_edit" => "Open a draft in your editor",
-        "draft_accept" => "Accept a draft and apply it",
+        "draft" => "Manage draft proposals: list, show, edit, discard, accept, create",
         "todos" => "List todos linked to a node",
         "ui" => "Launch the web UI",
         "watch" => "Watch for finding changes and emit events",
@@ -670,12 +671,6 @@ fn uses_shared_json(command: &str) -> bool {
             | "hook"
             | "rename"
             | "context"
-            | "drafts"
-            | "draft_show"
-            | "draft_discard"
-            | "draft_edit"
-            | "draft_accept"
-            | "summarise"
             | "health"
             | "remediate"
     )
@@ -1163,7 +1158,7 @@ app.api -> app.core "reports"
     static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
     #[test]
-    fn test_cli_drafts_and_draft_show_json() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_cli_draft_list_and_show_json() -> Result<(), Box<dyn std::error::Error>> {
         use crate::summariser::{Draft, DraftHeader, DraftStore, PendingDraft};
 
         let root = temp_root("draft-commands")?;
@@ -1182,10 +1177,15 @@ app.api -> app.core "reports"
             },
         }))?;
 
-        let drafts = run_in(&root, &["--json", "drafts"]);
-        assert_eq!(drafts.code, 0, "drafts json stderr: {}", drafts.stderr);
-        let parsed: serde_json::Value = serde_json::from_str(drafts.stdout.trim())
-            .unwrap_or_else(|e| panic!("invalid JSON from drafts --json: {e}\n{}", drafts.stdout));
+        let drafts = run_in(&root, &["--json", "draft", "list"]);
+        assert_eq!(drafts.code, 0, "draft list json stderr: {}", drafts.stderr);
+        let parsed: serde_json::Value =
+            serde_json::from_str(drafts.stdout.trim()).unwrap_or_else(|e| {
+                panic!(
+                    "invalid JSON from draft list --json: {e}\n{}",
+                    drafts.stdout
+                )
+            });
         let draft_array = parsed
             .get("drafts")
             .and_then(|v| v.as_array())
@@ -1193,11 +1193,11 @@ app.api -> app.core "reports"
         assert_eq!(draft_array.len(), 1);
         assert_eq!(draft_array[0]["id"], "draft-001");
 
-        let show = run_in(&root, &["--json", "draft_show", "draft-001"]);
-        assert_eq!(show.code, 0, "draft_show json stderr: {}", show.stderr);
+        let show = run_in(&root, &["--json", "draft", "show", "draft-001"]);
+        assert_eq!(show.code, 0, "draft show json stderr: {}", show.stderr);
         let parsed: serde_json::Value =
             serde_json::from_str(show.stdout.trim()).unwrap_or_else(|e| {
-                panic!("invalid JSON from draft_show --json: {e}\n{}", show.stdout)
+                panic!("invalid JSON from draft show --json: {e}\n{}", show.stdout)
             });
         assert_eq!(parsed["id"], "draft-001");
         assert_eq!(parsed["status"], "pending");
@@ -1215,7 +1215,7 @@ app.api -> app.core "reports"
 
         let store = DraftStore::new(root.join(".cairn/state/summariser"));
 
-        // draft_discard
+        // draft discard
         store.write(&Draft::Pending(PendingDraft {
             header: DraftHeader {
                 id: "draft-001".to_owned(),
@@ -1227,23 +1227,23 @@ app.api -> app.core "reports"
                 metadata: None,
             },
         }))?;
-        let discard = run_in(&root, &["--json", "draft_discard", "draft-001"]);
+        let discard = run_in(&root, &["--json", "draft", "discard", "draft-001"]);
         assert_eq!(
             discard.code, 0,
-            "draft_discard json stderr: {}",
+            "draft discard json stderr: {}",
             discard.stderr
         );
         let parsed: serde_json::Value =
             serde_json::from_str(discard.stdout.trim()).unwrap_or_else(|e| {
                 panic!(
-                    "invalid JSON from draft_discard --json: {e}\n{}",
+                    "invalid JSON from draft discard --json: {e}\n{}",
                     discard.stdout
                 )
             });
         assert_eq!(parsed["id"], "draft-001");
         assert_eq!(parsed["status"], "discarded");
 
-        // draft_edit
+        // draft edit
         store.write(&Draft::Pending(PendingDraft {
             header: DraftHeader {
                 id: "draft-002".to_owned(),
@@ -1255,16 +1255,16 @@ app.api -> app.core "reports"
                 metadata: None,
             },
         }))?;
-        let edit = run_in(&root, &["--json", "draft_edit", "draft-002"]);
-        assert_eq!(edit.code, 0, "draft_edit json stderr: {}", edit.stderr);
+        let edit = run_in(&root, &["--json", "draft", "edit", "draft-002"]);
+        assert_eq!(edit.code, 0, "draft edit json stderr: {}", edit.stderr);
         let parsed: serde_json::Value =
             serde_json::from_str(edit.stdout.trim()).unwrap_or_else(|e| {
-                panic!("invalid JSON from draft_edit --json: {e}\n{}", edit.stdout)
+                panic!("invalid JSON from draft edit --json: {e}\n{}", edit.stdout)
             });
         assert_eq!(parsed["id"], "draft-002");
         assert_eq!(parsed["status"], "editable");
 
-        // draft_accept
+        // draft accept
         store.write(&Draft::Pending(PendingDraft {
             header: DraftHeader {
                 id: "draft-003".to_owned(),
@@ -1276,23 +1276,23 @@ app.api -> app.core "reports"
                 metadata: None,
             },
         }))?;
-        let accept = run_in(&root, &["--json", "draft_accept", "draft-003"]);
+        let accept = run_in(&root, &["--json", "draft", "accept", "draft-003"]);
         assert_eq!(
             accept.code, 0,
-            "draft_accept json stderr: {}",
+            "draft accept json stderr: {}",
             accept.stderr
         );
         let parsed: serde_json::Value =
             serde_json::from_str(accept.stdout.trim()).unwrap_or_else(|e| {
                 panic!(
-                    "invalid JSON from draft_accept --json: {e}\n{}",
+                    "invalid JSON from draft accept --json: {e}\n{}",
                     accept.stdout
                 )
             });
         assert_eq!(parsed["id"], "draft-003");
         assert_eq!(parsed["status"], "accepted");
 
-        // draft_accept --edited
+        // draft accept --edited
         store.write(&Draft::Pending(PendingDraft {
             header: DraftHeader {
                 id: "draft-004".to_owned(),
@@ -1309,16 +1309,19 @@ app.api -> app.core "reports"
             store.editable_path("draft-004", "contract"),
             "---\nnode: app.api\n---\n# Edited Draft",
         )?;
-        let accept_edited = run_in(&root, &["--json", "draft_accept", "draft-004", "--edited"]);
+        let accept_edited = run_in(
+            &root,
+            &["--json", "draft", "accept", "draft-004", "--edited"],
+        );
         assert_eq!(
             accept_edited.code, 0,
-            "draft_accept --edited json stderr: {}",
+            "draft accept --edited json stderr: {}",
             accept_edited.stderr
         );
         let parsed: serde_json::Value = serde_json::from_str(accept_edited.stdout.trim())
             .unwrap_or_else(|e| {
                 panic!(
-                    "invalid JSON from draft_accept --edited: {e}\n{}",
+                    "invalid JSON from draft accept --edited: {e}\n{}",
                     accept_edited.stdout
                 )
             });
@@ -1329,15 +1332,50 @@ app.api -> app.core "reports"
     }
 
     #[test]
-    fn test_cli_summarise_disabled_by_default() -> Result<(), Box<dyn std::error::Error>> {
-        let root = temp_root("summarise-disabled")?;
+    fn test_cli_old_draft_spellings_rejected() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("old-draft-spellings")?;
         write_project(&root)?;
 
-        let result = run_in(&root, &["--json", "summarise", "app.api"]);
-        assert_eq!(result.code, 1, "summarise json stderr: {}", result.stderr);
+        for old in [
+            "drafts",
+            "draft_show",
+            "draft_edit",
+            "draft_discard",
+            "draft_accept",
+            "summarise",
+        ] {
+            let result = run_in(&root, &["--json", old]);
+            assert_eq!(
+                result.code, 2,
+                "old spelling `{old}` should fail with exit code 2"
+            );
+            assert!(
+                result.stderr.contains("unknown command"),
+                "old spelling `{old}` should produce unknown command error: {}",
+                result.stderr
+            );
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_draft_create_disabled_by_default() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("draft-create-disabled")?;
+        write_project(&root)?;
+
+        let result = run_in(&root, &["--json", "draft", "create", "app.api"]);
+        assert_eq!(
+            result.code, 1,
+            "draft create json stderr: {}",
+            result.stderr
+        );
         let parsed: serde_json::Value =
             serde_json::from_str(result.stdout.trim()).unwrap_or_else(|e| {
-                panic!("invalid JSON from summarise --json: {e}\n{}", result.stdout)
+                panic!(
+                    "invalid JSON from draft create --json: {e}\n{}",
+                    result.stdout
+                )
             });
         assert_eq!(parsed["error"]["code"], "CAIRN_SUMMARISER_DISABLED");
 

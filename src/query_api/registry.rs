@@ -230,42 +230,42 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 39] = [
         SafetyClass::Mutating,
     ),
     tool(
-        "drafts",
+        "draft list",
         "cairn_drafts",
         "DraftsRequest",
         "DraftsResponse",
         SafetyClass::ReadOnly,
     ),
     tool(
-        "draft_show",
+        "draft show",
         "cairn_draft_show",
         "DraftShowRequest",
         "DraftShowResponse",
         SafetyClass::ReadOnly,
     ),
     tool(
-        "draft_discard",
+        "draft discard",
         "cairn_draft_discard",
         "DraftDiscardRequest",
         "DraftDiscardResponse",
         SafetyClass::Mutating,
     ),
     tool(
-        "draft_edit",
+        "draft edit",
         "cairn_draft_edit",
         "DraftEditRequest",
         "DraftEditResponse",
         SafetyClass::Mutating,
     ),
     tool(
-        "draft_accept",
+        "draft accept",
         "cairn_draft_accept",
         "DraftAcceptRequest",
         "DraftAcceptResponse",
         SafetyClass::Mutating,
     ),
     tool(
-        "summarise",
+        "draft create",
         "cairn_summarise",
         "SummariseRequest",
         "SummariseResponse",
@@ -322,63 +322,75 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_registry_contains_drafts() {
-        assert!(metadata_for_tool("drafts").is_some());
+    fn test_registry_contains_draft_list() {
+        assert!(metadata_for_tool("draft list").is_some());
         assert!(metadata_for_tool("cairn_drafts").is_some());
     }
 
     #[test]
     fn test_registry_contains_draft_show() {
-        assert!(metadata_for_tool("draft_show").is_some());
+        assert!(metadata_for_tool("draft show").is_some());
         assert!(metadata_for_tool("cairn_draft_show").is_some());
     }
 
     #[test]
-    fn test_drafts_is_readonly() {
-        assert!(is_readonly("drafts"));
-        assert!(!is_mutating("drafts"));
+    fn test_draft_list_is_readonly() {
+        assert!(is_readonly("draft list"));
+        assert!(!is_mutating("draft list"));
     }
 
     #[test]
     fn test_draft_show_is_readonly() {
-        assert!(is_readonly("draft_show"));
-        assert!(!is_mutating("draft_show"));
+        assert!(is_readonly("draft show"));
+        assert!(!is_mutating("draft show"));
     }
 
     #[test]
     fn test_registry_contains_draft_discard() {
-        assert!(metadata_for_tool("draft_discard").is_some());
+        assert!(metadata_for_tool("draft discard").is_some());
         assert!(metadata_for_tool("cairn_draft_discard").is_some());
     }
 
     #[test]
     fn test_draft_discard_is_mutating() {
-        assert!(!is_readonly("draft_discard"));
-        assert!(is_mutating("draft_discard"));
+        assert!(!is_readonly("draft discard"));
+        assert!(is_mutating("draft discard"));
     }
 
     #[test]
     fn test_registry_contains_draft_edit() {
-        assert!(metadata_for_tool("draft_edit").is_some());
+        assert!(metadata_for_tool("draft edit").is_some());
         assert!(metadata_for_tool("cairn_draft_edit").is_some());
     }
 
     #[test]
     fn test_draft_edit_is_mutating() {
-        assert!(!is_readonly("draft_edit"));
-        assert!(is_mutating("draft_edit"));
+        assert!(!is_readonly("draft edit"));
+        assert!(is_mutating("draft edit"));
     }
 
     #[test]
     fn test_registry_contains_draft_accept() {
-        assert!(metadata_for_tool("draft_accept").is_some());
+        assert!(metadata_for_tool("draft accept").is_some());
         assert!(metadata_for_tool("cairn_draft_accept").is_some());
     }
 
     #[test]
     fn test_draft_accept_is_mutating() {
-        assert!(!is_readonly("draft_accept"));
-        assert!(is_mutating("draft_accept"));
+        assert!(!is_readonly("draft accept"));
+        assert!(is_mutating("draft accept"));
+    }
+
+    #[test]
+    fn test_registry_contains_draft_create() {
+        assert!(metadata_for_tool("draft create").is_some());
+        assert!(metadata_for_tool("cairn_summarise").is_some());
+    }
+
+    #[test]
+    fn test_draft_create_is_mutating() {
+        assert!(!is_readonly("draft create"));
+        assert!(is_mutating("draft create"));
     }
 
     #[test]

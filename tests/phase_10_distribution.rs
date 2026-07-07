@@ -264,8 +264,8 @@ fn test_command_reference_doc_lists_all_commands() {
         doc.contains("cairn change new"),
         "command reference must mention cairn change new"
     );
-    // Verify draft and summarise commands (JSON-only).
-    for cmd in ["drafts", "draft_show", "summarise"] {
+    // Verify draft lifecycle commands (JSON-only).
+    for cmd in ["draft list", "draft show", "draft create"] {
         assert!(
             doc.contains(&format!("cairn {cmd}")),
             "command reference must mention cairn {cmd}"
@@ -284,11 +284,30 @@ fn test_command_reference_doc_lists_all_commands() {
 /// Scenario: Every registered CLI command has a non-empty description.
 #[test]
 fn test_every_registered_command_has_description() {
+    const DRAFT_COMMANDS: &[&str] = &[
+        "draft list",
+        "draft show",
+        "draft edit",
+        "draft discard",
+        "draft accept",
+        "draft create",
+    ];
     let registry = cairn::cli::registry();
     let result = cairn::cli::run(&["--help".to_owned()]);
     for tool in registry {
         // MCP-only tools are intentionally excluded from CLI help.
         if tool.mcp_name == "cairn_init_from_code" {
+            continue;
+        }
+        // The consolidated `draft` command exposes subcommands in help but the registry
+        // still lists each subcommand as a distinct tool with its own cli_name.
+        if DRAFT_COMMANDS.contains(&tool.cli_name) {
+            assert!(
+                result
+                    .stdout
+                    .contains("Manage draft proposals: list, show, edit, discard, accept, create"),
+                "help output must list the consolidated `draft` command with its subcommands"
+            );
             continue;
         }
         assert!(

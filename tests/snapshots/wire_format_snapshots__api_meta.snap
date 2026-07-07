@@ -197,37 +197,37 @@ expression: value
       "safety": "Mutating"
     },
     {
-      "name": "drafts",
+      "name": "draft list",
       "request": "DraftsRequest",
       "response": "DraftsResponse",
       "safety": "ReadOnly"
     },
     {
-      "name": "draft_show",
+      "name": "draft show",
       "request": "DraftShowRequest",
       "response": "DraftShowResponse",
       "safety": "ReadOnly"
     },
     {
-      "name": "draft_discard",
+      "name": "draft discard",
       "request": "DraftDiscardRequest",
       "response": "DraftDiscardResponse",
       "safety": "Mutating"
     },
     {
-      "name": "draft_edit",
+      "name": "draft edit",
       "request": "DraftEditRequest",
       "response": "DraftEditResponse",
       "safety": "Mutating"
     },
     {
-      "name": "draft_accept",
+      "name": "draft accept",
       "request": "DraftAcceptRequest",
       "response": "DraftAcceptResponse",
       "safety": "Mutating"
     },
     {
-      "name": "summarise",
+      "name": "draft create",
       "request": "SummariseRequest",
       "response": "SummariseResponse",
       "safety": "Mutating"

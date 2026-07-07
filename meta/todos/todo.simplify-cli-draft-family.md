@@ -1,7 +1,8 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-06
+resolved: 2026-07-07
 ---
 
 # Collapse draft_* Commands Into One draft Subcommand
@@ -49,3 +50,17 @@ Acceptance: `cairn --help` lists one `draft` command;
 and `cargo test` green; `cairn draft create <node>` and
 `cairn draft accept` exercise the summariser round trip on the demo
 project.
+
+## Resolution
+
+Implemented on 2026-07-07. The six top-level commands were collapsed
+into one `draft` command with subcommands `list`, `show`, `edit`,
+`discard`, `accept`, and `create`. Registry tool ids and MCP names
+were kept byte-stable; only the `cli_name` field changed. The
+`tests/snapshots/wire_format_snapshots__api_meta.snap` was updated
+deliberately because `/api/meta` exposes the new compound cli_names as
+a sanctioned schema change. The command-reference and
+integration-contract docs were updated to list the new compound
+spellings, and the guard tests in `tests/command_reference_consistency.rs`
+and `tests/phase_10_distribution.rs` were adjusted to treat the six
+draft-family tools as one `draft` entry for documentation/help purposes.

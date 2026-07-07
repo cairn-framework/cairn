@@ -6,7 +6,7 @@ node: cairn.summariser
 
 ## Purpose
 
-Phase-8 LLM-assisted summarisation backend for `cairn summarise`. Owns the
+Phase-8 LLM-assisted summarisation backend for `cairn draft create`. Owns the
 pluggable backend trait, the typed local-command request/response protocol, the
 prompt builder that grounds requests in live project state, the generation
 orchestrator, and the filesystem draft store with its accept workflow. The
