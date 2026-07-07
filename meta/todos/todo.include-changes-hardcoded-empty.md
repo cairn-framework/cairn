@@ -1,29 +1,23 @@
 ---
 node: cairn.kernel.query
-status: open
+status: done
 created: 2026-07-07
 ---
 
 # Include Changes Hardcoded Empty
 
-`--include-changes` still returns a hardcoded empty `active_changes` on the
+`--include-changes` returned a hardcoded empty `active_changes` on the
 neighbourhood surfaces: `src/query_api/handlers/graph.rs` `neighbourhood_json`
-(`data["active_changes"] = json!([])`) and the human branch of
-`src/cli/render/node.rs` `render_neighbourhood` ("Active changes:\nNone").
-Sibling of the `cairn status` fix (todo.status-active-changes-bug): unlike
-status, this needs `root` threaded into `neighbourhood_json`, and the list
-must be node-scoped to match the neighbourhood's other fields (decisions,
-todos, research), via `changes::operations_for_nodes(&changes, &node_ids)`,
-not the full `changes::discover` list.
+and the human branch of `src/cli/render/node.rs` `render_neighbourhood`.
 
-Also noted during the status fix: `render_status` and `render_node` carry
-dead `parsed.json` branches (shared-json commands route `--json` to
-`query_api` via `uses_shared_json`, `src/cli/mod.rs:307`), which still
-hardcode `"active_changes":[]`. Fold their removal into the simplify-cli
-cleanup family or delete alongside this fix.
+Fixed 2026-07-07: `root` threaded into both, list node-scoped via
+`changes::operations_for_nodes(&changes, &node_ids)` to match the
+neighbourhood's other fields (decisions, todos, research). The dead
+`parsed.json` branch in `render_neighbourhood` was deleted (shared-json
+commands route `--json` to `query_api` via `uses_shared_json`), taking the
+now-unused `cli/format` `reviews_json` with it. `render_status` and
+`render_node` still carry dead `parsed.json` branches; their removal stays
+with the simplify-cli cleanup family.
 
-Related gap (review finding, 2026-07-07): `changes::discover` hardcodes
-`meta/changes`, so `cairn --changes-dir <dir> status` (and `changes`,
-`show`) ignore the flag even though hook/health/remediate/archive respect
-it. If threading `root` into `neighbourhood_json`, consider threading
-`changes_dir` too, or into `discover` itself.
+The `--changes-dir` gap (`changes::discover` hardcodes `meta/changes`) is
+split out to todo.changes-dir-flag-ignored.

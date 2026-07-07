@@ -117,4 +117,4 @@ Edge divergence and docstring drift are also rationale tensions. A declared blue
 
 ## Neighbourhood Defaults
 
-`cairn neighbourhood <node>` includes contracts and accepted decisions by default. Todos, research, reviews, deprecated decisions, and active changes are opt-in with `--include-todos`, `--include-research`, `--include-reviews`, `--include-deprecated-decisions`, and `--include-changes`. Active changes remain empty until the change directory phase lands.
+`cairn neighbourhood <node>` includes contracts and accepted decisions by default. Todos, research, reviews, deprecated decisions, and active changes are opt-in with `--include-todos`, `--include-research`, `--include-reviews`, `--include-deprecated-decisions`, and `--include-changes`. With `--include-changes`, active changes are scoped to the node and its direct neighbours: only operations from `meta/changes/` proposals that touch a node in the neighbourhood are listed.

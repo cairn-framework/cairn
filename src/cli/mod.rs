@@ -335,7 +335,7 @@ fn render_loaded_project_command(
 ) -> CliResult {
     match parsed.command.as_str() {
         "get" => render_get(parsed, root, scan_result),
-        "neighbourhood" => render_neighbourhood(parsed, scan_result),
+        "neighbourhood" => render_neighbourhood(parsed, root, scan_result),
         "files" => render_files(parsed, scan_result),
         "symbols" => render_symbols(parsed, scan_result),
         "bundle" => render_bundle(parsed, scan_result),
