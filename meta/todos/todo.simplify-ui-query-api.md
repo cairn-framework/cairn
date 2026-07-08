@@ -44,3 +44,11 @@ Guards:
 Acceptance: both guards green, `src/ui` contains no JSON shape-building
 for data query_api can serve, `cairn ui` smoke-tested against a real
 project.
+
+## Status (2026-07-08)
+
+Strategy ratified: **Strategy B** (adopt `query_api` canonical wire). Decision
+recorded in `meta/decisions/dec.ui-query-api-strategy.md`; evidence in
+`meta/research/res.ui-query-api-wire-fork.md`. Implementation deferred to a
+later dev-loop session (this session is signing off). Scaffolded plan lives in
+`meta/changes/simplify-ui-query-api/`.
