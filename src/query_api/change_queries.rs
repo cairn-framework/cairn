@@ -58,7 +58,7 @@ pub(super) fn dispatch_change_tool(
                 return Some(Err(findings_error(&conflict_findings)));
             }
             Some(
-                changes::archive(root, blueprint_path, change)
+                changes::archive(root, blueprint_path, changes_dir, change)
                     .map(|report| {
                         json!({
                             "archive_path": report.archive_path.to_string_lossy(),
@@ -83,8 +83,8 @@ pub(super) fn dispatch_change_tool(
                     .map_err(command_error),
             )
         }
-        "changes" => Some(discover_changes(root)),
-        "show" => Some(show_change(root, request.change.as_ref())),
+        "changes" => Some(discover_changes(root, changes_dir)),
+        "show" => Some(show_change(root, changes_dir, request.change.as_ref())),
         "draft list" => Some(list_drafts(root)),
         "draft show" => Some(show_draft(root, request.node.as_ref())),
         "draft discard" => Some(discard_draft(root, request.node.as_ref())),
@@ -94,22 +94,26 @@ pub(super) fn dispatch_change_tool(
     }
 }
 
-pub(super) fn discover_changes(root: &Path) -> Result<Value, QueryError> {
-    let changes = changes::discover(root).map_err(|error| QueryError {
+pub(super) fn discover_changes(root: &Path, changes_dir: &Path) -> Result<Value, QueryError> {
+    let changes = changes::discover(root, changes_dir).map_err(|error| QueryError {
         code: "CAIRN_CHANGES_DISCOVERY_FAILED".to_owned(),
         message: error.to_string(),
-        source_span: Some(root.join("meta/changes").display().to_string()),
+        source_span: Some(changes_dir.display().to_string()),
         remediation: None,
     })?;
     Ok(json!({ "changes": changes.iter().map(change_json).collect::<Vec<_>>() }))
 }
 
-pub(super) fn show_change(root: &Path, change: Option<&String>) -> Result<Value, QueryError> {
+pub(super) fn show_change(
+    root: &Path,
+    changes_dir: &Path,
+    change: Option<&String>,
+) -> Result<Value, QueryError> {
     let change_id = required(change, "change")?;
-    let changes = changes::discover(root).map_err(|error| QueryError {
+    let changes = changes::discover(root, changes_dir).map_err(|error| QueryError {
         code: "CAIRN_CHANGES_DISCOVERY_FAILED".to_owned(),
         message: error.to_string(),
-        source_span: Some(root.join("meta/changes").display().to_string()),
+        source_span: Some(changes_dir.display().to_string()),
         remediation: None,
     })?;
     changes
@@ -119,7 +123,7 @@ pub(super) fn show_change(root: &Path, change: Option<&String>) -> Result<Value,
         .ok_or_else(|| QueryError {
             code: "CAIRN_CHANGE_NOT_FOUND".to_owned(),
             message: format!("change `{change_id}` was not found"),
-            source_span: Some(root.join("meta/changes").display().to_string()),
+            source_span: Some(changes_dir.display().to_string()),
             remediation: None,
         })
 }

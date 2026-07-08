@@ -9,10 +9,10 @@
 use super::super::*;
 
 /// Renders `cairn changes`: one line per active change directory under
-/// `meta/changes/`. Mirrors `changes::active_changes_lines`, used for
-/// generated `map.md`.
-pub(crate) fn render_changes(root: &Path) -> String {
-    match crate::changes::discover(root) {
+/// the resolved changes dir. Mirrors `changes::active_changes_lines`, used
+/// for generated `map.md`.
+pub(crate) fn render_changes(root: &Path, changes_dir: &Path) -> String {
+    match crate::changes::discover(root, changes_dir) {
         Ok(changes) if changes.is_empty() => {
             format!(
                 "{}\n{}\n",
@@ -39,13 +39,14 @@ pub(crate) fn render_show(parsed: &ParsedArgs, root: &Path) -> Result<String, Fi
         target: None,
         path: None,
     })?;
-    let changes = crate::changes::discover(root).map_err(|error| Finding {
+    let changes_dir = root.join(&parsed.changes_dir);
+    let changes = crate::changes::discover(root, &changes_dir).map_err(|error| Finding {
         code: "CAIRN_CHANGES_DISCOVERY_FAILED".to_owned(),
         severity: FindingSeverity::Error,
         message: error.to_string(),
         node: None,
         target: None,
-        path: Some(root.join("meta/changes").display().to_string()),
+        path: Some(changes_dir.display().to_string()),
     })?;
     let change = changes
         .iter()
@@ -56,7 +57,7 @@ pub(crate) fn render_show(parsed: &ParsedArgs, root: &Path) -> Result<String, Fi
             message: format!("change `{change_id}` was not found"),
             node: None,
             target: None,
-            path: Some(root.join("meta/changes").display().to_string()),
+            path: Some(changes_dir.display().to_string()),
         })?;
     let mut out = vec![
         format!("Change: {} ({})", change.id, change.title),
@@ -105,7 +106,7 @@ mod tests {
     #[test]
     fn test_render_changes_empty_uses_copy_lookup() {
         let dir = tmpdir("empty");
-        let out = render_changes(&dir);
+        let out = render_changes(&dir, &dir.join("meta/changes"));
         assert_eq!(
             out,
             format!(
@@ -128,7 +129,7 @@ mod tests {
         )
         .unwrap();
         std::fs::write(change_dir.join("design.md"), "# Design\n").unwrap();
-        let out = render_changes(&dir);
+        let out = render_changes(&dir, &dir.join("meta/changes"));
         assert!(out.contains("my-change"), "{out}");
         let _ = std::fs::remove_dir_all(&dir);
     }
@@ -198,7 +199,7 @@ mod tests {
         // fail inside `crate::changes::discover`.
         std::fs::create_dir_all(dir.join("meta")).unwrap();
         std::fs::write(dir.join("meta/changes"), "not a directory").unwrap();
-        let out = render_changes(&dir);
+        let out = render_changes(&dir, &dir.join("meta/changes"));
         assert!(out.contains("failed to discover changes"), "{out}");
         let _ = std::fs::remove_dir_all(&dir);
     }

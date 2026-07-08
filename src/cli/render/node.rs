@@ -34,8 +34,12 @@ fn render_backlog_item(item: &crate::state::backlog::BacklogItem) -> String {
 }
 
 /// Node-scoped active-change operation lines for a neighbourhood.
-fn change_lines_for(root: &Path, node_ids: &std::collections::BTreeSet<String>) -> Vec<String> {
-    let changes = crate::changes::discover(root).unwrap_or_default();
+fn change_lines_for(
+    root: &Path,
+    changes_dir: &Path,
+    node_ids: &std::collections::BTreeSet<String>,
+) -> Vec<String> {
+    let changes = crate::changes::discover(root, changes_dir).unwrap_or_default();
     crate::changes::operations_for_nodes(&changes, node_ids)
 }
 
@@ -114,7 +118,11 @@ pub(crate) fn render_neighbourhood(
             let active_changes = if include_changes {
                 format!(
                     "\nActive changes:\n{}",
-                    lines(&change_lines_for(root, &node_ids))
+                    lines(&change_lines_for(
+                        root,
+                        &root.join(&parsed.changes_dir),
+                        &node_ids
+                    ))
                 )
             } else {
                 String::new()

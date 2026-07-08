@@ -353,7 +353,7 @@ fn render_loaded_project_command(
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
         "next" => Ok(render_next(parsed, root, scan_result)),
         "brief" => Ok(render_brief(parsed, root, scan_result)),
-        "changes" => Ok(render_changes(root)),
+        "changes" => Ok(render_changes(root, &root.join(&parsed.changes_dir))),
         "show" => render_show(parsed, root),
         "docstring" | "rename" => {
             return err(2, "this command currently requires --json");

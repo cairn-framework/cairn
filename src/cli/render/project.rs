@@ -157,7 +157,8 @@ pub(crate) fn render_status(
                 .map_or_else(|| "null".to_owned(), |value| format!("\"{}\"", esc(value)))
         )
     } else {
-        let active_changes = crate::changes::discover(root).unwrap_or_default();
+        let active_changes =
+            crate::changes::discover(root, &root.join(&parsed.changes_dir)).unwrap_or_default();
         let active_lines = lines(&crate::changes::active_changes_lines(&active_changes));
         format!(
             "Status:\nActive changes:\n{}\nOpen todos:\n{}\nRecent log entries:\n{}\nNext recommended:\n{}\n",

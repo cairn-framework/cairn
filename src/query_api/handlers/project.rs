@@ -5,7 +5,11 @@ use super::super::serialise::*;
 use super::super::*;
 use super::graph::count_findings;
 
-pub(crate) fn status_json(root: &Path, scan_result: &scanner::ScanResult) -> Value {
+pub(crate) fn status_json(
+    root: &Path,
+    changes_dir: &Path,
+    scan_result: &scanner::ScanResult,
+) -> Value {
     let open = scan_result
         .artefacts
         .todos
@@ -27,7 +31,7 @@ pub(crate) fn status_json(root: &Path, scan_result: &scanner::ScanResult) -> Val
     let next_recommended = crate::state::backlog::ready(&backlog)
         .first()
         .map_or(Value::Null, |top| top.to_json());
-    let active_changes = crate::changes::discover(root)
+    let active_changes = crate::changes::discover(root, changes_dir)
         .unwrap_or_default()
         .iter()
         .map(|change| {

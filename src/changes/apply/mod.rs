@@ -243,8 +243,9 @@ pub(super) fn strip_change_frontmatter(source: &str) -> String {
     format!("{}\n", output.join("\n"))
 }
 
-pub(super) fn archive_path(root: &Path, change_id: &str) -> PathBuf {
-    root.join("meta/changes/archive")
+pub(super) fn archive_path(changes_dir: &Path, change_id: &str) -> PathBuf {
+    changes_dir
+        .join("archive")
         .join(format!("{}-{change_id}", today_utc()))
 }
 

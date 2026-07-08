@@ -20,7 +20,7 @@ pub(crate) fn run_archive_command(
             stderr: legacy_warning,
         };
     }
-    match crate::changes::archive(root, parsed.file.as_path(), change_id) {
+    match crate::changes::archive(root, parsed.file.as_path(), &changes_dir, change_id) {
         Ok(report) => {
             let stdout = if parsed.json {
                 format!(
