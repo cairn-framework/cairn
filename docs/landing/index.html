@@ -1271,16 +1271,16 @@ applyState();
 
   <style>
     .kofi-fixed {
-      position: fixed; left: 1.5rem; bottom: 1.5rem; z-index: 9999;
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      font-family: var(--font-sans); font-weight: 600; font-size: 0.9rem;
-      text-decoration: none; padding: 0.7rem 1.1rem;
-      background: #d47854; color: #f3ecdd; border-radius: var(--r-stone);
-      border: 1px solid #b9603f; box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      position: fixed; left: var(--s-5); bottom: var(--s-5); z-index: 9999;
+      display: inline-flex; align-items: center; gap: var(--s-2);
+      font-family: var(--font-sans); font-weight: 600; font-size: var(--t-body);
+      text-decoration: none; padding: var(--s-3) var(--s-4);
+      background: var(--drift); color: var(--paper-0); border-radius: var(--r-stone);
+      border: 1px solid var(--block); box-shadow: 0 6px 20px rgba(0,0,0,0.35);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .kofi-fixed:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,0.45); }
-    @media (max-width: 520px) { .kofi-fixed { font-size: 0.82rem; padding: 0.6rem 0.9rem; left: 0.9rem; bottom: 0.9rem; } }
+    @media (max-width: 520px) { .kofi-fixed { font-size: var(--t-small); padding: var(--s-2) var(--s-3); left: var(--s-3); bottom: var(--s-3); } }
   </style>
   <a class="kofi-fixed" href="https://ko-fi.com/george_builds" target="_blank" rel="noopener">☕ Buy me a coffee</a>
 </body>
