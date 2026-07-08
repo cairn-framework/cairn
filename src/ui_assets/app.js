@@ -1251,7 +1251,7 @@
         <div class="hinge-diagram">
           <div class="hinge-side prov">
             <div class="side-label">Provenance. evidence in</div>
-            ${informedBy.length ? informedBy.map((r) => html`<div class="hinge-item" key=${r}><span class="n">·</span>${r}</div>`) : html`<div class="hinge-item muted"><span class="n">·</span>no sources recorded</div>`}
+            ${informedBy.length ? informedBy.map((r) => html`<div class="hinge-item" key=${r}><span class="n">·</span>${r}</div>`) : html`<div class="hinge-item gap-missing"><span class="n">·</span>no sources recorded</div>`}
           </div>
           <div class="hinge-axis">
             <div class="rod"></div>
