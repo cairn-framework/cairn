@@ -326,15 +326,15 @@ mod explorer {
             "severity bucket container must exist"
         );
         assert!(
-            js.contains(r#""pill ghost""#)
+            js.contains(r#""pill drift""#)
                 && js.contains(r#""pill orphaned""#)
-                && js.contains(r#""pill info""#),
+                && js.contains(r#""pill settled""#),
             "all three severity pill variants must be rendered"
         );
     }
 
     /// Scenario: a ghost wire state renders as a calm "planned" affordance,
-    /// kept distinct from the finding/severity axis (ghost-red stays for errors).
+    /// kept distinct from the finding/severity axis (error now routes via --drift).
     #[test]
     fn test_explorer__ghost_renders_as_planned_display_state() {
         let js = include_str!("../src/ui_assets/app.js");
@@ -357,10 +357,11 @@ mod explorer {
             js.contains("var(--planned)"),
             "planned state must paint with the --planned token"
         );
-        // The severity axis is untouched: error findings still paint ghost-red.
+        // The severity axis routes error findings through --drift, kept distinct
+        // from the reconciliation --ghost/--planned state (bet B: de-overload amber).
         assert!(
-            js.contains(r#"findingSeverity === "error" ? "var(--ghost)""#),
-            "finding-severity axis must remain ghost-red for errors"
+            js.contains(r#"findingSeverity === "error" ? "var(--drift)""#),
+            "finding-severity error must route through --drift (distinct from reconciliation --ghost)"
         );
     }
 

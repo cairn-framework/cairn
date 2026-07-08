@@ -990,6 +990,24 @@ kbd {
 .pill.orphaned .dot {
   background: var(--orphaned);
 }
+.pill.drift {
+  color: var(--drift);
+  background: var(--drift-wash);
+}
+.pill.settled {
+  color: var(--settled);
+  background: var(--settled-wash);
+}
+.recent-row.sev-error {
+  border-left-color: var(--drift);
+  font-weight: 600;
+}
+.recent-row.sev-warning {
+  border-left-color: var(--orphaned);
+}
+.recent-row.sev-info {
+  border-left-color: var(--settled);
+}
 
 .pill.planned {
   border-color: var(--planned);
@@ -1650,16 +1668,17 @@ button.path-row:hover {
 }
 
 .recent-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: var(--s-3);
-  padding: var(--s-3) 0;
-  text-align: left;
+  gap: var(--s-2);
+  padding: var(--s-2);
+  border-left: 3px solid transparent;
   border-top: 1px solid var(--seam-faint);
-  color: var(--ink-aged);
   width: 100%;
-  background: transparent;
-  transition: color var(--dur-quick) var(--ease-settle);
+  text-align: left;
+  color: var(--ink-char);
+  cursor: pointer;
 }
 
 .recent-row:last-child {
@@ -2014,7 +2033,7 @@ button.path-row:hover {
   background: var(--stone-2);
 }
 .prose-nudge.error {
-  border-left-color: var(--ghost);
+  border-left: 2px solid var(--drift);
 }
 .prose-nudge.warning {
   border-left-color: var(--orphaned);

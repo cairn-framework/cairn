@@ -509,7 +509,7 @@
 
   function SystemNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     const d = node.data;
-    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
+    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
     return html`
       <g class=${clsx("canvas-node", dimmed && "dimmed")}
          transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
@@ -532,7 +532,7 @@
 
   function ContainerNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     const d = node.data;
-    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
+    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
     return html`
       <g class=${clsx("canvas-node", dimmed && "dimmed")}
          transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
@@ -559,7 +559,7 @@
     const base = displayState(recon);
     const breath = findingSeverity === "error" || findingSeverity === "warning" || base === "orphaned";
     const statusColor = base === "planned" ? "var(--planned)" : base === "orphaned" ? "var(--orphaned)" : "var(--synced)";
-    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : base === "planned" ? "var(--planned)" : base === "orphaned" ? "var(--orphaned)" : "var(--seam-thin)";
+    const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : base === "planned" ? "var(--planned)" : base === "orphaned" ? "var(--orphaned)" : "var(--seam-thin)";
 
     const counts = node.counts || { provenance: 0, authority: 0, decisions: 0, contracts: 0 };
     const provStrength = Math.max(0.15, balanceFromCount(counts.provenance) / 5);
@@ -599,7 +599,7 @@
         ${
           findingSeverity
             ? html`<rect x=${node.width - 10} y="8" width="6" height="6" rx="1.5"
-                fill=${findingSeverity === "error" ? "var(--ghost)" : findingSeverity === "warning" ? "var(--orphaned)" : "var(--settled)"}/>`
+                fill=${findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : "var(--settled)"}/>`
             : null
         }
         <text x="14" y="46" font-size="17" font-family="var(--font-serif)"
@@ -962,11 +962,11 @@
   }
 
   // Maps a finding severity string to the pill modifier class.
-  // error -> ghost (warm-red), warning -> orphaned (weathered), info -> info (mossy-green).
+  // error -> drift (warm-red signal), warning -> orphaned (weathered), info -> settled (mossy-green).
   function severityPill(severity) {
-    if (severity === "error") return "ghost";
+    if (severity === "error") return "drift";
     if (severity === "warning") return "orphaned";
-    return "info";
+    return "settled";
   }
   // Computes a map of node-id -> highest severity finding for that node.
   // Structural errors, interface contradictions, rationale tensions, and
@@ -1334,7 +1334,7 @@
               <div class="recent-list">
                 ${lint.findings.slice(0, 5).map(
                   (f) => html`
-                  <button class="recent-row" key=${f.code + (f.node || "") + (f.path || "")}
+                  <button class=${clsx("recent-row", `sev-${f.severity}`)} key=${f.code + (f.node || "") + (f.path || "")}
                     onClick=${() => f.node && onSelect(f.node)}>
                     <span class="r-id">${f.code}</span>
                     <span class="recent-title">${f.message}</span>
@@ -1402,9 +1402,9 @@
         <div class="findings-header">
           <button class="btn-text" onClick=${onBack}>← Map</button>
           <div class="findings-buckets">
-            <span class="pill ghost"><span class="dot"></span>${buckets.error} error</span>
+            <span class="pill drift"><span class="dot"></span>${buckets.error} error</span>
             <span class="pill orphaned"><span class="dot"></span>${buckets.warning} warn</span>
-            <span class="pill info"><span class="dot"></span>${buckets.info} info</span>
+            <span class="pill settled"><span class="dot"></span>${buckets.info} info</span>
           </div>
         </div>
 
@@ -1439,7 +1439,7 @@
               ? html`<div class="row-empty">${(scope !== "map" || activeCategory) && scopeFiltered.length > 0 ? copy("empty-states.no-filter-matches.body") : copy("empty-states.map-clean.body")}</div>`
               : findings.map(
                   (f) => html`
-                <button class="recent-row" key=${f.code + (f.node || "") + (f.path || "")}
+                <button class=${clsx("recent-row", `sev-${f.severity}`)} key=${f.code + (f.node || "") + (f.path || "")}
                   onClick=${() => f.node && onSelect(f.node)}>
                   <span class="r-id">${f.code}</span>
                   <span class="recent-title">${f.message}</span>
