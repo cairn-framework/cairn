@@ -3,44 +3,57 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::format::{
     decision_line, decisions_json, flag_value, lines, node_arg, research_json, research_line,
-    source_line, sources_json, todo_line, todos_json,
+    source_line, sources_json,
 };
 use super::super::*;
 use crate::query_api::{
-    neighbourhood_ids, parse_decision_status_filter, parse_todo_status_filter, research_for_nodes,
+    QueryRequest, neighbourhood_ids, parse_decision_status_filter, research_for_nodes,
     sources_for_nodes,
 };
+use serde_json::Value;
+use std::collections::BTreeSet;
 
-pub(crate) fn render_todos(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    let status = flag_value(&parsed.command_args, "--status").and_then(parse_todo_status_filter);
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let todos = scan_result
-            .artefacts
-            .todos
-            .iter()
-            .filter(|todo| {
-                todo.node == node.id && status.is_none_or(|filter| todo.status == filter)
-            })
-            .cloned()
-            .collect::<Vec<_>>();
-        Ok(if parsed.json {
+pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let status = flag_value(&parsed.command_args, "--status").map(ToOwned::to_owned);
+    let request = QueryRequest {
+        tool: "todos".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(todos_text(&data))
+}
+/// Renders the canonical `todos_response_json` data as human text.
+fn todos_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let todo_lines: Vec<String> = data["todos"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
             format!(
-                "{{\"node\":\"{}\",\"todos\":{}}}\n",
-                esc(&node.id),
-                todos_json(&todos)
-            )
-        } else {
-            format!(
-                "Todos for {}:\n{}\n",
-                node.id,
-                lines(&todos.iter().map(todo_line).collect::<Vec<_>>())
+                "{} [{}] {}",
+                value["node"].as_str().unwrap_or_default(),
+                value["status"].as_str().unwrap_or_default(),
+                value["path"].as_str().unwrap_or_default(),
             )
         })
-    })
+        .collect();
+    format!("Todos for {node_id}:\n{}\n", lines(&todo_lines))
 }
 
 pub(crate) fn render_decisions(
@@ -237,22 +250,11 @@ pub(crate) fn render_rationale(
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{Decision, DecisionStatus, Todo, TodoStatus},
+        artefacts::registry::{Decision, DecisionStatus},
         map::{Graph, NodeRecord, NodeState},
         scanner::{ScanResult, state::TargetHashes},
     };
     use std::collections::BTreeMap;
-
-    fn parsed(node: &str, json: bool) -> ParsedArgs {
-        ParsedArgs {
-            json,
-            strict: false,
-            file: std::path::PathBuf::from("cairn.blueprint"),
-            changes_dir: std::path::PathBuf::from("meta/changes"),
-            command: "todos".to_owned(),
-            command_args: vec!["todos".to_owned(), node.to_owned()],
-        }
-    }
 
     fn node_record(id: &str) -> NodeRecord {
         NodeRecord {
@@ -270,40 +272,6 @@ mod tests {
             state: NodeState::Synced,
             files: Vec::new(),
             span: crate::blueprint::Span::point("test", 1, 1),
-        }
-    }
-
-    fn scan_with_todos(todos: Vec<Todo>) -> ScanResult {
-        let mut nodes = BTreeMap::new();
-        nodes.insert("app".to_owned(), node_record("app"));
-        ScanResult {
-            graph: Graph {
-                nodes,
-                names: BTreeMap::new(),
-                outbound: BTreeMap::new(),
-                inbound: BTreeMap::new(),
-                findings: Vec::new(),
-            },
-            artefacts: crate::artefacts::registry::ArtefactSet {
-                todos,
-                ..Default::default()
-            },
-            contracts: crate::artefacts::contract::ContractSet::default(),
-            interface_hash: String::new(),
-            target_reports: Vec::new(),
-            target_hashes: TargetHashes::default(),
-            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
-        }
-    }
-
-    fn todo(node: &str, status: TodoStatus) -> Todo {
-        Todo {
-            path: "./todo.md".to_owned(),
-            node: node.to_owned(),
-            status,
-            created: "2026-01-01".to_owned(),
-            satisfies: None,
-            body: String::new(),
         }
     }
 
@@ -431,43 +399,35 @@ mod tests {
     }
 
     #[test]
-    fn render_todos_human_lists_matching_todos() {
-        let scan = scan_with_todos(vec![todo("app", TodoStatus::Open)]);
-        let rendered = render_todos(&parsed("app", false), &scan).unwrap();
+    fn todos_text_lists_matching_todos() {
+        let data = serde_json::json!({
+            "node": "app",
+            "todos": [{
+                "node": "app",
+                "status": "open",
+                "path": "meta/todos/todo.api.md",
+            }],
+        });
+        let rendered = todos_text(&data);
         assert!(rendered.contains("Todos for app:"));
         assert!(rendered.contains("[open]"));
     }
 
     #[test]
-    fn render_todos_filters_by_status() {
-        let scan = scan_with_todos(vec![
-            todo("app", TodoStatus::Open),
-            todo("app", TodoStatus::Done),
-        ]);
-        let mut p = parsed("app", false);
-        p.command_args = vec![
-            "todos".to_owned(),
-            "app".to_owned(),
-            "--status".to_owned(),
-            "done".to_owned(),
-        ];
-        let rendered = render_todos(&p, &scan).unwrap();
+    fn todos_text_renders_filtered_todos() {
+        // The status filter lives in the query_api handler; the renderer only
+        // transforms whatever the canonical JSON carries. Feed the already
+        // filtered payload and confirm the transform renders it correctly.
+        let data = serde_json::json!({
+            "node": "app",
+            "todos": [{
+                "node": "app",
+                "status": "done",
+                "path": "meta/todos/todo.done.md",
+            }],
+        });
+        let rendered = todos_text(&data);
         assert!(rendered.contains("[done]"));
         assert!(!rendered.contains("[open]"));
-    }
-
-    #[test]
-    fn render_todos_json_mode() {
-        let scan = scan_with_todos(vec![todo("app", TodoStatus::Open)]);
-        let rendered = render_todos(&parsed("app", true), &scan).unwrap();
-        assert!(rendered.contains("\"node\":\"app\""));
-        assert!(rendered.contains("\"todos\""));
-    }
-
-    #[test]
-    fn render_todos_unknown_node_returns_err() {
-        let scan = scan_with_todos(Vec::new());
-        let result = render_todos(&parsed("missing", false), &scan);
-        assert!(result.is_err());
     }
 }

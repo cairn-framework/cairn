@@ -439,7 +439,7 @@ fn render_loaded_project_command(
         "files" => render_files(parsed, scan_result),
         "bundle" => render_bundle(parsed, scan_result),
         "gap" => return run_gap_command(parsed, root, scan_result),
-        "todos" => render_todos(parsed, scan_result),
+        "todos" => render_todos(parsed, root),
         "decisions" => render_decisions(parsed, scan_result),
         "research" => render_research(parsed, scan_result),
         "sources" => render_sources(parsed, scan_result),
