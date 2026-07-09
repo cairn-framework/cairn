@@ -32,14 +32,14 @@ the graph is the source of truth.
 
 ```bash
 cairn status              # project summary: nodes, findings, backlog. Start here.
-cairn changes             # active change proposals.
+cairn change list         # active change proposals.
 cairn frontier            # buildable-now ghost nodes vs blocked, tiered by dependency depth.
 cairn decisions <node>    # provenance chain for a node.
 cairn research <node>     # research linked to a node.
 cairn sources <node>      # external material a node cites.
 ```
 
-If asked "what's next", start with `cairn status` and `cairn changes`, then
+If asked "what's next", start with `cairn status` and `cairn change list`, then
 `cairn frontier` for buildable-now ghost nodes, then your issue tracker. Any
 file under `docs/` or `archive/` is secondary context, never current state.
 

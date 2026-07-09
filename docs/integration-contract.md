@@ -71,8 +71,8 @@ Error responses from the MCP/query path:
 | `decisions <node>` | `cairn_decisions` | Decision artefacts linked to the node |
 | `research <node>` | `cairn_research` | Research artefacts linked to the node |
 | `sources <node>` | `cairn_sources` | Source artefacts linked to the node |
-| `changes` | `cairn_changes` | Active change directories |
-| `show <change>` | `cairn_show_change` | Change details (proposal, delta, contracts) |
+| `change list` | `cairn_changes` | Active change directories |
+| `change show <change>` | `cairn_show_change` | Change details (proposal, delta, contracts) |
 | `context` | `cairn_context` | Full structured project overview |
 | `docstring <node>` | `cairn_docstring` | Generate a docstring for a node |
 | `export` | `cairn_export` | Export project data (JSON or Markdown) |
@@ -87,7 +87,8 @@ Error responses from the MCP/query path:
 |---|---|---|
 | `scan` | `cairn_scan` | Re-scan project, update interface hashes |
 | `rename <old> <new>` | `cairn_rename` | Rename a node ID across all files |
-| `archive <change>` | `cairn_archive` | Archive a completed change |
+| `change archive <change>` | `cairn_archive` | Archive a completed change |
+| `change new <id>` | — | Scaffold a new change directory |
 | `init` | `cairn_init` | Scaffold new cairn project |
 | `init --from-code` | `cairn_init_from_code` | Brownfield extraction from existing code |
 | `refine` | `cairn_refine` | Re-run brownfield discovery |
@@ -112,7 +113,7 @@ Error responses from the MCP/query path:
 | CLI | Purpose | Exit semantics |
 |---|---|---|
 | `hook <kind>` | Pre-commit gate | Exit 0 = pass, Exit 1 = blocked |
-| `accept [<change>]` | Full verification battery | JSON: `data.gate_outcome` = passed/failed/blocked |
+| `change accept [<change>]` | Full verification battery | JSON: `data.gate_outcome` = passed/failed/blocked |
 | `check [<node>]` | Non-blocking inspection | Always reports, never blocks |
 
 ## Hook kinds

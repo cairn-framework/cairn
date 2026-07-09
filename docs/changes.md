@@ -85,7 +85,7 @@ During archive, Cairn strips `operation` and `renamed_from` before writing artef
 
 ## Archive Guarantees
 
-`cairn archive <change-id>` validates references against current truth, snapshots every file it will mutate, applies operations in this order, and rolls back on failure:
+`cairn change archive <change-id>` validates references against current truth, snapshots every file it will mutate, applies operations in this order, and rolls back on failure:
 
 1. Renamed
 2. Removed
@@ -96,11 +96,11 @@ After applying the delta, Cairn runs a validation scan while the change is still
 
 ## Rename Workflow
 
-`cairn rename <old-id> <new-id>` creates `meta/changes/rename-<old-id>-to-<new-id>/`. It writes a node rename delta, rewrites affected edge endpoints in the delta, and copies artefacts whose frontmatter references the old ID into the change directory with modified frontmatter. The main tree is not changed until `cairn archive` succeeds.
+`cairn rename <old-id> <new-id>` creates `meta/changes/rename-<old-id>-to-<new-id>/`. It writes a node rename delta, rewrites affected edge endpoints in the delta, and copies artefacts whose frontmatter references the old ID into the change directory with modified frontmatter. The main tree is not changed until `cairn change archive` succeeds.
 
 ## Queries
 
-- `cairn changes` lists active change IDs, proposal titles, operation counts, and validation findings.
-- `cairn show <change-id>` prints the proposal, blueprint delta summary, and artefact operation summary.
+- `cairn change list` lists active change IDs, proposal titles, operation counts, and validation findings.
+- `cairn change show <change-id>` prints the proposal, blueprint delta summary, and artefact operation summary.
 - `cairn neighbourhood <node> --include-changes` adds proposed operations related to the node and its direct neighbours.
 - `cairn status` includes active changes alongside open todos and recent log entries.

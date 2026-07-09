@@ -27,7 +27,7 @@ I'll help you understand your project's structure by querying the reconciled gra
 - `cairn decisions <node>` - List decision artefacts attached to a node
 - `cairn research <node>` - List research artefacts linked to a node
 - `cairn sources <node>` - List external sources a node cites
-- `cairn changes --json` - List registered change proposals (the `--json` flag is required)
+- `cairn change list --json` - List registered change proposals (the `--json` flag is required)
 
 **Steps**
 

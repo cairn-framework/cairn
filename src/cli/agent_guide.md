@@ -18,13 +18,13 @@ cairn directly. Do not infer state from freeform notes, scratch files, or
 memory; the graph is the source of truth.
 
 - `cairn status`: project summary (nodes, findings, backlog).
-- `cairn changes`: active change proposals.
+- `cairn change list`: active change proposals.
 - `cairn decisions` and `cairn research`: the provenance chain (research feeds
   decisions, which feed changes), listed per node.
 - `cairn sources <id>`: external material a node cites. The link is on the
   graph; the content stays in the referenced file.
 
-If you are asked "what next", start with `cairn status` and `cairn changes`,
+If you are asked "what next", start with `cairn status` and `cairn change list`,
 then `cairn todos <node>` / open todo artefacts under `meta/todos/`. Treat any
 scratch or `docs/` note as secondary context, never as current state.
 

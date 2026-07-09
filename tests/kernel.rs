@@ -1082,7 +1082,7 @@ fn test_archive_guard_runs_conflict_detector_before_mutation()
 
     let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
         .current_dir(&root)
-        .args(["archive", "first"])
+        .args(["change", "archive", "first"])
         .output()?;
 
     assert!(!output.status.success());

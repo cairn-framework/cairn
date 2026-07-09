@@ -9,7 +9,7 @@ pub(crate) fn run_archive_command(
     legacy_warning: String,
 ) -> CliResult {
     let Some(change_id) = parsed.command_args.get(1) else {
-        return err(2, "usage: cairn archive <change-id>");
+        return err(2, "usage: cairn change archive <change-id>");
     };
     let changes_dir = root.join(&parsed.changes_dir);
     let conflict_findings = hooks::detect_active_change_conflicts(&changes_dir);

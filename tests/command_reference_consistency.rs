@@ -40,16 +40,18 @@ fn registered_commands() -> Vec<String> {
         "draft accept",
         "draft create",
     ];
+    // Top-level spellings retired under `cairn change <sub>`.
+    const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
     let mut names: Vec<String> = cairn::cli::registry()
         .iter()
         .filter(|t| t.cli_name != "init_from_code")
         .filter(|t| !DRAFT_COMMANDS.contains(&t.cli_name))
+        .filter(|t| !RETIRED_TOP_LEVEL.contains(&t.cli_name))
         .map(|t| t.cli_name.to_owned())
         .collect();
 
-    // EXTRA_CLI_COMMANDS from src/cli/mod.rs
+    // EXTRA_CLI_COMMANDS from src/cli/mod.rs (accept/archive retired under change)
     let extra = [
-        "accept",
         "backlog",
         "brief",
         "change",
