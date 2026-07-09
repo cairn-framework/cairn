@@ -5,7 +5,7 @@
 use super::*;
 use api::{
     artefact_response_json, contract_response_json, dependency_json, finding_json, graph_json,
-    lint_json, node_json, project_finding, rationale_json, status_json, symbols_response_json,
+    node_json, project_finding, rationale_json, status_json, symbols_response_json,
 };
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
@@ -150,7 +150,20 @@ impl Server {
             return json(200, &graph_json(&query::graph(graph)));
         }
         if path == "/api/lint" {
-            return json(200, &lint_json(graph));
+            let request = crate::query_api::QueryRequest {
+                tool: "lint".to_owned(),
+                ..Default::default()
+            };
+            return match crate::query_api::execute_with_scan(
+                &self.root,
+                &self.options.blueprint_path,
+                &self.changes_dir,
+                &request,
+                &project,
+            ) {
+                Ok(response) => json(200, &response.data.to_string()),
+                Err(error) => json(500, &finding_json(&project_finding(error.message))),
+            };
         }
         if let Some(node) = path.strip_prefix("/api/node/") {
             return self.node_api(&project, node);

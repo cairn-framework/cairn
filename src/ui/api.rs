@@ -89,16 +89,6 @@ pub(super) fn dependency_json(graph: &Graph, node: &str, outbound: bool) -> Resp
     )
 }
 
-pub(super) fn lint_json(graph: &Graph) -> String {
-    let findings = query::lint(graph)
-        .findings
-        .iter()
-        .map(finding_json)
-        .collect::<Vec<_>>()
-        .join(",");
-    format!("{{\"findings\":[{findings}]}}")
-}
-
 pub(super) fn status_json(project: &scanner::ScanResult) -> String {
     let findings = query::lint(&project.graph).findings;
     let errors = findings

@@ -43,10 +43,16 @@ spine ops proper CLI presence), so they are documented in `docs/commands.md`,
 ### `/api/beads` (FLIPPED)
 - Now served via `execute("beads", {node})`. Wire: `{"node":"...","beads":[...]}`.
 - Not covered by `wire_format_snapshots.rs` (no snapshot row), so no rebasing.
+### `/api/lint` (FLIPPED, wire-identical)
+- Now served via `execute("lint")`. The `query_api` `findings_json` produces
+  `{"findings":[{code,severity,message,node,path}],"schema_version":1}` with the
+  same field order and lowercase `severity` as the legacy `api.rs::lint_json`,
+  so the snapshot `wire_format_snapshots__api_lint.snap` required no delta and
+  `app.js` needs no change (it reads `lint.findings[].{code,severity,node,path}`).
 
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`, `lint`, `node`, `node/contract`, `node/symbols`,
+`status`, `graph`, `node`, `node/contract`, `node/symbols`,
 `node/decisions`, `node/todos`, `node/research`, `node/sources`,
 `node/rationale`, `depends`, `dependents`.
