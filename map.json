@@ -6153,8 +6153,6 @@
         "tests/conventions.rs",
         "tests/decision_claims.rs",
         "tests/dogfood_gate.rs",
-        "tests/fixtures/reconcile_baseline/rust/orphan.rs",
-        "tests/fixtures/reconcile_baseline/rust/src/lib.rs",
         "tests/fixtures_smoke.rs",
         "tests/gitignore_lint.rs",
         "tests/graph_explorer.rs",
@@ -6183,32 +6181,7 @@
       "contracts": [
         "./meta/contracts/tests.md"
       ],
-      "symbols": [
-        {
-          "name": "alpha",
-          "kind": "function",
-          "signature": "pub fn alpha()",
-          "file": "tests/fixtures/reconcile_baseline/rust/src/lib.rs",
-          "line": 1,
-          "end_line": 1
-        },
-        {
-          "name": "orphaned",
-          "kind": "function",
-          "signature": "pub fn orphaned()",
-          "file": "tests/fixtures/reconcile_baseline/rust/orphan.rs",
-          "line": 1,
-          "end_line": 1
-        },
-        {
-          "name": "Config",
-          "kind": "struct",
-          "signature": "pub struct Config",
-          "file": "tests/fixtures/reconcile_baseline/rust/src/lib.rs",
-          "line": 3,
-          "end_line": 3
-        }
-      ]
+      "symbols": []
     },
     {
       "id": "cairn.ui",

@@ -5,10 +5,13 @@
 //! was serialised by the ORIGINAL reconcilers. The generic reconciler must
 //! reproduce that exact `ReconcileReport` so the refactor is behaviour-neutral.
 //!
-//! The final test also guards the central design promise: a new language can be
-//! added purely as a `LanguageSpec` constant, with no new module.
+//! The final test guards the spec-only pipeline boundary: an alternate
+//! `LanguageSpec` drives the shared pipeline with no dedicated module.
 
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use cairn::{
     blueprint::{Ast, NodeKind, Span, ast::Node},
@@ -64,9 +67,36 @@ fn assert_matches_baseline(dir: &str, report: &ReconcileReport) {
     );
 }
 
+/// The committed Rust fixtures carry a `.fixture` suffix so the repo's own
+/// self-host scan (which claims every `.rs` under the blueprint-owned
+/// `./tests` tree) cannot pick them up. Materialise them as real `.rs`
+/// files in a tempdir before reconciling.
+fn materialise_rust_fixtures(dest: &Path) {
+    let src_root = fixture_root("rust");
+    for rel in ["src/lib.rs", "orphan.rs"] {
+        let from = src_root.join(format!("{rel}.fixture"));
+        let to = dest.join(rel);
+        fs::create_dir_all(to.parent().expect("parent")).expect("mkdir");
+        fs::copy(&from, &to).expect("copy fixture");
+    }
+}
+
 #[test]
 fn generic_matches_rust_baseline() {
-    let report = reconcile("rust", Language::Rust, "app.lib", "src");
+    let dir = std::env::temp_dir().join(format!(
+        "cairn-reconcile-baseline-rust-{}",
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&dir);
+    materialise_rust_fixtures(&dir);
+    let ast = single_node_ast("app.lib", "src");
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
+        .reconcile(ReconcileRequest {
+            root: &dir,
+            ignores: &[],
+        })
+        .expect("reconcile");
+    fs::remove_dir_all(&dir).ok();
     assert_matches_baseline("rust", &report);
 }
 
@@ -88,7 +118,9 @@ fn generic_matches_go_baseline() {
     assert_matches_baseline("go", &report);
 }
 
-// --- Cheap-extension guarantee: a new language is a `LanguageSpec`, nothing more. ---
+// --- Cheap-extension guarantee: an ALTERNATE spec for an existing language needs
+// no dedicated module. (A brand-new language still requires a `Language` variant
+// and registry entry; this guards the spec-only pipeline boundary.) ---
 
 fn demo_name_and_kind(node: tree_sitter::Node<'_>, source: &[u8]) -> (String, SymbolKind) {
     let name = node
@@ -136,7 +168,7 @@ static DEMO: LanguageSpec = LanguageSpec {
 };
 
 #[test]
-fn demo_spec_needs_no_new_module() {
+fn alternate_spec_for_existing_language_needs_no_new_module() {
     let root = fixture_root("python");
     let ast = single_node_ast("app.api", ".");
     let report = CodeReconciler::new(&ast, &DEMO)
