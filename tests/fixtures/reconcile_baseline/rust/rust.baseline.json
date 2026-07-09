@@ -1,0 +1,49 @@
+{
+  "claimed_files": {
+    "app.lib": [
+      "src/lib.rs"
+    ]
+  },
+  "symbols": [
+    "pub fn alpha()",
+    "pub struct Config"
+  ],
+  "node_symbols": {
+    "app.lib": [
+      "pub fn alpha()",
+      "pub struct Config"
+    ]
+  },
+  "node_symbol_records": {
+    "app.lib": [
+      {
+        "name": "alpha",
+        "kind": "function",
+        "signature": "pub fn alpha()",
+        "file": "src/lib.rs",
+        "line": 1,
+        "end_line": 1
+      },
+      {
+        "name": "Config",
+        "kind": "struct",
+        "signature": "pub struct Config",
+        "file": "src/lib.rs",
+        "line": 3,
+        "end_line": 3
+      }
+    ]
+  },
+  "fingerprint": {
+    "hash": "015147597d56a9e5"
+  },
+  "findings": [
+    {
+      "code": "CAIRN_RECONCILE_ORPHANED_FILE",
+      "severity": "info",
+      "message": "Rust file `orphan.rs` is not owned by any eligible node",
+      "node": null,
+      "path": "orphan.rs"
+    }
+  ]
+}

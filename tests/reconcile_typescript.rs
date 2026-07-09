@@ -5,7 +5,9 @@
 
 use cairn::{
     blueprint::{Ast, NodeKind, Span, ast::Node},
-    reconcile::{ReconcileRequest, Reconciler, SymbolKind, typescript::TypeScriptReconciler},
+    reconcile::{
+        CodeReconciler, ReconcileRequest, Reconciler, SymbolKind, spec_for, target::Language,
+    },
 };
 use std::fs;
 
@@ -38,7 +40,7 @@ fn test_exported_function_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -60,7 +62,7 @@ fn test_unexported_function_absent_from_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.helpers", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -82,7 +84,7 @@ fn test_exported_interface_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.types", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -104,7 +106,7 @@ fn test_exported_type_alias_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.aliases", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -124,7 +126,7 @@ fn test_unowned_ts_file_emits_orphaned_file_finding() {
     fs::write(dir.path().join("unowned.ts"), "export const x = 1;\n").unwrap();
     // AST with a node that claims a different path.
     let ast = single_node_ast("app.other", "other/");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -147,7 +149,7 @@ fn test_owned_file_is_in_claimed_files() {
     fs::create_dir(&src).unwrap();
     fs::write(src.join("index.ts"), "export const VERSION = '1';\n").unwrap();
     let ast = single_node_ast("app.core", "src");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -170,7 +172,7 @@ fn test_fingerprint_changes_when_symbols_change() {
     )
     .unwrap();
     let ast = single_node_ast("app.svc", ".");
-    let fp1 = TypeScriptReconciler::new(&ast)
+    let fp1 = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -183,7 +185,7 @@ fn test_fingerprint_changes_when_symbols_change() {
         "export function alpha(): void {}\nexport function beta(): void {}\n",
     )
     .unwrap();
-    let fp2 = TypeScriptReconciler::new(&ast)
+    let fp2 = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -206,7 +208,7 @@ fn test_ignored_ts_file_is_not_reconciled() {
     )
     .unwrap();
     let ast = single_node_ast("app.dist", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &["dist.ts".to_owned()],
@@ -233,7 +235,7 @@ fn test_ts_fn_symbol_record_has_correct_fields() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -264,7 +266,7 @@ fn test_ts_interface_record_has_interface_kind() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],
@@ -287,7 +289,7 @@ fn test_ts_symbol_record_signature_matches_fingerprint_string() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = TypeScriptReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::TypeScript).unwrap())
         .reconcile(ReconcileRequest {
             root: dir.path(),
             ignores: &[],

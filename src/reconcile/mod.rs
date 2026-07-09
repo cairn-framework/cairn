@@ -2,6 +2,7 @@
 
 pub mod code;
 pub mod fingerprint;
+pub mod generic;
 pub mod go;
 pub mod python;
 pub mod symbol;
@@ -10,7 +11,27 @@ pub mod typescript;
 
 /// Fixture reconciler demonstrating the extension API.
 pub mod fixture;
+pub use generic::{CodeReconciler, LanguageSpec};
 pub use symbol::{SymbolKind, SymbolRecord, normalize_symbol};
+
+/// All built-in language specs, indexed positionally by [`target::Language`].
+pub static LANGUAGES: &[&'static LanguageSpec] = &[
+    &code::RUST,
+    &typescript::TYPESCRIPT,
+    &python::PYTHON,
+    &go::GO,
+];
+
+/// Returns the spec for `language`, if one is registered.
+///
+/// Returns `None` for [`target::Language::Unknown`].
+#[must_use]
+pub fn spec_for(language: target::Language) -> Option<&'static LanguageSpec> {
+    LANGUAGES
+        .iter()
+        .find(|spec| spec.language == language)
+        .map(|v| &**v)
+}
 
 use std::{error::Error, fmt, path::Path};
 

@@ -5,7 +5,9 @@
 
 use cairn::{
     blueprint::{Ast, NodeKind, Span, ast::Node},
-    reconcile::{ReconcileRequest, Reconciler, SymbolKind, go::GoReconciler},
+    reconcile::{
+        CodeReconciler, ReconcileRequest, Reconciler, SymbolKind, spec_for, target::Language,
+    },
 };
 use std::fs;
 
@@ -41,7 +43,7 @@ fn test_go_exported_function_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -60,7 +62,7 @@ fn test_go_unexported_function_absent_from_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -79,7 +81,7 @@ fn test_go_exported_type_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.types", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -98,7 +100,7 @@ fn test_go_exported_const_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.version", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -118,7 +120,7 @@ fn test_go_unowned_file_emits_orphaned_finding() {
     .unwrap();
     // AST node claims a path that doesn't match the file.
     let ast = single_node_ast("app.other", "other/");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -138,7 +140,7 @@ fn test_go_owned_file_in_claimed_files() {
     fs::create_dir(&pkg).unwrap();
     fs::write(pkg.join("main.go"), "package server\n\nfunc Run() {}\n").unwrap();
     let ast = single_node_ast("app.server", "server");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -154,12 +156,12 @@ fn test_go_fingerprint_changes_on_new_export() {
     let file = dir.path().join("api.go");
     fs::write(&file, "package api\n\nfunc Alpha() {}\n").unwrap();
     let ast = single_node_ast("app.api", ".");
-    let fp1 = GoReconciler::new(&ast)
+    let fp1 = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap()
         .fingerprint;
     fs::write(&file, "package api\n\nfunc Alpha() {}\nfunc Beta() {}\n").unwrap();
-    let fp2 = GoReconciler::new(&ast)
+    let fp2 = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap()
         .fingerprint;
@@ -175,7 +177,7 @@ fn test_go_ignored_file_excluded_from_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.gen", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &["generated.go".to_owned()]))
         .unwrap();
     assert!(
@@ -199,7 +201,7 @@ fn test_go_fn_symbol_record_has_correct_fields() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     let records = report
@@ -222,7 +224,7 @@ fn test_go_type_record_has_type_kind() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     let records = report.node_symbol_records.get("app.api").unwrap();
@@ -242,7 +244,7 @@ fn test_go_symbol_record_signature_matches_fingerprint_string() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = GoReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Go).unwrap())
         .reconcile(go_request(dir.path(), &[]))
         .unwrap();
     let mut sig_from_records: Vec<String> = report

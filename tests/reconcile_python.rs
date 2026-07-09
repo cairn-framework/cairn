@@ -5,7 +5,9 @@
 
 use cairn::{
     blueprint::{Ast, NodeKind, Span, ast::Node},
-    reconcile::{ReconcileRequest, Reconciler, SymbolKind, python::PythonReconciler},
+    reconcile::{
+        CodeReconciler, ReconcileRequest, Reconciler, SymbolKind, spec_for, target::Language,
+    },
 };
 use std::fs;
 
@@ -41,7 +43,7 @@ fn test_py_public_function_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -60,7 +62,7 @@ fn test_py_private_function_absent_from_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.helpers", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -79,7 +81,7 @@ fn test_py_public_class_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.models", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -94,7 +96,7 @@ fn test_py_public_module_variable_appears_in_symbols() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(dir.path().join("constants.py"), "VERSION = '1.0'\n").unwrap();
     let ast = single_node_ast("app.constants", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -109,7 +111,7 @@ fn test_py_private_module_variable_absent_from_symbols() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(dir.path().join("secrets.py"), "_SECRET = 'hunter2'\n").unwrap();
     let ast = single_node_ast("app.secrets", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -128,7 +130,7 @@ fn test_py_unowned_file_emits_orphaned_finding() {
     )
     .unwrap();
     let ast = single_node_ast("app.other", "other/");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -148,7 +150,7 @@ fn test_py_owned_file_in_claimed_files() {
     fs::create_dir(&pkg).unwrap();
     fs::write(pkg.join("run.py"), "def run():\n    pass\n").unwrap();
     let ast = single_node_ast("app.service", "service");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -164,12 +166,12 @@ fn test_py_fingerprint_changes_on_new_public_symbol() {
     let file = dir.path().join("svc.py");
     fs::write(&file, "def alpha():\n    pass\n").unwrap();
     let ast = single_node_ast("app.svc", ".");
-    let fp1 = PythonReconciler::new(&ast)
+    let fp1 = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap()
         .fingerprint;
     fs::write(&file, "def alpha():\n    pass\ndef beta():\n    pass\n").unwrap();
-    let fp2 = PythonReconciler::new(&ast)
+    let fp2 = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap()
         .fingerprint;
@@ -188,7 +190,7 @@ fn test_py_ignored_file_excluded_from_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.gen", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &["generated.py".to_owned()]))
         .unwrap();
     assert!(
@@ -212,7 +214,7 @@ fn test_py_fn_symbol_record_has_correct_fields() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     let records = report
@@ -231,7 +233,7 @@ fn test_py_class_record_has_class_kind() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(dir.path().join("api.py"), "class Config:\n    pass\n").unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     let records = report.node_symbol_records.get("app.api").unwrap();
@@ -251,7 +253,7 @@ fn test_py_symbol_record_signature_matches_fingerprint_string() {
     )
     .unwrap();
     let ast = single_node_ast("app.api", ".");
-    let report = PythonReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Python).unwrap())
         .reconcile(py_request(dir.path(), &[]))
         .unwrap();
     let mut sig_from_records: Vec<String> = report

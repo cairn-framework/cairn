@@ -12,7 +12,7 @@ use cairn::{
     artefacts::contract,
     blueprint::{lexer, parser},
     map::{build_graph, query},
-    reconcile::{ReconcileRequest, Reconciler, code::RustCodeReconciler},
+    reconcile::{CodeReconciler, ReconcileRequest, Reconciler, spec_for, target::Language},
     scanner,
 };
 
@@ -380,10 +380,12 @@ macro_rules! generated {
 }
 "#,
     )?;
-    let report = RustCodeReconciler::new(&ast).reconcile(ReconcileRequest {
-        root: &root,
-        ignores: &[],
-    })?;
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap()).reconcile(
+        ReconcileRequest {
+            root: &root,
+            ignores: &[],
+        },
+    )?;
 
     assert!(
         report
@@ -857,17 +859,21 @@ pub struct Bar/*trailing*/;
 }
 "#,
     )?;
-    let report1 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
-        root: &root,
-        ignores: &[],
-    })?;
+    let report1 = CodeReconciler::new(&ast1, spec_for(Language::Rust).unwrap()).reconcile(
+        ReconcileRequest {
+            root: &root,
+            ignores: &[],
+        },
+    )?;
     let hash1 = report1.fingerprint.hash.clone();
 
     fs::write(root.join("src/lib.rs"), source2)?;
-    let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
-        root: &root,
-        ignores: &[],
-    })?;
+    let report2 = CodeReconciler::new(&ast1, spec_for(Language::Rust).unwrap()).reconcile(
+        ReconcileRequest {
+            root: &root,
+            ignores: &[],
+        },
+    )?;
     let hash2 = report2.fingerprint.hash.clone();
 
     assert_eq!(
@@ -902,17 +908,21 @@ const PRIVATE_CONST: u8 = 1;
 }
 "#,
     )?;
-    let report1 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
-        root: &root,
-        ignores: &[],
-    })?;
+    let report1 = CodeReconciler::new(&ast1, spec_for(Language::Rust).unwrap()).reconcile(
+        ReconcileRequest {
+            root: &root,
+            ignores: &[],
+        },
+    )?;
     let hash1 = report1.fingerprint.hash.clone();
 
     fs::write(root.join("src/lib.rs"), source2)?;
-    let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
-        root: &root,
-        ignores: &[],
-    })?;
+    let report2 = CodeReconciler::new(&ast1, spec_for(Language::Rust).unwrap()).reconcile(
+        ReconcileRequest {
+            root: &root,
+            ignores: &[],
+        },
+    )?;
     let hash2 = report2.fingerprint.hash.clone();
 
     assert_eq!(hash1, hash2, "hash should be stable across private symbols");
@@ -943,17 +953,21 @@ pub fn first() {}
 }
 "#,
     )?;
-    let report1 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
-        root: &root,
-        ignores: &[],
-    })?;
+    let report1 = CodeReconciler::new(&ast1, spec_for(Language::Rust).unwrap()).reconcile(
+        ReconcileRequest {
+            root: &root,
+            ignores: &[],
+        },
+    )?;
     let hash1 = report1.fingerprint.hash.clone();
 
     fs::write(root.join("src/lib.rs"), source2)?;
-    let report2 = RustCodeReconciler::new(&ast1).reconcile(ReconcileRequest {
-        root: &root,
-        ignores: &[],
-    })?;
+    let report2 = CodeReconciler::new(&ast1, spec_for(Language::Rust).unwrap()).reconcile(
+        ReconcileRequest {
+            root: &root,
+            ignores: &[],
+        },
+    )?;
     let hash2 = report2.fingerprint.hash.clone();
 
     assert_eq!(hash1, hash2, "hash should be stable across source order");

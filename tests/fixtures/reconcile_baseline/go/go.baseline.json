@@ -1,0 +1,52 @@
+{
+  "claimed_files": {
+    "app.api": [
+      "api.go",
+      "orphan.go"
+    ]
+  },
+  "symbols": [
+    "function_declaration:Greet",
+    "function_declaration:Orphaned",
+    "type_spec:Config"
+  ],
+  "node_symbols": {
+    "app.api": [
+      "function_declaration:Greet",
+      "function_declaration:Orphaned",
+      "type_spec:Config"
+    ]
+  },
+  "node_symbol_records": {
+    "app.api": [
+      {
+        "name": "Greet",
+        "kind": "function",
+        "signature": "function_declaration:Greet",
+        "file": "api.go",
+        "line": 3,
+        "end_line": 3
+      },
+      {
+        "name": "Orphaned",
+        "kind": "function",
+        "signature": "function_declaration:Orphaned",
+        "file": "orphan.go",
+        "line": 3,
+        "end_line": 3
+      },
+      {
+        "name": "Config",
+        "kind": "type",
+        "signature": "type_spec:Config",
+        "file": "api.go",
+        "line": 7,
+        "end_line": 7
+      }
+    ]
+  },
+  "fingerprint": {
+    "hash": "8c2ee7d4e78b316d"
+  },
+  "findings": []
+}
