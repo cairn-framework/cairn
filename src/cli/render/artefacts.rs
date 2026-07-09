@@ -6,9 +6,7 @@ use super::super::format::{
     source_line, sources_json,
 };
 use super::super::*;
-use crate::query_api::{
-    QueryRequest, neighbourhood_ids, parse_decision_status_filter, sources_for_nodes,
-};
+use crate::query_api::{QueryRequest, neighbourhood_ids, parse_decision_status_filter};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
@@ -176,27 +174,46 @@ fn research_text(data: &Value) -> String {
         .collect();
     format!("Research for {node_id}:\n{}\n", lines(&research_lines))
 }
-pub(crate) fn render_sources(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let sources = sources_for_nodes(scan_result, &BTreeSet::from([node.id.clone()]));
-        Ok(if parsed.json {
+pub(crate) fn render_sources(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let request = QueryRequest {
+        tool: "sources".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(sources_text(&data))
+}
+/// Renders the canonical `sources_response_json` data as human text.
+fn sources_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let sources_lines: Vec<String> = data["sources"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
             format!(
-                "{{\"node\":\"{}\",\"sources\":{}}}\n",
-                esc(&node.id),
-                sources_json(&sources)
-            )
-        } else {
-            format!(
-                "Sources for {}:\n{}\n",
-                node.id,
-                lines(&sources.iter().map(source_line).collect::<Vec<_>>())
+                "{} [{}] {}",
+                value["id"].as_str().unwrap_or_default(),
+                value["verification"].as_str().unwrap_or_default(),
+                value["file"].as_str().unwrap_or_default()
             )
         })
-    })
+        .collect();
+    format!("Sources for {node_id}:\n{}\n", lines(&sources_lines))
 }
 
 pub(crate) fn render_rationale(

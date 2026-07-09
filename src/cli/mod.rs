@@ -442,7 +442,7 @@ fn render_loaded_project_command(
         "todos" => render_todos(parsed, root),
         "decisions" => render_decisions(parsed, scan_result),
         "research" => render_research(parsed, root),
-        "sources" => render_sources(parsed, scan_result),
+        "sources" => render_sources(parsed, root),
         "rationale" => render_rationale(parsed, scan_result),
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(parsed, root, scan_result)),
