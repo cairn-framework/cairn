@@ -156,6 +156,113 @@ fn test_parse_config_targets() {
     assert_eq!(config.targets[0].language, "rust");
 }
 
+#[test]
+fn test_parse_config_unknown_top_level_key_warns() {
+    let mut config = Config::default();
+    parse_config(
+        "reconcilers:\n  - id: code\ncontext: \"hello\"\n",
+        &mut config,
+    );
+    assert_eq!(config.context, "hello");
+    assert_eq!(config.findings.len(), 1);
+    assert_eq!(config.findings[0].code, "CAIRN_CONFIG_UNKNOWN_KEY");
+    assert!(
+        config.findings[0].message.contains("reconcilers"),
+        "message: {}",
+        config.findings[0].message
+    );
+    assert!(
+        config.findings[0].message.contains("targets:"),
+        "message should point at targets: override: {}",
+        config.findings[0].message
+    );
+}
+
+#[test]
+fn test_parse_config_unknown_key_does_not_abort_known_keys() {
+    let mut config = Config::default();
+    parse_config(
+        "bogus_key: yes\nignore:\n  - dist\ntargets:\n  - node: app.api\n    language: rust\n",
+        &mut config,
+    );
+    assert!(config.ignores.contains(&"dist".to_owned()));
+    assert_eq!(config.targets.len(), 1);
+    assert_eq!(config.findings.len(), 1);
+    assert!(config.findings[0].message.contains("bogus_key"));
+}
+
+#[test]
+fn test_unknown_config_key_reaches_load_project_findings() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(
+        root.join("cairn.blueprint"),
+        r#"System App "app" id "app" {
+    Module Core "core" id "app.core" {
+        path "./src"
+    }
+}
+"#,
+    )
+    .unwrap();
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(root.join("src/lib.rs"), "pub fn x() {}").unwrap();
+    std::fs::write(
+        root.join("cairn.config.yaml"),
+        "reconcilers:\n  - id: code\ncontext: \"hello\"\n",
+    )
+    .unwrap();
+
+    let result = crate::scanner::load_project(root, &root.join("cairn.blueprint")).unwrap();
+    let config_findings: Vec<_> = result
+        .graph
+        .findings
+        .iter()
+        .filter(|f| f.code == "CAIRN_CONFIG_UNKNOWN_KEY")
+        .collect();
+    assert_eq!(config_findings.len(), 1, "expected one unknown-key finding");
+    assert_eq!(
+        config_findings[0].severity,
+        crate::map::graph::FindingSeverity::Warning
+    );
+    assert!(config_findings[0].message.contains("reconcilers"));
+    // Non-fatal: load_project returns Ok even with the unknown key.
+}
+
+#[test]
+fn test_parse_config_bare_line_is_not_unknown_key() {
+    let mut config = Config::default();
+    parse_config("---\ncontext: \"hello\"\n", &mut config);
+    assert!(
+        config.findings.is_empty(),
+        "document markers / bare lines must not warn: {:?}",
+        config.findings
+    );
+    assert_eq!(config.context, "hello");
+}
+
+#[test]
+fn test_parse_config_multi_target_is_known() {
+    let mut config = Config::default();
+    parse_config(
+        "multi_target:\n  intentional_asymmetry:\n    node: app.api\n    reason: dual backend\n",
+        &mut config,
+    );
+    assert!(
+        config.findings.is_empty(),
+        "multi_target is a known top-level key: {:?}",
+        config.findings
+    );
+    assert_eq!(config.intentional_asymmetries.len(), 1);
+}
+
+#[test]
+fn test_parse_config_duplicate_unknown_key_warns_once() {
+    let mut config = Config::default();
+    parse_config("bogus: 1\nbogus: 2\n", &mut config);
+    assert_eq!(config.findings.len(), 1);
+}
+
 // ── load_ignore_file ──────────────────────────────────────────────────────
 
 #[test]

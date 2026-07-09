@@ -2,6 +2,7 @@
 
 use std::{collections::BTreeMap, error::Error, fmt, fs, path::Path, path::PathBuf};
 
+use crate::map::graph::{Finding, FindingSeverity};
 use crate::reconcile::target::{SUPPORTED_LANGUAGES, language_error_message};
 
 /// Target configuration from cairn.config.yaml.
@@ -45,6 +46,8 @@ pub struct Config {
     pub targets: Vec<TargetConfig>,
     /// Intentional asymmetry entries.
     pub intentional_asymmetries: Vec<IntentionalAsymmetry>,
+    /// Non-fatal config findings (unknown keys, etc.).
+    pub findings: Vec<Finding>,
 }
 
 /// Config load error.
@@ -141,6 +144,15 @@ fn load_ignore_file(path: &Path) -> Result<Vec<String>, ConfigError> {
 // transitions; extracting every arm would obscure the linear flow.
 #[allow(clippy::collapsible_if, clippy::too_many_lines)]
 fn parse_config(source: &str, config: &mut Config) {
+    const KNOWN_TOP_LEVEL_KEYS: &[&str] = &[
+        "context",
+        "rules",
+        "artefact_types",
+        "targets",
+        "multi_target",
+        "ignore",
+    ];
+
     let mut in_ignore = false;
     let mut in_rules = false;
     let mut in_artefacts = false;
@@ -149,9 +161,40 @@ fn parse_config(source: &str, config: &mut Config) {
     let mut in_asymmetry_targets = false;
     let mut current_target: Option<TargetConfig> = None;
     let mut current_asymmetry: Option<IntentionalAsymmetry> = None;
+    let mut warned_keys = std::collections::BTreeSet::new();
 
     for line in source.lines() {
         let trimmed = line.trim();
+        // Top-level key detection: unindented `key:` not in the known set.
+        // Require a colon so bare lines / document markers are not treated as keys.
+        if indentation(line) == 0
+            && !trimmed.is_empty()
+            && !trimmed.starts_with('#')
+            && !trimmed.starts_with('-')
+            && trimmed.contains(':')
+            && let Some(key) = trimmed.split(':').next().map(str::trim)
+            && !key.is_empty()
+            && !KNOWN_TOP_LEVEL_KEYS.contains(&key)
+            && warned_keys.insert(key.to_owned())
+        {
+            let message = if key == "reconcilers" {
+                "unknown config key `reconcilers` (and nested `tree_sitter_languages`) is not supported; use a top-level `targets:` override for language, and `ignore:` for ignore patterns".to_owned()
+            } else {
+                format!(
+                    "unknown config key `{key}`; recognised top-level keys are: {}",
+                    KNOWN_TOP_LEVEL_KEYS.join(", ")
+                )
+            };
+            config.findings.push(Finding {
+                code: "CAIRN_CONFIG_UNKNOWN_KEY".to_owned(),
+                severity: FindingSeverity::Warning,
+                message,
+                node: None,
+                target: None,
+                path: Some("cairn.config.yaml".to_owned()),
+            });
+        }
+
         if trimmed.starts_with("context:") {
             config.context = value_after_colon(trimmed);
             in_rules = false;

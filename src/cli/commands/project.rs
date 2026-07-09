@@ -68,7 +68,7 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
         ),
         (
             "cairn.config.yaml",
-            "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"\"\nrules: {}\n",
+            "ignore:\n  - target\ncontext: \"\"\nrules: {}\n",
         ),
         ("meta/contracts/.gitkeep", ""),
         ("meta/todos/.gitkeep", ""),
@@ -166,6 +166,18 @@ mod tests {
         assert!(
             guide.contains(".claude/skills/cairn-dev"),
             "agent guide must reference the dev loop skills"
+        );
+
+        // Scaffolded config must not use the unimplemented reconcilers: key so a
+        // fresh `cairn init` does not immediately emit CAIRN_CONFIG_UNKNOWN_KEY.
+        let config = std::fs::read_to_string(dir.path().join("cairn.config.yaml")).unwrap();
+        assert!(
+            !config.contains("reconcilers"),
+            "init config must not scaffold the unimplemented reconcilers: key"
+        );
+        assert!(
+            config.contains("ignore:") || config.contains("context:"),
+            "init config must scaffold at least one recognised top-level key"
         );
     }
 
