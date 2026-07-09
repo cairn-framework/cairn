@@ -388,6 +388,17 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         parsed.command == "decisions" && parsed.command_args.iter().any(|arg| arg == "--grep");
     let node_scoped_lint =
         parsed.command == "lint" && parsed.command_args.iter().any(|arg| arg == "--node");
+    if parsed.command == "deps"
+        && let Some(direction) = flag_value(&parsed.command_args, "--direction")
+        && direction != "in"
+        && direction != "out"
+    {
+        return error_output(
+            parsed.json,
+            "CAIRN_COMMAND_FAILED",
+            &format!("invalid --direction value `{direction}`; expected `in` or `out`"),
+        );
+    }
     if parsed.command == "draft" {
         return run_draft_command(parsed, root, legacy_warning);
     }
@@ -807,6 +818,25 @@ mod tests {
             );
         }
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_deps_rejects_invalid_direction_value() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("deps-bad-direction")?;
+        write_project(&root)?;
+        for args in [
+            vec!["deps", "app.api", "--direction", "sideways"],
+            vec!["--json", "deps", "app.api", "--direction", "sideways"],
+        ] {
+            let result = run_in(&root, &args);
+            assert_eq!(result.code, 1, "invalid direction must fail: {args:?}");
+            assert!(
+                result.stdout.contains("expected `in` or `out`"),
+                "usage guidance missing: {}",
+                result.stdout
+            );
+        }
         Ok(())
     }
 

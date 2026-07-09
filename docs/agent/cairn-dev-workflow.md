@@ -66,7 +66,7 @@ prior decisions.
 ```bash
 cairn neighbourhood <node> --include-todos --include-changes
 cairn rationale <node>                 # decisions, research, sources behind it
-cairn deps --direction in <node> --transitive   # who breaks if this node's interface moves
+cairn deps <node> --direction in --transitive   # who breaks if this node's interface moves
 cairn deps <node> --transitive      # what this node leans on (cycle check)
 ```
 

@@ -133,7 +133,7 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 | Orientation for a session | `cairn context` |
 | Reconcile blueprint against code | `cairn scan` (`--strict` for CI) |
 | Inspect a node / its surroundings | `cairn get <id>`, `cairn neighbourhood <id>` |
-| Dependency questions | `cairn deps <id>`, `cairn deps --direction in <id>`, `cairn order`, `cairn islands`, `cairn frontier` |
+| Dependency questions | `cairn deps <id>`, `cairn deps <id> --direction in`, `cairn order`, `cairn islands`, `cairn frontier` |
 | Provenance questions | `cairn rationale <id>`, `cairn decisions <id>`, `cairn research <id>`, `cairn sources <id>` |
 | Work for a node or the whole graph | `cairn todos <id>`, `cairn status`, `cairn get <id> --symbols` |
 | Findings | `cairn lint`, `cairn lint` |

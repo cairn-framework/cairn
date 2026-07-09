@@ -26,11 +26,11 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Orientation** | `cairn context` | `--json` |
 | **Full scan** | `cairn scan` | `--json` |
 | **Lint findings** | `cairn lint` | `--json` (exit 1 on errors) |
-| **Non-blocking lint** | `cairn lint --node <id>` | always exit 0 |
+| **Node-scoped lint** | `cairn lint --node <id>` | exit 0 unless error-severity findings |
 | **Inspect node** | `cairn get <node>` | `--json` |
 | **Node + neighbours** | `cairn neighbourhood <node>` | `--json`, `--include-todos`, `--include-changes`, `--include-orphans` |
 | **Node files** | `cairn files <node>` | `--json` |
-| **Dependency graph** | `cairn deps <node>` / `cairn deps --direction in <node>` | `--json`, `--transitive` |
+| **Dependency graph** | `cairn deps <node>` / `cairn deps <node> --direction in` | `--json`, `--transitive` |
 | **Build order** | `cairn order` | `--json` |
 | **Provenance trail** | `cairn rationale <node>` | `--json` |
 | **Decisions** | `cairn decisions <node>` | `--json`, `--status accepted` |
@@ -232,7 +232,7 @@ The pre-commit hook typically runs `cairn hook structural`. CI can run `cairn ho
 
 **Before modifying a module:** `cairn rationale <node>` shows the provenance chain (decisions, research, sources) explaining why it's shaped the way it is. Respect existing decisions.
 
-**Before adding a dependency:** `cairn deps --direction in <node> --transitive` and `cairn deps <node> --transitive` reveal the full impact graph. Check for cycles.
+**Before adding a dependency:** `cairn deps <node> --direction in --transitive` and `cairn deps <node> --transitive` reveal the full impact graph. Check for cycles.
 
 **Understanding feature scope:** `cairn neighbourhood <node> --include-changes --include-todos` shows the node in context with its active work items.
 

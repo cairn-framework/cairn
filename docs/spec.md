@@ -729,7 +729,7 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn sources <node>`: sources cited by research and decisions attached to a node. Transitive.
 - `cairn rationale <node>`: convenience command. Returns accepted decisions attached to this node and its direct neighbours, plus the research and sources informing them. The canonical "why was it built this way" lookup.
 - `cairn files <node>`: reality-layer elements claimed by a module. (For the code reconciler, files with extracted symbols.)
-- `cairn deps --direction in <node> [--transitive]`: nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
+- `cairn deps <node> --direction in [--transitive]`: nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
 - `cairn deps <node> [--transitive]`: nodes this one edges into. Inverse of `deps --direction in`. What does this node rely on?
 - `cairn order [--from <node>] [--scope <id-prefix>]`: returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic map queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
 - `cairn change list`: list active change directories.

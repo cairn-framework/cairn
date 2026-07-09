@@ -66,7 +66,7 @@ cta = "cairn deps <node>"
 [empty-states.node-no-inbound]
 heading = "No inbound dependencies"
 body = "No other nodes depend on this one."
-cta = "cairn deps --direction in <node>"
+cta = "cairn deps <node> --direction in"
 
 [empty-states.node-no-symbols]
 heading = "No symbols"
