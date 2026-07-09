@@ -2,6 +2,7 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::*;
+use crate::query_api::QueryError;
 
 mod artefacts;
 mod bundle;
@@ -60,5 +61,19 @@ pub(crate) fn scan_error_warning(error_count: usize, json: bool) -> String {
             "\nWarning: scan has {error_count} error(s); graph may be incomplete. \
              Run `cairn scan` for details."
         )
+    }
+}
+/// Converts a `query_api` error back into the `Finding` shape the CLI
+/// render dispatch expects, so a migrated human renderer can keep the
+/// identical `finding_output` error path (same code/message) it had when
+/// it called the engine directly.
+pub(crate) fn query_error_to_finding(error: QueryError) -> Finding {
+    Finding {
+        code: error.code,
+        severity: FindingSeverity::Error,
+        message: error.message,
+        node: None,
+        target: None,
+        path: error.source_span,
     }
 }

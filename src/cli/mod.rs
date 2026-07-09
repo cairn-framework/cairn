@@ -512,7 +512,7 @@ fn render_loaded_project_command(
             }
             Err(findings) => return findings_output(parsed.json, &findings),
         },
-        "deps" => render_dependencies(parsed, scan_result),
+        "deps" => render_dependencies(parsed, root),
         // Spine ops (webui-first): the human rendering is the pretty canonical
         // JSON; the primary consumers are the webui and --json callers.
         "ui_meta" | "blueprint" | "beads" => {

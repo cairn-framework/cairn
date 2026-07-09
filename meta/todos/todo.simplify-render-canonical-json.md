@@ -42,3 +42,14 @@ does not exercise renderers.
 Acceptance: migrated commands read only canonical JSON; human output
 unchanged (snapshots) or deliberately improved; net LOC reduction
 recorded per command in this file as migration proceeds.
+## Per-command LOC delta (renderer before/after)
+
+Migration pattern: drop `scan_result`, build a `QueryRequest`, call
+`crate::query_api::execute`, transform `response.data` (a `serde_json::Value`)
+reusing `format::lines`/`esc`. `node_arg` is kept for the `CAIRN_CLI_MISSING_NODE`
+code; direction/flag validation that lives in the outer `run_project_command`
+dispatcher is not re-checked inside the renderer.
+
+| Command | Renderer LOC before | Renderer LOC after | Delta | Notes |
+|---------|--------------------:|-------------------:|------:|-------|
+| deps | 26 | 38 | +12 | query_api `dependency_json` already existed; +12 is the standard canonical-JSON boilerplate (request build + `Value` extraction). Human output byte-identical. |
