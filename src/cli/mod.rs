@@ -436,7 +436,7 @@ fn render_loaded_project_command(
     match parsed.command.as_str() {
         "get" => render_get(parsed, root, scan_result),
         "neighbourhood" => render_neighbourhood(parsed, root, scan_result),
-        "files" => render_files(parsed, scan_result),
+        "files" => render_files(parsed, root),
         "bundle" => render_bundle(parsed, scan_result),
         "gap" => return run_gap_command(parsed, root, scan_result),
         "todos" => render_todos(parsed, root),
