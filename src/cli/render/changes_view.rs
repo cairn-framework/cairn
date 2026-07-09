@@ -7,6 +7,9 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
+use crate::query_api::QueryRequest;
+use serde_json::Value;
+use std::collections::BTreeSet;
 
 /// Renders `cairn change list`: one line per active change directory under
 /// the resolved changes dir. Mirrors `changes::active_changes_lines`, used
@@ -39,45 +42,57 @@ pub(crate) fn render_show(parsed: &ParsedArgs, root: &Path) -> Result<String, Fi
         target: None,
         path: None,
     })?;
-    let changes_dir = root.join(&parsed.changes_dir);
-    let changes = crate::changes::discover(root, &changes_dir).map_err(|error| Finding {
-        code: "CAIRN_CHANGES_DISCOVERY_FAILED".to_owned(),
-        severity: FindingSeverity::Error,
-        message: error.to_string(),
+    let request = QueryRequest {
+        tool: "show".to_owned(),
         node: None,
-        target: None,
-        path: Some(changes_dir.display().to_string()),
-    })?;
-    let change = changes
-        .iter()
-        .find(|candidate| &candidate.id == change_id)
-        .ok_or_else(|| Finding {
-            code: "CAIRN_CHANGE_NOT_FOUND".to_owned(),
-            severity: FindingSeverity::Error,
-            message: format!("change `{change_id}` was not found"),
-            node: None,
-            target: None,
-            path: Some(changes_dir.display().to_string()),
-        })?;
+        change: Some(change_id.clone()),
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(show_change_text(&data))
+}
+
+/// Renders the canonical `change_json` data (from `show_change`) as human text.
+fn show_change_text(data: &Value) -> String {
+    let id = data["id"].as_str().unwrap_or_default();
+    let title = data["title"].as_str().unwrap_or_default();
+    let path = data["path"].as_str().unwrap_or_default();
+    let summary = data["summary"].as_str().unwrap_or_default();
+    let proposal = data["proposal"].as_str().unwrap_or_default();
     let mut out = vec![
-        format!("Change: {} ({})", change.id, change.title),
-        format!("Path: {}", change.path.display()),
-        format!("Summary: {}", crate::changes::operation_summary(change)),
+        format!("Change: {id} ({title})"),
+        format!("Path: {path}"),
+        format!("Summary: {summary}"),
         String::new(),
-        change.proposal.trim().to_owned(),
+        proposal.trim().to_owned(),
     ];
-    if let Some(design) = &change.design {
+    if let Some(design) = data["design"].as_str() {
         out.push(String::new());
         out.push(design.trim().to_owned());
     }
-    if !change.findings.is_empty() {
+    let findings = data["findings"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref);
+    if !findings.is_empty() {
         out.push(String::new());
         out.push("Findings:".to_owned());
-        for finding in &change.findings {
-            out.push(format!("- {finding}"));
+        for finding in findings {
+            out.push(format!("- {}", finding.as_str().unwrap_or_default()));
         }
     }
-    Ok(out.join("\n") + "\n")
+    out.join("\n") + "\n"
 }
 
 #[cfg(test)]
