@@ -73,6 +73,9 @@ pub struct ToolMetadata {
     pub response_schema: &'static str,
     /// Tool safety class.
     pub safety: SafetyClass,
+    /// Human-readable one-line description, shown in CLI help and the
+    /// single source of truth for command documentation.
+    pub description: &'static str,
 }
 
 /// Structured query request.
