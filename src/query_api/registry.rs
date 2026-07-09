@@ -4,7 +4,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 39] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
     tool(
         "get",
         "cairn_get",
@@ -41,13 +41,6 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 39] = [
         SafetyClass::ReadOnly,
     ),
     tool(
-        "symbols",
-        "cairn_symbols",
-        "NodeRequest",
-        "SymbolsResponse",
-        SafetyClass::ReadOnly,
-    ),
-    tool(
         "bundle",
         "cairn_bundle",
         "NodeRequest",
@@ -55,14 +48,14 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 39] = [
         SafetyClass::ReadOnly,
     ),
     tool(
-        "dependents",
+        "deps",
         "cairn_dependents",
         "DependencyRequest",
         "DependencyResponse",
         SafetyClass::ReadOnly,
     ),
     tool(
-        "depends",
+        "deps",
         "cairn_depends",
         "DependencyRequest",
         "DependencyResponse",
@@ -395,6 +388,6 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 39);
+        assert_eq!(TOOL_REGISTRY.len(), 38);
     }
 }

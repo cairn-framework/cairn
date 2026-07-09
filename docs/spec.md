@@ -136,7 +136,7 @@ Cairn is deterministic-typed at the bottom, configurable-templated in the middle
 - Multi-target modules: a single module with implementations across multiple languages or reconcilers.
 - Docstring generation and drift detection: the framework emits docstring templates grounded in map facts, and surfaces drift when authored docstrings diverge from the map.
 - Edge validation: the reconciler verifies declared edges are realised in the reality layer and surfaces discrepancies.
-- Symbol-granular reality layer: reconcilers extract structured public symbols (name, kind, signature, file, line), queryable via `cairn symbols <node>` and persisted in `map.json`.
+- Symbol-granular reality layer: reconcilers extract structured public symbols (name, kind, signature, file, line), queryable via `cairn get <node> --symbols` and persisted in `map.json`.
 - A persisted map snapshot (`map.json`) as a committed, deterministic measurement record alongside `map.md`.
 - Generation bundles (`cairn bundle <node>`) and the gap protocol (`cairn gap <node> --question <text>`) so an agent implementing a ghost node has everything it needs, and logs underspecification instead of guessing.
 - Workspace aggregation (`cairn.workspace`) across member projects: enumeration and aggregate status/lint/frontier, no cross-project blueprint edges in v1.
@@ -146,7 +146,7 @@ Cairn is deterministic-typed at the bottom, configurable-templated in the middle
 
 - A visual dashboard. Rendering the map as an interactive visual graph is a distribution concern for a downstream tool that consumes Cairn's JSON output, not a kernel capability.
 - Multi-agent orchestration. The framework serves agents; it does not run them. Workflow tools like OpenSpec and cavekit occupy this space and are complementary consumers of Cairn.
-- Function-level mapping in the blueprint itself. The blueprint is for module-level intent. Below-module data lives in the reality layer: reconcilers extract structured public symbols, persisted in `map.json` and queryable via `cairn files <node>` and `cairn symbols <node>`. Detail is a zoom parameter of queries, never of the blueprint.
+- Function-level mapping in the blueprint itself. The blueprint is for module-level intent. Below-module data lives in the reality layer: reconcilers extract structured public symbols, persisted in `map.json` and queryable via `cairn files <node>` and `cairn get <node> --symbols`. Detail is a zoom parameter of queries, never of the blueprint.
 - Procedural workflows. The blueprint is a map, not a recipe. Workflow systems are complementary, not absorbed.
 - Project management features. Todos are tied to architectural work; general project admin lives elsewhere.
 
@@ -729,8 +729,8 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn sources <node>`: sources cited by research and decisions attached to a node. Transitive.
 - `cairn rationale <node>`: convenience command. Returns accepted decisions attached to this node and its direct neighbours, plus the research and sources informing them. The canonical "why was it built this way" lookup.
 - `cairn files <node>`: reality-layer elements claimed by a module. (For the code reconciler, files with extracted symbols.)
-- `cairn dependents <node> [--transitive]`: nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
-- `cairn depends <node> [--transitive]`: nodes this one edges into. Inverse of `dependents`. What does this node rely on?
+- `cairn deps <node> --direction in [--transitive]`: nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
+- `cairn deps <node> [--transitive]`: nodes this one edges into. Inverse of `deps --direction in`. What does this node rely on?
 - `cairn order [--from <node>] [--scope <id-prefix>]`: returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic map queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
 - `cairn change list`: list active change directories.
 - `cairn change show <change>`: show what a change proposes.
@@ -742,7 +742,7 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn refine`: re-runs brownfield extraction against the current codebase, proposing a delta against the existing blueprint rather than a fresh draft. (Declared, see section 17.)
 - `cairn lint`: runs every integrity rule. Groups findings by class (structural, interface, tension).
 - `cairn scan`: rescans, regenerates the map, `map.md`, and `.cairn/state/`.
-- `cairn symbols <node>`: structured public symbols (name, kind, signature, file, line) extracted by the reconciler for the node.
+- `cairn get <node> --symbols`: structured public symbols (name, kind, signature, file, line) extracted by the reconciler for the node.
 - `cairn bundle <node>`: a complete generation bundle for the node (node metadata, contract, decisions, rationale, dependency interfaces, gates) so an agent can implement a ghost node without guessing.
 - `cairn gap <node> --question <text>`: logs decision-required underspecification as a proposed decision artefact instead of letting an agent guess.
 - `cairn frontier`: nodes buildable now (ghost with all dependencies synced) and nodes blocked, ordered by dependency tier. Answers "what is buildable now, in what order" without running anything (`dec.no-orchestrator` still holds; this is a traversal query, not a scheduler).
@@ -778,7 +778,7 @@ Each phase produces something usable on its own. Phases determine implementation
 
 **Phase 0: Rust project foundation.** Cargo workspace, CI pipeline (`cargo fmt --check`, `cargo clippy`, `cargo test`), project skeleton, and development infrastructure. Output: a buildable, testable Rust project with lint enforcement from day one.
 
-**Phase 1: kernel.** blueprint grammar with stable IDs. The reconciler *interface* as an abstract contract. The code reconciler as its first implementation (Tree-sitter-based, minimal). Reconciliation logic for the contract artefact type only. CLI exposing `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan`. Generate `map.md` and `.cairn/log.md` on scan. Output: a working CLI that answers structural queries against a reconciled map with contracts as the only artefact type. Validates the kernel architecture end-to-end.
+**Phase 1: kernel.** blueprint grammar with stable IDs. The reconciler *interface* as an abstract contract. The code reconciler as its first implementation (Tree-sitter-based, minimal). Reconciliation logic for the contract artefact type only. CLI exposing `get`, `neighbourhood`, `contract`, `files`, `deps --direction in`, `deps`, `order`, `lint`, and `scan`. Generate `map.md` and `.cairn/log.md` on scan. Output: a working CLI that answers structural queries against a reconciled map with contracts as the only artefact type. Validates the kernel architecture end-to-end.
 
 **Phase 2: full artefact type system.** Add todos, decisions, reviews (with subtypes), research, and sources with integrity rules. Add the corresponding CLI commands (`rationale`, `sources`, `research`, `decisions`, `todos`, `status`). Output: the map carries full project metadata with provenance from source to reality.
 
@@ -868,7 +868,7 @@ All downstream. Pick when the kernel is proven.
 
 Vision refactor: the reality layer becomes symbol-granular instead of discarding structured extraction, the reconciliation output persists as a committed `map.json` measurement record, contracts gain an optional `interface:` block verified against extracted symbols, and two new query families give agents everything needed to implement a ghost node (`cairn bundle`, `cairn gap`) and to know what is buildable now (`cairn frontier`). `cairn.workspace` adds enumeration and aggregation across member projects. The change system is trimmed to format-only: scheduling and claiming work items is workflow, not something Cairn's change directories do; the read-only backlog view over beads is unaffected. `dec.no-orchestrator` is reaffirmed, not reversed, throughout.
 
-- Added `cairn symbols <node>`, backed by a `SymbolRecord` (name/kind/signature/file/line) that survives extraction instead of being flattened into a hash input.
+- Added `cairn get <node> --symbols`, backed by a `SymbolRecord` (name/kind/signature/file/line) that survives extraction instead of being flattened into a hash input.
 - Added the committed, deterministic `map.json` snapshot alongside `map.md`.
 - Added an optional `interface:` frontmatter block on contracts, verified against extracted symbols; mismatches surface as `CAIRN_CONTRACT_INTERFACE_DRIFT`.
 - Added `cairn bundle <node>` (generation bundle) and `cairn gap <node> --question <text>` (logged underspecification) plus the `CAIRN_GAP_UNRESOLVED` lint rule.
@@ -899,7 +899,7 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 - Added three optional frontmatter fields to the Decision artefact type: `supersedes`, `refines`, `related`, all arrays of ADR IDs. Formalises the ADR-to-ADR linking that the bootstrap needed but v0.5 did not define. `supersedes` has integrity semantics (target ADR must have `status: superseded`); the other two are informational.
 - Expanded the Source artefact type with a `verification` field taking one of three values: `verified` (local file with matching sha256), `external` (URL-referenced, no checksum possible), `unverified` (transitional state, surfaces as a rationale tension).
 - Added `cairn order` query for dependency-tier ordering. Returns nodes grouped by topological tier, detecting cycles as `order`-specific structural errors. Supports `--from` and `--scope` for restricted queries. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) without re-implementing graph traversal.
-- Added `cairn depends <node>` as the inverse of `dependents`. Returns what a node relies on. Both now support `--transitive` explicitly.
+- Added `cairn deps <node>` as the inverse of `deps --direction in`. Returns what a node relies on. Both now support `--transitive` explicitly.
 - Resolved open question 10 (source deduplication). Stable IDs already handle this; no framework logic needed.
 - Added open question about agent dissent and cross-model peer review as potential first-class artefact types (may collapse to one type with two subtypes).
 - Added open question about meta/ directory layout (by type vs by node).

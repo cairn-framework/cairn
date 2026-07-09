@@ -42,14 +42,14 @@ use commands::{
     run_todo_command, run_ui_command, run_watch_command, run_workspace_command,
 };
 use format::{
-    err, error_output, esc, finding_json, finding_output, findings_output, lines, node_arg, ok,
-    render_findings,
+    err, error_output, esc, finding_json, finding_output, findings_output, flag_value, lines,
+    node_arg, ok, render_findings,
 };
 use render::{
     render_backlog, render_brief, render_bundle, render_changes, render_context, render_decisions,
     render_dependencies, render_files, render_get, render_health, render_neighbourhood,
     render_next, render_rationale, render_remediate, render_research, render_show, render_sources,
-    render_status, render_symbols, render_todos,
+    render_status, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -159,7 +159,10 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "workspace" {
         return run_workspace_command(&parsed, project_root);
     }
-    if parsed.command == "check" && !parsed.file.exists() {
+    if parsed.command == "lint"
+        && parsed.command_args.iter().any(|a| a == "--node")
+        && !parsed.file.exists()
+    {
         // Cycle 3 fix: preserve the legacy `cairn.dsl` migration
         // warning that run_project_command emits at line 145-148.
         // Without this, a user mid-migration from cairn.dsl to
@@ -174,7 +177,7 @@ pub fn run(args: &[String]) -> CliResult {
         if parsed.file.ends_with("cairn.blueprint") && root.join("cairn.dsl").exists() {
             if parsed.json {
                 return ok(format!(
-                    "{{\"command\":\"check\",\"status\":\"error\",\"data\":{{\"findings\":[{}]}}}}\n",
+                    "{{\"command\":\"lint\",\"status\":\"error\",\"data\":{{\"findings\":[{}]}}}}\n",
                     finding_json(&Finding {
                         code: "CAIRN_COMMAND_FAILED".to_owned(),
                         severity: FindingSeverity::Error,
@@ -195,7 +198,7 @@ pub fn run(args: &[String]) -> CliResult {
         }
         if parsed.json {
             return ok(format!(
-                "{{\"command\":\"check\",\"status\":\"ok\",\"data\":{{\"findings\":[{}]}}}}\n",
+                "{{\"command\":\"lint\",\"status\":\"ok\",\"data\":{{\"findings\":[{}]}}}}\n",
                 finding_json(&Finding {
                     code: "CAIRN_NO_BLUEPRINT".to_owned(),
                     severity: FindingSeverity::Info,
@@ -383,10 +386,27 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
     let legacy_warning = legacy_blueprint_warning(root);
     let grep_decisions =
         parsed.command == "decisions" && parsed.command_args.iter().any(|arg| arg == "--grep");
+    let node_scoped_lint =
+        parsed.command == "lint" && parsed.command_args.iter().any(|arg| arg == "--node");
+    if parsed.command == "deps"
+        && let Some(direction) = flag_value(&parsed.command_args, "--direction")
+        && direction != "in"
+        && direction != "out"
+    {
+        return error_output(
+            parsed.json,
+            "CAIRN_COMMAND_FAILED",
+            &format!("invalid --direction value `{direction}`; expected `in` or `out`"),
+        );
+    }
     if parsed.command == "draft" {
         return run_draft_command(parsed, root, legacy_warning);
     }
-    if parsed.json && uses_shared_json(parsed.command.as_str()) && !grep_decisions {
+    if parsed.json
+        && uses_shared_json(parsed.command.as_str())
+        && !grep_decisions
+        && !node_scoped_lint
+    {
         return run_shared_json_command(parsed, root, legacy_warning);
     }
     let scan_result = if parsed.command == "scan" {
@@ -417,7 +437,6 @@ fn render_loaded_project_command(
         "get" => render_get(parsed, root, scan_result),
         "neighbourhood" => render_neighbourhood(parsed, root, scan_result),
         "files" => render_files(parsed, scan_result),
-        "symbols" => render_symbols(parsed, scan_result),
         "bundle" => render_bundle(parsed, scan_result),
         "gap" => return run_gap_command(parsed, root, scan_result),
         "todos" => render_todos(parsed, scan_result),
@@ -493,9 +512,41 @@ fn render_loaded_project_command(
             }
             Err(findings) => return findings_output(parsed.json, &findings),
         },
-        "dependents" | "depends" => render_dependencies(parsed, scan_result),
+        "deps" => render_dependencies(parsed, scan_result),
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
+            if parsed.command == "lint"
+                && parsed.command_args.iter().any(|a| a == "--node")
+            {
+                // `cairn lint --node <id>` is the folded spelling of the
+                // former `cairn check <node>`: node-scoped, non-blocking.
+                let target_node = flag_value(&parsed.command_args, "--node");
+                let findings: Vec<_> = response
+                    .findings
+                    .iter()
+                    .filter(|f| {
+                        target_node.is_none_or(|t| f.node.as_deref().is_some_and(|n| n == t))
+                    })
+                    .cloned()
+                    .collect();
+                let has_errors = findings
+                    .iter()
+                    .any(|f| f.severity == FindingSeverity::Error);
+                let stdout = if parsed.json {
+                    format!(
+                        "{{\"command\":\"lint\",\"status\":\"{}\",\"data\":{{\"findings\":[{}]}}}}\n",
+                        if has_errors { "error" } else { "ok" },
+                        findings.iter().map(finding_json).collect::<Vec<_>>().join(",")
+                    )
+                } else {
+                    render_findings(&findings, false)
+                };
+                return CliResult {
+                    code: u8::from(has_errors),
+                    stdout,
+                    stderr: legacy_warning,
+                };
+            }
             let has_error = response
                 .findings
                 .iter()
@@ -512,37 +563,6 @@ fn render_loaded_project_command(
             let stdout = render_findings(&response.findings, parsed.json);
             return CliResult {
                 code,
-                stdout,
-                stderr: legacy_warning,
-            };
-        }
-        "check" => {
-            let response = query::lint(&scan_result.graph);
-            let target_node = parsed.command_args.get(1).map(String::as_str);
-            let findings: Vec<_> = response
-                .findings
-                .iter()
-                .filter(|f| target_node.is_none_or(|t| f.node.as_deref().is_some_and(|n| n == t)))
-                .cloned()
-                .collect();
-            let has_errors = findings
-                .iter()
-                .any(|f| f.severity == FindingSeverity::Error);
-            let stdout = if parsed.json {
-                format!(
-                    "{{\"command\":\"check\",\"status\":\"{}\",\"data\":{{\"findings\":[{}]}}}}\n",
-                    if has_errors { "error" } else { "ok" },
-                    findings
-                        .iter()
-                        .map(finding_json)
-                        .collect::<Vec<_>>()
-                        .join(",")
-                )
-            } else {
-                render_findings(&findings, false)
-            };
-            return CliResult {
-                code: u8::from(has_errors),
                 stdout,
                 stderr: legacy_warning,
             };
@@ -566,7 +586,6 @@ const EXTRA_CLI_COMMANDS: &[&str] = &[
     "brief",
     "change",
     "decision",
-    "check",
     "draft",
     "export",
     "feedback",
@@ -602,6 +621,7 @@ fn all_command_names() -> Vec<&'static str> {
         }
     }
     names.sort_unstable();
+    names.dedup();
     names
 }
 
@@ -613,19 +633,15 @@ fn command_description(name: &str) -> &'static str {
         "remediate" => "Generate an ordered action plan from current findings",
         "backlog" => "List beads (issues) linked to a node",
         "change" => "Manage changes: new, list, show, accept, archive",
-        "check" => "Inspect findings for a node or project",
         "context" => "Structured project overview for agents",
         "contract" => "Show the contract for a node",
         "decision" => "Scaffold a new decision artefact",
         "todo" => "Scaffold a new todo artefact",
         "decisions" => "List decisions linked to a node",
-        "dependents" => "List nodes that depend on a given node",
-        "depends" => "List nodes a given node depends on",
         "docstring" => "Generate a docstring for a node",
         "export" => "Export project data",
         "feedback" => "Record cairn friction and get an upstream issue link",
         "files" => "List files owned by a node",
-        "symbols" => "List public symbols extracted from a node",
         "bundle" => {
             "Generate bundle: contract, decisions, dependency interfaces, and gates for a node"
         }
@@ -637,6 +653,7 @@ fn command_description(name: &str) -> &'static str {
         "frontier" => "Show buildable-now and blocked ghost nodes",
         "import-openspec" => "Migrate openspec changes to meta/changes",
         "lint" => "Lint the blueprint and report findings",
+        "deps" => "List nodes a given node depends on (out) or that depend on it (in)",
         "neighbourhood" => "Show a node and its neighbours",
         "next" => "Show the next ready unit of work",
         "onboard" => "Suggest blueprint entries for orphaned files",
@@ -729,10 +746,8 @@ fn uses_shared_json(command: &str) -> bool {
             | "contract"
             | "docstring"
             | "files"
-            | "symbols"
             | "bundle"
-            | "dependents"
-            | "depends"
+            | "deps"
             | "order"
             | "islands"
             | "frontier"
@@ -777,8 +792,8 @@ mod tests {
             ("rationale", vec!["rationale", "app.api"]),
             ("status", vec!["status"]),
             ("context", vec!["context"]),
-            ("dependents", vec!["dependents", "app.api"]),
-            ("depends", vec!["depends", "app.api"]),
+            ("deps (in)", vec!["deps", "app.api", "--direction", "in"]),
+            ("deps (out)", vec!["deps", "app.api"]),
             ("contract", vec!["contract", "app.api"]),
             ("bundle", vec!["bundle", "app.api"]),
             ("order", vec!["order"]),
@@ -803,6 +818,25 @@ mod tests {
             );
         }
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_deps_rejects_invalid_direction_value() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("deps-bad-direction")?;
+        write_project(&root)?;
+        for args in [
+            vec!["deps", "app.api", "--direction", "sideways"],
+            vec!["--json", "deps", "app.api", "--direction", "sideways"],
+        ] {
+            let result = run_in(&root, &args);
+            assert_eq!(result.code, 1, "invalid direction must fail: {args:?}");
+            assert!(
+                result.stdout.contains("expected `in` or `out`"),
+                "usage guidance missing: {}",
+                result.stdout
+            );
+        }
         Ok(())
     }
 
@@ -1177,11 +1211,11 @@ app.api -> app.core "reports"
     fn test_check_json_output_is_valid_json() -> Result<(), Box<dyn std::error::Error>> {
         let root = temp_root("check-json")?;
         write_project(&root)?;
-        let result = run_in(&root, &["--json", "check"]);
+        let result = run_in(&root, &["--json", "lint", "--node", "app.api"]);
         assert_eq!(result.code, 0, "check json stderr: {}", result.stderr);
         let parsed: serde_json::Value = serde_json::from_str(result.stdout.trim())
             .unwrap_or_else(|e| panic!("invalid JSON from check --json: {e}\n{}", result.stdout));
-        assert_eq!(parsed["command"], "check");
+        assert_eq!(parsed["command"], "lint");
         assert_eq!(parsed["status"], "ok");
         assert!(parsed["data"]["findings"].is_array());
         Ok(())
@@ -1191,7 +1225,7 @@ app.api -> app.core "reports"
     fn test_check_json_with_target_node() -> Result<(), Box<dyn std::error::Error>> {
         let root = temp_root("check-json-node")?;
         write_project(&root)?;
-        let result = run_in(&root, &["--json", "check", "app.api"]);
+        let result = run_in(&root, &["--json", "lint", "--node", "app.api"]);
         assert_eq!(result.code, 0, "check json stderr: {}", result.stderr);
         let parsed: serde_json::Value =
             serde_json::from_str(result.stdout.trim()).unwrap_or_else(|e| {
@@ -1200,7 +1234,7 @@ app.api -> app.core "reports"
                     result.stdout
                 )
             });
-        assert_eq!(parsed["command"], "check");
+        assert_eq!(parsed["command"], "lint");
         Ok(())
     }
 
@@ -1221,9 +1255,9 @@ app.api -> app.core "reports"
     #[test]
     fn test_check_output_for_empty_states() -> Result<(), Box<dyn std::error::Error>> {
         let no_bp_root = temp_root("check-no-blueprint")?;
-        let no_bp = run_in(&no_bp_root, &["check"]);
+        let no_bp = run_in(&no_bp_root, &["lint", "--node", "app.api"]);
         assert_eq!(no_bp.code, 0);
-        insta::assert_snapshot!("check_no_blueprint", no_bp.stdout);
+        insta::assert_snapshot!("lint_node_no_blueprint", no_bp.stdout);
 
         let clean_root = temp_root("check-clean-map")?;
         fs::create_dir_all(clean_root.join("src"))?;
@@ -1244,9 +1278,9 @@ app.api -> app.core "reports"
             clean_root.join("cairn.config.yaml"),
             "context: \"ctx\"\nrules: {}\n",
         )?;
-        let clean_result = run_in(&clean_root, &["check"]);
+        let clean_result = run_in(&clean_root, &["lint", "--node", "clean.only"]);
         assert_eq!(clean_result.code, 0);
-        insta::assert_snapshot!("check_clean_map", clean_result.stdout);
+        insta::assert_snapshot!("lint_node_clean_map", clean_result.stdout);
 
         Ok(())
     }

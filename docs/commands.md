@@ -36,7 +36,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn next` | Show the next ready unit of work |
 | `cairn brief [<id>]` | Fused next-unit brief: task, binding decisions, contract, and gates |
 | `cairn scan` | Scan the project and report findings |
-| `cairn check [<node>]` | Inspect findings for a node or project (non-blocking) |
+| `cairn lint --node <id>` | Inspect findings for a single node (non-blocking) |
 | `cairn lint` | Lint the blueprint and report findings (blocking) |
 ### Node inspection
 
@@ -44,12 +44,12 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn get <node>` | Inspect a node by ID |
 | `cairn files <node>` | List files owned by a node |
-| `cairn symbols <node>` | List public symbols extracted from a node |
+| `cairn get <node> --symbols` | Public symbols extracted from a node |
 | `cairn bundle <node>` | Generate bundle: contract, decisions, dependency interfaces, and gates for a node |
 | `cairn contract <node>` | Show the contract for a node |
 | `cairn neighbourhood <node>` | Show a node and its neighbours |
-| `cairn depends <node>` | List nodes a given node depends on |
-| `cairn dependents <node>` | List nodes that depend on a given node |
+| `cairn deps <node>` | List nodes a given node depends on (outbound) |
+| `cairn deps <node> --direction in` | List nodes that depend on a given node (inbound) |
 | `cairn rationale <node>` | Show rationale chain for a node |
 | `cairn order` | Topological order of all nodes |
 | `cairn islands` | Show connected components of the map graph |

@@ -1,7 +1,8 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-06
+resolved: 2026-07-09
 ---
 
 # Fold Strict-Subset Commands Into Flags

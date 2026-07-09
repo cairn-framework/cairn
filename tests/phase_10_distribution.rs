@@ -185,9 +185,7 @@ fn test_every_cli_command_has_description() {
         "help must produce non-empty output"
     );
     // Verify that common commands appear in the help text.
-    for cmd in [
-        "scan", "lint", "check", "get", "context", "ui", "init", "change",
-    ] {
+    for cmd in ["scan", "lint", "get", "context", "ui", "init", "change"] {
         assert!(
             result.stdout.contains(cmd),
             "help output must mention command: {cmd}"
@@ -240,7 +238,7 @@ fn test_claude_code_integration_doc_references_mcp_and_cli() {
 fn test_command_reference_doc_lists_all_commands() {
     let doc = include_str!("../docs/commands.md");
     // Verify core commands are documented.
-    for cmd in ["scan", "lint", "check", "context", "get", "init", "ui"] {
+    for cmd in ["scan", "lint", "context", "get", "init", "ui"] {
         assert!(
             doc.contains(&format!("cairn {cmd}")),
             "command reference must mention cairn {cmd}"
@@ -332,7 +330,7 @@ fn test_every_registered_command_has_description() {
 /// Scenario: Every extra CLI command has a non-empty description.
 #[test]
 fn test_every_extra_cli_command_has_description() {
-    let extra = ["change", "check", "export", "onboard", "refine"];
+    let extra = ["change", "export", "onboard", "refine"];
     let result = cairn::cli::run(&["--help".to_owned()]);
     for cmd in &extra {
         assert!(
@@ -376,11 +374,11 @@ fn test_example_project_exercises_core_capabilities() {
     let result = cairn::cli::run(&[
         "--file".to_owned(),
         blueprint.to_string_lossy().to_string(),
-        "check".to_owned(),
+        "lint".to_owned(),
     ]);
     assert!(
         result.code == 0,
-        "cairn check on example project must exit zero, got code: {} with stderr: {}",
+        "cairn lint on example project must exit zero, got code: {} with stderr: {}",
         result.code,
         result.stderr
     );

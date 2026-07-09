@@ -26,11 +26,11 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Orientation** | `cairn context` | `--json` |
 | **Full scan** | `cairn scan` | `--json` |
 | **Lint findings** | `cairn lint` | `--json` (exit 1 on errors) |
-| **Non-blocking lint** | `cairn check [<node>]` | always exit 0 |
+| **Node-scoped lint** | `cairn lint --node <id>` | exit 0 unless error-severity findings |
 | **Inspect node** | `cairn get <node>` | `--json` |
 | **Node + neighbours** | `cairn neighbourhood <node>` | `--json`, `--include-todos`, `--include-changes`, `--include-orphans` |
 | **Node files** | `cairn files <node>` | `--json` |
-| **Dependency graph** | `cairn depends <node>` / `cairn dependents <node>` | `--json`, `--transitive` |
+| **Dependency graph** | `cairn deps <node>` / `cairn deps <node> --direction in` | `--json`, `--transitive` |
 | **Build order** | `cairn order` | `--json` |
 | **Provenance trail** | `cairn rationale <node>` | `--json` |
 | **Decisions** | `cairn decisions <node>` | `--json`, `--status accepted` |
@@ -71,7 +71,7 @@ When adding new source files:
 3. Run `cairn scan` to verify zero orphans
 
 When adding a dependency between modules:
-1. `cairn depends <target> --transitive` to check for cycles
+1. `cairn deps <target> --transitive` to check for cycles
 2. Add the edge in `cairn.blueprint`: `from.id -> to.id "relationship label"`
 3. `cairn scan` to verify
 
@@ -232,7 +232,7 @@ The pre-commit hook typically runs `cairn hook structural`. CI can run `cairn ho
 
 **Before modifying a module:** `cairn rationale <node>` shows the provenance chain (decisions, research, sources) explaining why it's shaped the way it is. Respect existing decisions.
 
-**Before adding a dependency:** `cairn dependents <node> --transitive` and `cairn depends <node> --transitive` reveal the full impact graph. Check for cycles.
+**Before adding a dependency:** `cairn deps <node> --direction in --transitive` and `cairn deps <node> --transitive` reveal the full impact graph. Check for cycles.
 
 **Understanding feature scope:** `cairn neighbourhood <node> --include-changes --include-todos` shows the node in context with its active work items.
 
@@ -241,7 +241,7 @@ The pre-commit hook typically runs `cairn hook structural`. CI can run `cairn ho
 ## When NOT to use cairn
 
 - Don't use `cairn scan` as a substitute for `cargo build` or language-specific compilation. They check different things.
-- Don't use `cairn check` to gate commits. Use `cairn hook` which has correct blocking semantics.
+- Don't use `cairn lint` to gate commits. Use `cairn hook` which has correct blocking semantics.
 - Don't modify `cairn.blueprint` without running `cairn scan` afterward to verify.
 - Don't add artefact files without ensuring the node declares the artefact directory in its blueprint entry.
 

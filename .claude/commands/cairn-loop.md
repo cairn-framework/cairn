@@ -43,7 +43,7 @@ loop's own step-by-step progress. Durable cross-session work items go through
 
 2. **Scope** — for each target node: `cairn neighbourhood <node>
    --include-todos --include-changes`, `cairn rationale <node>`, and
-   `cairn dependents <node> --transitive`. Respect accepted decisions. Write a
+   `cairn deps <node> --direction in --transitive`. Respect accepted decisions. Write a
    verifiable success criterion.
 
 3. **Propose** — for substantial work, invoke the `cairn-propose` skill to

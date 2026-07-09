@@ -19,7 +19,7 @@ artefacts, changes, and reconciler observations.
 
 ```bash
 # Inspect findings (non-blocking)
-cairn check
+cairn lint
 
 # Run lint gate (blocking on errors)
 cairn lint
@@ -28,7 +28,7 @@ cairn lint
 cairn get tasks.api
 
 # List dependencies
-cairn depends tasks.api
+cairn deps tasks.api
 
 # Start the web UI
 cairn ui

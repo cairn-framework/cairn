@@ -704,8 +704,8 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn sources <node>` — sources cited by research and decisions attached to a node. Transitive.
 - `cairn rationale <node>` — convenience command. Returns accepted decisions attached to this node and its direct neighbours, plus the research and sources informing them. The canonical "why was it built this way" lookup.
 - `cairn files <node>` — reality-layer elements claimed by a module. (For the code reconciler, files with extracted symbols.)
-- `cairn dependents <node> [--transitive]` — nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
-- `cairn depends <node> [--transitive]` — nodes this one edges into. Inverse of `dependents`. What does this node rely on?
+- `cairn deps <node> --direction in [--transitive]` — nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
+- `cairn deps <node> [--transitive]` — nodes this one edges into. Inverse of `deps --direction in`. What does this node rely on?
 - `cairn order [--from <node>] [--scope <id-prefix>]` — returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles cause a structural error naming the cycle participants. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
 - `cairn changes` — list active change directories.
 - `cairn show <change>` — show what a change proposes.
@@ -746,7 +746,7 @@ The summariser can optionally draft other artefact types (e.g. research from a c
 
 Each phase produces something usable on its own. Phases determine implementation order, not scope: every capability listed in section 5 is part of v1 regardless of which phase implements it.
 
-**Phase 1: kernel.** DSL grammar with stable IDs. The reconciler *interface* as an abstract contract. The code reconciler as its first implementation (Tree-sitter-based, minimal). Reconciliation logic for the contract artefact type only. CLI exposing `get`, `neighbourhood`, `contract`, `files`, `dependents`, `depends`, `order`, `lint`, and `scan`. Generate `index.md` and `.cairn/log.md` on scan. Output: a working CLI that answers structural queries against a reconciled ontology with contracts as the only artefact type. Validates the kernel architecture end-to-end.
+**Phase 1: kernel.** DSL grammar with stable IDs. The reconciler *interface* as an abstract contract. The code reconciler as its first implementation (Tree-sitter-based, minimal). Reconciliation logic for the contract artefact type only. CLI exposing `get`, `neighbourhood`, `contract`, `files`, `deps --direction in`, `deps`, `order`, `lint`, and `scan`. Generate `index.md` and `.cairn/log.md` on scan. Output: a working CLI that answers structural queries against a reconciled ontology with contracts as the only artefact type. Validates the kernel architecture end-to-end.
 
 **Phase 2: full artefact type system.** Add todos, decisions, reviews (with subtypes), research, and sources with integrity rules. Add the corresponding CLI commands (`rationale`, `sources`, `research`, `decisions`, `todos`, `status`). Output: the ontology carries full project metadata with provenance from source to reality.
 
@@ -854,7 +854,7 @@ Scope revision. The driving realisation: "deferred to v2" and "non-goal for v1" 
 - Added three optional frontmatter fields to the Decision artefact type: `supersedes`, `refines`, `related` — all arrays of ADR IDs. Formalises the ADR-to-ADR linking that the bootstrap needed but v0.5 did not define. `supersedes` has integrity semantics (target ADR must have `status: superseded`); the other two are informational.
 - Expanded the Source artefact type with a `verification` field taking one of three values: `verified` (local file with matching sha256), `external` (URL-referenced, no checksum possible), `unverified` (transitional state, surfaces as a rationale tension).
 - Added `cairn order` query for dependency-tier ordering. Returns nodes grouped by topological tier, detecting cycles as structural errors. Supports `--from` and `--scope` for restricted queries. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) without re-implementing graph traversal.
-- Added `cairn depends <node>` as the inverse of `dependents`. Returns what a node relies on. Both now support `--transitive` explicitly.
+- Added `cairn deps <node>` as the inverse of `deps --direction in`. Returns what a node relies on. Both now support `--transitive` explicitly.
 - Resolved open question 10 (source deduplication). Stable IDs already handle this; no framework logic needed.
 - Added open question about agent dissent and cross-model peer review as potential first-class artefact types (may collapse to one type with two subtypes).
 - Added open question about meta/ directory layout (by type vs by node).

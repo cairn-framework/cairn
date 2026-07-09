@@ -61,17 +61,17 @@ cta = "cairn sources <node>"
 [empty-states.node-no-outbound]
 heading = "No outbound dependencies"
 body = "This node has no outbound dependencies."
-cta = "cairn depends <node>"
+cta = "cairn deps <node>"
 
 [empty-states.node-no-inbound]
 heading = "No inbound dependencies"
 body = "No other nodes depend on this one."
-cta = "cairn dependents <node>"
+cta = "cairn deps <node> --direction in"
 
 [empty-states.node-no-symbols]
 heading = "No symbols"
 body = "No public symbols were extracted from this node."
-cta = "cairn symbols <node>"
+cta = "cairn get <node> --symbols"
 
 [empty-states.map-clean]
 heading = "Map clean"
@@ -111,7 +111,7 @@ cta = ""
 [empty-states.cli-no-blueprint]
 heading = "No blueprint found"
 body = "No cairn.blueprint found. Inspection has nothing to look at."
-cta = "Run `cairn init` to scaffold a blueprint, then re-run `cairn check`."
+cta = "Run `cairn init` to scaffold a blueprint, then re-run `cairn lint`."
 
 [empty-states.cli-clean-map]
 heading = "Blueprint clean"

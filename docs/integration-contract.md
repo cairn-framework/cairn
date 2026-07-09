@@ -52,10 +52,9 @@ Error responses from the MCP/query path:
 | `neighbourhood <node>` | `cairn_neighbourhood` | Node + inbound/outbound edges |
 | `contract <node>` | `cairn_contract` | Contract body text |
 | `files <node>` | `cairn_files` | File paths owned by the node |
-| `symbols <node>` | `cairn_symbols` | Public symbols extracted from the node (name, kind, signature, file, line) |
 | `bundle <node>` | `cairn_bundle` | Contract, decisions, dependency interfaces, and gates composed for one node |
-| `depends <node>` | `cairn_depends` | Outbound dependency edges |
-| `dependents <node>` | `cairn_dependents` | Inbound dependency edges |
+| `deps <node>` | `cairn_depends` | Outbound dependency edges |
+| `deps <node> --direction in` | `cairn_dependents` | Inbound dependency edges |
 | `order` | `cairn_order` | Topological sort of all nodes |
 | `islands` | `cairn_islands` | Disconnected graph components |
 | `frontier` | `cairn_frontier` | Buildable-now (ready) and blocked ghost nodes, tiered by dependency depth |

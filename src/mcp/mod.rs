@@ -185,7 +185,13 @@ fn request_from_arguments(
         new_id: string_arg(arguments, "new_id"),
         status: string_arg(arguments, "status").or_else(|| string_arg(arguments, "kind")),
         language: string_arg(arguments, "language"),
-        flags: argument_flags(arguments),
+        flags: {
+            let mut flags = argument_flags(arguments);
+            if name == "cairn_dependents" {
+                flags.insert(QueryFlag::Inbound);
+            }
+            flags
+        },
         mutating: allow_mutating_tools && bool_arg(arguments, "mutating"),
     }
 }
