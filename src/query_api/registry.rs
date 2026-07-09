@@ -433,7 +433,7 @@ mod tests {
 
     #[test]
     fn test_every_registry_tool_has_a_description() {
-        for tool in TOOL_REGISTRY.iter() {
+        for tool in &TOOL_REGISTRY {
             assert!(
                 !tool.description.is_empty(),
                 "registry tool `{}` is missing a description",
