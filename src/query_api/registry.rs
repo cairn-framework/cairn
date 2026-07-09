@@ -11,6 +11,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NodeRequest",
         "NodeResponse",
         SafetyClass::ReadOnly,
+        "Inspect a node by ID",
     ),
     tool(
         "neighbourhood",
@@ -18,6 +19,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NeighbourhoodRequest",
         "NeighbourhoodResponse",
         SafetyClass::ReadOnly,
+        "Show a node and its neighbours",
     ),
     tool(
         "contract",
@@ -25,6 +27,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NodeRequest",
         "ContractResponse",
         SafetyClass::ReadOnly,
+        "Show the contract for a node",
     ),
     tool(
         "docstring",
@@ -32,6 +35,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DocstringRequest",
         "DocstringResponse",
         SafetyClass::ReadOnly,
+        "Generate a docstring for a node",
     ),
     tool(
         "files",
@@ -39,6 +43,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NodeRequest",
         "FilesResponse",
         SafetyClass::ReadOnly,
+        "List files owned by a node",
     ),
     tool(
         "bundle",
@@ -46,6 +51,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NodeRequest",
         "BundleResponse",
         SafetyClass::ReadOnly,
+        "Generate bundle: contract, decisions, dependency interfaces, and gates for a node",
     ),
     tool(
         "deps",
@@ -53,6 +59,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DependencyRequest",
         "DependencyResponse",
         SafetyClass::ReadOnly,
+        "List nodes a given node depends on (out) or that depend on it (in)",
     ),
     tool(
         "deps",
@@ -60,6 +67,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DependencyRequest",
         "DependencyResponse",
         SafetyClass::ReadOnly,
+        "List nodes a given node depends on (out) or that depend on it (in)",
     ),
     tool(
         "order",
@@ -67,6 +75,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "OrderRequest",
         "OrderResponse",
         SafetyClass::ReadOnly,
+        "Topological order of all nodes",
     ),
     tool(
         "islands",
@@ -74,6 +83,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "IslandsRequest",
         "IslandsResponse",
         SafetyClass::ReadOnly,
+        "Show connected components of the map graph",
     ),
     tool(
         "frontier",
@@ -81,6 +91,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "FrontierRequest",
         "FrontierResponse",
         SafetyClass::ReadOnly,
+        "Show buildable-now and blocked ghost nodes",
     ),
     tool(
         "lint",
@@ -88,6 +99,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "LintRequest",
         "LintResponse",
         SafetyClass::ReadOnly,
+        "Lint the blueprint and report findings",
     ),
     tool(
         "status",
@@ -95,6 +107,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "StatusRequest",
         "StatusResponse",
         SafetyClass::ReadOnly,
+        "Show project status summary",
     ),
     tool(
         "rationale",
@@ -102,6 +115,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NodeRequest",
         "RationaleResponse",
         SafetyClass::ReadOnly,
+        "Show rationale chain for a node",
     ),
     tool(
         "todos",
@@ -109,6 +123,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "ArtefactNodeRequest",
         "TodosResponse",
         SafetyClass::ReadOnly,
+        "List todos linked to a node",
     ),
     tool(
         "decisions",
@@ -116,6 +131,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "ArtefactNodeRequest",
         "DecisionsResponse",
         SafetyClass::ReadOnly,
+        "List decisions linked to a node",
     ),
     tool(
         "research",
@@ -123,6 +139,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NodeRequest",
         "ResearchResponse",
         SafetyClass::ReadOnly,
+        "List research linked to a node",
     ),
     tool(
         "sources",
@@ -130,6 +147,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "NodeRequest",
         "SourcesResponse",
         SafetyClass::ReadOnly,
+        "List sources linked to a node",
     ),
     tool(
         "changes",
@@ -137,6 +155,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "ChangesRequest",
         "ChangesResponse",
         SafetyClass::ReadOnly,
+        "List active and archived changes",
     ),
     tool(
         "show",
@@ -144,6 +163,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "ShowChangeRequest",
         "ShowChangeResponse",
         SafetyClass::ReadOnly,
+        "Show details of a change",
     ),
     tool(
         "hook",
@@ -151,6 +171,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "HookRequest",
         "HookReport",
         SafetyClass::ReadOnly,
+        "Run reconciliation hooks",
     ),
     tool(
         "health",
@@ -158,6 +179,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "HealthRequest",
         "HealthResponse",
         SafetyClass::ReadOnly,
+        "Comprehensive health check: lint, hooks, and module state",
     ),
     tool(
         "remediate",
@@ -165,6 +187,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "RemediateRequest",
         "RemediateResponse",
         SafetyClass::ReadOnly,
+        "Generate an ordered action plan from current findings",
     ),
     tool(
         "ui",
@@ -172,6 +195,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "UiRequest",
         "UiServerResponse",
         SafetyClass::ReadOnly,
+        "Launch the web UI",
     ),
     tool(
         "scan",
@@ -179,6 +203,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "ScanRequest",
         "ScanResponse",
         SafetyClass::Mutating,
+        "Scan the project and report findings",
     ),
     tool(
         "archive",
@@ -186,6 +211,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "ArchiveRequest",
         "ArchiveResponse",
         SafetyClass::Mutating,
+        "Archive a completed change",
     ),
     tool(
         "rename",
@@ -193,6 +219,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "RenameRequest",
         "RenameResponse",
         SafetyClass::Mutating,
+        "Rename a node ID across the project",
     ),
     tool(
         "init",
@@ -200,6 +227,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "InitRequest",
         "InitResponse",
         SafetyClass::Mutating,
+        "Scaffold a new cairn project",
     ),
     tool(
         "context",
@@ -207,6 +235,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "ContextRequest",
         "ContextResponse",
         SafetyClass::ReadOnly,
+        "Structured project overview for agents",
     ),
     tool(
         "init_from_code",
@@ -214,6 +243,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "InitFromCodeRequest",
         "InitFromCodeResponse",
         SafetyClass::Mutating,
+        "Scaffold a project from existing code",
     ),
     tool(
         "refine",
@@ -221,6 +251,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "RefineRequest",
         "RefineResponse",
         SafetyClass::Mutating,
+        "Re-run brownfield discovery and write a timestamped change",
     ),
     tool(
         "draft list",
@@ -228,6 +259,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DraftsRequest",
         "DraftsResponse",
         SafetyClass::ReadOnly,
+        "List pending draft proposals",
     ),
     tool(
         "draft show",
@@ -235,6 +267,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DraftShowRequest",
         "DraftShowResponse",
         SafetyClass::ReadOnly,
+        "Show a draft proposal",
     ),
     tool(
         "draft discard",
@@ -242,6 +275,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DraftDiscardRequest",
         "DraftDiscardResponse",
         SafetyClass::Mutating,
+        "Discard a draft proposal",
     ),
     tool(
         "draft edit",
@@ -249,6 +283,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DraftEditRequest",
         "DraftEditResponse",
         SafetyClass::Mutating,
+        "Edit a draft proposal in your editor",
     ),
     tool(
         "draft accept",
@@ -256,6 +291,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "DraftAcceptRequest",
         "DraftAcceptResponse",
         SafetyClass::Mutating,
+        "Accept a draft proposal and apply it",
     ),
     tool(
         "draft create",
@@ -263,6 +299,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "SummariseRequest",
         "SummariseResponse",
         SafetyClass::Mutating,
+        "Generate a contract summary for a node",
     ),
     tool(
         "watch",
@@ -270,6 +307,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "WatchRequest",
         "WatchResponse",
         SafetyClass::ReadOnly,
+        "Watch for finding changes and emit events",
     ),
 ];
 
@@ -279,6 +317,7 @@ pub(super) const fn tool(
     request_schema: &'static str,
     response_schema: &'static str,
     safety: SafetyClass,
+    description: &'static str,
 ) -> ToolMetadata {
     ToolMetadata {
         cli_name,
@@ -286,6 +325,7 @@ pub(super) const fn tool(
         request_schema,
         response_schema,
         safety,
+        description,
     }
 }
 
@@ -389,5 +429,16 @@ mod tests {
     #[test]
     fn test_registry_size() {
         assert_eq!(TOOL_REGISTRY.len(), 38);
+    }
+
+    #[test]
+    fn test_every_registry_tool_has_a_description() {
+        for tool in &TOOL_REGISTRY {
+            assert!(
+                !tool.description.is_empty(),
+                "registry tool `{}` is missing a description",
+                tool.cli_name
+            );
+        }
     }
 }

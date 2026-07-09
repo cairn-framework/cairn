@@ -32,51 +32,13 @@ fn documented_commands() -> Vec<String> {
 
 /// Extracts CLI command names from the binary registry.
 fn registered_commands() -> Vec<String> {
-    const DRAFT_COMMANDS: &[&str] = &[
-        "draft list",
-        "draft show",
-        "draft edit",
-        "draft discard",
-        "draft accept",
-        "draft create",
-    ];
-    // Top-level spellings retired under `cairn change <sub>`.
-    const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
-    let mut names: Vec<String> = cairn::cli::registry()
-        .iter()
-        .filter(|t| t.cli_name != "init_from_code")
-        .filter(|t| !DRAFT_COMMANDS.contains(&t.cli_name))
-        .filter(|t| !RETIRED_TOP_LEVEL.contains(&t.cli_name))
-        .map(|t| t.cli_name.to_owned())
-        .collect();
-
-    // EXTRA_CLI_COMMANDS from src/cli/mod.rs (accept/archive retired under change)
-    let extra = [
-        "backlog",
-        "brief",
-        "change",
-        "decision",
-        "draft",
-        "export",
-        "feedback",
-        "gap",
-        "import-openspec",
-        "next",
-        "onboard",
-        "refine",
-        "todo",
-        "watch",
-        "workspace",
-    ];
-    for cmd in extra {
-        if !names.contains(&cmd.to_owned()) {
-            names.push(cmd.to_owned());
-        }
-    }
-
-    names.sort_unstable();
-    names.dedup();
-    names
+    // Single source of truth: derived from `query_api::registry()` plus the
+    // CLI-only table inside `cairn::cli`, with no second hand-maintained
+    // list mirroring the CLI surface.
+    cairn::cli::all_command_names()
+        .into_iter()
+        .map(str::to_owned)
+        .collect()
 }
 
 #[test]
