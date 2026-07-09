@@ -591,3 +591,77 @@ fn test_orphan_beads_no_export_no_findings() {
     assert!(g.findings.is_empty(), "no export -> no findings");
     let _ = std::fs::remove_dir_all(&dir);
 }
+// ── TargetReport.hash semantics ───────────────────────────────────────────
+// The scanner must assign `hash: None` to Unknown-language targets (no
+// reconciler runs) and `hash: Some(..)` to reconciled targets that own files.
+use crate::blueprint::Ast;
+use crate::blueprint::ast::Node;
+use crate::reconcile::target::{Language, Target};
+use std::fs;
+
+fn target_report_ast(node_id: &str, node_path: &str) -> Ast {
+    Ast {
+        nodes: vec![Node {
+            kind: NodeKind::Module,
+            name: node_id.to_owned(),
+            description: String::new(),
+            id: node_id.to_owned(),
+            tags: Vec::new(),
+            paths: vec![node_path.to_owned()],
+            owns_files: false,
+            contracts: Vec::new(),
+            raw_fields: Vec::new(),
+            children: Vec::new(),
+            span: Span::point("cairn.blueprint", 1, 1),
+        }],
+        edges: Vec::new(),
+    }
+}
+
+#[test]
+fn unknown_language_target_hash_is_none() {
+    let root = std::env::temp_dir().join(format!("cairn-unknown-hash-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&root);
+    fs::create_dir_all(&root).unwrap();
+    let ast = target_report_ast("app.api", ".");
+    let target = Target::new("app.api".to_owned(), root.clone(), Language::Unknown);
+    let (reports, findings) =
+        super::reconcile_targets(&[target], &root, &[], &ast, &Config::default());
+    assert_eq!(reports.len(), 1, "one target -> one report");
+    assert_eq!(reports[0].language, Language::Unknown);
+    assert!(
+        reports[0].hash.is_none(),
+        "Unknown-language targets must carry hash=None (no reconciler runs)"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "CAIRN_RECONCILE_LANGUAGE_UNKNOWN"),
+        "Unknown target must warn CAIRN_RECONCILE_LANGUAGE_UNKNOWN"
+    );
+    let _ = fs::remove_dir_all(&root);
+}
+
+#[test]
+fn known_language_target_hash_is_some() {
+    let fixture = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/reconcile_baseline/python");
+    let root = std::env::temp_dir().join(format!("cairn-known-hash-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&root);
+    fs::create_dir_all(&root).unwrap();
+    // Copy the fixture so the reconciler cache write does not pollute the repo.
+    for f in ["api.py", "orphan.py"] {
+        fs::copy(fixture.join(f), root.join(f)).unwrap();
+    }
+    let ast = target_report_ast("app.api", ".");
+    let target = Target::new("app.api".to_owned(), root.clone(), Language::Python);
+    let (reports, _findings) =
+        super::reconcile_targets(&[target], &root, &[], &ast, &Config::default());
+    assert_eq!(reports.len(), 1);
+    assert_eq!(reports[0].language, Language::Python);
+    assert!(
+        reports[0].hash.is_some(),
+        "a reconciled target that owns files must carry hash=Some"
+    );
+    let _ = fs::remove_dir_all(&root);
+}

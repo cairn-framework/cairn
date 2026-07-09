@@ -1,0 +1,49 @@
+{
+  "claimed_files": {
+    "app.api": [
+      "src/api.ts"
+    ]
+  },
+  "symbols": [
+    "export_statement:export function greet(name: string): string { return name; }",
+    "export_statement:export interface User { id: number; }"
+  ],
+  "node_symbols": {
+    "app.api": [
+      "export_statement:export function greet(name: string): string { return name; }",
+      "export_statement:export interface User { id: number; }"
+    ]
+  },
+  "node_symbol_records": {
+    "app.api": [
+      {
+        "name": "greet",
+        "kind": "function",
+        "signature": "export_statement:export function greet(name: string): string { return name; }",
+        "file": "src/api.ts",
+        "line": 1,
+        "end_line": 1
+      },
+      {
+        "name": "User",
+        "kind": "interface",
+        "signature": "export_statement:export interface User { id: number; }",
+        "file": "src/api.ts",
+        "line": 3,
+        "end_line": 3
+      }
+    ]
+  },
+  "fingerprint": {
+    "hash": "07668eff85f84033"
+  },
+  "findings": [
+    {
+      "code": "CAIRN_RECONCILE_ORPHANED_FILE",
+      "severity": "info",
+      "message": "TypeScript file `orphan.ts` is not owned by any eligible node",
+      "node": null,
+      "path": "orphan.ts"
+    }
+  ]
+}

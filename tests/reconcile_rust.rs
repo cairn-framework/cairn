@@ -7,7 +7,8 @@
 use cairn::{
     blueprint::{Ast, NodeKind, Span, ast::Node},
     reconcile::{
-        ReconcileRequest, Reconciler, code::RustCodeReconciler, fingerprint::InterfaceFingerprint,
+        CodeReconciler, ReconcileRequest, Reconciler, fingerprint::InterfaceFingerprint, spec_for,
+        target::Language,
     },
 };
 use std::fs;
@@ -45,7 +46,7 @@ fn test_rust_pub_fn_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.lib", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -60,7 +61,7 @@ fn test_rust_private_fn_absent_from_symbols() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(dir.path().join("lib.rs"), "fn internal() {}\n").unwrap();
     let ast = single_node_ast("app.lib", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -79,7 +80,7 @@ fn test_rust_pub_struct_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.types", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -98,7 +99,7 @@ fn test_rust_pub_enum_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.status", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -117,7 +118,7 @@ fn test_rust_pub_trait_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.processor", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -136,7 +137,7 @@ fn test_rust_pub_const_appears_in_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.limits", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -158,7 +159,7 @@ fn test_rust_pub_const_symbol_contains_const_keyword() {
     )
     .unwrap();
     let ast = single_node_ast("app.limits", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     let sym = report
@@ -183,7 +184,7 @@ fn test_rust_pub_static_symbol_contains_static_keyword() {
     )
     .unwrap();
     let ast = single_node_ast("app.globals", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     let sym = report
@@ -203,7 +204,7 @@ fn test_rust_unowned_file_emits_orphaned_finding() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(dir.path().join("orphan.rs"), "pub fn orphaned() {}\n").unwrap();
     let ast = single_node_ast("app.other", "other/");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -223,7 +224,7 @@ fn test_rust_owned_file_in_claimed_files() {
     fs::create_dir(&src).unwrap();
     fs::write(src.join("lib.rs"), "pub fn run() {}\n").unwrap();
     let ast = single_node_ast("app.core", "src");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
     assert!(
@@ -239,12 +240,12 @@ fn test_rust_fingerprint_changes_on_new_pub_fn() {
     let file = dir.path().join("api.rs");
     fs::write(&file, "pub fn alpha() {}\n").unwrap();
     let ast = single_node_ast("app.api", ".");
-    let fp1 = RustCodeReconciler::new(&ast)
+    let fp1 = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap()
         .fingerprint;
     fs::write(&file, "pub fn alpha() {}\npub fn beta() {}\n").unwrap();
-    let fp2 = RustCodeReconciler::new(&ast)
+    let fp2 = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap()
         .fingerprint;
@@ -260,7 +261,7 @@ fn test_rust_ignored_file_excluded_from_symbols() {
     )
     .unwrap();
     let ast = single_node_ast("app.gen", ".");
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &["generated.rs".to_owned()]))
         .unwrap();
     assert!(
@@ -320,7 +321,7 @@ fn test_node_symbols_produce_distinct_hashes_per_node() {
         edges: Vec::new(),
     };
 
-    let report = RustCodeReconciler::new(&ast)
+    let report = CodeReconciler::new(&ast, spec_for(Language::Rust).unwrap())
         .reconcile(rs_request(dir.path(), &[]))
         .unwrap();
 

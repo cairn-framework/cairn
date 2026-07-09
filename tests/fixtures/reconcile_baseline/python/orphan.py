@@ -1,0 +1,2 @@
+def orphaned():
+    pass

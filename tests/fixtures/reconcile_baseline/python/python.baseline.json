@@ -1,0 +1,52 @@
+{
+  "claimed_files": {
+    "app.api": [
+      "api.py",
+      "orphan.py"
+    ]
+  },
+  "symbols": [
+    "class_definition:User",
+    "function_definition:greet",
+    "function_definition:orphaned"
+  ],
+  "node_symbols": {
+    "app.api": [
+      "class_definition:User",
+      "function_definition:greet",
+      "function_definition:orphaned"
+    ]
+  },
+  "node_symbol_records": {
+    "app.api": [
+      {
+        "name": "User",
+        "kind": "class",
+        "signature": "class_definition:User",
+        "file": "api.py",
+        "line": 7,
+        "end_line": 8
+      },
+      {
+        "name": "greet",
+        "kind": "function",
+        "signature": "function_definition:greet",
+        "file": "api.py",
+        "line": 1,
+        "end_line": 2
+      },
+      {
+        "name": "orphaned",
+        "kind": "function",
+        "signature": "function_definition:orphaned",
+        "file": "orphan.py",
+        "line": 1,
+        "end_line": 2
+      }
+    ]
+  },
+  "fingerprint": {
+    "hash": "9de51c21312e04ac"
+  },
+  "findings": []
+}

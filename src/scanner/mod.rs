@@ -28,8 +28,7 @@ use crate::{
         graph::{Finding, FindingSeverity},
     },
     reconcile::{
-        ReconcileRequest, Reconciler, ReconcilerId,
-        code::RustCodeReconciler,
+        CodeReconciler, ReconcileRequest, Reconciler, ReconcilerId, spec_for,
         target::{Language, Target, TargetId},
     },
 };
@@ -136,7 +135,6 @@ fn reconcile_targets(
 
     let mut reports = Vec::new();
     let mut all_findings = Vec::new();
-    let rust_reconciler = RustCodeReconciler::new(ast);
     // Each language reconciler scans the entire project root; calling it
     // once per target produces duplicate orphaned-file findings. Cache
     // results by language so each reconciler runs exactly once globally.
@@ -170,22 +168,12 @@ fn reconcile_targets(
 
         let report = reconciler_cache.entry(target.language).or_insert_with(|| {
             let req = ReconcileRequest { root, ignores };
-            match target.language {
-                Language::Rust => rust_reconciler.reconcile(req).unwrap(),
-                Language::TypeScript => {
-                    let reconciler = crate::reconcile::typescript::TypeScriptReconciler::new(ast);
-                    reconciler.reconcile(req).unwrap()
-                }
-                Language::Python => {
-                    let reconciler = crate::reconcile::python::PythonReconciler::new(ast);
-                    reconciler.reconcile(req).unwrap()
-                }
-                Language::Go => {
-                    let reconciler = crate::reconcile::go::GoReconciler::new(ast);
-                    reconciler.reconcile(req).unwrap()
-                }
-                Language::Unknown => unreachable!("unknown targets are skipped above"),
-            }
+            // Each language is driven by its registered LanguageSpec; the
+            // reconciler cache ensures each language runs exactly once.
+            let spec = spec_for(target.language).expect(
+                "unknown targets are skipped earlier in this loop; every other language is registered",
+            );
+            CodeReconciler::new(ast, spec).reconcile(req).unwrap()
         });
         let owned_files = report
             .claimed_files
