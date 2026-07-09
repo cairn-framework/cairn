@@ -1,12 +1,9 @@
 //! Artefact query renderers (todos, decisions, research, sources, rationale).
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{
-    decision_line, decisions_json, flag_value, lines, node_arg, research_json, research_line,
-    source_line, sources_json,
-};
+use super::super::format::{decision_line, decisions_json, flag_value, lines, node_arg};
 use super::super::*;
-use crate::query_api::{QueryRequest, neighbourhood_ids, parse_decision_status_filter};
+use crate::query_api::{QueryRequest, parse_decision_status_filter};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
@@ -216,73 +213,86 @@ fn sources_text(data: &Value) -> String {
     format!("Sources for {node_id}:\n{}\n", lines(&sources_lines))
 }
 
-pub(crate) fn render_rationale(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let node_ids = neighbourhood_ids(&scan_result.graph, &node.id);
-        let decisions = scan_result
-            .artefacts
-            .decisions
-            .iter()
-            .filter(|decision| {
-                decision.status == DecisionStatus::Accepted
-                    && decision.nodes.iter().any(|node| node_ids.contains(node))
-            })
-            .cloned()
-            .collect::<Vec<_>>();
-        let research_ids = decisions
-            .iter()
-            .flat_map(|decision| decision.informed_by.iter())
-            .cloned()
-            .collect::<BTreeSet<_>>();
-        let source_ids = decisions
-            .iter()
-            .flat_map(|decision| decision.informed_by.iter())
-            .cloned()
-            .chain(
-                scan_result
-                    .artefacts
-                    .research
-                    .iter()
-                    .filter(|research| research_ids.contains(&research.id))
-                    .flat_map(|research| research.sources.iter().cloned()),
-            )
-            .collect::<BTreeSet<_>>();
-        let research = scan_result
-            .artefacts
-            .research
-            .iter()
-            .filter(|research| research_ids.contains(&research.id))
-            .cloned()
-            .collect::<Vec<_>>();
-        let sources = scan_result
-            .artefacts
-            .sources
-            .iter()
-            .filter(|source| source_ids.contains(&source.id))
-            .cloned()
-            .collect::<Vec<_>>();
-        Ok(if parsed.json {
+pub(crate) fn render_rationale(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let request = QueryRequest {
+        tool: "rationale".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(rationale_text(&data))
+}
+/// Renders the canonical `rationale_json` data as human text.
+fn rationale_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
+
+    let decisions_lines: Vec<String> = data["decisions"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
             format!(
-                "{{\"node\":\"{}\",\"decisions\":{},\"research\":{},\"sources\":{}}}\n",
-                esc(&node.id),
-                decisions_json(&decisions),
-                research_json(&research),
-                sources_json(&sources)
-            )
-        } else {
-            format!(
-                "Rationale for {}:\nDecisions:\n{}\nResearch:\n{}\nSources:\n{}\n",
-                node.id,
-                lines(&decisions.iter().map(decision_line).collect::<Vec<_>>()),
-                lines(&research.iter().map(research_line).collect::<Vec<_>>()),
-                lines(&sources.iter().map(source_line).collect::<Vec<_>>())
+                "{} [{}] {}",
+                value["id"].as_str().unwrap_or_default(),
+                value["status"].as_str().unwrap_or_default(),
+                value["path"].as_str().unwrap_or_default()
             )
         })
-    })
+        .collect();
+
+    let research_lines: Vec<String> = data["research"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
+            let sources: Vec<String> = value["sources"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .map(|source| source.as_str().unwrap_or_default().to_owned())
+                .collect();
+            format!(
+                "{} sources: {}",
+                value["id"].as_str().unwrap_or_default(),
+                sources.join(", ")
+            )
+        })
+        .collect();
+
+    let sources_lines: Vec<String> = data["sources"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
+            format!(
+                "{} [{}] {}",
+                value["id"].as_str().unwrap_or_default(),
+                value["verification"].as_str().unwrap_or_default(),
+                value["file"].as_str().unwrap_or_default()
+            )
+        })
+        .collect();
+
+    format!(
+        "Rationale for {node_id}:\nDecisions:\n{}\nResearch:\n{}\nSources:\n{}\n",
+        lines(&decisions_lines),
+        lines(&research_lines),
+        lines(&sources_lines)
+    )
 }
 
 #[cfg(test)]

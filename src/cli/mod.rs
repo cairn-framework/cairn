@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     artefacts::registry::{
-        Decision, DecisionStatus, Research, Review, ReviewType, Source, Todo, TodoStatus,
+        Decision, DecisionStatus, Research, Review, ReviewType, Todo, TodoStatus,
     },
     hooks::{self, HookKind},
     map::{
@@ -443,7 +443,7 @@ fn render_loaded_project_command(
         "decisions" => render_decisions(parsed, scan_result),
         "research" => render_research(parsed, root),
         "sources" => render_sources(parsed, root),
-        "rationale" => render_rationale(parsed, scan_result),
+        "rationale" => render_rationale(parsed, root),
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(parsed, root, scan_result)),
         "backlog" => render_backlog(parsed, root, scan_result),

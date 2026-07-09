@@ -4,7 +4,7 @@
 use super::super::*;
 use super::json::node_json;
 use super::util::esc;
-use crate::query_api::{decision_status, source_verification, todo_status};
+use crate::query_api::{decision_status, todo_status};
 
 pub(crate) fn render_node(node: &NodeRecord, json: bool) -> String {
     if json {
@@ -81,15 +81,6 @@ pub(crate) fn review_line(review: &Review) -> String {
     )
 }
 
-pub(crate) fn source_line(source: &Source) -> String {
-    format!(
-        "{} [{}] {}",
-        source.id,
-        source_verification(source.verification),
-        source.file
-    )
-}
-
 pub(crate) const fn review_type(review_type: ReviewType) -> &'static str {
     match review_type {
         ReviewType::Human => "human",
@@ -102,7 +93,7 @@ pub(crate) const fn review_type(review_type: ReviewType) -> &'static str {
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{DecisionStatus, ResearchMethod, SourceVerification, TodoStatus},
+        artefacts::registry::{DecisionStatus, ResearchMethod, TodoStatus},
         blueprint::{NodeKind, Span},
         map::{FindingSeverity, NodeRecord, NodeState},
     };
@@ -192,23 +183,6 @@ mod tests {
             body: String::new(),
         };
         assert_eq!(review_line(&review), "app [human] ./review.md");
-    }
-
-    #[test]
-    fn test_source_line_format() {
-        let source = Source {
-            id: "src-1".to_owned(),
-            path: "./source.md".to_owned(),
-            file: "./source.md".to_owned(),
-            sha256: None,
-            verification: SourceVerification::External,
-            source_type: String::new(),
-            date: String::new(),
-            tags: Vec::new(),
-            description: String::new(),
-            body: String::new(),
-        };
-        assert_eq!(source_line(&source), "src-1 [external] ./source.md");
     }
 
     // ── render_node / render_findings ─────────────────────────────────────────
