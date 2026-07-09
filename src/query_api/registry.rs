@@ -307,7 +307,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         "WatchRequest",
         "WatchResponse",
         SafetyClass::ReadOnly,
-        "Watch for finding changes and emit JSON events",
+        "Watch for finding changes and emit events",
     ),
 ];
 
