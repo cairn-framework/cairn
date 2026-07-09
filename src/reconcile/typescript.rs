@@ -41,7 +41,7 @@ fn ts_symbol_kind(ts_kind: &str) -> SymbolKind {
         "interface_declaration" => SymbolKind::Interface,
         "type_alias_declaration" => SymbolKind::Type,
         "enum_declaration" => SymbolKind::Enum,
-        "variable_declaration" => SymbolKind::Variable,
+        "variable_declaration" | "lexical_declaration" => SymbolKind::Variable,
         _ => SymbolKind::Other,
     }
 }
