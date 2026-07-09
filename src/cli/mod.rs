@@ -103,7 +103,7 @@ pub fn run(args: &[String]) -> CliResult {
                 Err(e) => err(1, &e.to_string()),
             };
         }
-        return init_project(Path::new("."));
+        return init_project(project_root);
     }
     if parsed.command == "import-openspec" {
         return run_import_openspec(project_root, parsed.json);
@@ -679,10 +679,7 @@ fn uses_shared_json(command: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        sync::{LazyLock, Mutex},
-        time::{SystemTime, UNIX_EPOCH},
-    };
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     #[test]
     fn test_cli_core_commands_support_human_and_json_output()
@@ -879,12 +876,23 @@ mod tests {
     }
 
     fn run_in_str(root: &Path, args: &[String]) -> CliResult {
-        let _guard = TEST_CWD_LOCK.lock().expect("lock cwd");
-        let old = std::env::current_dir().expect("cwd");
-        std::env::set_current_dir(root).expect("set cwd");
-        let result = run(args);
-        std::env::set_current_dir(old).expect("restore cwd");
-        result
+        // Never mutate process-global CWD. Parallel cargo-test races on
+        // set_current_dir even under a mutex when other tests or panic
+        // paths leave the process in a foreign directory. Inject absolute
+        // --file / --changes-dir so project_root resolves from the path.
+        let mut owned = args.to_vec();
+        if !owned.iter().any(|a| a == "--file") {
+            owned.insert(0, "--file".to_owned());
+            owned.insert(
+                1,
+                root.join("cairn.blueprint").to_string_lossy().into_owned(),
+            );
+        }
+        if !owned.iter().any(|a| a == "--changes-dir") {
+            owned.insert(0, "--changes-dir".to_owned());
+            owned.insert(1, root.join("meta/changes").to_string_lossy().into_owned());
+        }
+        run(&owned)
     }
 
     fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
@@ -1154,8 +1162,6 @@ app.api -> app.core "reports"
 
         Ok(())
     }
-
-    static TEST_CWD_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
     #[test]
     fn test_cli_draft_list_and_show_json() -> Result<(), Box<dyn std::error::Error>> {
