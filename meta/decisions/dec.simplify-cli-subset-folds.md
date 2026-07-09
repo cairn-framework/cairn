@@ -42,7 +42,7 @@ Three folds, clean cutover, no aliases:
 
 2. **`check <node>` -> `lint --node <id>`.** The `check` CLI command is
    removed. `lint --node <id>` runs the same lint and filters findings by the
-   target node, non-blocking (always exit 0), matching `check`'s prior
+   target node, non-blocking: it preserves `check`'s exit-code contract (`code: u8::from(has_errors)`), matching `check`'s prior
    semantics. The missing-blueprint preflight, the `cairn.dsl` rename guidance,
    and the `empty-states.cli-no-blueprint` copy survive unchanged on the new
    path. `cairn_lint` is unchanged.

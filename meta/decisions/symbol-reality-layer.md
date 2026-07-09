@@ -8,7 +8,7 @@ date: 2026-07-02
 informed_by: [res.vision-refactor-audit]
 revisit_triggers:
   - "A fifth reconciler language is added and the SymbolKind enum needs a member no existing mapping covers"
-  - "cairn symbols response payload becomes a measured performance problem on large repos"
+  - "cairn get --symbols response payload becomes a measured performance problem on large repos"
 ---
 
 # Symbol reality layer: structured extraction survives past the fingerprint
@@ -31,7 +31,7 @@ reconcilers (Rust, TypeScript, Python, Go) build a `SymbolRecord` alongside the
 existing flattened signature string at the same walk point, without changing
 how the flattened string is computed. Records thread through
 `ReconcileReport`/`TargetReport`, attach to `NodeRecord.symbols` in the graph,
-and are queryable via a new `cairn symbols <node>` tool (CLI + MCP) and shown
+and are queryable via `cairn get <node> --symbols` (CLI) and the `cairn_get` MCP tool's optional `symbols` field, and shown
 in the webui's module inspector.
 
 The blueprint stays module-level: this is reality-layer detail, not a new
@@ -51,7 +51,7 @@ than an opaque hash.
 
 - Cache schema version bumps (`RECONCILER_CACHE_VERSION` 4→5); existing caches
   recompute rather than silently serving stale structure-free data.
-- `cairn symbols` becomes the below-module query surface `dec.spec` §5's
+- `cairn get --symbols` becomes the below-module query surface `dec.spec` §5's
   non-goal ("function-level mapping in the blueprint") already anticipated:
   detail is a zoom parameter of queries, never of the blueprint (spec v0.8 §5).
 - Enables `dec.persistent-map-snapshot` (symbols persist in `map.json`) and
