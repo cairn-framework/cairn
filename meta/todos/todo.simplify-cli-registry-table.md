@@ -1,7 +1,8 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-06
+resolved: 2026-07-09
 ---
 
 # Derive CLI Dispatch and Help From the query_api Registry
@@ -37,3 +38,23 @@ hand-synced name/description/help lists, not the struct.
 Acceptance: adding a query_api operation makes it appear in CLI help
 without touching `src/cli/mod.rs` lists; roughly 400-600 LOC of
 bookkeeping deleted; gates green.
+
+## Resolution
+
+Implemented on branch `feat/simplify-cli-registry-table`. The CLI command surface is
+now derived from `query_api::registry()` plus a small `CLI_ONLY_COMMANDS` table of
+genuinely CLI-only commands; the hand-maintained `EXTRA_CLI_COMMANDS` list and the
+47-arm `command_description` match in `src/cli/mod.rs` are deleted. `ToolMetadata`
+carries a `description: &'static str` field populated on all 38 registry entries,
+making the registry the single source of truth for command documentation. This is
+wire-safe: `meta_json` reads only `cli_name`/`request_schema`/`response_schema`/`safety`,
+and MCP uses `tool_description`, not the struct field. A new property test
+(`test_registry_tools_surface_in_cli_help_without_hand_list`) proves a registry
+operation surfaces in CLI help with no hand-list edit. `tests/command_reference_consistency.rs`
+now verifies docs against `all_command_names()` instead of a duplicated filter.
+
+All gates green: `scripts/pre-archive-rust-gates.sh` (fmt, clippy `-D warnings
+--all-features`, full test suite, 500-line file gate), plus `cairn scan --strict`,
+`cairn lint`, and `cairn hook all` (only the pre-existing `CAIRN_SPEC_RULE_UNIMPLEMENTED`
+info at spec:634 remains). The wire snapshot `tests/snapshots/wire_format_snapshots__api_meta.snap`
+is byte-identical. No command was renamed or removed; the `/api/meta` wire is unchanged.
