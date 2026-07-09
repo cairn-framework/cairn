@@ -579,33 +579,84 @@ fn render_loaded_project_command(
     )
 }
 
-/// Command names not in the query registry but handled by the CLI.
-const EXTRA_CLI_COMMANDS: &[&str] = &[
-    // accept/archive retired under `cairn change`
-    "backlog",
-    "brief",
-    "change",
-    "decision",
-    "draft",
-    "export",
-    "feedback",
-    "gap",
-    "import-openspec",
-    "next",
-    "onboard",
-    "refine",
-    "todo",
-    "watch",
-    "workspace",
+/// Commands handled by the CLI but not present in `query_api::registry`
+/// (no JSON request/response on the query wire). The registry remains the
+/// single source of truth for every query-api tool's name and description;
+/// this table covers only the genuinely CLI-only commands, which surface in
+/// help without any entry in a registry-derived list.
+struct CliOnlyCommand {
+    /// CLI command name.
+    name: &'static str,
+    /// Human-readable one-line description, shown in CLI help.
+    description: &'static str,
+}
+
+const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
+    CliOnlyCommand {
+        name: "backlog",
+        description: "List beads (issues) linked to a node",
+    },
+    CliOnlyCommand {
+        name: "brief",
+        description: "Fused next-unit brief: task, decisions, contract, gates",
+    },
+    CliOnlyCommand {
+        name: "change",
+        description: "Manage changes: new, list, show, accept, archive",
+    },
+    CliOnlyCommand {
+        name: "decision",
+        description: "Scaffold a new decision artefact",
+    },
+    CliOnlyCommand {
+        name: "draft",
+        description: "Manage draft proposals: list, show, edit, discard, accept, create",
+    },
+    CliOnlyCommand {
+        name: "export",
+        description: "Export project data",
+    },
+    CliOnlyCommand {
+        name: "feedback",
+        description: "Record cairn friction and get an upstream issue link",
+    },
+    CliOnlyCommand {
+        name: "gap",
+        description: "Log an unresolved question as a proposed decision artefact",
+    },
+    CliOnlyCommand {
+        name: "import-openspec",
+        description: "Migrate openspec changes to meta/changes",
+    },
+    CliOnlyCommand {
+        name: "next",
+        description: "Show the next ready unit of work",
+    },
+    CliOnlyCommand {
+        name: "onboard",
+        description: "Suggest blueprint entries for orphaned files",
+    },
+    CliOnlyCommand {
+        name: "todo",
+        description: "Scaffold a new todo artefact",
+    },
+    CliOnlyCommand {
+        name: "workspace",
+        description: "Aggregate status, lint, and frontier queries across a cairn.workspace",
+    },
 ];
 
 /// MCP-only tools that should not appear in CLI command lists.
 const MCP_ONLY_TOOLS: &[&str] = &["init_from_code"];
 
-/// Returns all command names the CLI recognises.
-fn all_command_names() -> Vec<&'static str> {
-    // Top-level spellings retired under `cairn change <sub>`.
-    const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
+/// Top-level spellings retired under `cairn change <sub>`; kept out of
+/// CLI help but retained on the wire.
+const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
+
+/// Returns all command names the CLI recognises: every non-compound,
+/// non-MCP-only, non-retired registry tool plus the CLI-only table.
+#[must_use]
+pub fn all_command_names() -> Vec<&'static str> {
     let mut names: Vec<&str> = registry()
         .iter()
         .filter(|t| !MCP_ONLY_TOOLS.contains(&t.cli_name))
@@ -615,9 +666,9 @@ fn all_command_names() -> Vec<&'static str> {
         .filter(|t| !RETIRED_TOP_LEVEL.contains(&t.cli_name))
         .map(|t| t.cli_name)
         .collect();
-    for cmd in EXTRA_CLI_COMMANDS {
-        if !names.contains(cmd) {
-            names.push(cmd);
+    for cmd in CLI_ONLY_COMMANDS {
+        if !names.contains(&cmd.name) {
+            names.push(cmd.name);
         }
     }
     names.sort_unstable();
@@ -625,54 +676,20 @@ fn all_command_names() -> Vec<&'static str> {
     names
 }
 
-/// Short description for each CLI command.
+/// Returns the human-readable description for a CLI command.
+///
+/// Sourced from `query_api::registry()` for every query-api tool and from
+/// the CLI-only table otherwise. The registry is the single source of truth,
+/// so adding a registry operation makes it appear in CLI help with no
+/// hand-maintained list edit.
 fn command_description(name: &str) -> &'static str {
-    match name {
-        "brief" => "Fused next-unit brief: task, decisions, contract, gates",
-        "health" => "Comprehensive health check: lint, hooks, and module state",
-        "remediate" => "Generate an ordered action plan from current findings",
-        "backlog" => "List beads (issues) linked to a node",
-        "change" => "Manage changes: new, list, show, accept, archive",
-        "context" => "Structured project overview for agents",
-        "contract" => "Show the contract for a node",
-        "decision" => "Scaffold a new decision artefact",
-        "todo" => "Scaffold a new todo artefact",
-        "decisions" => "List decisions linked to a node",
-        "docstring" => "Generate a docstring for a node",
-        "export" => "Export project data",
-        "feedback" => "Record cairn friction and get an upstream issue link",
-        "files" => "List files owned by a node",
-        "bundle" => {
-            "Generate bundle: contract, decisions, dependency interfaces, and gates for a node"
-        }
-        "gap" => "Log an unresolved question as a proposed decision artefact",
-        "get" => "Inspect a node by ID",
-        "hook" => "Run reconciliation hooks",
-        "init" => "Scaffold a new cairn project",
-        "islands" => "Show connected components of the map graph",
-        "frontier" => "Show buildable-now and blocked ghost nodes",
-        "import-openspec" => "Migrate openspec changes to meta/changes",
-        "lint" => "Lint the blueprint and report findings",
-        "deps" => "List nodes a given node depends on (out) or that depend on it (in)",
-        "neighbourhood" => "Show a node and its neighbours",
-        "next" => "Show the next ready unit of work",
-        "onboard" => "Suggest blueprint entries for orphaned files",
-        "refine" => "Re-run brownfield discovery and write a timestamped change",
-        "order" => "Topological order of all nodes",
-        "rationale" => "Show rationale chain for a node",
-        "rename" => "Rename a node ID across the project",
-        "research" => "List research linked to a node",
-        "scan" => "Scan the project and report findings",
-        // "show" retired under `cairn change show`
-        "sources" => "List sources linked to a node",
-        "status" => "Show project status summary",
-        "draft" => "Manage draft proposals: list, show, edit, discard, accept, create",
-        "todos" => "List todos linked to a node",
-        "ui" => "Launch the web UI",
-        "watch" => "Watch for finding changes and emit events",
-        "workspace" => "Aggregate status, lint, and frontier queries across a cairn.workspace",
-        _ => "",
+    if let Some(tool) = registry().iter().find(|t| t.cli_name == name) {
+        return tool.description;
     }
+    CLI_ONLY_COMMANDS
+        .iter()
+        .find(|c| c.name == name)
+        .map_or("", |c| c.description)
 }
 
 /// Generates the `--help` output for the CLI.
@@ -819,6 +836,46 @@ mod tests {
         }
 
         Ok(())
+    }
+    #[test]
+    fn test_registry_tools_surface_in_cli_help_without_hand_list() {
+        // Proof of the derived property: every non-compound, non-MCP-only,
+        // non-retired query-api tool must reach CLI help purely via
+        // `query_api::registry()`, with no entry in the CLI-only hand table.
+        let help = help_text();
+        for tool in registry() {
+            if tool.cli_name.contains(' ') {
+                continue; // compound subcommand, not a top-level name
+            }
+            if MCP_ONLY_TOOLS.contains(&tool.cli_name) {
+                continue;
+            }
+            if RETIRED_TOP_LEVEL.contains(&tool.cli_name) {
+                continue;
+            }
+            assert!(
+                all_command_names().contains(&tool.cli_name),
+                "registry tool `{}` missing from CLI command names",
+                tool.cli_name
+            );
+            assert!(
+                help.contains(tool.cli_name),
+                "registry tool `{}` missing from CLI help text",
+                tool.cli_name
+            );
+            assert!(
+                !tool.description.is_empty(),
+                "registry tool `{}` missing a description",
+                tool.cli_name
+            );
+            // The CLI-only hand table must not duplicate registry tools, or
+            // the claim that the registry alone drives help would be hollow.
+            assert!(
+                !CLI_ONLY_COMMANDS.iter().any(|c| c.name == tool.cli_name),
+                "registry tool `{}` is also in the CLI-only table",
+                tool.cli_name
+            );
+        }
     }
 
     #[test]
