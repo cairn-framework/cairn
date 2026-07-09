@@ -4,8 +4,8 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) fn node_json(node: &NodeRecord) -> Value {
-    json!({
+pub(super) fn node_json(node: &NodeRecord, include_symbols: bool) -> Value {
+    let mut value = json!({
         "id": node.id,
         "kind": format!("{:?}", node.kind),
         "name": node.name,
@@ -25,7 +25,11 @@ pub(super) fn node_json(node: &NodeRecord) -> Value {
             "end_line": node.span.end_line,
             "end_column": node.span.end_column,
         },
-    })
+    });
+    if include_symbols {
+        value["symbols"] = json!(node.symbols);
+    }
+    value
 }
 
 pub(super) fn backlog_item_detail_json(item: &crate::state::backlog::BacklogItem) -> Value {
@@ -176,8 +180,7 @@ pub(crate) fn requires_valid_map(command: &str) -> bool {
         "get"
             | "neighbourhood"
             | "files"
-            | "dependents"
-            | "depends"
+            | "deps"
             | "contract"
             | "docstring"
             | "order"

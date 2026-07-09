@@ -21,7 +21,7 @@ I'll help you understand your project's structure by querying the reconciled gra
 - `cairn files <node>` - List files owned by a node
 - `cairn islands` - Show disconnected components
 - `cairn lint` - Report findings across the project
-- `cairn check [<node>]` - Check findings (inspection mode, always exits 0)
+- `cairn lint --node <id>` - Check findings (inspection mode, always exits 0)
 - `cairn ui` - Open the visual graph explorer in a browser
 - `cairn rationale <node>` - Show the accepted decisions and provenance chain behind a node (why it exists)
 - `cairn decisions <node>` - List decision artefacts attached to a node

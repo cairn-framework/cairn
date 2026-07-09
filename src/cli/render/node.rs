@@ -13,7 +13,13 @@ pub(crate) fn render_get(
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
         match query::get(&scan_result.graph, node) {
-            Ok(response) => Ok(render_node(&response.node, parsed.json)),
+            Ok(response) => {
+                let mut output = render_node(&response.node, parsed.json);
+                if parsed.command_args.iter().any(|arg| arg == "--symbols") {
+                    output.push_str(&symbols_block(scan_result, node));
+                }
+                Ok(output)
+            }
             // A graph node wins; otherwise resolve a beads task id so the loop
             // can `cairn get <bead>` and see the task plus the node it touches.
             // JSON/MCP `get` stays strictly node-typed.
@@ -232,39 +238,40 @@ pub(crate) fn render_files(
     })
 }
 
-pub(crate) fn render_symbols(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node_record = scan_result.graph.resolve(node)?;
-        let mut output = format!("Symbols for {}:\n", node_record.id);
-        if node_record.symbols.is_empty() {
-            output.push_str("  (none)\n");
-            return Ok(output);
-        }
-        let mut by_file: std::collections::BTreeMap<&str, Vec<&crate::reconcile::SymbolRecord>> =
-            std::collections::BTreeMap::new();
-        for symbol in &node_record.symbols {
-            by_file
-                .entry(symbol.file.as_str())
-                .or_default()
-                .push(symbol);
-        }
-        for (file, symbols) in by_file {
-            use std::fmt::Write;
-            writeln!(output, "  {file}:").unwrap();
-            for symbol in symbols {
-                writeln!(
-                    output,
-                    "    {}  {:?}  {}",
-                    symbol.name, symbol.kind, symbol.line
-                )
-                .unwrap();
+fn symbols_block(scan_result: &scanner::ScanResult, node: &str) -> String {
+    match scan_result.graph.resolve(node) {
+        Ok(node_record) => {
+            let mut output = format!("\nSymbols for {}:\n", node_record.id);
+            if node_record.symbols.is_empty() {
+                output.push_str("  (none)\n");
+                return output;
             }
+            let mut by_file: std::collections::BTreeMap<
+                &str,
+                Vec<&crate::reconcile::SymbolRecord>,
+            > = std::collections::BTreeMap::new();
+            for symbol in &node_record.symbols {
+                by_file
+                    .entry(symbol.file.as_str())
+                    .or_default()
+                    .push(symbol);
+            }
+            for (file, symbols) in by_file {
+                use std::fmt::Write;
+                writeln!(output, "  {file}:").unwrap();
+                for symbol in symbols {
+                    writeln!(
+                        output,
+                        "    {}  {:?}  {}",
+                        symbol.name, symbol.kind, symbol.line
+                    )
+                    .unwrap();
+                }
+            }
+            output
         }
-        Ok(output)
-    })
+        Err(_) => String::new(),
+    }
 }
 
 #[cfg(test)]

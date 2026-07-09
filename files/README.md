@@ -25,7 +25,7 @@ Introduced **spec maturity levels**: Declared, Designed, Implemented. Some secti
 **`cairn-bootstrap.tar.gz`** — Cairn described as a Cairn project. Same structure as v0.5.1 (still valid under v0.6). Contains the framework's own DSL, ADRs, research, sources, and a completed change directory documenting the v0.5 → v0.5.1 adoption. Use as test fixture for the parser's self-hosting test.
 
 **`cairn-mvp-change.tar.gz`** — OpenSpec-format change proposal for the first implementation, updated for v0.6 scope:
-- Five CLI commands in scope: `get`, `neighbourhood`, `dependents`, `depends`, `order`
+- Five CLI commands in scope: `get`, `neighbourhood`, `deps --direction in`, `deps`, `order`
 - Multi-target path handling in the parser
 - Explicit phase 1 positioning in the proposal
 - Updated task list and capability specs

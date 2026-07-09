@@ -68,7 +68,7 @@ pub(crate) fn neighbourhood_json(
         Vec::new()
     };
     let mut data = json!({
-        "node": node_json(&response.node),
+        "node": node_json(&response.node, false),
         "inbound": response.inbound,
         "outbound": response.outbound,
         "contracts": response.node.contracts,

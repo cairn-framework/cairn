@@ -29,7 +29,7 @@ graph you query is stale relative to the code you just wrote.
 | Phase | Question it answers | Primary tool |
 |---|---|---|
 | 1. Orient | What state is the graph in right now? | `cairn context`, `cairn lint` |
-| 2. Scope | What does this change touch, and why is it shaped this way? | `cairn neighbourhood`, `cairn rationale`, `cairn dependents` |
+| 2. Scope | What does this change touch, and why is it shaped this way? | `cairn neighbourhood`, `cairn rationale`, `cairn deps --direction in` |
 | 3. Propose | What am I building, and what counts as done? | `cairn-propose` skill, or a decision artefact |
 | 4. Implement | Make the change, keep the map honest | edit code + `cairn.blueprint` |
 | 5. Test | Does new behaviour have a failing-then-passing test? | `cargo test`, fixtures under `tests/` |
@@ -66,8 +66,8 @@ prior decisions.
 ```bash
 cairn neighbourhood <node> --include-todos --include-changes
 cairn rationale <node>                 # decisions, research, sources behind it
-cairn dependents <node> --transitive   # who breaks if this node's interface moves
-cairn depends <node> --transitive      # what this node leans on (cycle check)
+cairn deps --direction in <node> --transitive   # who breaks if this node's interface moves
+cairn deps <node> --transitive      # what this node leans on (cycle check)
 ```
 
 If `cairn rationale` surfaces an accepted decision that constrains the area, work
@@ -98,7 +98,7 @@ Make the smallest change that satisfies the criterion (see the
 - New source file: confirm it falls under an existing node's `path` in
   `cairn.blueprint`. If not, extend a node's `path` or declare a new Module.
 - New cross-module call: add the edge in the blueprint,
-  `from.id -> to.id "relationship label"`, and check `cairn depends` for cycles.
+  `from.id -> to.id "relationship label"`, and check `cairn deps` for cycles.
 - User-facing CLI string: add it to `docs/design-system/copy.toml` and wire it
   via `copy::lookup(...)`. Do not hardcode messages in Rust.
 

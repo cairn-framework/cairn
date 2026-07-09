@@ -42,7 +42,7 @@ decisions, research, and sources inform this module's existence and shape.
 ### Check dependency impact
 
 ```
-Run `cairn depends <node> --transitive` and `cairn dependents <node>
+Run `cairn deps <node> --transitive` and `cairn deps --direction in <node>
 --transitive`. Before I add a new dependency to <node>, confirm that the
 target node exists and that adding the edge would not create a cycle.
 ```

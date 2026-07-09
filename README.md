@@ -116,7 +116,7 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 ## What it does
 
 - Reads a human-written `cairn.blueprint` into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
-- Checks declared nodes against real files on disk and marks `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter, extracting structured public symbols (`cairn symbols <id>`) rather than flattening them into a hash.
+- Checks declared nodes against real files on disk and marks `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter, extracting structured public symbols (`cairn get <id> --symbols`) rather than flattening them into a hash.
 - Writes `map.md` (human-readable) and a committed, deterministic `map.json` snapshot with generated frontmatter, active changes, and ranked findings agents can read.
 - Computes steady interface hashes and spots contract drift between revisions; contracts can declare an `interface:` block checked against extracted symbols.
 - Surfaces `interface contradictions` (blocking) and `rationale tensions` (advisory), so commits that break the chain never land quietly.
@@ -133,10 +133,10 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 | Orientation for a session | `cairn context` |
 | Reconcile blueprint against code | `cairn scan` (`--strict` for CI) |
 | Inspect a node / its surroundings | `cairn get <id>`, `cairn neighbourhood <id>` |
-| Dependency questions | `cairn depends <id>`, `cairn dependents <id>`, `cairn order`, `cairn islands`, `cairn frontier` |
+| Dependency questions | `cairn deps <id>`, `cairn deps --direction in <id>`, `cairn order`, `cairn islands`, `cairn frontier` |
 | Provenance questions | `cairn rationale <id>`, `cairn decisions <id>`, `cairn research <id>`, `cairn sources <id>` |
-| Work for a node or the whole graph | `cairn todos <id>`, `cairn status`, `cairn symbols <id>` |
-| Findings | `cairn lint`, `cairn check` |
+| Work for a node or the whole graph | `cairn todos <id>`, `cairn status`, `cairn get <id> --symbols` |
+| Findings | `cairn lint`, `cairn lint` |
 | Commit gates | `cairn hook structural\|interface\|tension\|all` |
 | Changes | `cairn change new <id>`, `cairn changes`, `cairn show <id>`, `cairn accept` |
 | Brownfield | `cairn init --from-code`, `cairn refine`, `cairn onboard` |

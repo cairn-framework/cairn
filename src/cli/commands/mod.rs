@@ -121,7 +121,15 @@ pub(crate) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
             })
             .map(ToOwned::to_owned),
         language: flag_value(&parsed.command_args, "--language").map(ToOwned::to_owned),
-        flags: shared_flags(&parsed.command_args),
+        flags: {
+            let mut flags = shared_flags(&parsed.command_args);
+            if parsed.command == "deps"
+                && flag_value(&parsed.command_args, "--direction").as_deref() == Some("in")
+            {
+                flags.insert(crate::query_api::QueryFlag::Inbound);
+            }
+            flags
+        },
         mutating: matches!(parsed.command.as_str(), "scan" | "rename"),
     }
 }
@@ -148,6 +156,7 @@ pub(crate) fn shared_flags(args: &[String]) -> BTreeSet<crate::query_api::QueryF
             crate::query_api::QueryFlag::IncludeChanges,
         ),
         ("--edited", crate::query_api::QueryFlag::Edited),
+        ("--symbols", crate::query_api::QueryFlag::Symbols),
     ];
     for (argument, flag) in pairs {
         if args.iter().any(|value| value == argument) {
@@ -212,8 +221,7 @@ mod tests {
             "get",
             "neighbourhood",
             "files",
-            "dependents",
-            "depends",
+            "deps",
             "contract",
             "docstring",
             "order",

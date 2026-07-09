@@ -37,7 +37,7 @@ These findings cause `cairn hook structural` and `cairn hook all` to exit 1 (fai
 
 **Severity:** Error
 **Meaning:** The dependency edge graph contains a cycle. Cairn requires a DAG (directed acyclic graph).
-**Remediation:** Remove or redirect one of the edges in the cycle. Use `cairn depends <node> --transitive` to trace the dependency chain.
+**Remediation:** Remove or redirect one of the edges in the cycle. Use `cairn deps <node> --transitive` to trace the dependency chain.
 
 ### CAIRN_CLI_MISSING_NODE
 

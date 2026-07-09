@@ -1,7 +1,7 @@
 //! Project-wide query renderers (context, status, dependencies).
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{lines, node_arg, string_array_json, todos_json};
+use super::super::format::{flag_value, lines, node_arg, string_array_json, todos_json};
 use super::super::*;
 use super::{scan_error_count, scan_info_count, scan_warning_count};
 
@@ -180,11 +180,12 @@ pub(crate) fn render_dependencies(
     scan_result: &scanner::ScanResult,
 ) -> Result<String, Finding> {
     let transitive = parsed.command_args.iter().any(|arg| arg == "--transitive");
+    let inbound = flag_value(&parsed.command_args, "--direction").as_deref() == Some("in");
     node_arg(&parsed.command_args).and_then(|node| {
-        let response = if parsed.command == "depends" {
-            query::depends(&scan_result.graph, node, transitive)
-        } else {
+        let response = if inbound {
             query::dependents(&scan_result.graph, node, transitive)
+        } else {
+            query::depends(&scan_result.graph, node, transitive)
         }?;
         Ok(if parsed.json {
             format!(

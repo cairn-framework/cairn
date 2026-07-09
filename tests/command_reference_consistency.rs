@@ -56,7 +56,6 @@ fn registered_commands() -> Vec<String> {
         "brief",
         "change",
         "decision",
-        "check",
         "draft",
         "export",
         "feedback",
@@ -76,6 +75,7 @@ fn registered_commands() -> Vec<String> {
     }
 
     names.sort_unstable();
+    names.dedup();
     names
 }
 

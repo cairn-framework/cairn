@@ -35,25 +35,19 @@ expression: value
       "safety": "ReadOnly"
     },
     {
-      "name": "symbols",
-      "request": "NodeRequest",
-      "response": "SymbolsResponse",
-      "safety": "ReadOnly"
-    },
-    {
       "name": "bundle",
       "request": "NodeRequest",
       "response": "BundleResponse",
       "safety": "ReadOnly"
     },
     {
-      "name": "dependents",
+      "name": "deps",
       "request": "DependencyRequest",
       "response": "DependencyResponse",
       "safety": "ReadOnly"
     },
     {
-      "name": "depends",
+      "name": "deps",
       "request": "DependencyRequest",
       "response": "DependencyResponse",
       "safety": "ReadOnly"
