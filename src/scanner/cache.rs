@@ -6,7 +6,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use super::{Target, TargetReport, blueprint, config, detect_divergence};
+use super::{Language, Target, TargetReport, blueprint, config, detect_divergence};
+use crate::map::graph::{Finding, FindingSeverity};
 use crate::persist;
 
 /// Cache version for reconciler cache format.
@@ -206,6 +207,31 @@ pub(crate) fn build_reports_from_cache(
     let mut all_findings = Vec::new();
 
     for target in targets {
+        if target.language == Language::Unknown {
+            all_findings.push(Finding {
+                code: "CAIRN_RECONCILE_LANGUAGE_UNKNOWN".to_owned(),
+                severity: FindingSeverity::Warning,
+                message: format!(
+                    "Target `{}` at `{}` has unknown language; declare it in targets.",
+                    target.id.node_id,
+                    target.id.path.display()
+                ),
+                node: Some(target.id.node_id.clone()),
+                target: Some(target.id.as_str()),
+                path: Some(target.id.path.to_string_lossy().to_string()),
+            });
+            reports.push(TargetReport {
+                target_id: target.id.clone(),
+                language: target.language,
+                reconciler_id: target.reconciler_id.clone(),
+                claimed_files: Vec::new(),
+                symbols: std::sync::Arc::new(Vec::new()),
+                symbol_records: std::sync::Arc::new(Vec::new()),
+                hash: None,
+            });
+            continue;
+        }
+
         let lang_key = target.language.as_str();
         if let Some(report) = cached.get(lang_key) {
             let owned_files = report
@@ -218,9 +244,28 @@ pub(crate) fn build_reports_from_cache(
                 .get(&target.id.node_id)
                 .cloned()
                 .unwrap_or_default();
-            let hash =
-                crate::reconcile::fingerprint::InterfaceFingerprint::from_symbols(&owned_symbols)
-                    .hash;
+            let hash = if owned_files.is_empty() {
+                all_findings.push(Finding {
+                    code: "CAIRN_RECONCILE_EMPTY_TARGET".to_owned(),
+                    severity: FindingSeverity::Warning,
+                    message: format!(
+                        "Target `{}` at `{}` discovered zero files",
+                        target.id.node_id,
+                        target.id.path.display()
+                    ),
+                    node: Some(target.id.node_id.clone()),
+                    target: Some(target.id.as_str()),
+                    path: Some(target.id.path.to_string_lossy().to_string()),
+                });
+                None
+            } else {
+                Some(
+                    crate::reconcile::fingerprint::InterfaceFingerprint::from_symbols(
+                        &owned_symbols,
+                    )
+                    .hash,
+                )
+            };
             reports.push(TargetReport {
                 target_id: target.id.clone(),
                 language: target.language,

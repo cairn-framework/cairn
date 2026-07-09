@@ -1,8 +1,11 @@
+// cairn:allow-large-module reason: orchestrates config, AST, reconcilers, cache, graph construction, and findings in one linear scan pipeline; splitting would obscure the load_project flow.
 //! Project scanner orchestration.
 
 pub(crate) mod cache;
 pub(crate) mod checks;
 pub mod config;
+#[cfg(test)]
+mod inference_tests;
 pub mod outputs;
 pub mod snapshot;
 pub mod state;
@@ -20,7 +23,10 @@ use crate::{
         registry::{ArtefactSet, load_artefacts},
     },
     blueprint,
-    map::{Graph, build_graph},
+    map::{
+        Graph, build_graph,
+        graph::{Finding, FindingSeverity},
+    },
     reconcile::{
         ReconcileRequest, Reconciler, ReconcilerId,
         code::RustCodeReconciler,
@@ -42,7 +48,7 @@ pub struct TargetReport {
     /// Public symbols exported by this target.
     pub symbols: std::sync::Arc<Vec<String>>,
     /// Interface hash for this target.
-    pub hash: String,
+    pub hash: Option<String>,
     /// Structured public symbols exported by this target.
     pub symbol_records: std::sync::Arc<Vec<crate::reconcile::SymbolRecord>>,
 }
@@ -66,10 +72,15 @@ pub struct ScanResult {
     pub blueprint_snapshot: state::BlueprintSnapshot,
 }
 
-fn build_targets(ast: &blueprint::Ast, config: &config::Config) -> Vec<Target> {
+fn build_targets(
+    ast: &blueprint::Ast,
+    config: &config::Config,
+    root: &Path,
+    ignores: &[String],
+) -> Vec<Target> {
     let mut targets = Vec::new();
     for node in &ast.nodes {
-        collect_targets(node, &mut targets);
+        collect_targets(node, &mut targets, root, ignores);
     }
     for target_config in &config.targets {
         if let Some(target) = targets
@@ -88,21 +99,29 @@ fn build_targets(ast: &blueprint::Ast, config: &config::Config) -> Vec<Target> {
     targets
 }
 
-fn collect_targets(node: &blueprint::Node, targets: &mut Vec<Target>) {
+fn collect_targets(
+    node: &blueprint::Node,
+    targets: &mut Vec<Target>,
+    root: &Path,
+    ignores: &[String],
+) {
     let is_internal = !node.children.is_empty();
     if !is_internal || node.owns_files {
         for path_str in &node.paths {
             let path = std::path::PathBuf::from(path_str.trim_start_matches("./"));
-            let language = Language::from_extension(&path).unwrap_or(Language::Rust);
+            let language = Language::from_extension(&path)
+                .or_else(|| Language::infer_from_directory(root, &path, ignores))
+                .unwrap_or(Language::Unknown);
             let target = Target::new(node.id.clone(), path, language);
             targets.push(target);
         }
     }
     for child in &node.children {
-        collect_targets(child, targets);
+        collect_targets(child, targets, root, ignores);
     }
 }
 
+#[allow(clippy::too_many_lines)] // Reason: target reconciliation naturally spans cache, per-language dispatch, and report construction.
 fn reconcile_targets(
     targets: &[Target],
     root: &Path,
@@ -124,6 +143,31 @@ fn reconcile_targets(
     let mut reconciler_cache: BTreeMap<Language, crate::reconcile::ReconcileReport> =
         BTreeMap::new();
     for target in targets {
+        if target.language == Language::Unknown {
+            all_findings.push(Finding {
+                code: "CAIRN_RECONCILE_LANGUAGE_UNKNOWN".to_owned(),
+                severity: FindingSeverity::Warning,
+                message: format!(
+                    "Target `{}` at `{}` has unknown language; declare it in targets.",
+                    target.id.node_id,
+                    target.id.path.display()
+                ),
+                node: Some(target.id.node_id.clone()),
+                target: Some(target.id.as_str()),
+                path: Some(target.id.path.to_string_lossy().to_string()),
+            });
+            reports.push(TargetReport {
+                target_id: target.id.clone(),
+                language: target.language,
+                reconciler_id: target.reconciler_id.clone(),
+                claimed_files: Vec::new(),
+                symbols: std::sync::Arc::new(Vec::new()),
+                symbol_records: std::sync::Arc::new(Vec::new()),
+                hash: None,
+            });
+            continue;
+        }
+
         let report = reconciler_cache.entry(target.language).or_insert_with(|| {
             let req = ReconcileRequest { root, ignores };
             match target.language {
@@ -140,6 +184,7 @@ fn reconcile_targets(
                     let reconciler = crate::reconcile::go::GoReconciler::new(ast);
                     reconciler.reconcile(req).unwrap()
                 }
+                Language::Unknown => unreachable!("unknown targets are skipped above"),
             }
         });
         let owned_files = report
@@ -157,8 +202,26 @@ fn reconcile_targets(
             .get(&target.id.node_id)
             .cloned()
             .unwrap_or_default();
-        let hash =
-            crate::reconcile::fingerprint::InterfaceFingerprint::from_symbols(&owned_symbols).hash;
+        let hash = if owned_files.is_empty() {
+            all_findings.push(Finding {
+                code: "CAIRN_RECONCILE_EMPTY_TARGET".to_owned(),
+                severity: FindingSeverity::Warning,
+                message: format!(
+                    "Target `{}` at `{}` discovered zero files",
+                    target.id.node_id,
+                    target.id.path.display()
+                ),
+                node: Some(target.id.node_id.clone()),
+                target: Some(target.id.as_str()),
+                path: Some(target.id.path.to_string_lossy().to_string()),
+            });
+            None
+        } else {
+            Some(
+                crate::reconcile::fingerprint::InterfaceFingerprint::from_symbols(&owned_symbols)
+                    .hash,
+            )
+        };
         reports.push(TargetReport {
             target_id: target.id.clone(),
             language: target.language,
@@ -246,7 +309,9 @@ fn detect_divergence(
                     .entry(t.contract_role.clone())
                     .or_default()
                     .push(&t.id.path);
-                hash_by_path.insert(report.target_id.path.clone(), report.hash.clone());
+                if let Some(hash) = report.hash.clone() {
+                    hash_by_path.insert(report.target_id.path.clone(), hash);
+                }
             }
         }
         for (role, paths) in by_role {
@@ -303,7 +368,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     let ast = blueprint::parse_file(blueprint_path).map_err(|error| error.to_string())?;
     let mut contracts = load_contracts(root, &ast);
     let mut artefacts = load_artefacts(root, &ast, contracts.clone());
-    let targets = build_targets(&ast, &config);
+    let targets = build_targets(&ast, &config, root, &config.ignores);
     let (target_reports, reconcile_findings) =
         reconcile_targets(&targets, root, &config.ignores, &ast, &config);
     let mut target_hashes = state::TargetHashes::new();
@@ -315,17 +380,19 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     all_findings.extend(reconcile_findings);
     dedup_findings(&mut all_findings);
     for report in &target_reports {
-        let mut key = String::with_capacity(
-            report.target_id.node_id.len() + 1 + report.target_id.path.as_os_str().len(),
-        );
-        key.push_str(&report.target_id.node_id);
-        key.push(':');
-        key.push_str(&report.target_id.path.to_string_lossy());
-        target_hashes.insert(key, report.hash.clone());
+        if let Some(hash) = &report.hash {
+            let mut key = String::with_capacity(
+                report.target_id.node_id.len() + 1 + report.target_id.path.as_os_str().len(),
+            );
+            key.push_str(&report.target_id.node_id);
+            key.push(':');
+            key.push_str(&report.target_id.path.to_string_lossy());
+            target_hashes.insert(key, hash.clone());
+        }
     }
     let interface_hash = target_reports
         .first()
-        .map(|r| r.hash.clone())
+        .and_then(|r| r.hash.clone())
         .unwrap_or_default();
     let mut claimed_files = BTreeMap::<String, Vec<String>>::new();
     for report in &target_reports {

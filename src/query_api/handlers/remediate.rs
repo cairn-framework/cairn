@@ -180,7 +180,9 @@ pub(crate) fn remediate_json(
             | "CAIRN_RECONCILE_PARSE_TS"
             | "CAIRN_RECONCILE_READ_DIR"
             | "CAIRN_RECONCILE_READ_DIR_ENTRY"
-            | "CAIRN_RECONCILE_READ_SOURCE" => {
+            | "CAIRN_RECONCILE_READ_SOURCE"
+            | "CAIRN_RECONCILE_LANGUAGE_UNKNOWN"
+            | "CAIRN_RECONCILE_EMPTY_TARGET" => {
                 has_orphans = true;
             }
             _ => {}

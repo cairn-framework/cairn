@@ -1414,6 +1414,7 @@ fn test_onboard_groups_orphans_and_classifies() -> Result<(), Box<dyn std::error
     fs::create_dir_all(root.join("generated/cache"))?;
     fs::write(root.join("src/auth/login.rs"), "pub fn login() {}\n")?;
     fs::write(root.join("src/auth/session.rs"), "pub fn session() {}\n")?;
+    fs::write(root.join("src/auth/admin.rs"), "pub fn admin() {}\n")?;
     fs::write(root.join("src/db/pool.rs"), "pub fn pool() {}\n")?;
     fs::write(
         root.join("generated/cache/output.rs"),
@@ -1423,7 +1424,7 @@ fn test_onboard_groups_orphans_and_classifies() -> Result<(), Box<dyn std::error
         root.join("cairn.blueprint"),
         r#"System App "desc" id "app" {
     Module Core "core" id "app.core" {
-        path "./src/core"
+        path "./src/db"
     }
 }
 "#,

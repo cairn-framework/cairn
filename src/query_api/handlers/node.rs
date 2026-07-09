@@ -76,13 +76,16 @@ pub(crate) fn files_json(
         .iter()
         .filter(|report| report.target_id.node_id == node_record.id)
         .map(|report| {
-            json!({
+            let mut target = json!({
                 "path": report.target_id.path.to_string_lossy(),
                 "language": report.language.as_str(),
                 "reconciler_id": report.reconciler_id.0,
                 "files": report.claimed_files,
-                "hash": report.hash,
-            })
+            });
+            if let Some(hash) = &report.hash {
+                target["hash"] = json!(hash);
+            }
+            target
         })
         .collect::<Vec<_>>();
     Ok(json!({

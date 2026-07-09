@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "interface_hash": "bd60acb658c79e45",
+  "interface_hash": "",
   "nodes": [
     {
       "id": "cairn",
@@ -257,6 +257,78 @@
       "message": "artefact pointer `./meta/research/reconcilers/code/` is missing",
       "node": null,
       "path": "./meta/research/reconcilers/code/"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.kernel.parser` at `src/blueprint` has unknown language; declare it in targets.",
+      "node": "cairn.kernel.parser",
+      "target": "cairn.kernel.parser:src/blueprint",
+      "path": "src/blueprint"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.kernel.artefacts` at `src/artefacts` has unknown language; declare it in targets.",
+      "node": "cairn.kernel.artefacts",
+      "target": "cairn.kernel.artefacts:src/artefacts",
+      "path": "src/artefacts"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.kernel.scanner` at `src/scanner` has unknown language; declare it in targets.",
+      "node": "cairn.kernel.scanner",
+      "target": "cairn.kernel.scanner:src/scanner",
+      "path": "src/scanner"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.kernel.changes` at `src/changes` has unknown language; declare it in targets.",
+      "node": "cairn.kernel.changes",
+      "target": "cairn.kernel.changes:src/changes",
+      "path": "src/changes"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.kernel.hooks` at `src/hooks` has unknown language; declare it in targets.",
+      "node": "cairn.kernel.hooks",
+      "target": "cairn.kernel.hooks:src/hooks",
+      "path": "src/hooks"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.kernel.query` at `src/query_api` has unknown language; declare it in targets.",
+      "node": "cairn.kernel.query",
+      "target": "cairn.kernel.query:src/query_api",
+      "path": "src/query_api"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.kernel.cli` at `src/cli` has unknown language; declare it in targets.",
+      "node": "cairn.kernel.cli",
+      "target": "cairn.kernel.cli:src/cli",
+      "path": "src/cli"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.code-reconciler` at `src/reconcile` has unknown language; declare it in targets.",
+      "node": "cairn.code-reconciler",
+      "target": "cairn.code-reconciler:src/reconcile",
+      "path": "src/reconcile"
+    },
+    {
+      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+      "severity": "warning",
+      "message": "Target `cairn.summariser` at `src/summariser` has unknown language; declare it in targets.",
+      "node": "cairn.summariser",
+      "target": "cairn.summariser:src/summariser",
+      "path": "src/summariser"
     },
     {
       "code": "CAIRN_CONTRACT_MISSING",

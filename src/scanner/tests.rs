@@ -256,7 +256,7 @@ fn report_and_target(
         claimed_files: Vec::new(),
         symbol_records: std::sync::Arc::new(Vec::new()),
         symbols: std::sync::Arc::new(Vec::new()),
-        hash: hash.to_owned(),
+        hash: Some(hash.to_owned()),
     };
     let target = Target::new(node_id.to_owned(), path_buf, Language::Rust)
         .with_contract_role(role.to_owned());
