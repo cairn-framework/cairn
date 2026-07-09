@@ -5,7 +5,7 @@
 use super::*;
 use api::{
     artefact_response_json, contract_response_json, dependency_json, finding_json, graph_json,
-    node_json, project_finding, rationale_json, status_json, symbols_response_json,
+    node_json, project_finding, rationale_json, status_json,
 };
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
@@ -202,7 +202,24 @@ impl Server {
                 |response| json(200, &node_json(&response.node)),
             ),
             "contract" => json(200, &contract_response_json(project, &node)),
-            "symbols" => json(200, &symbols_response_json(project, &node)),
+            "symbols" => {
+                let request = crate::query_api::QueryRequest {
+                    tool: "get".to_owned(),
+                    node: Some(node.clone()),
+                    flags: std::collections::BTreeSet::from([crate::query_api::QueryFlag::Symbols]),
+                    ..Default::default()
+                };
+                match crate::query_api::execute_with_scan(
+                    &self.root,
+                    &self.options.blueprint_path,
+                    &self.changes_dir,
+                    &request,
+                    project,
+                ) {
+                    Ok(response) => json(200, &response.data.to_string()),
+                    Err(error) => json(500, &finding_json(&project_finding(error.message))),
+                }
+            }
             "decisions" => json(200, &artefact_response_json(&self.root, "decisions", &node)),
             "todos" => json(200, &artefact_response_json(&self.root, "todos", &node)),
             "research" => json(200, &artefact_response_json(&self.root, "research", &node)),

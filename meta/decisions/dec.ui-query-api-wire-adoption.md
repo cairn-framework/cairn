@@ -44,6 +44,14 @@ spine ops proper CLI presence), so they are documented in `docs/commands.md`,
 - Now served via `execute("beads", {node})`. Wire: `{"node":"...","beads":[...]}`.
 - Not covered by `wire_format_snapshots.rs` (no snapshot row), so no rebasing.
 ### `/api/lint` (FLIPPED, wire-identical)
+### `/api/node/symbols` (FLIPPED, wrapper change)
+- Now served via `execute("get", {node, flags:[Symbols]})`. The canonical
+  `node_json` embeds `symbols` inside the full node record, so the wire changes
+  from `{"node":"...","symbols":[...]}` to `{"id":"...",...,"symbols":[...]}`.
+- No `wire_format_snapshots` row exists for symbols, so no snapshot rebasing.
+- `app.js` reads `response.symbols` (unchanged path), so no UI change is needed.
+- `src/ui/mod.rs::test_ui_symbols_endpoint_returns_extracted_symbols` updated to
+  assert `"id":"app.api"` instead of `"node":"app.api"`.
 - Now served via `execute("lint")`. The `query_api` `findings_json` produces
   `{"findings":[{code,severity,message,node,path}],"schema_version":1}` with the
   same field order and lowercase `severity` as the legacy `api.rs::lint_json`,
@@ -53,6 +61,6 @@ spine ops proper CLI presence), so they are documented in `docs/commands.md`,
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`, `node`, `node/contract`, `node/symbols`,
+`status`, `graph`, `node`, `node/contract`,
 `node/decisions`, `node/todos`, `node/research`, `node/sources`,
 `node/rationale`, `depends`, `dependents`.
