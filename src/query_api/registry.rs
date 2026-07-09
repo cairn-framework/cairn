@@ -452,7 +452,7 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 38);
+        assert_eq!(TOOL_REGISTRY.len(), 41);
     }
 
     #[test]

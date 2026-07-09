@@ -19,13 +19,11 @@ use std::{
 use crate::{
     artefacts::{contract::Contract, frontmatter},
     blueprint::NodeKind,
-    cli,
     map::{
         graph::{Finding, FindingSeverity, Graph, NodeRecord},
         query::{self, GraphEdgeKind, GraphResponse},
     },
     scanner,
-    state::backlog,
 };
 
 mod api;

@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: query dispatch hub for many tools (execute/execute_with_scan/execute_data_with_scan) plus scan-aware wrappers and envelope/error serialisation; kept cohesive as the single query entry point.
 //! Shared structured query API used by CLI JSON output and MCP.
 
 use std::{
@@ -259,6 +260,11 @@ pub fn execute(
 }
 /// Thin wrapper for the HTTP server: runs a read-only query against an already
 /// computed scan result, preserving the server's cached `ScanResult` for latency.
+///
+/// # Errors
+///
+/// Returns a stable query error when the tool is unknown, the config fails to
+/// load, or query execution against the supplied scan result fails.
 pub fn execute_with_scan(
     root: &Path,
     blueprint_path: &Path,
@@ -354,7 +360,7 @@ fn execute_data(
     )
 }
 
-#[allow(clippy::too_many_lines)] // Reason: query dispatch hub for many tools
+#[allow(clippy::too_many_lines, clippy::too_many_arguments)] // Reason: query dispatch hub for many tools
 fn execute_data_with_scan(
     root: &Path,
     blueprint_path: &Path,

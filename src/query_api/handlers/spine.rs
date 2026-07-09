@@ -3,6 +3,8 @@
 //! These mirror the legacy `src/ui/api.rs` endpoints but centralise JSON
 //! shape-building in `query_api`, so the webui becomes a thin router.
 
+#![allow(clippy::wildcard_imports)] // Reason: spine handlers re-export the parent glob import surface, matching the api.rs/serialise.rs split.
+
 use super::super::*;
 
 /// Introspection endpoint mirroring the legacy `api::meta_json`: the cairn
