@@ -22,41 +22,6 @@ pub enum ArtefactType {
     Source,
 }
 
-/// Generic artefact loader request.
-#[derive(Clone, Copy, Debug)]
-pub struct ArtefactLoadRequest<'a> {
-    /// Project root.
-    pub root: &'a Path,
-    /// Parsed blueprint.
-    pub ast: &'a Ast,
-}
-
-/// Generic loaded artefact record.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ArtefactRecord {
-    /// Artefact type.
-    pub artefact_type: ArtefactType,
-    /// Stable artefact ID, or path for path-keyed records.
-    pub id: String,
-    /// Declared path.
-    pub path: String,
-}
-
-/// Artefact loader error.
-pub type ArtefactError = String;
-
-/// Common interface for typed artefact loaders.
-pub trait ArtefactLoader {
-    /// Artefact type handled by the loader.
-    fn artefact_type(&self) -> ArtefactType;
-    /// Loads records for the request.
-    ///
-    /// # Errors
-    ///
-    /// Returns a loader-level error when the filesystem cannot be traversed.
-    fn load(&self, request: ArtefactLoadRequest<'_>) -> Result<Vec<ArtefactRecord>, ArtefactError>;
-}
-
 /// Todo status.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TodoStatus {

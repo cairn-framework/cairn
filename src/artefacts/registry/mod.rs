@@ -1,5 +1,9 @@
 //! Typed artefact registry and Phase 2 loaders.
 
+// Reason: sibling modules (`io`, `parse`, `validate`, `kinds`) use `use super::*`
+// and inherit this parent import surface; several names are only consumed there.
+#![allow(unused_imports)]
+
 use std::{
     collections::BTreeSet,
     fs,
@@ -11,6 +15,7 @@ use crate::blueprint::Ast;
 use super::{contract::ContractSet, frontmatter};
 mod changes;
 mod io;
+mod kinds;
 mod parse;
 mod sha256;
 /// Artefact type definitions.
@@ -18,15 +23,16 @@ pub mod types;
 mod validate;
 
 use changes::load_changes;
-use io::list;
-use io::{collect_ids, markdown_paths, optional, parse_file, path_string, pointers, required};
+use io::{
+    collect_ids, list, markdown_paths, optional, parse_file, path_string, pointers, required,
+};
+use kinds::{decisions_kind, load_kind, load_kinds, parse_claims};
 use parse::{
     parse_decision_status, parse_research_method, parse_review_type, parse_source_verification,
     parse_todo_status,
 };
 pub use types::*;
 use validate::validate_integrity;
-
 #[must_use]
 /// Loads all non-contract Phase 2 artefacts from retained blueprint pointers.
 pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet {
@@ -35,204 +41,18 @@ pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> Artefac
         contracts,
         ..ArtefactSet::default()
     };
-    load_todos(root, ast, &mut set);
-    load_decisions(root, ast, &mut set);
-    load_reviews(root, ast, &mut set);
-    load_research(root, ast, &mut set);
-    load_sources(root, ast, &mut set);
+    load_kinds(root, ast, &mut set);
     load_changes(root, &mut set);
     validate_integrity(root, &ids, &mut set);
     set
 }
-fn load_todos(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
-    for pointer in pointers(ast, "todos") {
-        for path in markdown_paths(root, &pointer, set) {
-            if let Some(parsed) = parse_file(&path, &pointer, set) {
-                let Some(node) = required(&parsed.values, "node", path_string(&path), set) else {
-                    continue;
-                };
-                let Some(status) = required(&parsed.values, "status", path_string(&path), set)
-                    .and_then(|value| parse_todo_status(&value, &path, set))
-                else {
-                    continue;
-                };
-                let Some(created) = required(&parsed.values, "created", path_string(&path), set)
-                else {
-                    continue;
-                };
-                set.todos.push(Todo {
-                    path: path_string(&path),
-                    node,
-                    status,
-                    created,
-                    satisfies: optional(&parsed.values, "satisfies"),
-                    body: parsed.body,
-                });
-            }
-        }
-    }
-}
 
 /// Load decision artefacts from all `decisions` pointers declared in `ast`.
+///
+/// Thin wrapper over the kind table for callers (e.g. architecture hooks) that
+/// only need decisions without a full artefact load.
 pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
-    for pointer in pointers(ast, "decisions") {
-        for path in markdown_paths(root, &pointer, set) {
-            if let Some(parsed) = parse_file(&path, &pointer, set) {
-                let Some(id) = required(&parsed.values, "id", path_string(&path), set) else {
-                    continue;
-                };
-                let Some(status) = required(&parsed.values, "status", path_string(&path), set)
-                    .and_then(|value| parse_decision_status(&value, &path, set))
-                else {
-                    continue;
-                };
-                let Some(date) = required(&parsed.values, "date", path_string(&path), set) else {
-                    continue;
-                };
-                set.decisions.push(Decision {
-                    id,
-                    path: path_string(&path),
-                    nodes: list(&parsed, "nodes"),
-                    status,
-                    date,
-                    revisited: optional(&parsed.values, "revisited"),
-                    revisit_triggers: list(&parsed, "revisit_triggers"),
-                    informed_by: list(&parsed, "informed_by"),
-                    supersedes: list(&parsed, "supersedes"),
-                    refines: list(&parsed, "refines"),
-                    related: list(&parsed, "related"),
-                    orphaned: optional(&parsed.values, "orphaned")
-                        .is_some_and(|value| value == "true"),
-                    orphan_reason: optional(&parsed.values, "orphan_reason"),
-                    gap: optional(&parsed.values, "gap").is_some_and(|value| value == "true"),
-
-                    claims: parse_claims(&parsed.values, &parsed.lists, &path),
-                    body: parsed.body,
-                });
-            }
-        }
-    }
-}
-
-fn parse_claims(
-    values: &std::collections::BTreeMap<String, String>,
-    lists: &std::collections::BTreeMap<String, Vec<String>>,
-    _path: &std::path::Path,
-) -> Option<crate::artefacts::Claims> {
-    let folder = values.get("claims_folder")?;
-    let mode = match values.get("claims_mode").map(String::as_str) {
-        Some("exhaustive") => crate::artefacts::ClaimsMode::Exhaustive,
-        Some("illustrative") => crate::artefacts::ClaimsMode::Illustrative,
-        _ => return None,
-    };
-    let items = lists.get("claims_items").cloned().unwrap_or_default();
-    Some(crate::artefacts::Claims {
-        folder: folder.clone(),
-        mode,
-        items,
-    })
-}
-fn load_reviews(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
-    for pointer in pointers(ast, "reviews") {
-        for path in markdown_paths(root, &pointer, set) {
-            if let Some(parsed) = parse_file(&path, &pointer, set) {
-                let Some(node) = required(&parsed.values, "node", path_string(&path), set) else {
-                    continue;
-                };
-                let Some(date) = required(&parsed.values, "date", path_string(&path), set) else {
-                    continue;
-                };
-                let Some(reviewer) = required(&parsed.values, "reviewer", path_string(&path), set)
-                else {
-                    continue;
-                };
-                let review_type = optional(&parsed.values, "review_type")
-                    .map_or(Some(ReviewType::Human), |value| {
-                        parse_review_type(&value, &path, set)
-                    });
-                let Some(review_type) = review_type else {
-                    continue;
-                };
-                set.reviews.push(Review {
-                    path: path_string(&path),
-                    node,
-                    review_type,
-                    date,
-                    reviewer,
-                    related_change: optional(&parsed.values, "related_change"),
-                    body: parsed.body,
-                });
-            }
-        }
-    }
-}
-
-fn load_research(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
-    for pointer in pointers(ast, "research") {
-        for path in markdown_paths(root, &pointer, set) {
-            if let Some(parsed) = parse_file(&path, &pointer, set) {
-                let Some(id) = required(&parsed.values, "id", path_string(&path), set) else {
-                    continue;
-                };
-                let Some(date) = required(&parsed.values, "date", path_string(&path), set) else {
-                    continue;
-                };
-                let method = optional(&parsed.values, "method")
-                    .and_then(|value| parse_research_method(&value, &path, set))
-                    .unwrap_or_default();
-                set.research.push(Research {
-                    id,
-                    path: path_string(&path),
-                    nodes: list(&parsed, "nodes"),
-                    date,
-                    sources: list(&parsed, "sources"),
-                    method,
-                    tags: list(&parsed, "tags"),
-                    body: parsed.body,
-                });
-            }
-        }
-    }
-}
-
-fn load_sources(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
-    for pointer in pointers(ast, "sources") {
-        for path in markdown_paths(root, &pointer, set) {
-            if let Some(parsed) = parse_file(&path, &pointer, set) {
-                let Some(id) = required(&parsed.values, "id", path_string(&path), set) else {
-                    continue;
-                };
-                let Some(file) = required(&parsed.values, "file", path_string(&path), set) else {
-                    continue;
-                };
-                let Some(verification) =
-                    required(&parsed.values, "verification", path_string(&path), set)
-                        .and_then(|value| parse_source_verification(&value, &path, set))
-                else {
-                    continue;
-                };
-                let Some(source_type) = required(&parsed.values, "type", path_string(&path), set)
-                else {
-                    continue;
-                };
-                let Some(date) = required(&parsed.values, "date", path_string(&path), set) else {
-                    continue;
-                };
-                set.sources.push(Source {
-                    id,
-                    path: path_string(&path),
-                    file,
-                    sha256: optional(&parsed.values, "sha256").filter(|value| value != "null"),
-                    verification,
-                    source_type,
-                    date,
-                    tags: list(&parsed, "tags"),
-                    description: optional(&parsed.values, "description").unwrap_or_default(),
-                    body: parsed.body,
-                });
-            }
-        }
-    }
+    load_kind(root, ast, decisions_kind(), set);
 }
 
 #[cfg(test)]
