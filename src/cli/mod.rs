@@ -441,7 +441,7 @@ fn render_loaded_project_command(
         "gap" => return run_gap_command(parsed, root, scan_result),
         "todos" => render_todos(parsed, root),
         "decisions" => render_decisions(parsed, scan_result),
-        "research" => render_research(parsed, scan_result),
+        "research" => render_research(parsed, root),
         "sources" => render_sources(parsed, scan_result),
         "rationale" => render_rationale(parsed, scan_result),
         "status" => Ok(render_status(parsed, scan_result, root)),

@@ -7,8 +7,7 @@ use super::super::format::{
 };
 use super::super::*;
 use crate::query_api::{
-    QueryRequest, neighbourhood_ids, parse_decision_status_filter, research_for_nodes,
-    sources_for_nodes,
+    QueryRequest, neighbourhood_ids, parse_decision_status_filter, sources_for_nodes,
 };
 use serde_json::Value;
 use std::collections::BTreeSet;
@@ -131,29 +130,52 @@ fn render_decisions_grep(
     }
 }
 
-pub(crate) fn render_research(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let research = research_for_nodes(scan_result, &BTreeSet::from([node.id.clone()]));
-        Ok(if parsed.json {
+pub(crate) fn render_research(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let request = QueryRequest {
+        tool: "research".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(research_text(&data))
+}
+/// Renders the canonical `research_response_json` data as human text.
+fn research_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let research_lines: Vec<String> = data["research"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
+            let sources: Vec<String> = value["sources"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .map(|source| source.as_str().unwrap_or_default().to_owned())
+                .collect();
             format!(
-                "{{\"node\":\"{}\",\"research\":{}}}\n",
-                esc(&node.id),
-                research_json(&research)
-            )
-        } else {
-            format!(
-                "Research for {}:\n{}\n",
-                node.id,
-                lines(&research.iter().map(research_line).collect::<Vec<_>>())
+                "{} sources: {}",
+                value["id"].as_str().unwrap_or_default(),
+                sources.join(", ")
             )
         })
-    })
+        .collect();
+    format!("Research for {node_id}:\n{}\n", lines(&research_lines))
 }
-
 pub(crate) fn render_sources(
     parsed: &ParsedArgs,
     scan_result: &scanner::ScanResult,

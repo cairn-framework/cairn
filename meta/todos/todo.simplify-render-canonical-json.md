@@ -53,4 +53,5 @@ dispatcher is not re-checked inside the renderer.
 | Command | Renderer LOC before | Renderer LOC after | Delta | Notes |
 |---------|--------------------:|-------------------:|------:|-------|
 | deps | 26 | 38 | +12 | query_api `dependency_json` already existed; +12 is the standard canonical-JSON boilerplate (request build + `Value` extraction). Human output byte-identical. |
-| todos | 31 | 41 | +10 | query_api `todos_response_json` already existed; +10 is the standard canonical-JSON boilerplate (request build + `Value` extraction). Obsolete `--json` branch now served by the shared JSON path; human output byte-identical (`todos_text` reproduces `todo_line`). |
+$&
+| research | 22 | 45 | +23 | query_api `research_response_json` already existed; +23 is the canonical-JSON boilerplate (request build + nested `sources` extraction). Transformer `research_text` (22) is not larger than the renderer it replaces (old `render_research`, 22), so the stop rule is not tripped. Human output byte-identical (`research_text` reproduces `research_line`: id + sources joined with ", "). |
