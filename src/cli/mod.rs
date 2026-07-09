@@ -782,6 +782,9 @@ fn uses_shared_json(command: &str) -> bool {
             | "context"
             | "health"
             | "remediate"
+            | "ui_meta"
+            | "blueprint"
+            | "beads"
     )
 }
 

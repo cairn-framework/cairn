@@ -4,11 +4,10 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 use api::{
-    artefact_response_json, beads_response_json, contract_response_json, dependency_json,
-    finding_json, graph_json, lint_json, meta_json, node_json, project_finding, rationale_json,
-    status_json, symbols_response_json,
+    artefact_response_json, contract_response_json, dependency_json, finding_json, graph_json,
+    lint_json, node_json, project_finding, rationale_json, status_json, symbols_response_json,
 };
-use serialise::{esc, percent_decode};
+use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
 
 pub(super) struct Server {
@@ -19,6 +18,7 @@ pub(super) struct Server {
     cached_scan: RefCell<Option<scanner::ScanResult>>,
     cached_mtime: RefCell<Option<SystemTime>>,
     cached_watched_mtime: RefCell<Option<SystemTime>>,
+    changes_dir: PathBuf,
 }
 
 impl Server {
@@ -38,12 +38,13 @@ impl Server {
         let address = listener.local_addr()?;
         Ok(Self {
             options,
-            root,
+            root: root.clone(),
             listener,
             address,
             cached_scan: RefCell::new(None),
             cached_mtime: RefCell::new(None),
             cached_watched_mtime: RefCell::new(None),
+            changes_dir: root.join("meta/changes"),
         })
     }
 
@@ -127,7 +128,20 @@ impl Server {
         };
         let graph = &project.graph;
         if path == "/api/meta" {
-            return json(200, &meta_json());
+            let request = crate::query_api::QueryRequest {
+                tool: "ui_meta".to_owned(),
+                ..Default::default()
+            };
+            return match crate::query_api::execute_with_scan(
+                &self.root,
+                &self.options.blueprint_path,
+                &self.changes_dir,
+                &request,
+                &project,
+            ) {
+                Ok(response) => json(200, &response.data.to_string()),
+                Err(error) => json(500, &finding_json(&project_finding(error.message))),
+            };
         }
         if path == "/api/status" {
             return json(200, &status_json(&project));
@@ -148,32 +162,22 @@ impl Server {
             return dependency_json(graph, node, true);
         }
         if path == "/api/blueprint" {
-            return self.blueprint_json();
+            let request = crate::query_api::QueryRequest {
+                tool: "blueprint".to_owned(),
+                ..Default::default()
+            };
+            return match crate::query_api::execute_with_scan(
+                &self.root,
+                &self.options.blueprint_path,
+                &self.changes_dir,
+                &request,
+                &project,
+            ) {
+                Ok(response) => json(200, &response.data.to_string()),
+                Err(error) => json(500, &finding_json(&project_finding(error.message))),
+            };
         }
         text(404, "not found")
-    }
-
-    fn blueprint_json(&self) -> Response {
-        let path = self.options.blueprint_path.clone();
-        let display_path = path.to_string_lossy().to_string();
-        match fs::read_to_string(&path) {
-            Ok(source) => json(
-                200,
-                &format!(
-                    "{{\"path\":\"{}\",\"source\":\"{}\"}}",
-                    esc(&display_path),
-                    esc(&source)
-                ),
-            ),
-            Err(error) => json(
-                404,
-                &format!(
-                    "{{\"path\":\"{}\",\"source\":null,\"error\":\"{}\"}}",
-                    esc(&display_path),
-                    esc(&error.to_string())
-                ),
-            ),
-        }
     }
 
     fn node_api(&self, project: &scanner::ScanResult, path: &str) -> Response {
@@ -190,7 +194,23 @@ impl Server {
             "todos" => json(200, &artefact_response_json(&self.root, "todos", &node)),
             "research" => json(200, &artefact_response_json(&self.root, "research", &node)),
             "sources" => json(200, &artefact_response_json(&self.root, "sources", &node)),
-            "beads" => json(200, &beads_response_json(&self.root, &node)),
+            "beads" => {
+                let request = crate::query_api::QueryRequest {
+                    tool: "beads".to_owned(),
+                    node: Some(node.clone()),
+                    ..Default::default()
+                };
+                match crate::query_api::execute_with_scan(
+                    &self.root,
+                    &self.options.blueprint_path,
+                    &self.changes_dir,
+                    &request,
+                    project,
+                ) {
+                    Ok(response) => json(200, &response.data.to_string()),
+                    Err(error) => json(500, &finding_json(&project_finding(error.message))),
+                }
+            }
             "rationale" => json(200, &rationale_json(&self.root, &node)),
             _ => text(404, "not found"),
         }

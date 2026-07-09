@@ -38,6 +38,8 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn scan` | Scan the project and report findings |
 | `cairn lint --node <id>` | Inspect findings for a single node (non-blocking) |
 | `cairn lint` | Lint the blueprint and report findings (blocking) |
+| `cairn ui_meta` | List available query commands and their request/response schemas |
+| `cairn blueprint` | Show the raw blueprint file |
 ### Node inspection
 
 | Command | Description |
@@ -72,6 +74,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | Command | Description |
 |---------|-------------|
 | `cairn backlog <node>` | List beads (issues) linked to a node via its `cairn-node:<id>` label. Reads `.beads/issues.jsonl` when present; this repo's own task tracking uses native Todo artefacts (`cairn todo new`, above), not beads. |
+| `cairn beads <node>` | List backlog beads linked to a node |
 
 ### Changes
 
