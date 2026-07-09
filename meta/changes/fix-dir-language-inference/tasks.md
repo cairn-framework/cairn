@@ -9,7 +9,8 @@ Sequenced so each step is independently verifiable.
 - [ ] Skip `Unknown` in `reconcile_targets`; emit `CAIRN_RECONCILE_LANGUAGE_UNKNOWN` warning (inline `Finding`)
 - [ ] Suppress hash + emit `CAIRN_RECONCILE_EMPTY_TARGET` when `claimed_files` empty
 - [ ] Make `TargetReport.hash` `Option<String>` and propagate to ALL readers:
-  - `cairn files` renderer (`src/cli/render/node.rs`) + JSON serialiser
+  - `cairn files` renderer (`src/cli/render/node.rs`)
+  - query API/MCP files endpoint (`src/query_api/handlers/node.rs:84` `files_json`); decide `None` representation (omit `hash` key), update both wire snapshots as a recorded change
   - cache reconstruction (`src/scanner/cache.rs` `build_reports_from_cache`)
   - `.cairn/state/interface-hashes.json` persistence + aggregate `interface_hash` (`src/scanner/mod.rs`)
   - `detect_divergence` (`src/scanner/mod.rs:176`)

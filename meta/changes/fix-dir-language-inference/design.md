@@ -87,8 +87,12 @@ MODIFIED:
 - `src/scanner/mod.rs:33-48` (`TargetReport`): `hash` becomes
   `Option<String>` for honesty. This ripples through every reader of the
   hash, not just the renderer:
-  - `cairn files` renderer (`src/cli/render/node.rs`) and JSON
-    serialiser.
+  - `cairn files` renderer (`src/cli/render/node.rs`).
+  - query API / MCP files endpoint (`src/query_api/handlers/node.rs:84`,
+    `files_json` serialises `"hash": report.hash`). Decide the `None`
+    representation: omit the `hash` key (preferred, avoids a misleading
+    `"hash": null`) and record it as a wire-schema change for both the
+    CLI `--json` and the query API files payloads.
   - `src/scanner/cache.rs` (`build_reports_from_cache` reconstructs
     `TargetReport`s from cached `ReconcileReport`s; must propagate `None`).
   - `.cairn/state/interface-hashes.json` persistence
