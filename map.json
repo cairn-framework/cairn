@@ -1356,7 +1356,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 79,
-          "end_line": 215
+          "end_line": 218
         },
         {
           "name": "run",
@@ -2036,8 +2036,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 164,
-          "end_line": 166
+          "line": 168,
+          "end_line": 170
         },
         {
           "name": "QueryFlag",
@@ -2045,7 +2045,7 @@
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
           "line": 103,
-          "end_line": 120
+          "end_line": 124
         },
         {
           "name": "SafetyClass",
@@ -2060,40 +2060,40 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 255,
-          "end_line": 262
+          "line": 259,
+          "end_line": 266
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 266,
-          "end_line": 273
+          "line": 270,
+          "end_line": 277
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 193,
-          "end_line": 251
+          "line": 197,
+          "end_line": 255
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 180,
-          "end_line": 186
+          "line": 184,
+          "end_line": 190
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 143,
-          "end_line": 152
+          "line": 147,
+          "end_line": 156
         },
         {
           "name": "QueryRequest",
@@ -2108,8 +2108,8 @@
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 130,
-          "end_line": 139
+          "line": 134,
+          "end_line": 143
         },
         {
           "name": "ToolMetadata",
