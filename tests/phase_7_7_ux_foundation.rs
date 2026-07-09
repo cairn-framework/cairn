@@ -5,7 +5,7 @@
 //! Phase 7.7 UX Foundation acceptance-criterion tests.
 //!
 //! Mixed state: scenarios already satisfied by reforge cycle 1
-//! (`FindingSeverity::Info` on the kernel enum, the `cairn check`
+//! (`FindingSeverity::Info` on the kernel enum, the `cairn lint`
 //! subcommand, `Info`-finding round-trip through `serde_json`, and the
 //! unverified-contract Info producer) run as plain `#[test]` and
 //! enforce their invariants on every `cargo test`. Scenarios still
@@ -24,49 +24,55 @@ mod cli {
 
     /// Scenario: Whole-map inspection without arguments.
     #[test]
-    fn test_check__whole_map_inspection_without_arguments() {
+    fn test_lint__whole_map_inspection_without_arguments() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
             "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
-            "check".to_owned(),
+            "lint".to_owned(),
         ]);
-        assert_eq!(result.code, 0, "check always exits zero (non-blocking)");
+        assert_eq!(result.code, 0, "lint always exits zero (non-blocking)");
         assert!(
             !result.stdout.is_empty(),
-            "check must produce output for a fixture with findings"
+            "lint must produce output for a fixture with findings"
         );
     }
 
     /// Scenario: Node-scoped inspection with a positional argument.
     #[test]
-    fn test_check__node_scoped_inspection_with_positional_argument() {
+    fn test_lint__node_scoped_inspection_with_node_flag() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
             "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
-            "check".to_owned(),
+            "lint".to_owned(),
+            "--node".to_owned(),
             "cairn.kernel.parser".to_owned(),
         ]);
-        assert_eq!(result.code, 0, "node-scoped check exits zero");
+        assert_eq!(result.code, 0, "node-scoped lint exits zero");
     }
 
     /// Scenario: Inspection delegates to the same library service as lint.
     #[test]
-    fn test_check__inspection_delegates_to_same_library_service_as_lint() {
+    fn test_lint__inspection_delegates_to_same_library_service_as_lint() {
         // Both commands consume `query::lint`; this test is a structural
-        // assertion that the same library entry-point exists. The check
+        // assertion that the same library entry-point exists. The lint
         // command path inside src/cli/mod.rs calls `query::lint(&graph)`.
         let _: fn(&cairn::map::Graph) -> cairn::map::query::LintResponse = cairn::map::query::lint;
     }
 
     /// Scenario: Inspection supports JSON output with command envelope.
     #[test]
-    fn test_check__inspection_supports_json_mode() {
-        let result = cairn::cli::run(&["--json".to_owned(), "check".to_owned()]);
-        assert_ne!(result.code, 2, "check --json must not be a usage error");
+    fn test_lint__inspection_supports_json_mode() {
+        let result = cairn::cli::run(&[
+            "--json".to_owned(),
+            "lint".to_owned(),
+            "--node".to_owned(),
+            "test.unknown".to_owned(),
+        ]);
+        assert_ne!(result.code, 2, "lint --json must not be a usage error");
         let stdout = result.stdout.trim();
-        let parsed: serde_json::Value = serde_json::from_str(stdout)
-            .expect("cairn check --json must always produce valid JSON");
-        assert_eq!(parsed["command"], "check", "envelope must name the command");
+        let parsed: serde_json::Value =
+            serde_json::from_str(stdout).expect("cairn lint --json must always produce valid JSON");
+        assert_eq!(parsed["command"], "lint", "envelope must name the command");
         assert!(
             parsed["status"] == "ok" || parsed["status"] == "error",
             "envelope status must be ok or error"
@@ -77,25 +83,27 @@ mod cli {
         );
         assert!(
             !result.stderr.contains("cairn lint --json"),
-            "check --json is no longer rejected"
+            "lint --json is no longer rejected"
         );
     }
 
     /// Scenario: No-blueprint JSON response uses status 'ok' because the
     /// finding is non-blocking Info severity.
     #[test]
-    fn test_check__json_no_blueprint_uses_ok_status_for_info_severity() {
+    fn test_lint__json_no_blueprint_uses_ok_status_for_info_severity() {
         let result = cairn::cli::run(&[
             "--json".to_owned(),
             "--file".to_owned(),
             "/nonexistent/cairn.blueprint".to_owned(),
-            "check".to_owned(),
+            "lint".to_owned(),
+            "--node".to_owned(),
+            "test.unknown".to_owned(),
         ]);
-        assert_eq!(result.code, 0, "check always exits zero (non-blocking)");
+        assert_eq!(result.code, 0, "lint always exits zero (non-blocking)");
         let stdout = result.stdout.trim();
-        let parsed: serde_json::Value = serde_json::from_str(stdout)
-            .expect("cairn check --json must always produce valid JSON");
-        assert_eq!(parsed["command"], "check", "envelope must name the command");
+        let parsed: serde_json::Value =
+            serde_json::from_str(stdout).expect("cairn lint --json must always produce valid JSON");
+        assert_eq!(parsed["command"], "lint", "envelope must name the command");
         let findings = parsed["data"]["findings"]
             .as_array()
             .expect("envelope must contain findings array");
@@ -174,9 +182,11 @@ mod empty_state {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
             "nonexistent/cairn.blueprint".to_owned(),
-            "check".to_owned(),
+            "lint".to_owned(),
+            "--node".to_owned(),
+            "test.unknown".to_owned(),
         ]);
-        assert_eq!(result.code, 0, "no-blueprint check exits zero");
+        assert_eq!(result.code, 0, "no-blueprint lint exits zero");
         assert!(
             result.stdout.contains("cairn init"),
             "CTA must mention `cairn init`, got: {}",
@@ -199,9 +209,9 @@ mod empty_state {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
             bp.to_string_lossy().to_string(),
-            "check".to_owned(),
+            "lint".to_owned(),
         ]);
-        assert_eq!(result.code, 0, "clean-map check exits zero");
+        assert_eq!(result.code, 0, "clean-map lint exits zero");
         assert!(
             result.stdout.contains("Blueprint reconciled cleanly"),
             "clean-map output must use cli-clean-map copy, got: {}",
@@ -668,12 +678,12 @@ mod reconciliation {
     }
 }
 
-mod check_findings {
+mod lint_findings {
     use std::fs;
 
-    /// Scenario: Check renders Error, Warning, and Info findings.
+    /// Scenario: Lint renders Error, Warning, and Info findings.
     #[test]
-    fn test_check__renders_all_three_severity_levels() {
+    fn test_lint__renders_all_three_severity_levels() {
         let root = tempfile::tempdir().expect("temp dir");
         let bp = root.path().join("cairn.blueprint");
         fs::write(
@@ -705,29 +715,29 @@ test.auth -> test.nonexistent "Bad edge"
         let result = cairn::cli::run(&[
             "--file".to_owned(),
             bp.to_string_lossy().to_string(),
-            "check".to_owned(),
+            "lint".to_owned(),
         ]);
 
         assert!(
             result.stdout.contains("Error"),
-            "check must render Error findings, got: {}",
+            "lint must render Error findings, got: {}",
             result.stdout
         );
         assert!(
             result.stdout.contains("Warning"),
-            "check must render Warning findings, got: {}",
+            "lint must render Warning findings, got: {}",
             result.stdout
         );
         assert!(
             result.stdout.contains("Info"),
-            "check must render Info findings, got: {}",
+            "lint must render Info findings, got: {}",
             result.stdout
         );
     }
 
-    /// Scenario: Node-scoped check filters to findings on that node.
+    /// Scenario: Node-scoped lint filters to findings on that node.
     #[test]
-    fn test_check__node_scoped_filters_findings() {
+    fn test_lint__node_scoped_filters_findings() {
         let root = tempfile::tempdir().expect("temp dir");
         let bp = root.path().join("cairn.blueprint");
         fs::write(
@@ -759,20 +769,21 @@ test.auth -> test.nonexistent "Bad edge"
         let result = cairn::cli::run(&[
             "--file".to_owned(),
             bp.to_string_lossy().to_string(),
-            "check".to_owned(),
+            "lint".to_owned(),
+            "--node".to_owned(),
             "test.unknown".to_owned(),
         ]);
 
         assert!(
             result.stdout.contains("CAIRN_TODO_ORPHAN_NODE"),
-            "node-scoped check must show findings on test.unknown, got: {}",
+            "node-scoped lint must show findings on test.unknown, got: {}",
             result.stdout
         );
         assert!(
             !result
                 .stdout
                 .contains("CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT"),
-            "node-scoped check must NOT show findings on other nodes, got: {}",
+            "node-scoped lint must NOT show findings on other nodes, got: {}",
             result.stdout
         );
     }

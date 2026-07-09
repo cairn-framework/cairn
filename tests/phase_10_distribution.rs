@@ -378,7 +378,7 @@ fn test_example_project_exercises_core_capabilities() {
     ]);
     assert!(
         result.code == 0,
-        "cairn check on example project must exit zero, got code: {} with stderr: {}",
+        "cairn lint on example project must exit zero, got code: {} with stderr: {}",
         result.code,
         result.stderr
     );
