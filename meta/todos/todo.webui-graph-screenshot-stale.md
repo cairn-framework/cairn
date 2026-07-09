@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: blocked
+status: done
 created: 2026-07-03
 ---
 
@@ -8,27 +8,37 @@ created: 2026-07-03
 
 `docs/assets/screenshots/webui-graph.png` (used as `docs/landing/index.html`'s
 og:image/twitter:image social-preview meta tags and as the demo video's
-`poster` attribute) still visually shows the SYSTEM node overlapping the
+`poster` attribute) still visually showed the SYSTEM node overlapping the
 HUD legend that `39c1a4b` fixed (cairn-380): the file was last touched at
 76892ba, before the fix landed. Confirmed via `inspect_image` and pixel
 dimensions (1690x1768 physical / devicePixelRatio 2 = 845x884 logical,
 matching the narrow-viewport repro case the fix targets).
 
-Not fixed here: this needs a properly composed WIDE desktop screenshot
-(1440x900-class, 2-column layout) for landing-page/social-preview quality,
-which this session's sandboxed browser tool cannot produce (hard-capped
-at 800x600 regardless of the requested viewport, confirmed by testing).
-Recapture with a real desktop-width browser (or the repo's existing
-`docs/assets/demo/record-setup.sh` throwaway-copy pattern plus a
-puppeteer/playwright script with an actual controllable viewport) showing
-the graph canvas with the SYSTEM node fully clear of all HUD chrome.
 
+## Resolution (2026-07-09)
 
-## Status (2026-07-08)
+Recaptured on the macOS workstation using Playwright (Chromium) in a throwaway
+temp directory outside the worktree (`/tmp/cairn-screenshot-playwright`), with
+its own `package.json`, so npm did not walk up into the repo.
 
-Blocked in this execution environment: the recapture needs a real desktop-width
-browser (1440x900-class, 2-column layout) for landing/social-preview quality,
-but the sandbox browser tool is hard-capped at 800x600 regardless of requested
-viewport (confirmed during the bet B/C work). Unblocks when run in an env with a
-controllable desktop viewport (or the repo's `docs/assets/demo/record-setup.sh`
-throwaway-copy + puppeteer/playwright pattern).
+Capture settings:
+- Viewport: 1440x900 logical, deviceScaleFactor 2 (2880x1800 physical).
+- Target: `target/release/cairn ui` serving the worktree repo on a free port
+  (127.0.0.1:50648, 25 nodes, 27 edges, 1 info finding).
+- Layout: 2-column desktop layout, graph canvas left, inspector right.
+- Graph state: waited for `.graph-svg .canvas-node`, triggered the `fit` control
+  to settle the default viewport, then captured after 800ms.
+
+Verification:
+- Pixel dimensions: 2880x1800 physical (1440x900 logical), as confirmed by
+  `file` and `sips`.
+- Visual inspection via `inspect_image`: 2-column desktop layout, SYSTEM node
+  fully clear of the top chain banner and all HUD chrome, no node overlaps
+  the zoom/legend/minimap docks, text legible. The previous narrow-viewport
+  SYSTEM/legend overlap is gone.
+- Landing-page references checked: `docs/landing/index.html` og:image and
+  twitter:image both point to `https://cairn-framework.github.io/cairn/assets/screenshots/webui-graph.png`;
+  no HTML edits were required.
+- Asset validity confirmed by `cairn lint` and `cairn hook all` (only a
+  pre-existing CAIRN_SPEC_RULE_UNIMPLEMENTED info finding, unrelated to this
+  change).
