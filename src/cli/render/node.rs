@@ -161,17 +161,22 @@ pub(crate) fn render_files(
                 let items: Vec<String> = target_reports_for_node
                     .iter()
                     .map(|r| {
+                        let hash_field = if let Some(hash) = &r.hash {
+                            format!(",\"hash\":\"{}\"", esc(hash))
+                        } else {
+                            String::new()
+                        };
                         format!(
-                            "{{\"path\":\"{}\",\"language\":\"{}\",\"reconciler_id\":\"{}\",\"files\":{},\"hash\":\"{}\"}}",
+                            "{{\"path\":\"{}\",\"language\":\"{}\",\"reconciler_id\":\"{}\",\"files\":{}{}}}",
                             esc(&r.target_id.path.to_string_lossy()),
                             r.language.as_str(),
                             r.reconciler_id.0,
                             string_array_json(&r.claimed_files),
-                            esc(&r.hash)
+                            hash_field
                         )
                     })
                     .collect();
-                    format!("[{}]", items.join(","))
+                format!("[{}]", items.join(","))
             };
             if has_multi_target {
                 Ok(format!(
@@ -200,7 +205,9 @@ pub(crate) fn render_files(
                         r.claimed_files.join(", ")
                     ).unwrap();
                     writeln!(output, "    reconciler: {}", r.reconciler_id.0).unwrap();
-                    writeln!(output, "    hash: {}", r.hash).unwrap();
+                    if let Some(hash) = &r.hash {
+                        writeln!(output, "    hash: {hash}").unwrap();
+                    }
                 }
             } else if let Some(r) = target_reports_for_node.first() {
                 use std::fmt::Write;
@@ -212,7 +219,9 @@ pub(crate) fn render_files(
                 ).unwrap();
                 writeln!(output, "  language: {}", r.language.as_str()).unwrap();
                 writeln!(output, "  reconciler: {}", r.reconciler_id.0).unwrap();
-                writeln!(output, "  hash: {}", r.hash).unwrap();
+                if let Some(hash) = &r.hash {
+                    writeln!(output, "  hash: {hash}").unwrap();
+                }
             } else {
                 use std::fmt::Write;
                 writeln!(output, "  {}", lines(&node_record.files)).unwrap();
@@ -333,7 +342,7 @@ mod tests {
                 .collect(),
             symbol_records: Arc::new(Vec::new()),
             symbols: Arc::new(Vec::new()),
-            hash: "abcd1234".to_owned(),
+            hash: Some("abcd1234".to_owned()),
         }
     }
 

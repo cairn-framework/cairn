@@ -2125,6 +2125,7 @@
         "src/scanner/checks.rs",
         "src/scanner/config/mod.rs",
         "src/scanner/config/tests.rs",
+        "src/scanner/inference_tests.rs",
         "src/scanner/mod.rs",
         "src/scanner/outputs.rs",
         "src/scanner/snapshot.rs",
@@ -2196,8 +2197,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 301,
-          "end_line": 371
+          "line": 366,
+          "end_line": 438
         },
         {
           "name": "matches",
@@ -2244,8 +2245,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 378,
-          "end_line": 414
+          "line": 445,
+          "end_line": 481
         },
         {
           "name": "write",
@@ -2284,32 +2285,32 @@
           "kind": "module",
           "signature": "pub mod config",
           "file": "src/scanner/mod.rs",
-          "line": 5,
-          "end_line": 5
+          "line": 6,
+          "end_line": 6
         },
         {
           "name": "outputs",
           "kind": "module",
           "signature": "pub mod outputs",
           "file": "src/scanner/mod.rs",
-          "line": 6,
-          "end_line": 6
+          "line": 9,
+          "end_line": 9
         },
         {
           "name": "snapshot",
           "kind": "module",
           "signature": "pub mod snapshot",
           "file": "src/scanner/mod.rs",
-          "line": 7,
-          "end_line": 7
+          "line": 10,
+          "end_line": 10
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/scanner/mod.rs",
-          "line": 8,
-          "end_line": 8
+          "line": 11,
+          "end_line": 11
         },
         {
           "name": "BlueprintSnapshot",
@@ -2364,8 +2365,8 @@
           "kind": "struct",
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
-          "line": 52,
-          "end_line": 67
+          "line": 58,
+          "end_line": 73
         },
         {
           "name": "SnapshotEdge",
@@ -2396,8 +2397,8 @@
           "kind": "struct",
           "signature": "pub struct TargetReport",
           "file": "src/scanner/mod.rs",
-          "line": 33,
-          "end_line": 48
+          "line": 39,
+          "end_line": 54
         },
         {
           "name": "TargetHashes",
@@ -2412,16 +2413,16 @@
           "kind": "module",
           "signature": "pub(crate) mod cache",
           "file": "src/scanner/mod.rs",
-          "line": 3,
-          "end_line": 3
+          "line": 4,
+          "end_line": 4
         },
         {
           "name": "checks",
           "kind": "module",
           "signature": "pub(crate) mod checks",
           "file": "src/scanner/mod.rs",
-          "line": 4,
-          "end_line": 4
+          "line": 5,
+          "end_line": 5
         }
       ]
     },
@@ -2913,16 +2914,16 @@
           "kind": "const",
           "signature": "pub const DEFAULT_CONTRACT_ROLE",
           "file": "src/reconcile/target.rs",
-          "line": 8,
-          "end_line": 8
+          "line": 9,
+          "end_line": 9
         },
         {
           "name": "SUPPORTED_LANGUAGES",
           "kind": "const",
           "signature": "pub const SUPPORTED_LANGUAGES",
           "file": "src/reconcile/target.rs",
-          "line": 130,
-          "end_line": 130
+          "line": 200,
+          "end_line": 200
         },
         {
           "name": "new",
@@ -2961,8 +2962,8 @@
           "kind": "enum",
           "signature": "pub enum Language",
           "file": "src/reconcile/target.rs",
-          "line": 35,
-          "end_line": 44
+          "line": 36,
+          "end_line": 47
         },
         {
           "name": "SymbolKind",
@@ -2977,32 +2978,32 @@
           "kind": "function",
           "signature": "pub fn as_str(&self) -> &'static str",
           "file": "src/reconcile/target.rs",
-          "line": 74,
-          "end_line": 81
+          "line": 77,
+          "end_line": 85
         },
         {
           "name": "as_str",
           "kind": "function",
           "signature": "pub fn as_str(&self) -> String",
           "file": "src/reconcile/target.rs",
-          "line": 28,
-          "end_line": 30
+          "line": 29,
+          "end_line": 31
         },
         {
           "name": "from_extension",
           "kind": "function",
           "signature": "pub fn from_extension(path: &Path) -> Option<Self>",
           "file": "src/reconcile/target.rs",
-          "line": 49,
-          "end_line": 58
+          "line": 52,
+          "end_line": 61
         },
         {
           "name": "from_language_str",
           "kind": "function",
           "signature": "pub fn from_language_str(s: &str) -> Option<Self>",
           "file": "src/reconcile/target.rs",
-          "line": 62,
-          "end_line": 70
+          "line": 65,
+          "end_line": 73
         },
         {
           "name": "from_sorted",
@@ -3021,12 +3022,20 @@
           "end_line": 19
         },
         {
+          "name": "infer_from_directory",
+          "kind": "function",
+          "signature": "pub fn infer_from_directory(root: &Path, path: &Path, ignores: &[String]) -> Option<Self>",
+          "file": "src/reconcile/target.rs",
+          "line": 104,
+          "end_line": 129
+        },
+        {
           "name": "language_error_message",
           "kind": "function",
           "signature": "pub fn language_error_message() -> String",
           "file": "src/reconcile/target.rs",
-          "line": 134,
-          "end_line": 139
+          "line": 204,
+          "end_line": 209
         },
         {
           "name": "new",
@@ -3041,16 +3050,16 @@
           "kind": "function",
           "signature": "pub fn new(node_id: String, path: std::path::PathBuf) -> Self",
           "file": "src/reconcile/target.rs",
-          "line": 22,
-          "end_line": 24
+          "line": 23,
+          "end_line": 25
         },
         {
           "name": "new",
           "kind": "function",
           "signature": "pub fn new(node_id: String, path: std::path::PathBuf, language: Language) -> Self",
           "file": "src/reconcile/target.rs",
-          "line": 111,
-          "end_line": 119
+          "line": 181,
+          "end_line": 189
         },
         {
           "name": "normalize_symbol",
@@ -3065,16 +3074,16 @@
           "kind": "function",
           "signature": "pub fn reconciler_id(&self) -> ReconcilerId",
           "file": "src/reconcile/target.rs",
-          "line": 85,
-          "end_line": 92
+          "line": 89,
+          "end_line": 97
         },
         {
           "name": "with_contract_role",
           "kind": "function",
           "signature": "pub fn with_contract_role(mut self, role: String) -> Self",
           "file": "src/reconcile/target.rs",
-          "line": 123,
-          "end_line": 126
+          "line": 193,
+          "end_line": 196
         },
         {
           "name": "code",
@@ -3225,16 +3234,16 @@
           "kind": "struct",
           "signature": "pub struct Target",
           "file": "src/reconcile/target.rs",
-          "line": 97,
-          "end_line": 106
+          "line": 167,
+          "end_line": 176
         },
         {
           "name": "TargetId",
           "kind": "struct",
           "signature": "pub struct TargetId",
           "file": "src/reconcile/target.rs",
-          "line": 12,
-          "end_line": 17
+          "line": 13,
+          "end_line": 18
         },
         {
           "name": "TypeScriptReconciler",
@@ -6092,6 +6101,7 @@
         "tests/phase_8_summariser.rs",
         "tests/phase_9_brownfield.rs",
         "tests/reconcile_go.rs",
+        "tests/reconcile_language_inference.rs",
         "tests/reconcile_python.rs",
         "tests/reconcile_rust.rs",
         "tests/reconcile_target_fingerprint.rs",

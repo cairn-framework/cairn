@@ -1,8 +1,9 @@
 //! Multi-target capability types.
 
-use std::path::Path;
+use std::{fs, path::Path};
 
 use crate::reconcile::ReconcilerId;
+use crate::scanner::config;
 
 /// Default contract role assigned to targets without explicit configuration.
 pub const DEFAULT_CONTRACT_ROLE: &str = "public_api";
@@ -41,6 +42,8 @@ pub enum Language {
     Python,
     /// Go source files.
     Go,
+    /// Unknown language: no reconciler available.
+    Unknown,
 }
 
 impl Language {
@@ -77,6 +80,7 @@ impl Language {
             Self::TypeScript => "typescript",
             Self::Python => "python",
             Self::Go => "go",
+            Self::Unknown => "unknown",
         }
     }
 
@@ -88,6 +92,72 @@ impl Language {
             Self::TypeScript => ReconcilerId("typescript-code".to_owned()),
             Self::Python => ReconcilerId("python-code".to_owned()),
             Self::Go => ReconcilerId("go-code".to_owned()),
+            Self::Unknown => ReconcilerId("none".to_owned()),
+        }
+    }
+    /// Infers the dominant language by walking a directory.
+    ///
+    /// Counts files with supported extensions, applies the same ignore rules
+    /// used by reconcilers, and returns the language with the most files.
+    /// Ties are broken by the order of [`SUPPORTED_LANGUAGES`].
+    #[must_use]
+    pub fn infer_from_directory(root: &Path, path: &Path, ignores: &[String]) -> Option<Self> {
+        let abs_dir = root.join(path);
+        if !abs_dir.is_dir() {
+            return None;
+        }
+
+        let mut counts = std::collections::BTreeMap::<Self, usize>::new();
+        infer_walk(root, &abs_dir, ignores, &mut counts);
+
+        counts
+            .into_iter()
+            .max_by(|(lang_a, count_a), (lang_b, count_b)| {
+                count_a.cmp(count_b).then_with(|| {
+                    let order_a = SUPPORTED_LANGUAGES
+                        .iter()
+                        .position(|&s| s == lang_a.as_str())
+                        .unwrap_or(usize::MAX);
+                    let order_b = SUPPORTED_LANGUAGES
+                        .iter()
+                        .position(|&s| s == lang_b.as_str())
+                        .unwrap_or(usize::MAX);
+                    order_b.cmp(&order_a)
+                })
+            })
+            .map(|(lang, _)| lang)
+    }
+}
+
+#[allow(clippy::collapsible_if)] // Reason: keeping the extension check inside the file branch mirrors the reconciler walk idiom and avoids a double from_extension call.
+fn infer_walk(
+    root: &Path,
+    dir: &Path,
+    ignores: &[String],
+    counts: &mut std::collections::BTreeMap<Language, usize>,
+) {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if config::is_ignored(&rel, ignores) {
+            continue;
+        }
+        let Ok(file_type) = entry.file_type() else {
+            continue;
+        };
+        if file_type.is_dir() {
+            infer_walk(root, &path, ignores, counts);
+        } else if file_type.is_file() {
+            if let Some(lang) = Language::from_extension(&path) {
+                *counts.entry(lang).or_insert(0) += 1;
+            }
         }
     }
 }

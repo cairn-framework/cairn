@@ -152,6 +152,8 @@ CAIRN_SOURCE_UNVERIFIED = { heading = "Unverified source", body = "Source `{node
 CAIRN_DECISION_ORPHANED = { heading = "Orphaned decision", body = "Decision `{node}` references nodes that no longer exist.", cta = "Update the decision's node references, or archive if no longer relevant." }
 CAIRN_PROVENANCE_NO_DECISION = { heading = "No decision link", body = "Node `{node}` has no decision in its provenance chain.", cta = "Link a decision artefact explaining why this module exists." }
 CAIRN_CONTRACT_MISSING_NODE = { heading = "Contract references unknown node", body = "A contract references `{node}`, which does not exist in the blueprint.", cta = "Fix the node reference in the contract, or declare the missing node." }
+CAIRN_RECONCILE_LANGUAGE_UNKNOWN = { heading = "Unknown language", body = "The target `{target}` at `{path}` has a language that could not be inferred from its contents.", cta = "Set a `targets:` override in cairn.config.yaml, or add files with a supported extension." }
+CAIRN_RECONCILE_EMPTY_TARGET = { heading = "Empty target", body = "The target `{target}` at `{path}` discovered zero files during reconciliation.", cta = "Check the path is correct, or remove the target if it is no longer needed." }
 
 
 CT001 = { heading = "Interface contradiction", body = "Targets for `{node}` with the same contract role have divergent interfaces.", cta = "Review the contract and reconcile the interface shapes." }
