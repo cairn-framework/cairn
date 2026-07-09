@@ -77,11 +77,11 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 
 | Command | Description |
 |---------|-------------|
-| `cairn changes` | List active changes |
+| `cairn change list` | List active changes |
 | `cairn change new <change-id>` | Scaffold a new change directory |
-| `cairn show <change-id>` | Show details of a change |
-| `cairn accept [<change-id>]` | Run acceptance gate for a change |
-| `cairn archive <change-id>` | Archive a completed change |
+| `cairn change show <change-id>` | Show details of a change |
+| `cairn change accept [<change-id>]` | Run acceptance gate for a change |
+| `cairn change archive <change-id>` | Archive a completed change |
 
 ### Brownfield
 

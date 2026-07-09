@@ -119,10 +119,6 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "ui" {
         return run_ui_command(&parsed);
     }
-    if parsed.command == "accept" {
-        let change_id = parsed.command_args.get(1).map(String::as_str);
-        return crate::cli::accept::run_accept_gate(change_id, parsed.json);
-    }
     if parsed.command == "export" {
         return export::run(
             &parsed.command_args,
@@ -228,7 +224,94 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
             };
             run_change_new(project_root, id)
         }
-        _ => err(2, "usage: cairn change new <change-id>"),
+        Some("list") => {
+            if parsed.json {
+                let root = project_root;
+                let legacy_warning = legacy_blueprint_warning(root);
+                let request = crate::query_api::QueryRequest {
+                    tool: "changes".to_owned(),
+                    node: None,
+                    change: None,
+                    old_id: None,
+                    new_id: None,
+                    status: None,
+                    language: None,
+                    flags: std::collections::BTreeSet::new(),
+                    mutating: false,
+                };
+                return crate::cli::commands::execute_json_request(
+                    parsed,
+                    root,
+                    legacy_warning,
+                    &request,
+                );
+            }
+            let changes_dir = project_root.join(&parsed.changes_dir);
+            ok(render_changes(project_root, &changes_dir))
+        }
+        Some("show") => {
+            let Some(id) = change_id else {
+                return err(2, "usage: cairn change show <change-id>");
+            };
+            if parsed.json {
+                let root = project_root;
+                let legacy_warning = legacy_blueprint_warning(root);
+                let request = crate::query_api::QueryRequest {
+                    tool: "show".to_owned(),
+                    node: None,
+                    change: Some(id.to_owned()),
+                    old_id: None,
+                    new_id: None,
+                    status: None,
+                    language: None,
+                    flags: std::collections::BTreeSet::new(),
+                    mutating: false,
+                };
+                return crate::cli::commands::execute_json_request(
+                    parsed,
+                    root,
+                    legacy_warning,
+                    &request,
+                );
+            }
+            // render_show reads change id from command_args[1]; synthesise
+            // a view of args as the old top-level `show <id>` shape.
+            let show_parsed = ParsedArgs {
+                json: parsed.json,
+                strict: parsed.strict,
+                file: parsed.file.clone(),
+                changes_dir: parsed.changes_dir.clone(),
+                command: "show".to_owned(),
+                command_args: vec!["show".to_owned(), id.to_owned()],
+            };
+            match render_show(&show_parsed, project_root) {
+                Ok(stdout) => ok(stdout),
+                Err(finding) => error_output(parsed.json, &finding.code, &finding.message),
+            }
+        }
+        Some("accept") => crate::cli::accept::run_accept_gate(change_id, parsed.json),
+        Some("archive") => {
+            let Some(id) = change_id else {
+                return err(2, "usage: cairn change archive <change-id>");
+            };
+            let root = project_root;
+            let legacy_warning = legacy_blueprint_warning(root);
+            // archive reads change id from command_args[1]; synthesise
+            // the old top-level `archive <id>` shape.
+            let archive_parsed = ParsedArgs {
+                json: parsed.json,
+                strict: parsed.strict,
+                file: parsed.file.clone(),
+                changes_dir: parsed.changes_dir.clone(),
+                command: "archive".to_owned(),
+                command_args: vec!["archive".to_owned(), id.to_owned()],
+            };
+            run_archive_command(&archive_parsed, root, legacy_warning)
+        }
+        _ => err(
+            2,
+            "usage: cairn change <new|list|show|accept|archive> [args]",
+        ),
     }
 }
 struct ParsedArgs {
@@ -298,9 +381,6 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         );
     }
     let legacy_warning = legacy_blueprint_warning(root);
-    if parsed.command == "archive" {
-        return run_archive_command(parsed, root, legacy_warning);
-    }
     let grep_decisions =
         parsed.command == "decisions" && parsed.command_args.iter().any(|arg| arg == "--grep");
     if parsed.command == "draft" {
@@ -353,8 +433,6 @@ fn render_loaded_project_command(
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
         "next" => Ok(render_next(parsed, root, scan_result)),
         "brief" => Ok(render_brief(parsed, root, scan_result)),
-        "changes" => Ok(render_changes(root, &root.join(&parsed.changes_dir))),
-        "show" => render_show(parsed, root),
         "docstring" | "rename" => {
             return err(2, "this command currently requires --json");
         }
@@ -483,7 +561,7 @@ fn render_loaded_project_command(
 
 /// Command names not in the query registry but handled by the CLI.
 const EXTRA_CLI_COMMANDS: &[&str] = &[
-    "accept",
+    // accept/archive retired under `cairn change`
     "backlog",
     "brief",
     "change",
@@ -507,12 +585,15 @@ const MCP_ONLY_TOOLS: &[&str] = &["init_from_code"];
 
 /// Returns all command names the CLI recognises.
 fn all_command_names() -> Vec<&'static str> {
+    // Top-level spellings retired under `cairn change <sub>`.
+    const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
     let mut names: Vec<&str> = registry()
         .iter()
         .filter(|t| !MCP_ONLY_TOOLS.contains(&t.cli_name))
         // Compound cli_names (e.g. "draft list") are subcommands, not
         // top-level commands.
         .filter(|t| !t.cli_name.contains(' '))
+        .filter(|t| !RETIRED_TOP_LEVEL.contains(&t.cli_name))
         .map(|t| t.cli_name)
         .collect();
     for cmd in EXTRA_CLI_COMMANDS {
@@ -531,10 +612,7 @@ fn command_description(name: &str) -> &'static str {
         "health" => "Comprehensive health check: lint, hooks, and module state",
         "remediate" => "Generate an ordered action plan from current findings",
         "backlog" => "List beads (issues) linked to a node",
-        "accept" => "Run acceptance gate for a change",
-        "archive" => "Archive a completed change",
-        "change" => "Scaffold a new change directory",
-        "changes" => "List active changes",
+        "change" => "Manage changes: new, list, show, accept, archive",
         "check" => "Inspect findings for a node or project",
         "context" => "Structured project overview for agents",
         "contract" => "Show the contract for a node",
@@ -568,7 +646,7 @@ fn command_description(name: &str) -> &'static str {
         "rename" => "Rename a node ID across the project",
         "research" => "List research linked to a node",
         "scan" => "Scan the project and report findings",
-        "show" => "Show details of a change",
+        // "show" retired under `cairn change show`
         "sources" => "List sources linked to a node",
         "status" => "Show project status summary",
         "draft" => "Manage draft proposals: list, show, edit, discard, accept, create",
@@ -666,8 +744,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "decisions"
             | "research"
             | "sources"
-            | "changes"
-            | "show"
+            // changes/show retired under `cairn change list|show`
             | "hook"
             | "rename"
             | "context"
@@ -735,11 +812,14 @@ mod tests {
         write_project(&root)?;
         write_change(&root)?;
 
-        let changes = run_in(&root, &["--json", "changes"]);
+        let changes = run_in(&root, &["--json", "change", "list"]);
         assert_eq!(changes.code, 0);
         assert!(changes.stdout.contains("phase-7.5a-test-fortification"));
 
-        let show = run_in(&root, &["--json", "show", "phase-7.5a-test-fortification"]);
+        let show = run_in(
+            &root,
+            &["--json", "change", "show", "phase-7.5a-test-fortification"],
+        );
         assert_eq!(show.code, 0);
         assert!(
             show.stdout
@@ -754,9 +834,9 @@ mod tests {
                 .contains("\"id\":\"rename-app.api-to-app.api.v2\"")
         );
 
-        let archive_usage = run_in(&root, &["archive"]);
+        let archive_usage = run_in(&root, &["change", "archive"]);
         assert_eq!(archive_usage.code, 2);
-        assert!(archive_usage.stderr.contains("usage: cairn archive"));
+        assert!(archive_usage.stderr.contains("usage: cairn change archive"));
 
         let missing = run_in(&root, &["get"]);
         assert_eq!(missing.code, 1);
@@ -775,7 +855,10 @@ mod tests {
         write_project(&root)?;
         write_change(&root)?;
 
-        let archive = run_in(&root, &["archive", "phase-7.5a-test-fortification"]);
+        let archive = run_in(
+            &root,
+            &["change", "archive", "phase-7.5a-test-fortification"],
+        );
         assert_eq!(archive.code, 0, "stderr: {}", archive.stderr);
         assert!(archive.stdout.contains("Archived"));
         assert!(
@@ -807,7 +890,12 @@ mod tests {
 
         let archive = run_in(
             &root,
-            &["--json", "archive", "phase-7.5a-test-fortification"],
+            &[
+                "--json",
+                "change",
+                "archive",
+                "phase-7.5a-test-fortification",
+            ],
         );
         assert_eq!(archive.code, 0, "stderr: {}", archive.stderr);
         assert!(archive.stdout.contains("\"command\":\"archive\""));

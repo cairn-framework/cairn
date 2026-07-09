@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-06
 ---
 
@@ -11,15 +11,16 @@ Depends on: todo.simplify-cli-draft-family (establishes the subcommand
 pattern and its test/doc update recipe on a zero-risk family first).
 Follow the shared rules in todo.simplify-architecture.
 
-Six top-level names describe one lifecycle: `change`, `changes`, `show`,
-`archive`, `accept`, `rename`. Consolidate as:
+Five top-level names describe one lifecycle: `change`, `changes`, `show`,
+`archive`, `accept`. `rename` is a node-ID rename across the project, not a
+change-directory operation, so it stays top-level. Consolidate as:
 
 - `change new <id>` (current `change`)
 - `change list` (current `changes`)
 - `change show <id>` (current `show`)
 - `change accept <id>` (current `accept`, `src/cli/accept.rs` moves as-is)
 - `change archive <id>` (current `archive`)
-- `change rename <old> <new>` (current `rename`)
+- `rename <old> <new>` stays top-level (node ID rename)
 
 Cautions:
 

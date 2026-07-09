@@ -82,7 +82,7 @@ pub(crate) fn run_shared_json_command(
 /// `request.tool` equals `parsed.command` for shared commands and the
 /// compound `cli_name` (e.g. `draft list`) for subcommand dispatch; either way
 /// [`shared_exit_code`] resolves the correct exit code.
-fn execute_json_request(
+pub(crate) fn execute_json_request(
     parsed: &ParsedArgs,
     root: &Path,
     legacy_warning: String,

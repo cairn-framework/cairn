@@ -74,16 +74,17 @@ fn test_change_new_scaffolds_format_and_changes_lists_it() {
         "--file".to_owned(),
         root.join("cairn.blueprint").to_string_lossy().to_string(),
         "--json".to_owned(),
-        "changes".to_owned(),
+        "change".to_owned(),
+        "list".to_owned(),
     ]);
     assert_eq!(
         changes_result.code, 0,
-        "changes must succeed: {}",
+        "change list must succeed: {}",
         changes_result.stderr
     );
     assert!(
         changes_result.stdout.contains("demo-change"),
-        "changes output must list demo-change: {}",
+        "change list output must list demo-change: {}",
         changes_result.stdout
     );
 }
@@ -156,30 +157,30 @@ fn test_changes_dir_flag_respected_by_discover_surfaces() {
         cairn::cli::run(&args)
     };
 
-    let changes_text = run(&["changes"]);
-    assert_eq!(changes_text.code, 0, "changes: {}", changes_text.stderr);
+    let changes_text = run(&["change", "list"]);
+    assert_eq!(changes_text.code, 0, "change list: {}", changes_text.stderr);
     assert!(
         changes_text.stdout.contains("demo-change"),
-        "`cairn changes` must list changes from --changes-dir: {}",
+        "`cairn change list` must list changes from --changes-dir: {}",
         changes_text.stdout
     );
 
-    let changes_json = run(&["--json", "changes"]);
+    let changes_json = run(&["--json", "change", "list"]);
     assert_eq!(
         changes_json.code, 0,
-        "changes --json: {}",
+        "change list --json: {}",
         changes_json.stderr
     );
     assert!(
         changes_json.stdout.contains("demo-change"),
-        "`cairn --json changes` must list changes from --changes-dir: {}",
+        "`cairn --json change list` must list changes from --changes-dir: {}",
         changes_json.stdout
     );
 
-    let show = run(&["show", "demo-change"]);
+    let show = run(&["change", "show", "demo-change"]);
     assert_eq!(
         show.code, 0,
-        "`cairn show` must find a change under --changes-dir: {} {}",
+        "`cairn change show` must find a change under --changes-dir: {} {}",
         show.stdout, show.stderr
     );
 
@@ -205,7 +206,7 @@ fn test_changes_dir_flag_respected_by_discover_surfaces() {
 
     for surface in [
         vec!["--json", "status"],
-        vec!["--json", "show", "demo-change"],
+        vec!["--json", "change", "show", "demo-change"],
         vec!["--json", "neighbourhood", "t", "--include-changes"],
     ] {
         let result = run(&surface);
@@ -222,7 +223,7 @@ fn test_changes_dir_flag_respected_by_discover_surfaces() {
     let noop_dir = custom.join("noop-change");
     fs::create_dir_all(&noop_dir).unwrap();
     fs::write(noop_dir.join("proposal.md"), "# Proposal: Noop Change\n").unwrap();
-    let archive = run(&["archive", "noop-change"]);
+    let archive = run(&["change", "archive", "noop-change"]);
     assert_eq!(
         archive.code, 0,
         "archive from --changes-dir must succeed: {} {}",

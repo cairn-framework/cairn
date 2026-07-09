@@ -564,7 +564,7 @@ This order is not optional; it is required for semantic consistency. Adopted dir
 ### 9.4 Archive
 
 ```
-cairn archive add-notifications-module
+cairn change archive add-notifications-module
 ```
 
 The archive command:
@@ -582,8 +582,8 @@ Archiving is atomic: either the change lands cleanly or nothing moves.
 
 Queries default to the main tree (current truth) but accept flags for looking into active changes:
 
-- `cairn changes`: list active change directories with one-line summaries.
-- `cairn show <change>`: show what a change proposes.
+- `cairn change list`: list active change directories with one-line summaries.
+- `cairn change show <change>`: show what a change proposes.
 - `cairn neighbourhood <node> --include-changes`: show the node plus any modifications pending in active changes.
 
 Agents reasoning about "what is the system today" read the main tree. Agents reasoning about "what are we about to change" read change directories explicitly.
@@ -732,9 +732,9 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn dependents <node> [--transitive]`: nodes that edge into this one. Impact analysis. With `--transitive`, walks inbound edges recursively.
 - `cairn depends <node> [--transitive]`: nodes this one edges into. Inverse of `dependents`. What does this node rely on?
 - `cairn order [--from <node>] [--scope <id-prefix>]`: returns nodes in dependency-tier order. Tier 0 contains nodes with no outbound edges (or no outbound edges within scope); tier N contains nodes whose outbound targets are all in tiers 0..N-1. Cycles make the `order` query fail with a structural error naming the cycle participants, while basic map queries can still read the otherwise valid graph. With `--from`, restricts output to ancestors of the given node. With `--scope`, restricts to nodes whose ID starts with the given prefix. Enables downstream consumers (parallel orchestration, migration planning, rollout sequencing) to compute work order without re-implementing the graph traversal.
-- `cairn changes`: list active change directories.
-- `cairn show <change>`: show what a change proposes.
-- `cairn archive <change>`: merge a change into the main tree.
+- `cairn change list`: list active change directories.
+- `cairn change show <change>`: show what a change proposes.
+- `cairn change archive <change>`: merge a change into the main tree.
 - `cairn rename <old-id> <new-id>`: create a rename change that propagates to all references. See section 9.6.
 - `cairn status`: composed view of "what's in flight": active change directories, open todos across nodes, and recent entries from `.cairn/log.md`. Answers "where is this project right now" without requiring the caller to compose three separate queries. Replaces the need for a dedicated session-state artefact.
 - `cairn docstring <node> [--language <lang>]`: emits a docstring template for the module, grounded in map facts (name, description, declared dependencies, tags, contract sections). Language-aware: knows how to format for Rust, Python, TypeScript, Go. The human or agent fills in prose; the structural facts are guaranteed accurate because they came from the graph. (Declared, see section 17.)
@@ -813,7 +813,7 @@ This section is at Declared maturity: the approach is decided, the command surfa
 1. The reconciler walks the codebase and extracts structural candidates: top-level directories, major subdirectories that look like modules, file clusters with strong internal coupling.
 2. The summariser receives the structural candidates plus a sample of the code in each, and proposes node names, descriptions, tags, and obvious edges.
 3. The output is a draft `cairn.blueprint` in a special change directory `./meta/changes/brownfield-init/`, along with stub contracts for each proposed node.
-4. The human reviews, renames, regroups, adds missing edges, deletes spurious nodes, and runs `cairn archive brownfield-init`.
+4. The human reviews, renames, regroups, adds missing edges, deletes spurious nodes, and runs `cairn change archive brownfield-init`.
 5. On subsequent runs, `cairn refine` detects what's changed in the code since the last blueprint update and proposes a delta rather than a full redraft.
 
 **What makes this robust.** The summariser is not asked to understand the codebase's architecture from scratch. It names and describes structure that the reconciler has already extracted. This avoids the typical "LLM hallucinates a plausible-sounding architecture that doesn't match the real code" failure mode.

@@ -292,6 +292,8 @@ fn test_every_registered_command_has_description() {
         "draft accept",
         "draft create",
     ];
+    // Top-level spellings retired under `cairn change <sub>`.
+    const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
     let registry = cairn::cli::registry();
     let result = cairn::cli::run(&["--help".to_owned()]);
     for tool in registry {
@@ -310,6 +312,15 @@ fn test_every_registered_command_has_description() {
             );
             continue;
         }
+        if RETIRED_TOP_LEVEL.contains(&tool.cli_name) {
+            assert!(
+                result
+                    .stdout
+                    .contains("Manage changes: new, list, show, accept, archive"),
+                "help output must list the consolidated `change` command with its subcommands"
+            );
+            continue;
+        }
         assert!(
             result.stdout.contains(tool.cli_name),
             "help output must mention registered command: {}",
@@ -321,7 +332,7 @@ fn test_every_registered_command_has_description() {
 /// Scenario: Every extra CLI command has a non-empty description.
 #[test]
 fn test_every_extra_cli_command_has_description() {
-    let extra = ["accept", "change", "check", "export", "onboard", "refine"];
+    let extra = ["change", "check", "export", "onboard", "refine"];
     let result = cairn::cli::run(&["--help".to_owned()]);
     for cmd in &extra {
         assert!(

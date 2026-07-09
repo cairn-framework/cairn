@@ -52,7 +52,7 @@ I'll guide you through implementing the tasks in a change directory.
 5. **Run acceptance**
 
    ```bash
-   cairn accept <change-id>
+   cairn change accept <change-id>
    ```
 
    This runs the accept-time gates (e.g., CC002 for suggested edges).

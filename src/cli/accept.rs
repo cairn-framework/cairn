@@ -1,11 +1,11 @@
-//! `cairn accept` verification battery and gate logic.
+//! `cairn change accept` verification battery and gate logic.
 
 use std::process::{Command, ExitStatus};
 
 use crate::cli::{CliResult, format::esc};
 use crate::verification::VerificationState;
 
-/// Run the verification battery for `cairn accept`.
+/// Run the verification battery for `cairn change accept`.
 pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
     let mut findings = Vec::new();
 

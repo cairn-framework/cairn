@@ -41,14 +41,14 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Contracts** | `cairn contract <node>` | `--json` |
 | **Project status** | `cairn status` | `--json` |
 | **Commit gate** | `cairn hook <structural\|interface\|tension\|all>` | `--json` |
-| **Active changes** | `cairn changes` | `--json` |
-| **Change details** | `cairn show <change-id>` | `--json` |
+| **Active changes** | `cairn change list` | `--json` |
+| **Change details** | `cairn change show <change-id>` | `--json` |
 | **Brownfield onboard** | `cairn onboard` | `--json` |
 | **Record cairn friction** | `cairn feedback "<message>"` | `--json`; logs to `.cairn/feedback.md`, prints upstream issue link |
 | **Brownfield extract** | `cairn init --from-code` | `--force` (overwrite existing) |
 | **Brownfield refine** | `cairn refine` | writes timestamped change |
 | **Disconnected islands** | `cairn islands` | `--json` |
-| **Acceptance gate** | `cairn accept [<change-id>]` | `--json` (gate_outcome in data) |
+| **Acceptance gate** | `cairn change accept [<change-id>]` | `--json` (gate_outcome in data) |
 | **Export** | `cairn export --format <json\|dot> --output <path>` | full graph export |
 | **Bootstrap** | `cairn init` | creates blueprint, config, meta dirs |
 | **Web explorer** | `cairn ui` | `--port <N>` |

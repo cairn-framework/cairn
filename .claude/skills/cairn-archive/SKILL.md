@@ -16,7 +16,7 @@ I'll help you archive a change that has been fully implemented and accepted.
 **Prerequisites**
 
 - All tasks in tasks.md are marked complete
-- `cairn accept <change-id>` has passed
+- `cairn change accept <change-id>` has passed
 - Quality gates pass: `cargo build`, `cargo clippy`, `cargo fmt --check`, `cargo test`
 
 **Steps**
@@ -49,7 +49,7 @@ I'll help you archive a change that has been fully implemented and accepted.
    delta, refreshes generated output, logs the archival, and moves the change
    into the dated archive directory:
    ```bash
-   cairn archive <change-id>
+   cairn change archive <change-id>
    ```
 
 5. **Update any references**

@@ -1,14 +1,14 @@
-//! Human renderers for `cairn changes` and `cairn show`.
+//! Human renderers for `cairn change list` and `cairn change show`.
 //!
 //! Both commands already have a JSON path via `run_shared_json_command`
 //! (`query_api::change_queries`); these renderers cover the human,
 //! non-`--json` surface so a fresh user's onboarding (which points them at
-//! `cairn changes`) does not error (`dec.native-todos-first`, Decision 7).
+//! `cairn change list`) does not error (`dec.native-todos-first`, Decision 7).
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 
-/// Renders `cairn changes`: one line per active change directory under
+/// Renders `cairn change list`: one line per active change directory under
 /// the resolved changes dir. Mirrors `changes::active_changes_lines`, used
 /// for generated `map.md`.
 pub(crate) fn render_changes(root: &Path, changes_dir: &Path) -> String {
@@ -28,7 +28,7 @@ pub(crate) fn render_changes(root: &Path, changes_dir: &Path) -> String {
     }
 }
 
-/// Renders `cairn show <change-id>`: proposal, design (if present), and
+/// Renders `cairn change show <change-id>`: proposal, design (if present), and
 /// findings for one change.
 pub(crate) fn render_show(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
     let change_id = parsed.command_args.get(1).ok_or_else(|| Finding {
