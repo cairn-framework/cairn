@@ -15,7 +15,7 @@ pub use generic::{CodeReconciler, LanguageSpec};
 pub use symbol::{SymbolKind, SymbolRecord, normalize_symbol};
 
 /// All built-in language specs, indexed positionally by [`target::Language`].
-pub static LANGUAGES: &[&'static LanguageSpec] = &[
+pub static LANGUAGES: &[&LanguageSpec] = &[
     &code::RUST,
     &typescript::TYPESCRIPT,
     &python::PYTHON,

@@ -50,7 +50,7 @@ fn py_is_exportable(node: Node<'_>, source: &[u8]) -> bool {
         return false;
     }
     // `__all__` makes every top-level definition public regardless of naming.
-    if std::str::from_utf8(source).map_or(false, |s| s.contains("__all__")) {
+    if std::str::from_utf8(source).is_ok_and(|s| s.contains("__all__")) {
         return true;
     }
     // function_definition and class_definition use `name`; assignment uses `left`.

@@ -606,16 +606,13 @@ mod reconciliation {
     /// Scenario: Orphaned-file state emits an Info finding.
     #[test]
     fn test_reconciliation__orphaned_file_emits_info_finding() {
-        let code_rs = include_str!("../src/reconcile/code.rs");
+        // The orphaned-file finding is emitted centrally by the generic
+        // reconciler (discover_source_files), not by each per-language module.
+        let generic_rs = include_str!("../src/reconcile/generic.rs");
         assert!(
-            code_rs.contains("CAIRN_RECONCILE_ORPHANED_FILE")
-                && code_rs.contains("FindingSeverity::Info"),
-            "code reconciler must emit CAIRN_RECONCILE_ORPHANED_FILE with Info severity"
-        );
-        let ts_rs = include_str!("../src/reconcile/typescript.rs");
-        assert!(
-            ts_rs.contains("FindingSeverity::Info"),
-            "typescript reconciler must emit orphan findings with Info severity"
+            generic_rs.contains("CAIRN_RECONCILE_ORPHANED_FILE")
+                && generic_rs.contains("FindingSeverity::Info"),
+            "generic code reconciler must emit CAIRN_RECONCILE_ORPHANED_FILE with Info severity"
         );
     }
 

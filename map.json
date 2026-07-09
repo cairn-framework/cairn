@@ -2214,8 +2214,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 366,
-          "end_line": 442
+          "line": 354,
+          "end_line": 430
         },
         {
           "name": "matches",
@@ -2262,8 +2262,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 449,
-          "end_line": 485
+          "line": 437,
+          "end_line": 473
         },
         {
           "name": "write",
@@ -2382,8 +2382,8 @@
           "kind": "struct",
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
-          "line": 58,
-          "end_line": 73
+          "line": 57,
+          "end_line": 72
         },
         {
           "name": "SnapshotEdge",
@@ -2414,8 +2414,8 @@
           "kind": "struct",
           "signature": "pub struct TargetReport",
           "file": "src/scanner/mod.rs",
-          "line": 39,
-          "end_line": 54
+          "line": 38,
+          "end_line": 53
         },
         {
           "name": "TargetHashes",
@@ -2915,6 +2915,7 @@
         "src/reconcile/code.rs",
         "src/reconcile/fingerprint.rs",
         "src/reconcile/fixture.rs",
+        "src/reconcile/generic.rs",
         "src/reconcile/go.rs",
         "src/reconcile/mod.rs",
         "src/reconcile/python.rs",
@@ -2935,6 +2936,38 @@
           "end_line": 9
         },
         {
+          "name": "EXPORTABLE_KINDS",
+          "kind": "const",
+          "signature": "pub const EXPORTABLE_KINDS",
+          "file": "src/reconcile/typescript.rs",
+          "line": 12,
+          "end_line": 20
+        },
+        {
+          "name": "GO_EXPORTABLE_KINDS",
+          "kind": "const",
+          "signature": "pub const GO_EXPORTABLE_KINDS",
+          "file": "src/reconcile/go.rs",
+          "line": 12,
+          "end_line": 18
+        },
+        {
+          "name": "PUBLIC_ITEM_KINDS",
+          "kind": "const",
+          "signature": "pub const PUBLIC_ITEM_KINDS",
+          "file": "src/reconcile/code.rs",
+          "line": 12,
+          "end_line": 22
+        },
+        {
+          "name": "PYTHON_ITEM_KINDS",
+          "kind": "const",
+          "signature": "pub const PYTHON_ITEM_KINDS",
+          "file": "src/reconcile/python.rs",
+          "line": 12,
+          "end_line": 12
+        },
+        {
           "name": "SUPPORTED_LANGUAGES",
           "kind": "const",
           "signature": "pub const SUPPORTED_LANGUAGES",
@@ -2945,34 +2978,10 @@
         {
           "name": "new",
           "kind": "function",
-          "signature": "pub const fn new(ast: &'a Ast) -> Self",
-          "file": "src/reconcile/code.rs",
-          "line": 40,
-          "end_line": 42
-        },
-        {
-          "name": "new",
-          "kind": "function",
-          "signature": "pub const fn new(ast: &'a Ast) -> Self",
-          "file": "src/reconcile/go.rs",
-          "line": 39,
-          "end_line": 41
-        },
-        {
-          "name": "new",
-          "kind": "function",
-          "signature": "pub const fn new(ast: &'a Ast) -> Self",
-          "file": "src/reconcile/python.rs",
-          "line": 30,
-          "end_line": 32
-        },
-        {
-          "name": "new",
-          "kind": "function",
-          "signature": "pub const fn new(ast: &'a Ast) -> Self",
-          "file": "src/reconcile/typescript.rs",
-          "line": 38,
-          "end_line": 40
+          "signature": "pub const fn new(ast: &'a Ast, spec: &'static LanguageSpec) -> Self",
+          "file": "src/reconcile/generic.rs",
+          "line": 69,
+          "end_line": 71
         },
         {
           "name": "Language",
@@ -3095,6 +3104,14 @@
           "end_line": 97
         },
         {
+          "name": "spec_for",
+          "kind": "function",
+          "signature": "pub fn spec_for(language: target::Language) -> Option<&'static LanguageSpec>",
+          "file": "src/reconcile/mod.rs",
+          "line": 29,
+          "end_line": 34
+        },
+        {
           "name": "with_contract_role",
           "kind": "function",
           "signature": "pub fn with_contract_role(mut self, role: String) -> Self",
@@ -3123,48 +3140,104 @@
           "kind": "module",
           "signature": "pub mod fixture",
           "file": "src/reconcile/mod.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
+        },
+        {
+          "name": "generic",
+          "kind": "module",
+          "signature": "pub mod generic",
+          "file": "src/reconcile/mod.rs",
+          "line": 5,
+          "end_line": 5
         },
         {
           "name": "go",
           "kind": "module",
           "signature": "pub mod go",
           "file": "src/reconcile/mod.rs",
-          "line": 5,
-          "end_line": 5
+          "line": 6,
+          "end_line": 6
         },
         {
           "name": "python",
           "kind": "module",
           "signature": "pub mod python",
           "file": "src/reconcile/mod.rs",
-          "line": 6,
-          "end_line": 6
+          "line": 7,
+          "end_line": 7
         },
         {
           "name": "symbol",
           "kind": "module",
           "signature": "pub mod symbol",
           "file": "src/reconcile/mod.rs",
-          "line": 7,
-          "end_line": 7
+          "line": 8,
+          "end_line": 8
         },
         {
           "name": "target",
           "kind": "module",
           "signature": "pub mod target",
           "file": "src/reconcile/mod.rs",
-          "line": 8,
-          "end_line": 8
+          "line": 9,
+          "end_line": 9
         },
         {
           "name": "typescript",
           "kind": "module",
           "signature": "pub mod typescript",
           "file": "src/reconcile/mod.rs",
-          "line": 9,
-          "end_line": 9
+          "line": 10,
+          "end_line": 10
+        },
+        {
+          "name": "GO",
+          "kind": "static",
+          "signature": "pub static GO LanguageSpec",
+          "file": "src/reconcile/go.rs",
+          "line": 21,
+          "end_line": 33
+        },
+        {
+          "name": "LANGUAGES",
+          "kind": "static",
+          "signature": "pub static LANGUAGES",
+          "file": "src/reconcile/mod.rs",
+          "line": 18,
+          "end_line": 23
+        },
+        {
+          "name": "PYTHON",
+          "kind": "static",
+          "signature": "pub static PYTHON LanguageSpec",
+          "file": "src/reconcile/python.rs",
+          "line": 15,
+          "end_line": 27
+        },
+        {
+          "name": "RUST",
+          "kind": "static",
+          "signature": "pub static RUST LanguageSpec",
+          "file": "src/reconcile/code.rs",
+          "line": 25,
+          "end_line": 37
+        },
+        {
+          "name": "TYPESCRIPT",
+          "kind": "static",
+          "signature": "pub static TYPESCRIPT LanguageSpec",
+          "file": "src/reconcile/typescript.rs",
+          "line": 23,
+          "end_line": 35
+        },
+        {
+          "name": "CodeReconciler",
+          "kind": "struct",
+          "signature": "pub struct CodeReconciler<'a>",
+          "file": "src/reconcile/generic.rs",
+          "line": 61,
+          "end_line": 64
         },
         {
           "name": "FixtureReconciler",
@@ -3175,14 +3248,6 @@
           "end_line": 18
         },
         {
-          "name": "GoReconciler",
-          "kind": "struct",
-          "signature": "pub struct GoReconciler<'a>",
-          "file": "src/reconcile/go.rs",
-          "line": 32,
-          "end_line": 34
-        },
-        {
           "name": "InterfaceFingerprint",
           "kind": "struct",
           "signature": "pub struct InterfaceFingerprint",
@@ -3191,52 +3256,44 @@
           "end_line": 11
         },
         {
-          "name": "PythonReconciler",
+          "name": "LanguageSpec",
           "kind": "struct",
-          "signature": "pub struct PythonReconciler<'a>",
-          "file": "src/reconcile/python.rs",
-          "line": 23,
-          "end_line": 25
+          "signature": "pub struct LanguageSpec",
+          "file": "src/reconcile/generic.rs",
+          "line": 35,
+          "end_line": 58
         },
         {
           "name": "ReconcileError",
           "kind": "struct",
           "signature": "pub struct ReconcileError",
           "file": "src/reconcile/mod.rs",
-          "line": 74,
-          "end_line": 79
+          "line": 95,
+          "end_line": 100
         },
         {
           "name": "ReconcileReport",
           "kind": "struct",
           "signature": "pub struct ReconcileReport",
           "file": "src/reconcile/mod.rs",
-          "line": 33,
-          "end_line": 49
+          "line": 54,
+          "end_line": 70
         },
         {
           "name": "ReconcileRequest",
           "kind": "struct",
           "signature": "pub struct ReconcileRequest<'a>",
           "file": "src/reconcile/mod.rs",
-          "line": 24,
-          "end_line": 29
+          "line": 45,
+          "end_line": 50
         },
         {
           "name": "ReconcilerId",
           "kind": "struct",
           "signature": "pub struct ReconcilerId",
           "file": "src/reconcile/mod.rs",
-          "line": 21,
-          "end_line": 21
-        },
-        {
-          "name": "RustCodeReconciler",
-          "kind": "struct",
-          "signature": "pub struct RustCodeReconciler<'a>",
-          "file": "src/reconcile/code.rs",
-          "line": 33,
-          "end_line": 35
+          "line": 42,
+          "end_line": 42
         },
         {
           "name": "SymbolRecord",
@@ -3263,36 +3320,28 @@
           "end_line": 18
         },
         {
-          "name": "TypeScriptReconciler",
-          "kind": "struct",
-          "signature": "pub struct TypeScriptReconciler<'a>",
-          "file": "src/reconcile/typescript.rs",
-          "line": 31,
-          "end_line": 33
-        },
-        {
           "name": "Reconciler",
           "kind": "trait",
           "signature": "pub trait Reconciler",
           "file": "src/reconcile/mod.rs",
-          "line": 90,
-          "end_line": 100
+          "line": 111,
+          "end_line": 121
         },
         {
           "name": "deserialize",
           "kind": "function",
           "signature": "pub(crate) fn deserialize<'de, D: serde::Deserializer<'de>>( deserializer: D, ) -> Result<Arc<Vec<String>>, D::Error>",
           "file": "src/reconcile/mod.rs",
-          "line": 64,
-          "end_line": 69
+          "line": 85,
+          "end_line": 90
         },
         {
           "name": "serialize",
           "kind": "function",
           "signature": "pub(crate) fn serialize<S: serde::Serializer>( value: &Arc<Vec<String>>, serializer: S, ) -> Result<S::Ok, S::Error>",
           "file": "src/reconcile/mod.rs",
-          "line": 56,
-          "end_line": 61
+          "line": 77,
+          "end_line": 82
         }
       ]
     },
@@ -6104,6 +6153,8 @@
         "tests/conventions.rs",
         "tests/decision_claims.rs",
         "tests/dogfood_gate.rs",
+        "tests/fixtures/reconcile_baseline/rust/orphan.rs",
+        "tests/fixtures/reconcile_baseline/rust/src/lib.rs",
         "tests/fixtures_smoke.rs",
         "tests/gitignore_lint.rs",
         "tests/graph_explorer.rs",
@@ -6117,6 +6168,7 @@
         "tests/phase_7_8_cairn_export.rs",
         "tests/phase_8_summariser.rs",
         "tests/phase_9_brownfield.rs",
+        "tests/reconcile_baseline.rs",
         "tests/reconcile_go.rs",
         "tests/reconcile_language_inference.rs",
         "tests/reconcile_python.rs",
@@ -6131,7 +6183,32 @@
       "contracts": [
         "./meta/contracts/tests.md"
       ],
-      "symbols": []
+      "symbols": [
+        {
+          "name": "alpha",
+          "kind": "function",
+          "signature": "pub fn alpha()",
+          "file": "tests/fixtures/reconcile_baseline/rust/src/lib.rs",
+          "line": 1,
+          "end_line": 1
+        },
+        {
+          "name": "orphaned",
+          "kind": "function",
+          "signature": "pub fn orphaned()",
+          "file": "tests/fixtures/reconcile_baseline/rust/orphan.rs",
+          "line": 1,
+          "end_line": 1
+        },
+        {
+          "name": "Config",
+          "kind": "struct",
+          "signature": "pub struct Config",
+          "file": "tests/fixtures/reconcile_baseline/rust/src/lib.rs",
+          "line": 3,
+          "end_line": 3
+        }
+      ]
     },
     {
       "id": "cairn.ui",

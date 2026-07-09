@@ -101,7 +101,13 @@ fn parse_file(
         code: "CAIRN_RECONCILE_READ_SOURCE".to_owned(),
         message: format!("failed to read `{}`: {error}", path.display()),
     })?;
-    if spec.fast_path && !source.as_bytes().windows(4).any(|w| w == b"pub ") {
+    // The `pub ` pre-parse skip is Rust-specific: only Rust public items are
+    // guarded by `pub`, so applying it to other languages would drop every
+    // symbol. It stays on for Rust to preserve the original fast path.
+    if spec.fast_path
+        && spec.language == Language::Rust
+        && !source.as_bytes().windows(4).any(|w| w == b"pub ")
+    {
         return Ok((Vec::new(), Vec::new()));
     }
     let mut parser = Parser::new();
@@ -129,7 +135,7 @@ fn parse_file(
 }
 
 /// Recursively collects public symbols from a parsed tree.
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)] // Reason: collect_public_symbols takes the spec, node, source, file rel, and two accumulators by design.
 fn collect_public_symbols(
     spec: &'static LanguageSpec,
     node: tree_sitter::Node<'_>,
@@ -174,12 +180,14 @@ fn build_symbol(
 
 /// Discovers source files, assigns each to its most-specific owning node, and
 /// records orphan findings for files no node owns.
+type ClaimedFiles = BTreeMap<String, Vec<String>>;
+
 fn discover_source_files(
     ast: &Ast,
     spec: &'static LanguageSpec,
     root: &Path,
     ignores: &[String],
-) -> Result<(BTreeMap<String, Vec<String>>, Vec<Finding>), ReconcileError> {
+) -> Result<(ClaimedFiles, Vec<Finding>), ReconcileError> {
     let owners = eligible_owners(ast);
     let mut files = Vec::with_capacity(128);
     walk(root, root, ignores, spec.extensions, &mut files)?;
