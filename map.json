@@ -518,6 +518,7 @@
         "src/artefacts/mod.rs",
         "src/artefacts/registry/changes.rs",
         "src/artefacts/registry/io.rs",
+        "src/artefacts/registry/kinds.rs",
         "src/artefacts/registry/mod.rs",
         "src/artefacts/registry/parse.rs",
         "src/artefacts/registry/sha256.rs",
@@ -542,56 +543,56 @@
           "kind": "enum",
           "signature": "pub enum ClaimsMode",
           "file": "src/artefacts/registry/types.rs",
-          "line": 105,
-          "end_line": 110
+          "line": 70,
+          "end_line": 75
         },
         {
           "name": "DecisionStatus",
           "kind": "enum",
           "signature": "pub enum DecisionStatus",
           "file": "src/artefacts/registry/types.rs",
-          "line": 92,
-          "end_line": 101
+          "line": 57,
+          "end_line": 66
         },
         {
           "name": "ResearchMethod",
           "kind": "enum",
           "signature": "pub enum ResearchMethod",
           "file": "src/artefacts/registry/types.rs",
-          "line": 215,
-          "end_line": 221
+          "line": 180,
+          "end_line": 186
         },
         {
           "name": "ReviewType",
           "kind": "enum",
           "signature": "pub enum ReviewType",
           "file": "src/artefacts/registry/types.rs",
-          "line": 164,
-          "end_line": 171
+          "line": 129,
+          "end_line": 136
         },
         {
           "name": "SourceVerification",
           "kind": "enum",
           "signature": "pub enum SourceVerification",
           "file": "src/artefacts/registry/types.rs",
-          "line": 225,
-          "end_line": 232
+          "line": 190,
+          "end_line": 197
         },
         {
           "name": "TodoStatus",
           "kind": "enum",
           "signature": "pub enum TodoStatus",
           "file": "src/artefacts/registry/types.rs",
-          "line": 62,
-          "end_line": 71
+          "line": 27,
+          "end_line": 36
         },
         {
           "name": "load_artefacts",
           "kind": "function",
           "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 32,
-          "end_line": 46
+          "line": 38,
+          "end_line": 48
         },
         {
           "name": "load_contracts",
@@ -638,48 +639,32 @@
           "kind": "module",
           "signature": "pub mod types",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 17,
-          "end_line": 17
-        },
-        {
-          "name": "ArtefactLoadRequest",
-          "kind": "struct",
-          "signature": "pub struct ArtefactLoadRequest<'a>",
-          "file": "src/artefacts/registry/types.rs",
-          "line": 27,
-          "end_line": 32
-        },
-        {
-          "name": "ArtefactRecord",
-          "kind": "struct",
-          "signature": "pub struct ArtefactRecord",
-          "file": "src/artefacts/registry/types.rs",
-          "line": 36,
-          "end_line": 43
+          "line": 22,
+          "end_line": 22
         },
         {
           "name": "ArtefactSet",
           "kind": "struct",
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
-          "line": 282,
-          "end_line": 299
+          "line": 247,
+          "end_line": 264
         },
         {
           "name": "ChangeRecord",
           "kind": "struct",
           "signature": "pub struct ChangeRecord",
           "file": "src/artefacts/registry/types.rs",
-          "line": 266,
-          "end_line": 278
+          "line": 231,
+          "end_line": 243
         },
         {
           "name": "Claims",
           "kind": "struct",
           "signature": "pub struct Claims",
           "file": "src/artefacts/registry/types.rs",
-          "line": 114,
-          "end_line": 121
+          "line": 79,
+          "end_line": 86
         },
         {
           "name": "Contract",
@@ -702,8 +687,8 @@
           "kind": "struct",
           "signature": "pub struct Decision",
           "file": "src/artefacts/registry/types.rs",
-          "line": 125,
-          "end_line": 160
+          "line": 90,
+          "end_line": 125
         },
         {
           "name": "Frontmatter",
@@ -718,56 +703,88 @@
           "kind": "struct",
           "signature": "pub struct Research",
           "file": "src/artefacts/registry/types.rs",
-          "line": 194,
-          "end_line": 211
+          "line": 159,
+          "end_line": 176
         },
         {
           "name": "Review",
           "kind": "struct",
           "signature": "pub struct Review",
           "file": "src/artefacts/registry/types.rs",
-          "line": 175,
-          "end_line": 190
+          "line": 140,
+          "end_line": 155
         },
         {
           "name": "Source",
           "kind": "struct",
           "signature": "pub struct Source",
           "file": "src/artefacts/registry/types.rs",
-          "line": 236,
-          "end_line": 257
+          "line": 201,
+          "end_line": 222
         },
         {
           "name": "Todo",
           "kind": "struct",
           "signature": "pub struct Todo",
           "file": "src/artefacts/registry/types.rs",
-          "line": 75,
-          "end_line": 88
-        },
-        {
-          "name": "ArtefactLoader",
-          "kind": "trait",
-          "signature": "pub trait ArtefactLoader",
-          "file": "src/artefacts/registry/types.rs",
-          "line": 49,
-          "end_line": 58
-        },
-        {
-          "name": "ArtefactError",
-          "kind": "type",
-          "signature": "pub type ArtefactError String",
-          "file": "src/artefacts/registry/types.rs",
-          "line": 46,
-          "end_line": 46
+          "line": 40,
+          "end_line": 53
         },
         {
           "name": "load_decisions",
           "kind": "function",
           "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 77,
-          "end_line": 115
+          "line": 54,
+          "end_line": 56
+        },
+        {
+          "name": "ARTEFACT_KINDS",
+          "kind": "const",
+          "signature": "pub(super) const ARTEFACT_KINDS",
+          "file": "src/artefacts/registry/kinds.rs",
+          "line": 30,
+          "end_line": 51
+        },
+        {
+          "name": "decisions_kind",
+          "kind": "function",
+          "signature": "pub(super) fn decisions_kind() -> &'static ArtefactKind",
+          "file": "src/artefacts/registry/kinds.rs",
+          "line": 54,
+          "end_line": 58
+        },
+        {
+          "name": "load_kind",
+          "kind": "function",
+          "signature": "pub(super) fn load_kind(root: &Path, ast: &Ast, kind: &ArtefactKind, set: &mut ArtefactSet)",
+          "file": "src/artefacts/registry/kinds.rs",
+          "line": 68,
+          "end_line": 76
+        },
+        {
+          "name": "load_kinds",
+          "kind": "function",
+          "signature": "pub(super) fn load_kinds(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
+          "file": "src/artefacts/registry/kinds.rs",
+          "line": 61,
+          "end_line": 65
+        },
+        {
+          "name": "parse_claims",
+          "kind": "function",
+          "signature": "pub(super) fn parse_claims( values: &std::collections::BTreeMap<String, String>, lists: &std::collections::BTreeMap<String, Vec<String>>, _path: &Path, ) -> Option<crate::artefacts::Claims>",
+          "file": "src/artefacts/registry/kinds.rs",
+          "line": 132,
+          "end_line": 149
+        },
+        {
+          "name": "ArtefactKind",
+          "kind": "struct",
+          "signature": "pub(super) struct ArtefactKind",
+          "file": "src/artefacts/registry/kinds.rs",
+          "line": 20,
+          "end_line": 25
         }
       ]
     },
@@ -1339,7 +1356,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 79,
-          "end_line": 219
+          "end_line": 215
         },
         {
           "name": "run",
@@ -2173,24 +2190,24 @@
           "kind": "function",
           "signature": "pub fn is_ignored(path: &str, ignores: &[String]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 101,
-          "end_line": 116
+          "line": 104,
+          "end_line": 119
         },
         {
           "name": "is_intentional_asymmetry",
           "kind": "function",
           "signature": "pub fn is_intentional_asymmetry( &self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf], ) -> Option<&IntentionalAsymmetry>",
           "file": "src/scanner/config/mod.rs",
-          "line": 444,
-          "end_line": 453
+          "line": 487,
+          "end_line": 496
         },
         {
           "name": "load",
           "kind": "function",
           "signature": "pub fn load(root: &Path) -> Result<Config, ConfigError>",
           "file": "src/scanner/config/mod.rs",
-          "line": 72,
-          "end_line": 97
+          "line": 75,
+          "end_line": 100
         },
         {
           "name": "load_project",
@@ -2198,15 +2215,15 @@
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
           "line": 366,
-          "end_line": 438
+          "end_line": 442
         },
         {
           "name": "matches",
           "kind": "function",
           "signature": "pub fn matches(&self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 425,
-          "end_line": 438
+          "line": 468,
+          "end_line": 481
         },
         {
           "name": "migrate_single_hash",
@@ -2245,8 +2262,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 445,
-          "end_line": 481
+          "line": 449,
+          "end_line": 485
         },
         {
           "name": "write",
@@ -2325,24 +2342,24 @@
           "kind": "struct",
           "signature": "pub struct Config",
           "file": "src/scanner/config/mod.rs",
-          "line": 35,
-          "end_line": 48
+          "line": 36,
+          "end_line": 51
         },
         {
           "name": "ConfigError",
           "kind": "struct",
           "signature": "pub struct ConfigError",
           "file": "src/scanner/config/mod.rs",
-          "line": 52,
-          "end_line": 57
+          "line": 55,
+          "end_line": 60
         },
         {
           "name": "IntentionalAsymmetry",
           "kind": "struct",
           "signature": "pub struct IntentionalAsymmetry",
           "file": "src/scanner/config/mod.rs",
-          "line": 22,
-          "end_line": 31
+          "line": 23,
+          "end_line": 32
         },
         {
           "name": "MapSnapshot",
@@ -2389,8 +2406,8 @@
           "kind": "struct",
           "signature": "pub struct TargetConfig",
           "file": "src/scanner/config/mod.rs",
-          "line": 9,
-          "end_line": 18
+          "line": 10,
+          "end_line": 19
         },
         {
           "name": "TargetReport",

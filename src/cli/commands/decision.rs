@@ -31,23 +31,40 @@ fn run_decision_new(
     if !is_kebab_slug(slug) {
         return err(1, copy::lookup("decision.invalid-slug"));
     }
-    let decisions_dir = root.join("meta/decisions");
-    let file_name = format!("dec.{slug}.md");
-    let target = decisions_dir.join(&file_name);
-    if target.exists() {
-        return err(1, &copy::lookup("decision.exists").replace("{slug}", slug));
-    }
-    if let Err(error) = fs::create_dir_all(&decisions_dir) {
-        return err(1, &format!("failed to create meta/decisions: {error}"));
-    }
     let content = decision_stub(slug, nodes, informed_by, &today_utc());
+    write_new_artefact(
+        root,
+        "meta/decisions",
+        &format!("dec.{slug}.md"),
+        &content,
+        &copy::lookup("decision.exists").replace("{slug}", slug),
+        &copy::lookup("decision.created").replace("{slug}", slug),
+    )
+}
+
+/// Create a directory, refuse overwrite, write content, return a success line.
+///
+/// Shared by todo/decision scaffolding (and available to gap for the final write).
+pub(super) fn write_new_artefact(
+    root: &Path,
+    relative_dir: &str,
+    file_name: &str,
+    content: &str,
+    exists_message: &str,
+    created_message: &str,
+) -> CliResult {
+    let dir = root.join(relative_dir);
+    let target = dir.join(file_name);
+    if target.exists() {
+        return err(1, exists_message);
+    }
+    if let Err(error) = fs::create_dir_all(&dir) {
+        return err(1, &format!("failed to create {relative_dir}: {error}"));
+    }
     if let Err(error) = fs::write(&target, content) {
         return err(1, &format!("failed to write {file_name}: {error}"));
     }
-    ok(format!(
-        "{}\n",
-        copy::lookup("decision.created").replace("{slug}", slug)
-    ))
+    ok(format!("{created_message}\n"))
 }
 
 /// True when `slug` is non-empty kebab-case: `[a-z0-9]+(-[a-z0-9]+)*`. Rejects

@@ -2,7 +2,7 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
-use super::decision::{flag_values, is_kebab_slug, title_from_slug, today_utc};
+use super::decision::{flag_values, is_kebab_slug, title_from_slug, today_utc, write_new_artefact};
 
 /// Dispatches `cairn todo <subcommand>`.
 pub(crate) fn run_todo_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
@@ -30,23 +30,15 @@ fn run_todo_new(root: &Path, slug: &str, nodes: &[String]) -> CliResult {
     let [node] = nodes else {
         return err(1, copy::lookup("todo.missing-node"));
     };
-    let todos_dir = root.join("meta/todos");
-    let file_name = format!("todo.{slug}.md");
-    let target = todos_dir.join(&file_name);
-    if target.exists() {
-        return err(1, &copy::lookup("todo.exists").replace("{slug}", slug));
-    }
-    if let Err(error) = fs::create_dir_all(&todos_dir) {
-        return err(1, &format!("failed to create meta/todos: {error}"));
-    }
     let content = todo_stub(slug, node, &today_utc());
-    if let Err(error) = fs::write(&target, content) {
-        return err(1, &format!("failed to write {file_name}: {error}"));
-    }
-    ok(format!(
-        "{}\n",
-        copy::lookup("todo.created").replace("{slug}", slug)
-    ))
+    write_new_artefact(
+        root,
+        "meta/todos",
+        &format!("todo.{slug}.md"),
+        &content,
+        &copy::lookup("todo.exists").replace("{slug}", slug),
+        &copy::lookup("todo.created").replace("{slug}", slug),
+    )
 }
 
 /// Builds the todo artefact body. Pure: the date is injected so the output

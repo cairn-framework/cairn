@@ -18,15 +18,16 @@ integrity (for example research-to-source links and SHA-256 source digests).
   `ContractSet` (`contracts: BTreeMap<String, Contract>` plus `findings`).
 - `Contract`: a parsed contract with `path`, `declared_by`, `node`, and `body`.
 - `registry::load_artefacts(root, ast, contracts)`: loads all non-contract Phase
-  2 artefacts and returns an `ArtefactSet`.
+  2 artefacts and returns an `ArtefactSet`. Loading walks one `ArtefactKind`
+  table (`registry/kinds.rs`) so each frontmatter-backed kind is a row plus a
+  constructor; contract and change loaders remain special cases.
 - `ArtefactSet`: aggregate of `contracts`, `todos`, `decisions`, `reviews`,
-  `research`, `sources`, and `findings`.
+  `research`, `sources`, `changes`, and `findings`.
 - Typed records: `Todo`, `Decision`, `Review`, `Research`, `Source`, plus the
   `Claims` / `ClaimsMode` re-exported from the crate root, and status enums
   (`TodoStatus`, `DecisionStatus`, `ReviewType`, `ResearchMethod`,
   `SourceVerification`).
-- `ArtefactType`, `ArtefactLoader`, `ArtefactRecord`, `ArtefactLoadRequest`,
-  `ArtefactError`: the generic loader surface.
+- `ArtefactType`: enum used by export to label flattened artefact entries.
 - `frontmatter::parse(source)`: minimal `---` delimited frontmatter parser
   returning `Frontmatter` (`values`, `lists`, `body`).
 
@@ -50,6 +51,7 @@ turn consumed by the scanner and downstream kernel modules.
 ## Tests
 
 A `#[cfg(test)] mod tests` lives at the foot of `src/artefacts/registry/mod.rs`
-covering decision, review, research, and source loading. Integrity validation has
-a dedicated suite in `src/artefacts/registry/validate/tests.rs` exercising the
-SHA-256 digest and cross-reference checks.
+covering decision, review, research, and source loading (via the kind table).
+`registry/kinds.rs` pins the five pointer names in the table. Integrity
+validation has a dedicated suite in `src/artefacts/registry/validate/tests.rs`
+exercising the SHA-256 digest and cross-reference checks.
