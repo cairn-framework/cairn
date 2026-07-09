@@ -393,7 +393,7 @@ fn execute_data_with_scan(
         }
         "ui_meta" => Ok(ui_meta_json()),
         "blueprint" => Ok(blueprint_json(blueprint_path)),
-        "beads" => beads_json(root, required(request.node.as_ref(), "node")?),
+        "beads" => Ok(beads_json(root, required(request.node.as_ref(), "node")?)),
         "neighbourhood" => neighbourhood_json(root, changes_dir, scan_result, request),
         "contract" => contract_json(scan_result, required(request.node.as_ref(), "node")?),
         "docstring" => docstring_json(scan_result, request),
