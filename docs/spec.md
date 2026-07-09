@@ -197,20 +197,25 @@ A **summariser** is a pluggable ninth component, invoked by hooks when interface
 
 ```yaml
 # cairn.config.yaml
-reconcilers:
-  - id: code
-    version: 1
-    config:
-      tree_sitter_languages: [rust, typescript, python]
-      ignore:
-        - "**/node_modules/**"
-        - "**/dist/**"
-        - "**/target/**"
-        - "*.lock"
+# Real top-level keys the parser implements today:
+#   context, rules, artefact_types, targets, multi_target, ignore
+
+targets:
+  # Per-node language / contract-role overrides (consumed by build_targets).
+  - node: app.api
+    path: src/api
+    language: typescript
+    contract_role: public_api
+
+ignore:
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/target/**"
+  - "*.lock"
 
 artefact_types:
   # Overrides and additions to the v1 defaults
-  
+
 context: |
   Agents working in this repo should default to paraphrasing contract
   intent rather than quoting it verbatim.
@@ -222,6 +227,8 @@ rules:
 ```
 
 The `context` block is prepended to every instruction emitted by the query interface. The `rules` section is composed with artefact-specific templates. This is the dynamic-instruction pattern borrowed from OpenSpec; it keeps project conventions out of the blueprint while making them discoverable by agents at query time.
+
+Unknown top-level keys (for example a future `reconcilers:` / `tree_sitter_languages` block) are non-fatal: the scan continues and emits `CAIRN_CONFIG_UNKNOWN_KEY`. The aspirational `reconcilers:` schema is tracked under the `generic-language-reconciler` change and is not yet implemented.
 
 ### 6.1 Ignore list semantics
 

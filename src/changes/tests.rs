@@ -316,7 +316,7 @@ Module Api "desc" id "app.api" {}
     )?;
     fs::write(
         root.join("cairn.config.yaml"),
-        "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"\"\nrules: {}\n",
+        "ignore:\n  - target\ncontext: \"\"\nrules: {}\n",
     )?;
     Ok(())
 }

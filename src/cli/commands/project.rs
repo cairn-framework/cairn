@@ -68,7 +68,7 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
         ),
         (
             "cairn.config.yaml",
-            "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"\"\nrules: {}\n",
+            "ignore:\n  - target\ncontext: \"\"\nrules: {}\n",
         ),
         ("meta/contracts/.gitkeep", ""),
         ("meta/todos/.gitkeep", ""),
@@ -167,6 +167,36 @@ mod tests {
             guide.contains(".claude/skills/cairn-dev"),
             "agent guide must reference the dev loop skills"
         );
+
+        // Scaffolded config must only use recognised top-level keys so a
+        // fresh `cairn init` does not immediately emit CAIRN_CONFIG_UNKNOWN_KEY.
+        let config = std::fs::read_to_string(dir.path().join("cairn.config.yaml")).unwrap();
+        assert!(
+            !config.contains("reconcilers"),
+            "init config must not scaffold the unimplemented reconcilers: key"
+        );
+        let known = [
+            "context",
+            "rules",
+            "artefact_types",
+            "targets",
+            "multi_target",
+            "ignore",
+        ];
+        for line in config.lines() {
+            if line.starts_with(' ') || line.starts_with('\t') || line.trim().is_empty() {
+                continue;
+            }
+            if let Some(key) = line.split(':').next().map(str::trim)
+                && !key.is_empty()
+                && !key.starts_with('#')
+            {
+                assert!(
+                    known.contains(&key),
+                    "init config top-level key `{key}` is not recognised by the parser"
+                );
+            }
+        }
     }
 
     #[test]

@@ -364,7 +364,7 @@ fn detect_divergence(
 /// Returns an error string when config loading, blueprint parsing, or reconciliation
 /// fails.
 pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String> {
-    let config = config::load(root).map_err(|error| error.message)?;
+    let mut config = config::load(root).map_err(|error| error.message)?;
     let ast = blueprint::parse_file(blueprint_path).map_err(|error| error.to_string())?;
     let mut contracts = load_contracts(root, &ast);
     let mut artefacts = load_artefacts(root, &ast, contracts.clone());
@@ -373,10 +373,14 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         reconcile_targets(&targets, root, &config.ignores, &ast, &config);
     let mut target_hashes = state::TargetHashes::new();
     let mut all_findings = Vec::with_capacity(
-        contracts.findings.len() + artefacts.findings.len() + reconcile_findings.len(),
+        contracts.findings.len()
+            + artefacts.findings.len()
+            + reconcile_findings.len()
+            + config.findings.len(),
     );
     all_findings.extend(std::mem::take(&mut contracts.findings));
     all_findings.extend(std::mem::take(&mut artefacts.findings));
+    all_findings.extend(std::mem::take(&mut config.findings));
     all_findings.extend(reconcile_findings);
     dedup_findings(&mut all_findings);
     for report in &target_reports {

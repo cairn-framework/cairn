@@ -927,7 +927,7 @@ app.api -> app.core "reports"
         )?;
         fs::write(
             root.join("cairn.config.yaml"),
-            "reconcilers:\n  - id: rust-code\n    version: phase-1\n    config:\n      ignore:\n        - target\ncontext: \"ctx\"\nrules: {}\n",
+            "ignore:\n  - target\ncontext: \"ctx\"\nrules: {}\n",
         )?;
         fs::write(
             root.join("meta/contracts/api.md"),
@@ -1154,7 +1154,7 @@ app.api -> app.core "reports"
         )?;
         fs::write(
             clean_root.join("cairn.config.yaml"),
-            "reconcilers: []\ncontext: \"ctx\"\nrules: {}\n",
+            "context: \"ctx\"\nrules: {}\n",
         )?;
         let clean_result = run_in(&clean_root, &["check"]);
         assert_eq!(clean_result.code, 0);

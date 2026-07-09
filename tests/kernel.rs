@@ -93,7 +93,7 @@ fn test_config_ignore_layers_and_protected_paths() -> Result<(), Box<dyn std::er
     fs::write(root.join(".cairnignore"), "ignored-cairn\n")?;
     fs::write(
         root.join("cairn.config.yaml"),
-        "reconcilers:\n  - id: rust-code\n    config:\n      ignore:\n        - ignored-config\ncontext: \"ctx\"\nrules:\n  one: \"two\"\nunknown: keep\n",
+        "ignore:\n  - ignored-config\ncontext: \"ctx\"\nrules:\n  one: \"two\"\n",
     )?;
 
     let config = scanner::config::load(&root)?;
