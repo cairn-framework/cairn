@@ -229,6 +229,40 @@ fn test_unknown_config_key_reaches_load_project_findings() {
     // Non-fatal: load_project returns Ok even with the unknown key.
 }
 
+#[test]
+fn test_parse_config_bare_line_is_not_unknown_key() {
+    let mut config = Config::default();
+    parse_config("---\ncontext: \"hello\"\n", &mut config);
+    assert!(
+        config.findings.is_empty(),
+        "document markers / bare lines must not warn: {:?}",
+        config.findings
+    );
+    assert_eq!(config.context, "hello");
+}
+
+#[test]
+fn test_parse_config_multi_target_is_known() {
+    let mut config = Config::default();
+    parse_config(
+        "multi_target:\n  intentional_asymmetry:\n    node: app.api\n    reason: dual backend\n",
+        &mut config,
+    );
+    assert!(
+        config.findings.is_empty(),
+        "multi_target is a known top-level key: {:?}",
+        config.findings
+    );
+    assert_eq!(config.intentional_asymmetries.len(), 1);
+}
+
+#[test]
+fn test_parse_config_duplicate_unknown_key_warns_once() {
+    let mut config = Config::default();
+    parse_config("bogus: 1\nbogus: 2\n", &mut config);
+    assert_eq!(config.findings.len(), 1);
+}
+
 // ── load_ignore_file ──────────────────────────────────────────────────────
 
 #[test]

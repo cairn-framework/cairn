@@ -166,10 +166,12 @@ fn parse_config(source: &str, config: &mut Config) {
     for line in source.lines() {
         let trimmed = line.trim();
         // Top-level key detection: unindented `key:` not in the known set.
+        // Require a colon so bare lines / document markers are not treated as keys.
         if indentation(line) == 0
             && !trimmed.is_empty()
             && !trimmed.starts_with('#')
             && !trimmed.starts_with('-')
+            && trimmed.contains(':')
             && let Some(key) = trimmed.split(':').next().map(str::trim)
             && !key.is_empty()
             && !KNOWN_TOP_LEVEL_KEYS.contains(&key)
