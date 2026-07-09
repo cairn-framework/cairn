@@ -124,7 +124,7 @@ pub(crate) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
         flags: {
             let mut flags = shared_flags(&parsed.command_args);
             if parsed.command == "deps"
-                && flag_value(&parsed.command_args, "--direction").as_deref() == Some("in")
+                && flag_value(&parsed.command_args, "--direction") == Some("in")
             {
                 flags.insert(crate::query_api::QueryFlag::Inbound);
             }

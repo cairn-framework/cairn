@@ -180,7 +180,7 @@ pub(crate) fn render_dependencies(
     scan_result: &scanner::ScanResult,
 ) -> Result<String, Finding> {
     let transitive = parsed.command_args.iter().any(|arg| arg == "--transitive");
-    let inbound = flag_value(&parsed.command_args, "--direction").as_deref() == Some("in");
+    let inbound = flag_value(&parsed.command_args, "--direction") == Some("in");
     node_arg(&parsed.command_args).and_then(|node| {
         let response = if inbound {
             query::dependents(&scan_result.graph, node, transitive)
