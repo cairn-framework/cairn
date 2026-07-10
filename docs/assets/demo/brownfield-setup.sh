@@ -7,7 +7,13 @@
 # binaries live somewhere else.
 REPO_ROOT="$PWD"
 BROWNFIELD_DEMO_DIR="${BROWNFIELD_DEMO_DIR:-/tmp/cairn-brownfield-tape}"
-rm -rf "$BROWNFIELD_DEMO_DIR"
+case "$BROWNFIELD_DEMO_DIR" in
+  "" | "/" | "$HOME" | "$REPO_ROOT")
+    echo "refusing to delete BROWNFIELD_DEMO_DIR='$BROWNFIELD_DEMO_DIR'" >&2
+    return 1 2>/dev/null || exit 1
+    ;;
+esac
+rm -rf -- "$BROWNFIELD_DEMO_DIR"
 mkdir -p "$BROWNFIELD_DEMO_DIR/src/api" "$BROWNFIELD_DEMO_DIR/src/auth" "$BROWNFIELD_DEMO_DIR/src/db"
 cd "$BROWNFIELD_DEMO_DIR" || exit 1
 
