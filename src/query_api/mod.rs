@@ -318,6 +318,19 @@ pub fn execute_with_scan(
     })
 }
 
+/// Runs the `lint` query and returns its raw findings without JSON
+/// serialisation. Shared by consumers that need the finding set directly
+/// (the LSP background rescan) so they reuse the spine's lint operation
+/// instead of scanning the project independently.
+///
+/// # Errors
+///
+/// Returns a stable query error when the project fails to load.
+pub fn lint_findings(root: &Path, blueprint_path: &Path) -> Result<Vec<Finding>, QueryError> {
+    let scan_result = util::load_for("lint", root, blueprint_path)?;
+    Ok(query::lint(&scan_result.graph).findings)
+}
+
 /// Converts a query response into the MCP response envelope.
 #[must_use]
 pub fn envelope_json(response: &QueryResponse) -> Value {
