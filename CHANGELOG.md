@@ -2,7 +2,7 @@
 
 ## v0.2.0
 
-Minor version bump: the CLI command surface changed shape (old subcommand names were folded into flags and grouped verbs).
+This release contains breaking CLI changes: old subcommand names were folded into flags and grouped verbs.
 
 ### CLI surface simplification (breaking)
 
