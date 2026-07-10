@@ -30,41 +30,25 @@ pub(crate) fn run_watch_command(root: &Path, opts: &crate::watch::WatchOpts) -> 
         return err(1, &format!("failed to set Ctrl-C handler: {error}"));
     }
 
-    // Initial scan.
-    let mut previous = match crate::scanner::scan(root, &blueprint) {
-        Ok(result) => result.graph.findings,
-        Err(error) => {
-            return err(1, &format!("initial scan failed: {error}"));
-        }
+    let scan = || {
+        crate::scanner::scan(root, &blueprint)
+            .map(|result| result.graph.findings)
+            .map_err(|error| error.clone())
     };
-
-    let interval = std::time::Duration::from_secs(opts.interval_secs);
-
-    while !stop.load(std::sync::atomic::Ordering::SeqCst) {
-        std::thread::sleep(interval);
-
-        if stop.load(std::sync::atomic::Ordering::SeqCst) {
-            break;
-        }
-
-        let current = match crate::scanner::scan(root, &blueprint) {
-            Ok(result) => result.graph.findings,
-            Err(error) => {
-                eprintln!("scan error: {error}");
-                continue;
-            }
-        };
-
-        let events = crate::watch::diff_findings(&previous, &current);
+    let on_diff = |events: &[crate::watch::WatchEvent]| {
         for event in events {
-            match serde_json::to_string(&event) {
+            match serde_json::to_string(event) {
                 Ok(line) => println!("{line}"),
                 Err(error) => eprintln!("json error: {error}"),
             }
         }
+        Ok(())
+    };
 
-        previous = current;
+    match crate::watch::run_watch_loop(opts, &stop, scan, on_diff) {
+        Ok(()) => ok("watch stopped
+"
+        .to_owned()),
+        Err(error) => err(1, &format!("watch failed: {error}")),
     }
-
-    ok("watch stopped\n".to_owned())
 }
