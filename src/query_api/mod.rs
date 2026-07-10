@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: query dispatch hub for many tools (execute/execute_with_scan/execute_data_with_scan) plus scan-aware wrappers and envelope/error serialisation; kept cohesive as the single query entry point.
 //! Shared structured query API used by CLI JSON output and MCP.
 
 use std::{
@@ -33,6 +34,7 @@ mod serialise;
 mod util;
 
 use change_queries::dispatch_change_tool;
+use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
     bundle_json, context_json, contract_json, decisions_response_json, dependency_json,
     docstring_json, files_json, frontier_json, hook_json, islands_json, neighbourhood_json,
@@ -256,6 +258,65 @@ pub fn execute(
         findings: Vec::new(),
     })
 }
+/// Thin wrapper for the HTTP server: runs a read-only query against an already
+/// computed scan result, preserving the server's cached `ScanResult` for latency.
+///
+/// # Errors
+///
+/// Returns a stable query error when the tool is unknown, the config fails to
+/// load, or query execution against the supplied scan result fails.
+pub fn execute_with_scan(
+    root: &Path,
+    blueprint_path: &Path,
+    changes_dir: &Path,
+    request: &QueryRequest,
+    scan_result: &scanner::ScanResult,
+) -> Result<QueryResponse, QueryError> {
+    let metadata = metadata_for_tool(&request.tool).ok_or_else(|| QueryError {
+        code: "CAIRN_QUERY_UNKNOWN_TOOL".to_owned(),
+        message: format!("unknown tool `{}`", request.tool),
+        source_span: None,
+        remediation: None,
+    })?;
+    if metadata.safety == SafetyClass::Mutating && !request.mutating {
+        return Err(QueryError {
+            code: "CAIRN_QUERY_MUTATION_NOT_ALLOWED".to_owned(),
+            message: "this tool mutates state and requires the mutating flag".to_owned(),
+            source_span: None,
+            remediation: None,
+        });
+    }
+    let loaded_config = config::load(root).map_err(|error| QueryError {
+        code: error.code,
+        message: error.message,
+        source_span: Some(root.join("cairn.config.yaml").display().to_string()),
+        remediation: None,
+    })?;
+    let mut data = execute_data_with_scan(
+        root,
+        blueprint_path,
+        changes_dir,
+        request,
+        metadata,
+        &loaded_config,
+        scan_result,
+        false,
+    )?;
+    debug_assert!(
+        matches!(data, Value::Object(_)),
+        "query data payload must be a JSON object so we can stamp schema_version"
+    );
+    if let Value::Object(map) = &mut data {
+        map.insert("schema_version".to_owned(), json!(SCHEMA_VERSION));
+    }
+    let rules = relevant_rules(&loaded_config.rules, &request.tool);
+    Ok(QueryResponse {
+        project_context: loaded_config.context,
+        rules,
+        data,
+        findings: Vec::new(),
+    })
+}
 
 /// Converts a query response into the MCP response envelope.
 #[must_use]
@@ -278,7 +339,6 @@ pub fn error_json(error: &QueryError) -> Value {
         "remediation": error.remediation,
     })
 }
-#[allow(clippy::too_many_lines)] // Reason: query dispatch hub for many tools
 fn execute_data(
     root: &Path,
     blueprint_path: &Path,
@@ -287,13 +347,36 @@ fn execute_data(
     metadata: ToolMetadata,
     loaded_config: &config::Config,
 ) -> Result<Value, QueryError> {
+    let scan_result = load_for(metadata.cli_name, root, blueprint_path)?;
+    execute_data_with_scan(
+        root,
+        blueprint_path,
+        changes_dir,
+        request,
+        metadata,
+        loaded_config,
+        &scan_result,
+        true,
+    )
+}
+
+#[allow(clippy::too_many_lines, clippy::too_many_arguments)] // Reason: query dispatch hub for many tools
+fn execute_data_with_scan(
+    root: &Path,
+    blueprint_path: &Path,
+    changes_dir: &Path,
+    request: &QueryRequest,
+    metadata: ToolMetadata,
+    loaded_config: &config::Config,
+    scan_result: &scanner::ScanResult,
+    enforce_valid_map: bool,
+) -> Result<Value, QueryError> {
     if let Some(result) = dispatch_change_tool(root, blueprint_path, changes_dir, request, metadata)
     {
         return result;
     }
-
-    let scan_result = load_for(metadata.cli_name, root, blueprint_path)?;
-    if requires_valid_map(metadata.cli_name) && scan_result.graph.has_errors() {
+    if enforce_valid_map && requires_valid_map(metadata.cli_name) && scan_result.graph.has_errors()
+    {
         return Err(findings_error(&scan_result.graph.findings));
     }
     match metadata.cli_name {
@@ -314,33 +397,34 @@ fn execute_data(
                 },
             )
         }
-        "neighbourhood" => neighbourhood_json(root, changes_dir, &scan_result, request),
-        "contract" => contract_json(&scan_result, required(request.node.as_ref(), "node")?),
-        "docstring" => docstring_json(&scan_result, request),
-        "files" => files_json(&scan_result, required(request.node.as_ref(), "node")?),
-        "bundle" => bundle_json(&scan_result, required(request.node.as_ref(), "node")?),
-        "deps" => dependency_json(&scan_result, request, !request.has(QueryFlag::Inbound)),
+        "ui_meta" => Ok(ui_meta_json()),
+        "blueprint" => Ok(blueprint_json(blueprint_path)),
+        "beads" => Ok(beads_json(root, required(request.node.as_ref(), "node")?)),
+        "neighbourhood" => neighbourhood_json(root, changes_dir, scan_result, request),
+        "contract" => contract_json(scan_result, required(request.node.as_ref(), "node")?),
+        "docstring" => docstring_json(scan_result, request),
+        "files" => files_json(scan_result, required(request.node.as_ref(), "node")?),
+        "bundle" => bundle_json(scan_result, required(request.node.as_ref(), "node")?),
+        "deps" => dependency_json(scan_result, request, !request.has(QueryFlag::Inbound)),
         "order" => query::order(&scan_result.graph)
             .map(|response| json!({ "nodes": response.nodes }))
             .map_err(|findings| findings_error(&findings)),
-        "islands" => Ok(islands_json(&scan_result)),
-        "frontier" => frontier_json(&scan_result),
+        "islands" => Ok(islands_json(scan_result)),
+        "frontier" => frontier_json(scan_result),
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
             Ok(json!({ "findings": findings_json(&response.findings) }))
         }
-        "status" => Ok(status_json(root, changes_dir, &scan_result)),
-        "context" => Ok(context_json(root, &scan_result, loaded_config)),
-        "rationale" => rationale_json(&scan_result, required(request.node.as_ref(), "node")?),
-        "todos" => todos_response_json(&scan_result, request),
-        "decisions" => decisions_response_json(&scan_result, request),
-        "research" => {
-            research_response_json(&scan_result, required(request.node.as_ref(), "node")?)
-        }
-        "sources" => sources_response_json(&scan_result, required(request.node.as_ref(), "node")?),
-        "hook" => hook_json(root, changes_dir, &scan_result, request),
-        "health" => Ok(health_json(root, changes_dir, &scan_result)),
-        "remediate" => Ok(remediate_json(root, changes_dir, &scan_result)),
+        "status" => Ok(status_json(root, changes_dir, scan_result)),
+        "context" => Ok(context_json(root, scan_result, loaded_config)),
+        "rationale" => rationale_json(scan_result, required(request.node.as_ref(), "node")?),
+        "todos" => todos_response_json(scan_result, request),
+        "decisions" => decisions_response_json(scan_result, request),
+        "research" => research_response_json(scan_result, required(request.node.as_ref(), "node")?),
+        "sources" => sources_response_json(scan_result, required(request.node.as_ref(), "node")?),
+        "hook" => hook_json(root, changes_dir, scan_result, request),
+        "health" => Ok(health_json(root, changes_dir, scan_result)),
+        "remediate" => Ok(remediate_json(root, changes_dir, scan_result)),
         "draft create" => {
             let node_id = required(request.node.as_ref(), "node")?;
             let settings =
@@ -433,7 +517,6 @@ fn execute_data(
             })?;
             Ok(json!({ "id": result, "status": "pending" }))
         }
-
         "watch" => {
             let events = crate::watch::diff_findings(&[], &scan_result.graph.findings);
             Ok(json!({ "events": events }))

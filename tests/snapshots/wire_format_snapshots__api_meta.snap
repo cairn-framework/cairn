@@ -231,6 +231,24 @@ expression: value
       "request": "WatchRequest",
       "response": "WatchResponse",
       "safety": "ReadOnly"
+    },
+    {
+      "name": "ui_meta",
+      "request": "UiMetaRequest",
+      "response": "UiMetaResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "blueprint",
+      "request": "BlueprintRequest",
+      "response": "BlueprintResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "beads",
+      "request": "NodeRequest",
+      "response": "BeadsResponse",
+      "safety": "ReadOnly"
     }
   ],
   "schema_version": 1,

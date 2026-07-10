@@ -1323,8 +1323,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 659,
-          "end_line": 677
+          "line": 683,
+          "end_line": 701
         },
         {
           "name": "build_export",
@@ -2021,6 +2021,7 @@
         "src/query_api/handlers/node.rs",
         "src/query_api/handlers/project.rs",
         "src/query_api/handlers/remediate.rs",
+        "src/query_api/handlers/spine.rs",
         "src/query_api/mod.rs",
         "src/query_api/registry.rs",
         "src/query_api/serialise.rs",
@@ -2036,96 +2037,104 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 52,
-          "end_line": 52
+          "line": 54,
+          "end_line": 54
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 171,
-          "end_line": 173
+          "line": 173,
+          "end_line": 175
         },
         {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 106,
-          "end_line": 127
+          "line": 108,
+          "end_line": 129
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 56,
-          "end_line": 61
+          "line": 58,
+          "end_line": 63
         },
         {
           "name": "envelope_json",
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 262,
-          "end_line": 269
+          "line": 323,
+          "end_line": 330
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 273,
-          "end_line": 280
+          "line": 334,
+          "end_line": 341
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 200,
-          "end_line": 258
+          "line": 202,
+          "end_line": 260
+        },
+        {
+          "name": "execute_with_scan",
+          "kind": "function",
+          "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
+          "file": "src/query_api/mod.rs",
+          "line": 268,
+          "end_line": 319
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 187,
-          "end_line": 193
+          "line": 189,
+          "end_line": 195
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 150,
-          "end_line": 159
+          "line": 152,
+          "end_line": 161
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 83,
-          "end_line": 102
+          "line": 85,
+          "end_line": 104
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 137,
-          "end_line": 146
+          "line": 139,
+          "end_line": 148
         },
         {
           "name": "ToolMetadata",
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 65,
-          "end_line": 79
+          "line": 67,
+          "end_line": 81
         },
         {
           "name": "bundle_json",
@@ -6214,72 +6223,72 @@
           "kind": "function",
           "signature": "pub const fn address(&self) -> SocketAddr",
           "file": "src/ui/mod.rs",
-          "line": 189,
-          "end_line": 191
+          "line": 187,
+          "end_line": 189
         },
         {
           "name": "UiError",
           "kind": "enum",
           "signature": "pub enum UiError",
           "file": "src/ui/mod.rs",
-          "line": 135,
-          "end_line": 149
+          "line": 133,
+          "end_line": 147
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/ui/mod.rs",
-          "line": 112,
-          "end_line": 130
+          "line": 110,
+          "end_line": 128
         },
         {
           "name": "serve_current_thread",
           "kind": "function",
           "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 208,
-          "end_line": 221
+          "line": 206,
+          "end_line": 219
         },
         {
           "name": "start_background",
           "kind": "function",
           "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 228,
-          "end_line": 241
+          "line": 226,
+          "end_line": 239
         },
         {
           "name": "stop",
           "kind": "function",
           "signature": "pub fn stop(mut self)",
           "file": "src/ui/mod.rs",
-          "line": 194,
-          "end_line": 200
+          "line": 192,
+          "end_line": 198
         },
         {
           "name": "url",
           "kind": "function",
           "signature": "pub fn url(&self) -> String",
           "file": "src/ui/mod.rs",
-          "line": 183,
-          "end_line": 185
+          "line": 181,
+          "end_line": 183
         },
         {
           "name": "ServerHandle",
           "kind": "struct",
           "signature": "pub struct ServerHandle",
           "file": "src/ui/mod.rs",
-          "line": 174,
-          "end_line": 178
+          "line": 172,
+          "end_line": 176
         },
         {
           "name": "UiOptions",
           "kind": "struct",
           "signature": "pub struct UiOptions",
           "file": "src/ui/mod.rs",
-          "line": 87,
-          "end_line": 94
+          "line": 85,
+          "end_line": 92
         }
       ]
     },

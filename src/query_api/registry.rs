@@ -4,7 +4,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 41] = [
     tool(
         "get",
         "cairn_get",
@@ -309,6 +309,30 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 38] = [
         SafetyClass::ReadOnly,
         "Watch for finding changes and emit events",
     ),
+    tool(
+        "ui_meta",
+        "cairn_ui_meta",
+        "UiMetaRequest",
+        "UiMetaResponse",
+        SafetyClass::ReadOnly,
+        "List available query commands and their request/response schemas",
+    ),
+    tool(
+        "blueprint",
+        "cairn_blueprint",
+        "BlueprintRequest",
+        "BlueprintResponse",
+        SafetyClass::ReadOnly,
+        "Show the raw blueprint file",
+    ),
+    tool(
+        "beads",
+        "cairn_beads",
+        "NodeRequest",
+        "BeadsResponse",
+        SafetyClass::ReadOnly,
+        "List backlog beads linked to a node",
+    ),
 ];
 
 pub(super) const fn tool(
@@ -428,7 +452,7 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 38);
+        assert_eq!(TOOL_REGISTRY.len(), 41);
     }
 
     #[test]

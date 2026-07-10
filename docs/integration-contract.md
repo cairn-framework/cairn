@@ -67,6 +67,7 @@ Error responses from the MCP/query path:
 | `rationale <node>` | `cairn_rationale` | Provenance chain (decisions, research, sources) |
 | `todos <node>` | `cairn_todos` | Todo artefacts linked to the node |
 | `backlog <node>` | n/a | Beads (issues) linked to the node via its `cairn-node:<id>` label |
+| `beads <node>` | `cairn_beads` | Backlog beads (issues) linked to a node |
 | `decisions <node>` | `cairn_decisions` | Decision artefacts linked to the node |
 | `research <node>` | `cairn_research` | Research artefacts linked to the node |
 | `sources <node>` | `cairn_sources` | Source artefacts linked to the node |
@@ -76,6 +77,8 @@ Error responses from the MCP/query path:
 | `docstring <node>` | `cairn_docstring` | Generate a docstring for a node |
 | `export` | `cairn_export` | Export project data (JSON or Markdown) |
 | `onboard` | `cairn_onboard` | Suggest blueprint entries for orphaned files |
+| `ui_meta` | `cairn_ui_meta` | Available query commands and their request/response schemas |
+| `blueprint` | `cairn_blueprint` | Raw blueprint file content |
 | `ui` | - | Launch the web UI server |
 | `watch` | `cairn_watch` | Watch for finding changes and emit events |
 | `workspace <status\|lint\|frontier>` | — | Aggregate status, lint, and frontier queries across a `cairn.workspace`'s member projects |

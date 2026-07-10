@@ -19,13 +19,11 @@ use std::{
 use crate::{
     artefacts::{contract::Contract, frontmatter},
     blueprint::NodeKind,
-    cli,
     map::{
         graph::{Finding, FindingSeverity, Graph, NodeRecord},
         query::{self, GraphEdgeKind, GraphResponse},
     },
     scanner,
-    state::backlog,
 };
 
 mod api;
@@ -318,7 +316,7 @@ mod tests {
 
         assert!(response.head.contains("200 OK"));
         assert!(response.body.contains("\"schema_version\":1"));
-        assert!(response.body.contains("\"node\":\"app.api\""));
+        assert!(response.body.contains("\"id\":\"app.api\""));
         assert!(response.body.contains("\"name\":\"serve\""));
         assert!(response.body.contains("\"kind\":\"function\""));
 

@@ -6,26 +6,6 @@ use super::*;
 use serialise::*;
 use server::{Response, json};
 
-pub(super) fn meta_json() -> String {
-    let commands = cli::registry()
-        .iter()
-        .map(|command| {
-            format!(
-                "{{\"name\":\"{}\",\"request\":\"{}\",\"response\":\"{}\",\"safety\":\"{:?}\"}}",
-                esc(command.cli_name),
-                esc(command.request_schema),
-                esc(command.response_schema),
-                command.safety
-            )
-        })
-        .collect::<Vec<_>>()
-        .join(",");
-    format!(
-        "{{\"version\":\"{}\",\"available_commands\":[{commands}]}}",
-        esc(crate::package_version())
-    )
-}
-
 pub(super) fn graph_json(graph: &GraphResponse) -> String {
     let nodes = graph
         .nodes
@@ -109,16 +89,6 @@ pub(super) fn dependency_json(graph: &Graph, node: &str, outbound: bool) -> Resp
     )
 }
 
-pub(super) fn lint_json(graph: &Graph) -> String {
-    let findings = query::lint(graph)
-        .findings
-        .iter()
-        .map(finding_json)
-        .collect::<Vec<_>>()
-        .join(",");
-    format!("{{\"findings\":[{findings}]}}")
-}
-
 pub(super) fn status_json(project: &scanner::ScanResult) -> String {
     let findings = query::lint(&project.graph).findings;
     let errors = findings
@@ -154,29 +124,6 @@ pub(super) fn contract_response_json(project: &scanner::ScanResult, node: &str) 
     format!("{{\"node\":\"{}\",\"artefacts\":[{artefacts}]}}", esc(node))
 }
 
-pub(super) fn symbols_response_json(project: &scanner::ScanResult, node: &str) -> String {
-    let symbols = query::symbols(&project.graph, node).map_or_else(|_| Vec::new(), |r| r.symbols);
-    let symbols_json = symbols
-        .iter()
-        .map(|symbol| {
-            format!(
-                "{{\"name\":\"{}\",\"kind\":\"{}\",\"signature\":\"{}\",\"file\":\"{}\",\"line\":{},\"end_line\":{}}}",
-                esc(&symbol.name),
-                symbol_kind_name(symbol.kind),
-                esc(&symbol.signature),
-                esc(&symbol.file),
-                symbol.line,
-                symbol.end_line
-            )
-        })
-        .collect::<Vec<_>>()
-        .join(",");
-    format!(
-        "{{\"node\":\"{}\",\"symbols\":[{symbols_json}]}}",
-        esc(node)
-    )
-}
-
 pub(super) fn contract_json(contract: &Contract) -> String {
     format!(
         "{{\"type\":\"contract\",\"path\":\"{}\",\"title\":\"{}\",\"frontmatter\":{{\"node\":\"{}\"}},\"body\":\"{}\"}}",
@@ -194,16 +141,6 @@ pub(super) fn artefact_response_json(root: &Path, kind: &str, node: &str) -> Str
         .collect::<Vec<_>>()
         .join(",");
     format!("{{\"node\":\"{}\",\"artefacts\":[{artefacts}]}}", esc(node))
-}
-
-pub(super) fn beads_response_json(root: &Path, node: &str) -> String {
-    let items = backlog::read(root);
-    let beads = backlog::for_node(&items, node)
-        .iter()
-        .map(|item| item.to_json().to_string())
-        .collect::<Vec<_>>()
-        .join(",");
-    format!("{{\"node\":\"{}\",\"beads\":[{beads}]}}", esc(node))
 }
 
 pub(super) fn rationale_json(root: &Path, node: &str) -> String {
@@ -415,31 +352,5 @@ mod tests {
     fn test_title_from_body_empty_h1_uses_fallback() {
         use super::title_from_body;
         assert_eq!(title_from_body("# \nbody", "fallback"), "fallback");
-    }
-
-    // ── beads_response_json ──────────────────────────────────────────────────
-
-    #[test]
-    fn test_beads_response_json_filters_by_node() {
-        use super::beads_response_json;
-        let dir = std::env::temp_dir().join(format!("cairn-ui-beads-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(dir.join(".beads")).unwrap();
-        std::fs::write(
-            dir.join(".beads").join("issues.jsonl"),
-            [
-                r#"{"id":"cairn-ui1","title":"View","status":"open","priority":1,"issue_type":"task","labels":["cairn-node:cairn.ui"]}"#,
-                r#"{"id":"cairn-elsewhere","title":"Other","status":"open","priority":0,"issue_type":"task","labels":["cairn-node:cairn.kernel.cli"]}"#,
-            ]
-            .join("\n"),
-        )
-        .unwrap();
-        let json = beads_response_json(&dir, "cairn.ui");
-        assert!(json.contains("\"node\":\"cairn.ui\""));
-        assert!(json.contains("\"id\":\"cairn-ui1\""));
-        assert!(json.contains("\"status\":\"open\""));
-        assert!(json.contains("\"priority\":1"));
-        assert!(!json.contains("cairn-elsewhere"), "other nodes excluded");
-        let _ = std::fs::remove_dir_all(&dir);
     }
 }
