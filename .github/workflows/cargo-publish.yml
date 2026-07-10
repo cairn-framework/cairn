@@ -9,6 +9,10 @@ name: Publish to crates.io
 # published once. Requires the CARGO_REGISTRY_TOKEN repo secret (a
 # crates.io API token with publish-new + publish-update scopes; see
 # meta/todos/todo.crates-io-publish.md for how to create one).
+# --allow-dirty is required: `cargo publish` rewrites Cargo.lock during the
+# publish (and the committed Cargo.lock can lag the manifest at tag time), but
+# Cargo.lock is excluded from the packaged crate by cairn-framework's `include`
+# allowlist, so the published artifact stays clean.
 
 on:
   workflow_call:
@@ -16,6 +20,7 @@ on:
       plan:
         required: true
         type: string
+  workflow_dispatch:
 
 jobs:
   publish-crates:
@@ -93,7 +98,7 @@ jobs:
               # already_published on each loop iteration means a
               # publish that actually succeeded despite a client-side
               # error is detected and skipped, not double-attempted.
-              if cargo publish -p "${crate}"; then
+              if cargo publish -p "${crate}" --allow-dirty; then
                 wait_for_index "${crate}" "${version}"
                 return $?
               fi
