@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.2.0
+
+Minor version bump: the CLI command surface changed shape (old subcommand names were folded into flags and grouped verbs).
+
+### CLI surface simplification (breaking)
+
+- `cairn symbols`, `cairn check`, `cairn depends`, `cairn dependents` are folded into `cairn get`, `cairn lint`, and `cairn deps` flags (#226).
+- The change lifecycle (`new`, `list`, `show`, `archive`, ...) is collapsed under a single `cairn change` verb (#223).
+- The `draft_*` commands are collapsed into one `cairn draft` subcommand (#204).
+- The command surface is now derived from the `query_api` registry (#228), and human-readable renderers consume the same canonical `query_api` JSON as `--json` output (#230), so the two output modes can no longer drift.
+
+### Web UI
+
+- Severity/drift visual encoding on the graph (#212).
+- "Trace the truth" hinge: a decision's missing provenance ("no sources recorded") is now a visibly distinct gap in the inspector instead of the quietest text on the panel (#213).
+- Webui endpoints started migrating onto the `query_api` spine; first five endpoints flipped (#229).
+
+### Fixes
+
+- Scanner now infers a directory's language and suppresses empty-target hashes (#217).
+- `cairn status` (#200) and the neighbourhood view (#205) surface real active changes instead of a hardcoded empty list.
+- `--changes-dir` is honoured on all discover-based surfaces (#206).
+- Unknown top-level keys in `cairn.config.yaml` now produce a warning instead of being silently ignored (#221).
+
+### Internals
+
+- Reconciler is now a single generic engine parameterised by `LanguageSpec` with registry dispatch, replacing per-language reconcilers (#227).
+- Artefact frontmatter loaders collapsed into an `ArtefactKind` table (#224).
+- LSP shares the watch loop and runs lint via the `query_api` spine (#231).
+- Removed the unused SSE spike (#201) and deduplicated CLI/format helpers against `query_api::serialise` (#202, #203).
+
+### Project
+
+- Ko-fi support: `FUNDING.yml`, README badge, and a native support button on the landing page (#207, #208, #210, #211).
+
 
 ## v0.1.4
 
