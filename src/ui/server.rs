@@ -197,8 +197,8 @@ impl Server {
         }
     }
 
-    /// Executes a query_api tool against the cached scan and returns its data
-    /// payload. query_api stamps its own `schema_version`; the server's
+    /// Executes a `query_api` tool against the cached scan and returns its data
+    /// payload. `query_api` stamps its own `schema_version`; the server's
     /// `json()` stamp is the single owner of the wire version key, so the
     /// inner stamp is stripped here.
     fn spine_data(
