@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cairn: Your agents stop re-reading your repo. They ask the map.</title>
-<meta name="description" content="You write a blueprint of your system. Cairn reconciles it against the code you actually shipped and produces a map your agents can query. Contradictions stop merges. Your architecture stops rotting.">
+<title>Cairn: your agent writes the map as you talk. Cairn keeps it true.</title>
+<meta name="description" content="Your coding agent writes the blueprint as you build. Cairn keeps that map true against the real code and hands it to every future session. Drift stops merges. Your architecture stays honest.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Cairn: your agents stop re-reading your repo. They ask the map.">
-<meta property="og:description" content="You write a blueprint of your system. Cairn reconciles it against the code you actually shipped and produces a map your agents can query.">
+<meta property="og:title" content="Cairn: your agent writes the map as you talk. Cairn keeps it true.">
+<meta property="og:description" content="Your agent writes the blueprint as you build. Cairn reconciles it against the code you shipped and hands your agents a map they can trust.">
 <meta property="og:image" content="https://cairn-framework.github.io/cairn/assets/screenshots/webui-graph.png">
 <meta property="og:url" content="https://cairn-framework.github.io/cairn/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Cairn: your agents stop re-reading your repo. They ask the map.">
-<meta name="twitter:description" content="A blueprint, reconciled against the code you actually shipped, produces a map your agents can query.">
+<meta name="twitter:title" content="Cairn: your agent writes the map as you talk. Cairn keeps it true.">
+<meta name="twitter:description" content="Your agent writes the blueprint as you build. Cairn reconciles it against the code you shipped and hands your agents a map they can trust.">
 <meta name="twitter:image" content="https://cairn-framework.github.io/cairn/assets/screenshots/webui-graph.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -849,21 +849,21 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ HERO ================ -->
   <section class="hero" style="border-top:0; padding-top:var(--s-8)">
     <div class="hero-text">
-      <div class="eyebrow">Keep the plan and the code in step · starts with your code</div>
+      <div class="eyebrow">Your agent writes the map · Cairn keeps it true</div>
 
       <div data-variant="v1" class="on">
-        <h1>Your agent gets lost in your repo <em>every session</em>.<br>Give it the <strong>map</strong>.</h1>
-        <p class="lede">You wrote down why the code works the way it does. Nobody reads it. Six months later, only you remember why <code>auth.tokens</code> must not call the cache, and your AI helper keeps trying to make it. Cairn turns one afternoon of writing a <strong>blueprint</strong> into a living <strong>map</strong>. It checks the map against the code you really shipped, and any AI helper you hand the repo to can read it.</p>
+        <h1>Your agent forgets everything it built last session.<br>Give it the <strong>map</strong>.</h1>
+        <p class="lede">Claude Code. Cursor. Codex. They re-read your whole repo every time and still guess wrong. They forget last week's decisions and quietly break them. Your agent writes the blueprint as you talk. Cairn keeps that map true against the code you shipped, so the next session starts already knowing your system.</p>
       </div>
 
       <div data-variant="v2">
-        <h1>Ship code that <strong>fits</strong> the plan you meant.</h1>
-        <p class="lede">Claude Code. Cursor. Copilot. They all work best when the plan is written down, not guessed from file names at 2am. You write the shape of your system once. Cairn checks it against the real code, blocks the merge when the two disagree, and hands your helpers a map they can use.</p>
+        <h1>Your agent writes the map. Cairn keeps it true.</h1>
+      <p class="lede">As you build, your coding agent authors the blueprint, the contracts, and the decisions. Cairn reconciles that map against the real code, blocks the merge when the two disagree, and hands the map back to your agent on the next prompt. You can read it any time. It is plain markdown, and when it is wrong, the scan says so.</p>
       </div>
 
       <div data-variant="v3">
-        <h1>Two chains, joined at every choice you make.</h1>
-        <p class="lede">One chain is why you chose it. The other is what must stay true. They meet at a decision, and the decision is the moment your system tells the truth about itself. Cairn keeps both visible long after the Slack thread is gone.</p>
+        <h1>Two chains, joined at every choice your agent makes.</h1>
+        <p class="lede">One chain is why you chose it. The other is what must stay true. They meet at a decision, and the decision is where your system tells the truth. Your agent records both as it works, and Cairn keeps them visible long after the Slack thread is gone.</p>
       </div>
 
       <div class="ctas">
@@ -887,12 +887,12 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ WHAT CAIRN IS ================ -->
   <section id="what">
     <div class="kicker">What it is</div>
-    <h2 class="section">For people who care enough to write the plan <em>down</em>.</h2>
+    <h2 class="section">For developers who build with <em>coding agents</em>.</h2>
 
     <div class="what" style="margin-top:var(--s-7)">
-      <p>You already know the shape of your system. It lives in your head, in a half-finished notes folder, in that Slack thread from March. Write a <strong>blueprint</strong> instead. It is a short file that names your systems, your parts, the promises each part makes, and the choices behind them. Not notes that go stale. A file your tools can read.</p>
-      <p>Cairn checks that blueprint against what is really there: the code on disk today, the promises in <code>contracts/</code>, and the choices someone wrote down. What you get back is a <strong>map</strong>. It shows what exists, what you planned, what has drifted, and exactly where the two stopped matching.</p>
-      <p>When your AI helper needs to change <code>auth.session</code>, it stops reading <code>src/auth</code> from scratch. It asks the map: what does this part promise, which choices limit it, and what sits next to it. It gets a clear answer and ships code that fits.</p>
+      <p>Your coding agent already knows the shape of your system by the time you have talked it through. It can write that shape down as a <strong>blueprint</strong>: a short file that names your systems, your parts, the promises each part makes, and the choices behind them. Not notes that go stale. A file your tools can read.</p>
+      <p>Cairn checks that blueprint against what is really there: the code on disk today, the promises in <code>contracts/</code>, and the choices your agent captured as you went. What you get back is a <strong>map</strong>. It shows what exists, what you planned, what has drifted, and exactly where the two stopped matching.</p>
+      <p>When your agent needs to change <code>auth.session</code>, it stops reading <code>src/auth</code> from scratch. It asks the map: what does this part promise, which choices limit it, and what sits next to it. It gets a clear answer and ships code that fits.</p>
 
       <div class="three-nouns">
         <span class="noun prov">blueprint</span>
@@ -1000,8 +1000,8 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <!-- ================ BLUEPRINT TO MAP ================ -->
   <section id="blueprint">
     <div class="kicker">Blueprint → Map</div>
-    <h2 class="section">One afternoon of writing. A living map for the rest of the project.</h2>
-    <p class="section-lede">The <code>cairn.blueprint</code> file is short and easy to read. You can write a first pass in one afternoon and a second coffee. Cairn gives back <code>map.md</code>: every part marked <code>synced</code>, <code>ghost</code>, or <code>orphaned</code>, plus a ranked list of findings, right where your team and your AI helpers can find them.</p>
+    <h2 class="section">Your agent drafts the map from your code. It grows as you build.</h2>
+    <p class="section-lede">The <code>cairn.blueprint</code> file is short and easy to read. Your agent drafts a first pass with <code>cairn init --from-code</code>, straight from your existing code, then reviews and applies the draft, and keeps it current as you build. Cairn gives back <code>map.md</code>: every declared part marked <code>synced</code> or <code>ghost</code>, plus findings for orphaned files and every mismatch, right where your team and your agents can read them.</p>
 
     <div class="bp-map">
       <div class="panel">
@@ -1047,7 +1047,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
           <div class="map-row module indent-2">
             <span class="glyph">m</span>
             <span class="name">auth.api.tokens</span>
-            <span class="status drift">drift</span>
+            <span class="status drift">contradiction</span>
           </div>
           <div class="map-row module indent-2" style="opacity:0.65">
             <span class="glyph">m</span>
@@ -1056,7 +1056,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
           </div>
         </div>
         <div style="margin-top:var(--s-5); padding-top:var(--s-4); border-top:1px dashed var(--seam-thin); font-family:var(--font-mono); font-size:var(--t-small); color:var(--ink-faded); line-height:1.7">
-          <div>3 synced · 1 drift · 1 ghost</div>
+          <div>3 synced · 1 contradiction · 1 ghost</div>
           <div>2 findings · <span style="color:var(--drift)">1 contradiction</span> · <span style="color:var(--prov-2)">1 tension</span></div>
         </div>
       </div>
@@ -1127,7 +1127,8 @@ footer.site .fnav a:hover { color: var(--ink-char); }
   <section id="install">
     <div class="kicker">Get started</div>
     <h2 class="section">You can be scanning your repo in under a minute.</h2>
-    <p class="section-lede">One tool. One file to write. One command to scan. Your first <code>map.md</code> lands on disk the first time you run it, and your AI helpers can read it on the next prompt.</p>
+    <p class="section-lede">One tool. One file, written by your agent. One command to scan. Your first <code>map.md</code> lands on disk the first time you run it, and your agents read it on the next prompt. Built for developers who ship with coding agents and hate re-explaining the system every session.</p>
+    <p class="section-lede">Hate it? Delete <code>cairn.blueprint</code>, <code>cairn.config.yaml</code>, <code>.cairn/</code>, and the generated map files, and take the pasted section back out of your agent instructions. Your repo is exactly what it was.</p>
 
     <div class="install-grid">
       <div class="code-card">
