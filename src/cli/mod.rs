@@ -513,6 +513,30 @@ fn render_loaded_project_command(
             Err(findings) => return findings_output(parsed.json, &findings),
         },
         "deps" => render_dependencies(parsed, scan_result),
+        // Spine ops (webui-first): the human rendering is the pretty canonical
+        // JSON; the primary consumers are the webui and --json callers.
+        "ui_meta" | "blueprint" | "beads" => {
+            let request = crate::query_api::QueryRequest {
+                tool: parsed.command.clone(),
+                node: parsed.command_args.get(1).cloned(),
+                ..Default::default()
+            };
+            match crate::query_api::execute_with_scan(
+                root,
+                &parsed.file,
+                &root.join(&parsed.changes_dir),
+                &request,
+                scan_result,
+            ) {
+                Ok(response) => Ok(format!(
+                    "{}\n",
+                    serde_json::to_string_pretty(&response.data).unwrap_or_default()
+                )),
+                Err(error) => {
+                    return error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error.message)
+                }
+            }
+        }
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
             if parsed.command == "lint"
@@ -821,6 +845,9 @@ mod tests {
             ("lint", vec!["lint"]),
             ("scan", vec!["scan"]),
             ("hook", vec!["hook", "all"]),
+            ("ui_meta", vec!["ui_meta"]),
+            ("blueprint", vec!["blueprint"]),
+            ("beads", vec!["beads", "app.api"]),
         ];
 
         for (name, command) in cases {
