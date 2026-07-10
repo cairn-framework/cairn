@@ -2,7 +2,7 @@
 
 **If you are a human:** paste this into your coding agent and press enter:
 
-```
+```text
 Read https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/agent-setup.md
 and follow it to set up Cairn in this repo. Walk me through each decision.
 ```

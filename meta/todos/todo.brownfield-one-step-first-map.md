@@ -17,7 +17,8 @@ Closing this gap is the highest-leverage effort fix in the first-run experience.
 
 Terminology rulings (owner sign-off, 2026-07-10): `cairn change archive` meaning "apply
 the proposal" reads as shelving, not activating; an `apply` alias is ratified (tracked in
-todo.change-apply-alias). "Brownfield" stays in agent-facing docs, change ids, and code
-(immediately recognisable to agents and experienced devs), but user-facing copy says
-"existing project" / "existing codebase": the word fails a plain-language pass for
-AI-first devs who never did long-cycle software work.
+todo.change-apply-alias). "Brownfield" stays in agent-facing guides, technical reference
+docs (docs/brownfield.md), change ids, and code, where it is immediately recognisable.
+First-touch marketing surfaces (README, landing, quickstart) say "existing project" /
+"existing codebase" instead: the word fails a plain-language pass for AI-first devs who
+never did long-cycle software work.

@@ -56,7 +56,7 @@ Three things change the day your agent starts writing the map.
 
 The fastest path: let your agent do the whole setup. Paste this into it:
 
-```
+```text
 Read https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/agent-setup.md
 and follow it to set up Cairn in this repo. Walk me through each decision.
 ```
@@ -204,7 +204,7 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 | Findings | `cairn lint` |
 | Commit gates | `cairn hook structural\|interface\|tension\|all` |
 | Changes | `cairn change new <id>`, `cairn changes`, `cairn show <id>`, `cairn change accept` |
-| Brownfield | `cairn init --from-code`, `cairn refine`, `cairn onboard` |
+| Existing codebases | `cairn init --from-code`, `cairn refine`, `cairn onboard` |
 | Generate from intent | `cairn bundle <id>`, `cairn gap <id> --question "<text>"` |
 | Multi-project workspaces | `cairn workspace status\|lint\|frontier` |
 | Export | `cairn export --format json\|md\|mermaid` |
