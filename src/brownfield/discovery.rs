@@ -1,9 +1,9 @@
 //! Repository-wide candidate discovery for cold-start extraction.
 //!
-//! Walks the filesystem from a project root, identifies directories with
-//! enough source files to be plausible module candidates, and infers
-//! sibling edges between co-located directories. Works without an
-//! existing blueprint.
+//! Walks the filesystem from a project root and identifies directories
+//! with enough source files to be plausible module candidates. Works
+//! without an existing blueprint. Discovery never fabricates dependency
+//! edges: an edge it cannot observe in the code is not proposed.
 
 use std::{
     collections::BTreeMap,
@@ -77,8 +77,9 @@ impl Default for Extraction {
 ///
 /// Walks the filesystem up to `MAX_DEPTH`, collecting directories that
 /// contain at least `MIN_FILES` source files. Each qualifying directory
-/// becomes a `DiscoveredCandidate`. After collection, sibling edges are
-/// inferred between candidates sharing a parent directory.
+/// becomes a `DiscoveredCandidate`. No edges are inferred: proposing
+/// all-pairs "sibling" dependencies guaranteed a `CAIRN_ORDER_CYCLE`
+/// on first scan for any repo with two or more co-located modules.
 ///
 /// # Errors
 ///
@@ -120,8 +121,6 @@ pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
             });
         }
     }
-
-    infer_edges(&mut candidates);
 
     Ok(Extraction {
         candidates,
@@ -211,38 +210,6 @@ fn compute_confidence(file_count: usize) -> f64 {
     }
 }
 
-/// Infer sibling edges between candidates that share a parent directory.
-///
-/// Sibling relationships are bidirectional: if A and B share a parent,
-/// both A->B and B->A edges are recorded.
-fn infer_edges(candidates: &mut [DiscoveredCandidate]) {
-    let n = candidates.len();
-    for i in 0..n {
-        for j in (i + 1)..n {
-            if share_parent(&candidates[i].path, &candidates[j].path) {
-                let forward = DiscoveredEdge {
-                    target: candidates[j].id.clone(),
-                    description: "sibling module".to_owned(),
-                    confidence: 1.0,
-                };
-                let reverse = DiscoveredEdge {
-                    target: candidates[i].id.clone(),
-                    description: "sibling module".to_owned(),
-                    confidence: 1.0,
-                };
-                candidates[i].edges.push(forward);
-                candidates[j].edges.push(reverse);
-            }
-        }
-    }
-}
-
-fn share_parent(a: &str, b: &str) -> bool {
-    let pa = Path::new(a).parent();
-    let pb = Path::new(b).parent();
-    pa.is_some() && pa == pb
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -269,12 +236,6 @@ mod tests {
         assert!(is_ignored_dir(Path::new("/repo/target")));
         assert!(is_ignored_dir(Path::new("/repo/node_modules")));
         assert!(!is_ignored_dir(Path::new("/repo/src")));
-    }
-
-    #[test]
-    fn share_parent_detects_siblings() {
-        assert!(share_parent("src/a", "src/b"));
-        assert!(!share_parent("src/a", "lib/b"));
     }
 
     // ── is_source_file ────────────────────────────────────────────────────────
@@ -317,66 +278,6 @@ mod tests {
     #[test]
     fn test_name_from_path_single_segment_no_separator() {
         assert_eq!(name_from_path("auth"), "auth");
-    }
-
-    // ── infer_edges ───────────────────────────────────────────────────────────
-
-    fn make_candidate(id: &str, path: &str) -> DiscoveredCandidate {
-        DiscoveredCandidate {
-            id: id.to_owned(),
-            name: id.to_owned(),
-            description: String::new(),
-            path: path.to_owned(),
-            tags: Vec::new(),
-            confidence: 1.0,
-            evidence: Vec::new(),
-            edges: Vec::new(),
-        }
-    }
-
-    #[test]
-    fn test_infer_edges_bidirectional_for_siblings() {
-        let mut candidates = vec![
-            make_candidate("src.a", "src/a"),
-            make_candidate("src.b", "src/b"),
-        ];
-        infer_edges(&mut candidates);
-        assert_eq!(candidates[0].edges.len(), 1, "a must have one edge");
-        assert_eq!(candidates[0].edges[0].target, "src.b");
-        assert_eq!(candidates[1].edges.len(), 1, "b must have one edge");
-        assert_eq!(candidates[1].edges[0].target, "src.a");
-    }
-
-    #[test]
-    fn test_infer_edges_no_edge_for_non_siblings() {
-        let mut candidates = vec![
-            make_candidate("src.a", "src/a"),
-            make_candidate("lib.b", "lib/b"),
-        ];
-        infer_edges(&mut candidates);
-        assert!(candidates[0].edges.is_empty(), "different parents: no edge");
-        assert!(candidates[1].edges.is_empty(), "different parents: no edge");
-    }
-
-    #[test]
-    fn test_infer_edges_three_siblings_form_complete_graph() {
-        // A, B, C all under "src/". Each pair is a sibling → 2 edges each.
-        let mut candidates = vec![
-            make_candidate("src.a", "src/a"),
-            make_candidate("src.b", "src/b"),
-            make_candidate("src.c", "src/c"),
-        ];
-        infer_edges(&mut candidates);
-        assert_eq!(candidates[0].edges.len(), 2, "a should link to b and c");
-        assert_eq!(candidates[1].edges.len(), 2, "b should link to a and c");
-        assert_eq!(candidates[2].edges.len(), 2, "c should link to a and b");
-    }
-
-    #[test]
-    fn test_infer_edges_single_candidate_no_edges() {
-        let mut candidates = vec![make_candidate("src.a", "src/a")];
-        infer_edges(&mut candidates);
-        assert!(candidates[0].edges.is_empty());
     }
 
     // ── discover() ────────────────────────────────────────────────────────────
@@ -426,7 +327,7 @@ mod tests {
     }
 
     #[test]
-    fn test_discover_sibling_directories_get_bidirectional_edges() {
+    fn test_discover_sibling_directories_get_no_fabricated_edges() {
         let dir = tempfile::tempdir().expect("temp dir");
         let web = dir.path().join("web");
         let api = dir.path().join("api");
@@ -438,21 +339,17 @@ mod tests {
         }
         let result = discover(dir.path()).expect("discover");
         assert_eq!(result.candidates.len(), 2);
-        // Both candidates must carry exactly one sibling edge pointing to the other.
-        let web_cand = result
-            .candidates
-            .iter()
-            .find(|c| c.id == "web")
-            .expect("web candidate");
-        let api_cand = result
-            .candidates
-            .iter()
-            .find(|c| c.id == "api")
-            .expect("api candidate");
-        assert_eq!(web_cand.edges.len(), 1, "web must have one edge");
-        assert_eq!(api_cand.edges.len(), 1, "api must have one edge");
-        assert_eq!(web_cand.edges[0].target, "api");
-        assert_eq!(api_cand.edges[0].target, "web");
+        // Discovery must not invent dependency edges between co-located
+        // modules: all-pairs sibling edges made every first scan report a
+        // dependency cycle.
+        for cand in &result.candidates {
+            assert!(
+                cand.edges.is_empty(),
+                "no fabricated edges for {}: {:?}",
+                cand.id,
+                cand.edges
+            );
+        }
     }
 
     #[test]

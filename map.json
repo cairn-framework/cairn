@@ -201,8 +201,8 @@
           "kind": "function",
           "signature": "pub fn discover(root: &Path) -> Result<Extraction, CairnError>",
           "file": "src/brownfield/discovery.rs",
-          "line": 86,
-          "end_line": 130
+          "line": 87,
+          "end_line": 129
         },
         {
           "name": "enrich_candidate",
