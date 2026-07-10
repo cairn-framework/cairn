@@ -6594,6 +6594,20 @@
   ],
   "findings": [
     {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.design-studio-greenfield` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/res.design-studio-greenfield.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.github-todo-sync` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/res.github-todo-sync.md"
+    },
+    {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer",
