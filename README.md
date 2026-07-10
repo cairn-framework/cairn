@@ -5,8 +5,8 @@
 <h1 align="center">Cairn</h1>
 
 <p align="center">
-  <em>Your agent writes the map as you talk. Cairn keeps that map true, and hands it back to every future session.</em><br>
-  <strong>AI coding agents that stay oriented, burn less context, and stop breaking your architecture.</strong>
+  <em>The architecture memory your agent writes itself.</em><br>
+  <strong>Stop re-explaining your codebase every session. Your agent builds the map, you do nothing, and it is plain markdown you can delete.</strong>
 </p>
 
 <p align="center">
@@ -24,9 +24,15 @@
 
 **For developers who build with AI coding agents (Claude Code, Cursor, Codex, OMP, and friends).**
 
-Your agent re-reads the whole repo every session and still guesses wrong. It forgets last week's decisions and quietly re-litigates them. Across many sessions the code drifts from what you meant, and nobody notices until it hurts.
+Cairn is built for you if any of this sounds familiar:
 
-Cairn fixes that. You talk to your agent about what to build. Your agent writes the map as you talk: the blueprint, the contracts, the decisions. Cairn checks that map against the real code, so the plan and the shipped code always match. Every future session picks up the same map and starts already knowing your system.
+- Your agent re-reads the repo every session and still gets lost. Context burns.
+- Your agent forgets decisions and rebreaks things you settled weeks ago.
+- Work across sessions or agents drifts from the plan, and you find out too late.
+
+Cairn fixes that. You talk to your agent about what to build. Your agent writes the map as you talk: the blueprint, the contracts, the decisions. Cairn checks that map against the real code, so the plan and the shipped code always match. A wrong declaration shows up as a finding, the same as wrong code; the map can be proven wrong, and that is exactly why you can trust it. Every future session picks up the same map and starts already knowing your system.
+
+You do almost nothing. Your agent drafts the first map in one command (`cairn init --from-code`), and keeps it in sync as part of the work you already asked for. The map and all of its notes are plain markdown, plus a blueprint file and a small config file in your repo. Delete `.cairn/`, `cairn.blueprint`, and `cairn.config.yaml` and you are out clean. No lock-in, no remote server, no telemetry.
 
 Think of it like a floor plan for a house. A floor plan shows which walls hold the house up, so you do not knock down the wrong one. Cairn shows which parts of your code hold everything else up, so your agent does not break them by accident.
 
@@ -36,15 +42,7 @@ Cairn does three things:
 2. **Cairn keeps the map and the code matching.** If they drift apart, it tells you.
 3. **It hands the map to every session.** So no agent gets lost or breaks things.
 
-## Who Cairn is for
-
-**You should reach for Cairn if you build software with an AI coding agent** and you have felt any of these:
-
-- The agent re-reads the repo every session and still gets lost. Context burns.
-- The agent forgets decisions and rebreaks things you settled weeks ago.
-- Work across sessions or agents drifts from the plan, and you find out too late.
-
-**Cairn is not mainly for** people who want to hand-draw architecture diagrams or author UML-style models. You can still do that. Cairn supports hand-written blueprints. But that is the secondary path. The main path is your agent writing the map while you build.
+Cairn is not mainly for people who want to hand-draw architecture diagrams or author UML-style models. You can still do that. Cairn supports hand-written blueprints. But that is the secondary path. The main path is your agent writing the map while you build.
 
 ## What you actually gain
 
@@ -53,6 +51,57 @@ Three things change the day your agent starts writing the map.
 - **Leaner context.** Agents query the map (`cairn context`, `cairn get`, `cairn bundle`) instead of re-reading the source tree. They get structured JSON, not prose guesses.
 - **Drift blocked at commit.** `cairn hook` blocks commits that fight the declared structure or contracts. The mistake stops at the boundary, not in review.
 - **Memory across sessions.** Decisions and the reasons behind them live next to the code in git. A fresh session inherits them instead of re-deriving them.
+
+## Quickstart
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
+cairn init                                                          # scaffold blueprint + config + agent guide
+cairn scan                                                          # reconcile against code
+```
+
+<p align="center">
+  <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
+</p>
+
+Already have a codebase? Two steps and your agent takes over. Run `cairn init --from-code` to draft the map from your source tree. Then paste `.cairn/AGENTS.md` into your agent's instructions. Done: your agent keeps the map in sync from there.
+
+The first run drafts a map of your real modules and lists every place the draft and the code disagree: files on disk that no module claims (orphans), modules planned but not yet built (ghosts), and mismatches between the two. `cairn onboard` groups the leftover files and suggests where they fit. The gate only catches intent you have actually declared: contracts, forbidden dependencies, and decisions. Spell those out and the gate arms itself.
+
+See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command list in [docs/commands.md](docs/commands.md).
+
+**The Clean Exit Guarantee.** Try Cairn on a branch. If you hate it, delete `cairn.blueprint`, `cairn.config.yaml`, and `.cairn/`, and take the pasted section back out of your agent instructions. Your repo is exactly what it was.
+
+**The Nothing-Leaves-Your-Machine Guarantee.** No remote server, no cloud, no telemetry. Ever.
+
+## See it
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="docs/landing/index.html"><img src="docs/assets/screenshots/landing-full.png" alt="Cairn landing page"></a>
+      <p><strong>Landing page</strong><br>
+      <code>docs/landing/index.html</code><br>
+      Live at <a href="https://cairn-framework.github.io/cairn/">cairn-framework.github.io/cairn</a>.</p>
+    </td>
+    <td width="33%" valign="top">
+      <a href="docs/design-system/README.md"><img src="docs/assets/screenshots/design-system.png" alt="Cairn design system showcase"></a>
+      <p><strong>Design system</strong><br>
+      <code>docs/design-system/</code><br>
+      Tokens, fonts, components, and a live reference page every Cairn surface grounds on.</p>
+    </td>
+    <td width="33%" valign="top">
+      <img src="docs/assets/demo/webui.gif" alt="Cairn Graph Explorer webui: graph, node inspector, command palette with Report an issue, blueprint modal">
+      <p><strong>Graph Explorer</strong><br>
+      <code>cairn ui</code><br>
+      Local browser UI for walking the reconciled map. Runs against the current scan.</p>
+    </td>
+  </tr>
+</table>
+
+## The deep dive
+
+If you want the mechanics, the rest of this page explains how Cairn works, what lives in the map, and every command.
 
 ## Why Cairn
 
@@ -80,28 +129,11 @@ Cairn is a closed loop: your agent declares the architecture you want, it measur
 3. **Guard it (gate).** A pre-commit check blocks changes that break the plan, and warns about changes that fight an old decision.
 4. **Ask it (query).** `cairn get`, `cairn neighbourhood`, and `cairn context` hand back clean data, so agents build on facts instead of guesses.
 
-## Quickstart
-
-```sh
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
-cairn init                                                          # scaffold blueprint + config + agent guide
-cairn scan                                                          # reconcile against code
-```
-
-<p align="center">
-  <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
-</p>
-
-Already have a codebase? Two steps and your agent takes over. Run `cairn init --from-code` to draft the map from your source tree. Then paste `.cairn/AGENTS.md` into your agent's instructions. Done: your agent keeps the map in sync from there. `cairn onboard` groups any leftover files and suggests where they fit.
-
-See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command list in [docs/commands.md](docs/commands.md).
-
 ## Built for your coding agent
 
 Cairn puts your coding agent at the centre. The agent is the main reader and writer of the map, both ways:
-
 - **Plan in.** `cairn init` writes `.cairn/AGENTS.md`, a ready-made section for your project's `CLAUDE.md` or `AGENTS.md`. It teaches agents the orientation commands (`cairn context`, `cairn get`, `cairn neighbourhood`), the rule to keep the plan in sync, and the pre-commit gate.
-- **Clean answers out.** Commands take `--json` and return a stable, command-specific JSON shape (each carries a `schema_version`), so agents read structure instead of prose. `cairn-mcp` serves the same query API as MCP tools (see [docs/mcp.md](docs/mcp.md) and [docs/claude-code.md](docs/claude-code.md)).
+- **Clean answers out.** Commands take `--json` and return a versioned, command-specific JSON shape (each carries a `schema_version`), so agents read structure instead of prose. `cairn-mcp` serves the same query API as MCP tools (see [docs/mcp.md](docs/mcp.md) and [docs/claude-code.md](docs/claude-code.md)).
 - **Problems back to us.** When Cairn itself trips up on your project (a confusing message, a wrong finding, a missing feature), `cairn feedback "<what happened>"` saves it to `.cairn/feedback.md` and prints a ready-to-file issue link for [this repo's tracker](https://github.com/cairn-framework/cairn/issues). The agent guide tells agents to do this instead of quietly working around the problem, so every project that uses Cairn helps improve it.
 
 A pattern that works well for new code: your agent declares the parts you plan to build in the blueprint before any code exists. They show up as `ghost` nodes, agents treat them as a to-do list, and `cairn scan` confirms each one as it becomes real code.
@@ -183,31 +215,6 @@ Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `s
   <img src="docs/assets/demo/drift.gif" alt="a copy-paste id collision makes cairn scan surface Error findings and cairn hook structural block, then pass once fixed" width="820">
 </p>
 
-## See it
-
-<table>
-  <tr>
-    <td width="33%" valign="top">
-      <a href="docs/landing/index.html"><img src="docs/assets/screenshots/landing-full.png" alt="Cairn landing page"></a>
-      <p><strong>Landing page</strong><br>
-      <code>docs/landing/index.html</code><br>
-      Live at <a href="https://cairn-framework.github.io/cairn/">cairn-framework.github.io/cairn</a>.</p>
-    </td>
-    <td width="33%" valign="top">
-      <a href="docs/design-system/README.md"><img src="docs/assets/screenshots/design-system.png" alt="Cairn design system showcase"></a>
-      <p><strong>Design system</strong><br>
-      <code>docs/design-system/</code><br>
-      Tokens, fonts, components, and a live reference page every Cairn surface grounds on.</p>
-    </td>
-    <td width="33%" valign="top">
-      <img src="docs/assets/demo/webui.gif" alt="Cairn Graph Explorer webui: graph, node inspector, command palette with Report an issue, blueprint modal">
-      <p><strong>Graph Explorer</strong><br>
-      <code>cairn ui</code><br>
-      Local browser UI for walking the reconciled map. Runs against the current scan.</p>
-    </td>
-  </tr>
-</table>
-
 ## FAQ
 
 **Do I have to write and maintain the blueprint myself?**
@@ -225,15 +232,25 @@ Yes. `cairn init --from-code` drafts the map from your source tree. `cairn onboa
 **What about a brand new project?**
 Best case: your agent declares parts before the code exists (ghost nodes), builds against them, and `cairn scan` confirms each one as it lands.
 
+**What if my agent writes a wrong blueprint?**
+The map is plain markdown that diffs in review like code. `cairn scan` reports every place the map and the code disagree, in both directions, so a wrong declaration shows up as a finding instead of hiding. You arbitrate by editing either side. Cairn does not read your intent, so it will not flag a declaration you meant but that happens to be wrong: it only flags mismatches between what you wrote and what the code does.
+
+**Can an agent just bypass the hook?**
+The gate is one command with real exit codes: `cairn hook all`. It is documented for CI pipelines as well as pre-commit (see [docs/hooks.md](docs/hooks.md)), so you can run it where agents cannot skip it, such as a CI job that must pass before a merge.
+
+**Will it drown me in findings?**
+No. Only two kinds of finding can block a commit: broken structure or a changed interface. Everything else is advice. Cairn reports it and ranks it, and you choose when to act on it.
+
 ## Status
 
-Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped; Cairn is not yet on crates.io and the CLI surface may still move. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
+Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped. Cairn is not yet on crates.io and the CLI surface may still move, but every artefact it writes is plain markdown in your repo, so a format change cannot strand your data: you can read or drop it with no special tool. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
 
 ## Feedback
 
 Something confusing or broken? Run `cairn feedback "<what you expected, what happened instead>"`. It saves your note to `.cairn/feedback.md` and prints a link you can open to file it upstream. If `cairn` crashes, it prints the same kind of link on its own.
 
 Nothing is ever sent for you. No telemetry, no background network calls. Every report is a link you choose to open in your own browser.
+If Cairn saves you time, the Ko-fi link in the header is how to say thanks.
 
 ## Development
 
