@@ -72,7 +72,7 @@ r/ClaudeCode ~281k members growing ~2.9k/day (FreeSubStats 2026).
 Congregation points: r/ClaudeCode, r/ClaudeAI, r/CursorAI, r/ChatGPTCoding,
 r/LocalLLaMA, Cursor and Anthropic Discords, Latent Space, Simon Willison.
 
-## Personas (drafts pending maintainer validation)
+## Personas (validated by maintainer, 2026-07-10)
 
 1. Solo agent-native builder. Ships side projects with Claude Code on a
    capped plan. Pain: token anxiety, sessions starting blind, agent rewrites

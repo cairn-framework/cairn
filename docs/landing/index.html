@@ -1128,6 +1128,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
     <div class="kicker">Get started</div>
     <h2 class="section">You can be scanning your repo in under a minute.</h2>
     <p class="section-lede">One tool. One file, written by your agent. One command to scan. Your first <code>map.md</code> lands on disk the first time you run it, and your agents read it on the next prompt. Built for developers who ship with coding agents and hate re-explaining the system every session.</p>
+    <p class="section-lede">Fastest path: paste this into your coding agent and it does the whole setup with you: <code>Read https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/agent-setup.md and follow it to set up Cairn in this repo.</code></p>
     <p class="section-lede">Hate it? Delete <code>cairn.blueprint</code>, <code>cairn.config.yaml</code>, <code>.cairn/</code>, and the generated map files, and take the pasted section back out of your agent instructions. Your repo is exactly what it was.</p>
 
     <div class="install-grid">
@@ -1146,7 +1147,7 @@ footer.site .fnav a:hover { color: var(--ink-char); }
 <span class="prompt">$</span> <span class="cmd">cairn contract</span> <span class="arg">auth.api.tokens</span>
 <span class="prompt">$</span> <span class="cmd">cairn deps</span> <span class="arg">auth.api.tokens</span> <span class="flag">--transitive</span>
 <span class="prompt">$</span> <span class="cmd">cairn lint</span> <span class="flag">--json</span>              <span class="comment"># all findings</span>
-<span class="prompt">$</span> <span class="cmd">cairn hooks install</span>            <span class="comment"># pre-commit, pre-merge</span></pre>
+<span class="prompt">$</span> <span class="cmd">cairn hook all</span>                 <span class="comment"># the drift gate: wire into pre-commit or CI</span></pre>
       </div>
     </div>
   </section>
