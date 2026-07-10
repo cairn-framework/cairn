@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/assets/screenshots/landing-hero.png" alt="Cairn landing page hero" width="820">
-</p>
-
 <h1 align="center">Cairn</h1>
 
 <p align="center">
@@ -17,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/demo/tour.gif" alt="cairn status, cairn scan, cairn get, and cairn lint in a terminal" width="820">
+  <img src="docs/assets/demo/brownfield.gif" alt="cairn init --from-code on an existing project: reviewable proposal, archive, scan, and the first map.md" width="820">
 </p>
 
 ## What is Cairn
@@ -41,6 +37,16 @@ Cairn does three things:
 1. **Your agent writes the map.** What the parts are and how they fit, noted as you build.
 2. **Cairn keeps the map and the code matching.** If they drift apart, it tells you.
 3. **It hands the map to every session.** So no agent gets lost or breaks things.
+
+```mermaid
+flowchart LR
+    Y([You talk]) --> A[Agent writes code + map]
+    A --> C{Cairn reconciles<br>map vs code}
+    C -->|match| M[Map travels in git]
+    C -->|drift| F[Finding reported<br>structural breaks blocked at commit]
+    M --> S[Next session starts<br>knowing your system]
+    S --> A
+```
 
 Cairn is not mainly for people who want to hand-draw architecture diagrams or author UML-style models. You can still do that. Cairn supports hand-written blueprints. But that is the secondary path. The main path is your agent writing the map while you build.
 
@@ -212,6 +218,10 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 | Report Cairn friction | `cairn feedback "<message>"` |
 
 Run `cairn --help` for the full list; commands accept `--file <path>` and `--json` (`cairn init` is the exception: it always scaffolds the current directory). Full reference: [docs/commands.md](docs/commands.md).
+
+<p align="center">
+  <img src="docs/assets/demo/tour.gif" alt="cairn status, cairn scan, cairn get, and cairn lint in a terminal" width="820">
+</p>
 
 ## Hooks
 

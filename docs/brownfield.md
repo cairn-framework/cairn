@@ -6,7 +6,7 @@ Brownfield extraction turns an existing codebase into a Cairn blueprint without 
 
 ### `cairn init --from-code`
 
-Scans the current repository, discovers module-like directories, and writes a brownfield-init change under `openspec/changes/brownfield-init/`.
+Scans the current repository, discovers module-like directories, and writes a brownfield-init change under `meta/changes/brownfield-init/`.
 
 ```bash
 cairn init --from-code
@@ -38,17 +38,13 @@ The discovery engine walks the filesystem and identifies directories that look l
 
 ### Confidence scoring
 
-Each candidate receives a confidence score based on observed imports:
+Each candidate receives a confidence score from its source-file count:
 
-```
-coupling_score = (internal_imports + 1) / (external_imports + 1)
-```
+- **1.0**: 5 or more source files.
+- **0.7**: 3 or 4 source files.
+- **0.3**: below the candidate threshold (only reachable for pre-seeded candidates).
 
-- **High** (`score >= 2.0`): strong internal cohesion, few external imports.
-- **Medium** (`score >= 1.0`): balanced internal and external imports.
-- **Low** (`score < 1.0`): mostly external imports, weak cohesion.
-
-Low-confidence candidates are still emitted but marked for review.
+Lower-confidence candidates are still emitted but deserve closer review.
 
 ### Candidate naming
 
@@ -73,7 +69,7 @@ The workflow is identical to any other Cairn change: extraction produces a propo
 A brownfield change directory contains:
 
 ```
-openspec/changes/brownfield-init/
+meta/changes/brownfield-init/
   proposal.md           # human-readable summary
   blueprint.delta       # machine-readable delta operations
   contracts/
@@ -99,7 +95,7 @@ Brownfield extraction is a starting point, not a finished architecture. It canno
 - Infer semantic relationships that are not visible in the filesystem or imports.
 - Distinguish a well-designed module from a grab-bag of unrelated files in the same directory.
 - Detect architectural layers (e.g., hexagonal ports and adapters) without code-level evidence.
-- Guarantee that inferred edges are correct; they are structural siblings, not verified dependencies.
+- Propose dependency edges. Discovery never fabricates an edge it cannot observe, so the first draft has nodes only; declare edges as you review. (Earlier versions emitted all-pairs "sibling" edges, which guaranteed a false dependency cycle on first scan.)
 
 Always review generated proposals before archiving. The confidence score is a heuristic, not a correctness proof.
 
@@ -118,7 +114,7 @@ Both `cairn init --from-code` and `cairn refine` run the suggest engine after de
 
 ### Queue file contract
 
-Suggested edges are written to `openspec/changes/<change>/suggested-edges.json` using the phase-7.6 queue schema:
+Suggested edges are written to `meta/changes/<change>/suggested-edges.json` using the phase-7.6 queue schema:
 
 - `version`: always `1`.
 - `entries`: array of `SuggestedEdgeEntry` values.
@@ -141,7 +137,7 @@ The interview runner supports multi-round elicitation for brownfield onboarding 
 
 ### Session file
 
-A session is persisted at `openspec/changes/<change>/research/interview-session.json` while in progress. It contains:
+A session is persisted at `meta/changes/<change>/research/interview-session.json` while in progress. It contains:
 
 - `version`: schema version (currently `1`).
 - `change_id`: the change this session belongs to.
@@ -155,7 +151,7 @@ If `interview-session.json` exists and `complete` is `false`, the runner resumes
 
 ### Genesis transcript
 
-When the session completes, the runner writes `openspec/changes/<change>/research/genesis.md` and removes the transient session file. The genesis transcript carries the user-visible Q/A turns plus the final premise. System prompts and intermediate session state stay out.
+When the session completes, the runner writes `meta/changes/<change>/research/genesis.md` and removes the transient session file. The genesis transcript carries the user-visible Q/A turns plus the final premise. System prompts and intermediate session state stay out.
 
 ## Templated authoring
 

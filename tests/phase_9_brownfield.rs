@@ -520,32 +520,26 @@ mod fixture_integration {
         );
     }
 
-    /// Scenario: Sibling edges are bidirectional for dirs sharing a parent.
+    /// Scenario: Discovery proposes no dependency edges it cannot observe.
+    /// Regression: all-pairs bidirectional "sibling" edges guaranteed a
+    /// false `CAIRN_ORDER_CYCLE` on the first scan of any repo with two or
+    /// more co-located modules.
     #[test]
-    fn test_discovery__sibling_edges_bidirectional() {
+    fn test_discovery__no_fabricated_sibling_edges() {
         let root = temp_repo("sibling-edges");
         populate_source_dir(&root, "src/alpha", 4);
         populate_source_dir(&root, "src/beta", 3);
 
         let extraction = discovery::discover(&root).unwrap();
-        let alpha = extraction
-            .candidates
-            .iter()
-            .find(|c| c.id == "src.alpha")
-            .expect("should discover src.alpha");
-        let beta = extraction
-            .candidates
-            .iter()
-            .find(|c| c.id == "src.beta")
-            .expect("should discover src.beta");
-
-        // alpha -> beta edge
-        let alpha_to_beta = alpha.edges.iter().any(|e| e.target == "src.beta");
-        assert!(alpha_to_beta, "alpha should have edge to beta");
-
-        // beta -> alpha edge
-        let beta_to_alpha = beta.edges.iter().any(|e| e.target == "src.alpha");
-        assert!(beta_to_alpha, "beta should have edge to alpha");
+        assert_eq!(extraction.candidates.len(), 2, "both dirs discovered");
+        for cand in &extraction.candidates {
+            assert!(
+                cand.edges.is_empty(),
+                "{} must carry no fabricated edges: {:?}",
+                cand.id,
+                cand.edges
+            );
+        }
     }
 }
 
