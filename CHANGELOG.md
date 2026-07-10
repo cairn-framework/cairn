@@ -11,7 +11,7 @@ Minor version bump: the CLI command surface changed shape (old subcommand names 
 - The `draft_*` commands are collapsed into one `cairn draft` subcommand (#204).
 - The command surface is now derived from the `query_api` registry (#228), and human-readable renderers consume the same canonical `query_api` JSON as `--json` output (#230), so the two output modes can no longer drift.
 
-### Webui
+### Web UI
 
 - Severity/drift visual encoding on the graph (#212).
 - "Trace the truth" hinge: a decision's missing provenance ("no sources recorded") is now a visibly distinct gap in the inspector instead of the quietest text on the panel (#213).
