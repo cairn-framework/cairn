@@ -64,9 +64,9 @@ cairn scan                                                          # reconcile 
   <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
 </p>
 
-Already have a codebase? Two steps and your agent takes over. Run `cairn init --from-code` to draft the map from your source tree. Then paste `.cairn/AGENTS.md` into your agent's instructions. Done: your agent keeps the map in sync from there.
+Already have a codebase? Run `cairn init --from-code` to draft the map from your source tree as a reviewable proposal. Then paste `.cairn/AGENTS.md` into your agent's instructions. Your agent reviews the draft, applies it with `cairn change archive brownfield-init`, and keeps the map in sync from there.
 
-The first run drafts a map of your real modules and lists every place the draft and the code disagree: files on disk that no module claims (orphans), modules planned but not yet built (ghosts), and mismatches between the two. `cairn onboard` groups the leftover files and suggests where they fit. The gate only catches intent you have actually declared: contracts, forbidden dependencies, and decisions. Spell those out and the gate arms itself.
+Once the draft is applied, `cairn scan` writes the map and lists every place the map and the code disagree: files on disk that no module claims (orphans), modules planned but not yet built (ghosts), and mismatches between the two. `cairn onboard` groups the leftover files and suggests where they fit. The gate only catches intent you have actually declared: contracts, forbidden dependencies, and decisions. Spell those out and the gate arms itself.
 
 See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command list in [docs/commands.md](docs/commands.md).
 
@@ -169,7 +169,7 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 
 - Reads a `cairn.blueprint` (agent-written or hand-written) into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
 - Checks declared nodes against real files on disk and marks `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter, extracting structured public symbols (`cairn get <id> --symbols`) rather than flattening them into a hash.
-- Writes `map.md` (human-readable) and a committed, deterministic `map.json` snapshot with generated frontmatter, active changes, and ranked findings agents can read.
+- Writes `map.md` (human-readable) and a committed, deterministic `map.json` snapshot with generated frontmatter, active changes, and findings agents can read.
 - Computes steady interface hashes and spots contract drift between revisions; contracts can declare an `interface:` block checked against extracted symbols.
 - Surfaces `interface contradictions` (blocking) and `rationale tensions` (advisory), so commits that break the chain never land quietly.
 - Tracks structured changes (`meta/changes/`) with delta semantics and an acceptance gate (`cairn accept`); the change system is format, validation, and apply/archive only, not a task scheduler.
@@ -239,7 +239,7 @@ The map is plain markdown that diffs in review like code. `cairn scan` reports e
 The gate is one command with real exit codes: `cairn hook all`. It is documented for CI pipelines as well as pre-commit (see [docs/hooks.md](docs/hooks.md)), so you can run it where agents cannot skip it, such as a CI job that must pass before a merge.
 
 **Will it drown me in findings?**
-No. Only two kinds of finding can block a commit: broken structure or a changed interface. Everything else is advice. Cairn reports it and ranks it, and you choose when to act on it.
+No. Only two kinds of finding can block a commit: broken structure or a changed interface. Everything else is advice. Cairn reports it, and you choose when to act on it.
 
 ## Status
 
