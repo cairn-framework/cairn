@@ -1,6 +1,6 @@
 ---
 node: cairn.lsp
-status: open
+status: done
 created: 2026-07-06
 ---
 
@@ -35,3 +35,45 @@ private rescan loop; the extracted loop is the single implementation used
 by both CLI watch and LSP; existing LSP diagnostics and watch tests
 green; manual smoke: `cairn-lsp` publishes diagnostics for a blueprint
 edit in an editor session or scripted stdio exchange.
+
+
+## Resolution
+
+Done 2026-07-10. `src/watch.rs::run_watch_loop` is the single shared periodic
+scan loop; both `src/cli/commands/watch.rs::run_watch_command` (CLI watch) and
+`src/lsp/diagnostics.rs::start_watch_thread` (LSP background rescan) drive it.
+The LSP sources findings from the spine's `lint` operation via the new
+`crate::query_api::lint_findings` instead of calling `scanner::scan`.
+`src/lsp` now contains no `scanner::scan` call and no private rescan loop; the
+watch thread translates `WatchEvent`s into `publishDiagnostics` through
+`DiagnosticPublisher::apply_events`. Existing LSP and watch tests pass; a
+scripted stdio smoke of `cairn-lsp` confirmed diagnostics publish for the
+project's findings (see `meta/todos/the smoke evidence below`).
+
+### Smoke evidence (stdio exchange)
+
+```
+LSP stdio smoke test — target/release/cairn-lsp --root /Users/george/repos/cairn-wt/lsp-spine
+Date: 2026-07-10
+
+Sequence:
+  client -> initialize (id=1)
+  server -> InitializeResult (id=1)
+  client -> initialized (notification)
+  server -> textDocument/publishDiagnostics  (watch thread initial scan via shared loop)
+  client -> shutdown (id=2)
+  server -> {} (id=2)
+  client -> exit (notification)
+  server exits cleanly (no stderr)
+
+Observed publishDiagnostics:
+  URI: file:///Users/george/repos/cairn-wt/lsp-spine/docs/registries/spec-rules.md
+  diagnostics: 1
+    message: spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer
+    severity: 3 (info)
+    source: cairn
+
+Interpretation: the LSP background rescan is driven by crate::watch::run_watch_loop
+with a scan closure that calls crate::query_api::lint_findings (the shared lint
+operation). No scanner::scan call and no private rescan loop remain in src/lsp.
+```

@@ -6,6 +6,9 @@
 use crate::map::graph::Finding;
 use serde::Serialize;
 use std::collections::BTreeMap;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 /// Configuration for the watch loop.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WatchOpts {
@@ -141,6 +144,54 @@ pub fn diff_findings(old: &[Finding], new: &[Finding]) -> Vec<WatchEvent> {
     }
 
     events
+}
+
+/// Runs the shared periodic watch loop until `stop` is set.
+///
+/// `scan` returns the current finding set, or an error string on failure.
+/// After every scan, including the first (diffed against an empty baseline),
+/// `on_diff` receives the `WatchEvent`s produced by `diff_findings`. This lets
+/// one loop drive both the CLI `watch` command and the LSP background rescan.
+///
+/// Scan failures are non-fatal: the loop logs and reuses the previous set,
+/// then keeps polling. A failed `on_diff` ends the loop and returns the error
+/// so callers (such as the LSP) can stop on client disconnect.
+///
+/// # Errors
+///
+/// Returns the error string from `on_diff` if a diff handler fails.
+pub fn run_watch_loop<F, H>(
+    opts: &WatchOpts,
+    stop: &Arc<AtomicBool>,
+    mut scan: F,
+    mut on_diff: H,
+) -> Result<(), String>
+where
+    F: FnMut() -> Result<Vec<Finding>, String>,
+    H: FnMut(&[WatchEvent]) -> Result<(), String>,
+{
+    let mut previous = scan().unwrap_or_else(|error| {
+        eprintln!("cairn watch: scan error: {error}");
+        Vec::new()
+    });
+    let events = diff_findings(&[], &previous);
+    on_diff(&events)?;
+
+    let interval = Duration::from_secs(opts.interval_secs);
+    while !stop.load(Ordering::SeqCst) {
+        std::thread::sleep(interval);
+        if stop.load(Ordering::SeqCst) {
+            break;
+        }
+        let current = scan().unwrap_or_else(|error| {
+            eprintln!("cairn watch: scan error: {error}");
+            previous.clone()
+        });
+        let events = diff_findings(&previous, &current);
+        on_diff(&events)?;
+        previous = current;
+    }
+    Ok(())
 }
 
 fn now_iso8601() -> String {

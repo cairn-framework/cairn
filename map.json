@@ -2069,16 +2069,16 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 323,
-          "end_line": 330
+          "line": 339,
+          "end_line": 346
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 334,
-          "end_line": 341
+          "line": 350,
+          "end_line": 357
         },
         {
           "name": "execute",
@@ -2143,6 +2143,14 @@
           "file": "src/query_api/handlers/bundle.rs",
           "line": 12,
           "end_line": 95
+        },
+        {
+          "name": "lint_findings",
+          "kind": "function",
+          "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
+          "file": "src/query_api/mod.rs",
+          "line": 329,
+          "end_line": 335
         }
       ]
     },
@@ -2484,8 +2492,16 @@
           "kind": "const",
           "signature": "pub const MIN_INTERVAL_SECS u64",
           "file": "src/lsp/diagnostics.rs",
-          "line": 24,
-          "end_line": 24
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "apply_events",
+          "kind": "function",
+          "signature": "pub fn apply_events(&mut self, events: &[WatchEvent]) -> Result<(), String>",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 50,
+          "end_line": 96
         },
         {
           "name": "from_args",
@@ -2506,10 +2522,10 @@
         {
           "name": "new",
           "kind": "function",
-          "signature": "pub fn new(sender: Sender<Message>) -> Self",
+          "signature": "pub fn new(sender: Sender<Message>, root: Utf8PathBuf) -> Self",
           "file": "src/lsp/diagnostics.rs",
           "line": 35,
-          "end_line": 40
+          "end_line": 41
         },
         {
           "name": "run",
@@ -2520,20 +2536,12 @@
           "end_line": 67
         },
         {
-          "name": "scan_and_publish",
-          "kind": "function",
-          "signature": "pub fn scan_and_publish( &mut self, root: &Utf8Path, blueprint: &Utf8Path, ) -> Result<bool, CairnError>",
-          "file": "src/lsp/diagnostics.rs",
-          "line": 49,
-          "end_line": 72
-        },
-        {
           "name": "start_watch_thread",
           "kind": "function",
           "signature": "pub fn start_watch_thread( sender: Sender<Message>, root: Utf8PathBuf, interval: Duration, stop: Arc<AtomicBool>, )",
           "file": "src/lsp/diagnostics.rs",
-          "line": 93,
-          "end_line": 116
+          "line": 118,
+          "end_line": 142
         },
         {
           "name": "diagnostics",
@@ -2556,7 +2564,7 @@
           "kind": "struct",
           "signature": "pub struct DiagnosticPublisher",
           "file": "src/lsp/diagnostics.rs",
-          "line": 27,
+          "line": 24,
           "end_line": 30
         },
         {
@@ -2572,8 +2580,16 @@
           "kind": "const",
           "signature": "pub const MIN_INTERVAL_SECS u64",
           "file": "src/lsp/diagnostics.rs",
-          "line": 24,
-          "end_line": 24
+          "line": 21,
+          "end_line": 21
+        },
+        {
+          "name": "apply_events",
+          "kind": "function",
+          "signature": "pub fn apply_events(&mut self, events: &[WatchEvent]) -> Result<(), String>",
+          "file": "src/lsp/diagnostics.rs",
+          "line": 50,
+          "end_line": 96
         },
         {
           "name": "from_args",
@@ -2594,10 +2610,10 @@
         {
           "name": "new",
           "kind": "function",
-          "signature": "pub fn new(sender: Sender<Message>) -> Self",
+          "signature": "pub fn new(sender: Sender<Message>, root: Utf8PathBuf) -> Self",
           "file": "src/lsp/diagnostics.rs",
           "line": 35,
-          "end_line": 40
+          "end_line": 41
         },
         {
           "name": "run",
@@ -2608,20 +2624,12 @@
           "end_line": 67
         },
         {
-          "name": "scan_and_publish",
-          "kind": "function",
-          "signature": "pub fn scan_and_publish( &mut self, root: &Utf8Path, blueprint: &Utf8Path, ) -> Result<bool, CairnError>",
-          "file": "src/lsp/diagnostics.rs",
-          "line": 49,
-          "end_line": 72
-        },
-        {
           "name": "start_watch_thread",
           "kind": "function",
           "signature": "pub fn start_watch_thread( sender: Sender<Message>, root: Utf8PathBuf, interval: Duration, stop: Arc<AtomicBool>, )",
           "file": "src/lsp/diagnostics.rs",
-          "line": 93,
-          "end_line": 116
+          "line": 118,
+          "end_line": 142
         },
         {
           "name": "diagnostics",
@@ -2644,7 +2652,7 @@
           "kind": "struct",
           "signature": "pub struct DiagnosticPublisher",
           "file": "src/lsp/diagnostics.rs",
-          "line": 27,
+          "line": 24,
           "end_line": 30
         },
         {
@@ -6312,32 +6320,40 @@
           "kind": "enum",
           "signature": "pub enum WatchEvent",
           "file": "src/watch.rs",
-          "line": 65,
-          "end_line": 82
+          "line": 68,
+          "end_line": 85
         },
         {
           "name": "diff_findings",
           "kind": "function",
           "signature": "pub fn diff_findings(old: &[Finding], new: &[Finding]) -> Vec<WatchEvent>",
           "file": "src/watch.rs",
-          "line": 91,
-          "end_line": 144
+          "line": 94,
+          "end_line": 147
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/watch.rs",
-          "line": 33,
-          "end_line": 59
+          "line": 36,
+          "end_line": 62
+        },
+        {
+          "name": "run_watch_loop",
+          "kind": "function",
+          "signature": "pub fn run_watch_loop<F, H>( opts: &WatchOpts, stop: &Arc<AtomicBool>, mut scan: F, mut on_diff: H, ) -> Result<(), String> where F: FnMut() -> Result<Vec<Finding>, String>, H: FnMut(&[WatchEvent]) -> Result<(), String>,",
+          "file": "src/watch.rs",
+          "line": 163,
+          "end_line": 195
         },
         {
           "name": "WatchOpts",
           "kind": "struct",
           "signature": "pub struct WatchOpts",
           "file": "src/watch.rs",
-          "line": 11,
-          "end_line": 16
+          "line": 14,
+          "end_line": 19
         }
       ]
     },

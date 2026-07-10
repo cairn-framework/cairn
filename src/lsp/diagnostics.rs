@@ -3,10 +3,7 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
     str::FromStr,
-    sync::{
-        Arc,
-        atomic::{AtomicBool, Ordering},
-    },
+    sync::{Arc, atomic::AtomicBool},
     time::Duration,
 };
 
@@ -17,8 +14,8 @@ use lsp_types::{
     Diagnostic, DiagnosticSeverity, NumberOrString, Position, PublishDiagnosticsParams, Range, Uri,
 };
 
-use crate::error::CairnError;
 use crate::map::graph::{Finding, FindingSeverity};
+use crate::watch::{WatchEvent, WatchOpts};
 
 /// Background scan interval floor in seconds.
 pub const MIN_INTERVAL_SECS: u64 = 1;
@@ -26,49 +23,76 @@ pub const MIN_INTERVAL_SECS: u64 = 1;
 /// Publishes Cairn findings as LSP diagnostics.
 pub struct DiagnosticPublisher {
     sender: Sender<Message>,
-    previous_uris: BTreeSet<String>,
+    root: Utf8PathBuf,
+    /// Current finding set, keyed by file URI, so `WatchEvent`s can be applied
+    /// incrementally and only changed URIs republished.
+    state: BTreeMap<String, Vec<Finding>>,
 }
 
 impl DiagnosticPublisher {
     /// Creates a new publisher bound to the LSP message sender.
     #[must_use]
-    pub fn new(sender: Sender<Message>) -> Self {
+    pub fn new(sender: Sender<Message>, root: Utf8PathBuf) -> Self {
         Self {
             sender,
-            previous_uris: BTreeSet::new(),
+            root,
+            state: BTreeMap::new(),
         }
     }
 
-    /// Scans the project and publishes diagnostic deltas.
-    ///
-    /// Returns `true` if the LSP client is still connected.
+    /// Applies a batch of watch events and publishes diagnostics for every
+    /// affected URI. Returns an error (which stops the watch loop) when the
+    /// LSP client has disconnected.
     ///
     /// # Errors
     ///
-    /// Returns an error if the project scan fails.
-    pub fn scan_and_publish(
-        &mut self,
-        root: &Utf8Path,
-        blueprint: &Utf8Path,
-    ) -> Result<bool, CairnError> {
-        let findings = project_findings(root, blueprint)?;
-        let by_uri = findings_by_uri(&findings, root);
-        let current_uris: BTreeSet<String> = by_uri.keys().cloned().collect();
+    /// Returns an error string when publishing to a disconnected client fails.
+    pub fn apply_events(&mut self, events: &[WatchEvent]) -> Result<(), String> {
+        let mut affected: BTreeSet<String> = BTreeSet::new();
+        for event in events {
+            let (finding, added) = match event {
+                WatchEvent::FindingAdded { finding, .. } => (finding, true),
+                WatchEvent::FindingResolved { finding, .. } => (finding, false),
+            };
+            let Some(uri) = finding_uri(finding, &self.root) else {
+                continue;
+            };
+            if added {
+                self.state
+                    .entry(uri.clone())
+                    .or_default()
+                    .push(finding.clone());
+            } else {
+                let key = finding_key(finding);
+                if let Some(entry) = self.state.get_mut(&uri) {
+                    entry.retain(|f| finding_key(f) != key);
+                }
+            }
+            affected.insert(uri);
+        }
 
         let mut connected = true;
-        for uri in self.previous_uris.difference(&current_uris) {
-            if !self.publish(uri, Vec::new()) {
-                connected = false;
-            }
-        }
-        for (uri, diagnostics) in by_uri {
+        for uri in affected {
+            let diagnostics: Vec<Diagnostic> = self
+                .state
+                .get(&uri)
+                .map(|findings| findings.iter().map(finding_to_diagnostic).collect())
+                .unwrap_or_default();
             if !self.publish(&uri, diagnostics) {
                 connected = false;
             }
+            if let Some(findings) = self.state.get(&uri)
+                && findings.is_empty()
+            {
+                self.state.remove(&uri);
+            }
         }
 
-        self.previous_uris = current_uris;
-        Ok(connected)
+        if connected {
+            Ok(())
+        } else {
+            Err("cairn-lsp: client disconnected".to_owned())
+        }
     }
 
     /// Sends a `textDocument/publishDiagnostics` notification.
@@ -89,7 +113,8 @@ impl DiagnosticPublisher {
     }
 }
 
-/// Runs the diagnostic watch loop on a background thread.
+/// Runs the diagnostic watch loop on a background thread, sourcing findings
+/// from the shared `lint` query operation rather than scanning directly.
 pub fn start_watch_thread(
     sender: Sender<Message>,
     root: Utf8PathBuf,
@@ -98,31 +123,26 @@ pub fn start_watch_thread(
 ) {
     std::thread::spawn(move || {
         let blueprint = root.join("cairn.blueprint");
-        let mut publisher = DiagnosticPublisher::new(sender);
-        while !stop.load(Ordering::SeqCst) {
-            match publisher.scan_and_publish(&root, &blueprint) {
-                Ok(continue_running) => {
-                    if !continue_running {
-                        break;
-                    }
-                }
-                Err(error) => {
-                    eprintln!("cairn-lsp: scan error: {error}");
-                }
+        let mut publisher = DiagnosticPublisher::new(sender, root.clone());
+        let opts = WatchOpts {
+            interval_secs: interval.as_secs().max(1),
+            once: false,
+        };
+        let scan = {
+            let root = root.clone();
+            let blueprint = blueprint.clone();
+            move || {
+                crate::query_api::lint_findings(root.as_std_path(), blueprint.as_std_path())
+                    .map_err(|error| error.message)
             }
-            std::thread::sleep(interval);
-        }
+        };
+        let on_diff = |events: &[WatchEvent]| publisher.apply_events(events);
+        let _ = crate::watch::run_watch_loop(&opts, &stop, scan, on_diff);
     });
 }
 
-/// Scans the project and returns its findings.
-fn project_findings(root: &Utf8Path, blueprint: &Utf8Path) -> Result<Vec<Finding>, CairnError> {
-    let result = crate::scanner::scan(root.as_std_path(), blueprint.as_std_path())
-        .map_err(|error| CairnError::ScannerLoad { detail: error })?;
-    Ok(result.graph.findings)
-}
-
 /// Groups findings by their file URI string.
+#[cfg(test)]
 fn findings_by_uri(findings: &[Finding], root: &Utf8Path) -> BTreeMap<String, Vec<Diagnostic>> {
     let mut map: BTreeMap<String, Vec<Diagnostic>> = BTreeMap::new();
     for finding in findings {
@@ -168,6 +188,16 @@ fn finding_to_diagnostic(finding: &Finding) -> Diagnostic {
         tags: None,
         data: None,
     }
+}
+
+/// Stable key for a finding, matching the diff algorithm in `crate::watch`.
+fn finding_key(finding: &Finding) -> (String, Option<String>, Option<String>, Option<String>) {
+    (
+        finding.code.clone(),
+        finding.node.clone(),
+        finding.target.clone(),
+        finding.path.clone(),
+    )
 }
 
 /// Returns a zero-length range at the start of a file.
