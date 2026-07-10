@@ -5,8 +5,8 @@
 <h1 align="center">Cairn</h1>
 
 <p align="center">
-  <em>Your agent gets lost in your repo every session. Give it the map.</em><br>
-  <strong>A living map of your code that AI helpers read before they build, and that catches them when they break the plan.</strong>
+  <em>Your agent writes the map as you talk. Cairn keeps that map true, and hands it back to every future session.</em><br>
+  <strong>AI coding agents that stay oriented, burn less context, and stop breaking your architecture.</strong>
 </p>
 
 <p align="center">
@@ -22,23 +22,43 @@
 
 ## What is Cairn
 
-Picture a big codebase that many people and AI helpers all change at once. It is easy to break something, because nobody can see the whole thing at one time.
+**For developers who build with AI coding agents (Claude Code, Cursor, Codex, OMP, and friends).**
 
-Cairn is a map of your code that is always kept true. You write down the plan: what the parts are, what each one is for, and how they fit. Cairn then checks the real code against that plan. When the code and the plan stop matching, Cairn says so. And it hands the plan to every AI helper, so they start out knowing where they are instead of guessing.
+Your agent re-reads the whole repo every session and still guesses wrong. It forgets last week's decisions and quietly re-litigates them. Across many sessions the code drifts from what you meant, and nobody notices until it hurts.
 
-It works like a floor plan for a house. A floor plan shows you which walls hold the house up, so you do not knock down the wrong one. Cairn shows which parts of your code hold everything else up, so you (or an AI helper) do not break them by accident.
+Cairn fixes that. You talk to your agent about what to build. Your agent writes the map as you talk: the blueprint, the contracts, the decisions. Cairn checks that map against the real code, so the plan and the shipped code always match. Every future session picks up the same map and starts already knowing your system.
+
+Think of it like a floor plan for a house. A floor plan shows which walls hold the house up, so you do not knock down the wrong one. Cairn shows which parts of your code hold everything else up, so your agent does not break them by accident.
 
 Cairn does three things:
 
-1. **You write the plan.** What the parts are and how they fit.
-2. **Cairn keeps the plan and the code matching.** If they drift apart, it tells you.
-3. **It hands the plan to every helper.** So nobody gets lost or breaks things.
+1. **Your agent writes the map.** What the parts are and how they fit, noted as you build.
+2. **Cairn keeps the map and the code matching.** If they drift apart, it tells you.
+3. **It hands the map to every session.** So no agent gets lost or breaks things.
+
+## Who Cairn is for
+
+**You should reach for Cairn if you build software with an AI coding agent** and you have felt any of these:
+
+- The agent re-reads the repo every session and still gets lost. Context burns.
+- The agent forgets decisions and rebreaks things you settled weeks ago.
+- Work across sessions or agents drifts from the plan, and you find out too late.
+
+**Cairn is not mainly for** people who want to hand-draw architecture diagrams or author UML-style models. You can still do that. Cairn supports hand-written blueprints. But that is the secondary path. The main path is your agent writing the map while you build.
+
+## What you actually gain
+
+Three things change the day your agent starts writing the map.
+
+- **Leaner context.** Agents query the map (`cairn context`, `cairn get`, `cairn bundle`) instead of re-reading the source tree. They get structured JSON, not prose guesses.
+- **Drift blocked at commit.** `cairn hook` blocks commits that fight the declared structure or contracts. The mistake stops at the boundary, not in review.
+- **Memory across sessions.** Decisions and the reasons behind them live next to the code in git. A fresh session inherits them instead of re-deriving them.
 
 ## Why Cairn
 
 Other tools do half the job. Knowledge graphs *describe* your code but never stop a bad change. Coding agents *change* your code but have no sense of the plan. Static analysis checks spelling and style, not whether a change fits.
 
-Cairn is the missing piece in the middle. You write the plan in a `cairn.blueprint` file. Cairn checks that plan against the code you actually shipped, blocks commits that break it, and gives every agent a map drawn from the real code, not a guess.
+Cairn is the missing piece in the middle. Your agent writes the plan in a `cairn.blueprint` file as part of the work you already asked it to do. Cairn checks that plan against the code you actually shipped, blocks commits that break it, and gives every agent a map drawn from the real code, not a guess.
 
 | Gap | What exists today | What Cairn adds |
 |---|---|---|
@@ -53,9 +73,9 @@ blueprint  -->  reconcile  -->  gate  -->  query
 (declare)      (scan code)    (enforce)   (serve agents)
 ```
 
-Cairn is a closed loop: you declare the architecture you want, it measures the one you shipped, and it blocks drift at the commit boundary. The map is what that loop produces and what your agents read.
+Cairn is a closed loop: your agent declares the architecture you want, it measures the one you shipped, and it blocks drift at the commit boundary. The map is what that loop produces and what your agents read.
 
-1. **Write the plan (declare).** Make a `cairn.blueprint` that names your systems, modules, the promises each part makes, and the decisions behind them.
+1. **Write the plan (declare).** Your agent writes a `cairn.blueprint` that names your systems, modules, the promises each part makes, and the decisions behind them. You can write it by hand too, but most teams let the agent do it while they build.
 2. **Check it (reconcile).** `cairn scan` reads the code and marks each part `synced` (matches the plan), `ghost` (planned but not built yet), or `orphaned` (built but not in the plan).
 3. **Guard it (gate).** A pre-commit check blocks changes that break the plan, and warns about changes that fight an old decision.
 4. **Ask it (query).** `cairn get`, `cairn neighbourhood`, and `cairn context` hand back clean data, so agents build on facts instead of guesses.
@@ -72,19 +92,19 @@ cairn scan                                                          # reconcile 
   <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
 </p>
 
-Already have a codebase? `cairn init --from-code` reads your source tree and writes a draft plan for you to review, instead of an empty starter. `cairn onboard` then groups any leftover files and suggests where they fit.
+Already have a codebase? Two steps and your agent takes over. Run `cairn init --from-code` to draft the map from your source tree. Then paste `.cairn/AGENTS.md` into your agent's instructions. Done: your agent keeps the map in sync from there. `cairn onboard` groups any leftover files and suggests where they fit.
 
 See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command list in [docs/commands.md](docs/commands.md).
 
-## Using Cairn with coding agents
+## Built for your coding agent
 
-Cairn is built to be an agent's source of truth about your code, both ways:
+Cairn puts your coding agent at the centre. The agent is the main reader and writer of the map, both ways:
 
 - **Plan in.** `cairn init` writes `.cairn/AGENTS.md`, a ready-made section for your project's `CLAUDE.md` or `AGENTS.md`. It teaches agents the orientation commands (`cairn context`, `cairn get`, `cairn neighbourhood`), the rule to keep the plan in sync, and the pre-commit gate.
 - **Clean answers out.** Commands take `--json` and return a stable, command-specific JSON shape (each carries a `schema_version`), so agents read structure instead of prose. `cairn-mcp` serves the same query API as MCP tools (see [docs/mcp.md](docs/mcp.md) and [docs/claude-code.md](docs/claude-code.md)).
 - **Problems back to us.** When Cairn itself trips up on your project (a confusing message, a wrong finding, a missing feature), `cairn feedback "<what happened>"` saves it to `.cairn/feedback.md` and prints a ready-to-file issue link for [this repo's tracker](https://github.com/cairn-framework/cairn/issues). The agent guide tells agents to do this instead of quietly working around the problem, so every project that uses Cairn helps improve it.
 
-A pattern that works well for new code: write the parts you plan to build in the blueprint before any code exists. They show up as `ghost` nodes, agents treat them as a to-do list, and `cairn scan` confirms each one as it becomes real code.
+A pattern that works well for new code: your agent declares the parts you plan to build in the blueprint before any code exists. They show up as `ghost` nodes, agents treat them as a to-do list, and `cairn scan` confirms each one as it becomes real code.
 
 ## What the map holds
 
@@ -115,7 +135,7 @@ Cairn works the same way Kubernetes does: declare the state you want, keep check
 
 ## What it does
 
-- Reads a human-written `cairn.blueprint` into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
+- Reads a `cairn.blueprint` (agent-written or hand-written) into a typed graph (systems, containers, modules, contracts, decisions, research, sources, todos, reviews).
 - Checks declared nodes against real files on disk and marks `synced`, `ghost`, and `orphaned` state. The code reconciler speaks Rust, TypeScript, Python, and Go via tree-sitter, extracting structured public symbols (`cairn get <id> --symbols`) rather than flattening them into a hash.
 - Writes `map.md` (human-readable) and a committed, deterministic `map.json` snapshot with generated frontmatter, active changes, and ranked findings agents can read.
 - Computes steady interface hashes and spots contract drift between revisions; contracts can declare an `interface:` block checked against extracted symbols.
@@ -187,6 +207,23 @@ Every hook accepts `--json`, `--file <path>`, and `--changes-dir <path>`. Use `s
     </td>
   </tr>
 </table>
+
+## FAQ
+
+**Do I have to write and maintain the blueprint myself?**
+No. Your agent writes it as part of the work you already asked for. You can hand-edit if you like, but you never have to.
+
+**Isn't this just AGENTS.md or CLAUDE.md?**
+Prose instructions rot in silence. The map is checked against real code on every scan. When the map and the code disagree, Cairn tells you exactly where. AGENTS.md cannot do that.
+
+**Won't agents just get smart enough to infer the architecture?**
+Inference tells you what the code is, not what you meant or why. Intent and decisions cannot be read from code, and re-inferring costs context every single session.
+
+**I already have a codebase. Will this help?**
+Yes. `cairn init --from-code` drafts the map from your source tree. `cairn onboard` groups the leftovers and says where they fit.
+
+**What about a brand new project?**
+Best case: your agent declares parts before the code exists (ghost nodes), builds against them, and `cairn scan` confirms each one as it lands.
 
 ## Status
 
