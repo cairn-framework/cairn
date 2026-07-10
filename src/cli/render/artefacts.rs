@@ -1,46 +1,53 @@
 //! Artefact query renderers (todos, decisions, research, sources, rationale).
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{
-    decision_line, decisions_json, flag_value, lines, node_arg, research_json, research_line,
-    source_line, sources_json, todo_line, todos_json,
-};
+use super::super::format::{decision_line, decisions_json, flag_value, lines, node_arg};
 use super::super::*;
-use crate::query_api::{
-    neighbourhood_ids, parse_decision_status_filter, parse_todo_status_filter, research_for_nodes,
-    sources_for_nodes,
-};
+use crate::query_api::{QueryRequest, parse_decision_status_filter};
+use serde_json::Value;
+use std::collections::BTreeSet;
 
-pub(crate) fn render_todos(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    let status = flag_value(&parsed.command_args, "--status").and_then(parse_todo_status_filter);
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let todos = scan_result
-            .artefacts
-            .todos
-            .iter()
-            .filter(|todo| {
-                todo.node == node.id && status.is_none_or(|filter| todo.status == filter)
-            })
-            .cloned()
-            .collect::<Vec<_>>();
-        Ok(if parsed.json {
+pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let status = flag_value(&parsed.command_args, "--status").map(ToOwned::to_owned);
+    let request = QueryRequest {
+        tool: "todos".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(todos_text(&data))
+}
+/// Renders the canonical `todos_response_json` data as human text.
+fn todos_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let todo_lines: Vec<String> = data["todos"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
             format!(
-                "{{\"node\":\"{}\",\"todos\":{}}}\n",
-                esc(&node.id),
-                todos_json(&todos)
-            )
-        } else {
-            format!(
-                "Todos for {}:\n{}\n",
-                node.id,
-                lines(&todos.iter().map(todo_line).collect::<Vec<_>>())
+                "{} [{}] {}",
+                value["node"].as_str().unwrap_or_default(),
+                value["status"].as_str().unwrap_or_default(),
+                value["path"].as_str().unwrap_or_default(),
             )
         })
-    })
+        .collect();
+    format!("Todos for {node_id}:\n{}\n", lines(&todo_lines))
 }
 
 pub(crate) fn render_decisions(
@@ -118,141 +125,185 @@ fn render_decisions_grep(
     }
 }
 
-pub(crate) fn render_research(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let research = research_for_nodes(scan_result, &BTreeSet::from([node.id.clone()]));
-        Ok(if parsed.json {
+pub(crate) fn render_research(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let request = QueryRequest {
+        tool: "research".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(research_text(&data))
+}
+/// Renders the canonical `research_response_json` data as human text.
+fn research_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let research_lines: Vec<String> = data["research"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
+            let sources: Vec<String> = value["sources"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .map(|source| source.as_str().unwrap_or_default().to_owned())
+                .collect();
             format!(
-                "{{\"node\":\"{}\",\"research\":{}}}\n",
-                esc(&node.id),
-                research_json(&research)
-            )
-        } else {
-            format!(
-                "Research for {}:\n{}\n",
-                node.id,
-                lines(&research.iter().map(research_line).collect::<Vec<_>>())
+                "{} sources: {}",
+                value["id"].as_str().unwrap_or_default(),
+                sources.join(", ")
             )
         })
-    })
+        .collect();
+    format!("Research for {node_id}:\n{}\n", lines(&research_lines))
+}
+pub(crate) fn render_sources(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let request = QueryRequest {
+        tool: "sources".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(sources_text(&data))
+}
+/// Renders the canonical `sources_response_json` data as human text.
+fn sources_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let sources_lines: Vec<String> = data["sources"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
+            format!(
+                "{} [{}] {}",
+                value["id"].as_str().unwrap_or_default(),
+                value["verification"].as_str().unwrap_or_default(),
+                value["file"].as_str().unwrap_or_default()
+            )
+        })
+        .collect();
+    format!("Sources for {node_id}:\n{}\n", lines(&sources_lines))
 }
 
-pub(crate) fn render_sources(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let sources = sources_for_nodes(scan_result, &BTreeSet::from([node.id.clone()]));
-        Ok(if parsed.json {
-            format!(
-                "{{\"node\":\"{}\",\"sources\":{}}}\n",
-                esc(&node.id),
-                sources_json(&sources)
-            )
-        } else {
-            format!(
-                "Sources for {}:\n{}\n",
-                node.id,
-                lines(&sources.iter().map(source_line).collect::<Vec<_>>())
-            )
-        })
-    })
+pub(crate) fn render_rationale(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let request = QueryRequest {
+        tool: "rationale".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(rationale_text(&data))
 }
+/// Renders the canonical `rationale_json` data as human text.
+fn rationale_text(data: &Value) -> String {
+    let node_id = data["node"].as_str().unwrap_or_default();
 
-pub(crate) fn render_rationale(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node = scan_result.graph.resolve(node)?;
-        let node_ids = neighbourhood_ids(&scan_result.graph, &node.id);
-        let decisions = scan_result
-            .artefacts
-            .decisions
-            .iter()
-            .filter(|decision| {
-                decision.status == DecisionStatus::Accepted
-                    && decision.nodes.iter().any(|node| node_ids.contains(node))
-            })
-            .cloned()
-            .collect::<Vec<_>>();
-        let research_ids = decisions
-            .iter()
-            .flat_map(|decision| decision.informed_by.iter())
-            .cloned()
-            .collect::<BTreeSet<_>>();
-        let source_ids = decisions
-            .iter()
-            .flat_map(|decision| decision.informed_by.iter())
-            .cloned()
-            .chain(
-                scan_result
-                    .artefacts
-                    .research
-                    .iter()
-                    .filter(|research| research_ids.contains(&research.id))
-                    .flat_map(|research| research.sources.iter().cloned()),
-            )
-            .collect::<BTreeSet<_>>();
-        let research = scan_result
-            .artefacts
-            .research
-            .iter()
-            .filter(|research| research_ids.contains(&research.id))
-            .cloned()
-            .collect::<Vec<_>>();
-        let sources = scan_result
-            .artefacts
-            .sources
-            .iter()
-            .filter(|source| source_ids.contains(&source.id))
-            .cloned()
-            .collect::<Vec<_>>();
-        Ok(if parsed.json {
+    let decisions_lines: Vec<String> = data["decisions"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
             format!(
-                "{{\"node\":\"{}\",\"decisions\":{},\"research\":{},\"sources\":{}}}\n",
-                esc(&node.id),
-                decisions_json(&decisions),
-                research_json(&research),
-                sources_json(&sources)
-            )
-        } else {
-            format!(
-                "Rationale for {}:\nDecisions:\n{}\nResearch:\n{}\nSources:\n{}\n",
-                node.id,
-                lines(&decisions.iter().map(decision_line).collect::<Vec<_>>()),
-                lines(&research.iter().map(research_line).collect::<Vec<_>>()),
-                lines(&sources.iter().map(source_line).collect::<Vec<_>>())
+                "{} [{}] {}",
+                value["id"].as_str().unwrap_or_default(),
+                value["status"].as_str().unwrap_or_default(),
+                value["path"].as_str().unwrap_or_default()
             )
         })
-    })
+        .collect();
+
+    let research_lines: Vec<String> = data["research"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
+            let sources: Vec<String> = value["sources"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .map(|source| source.as_str().unwrap_or_default().to_owned())
+                .collect();
+            format!(
+                "{} sources: {}",
+                value["id"].as_str().unwrap_or_default(),
+                sources.join(", ")
+            )
+        })
+        .collect();
+
+    let sources_lines: Vec<String> = data["sources"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .map(|value| {
+            format!(
+                "{} [{}] {}",
+                value["id"].as_str().unwrap_or_default(),
+                value["verification"].as_str().unwrap_or_default(),
+                value["file"].as_str().unwrap_or_default()
+            )
+        })
+        .collect();
+
+    format!(
+        "Rationale for {node_id}:\nDecisions:\n{}\nResearch:\n{}\nSources:\n{}\n",
+        lines(&decisions_lines),
+        lines(&research_lines),
+        lines(&sources_lines)
+    )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{Decision, DecisionStatus, Todo, TodoStatus},
+        artefacts::registry::{Decision, DecisionStatus},
         map::{Graph, NodeRecord, NodeState},
         scanner::{ScanResult, state::TargetHashes},
     };
     use std::collections::BTreeMap;
-
-    fn parsed(node: &str, json: bool) -> ParsedArgs {
-        ParsedArgs {
-            json,
-            strict: false,
-            file: std::path::PathBuf::from("cairn.blueprint"),
-            changes_dir: std::path::PathBuf::from("meta/changes"),
-            command: "todos".to_owned(),
-            command_args: vec!["todos".to_owned(), node.to_owned()],
-        }
-    }
 
     fn node_record(id: &str) -> NodeRecord {
         NodeRecord {
@@ -270,40 +321,6 @@ mod tests {
             state: NodeState::Synced,
             files: Vec::new(),
             span: crate::blueprint::Span::point("test", 1, 1),
-        }
-    }
-
-    fn scan_with_todos(todos: Vec<Todo>) -> ScanResult {
-        let mut nodes = BTreeMap::new();
-        nodes.insert("app".to_owned(), node_record("app"));
-        ScanResult {
-            graph: Graph {
-                nodes,
-                names: BTreeMap::new(),
-                outbound: BTreeMap::new(),
-                inbound: BTreeMap::new(),
-                findings: Vec::new(),
-            },
-            artefacts: crate::artefacts::registry::ArtefactSet {
-                todos,
-                ..Default::default()
-            },
-            contracts: crate::artefacts::contract::ContractSet::default(),
-            interface_hash: String::new(),
-            target_reports: Vec::new(),
-            target_hashes: TargetHashes::default(),
-            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
-        }
-    }
-
-    fn todo(node: &str, status: TodoStatus) -> Todo {
-        Todo {
-            path: "./todo.md".to_owned(),
-            node: node.to_owned(),
-            status,
-            created: "2026-01-01".to_owned(),
-            satisfies: None,
-            body: String::new(),
         }
     }
 
@@ -431,43 +448,35 @@ mod tests {
     }
 
     #[test]
-    fn render_todos_human_lists_matching_todos() {
-        let scan = scan_with_todos(vec![todo("app", TodoStatus::Open)]);
-        let rendered = render_todos(&parsed("app", false), &scan).unwrap();
+    fn todos_text_lists_matching_todos() {
+        let data = serde_json::json!({
+            "node": "app",
+            "todos": [{
+                "node": "app",
+                "status": "open",
+                "path": "meta/todos/todo.api.md",
+            }],
+        });
+        let rendered = todos_text(&data);
         assert!(rendered.contains("Todos for app:"));
         assert!(rendered.contains("[open]"));
     }
 
     #[test]
-    fn render_todos_filters_by_status() {
-        let scan = scan_with_todos(vec![
-            todo("app", TodoStatus::Open),
-            todo("app", TodoStatus::Done),
-        ]);
-        let mut p = parsed("app", false);
-        p.command_args = vec![
-            "todos".to_owned(),
-            "app".to_owned(),
-            "--status".to_owned(),
-            "done".to_owned(),
-        ];
-        let rendered = render_todos(&p, &scan).unwrap();
+    fn todos_text_renders_filtered_todos() {
+        // The status filter lives in the query_api handler; the renderer only
+        // transforms whatever the canonical JSON carries. Feed the already
+        // filtered payload and confirm the transform renders it correctly.
+        let data = serde_json::json!({
+            "node": "app",
+            "todos": [{
+                "node": "app",
+                "status": "done",
+                "path": "meta/todos/todo.done.md",
+            }],
+        });
+        let rendered = todos_text(&data);
         assert!(rendered.contains("[done]"));
         assert!(!rendered.contains("[open]"));
-    }
-
-    #[test]
-    fn render_todos_json_mode() {
-        let scan = scan_with_todos(vec![todo("app", TodoStatus::Open)]);
-        let rendered = render_todos(&parsed("app", true), &scan).unwrap();
-        assert!(rendered.contains("\"node\":\"app\""));
-        assert!(rendered.contains("\"todos\""));
-    }
-
-    #[test]
-    fn render_todos_unknown_node_returns_err() {
-        let scan = scan_with_todos(Vec::new());
-        let result = render_todos(&parsed("missing", false), &scan);
-        assert!(result.is_err());
     }
 }

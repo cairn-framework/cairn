@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     artefacts::registry::{
-        Decision, DecisionStatus, Research, Review, ReviewType, Source, Todo, TodoStatus,
+        Decision, DecisionStatus, Research, Review, ReviewType, Todo, TodoStatus,
     },
     hooks::{self, HookKind},
     map::{
@@ -436,14 +436,14 @@ fn render_loaded_project_command(
     match parsed.command.as_str() {
         "get" => render_get(parsed, root, scan_result),
         "neighbourhood" => render_neighbourhood(parsed, root, scan_result),
-        "files" => render_files(parsed, scan_result),
+        "files" => render_files(parsed, root),
         "bundle" => render_bundle(parsed, scan_result),
         "gap" => return run_gap_command(parsed, root, scan_result),
-        "todos" => render_todos(parsed, scan_result),
+        "todos" => render_todos(parsed, root),
         "decisions" => render_decisions(parsed, scan_result),
-        "research" => render_research(parsed, scan_result),
-        "sources" => render_sources(parsed, scan_result),
-        "rationale" => render_rationale(parsed, scan_result),
+        "research" => render_research(parsed, root),
+        "sources" => render_sources(parsed, root),
+        "rationale" => render_rationale(parsed, root),
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => Ok(render_context(parsed, root, scan_result)),
         "backlog" => render_backlog(parsed, root, scan_result),
@@ -512,7 +512,7 @@ fn render_loaded_project_command(
             }
             Err(findings) => return findings_output(parsed.json, &findings),
         },
-        "deps" => render_dependencies(parsed, scan_result),
+        "deps" => render_dependencies(parsed, root),
         // Spine ops (webui-first): the human rendering is the pretty canonical
         // JSON; the primary consumers are the webui and --json callers.
         "ui_meta" | "blueprint" | "beads" => {

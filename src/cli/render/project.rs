@@ -4,6 +4,8 @@
 use super::super::format::{flag_value, lines, node_arg, string_array_json, todos_json};
 use super::super::*;
 use super::{scan_error_count, scan_info_count, scan_warning_count};
+use crate::query_api::{QueryFlag, QueryRequest};
+use std::collections::BTreeSet;
 
 // NOTE: render_context has no Config access, so it cannot show project_context
 // (the context_json endpoint includes it). The backlog summary is text-only too.
@@ -174,29 +176,42 @@ pub(crate) fn render_status(
         )
     }
 }
-
-pub(crate) fn render_dependencies(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    let transitive = parsed.command_args.iter().any(|arg| arg == "--transitive");
-    let inbound = flag_value(&parsed.command_args, "--direction") == Some("in");
-    node_arg(&parsed.command_args).and_then(|node| {
-        let response = if inbound {
-            query::dependents(&scan_result.graph, node, transitive)
-        } else {
-            query::depends(&scan_result.graph, node, transitive)
-        }?;
-        Ok(if parsed.json {
-            format!(
-                "{{\"node\":\"{}\",\"nodes\":{}}}\n",
-                esc(&response.node),
-                string_array_json(&response.nodes)
-            )
-        } else {
-            format!("{}:\n{}\n", response.node, lines(&response.nodes))
-        })
-    })
+pub(crate) fn render_dependencies(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let mut flags = BTreeSet::new();
+    if parsed.command_args.iter().any(|arg| arg == "--transitive") {
+        flags.insert(QueryFlag::Transitive);
+    }
+    if flag_value(&parsed.command_args, "--direction") == Some("in") {
+        flags.insert(QueryFlag::Inbound);
+    }
+    let request = QueryRequest {
+        tool: "deps".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags,
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let nodes: Vec<String> = data["nodes"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref)
+        .iter()
+        .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+        .collect();
+    Ok(format!("{node_id}:\n{}\n", lines(&nodes)))
 }
 
 #[cfg(test)]

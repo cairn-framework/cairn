@@ -1,10 +1,12 @@
 //! Node-level query renderers.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{lines, node_arg, render_node, string_array_json};
+use super::super::format::{lines, node_arg, render_node};
 use super::super::*;
 use super::{scan_error_count, scan_error_warning};
-use crate::query_api::{neighbourhood_ids, research_for_nodes};
+use crate::query_api::{QueryRequest, neighbourhood_ids, research_for_nodes};
+use serde_json::Value;
+use std::collections::BTreeSet;
 
 pub(crate) fn render_get(
     parsed: &ParsedArgs,
@@ -148,94 +150,105 @@ pub(crate) fn render_neighbourhood(
     })
 }
 
-pub(crate) fn render_files(
-    parsed: &ParsedArgs,
-    scan_result: &scanner::ScanResult,
-) -> Result<String, Finding> {
-    node_arg(&parsed.command_args).and_then(|node| {
-        let node_record = scan_result.graph.resolve(node)?;
-        let target_reports_for_node: Vec<_> = scan_result
-            .target_reports
-            .iter()
-            .filter(|r| r.target_id.node_id == node_record.id)
-            .collect();
-        let has_multi_target = target_reports_for_node.len() > 1;
-        if parsed.json {
-            let targets_json = if target_reports_for_node.is_empty() {
-                "[]".to_string()
-            } else {
-                let items: Vec<String> = target_reports_for_node
-                    .iter()
-                    .map(|r| {
-                        let hash_field = if let Some(hash) = &r.hash {
-                            format!(",\"hash\":\"{}\"", esc(hash))
-                        } else {
-                            String::new()
-                        };
-                        format!(
-                            "{{\"path\":\"{}\",\"language\":\"{}\",\"reconciler_id\":\"{}\",\"files\":{}{}}}",
-                            esc(&r.target_id.path.to_string_lossy()),
-                            r.language.as_str(),
-                            r.reconciler_id.0,
-                            string_array_json(&r.claimed_files),
-                            hash_field
-                        )
-                    })
-                    .collect();
-                format!("[{}]", items.join(","))
-            };
-            if has_multi_target {
-                Ok(format!(
-                    "{{\"node\":\"{}\",\"targets\":{}}}\n",
-                    esc(&node_record.id),
-                    targets_json
-                ))
-            } else {
-                Ok(format!(
-                    "{{\"node\":\"{}\",\"files\":{},\"targets\":{}}}\n",
-                    esc(&node_record.id),
-                    string_array_json(&node_record.files),
-                    targets_json
-                ))
+pub(crate) fn render_files(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
+    let node = node_arg(&parsed.command_args)?;
+    let request = QueryRequest {
+        tool: "files".to_owned(),
+        node: Some(node.to_owned()),
+        change: None,
+        old_id: None,
+        new_id: None,
+        status: None,
+        language: None,
+        flags: BTreeSet::new(),
+        mutating: false,
+    };
+    let data = crate::query_api::execute(
+        root,
+        &parsed.file,
+        &root.join(&parsed.changes_dir),
+        &request,
+    )
+    .map_err(super::query_error_to_finding)?
+    .data;
+    Ok(files_text(&data))
+}
+
+/// Renders the canonical `files_json` data as human text.
+fn files_text(data: &Value) -> String {
+    use std::fmt::Write;
+    let node_id = data["node"].as_str().unwrap_or_default();
+    let targets = data["targets"]
+        .as_array()
+        .map_or(&[][..], std::ops::Deref::deref);
+    let has_multi_target = targets.len() > 1;
+    let mut output = format!("Files for {node_id}:\n");
+    if has_multi_target {
+        for target in targets {
+            let files: Vec<String> = target["files"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .map(|value| value.as_str().unwrap_or_default().to_owned())
+                .collect();
+            writeln!(
+                output,
+                "  {} ({}): {}",
+                target["path"].as_str().unwrap_or_default(),
+                target["language"].as_str().unwrap_or_default(),
+                files.join(", ")
+            )
+            .unwrap();
+            writeln!(
+                output,
+                "    reconciler: {}",
+                target["reconciler_id"].as_str().unwrap_or_default()
+            )
+            .unwrap();
+            if let Some(hash) = target["hash"].as_str() {
+                writeln!(output, "    hash: {hash}").unwrap();
             }
-        } else {
-            let mut output = format!("Files for {}:\n", node_record.id);
-            if has_multi_target {
-                for r in &target_reports_for_node {
-                    use std::fmt::Write;
-                    writeln!(
-                        output,
-                        "  {} ({}): {}",
-                        r.target_id.path.display(),
-                        r.language.as_str(),
-                        r.claimed_files.join(", ")
-                    ).unwrap();
-                    writeln!(output, "    reconciler: {}", r.reconciler_id.0).unwrap();
-                    if let Some(hash) = &r.hash {
-                        writeln!(output, "    hash: {hash}").unwrap();
-                    }
-                }
-            } else if let Some(r) = target_reports_for_node.first() {
-                use std::fmt::Write;
-                writeln!(
-                    output,
-                    "  {}: {}",
-                    r.target_id.path.display(),
-                    r.claimed_files.join(", ")
-                ).unwrap();
-                writeln!(output, "  language: {}", r.language.as_str()).unwrap();
-                writeln!(output, "  reconciler: {}", r.reconciler_id.0).unwrap();
-                if let Some(hash) = &r.hash {
-                    writeln!(output, "  hash: {hash}").unwrap();
-                }
-            } else {
-                use std::fmt::Write;
-                writeln!(output, "  {}", lines(&node_record.files)).unwrap();
-            }
-            output.push('\n');
-            Ok(output)
         }
-    })
+    } else if let Some(target) = targets.first() {
+        let files: Vec<String> = target["files"]
+            .as_array()
+            .map_or(&[][..], std::ops::Deref::deref)
+            .iter()
+            .map(|value| value.as_str().unwrap_or_default().to_owned())
+            .collect();
+        writeln!(
+            output,
+            "  {}: {}",
+            target["path"].as_str().unwrap_or_default(),
+            files.join(", ")
+        )
+        .unwrap();
+        writeln!(
+            output,
+            "  language: {}",
+            target["language"].as_str().unwrap_or_default()
+        )
+        .unwrap();
+        writeln!(
+            output,
+            "  reconciler: {}",
+            target["reconciler_id"].as_str().unwrap_or_default()
+        )
+        .unwrap();
+        if let Some(hash) = target["hash"].as_str() {
+            writeln!(output, "  hash: {hash}").unwrap();
+        }
+    } else {
+        let files: Vec<String> = data["files"]
+            .as_array()
+            .map_or(&[][..], std::ops::Deref::deref)
+            .iter()
+            .map(|value| value.as_str().unwrap_or_default().to_owned())
+            .collect();
+        writeln!(output, "  {}", lines(&files)).unwrap();
+    }
+    output.push('\n');
+    output
 }
 
 fn symbols_block(scan_result: &scanner::ScanResult, node: &str) -> String {
@@ -277,120 +290,50 @@ fn symbols_block(scan_result: &scanner::ScanResult, node: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        blueprint::{NodeKind, Span},
-        map::{Graph, NodeRecord, NodeState},
-        reconcile::{ReconcilerId, target::Language},
-        scanner::{ScanResult, TargetReport, state::TargetHashes},
-    };
-    use std::{collections::BTreeMap, sync::Arc};
-
-    fn node_record(id: &str, files: Vec<String>) -> NodeRecord {
-        NodeRecord {
-            kind: NodeKind::Module,
-            id: id.to_owned(),
-            name: id.to_owned(),
-            description: String::new(),
-            tags: Vec::new(),
-            parent: None,
-            children: Vec::new(),
-            paths: Vec::new(),
-            owns_files: false,
-            symbols: Vec::new(),
-            contracts: Vec::new(),
-            state: NodeState::Synced,
-            files,
-            span: Span::point("test", 1, 1),
-        }
-    }
-
-    fn parsed(files: &str, json: bool) -> ParsedArgs {
-        ParsedArgs {
-            json,
-            strict: false,
-            file: std::path::PathBuf::from("cairn.blueprint"),
-            changes_dir: std::path::PathBuf::from("meta/changes"),
-            command: "files".to_owned(),
-            command_args: vec!["files".to_owned(), files.to_owned()],
-        }
-    }
-
-    fn scan_with_files_and_reports(files: Vec<String>, reports: Vec<TargetReport>) -> ScanResult {
-        let mut nodes = BTreeMap::new();
-        nodes.insert("app".to_owned(), node_record("app", files));
-        ScanResult {
-            graph: Graph {
-                nodes,
-                names: BTreeMap::new(),
-                outbound: BTreeMap::new(),
-                inbound: BTreeMap::new(),
-                findings: Vec::new(),
-            },
-            artefacts: crate::artefacts::registry::ArtefactSet::default(),
-            contracts: crate::artefacts::contract::ContractSet::default(),
-            interface_hash: String::new(),
-            target_reports: reports,
-            target_hashes: TargetHashes::default(),
-            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
-        }
-    }
-
-    fn report(path: &str, claimed_files: &[&str]) -> TargetReport {
-        TargetReport {
-            target_id: crate::reconcile::target::TargetId::new(
-                "app".to_owned(),
-                std::path::PathBuf::from(path),
-            ),
-            language: Language::Rust,
-            reconciler_id: ReconcilerId("rust-code".to_owned()),
-            claimed_files: claimed_files
-                .iter()
-                .map(std::string::ToString::to_string)
-                .collect(),
-            symbol_records: Arc::new(Vec::new()),
-            symbols: Arc::new(Vec::new()),
-            hash: Some("abcd1234".to_owned()),
-        }
-    }
+    use serde_json::json;
 
     #[test]
-    fn render_files_human_lists_node_files_when_no_target_report() {
-        let scan = scan_with_files_and_reports(vec!["src/lib.rs".to_owned()], Vec::new());
-        let rendered = render_files(&parsed("app", false), &scan).unwrap();
+    fn files_text_lists_node_files_when_no_target_report() {
+        let data = json!({
+            "node": "app",
+            "files": ["src/lib.rs"],
+            "targets": [],
+        });
+        let rendered = files_text(&data);
         assert!(rendered.contains("Files for app:"));
         assert!(rendered.contains("src/lib.rs"));
     }
 
     #[test]
-    fn render_files_human_includes_target_claimed_files() {
-        let scan = scan_with_files_and_reports(Vec::new(), vec![report("src", &["src/lib.rs"])]);
-        let rendered = render_files(&parsed("app", false), &scan).unwrap();
+    fn files_text_includes_target_claimed_files() {
+        let data = json!({
+            "node": "app",
+            "files": [],
+            "targets": [{
+                "path": "src",
+                "language": "rust",
+                "reconciler_id": "rust-code",
+                "files": ["src/lib.rs"],
+                "hash": "abcd1234",
+            }],
+        });
+        let rendered = files_text(&data);
         assert!(rendered.contains("rust-code"));
         assert!(rendered.contains("src/lib.rs"));
     }
 
     #[test]
-    fn render_files_json_includes_files_and_targets() {
-        let scan = scan_with_files_and_reports(
-            vec!["src/lib.rs".to_owned()],
-            vec![report("src", &["src/lib.rs"])],
-        );
-        let rendered = render_files(&parsed("app", true), &scan).unwrap();
-        assert!(rendered.contains("\"node\":\"app\""));
-        assert!(rendered.contains("\"files\""));
-        assert!(rendered.contains("\"targets\""));
-    }
-
-    #[test]
-    fn render_files_multi_target_uses_targets_wrapper() {
-        let scan = scan_with_files_and_reports(
-            Vec::new(),
-            vec![
-                report("src", &["src/lib.rs"]),
-                report("tests", &["tests/a.rs"]),
+    fn files_text_multi_target_lists_each_target() {
+        let data = json!({
+            "node": "app",
+            "files": [],
+            "targets": [
+                {"path": "src", "language": "rust", "reconciler_id": "rust-code", "files": ["src/lib.rs"]},
+                {"path": "tests", "language": "rust", "reconciler_id": "rust-code", "files": ["tests/a.rs"]},
             ],
-        );
-        let rendered = render_files(&parsed("app", true), &scan).unwrap();
-        assert!(rendered.starts_with("{\"node\":\"app\",\"targets\":"));
+        });
+        let rendered = files_text(&data);
+        assert!(rendered.contains("src (rust): src/lib.rs"));
+        assert!(rendered.contains("tests (rust): tests/a.rs"));
     }
 }

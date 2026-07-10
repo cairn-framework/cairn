@@ -3,7 +3,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::util::esc;
-use crate::query_api::{decision_status, source_verification, todo_status};
+use crate::query_api::{decision_status, todo_status};
 
 pub(crate) fn node_json(node: &NodeRecord) -> String {
     format!(
@@ -72,45 +72,6 @@ pub(crate) fn decisions_json(decisions: &[Decision]) -> String {
     )
 }
 
-pub(crate) fn research_json(research: &[Research]) -> String {
-    format!(
-        "[{}]",
-        research
-            .iter()
-            .map(|item| {
-                format!(
-                    "{{\"id\":\"{}\",\"nodes\":{},\"sources\":{},\"date\":\"{}\"}}",
-                    esc(&item.id),
-                    string_array_json(&item.nodes),
-                    string_array_json(&item.sources),
-                    esc(&item.date)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
-pub(crate) fn sources_json(sources: &[Source]) -> String {
-    format!(
-        "[{}]",
-        sources
-            .iter()
-            .map(|source| {
-                format!(
-                    "{{\"id\":\"{}\",\"file\":\"{}\",\"verification\":\"{}\",\"type\":\"{}\",\"date\":\"{}\"}}",
-                    esc(&source.id),
-                    esc(&source.file),
-                    source_verification(source.verification),
-                    esc(&source.source_type),
-                    esc(&source.date)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(",")
-    )
-}
-
 pub(crate) fn string_array_json(values: &[String]) -> String {
     let mut out = String::from('[');
     for (i, value) in values.iter().enumerate() {
@@ -129,7 +90,7 @@ pub(crate) fn string_array_json(values: &[String]) -> String {
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{DecisionStatus, ResearchMethod, SourceVerification, TodoStatus},
+        artefacts::registry::{DecisionStatus, TodoStatus},
         blueprint::{NodeKind, Span},
         map::{FindingSeverity, NodeRecord, NodeState},
     };
@@ -291,47 +252,5 @@ mod tests {
             json.contains("\"revisited\":\"2026-06-29\""),
             "populated revisited serializes as the date string: {json}"
         );
-    }
-
-    // ── sources_json ─────────────────────────────────────────────────────────
-
-    #[test]
-    fn test_sources_json_serializes_verification_and_type() {
-        let source = Source {
-            id: "src-1".to_owned(),
-            path: "./source.md".to_owned(),
-            file: "./source.md".to_owned(),
-            sha256: None,
-            verification: SourceVerification::External,
-            source_type: "article".to_owned(),
-            date: "2026-01-01".to_owned(),
-            tags: Vec::new(),
-            description: String::new(),
-            body: String::new(),
-        };
-        let json = sources_json(&[source]);
-        assert!(json.contains("\"id\":\"src-1\""));
-        assert!(json.contains("\"verification\":\"external\""));
-        assert!(json.contains("\"type\":\"article\""));
-    }
-
-    // ── research_json ────────────────────────────────────────────────────────
-
-    #[test]
-    fn test_research_json_serializes_nodes_and_sources() {
-        let research = Research {
-            path: "./research.md".to_owned(),
-            id: "r-1".to_owned(),
-            nodes: vec!["app".to_owned()],
-            date: "2026-01-01".to_owned(),
-            sources: vec!["src-1".to_owned()],
-            method: ResearchMethod::Secondary,
-            tags: Vec::new(),
-            body: String::new(),
-        };
-        let json = research_json(&[research]);
-        assert!(json.contains("\"id\":\"r-1\""));
-        assert!(json.contains("\"nodes\":[\"app\"]"));
-        assert!(json.contains("\"sources\":[\"src-1\"]"));
     }
 }

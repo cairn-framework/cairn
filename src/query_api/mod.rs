@@ -180,8 +180,8 @@ pub const fn registry() -> &'static [ToolMetadata] {
 /// `requires_valid_map` is additionally used by both the CLI dispatch loop
 /// and the MCP query-API path to gate commands on a clean graph.
 pub(crate) use serialise::{
-    decision_status, neighbourhood_ids, parse_decision_status_filter, parse_todo_status_filter,
-    requires_valid_map, research_for_nodes, source_verification, sources_for_nodes, todo_status,
+    decision_status, neighbourhood_ids, parse_decision_status_filter, requires_valid_map,
+    research_for_nodes, todo_status,
 };
 
 /// Returns tools visible for a server configuration.
