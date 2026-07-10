@@ -89,3 +89,14 @@ Wave 4:
 
 This todo closes when all eleven subtasks are done or explicitly dropped
 with a recorded reason.
+
+## Status (2026-07-10)
+
+Programme substantially complete. Landed: cut-sse, dedup-format-util,
+persist-helper, artefact-kind-table (#224), draft family, change family
+(#223), subset folds (#226), generic-language-reconciler (#227),
+cli-registry-table (#228), ui-query-api slice 1 (#229),
+render-canonical-json (#230, six commands stop-ruled with measured numbers),
+lsp-spine (#231). Outstanding: the remaining 11 ui-query-api endpoint flips
+(todo.simplify-ui-query-api, in_progress). This umbrella closes when that
+lands.

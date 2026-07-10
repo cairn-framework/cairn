@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: open
+status: in_progress
 created: 2026-07-06
 ---
 
@@ -52,3 +52,16 @@ recorded in `meta/decisions/dec.ui-query-api-strategy.md`; evidence in
 `meta/research/res.ui-query-api-wire-fork.md`. Implementation deferred to a
 later dev-loop session (this session is signing off). Scaffolded plan lives in
 `meta/changes/simplify-ui-query-api/`.
+
+## Status (2026-07-10)
+
+Slice 1 merged (#229): spine ops `ui_meta`/`blueprint`/`beads` added with CLI
+presence; `/api/meta`, `/api/blueprint`, `/api/beads`, `/api/lint`,
+`/api/node/symbols` flipped to `query_api::execute_with_scan` via the server's
+`spine_data` helper (single `schema_version` stamp, legacy blueprint 404
+preserved). Wire deltas recorded in `dec.ui-query-api-wire-adoption`.
+Remaining: 11 endpoints with real shape gaps (structured artefacts, node,
+status, graph, deps ID lists), enumerated per-endpoint with blockers in
+`meta/changes/simplify-ui-query-api/tasks.md`. Each needs `app.js` consumer
+rework; the visual harness replays frozen legacy fixtures, so flips must keep
+`app.js` tolerant of both shapes or re-capture fixtures.
