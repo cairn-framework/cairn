@@ -326,7 +326,10 @@ pub fn execute_with_scan(
 /// # Errors
 ///
 /// Returns a stable query error when the project fails to load.
-pub fn lint_findings(root: &Path, blueprint_path: &Path) -> Result<Vec<Finding>, QueryError> {
+pub(crate) fn lint_findings(
+    root: &Path,
+    blueprint_path: &Path,
+) -> Result<Vec<Finding>, QueryError> {
     let scan_result = util::load_for("lint", root, blueprint_path)?;
     Ok(query::lint(&scan_result.graph).findings)
 }

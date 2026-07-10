@@ -35,6 +35,11 @@ pub(crate) fn run_watch_command(root: &Path, opts: &crate::watch::WatchOpts) -> 
             .map(|result| result.graph.findings)
             .map_err(|error| error.clone())
     };
+    // Preserve the pre-extraction contract: a failed FIRST scan exits with an
+    // error instead of polling forever against a broken project.
+    if let Err(error) = scan() {
+        return err(1, &format!("initial scan failed: {error}"));
+    }
     let on_diff = |events: &[crate::watch::WatchEvent]| {
         for event in events {
             match serde_json::to_string(event) {
