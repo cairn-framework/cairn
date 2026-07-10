@@ -30,20 +30,36 @@ spine ops proper CLI presence), so they are documented in `docs/commands.md`,
 ## Recorded wire changes
 
 ### `/api/meta` (FLIPPED)
-- Old wire (`meta_json`): `{"version": "...", "available_commands":[{name,request,response,safety}]}`.
-- New wire (`ui_meta`): `{"commands":[{name,request,response,safety}], "schema_version":1, "version":"..."}`.
-- Snapshot `wire_format_snapshots__api_meta.snap` rebased to the canonical shape.
-- `app.js` consumers of `/api/meta` must read `commands` (array of objects) instead of `available_commands`.
+- Wire keys unchanged: `{"version":"...","available_commands":[{name,request,response,safety}]}`
+  (the `ui_meta` spine op reproduces the legacy `meta_json` shape).
+- Actual delta: `available_commands` gains three rows because the registry now
+  carries the `ui_meta`, `blueprint`, and `beads` spine ops. Snapshot
+  `wire_format_snapshots__api_meta.snap` rebased (+18 lines, the three rows).
+- `app.js` has no `/api/meta` consumer; no UI change.
 
 ### `/api/blueprint` (FLIPPED, wire-compatible)
 - Now served via `execute("blueprint")`. The spine op returns the same raw
   blueprint-file string the legacy `blueprint_json` produced, so the snapshot
   `wire_format_snapshots__api_blueprint.snap` required no delta.
+- Legacy 404-on-read-failure preserved: the server maps a non-null `error`
+  field from the spine op to HTTP 404 (`Server::spine_data` caller), matching
+  the legacy `server.rs::blueprint_json` status behaviour.
+
+## Wire versioning rule
+`query_api::execute` stamps `schema_version` into its data payload; the UI
+server's `json()` constructor also stamps the envelope. On flipped endpoints
+the server strips the inner stamp (`Server::spine_data`) so the wire carries
+exactly one `schema_version` key, owned by the server constant.
 
 ### `/api/beads` (FLIPPED)
 - Now served via `execute("beads", {node})`. Wire: `{"node":"...","beads":[...]}`.
 - Not covered by `wire_format_snapshots.rs` (no snapshot row), so no rebasing.
 ### `/api/lint` (FLIPPED, wire-identical)
+- Now served via `execute("lint")`. The `query_api` `findings_json` produces
+  the same field order and lowercase `severity` as the legacy `api.rs::lint_json`,
+  so the snapshot `wire_format_snapshots__api_lint.snap` required no delta and
+  `app.js` needs no change (it reads `lint.findings[].{code,severity,node,path}`).
+
 ### `/api/node/symbols` (FLIPPED, wrapper change)
 - Now served via `execute("get", {node, flags:[Symbols]})`. The canonical
   `node_json` embeds `symbols` inside the full node record, so the wire changes
@@ -52,11 +68,6 @@ spine ops proper CLI presence), so they are documented in `docs/commands.md`,
 - `app.js` reads `response.symbols` (unchanged path), so no UI change is needed.
 - `src/ui/mod.rs::test_ui_symbols_endpoint_returns_extracted_symbols` updated to
   assert `"id":"app.api"` instead of `"node":"app.api"`.
-- Now served via `execute("lint")`. The `query_api` `findings_json` produces
-  `{"findings":[{code,severity,message,node,path}],"schema_version":1}` with the
-  same field order and lowercase `severity` as the legacy `api.rs::lint_json`,
-  so the snapshot `wire_format_snapshots__api_lint.snap` required no delta and
-  `app.js` needs no change (it reads `lint.findings[].{code,severity,node,path}`).
 
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in

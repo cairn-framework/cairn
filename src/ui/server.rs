@@ -128,20 +128,7 @@ impl Server {
         };
         let graph = &project.graph;
         if path == "/api/meta" {
-            let request = crate::query_api::QueryRequest {
-                tool: "ui_meta".to_owned(),
-                ..Default::default()
-            };
-            return match crate::query_api::execute_with_scan(
-                &self.root,
-                &self.options.blueprint_path,
-                &self.changes_dir,
-                &request,
-                &project,
-            ) {
-                Ok(response) => json(200, &response.data.to_string()),
-                Err(error) => json(500, &finding_json(&project_finding(error.message))),
-            };
+            return self.spine(&project, "ui_meta", None, std::collections::BTreeSet::new());
         }
         if path == "/api/status" {
             return json(200, &status_json(&project));
@@ -150,20 +137,7 @@ impl Server {
             return json(200, &graph_json(&query::graph(graph)));
         }
         if path == "/api/lint" {
-            let request = crate::query_api::QueryRequest {
-                tool: "lint".to_owned(),
-                ..Default::default()
-            };
-            return match crate::query_api::execute_with_scan(
-                &self.root,
-                &self.options.blueprint_path,
-                &self.changes_dir,
-                &request,
-                &project,
-            ) {
-                Ok(response) => json(200, &response.data.to_string()),
-                Err(error) => json(500, &finding_json(&project_finding(error.message))),
-            };
+            return self.spine(&project, "lint", None, std::collections::BTreeSet::new());
         }
         if let Some(node) = path.strip_prefix("/api/node/") {
             return self.node_api(&project, node);
@@ -175,19 +149,19 @@ impl Server {
             return dependency_json(graph, node, true);
         }
         if path == "/api/blueprint" {
-            let request = crate::query_api::QueryRequest {
-                tool: "blueprint".to_owned(),
-                ..Default::default()
-            };
-            return match crate::query_api::execute_with_scan(
-                &self.root,
-                &self.options.blueprint_path,
-                &self.changes_dir,
-                &request,
+            // Legacy behaviour: a blueprint read failure is a 404, not a 200
+            // with an error field.
+            return match self.spine_data(
                 &project,
+                "blueprint",
+                None,
+                std::collections::BTreeSet::new(),
             ) {
-                Ok(response) => json(200, &response.data.to_string()),
-                Err(error) => json(500, &finding_json(&project_finding(error.message))),
+                Ok(data) => {
+                    let status = if data["error"].is_null() { 200 } else { 404 };
+                    json(status, &data.to_string())
+                }
+                Err(error) => error,
             };
         }
         text(404, "not found")
@@ -202,49 +176,73 @@ impl Server {
                 |response| json(200, &node_json(&response.node)),
             ),
             "contract" => json(200, &contract_response_json(project, &node)),
-            "symbols" => {
-                let request = crate::query_api::QueryRequest {
-                    tool: "get".to_owned(),
-                    node: Some(node.clone()),
-                    flags: std::collections::BTreeSet::from([crate::query_api::QueryFlag::Symbols]),
-                    ..Default::default()
-                };
-                match crate::query_api::execute_with_scan(
-                    &self.root,
-                    &self.options.blueprint_path,
-                    &self.changes_dir,
-                    &request,
-                    project,
-                ) {
-                    Ok(response) => json(200, &response.data.to_string()),
-                    Err(error) => json(500, &finding_json(&project_finding(error.message))),
-                }
-            }
+            "symbols" => self.spine(
+                project,
+                "get",
+                Some(node.clone()),
+                std::collections::BTreeSet::from([crate::query_api::QueryFlag::Symbols]),
+            ),
             "decisions" => json(200, &artefact_response_json(&self.root, "decisions", &node)),
             "todos" => json(200, &artefact_response_json(&self.root, "todos", &node)),
             "research" => json(200, &artefact_response_json(&self.root, "research", &node)),
             "sources" => json(200, &artefact_response_json(&self.root, "sources", &node)),
-            "beads" => {
-                let request = crate::query_api::QueryRequest {
-                    tool: "beads".to_owned(),
-                    node: Some(node.clone()),
-                    ..Default::default()
-                };
-                match crate::query_api::execute_with_scan(
-                    &self.root,
-                    &self.options.blueprint_path,
-                    &self.changes_dir,
-                    &request,
-                    project,
-                ) {
-                    Ok(response) => json(200, &response.data.to_string()),
-                    Err(error) => json(500, &finding_json(&project_finding(error.message))),
-                }
-            }
+            "beads" => self.spine(
+                project,
+                "beads",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             "rationale" => json(200, &rationale_json(&self.root, &node)),
             _ => text(404, "not found"),
         }
     }
+
+    /// Executes a query_api tool against the cached scan and returns its data
+    /// payload. query_api stamps its own `schema_version`; the server's
+    /// `json()` stamp is the single owner of the wire version key, so the
+    /// inner stamp is stripped here.
+    fn spine_data(
+        &self,
+        project: &scanner::ScanResult,
+        tool: &str,
+        node: Option<String>,
+        flags: std::collections::BTreeSet<crate::query_api::QueryFlag>,
+    ) -> Result<serde_json::Value, Response> {
+        let request = crate::query_api::QueryRequest {
+            tool: tool.to_owned(),
+            node,
+            flags,
+            ..Default::default()
+        };
+        match crate::query_api::execute_with_scan(
+            &self.root,
+            &self.options.blueprint_path,
+            &self.changes_dir,
+            &request,
+            project,
+        ) {
+            Ok(mut response) => {
+                if let Some(map) = response.data.as_object_mut() {
+                    map.remove("schema_version");
+                }
+                Ok(response.data)
+            }
+            Err(error) => Err(json(500, &finding_json(&project_finding(error.message)))),
+        }
+    }
+
+    /// `spine_data` served as a 200 response.
+    fn spine(
+        &self,
+        project: &scanner::ScanResult,
+        tool: &str,
+        node: Option<String>,
+        flags: std::collections::BTreeSet<crate::query_api::QueryFlag>,
+    ) -> Response {
+        self.spine_data(project, tool, node, flags)
+            .map_or_else(|error| error, |data| json(200, &data.to_string()))
+    }
+
     fn load_project(&self) -> Result<scanner::ScanResult, UiError> {
         let blueprint_path = &self.options.blueprint_path;
         let current_mtime = fs::metadata(blueprint_path).and_then(|m| m.modified()).ok();
