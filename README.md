@@ -54,6 +54,19 @@ Three things change the day your agent starts writing the map.
 
 ## Quickstart
 
+The fastest path: let your agent do the whole setup. Paste this into it:
+
+```
+Read https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/agent-setup.md
+and follow it to set up Cairn in this repo. Walk me through each decision.
+```
+
+Your agent installs the CLI, detects whether this is a new or existing
+project, drafts the map with you, wires itself in, and arms the gate. See
+[docs/agent-setup.md](docs/agent-setup.md) for the steps it follows.
+
+Prefer to drive it yourself?
+
 ```sh
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
 cairn init                                                          # scaffold blueprint + config + agent guide
@@ -284,6 +297,7 @@ The marketing landing lives at `docs/landing/index.html`. It is static HTML cons
 
 - `docs/spec.md`: Cairn v0.8 specification
 - `docs/quickstart.md`: install and first-run walkthrough
+- `docs/agent-setup.md`: the paste-into-your-agent setup entry point
 - `docs/blueprint.md`: blueprint grammar reference
 - `docs/commands.md`: CLI command reference
 - `docs/mcp.md` and `docs/claude-code.md`: agent and MCP integration

@@ -2,6 +2,9 @@
 
 Get Cairn running and scan your first project in under five minutes.
 
+Working with a coding agent? The fastest path is [docs/agent-setup.md](agent-setup.md):
+paste one line into your agent and it runs this whole setup with you.
+
 ## Prerequisites
 
 - **Git.** Needed for cloning the repo (source install only) and for Cairn's own reconciliation.

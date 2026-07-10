@@ -15,6 +15,9 @@ user has not customised anything, have scan read the active brownfield delta, or
 map" promise is currently false and copy had to be rewritten around the archive step.
 Closing this gap is the highest-leverage effort fix in the first-run experience.
 
-Related terminology finding: `cairn change archive` meaning "apply the proposal" reads as
-shelving, not activating, to new users. Consider an `apply`/`accept` alias or rename as
-part of this work.
+Terminology rulings (owner sign-off, 2026-07-10): `cairn change archive` meaning "apply
+the proposal" reads as shelving, not activating; an `apply` alias is ratified (tracked in
+todo.change-apply-alias). "Brownfield" stays in agent-facing docs, change ids, and code
+(immediately recognisable to agents and experienced devs), but user-facing copy says
+"existing project" / "existing codebase": the word fails a plain-language pass for
+AI-first devs who never did long-cycle software work.
