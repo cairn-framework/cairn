@@ -29,6 +29,7 @@ pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: 
     validate_sources(root, &source_ids, set);
     validate_decision_claims(root, set);
     validate_gaps(set);
+    validate_changes(set);
 }
 
 pub(super) fn validate_nodes(node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
@@ -177,6 +178,56 @@ pub(super) fn validate_gaps(set: &mut ArtefactSet) {
                 format!("gap `{}` is unresolved", decision.id),
                 decision.nodes.first().cloned(),
                 Some(decision.path.clone()),
+            ));
+        }
+    }
+}
+
+/// Emits `CAIRN_CHANGE_TASKS_COMPLETE` when an active change's `tasks.md`
+/// contains at least one completed checkbox and zero unchecked boxes.
+/// Missing `tasks.md` or files with no checkboxes are ignored.
+pub(super) fn validate_changes(set: &mut ArtefactSet) {
+    for change in &set.changes {
+        let tasks_path = Path::new(&change.path).join("tasks.md");
+        let Ok(source) = fs::read_to_string(&tasks_path) else {
+            continue;
+        };
+        let mut checked = 0;
+        let mut unchecked = 0;
+        let mut in_fence = false;
+        for line in source.lines() {
+            let trimmed = line.trim_start();
+            if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+                in_fence = !in_fence;
+                continue;
+            }
+            if in_fence {
+                continue;
+            }
+            let marker = trimmed
+                .strip_prefix("- ")
+                .or_else(|| trimmed.strip_prefix("* "))
+                .map(str::trim_start);
+            match marker {
+                Some(rest) if rest == "[x]" || rest == "[X]" => checked += 1,
+                Some(rest) if rest.starts_with("[x] ") || rest.starts_with("[X] ") => {
+                    checked += 1;
+                }
+                Some(rest) if rest == "[ ]" || rest.starts_with("[ ] ") => {
+                    unchecked += 1;
+                }
+                _ => {}
+            }
+        }
+        if checked > 0 && unchecked == 0 {
+            let id = &change.id;
+            set.findings.push(info(
+                "CAIRN_CHANGE_TASKS_COMPLETE",
+                format!(
+                    "change `{id}` has all tasks complete; run `cairn change apply {id}` to archive it"
+                ),
+                Some(id.clone()),
+                Some(path_string(&tasks_path)),
             ));
         }
     }

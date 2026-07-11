@@ -546,3 +546,181 @@ fn test_decision_claim_absent_question_emits_finding() {
         set.findings
     );
 }
+
+// ── change tasks completion (CC004) ───────────────────────────────────────
+
+fn make_change(id: &str, change_dir: &Path) -> ChangeRecord {
+    ChangeRecord {
+        id: id.to_owned(),
+        path: change_dir.to_string_lossy().to_string(),
+        title: id.to_owned(),
+        proposal: String::new(),
+        design: None,
+    }
+}
+
+#[test]
+fn test_change_all_tasks_complete_emits_info() {
+    let dir = tempfile::tempdir().unwrap();
+    let change_dir = dir.path().join("meta/changes/complete-change");
+    std::fs::create_dir_all(&change_dir).unwrap();
+    std::fs::write(
+        change_dir.join("tasks.md"),
+        "# Tasks\n\n- [x] design\n- [X] implement\n- [x] test\n",
+    )
+    .unwrap();
+
+    let mut set = ArtefactSet::default();
+    set.changes = vec![make_change("complete-change", &change_dir)];
+    validate_changes(&mut set);
+
+    let finding = set
+        .findings
+        .iter()
+        .find(|f| f.code == "CAIRN_CHANGE_TASKS_COMPLETE")
+        .expect("all tasks complete must emit CAIRN_CHANGE_TASKS_COMPLETE");
+    assert_eq!(finding.severity, crate::map::graph::FindingSeverity::Info);
+    assert_eq!(
+        finding.path.as_deref(),
+        Some(change_dir.join("tasks.md").to_string_lossy().as_ref())
+    );
+    assert!(
+        finding.message.contains("complete-change"),
+        "message must include change id: {}",
+        finding.message
+    );
+    assert!(
+        finding
+            .message
+            .contains("cairn change apply complete-change"),
+        "message must suggest apply command: {}",
+        finding.message
+    );
+}
+
+#[test]
+fn test_change_unchecked_task_emits_no_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    let change_dir = dir.path().join("meta/changes/partial-change");
+    std::fs::create_dir_all(&change_dir).unwrap();
+    std::fs::write(
+        change_dir.join("tasks.md"),
+        "# Tasks\n\n- [x] design\n- [ ] implement\n",
+    )
+    .unwrap();
+
+    let mut set = ArtefactSet::default();
+    set.changes = vec![make_change("partial-change", &change_dir)];
+    validate_changes(&mut set);
+
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_CHANGE_TASKS_COMPLETE"),
+        "unchecked tasks must not emit finding; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_change_no_checkboxes_emits_no_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    let change_dir = dir.path().join("meta/changes/empty-change");
+    std::fs::create_dir_all(&change_dir).unwrap();
+    std::fs::write(
+        change_dir.join("tasks.md"),
+        "# Tasks\n\nNo tasks recorded yet.\n",
+    )
+    .unwrap();
+
+    let mut set = ArtefactSet::default();
+    set.changes = vec![make_change("empty-change", &change_dir)];
+    validate_changes(&mut set);
+
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_CHANGE_TASKS_COMPLETE"),
+        "tasks.md with no checkboxes must not emit finding; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_change_fenced_unchecked_example_does_not_suppress_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    let change_dir = dir.path().join("meta/changes/fenced-change");
+    std::fs::create_dir_all(&change_dir).unwrap();
+    std::fs::write(
+        change_dir.join("tasks.md"),
+        "# Tasks\n\n- [x] design\n\n```markdown\n- [ ] example only\n```\n",
+    )
+    .unwrap();
+
+    let mut set = ArtefactSet::default();
+    set.changes = vec![make_change("fenced-change", &change_dir)];
+    validate_changes(&mut set);
+
+    assert!(
+        finding_codes(&set).contains(&"CAIRN_CHANGE_TASKS_COMPLETE"),
+        "unchecked checkbox inside a code fence must not suppress the finding; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_change_only_fenced_checked_example_emits_no_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    let change_dir = dir.path().join("meta/changes/fenced-only-change");
+    std::fs::create_dir_all(&change_dir).unwrap();
+    std::fs::write(
+        change_dir.join("tasks.md"),
+        "# Tasks\n\n```\n- [x] example only\n```\n",
+    )
+    .unwrap();
+
+    let mut set = ArtefactSet::default();
+    set.changes = vec![make_change("fenced-only-change", &change_dir)];
+    validate_changes(&mut set);
+
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_CHANGE_TASKS_COMPLETE"),
+        "checked checkbox only inside a code fence must not emit finding; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_change_unchecked_star_bullet_suppresses_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    let change_dir = dir.path().join("meta/changes/mixed-bullet-change");
+    std::fs::create_dir_all(&change_dir).unwrap();
+    std::fs::write(
+        change_dir.join("tasks.md"),
+        "# Tasks\n\n- [x] finished\n* [ ] remaining\n",
+    )
+    .unwrap();
+
+    let mut set = ArtefactSet::default();
+    set.changes = vec![make_change("mixed-bullet-change", &change_dir)];
+    validate_changes(&mut set);
+
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_CHANGE_TASKS_COMPLETE"),
+        "unchecked star-bullet task must suppress the finding; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_change_missing_tasks_md_emits_no_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    let change_dir = dir.path().join("meta/changes/no-tasks");
+    std::fs::create_dir_all(&change_dir).unwrap();
+
+    let mut set = ArtefactSet::default();
+    set.changes = vec![make_change("no-tasks", &change_dir)];
+    validate_changes(&mut set);
+
+    assert!(
+        !finding_codes(&set).contains(&"CAIRN_CHANGE_TASKS_COMPLETE"),
+        "missing tasks.md must not emit finding; got: {:?}",
+        set.findings
+    );
+}

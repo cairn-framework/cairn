@@ -51,6 +51,22 @@ mod tests {
     }
 
     #[test]
+    fn test_lookup_finding_code_change_tasks_complete() {
+        let heading = lookup("findings.codes.CAIRN_CHANGE_TASKS_COMPLETE.heading");
+        let body = lookup("findings.codes.CAIRN_CHANGE_TASKS_COMPLETE.body");
+        let cta = lookup("findings.codes.CAIRN_CHANGE_TASKS_COMPLETE.cta");
+        assert_eq!(heading, "Change tasks complete");
+        assert!(
+            body.contains("{node}"),
+            "body should contain node placeholder"
+        );
+        assert!(
+            cta.contains("cairn change apply"),
+            "cta should mention cairn change apply"
+        );
+    }
+
+    #[test]
     fn test_lookup_missing_key_fallback() {
         let key = "this.key.does.not.exist";
         assert_eq!(lookup(key), key);
