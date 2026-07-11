@@ -88,7 +88,7 @@ const ACTIONS = {
     settled: "(function(){return !!document.querySelector('.cmd-palette');})()",
   },
   openBlueprint: {
-    fire: "(function(){var t=document.querySelector('.blueprint-trigger');if(t){t.click();return true;}return false;})()",
+    fire: "(function(){var t=document.querySelector('.blueprint-open-trigger');if(t){t.click();return true;}return false;})()",
     settled: "(function(){return !!document.querySelector('.blueprint-modal pre');})()",
   },
   openDecision: {

@@ -2680,7 +2680,7 @@ button.path-row:hover {
   }
 
   .cmd-trigger {
-    height: 44px;
+    min-width: 44px;
   }
 
   .findings-panel .findings-controls {
