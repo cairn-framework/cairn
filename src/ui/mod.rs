@@ -414,6 +414,25 @@ mod tests {
     }
 
     #[test]
+    fn test_ui_spine_endpoint_returns_404_for_unknown_node() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("todos-endpoint-unknown-node")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/no.such.node/todos")?;
+        server.stop();
+
+        assert!(response.head.contains("404"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["code"], "CAIRN_UI_PROJECT_LOAD_FAILED");
+        Ok(())
+    }
+
+    #[test]
     fn test_ui_decisions_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
         let root = temp_root("decisions-endpoint")?;
         write_artefact_project(&root)?;

@@ -163,11 +163,8 @@
     // Legacy shape: { node, artefacts: [{ type, path, title, frontmatter, body }] }
     if (Array.isArray(response.artefacts)) {
       return response.artefacts.map((entry) => ({
-        type: entry.type,
-        path: entry.path,
-        title: entry.title,
-        body: entry.body,
-        status: entry.frontmatter?.status,
+        ...entry,
+        status: entry.status ?? entry.frontmatter?.status,
       }));
     }
     // Rationale canonical shape: { node, decisions: [...], research: [...], sources: [...] }
@@ -176,13 +173,7 @@
       return kinds.flatMap((key) => {
         const list = response[key];
         if (!Array.isArray(list)) return [];
-        return list.map((entry) => ({
-          type: key,
-          path: entry.path,
-          title: entry.title,
-          body: entry.body,
-          status: entry.status,
-        }));
+        return list.map((entry) => ({ ...entry, type: key }));
       });
     }
     // Canonical shape: { node, <kind>: [...] } (contract uses "contracts").
@@ -190,11 +181,8 @@
     const list = response[key];
     if (!Array.isArray(list)) return [];
     return list.map((entry) => ({
+      ...entry,
       type: kind === "contract" ? "contract" : kind,
-      path: entry.path,
-      title: entry.title,
-      body: entry.body,
-      status: entry.status,
     }));
   }
 
@@ -952,7 +940,7 @@
   }
 
   function ArtefactCard({ artefact }) {
-    const status = artefact.frontmatter?.status || artefact.type;
+    const status = artefact.status ?? artefact.frontmatter?.status ?? artefact.type;
     const kindClass = artefact.type === "decisions" ? "decision" : artefact.type;
     return html`
       <div class=${clsx("artefact", kindClass, status)}>

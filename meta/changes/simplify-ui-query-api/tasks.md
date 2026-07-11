@@ -34,8 +34,11 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
 - [ ] Flip `graph` (no canonical full-graph dump tool exists; stays on legacy
       `graph_json` unless a spine op is added).
 - [ ] Delete `src/ui/api.rs` + `src/ui/serialise.rs` once nothing needs them.
-      (rationale/contract flip removed the last api.rs helpers; both files are
-      now dead and will be removed in the final cleanup step.)
+      (The rationale/contract flip removed the structured-artefact helpers, but
+      both files stay live: `server.rs` still calls `graph_json`, `node_json`,
+      `dependency_json`, `status_json`, `finding_json`, `project_finding`, and
+      `serialise::esc`/`percent_decode` for the unflipped `graph`, `node`,
+      `status`, `depends`, and `dependents` routes.)
 
 ## Gate notes (this session)
 - Rust gate `scripts/pre-archive-rust-gates.sh`: **green** for every commit

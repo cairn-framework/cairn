@@ -254,7 +254,16 @@ impl Server {
                 }
                 Ok(response.data)
             }
-            Err(error) => Err(json(500, &finding_json(&project_finding(error.message)))),
+            Err(error) => {
+                // Unknown node keeps the legacy 404 contract; every other
+                // query failure is a server-side error.
+                let status = if error.code == "CAIRN_QUERY_NODE_NOT_FOUND" {
+                    404
+                } else {
+                    500
+                };
+                Err(json(status, &finding_json(&project_finding(error.message))))
+            }
         }
     }
 
