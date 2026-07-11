@@ -49,5 +49,6 @@ also calls `kernel.query` helpers to shape graph and node responses.
 ## Tests
 
 Unit tests live in `#[cfg(test)]` modules in `src/ui/mod.rs` (server lifecycle
-and routing over a background handle), `src/ui/api.rs` (endpoint JSON shaping and
-artefact collection), and `src/ui/serialise.rs` (escaping and percent-decoding).
+and routing over a background handle) and `src/ui/wire.rs` (error-body escaping
+and percent-decoding). Endpoint JSON shapes are pinned by the query_api spine
+tests and `tests/wire_format_snapshots.rs`.

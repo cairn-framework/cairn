@@ -19,6 +19,7 @@ use std::{
 use crate::scanner;
 
 mod server;
+mod wire;
 
 use server::{Server, open_browser};
 
