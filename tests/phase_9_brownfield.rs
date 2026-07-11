@@ -241,7 +241,7 @@ mod refine {
         populate_source_dir(&root, "src/auth", 4);
         let result = bf_refine::run_refine(&root);
         assert!(result.is_ok());
-        let change_id = result.unwrap();
+        let change_id = result.unwrap().expect("new dir must produce a change");
         assert!(change_id.starts_with("brownfield-refine-"));
         let change_dir = root.join("meta/changes").join(&change_id);
         assert!(change_dir.exists());
@@ -254,14 +254,60 @@ mod refine {
     fn test_refine__does_not_replace_current_truth() {
         let root = temp_repo("refine-nodup");
         populate_source_dir(&root, "src/core", 3);
-        let first = bf_refine::run_refine(&root).unwrap();
+        let first = bf_refine::run_refine(&root).unwrap().expect("first change");
         // Add a second source dir and refine again.
         populate_source_dir(&root, "src/api", 3);
-        let second = bf_refine::run_refine(&root).unwrap();
+        let second = bf_refine::run_refine(&root)
+            .unwrap()
+            .expect("second change");
         // Each refine creates a separate change directory.
         assert_ne!(first, second);
         assert!(root.join("meta/changes").join(&first).exists());
         assert!(root.join("meta/changes").join(&second).exists());
+    }
+
+    /// Scenario: Refine proposes only candidates absent from the blueprint.
+    /// Regression: refine re-proposed every already-declared node, so
+    /// archiving any refine change failed with duplicate add operations.
+    #[test]
+    fn test_refine__skips_candidates_already_in_blueprint() {
+        let root = temp_repo("refine-skip-declared");
+        populate_source_dir(&root, "src/core", 3);
+        let blueprint = "System App \"App\" id \"app\" {\n    Module Core \"Core\" id \"app.core\" {\n        path \"./src/core\"\n    }\n}\n";
+        std::fs::write(root.join("cairn.blueprint"), blueprint).unwrap();
+
+        populate_source_dir(&root, "src/auth", 3);
+        let change_id = bf_refine::run_refine(&root)
+            .unwrap()
+            .expect("new dir must produce a change");
+        let delta = std::fs::read_to_string(
+            root.join("meta/changes")
+                .join(&change_id)
+                .join("blueprint.delta"),
+        )
+        .expect("read delta");
+        assert!(delta.contains("src.auth"), "new node proposed: {delta}");
+        assert!(
+            !delta.contains(r#"id "src.core""#),
+            "declared node must not be re-proposed: {delta}"
+        );
+    }
+
+    /// Scenario: Refine reports no changes when blueprint and code agree.
+    #[test]
+    fn test_refine__no_changes_writes_no_change_dir() {
+        let root = temp_repo("refine-noop");
+        populate_source_dir(&root, "src/core", 3);
+        let blueprint = "System App \"App\" id \"app\" {\n    Module Core \"Core\" id \"app.core\" {\n        path \"./src/core\"\n    }\n}\n";
+        std::fs::write(root.join("cairn.blueprint"), blueprint).unwrap();
+
+        let result = bf_refine::run_refine(&root).unwrap();
+        assert!(result.is_none(), "no drift must mean no change: {result:?}");
+        let changes = root.join("meta/changes");
+        assert!(
+            !changes.exists() || std::fs::read_dir(&changes).unwrap().next().is_none(),
+            "no change directory may be written"
+        );
     }
 
     /// Scenario: Refine detects a renamed directory.
@@ -284,7 +330,7 @@ mod refine {
 
         let result = bf_refine::run_refine(&root);
         assert!(result.is_ok(), "refine failed: {result:?}");
-        let change_id = result.unwrap();
+        let change_id = result.unwrap().expect("rename must produce a change");
         let delta_path = root
             .join("meta/changes")
             .join(&change_id)
@@ -311,7 +357,9 @@ mod refine {
         let blueprint = "System App \"App\" id \"app\" {\n    Module Old \"Old\" id \"app.old\" {\n        path \"./src/old\"\n    }\n}\n";
         std::fs::write(root.join("cairn.blueprint"), blueprint).unwrap();
 
-        let change_id = bf_refine::run_refine(&root).unwrap();
+        let change_id = bf_refine::run_refine(&root)
+            .unwrap()
+            .expect("rename must produce a change");
         let delta = std::fs::read_to_string(
             root.join("meta/changes")
                 .join(&change_id)
@@ -366,6 +414,33 @@ mod discovery_tests {
         assert!(ids.contains(&"src.auth"));
         assert!(ids.contains(&"src.db"));
         assert!(!ids.contains(&"src.tiny"));
+    }
+
+    /// Scenario: Discovery counts every supported language, not just Rust.
+    /// The polyglot first-run path (TS + Python here) must behave exactly
+    /// like the Rust fixtures used elsewhere in this suite.
+    #[test]
+    fn test_discovery__counts_polyglot_source_files() {
+        let root = temp_repo("discover-polyglot");
+        let web = root.join("web/components");
+        fs::create_dir_all(&web).unwrap();
+        for i in 0..4 {
+            fs::write(web.join(format!("c{i}.ts")), "export const x = 1;\n").unwrap();
+        }
+        let scripts = root.join("scripts");
+        fs::create_dir_all(&scripts).unwrap();
+        for i in 0..3 {
+            fs::write(scripts.join(format!("s{i}.py")), "def f(): pass\n").unwrap();
+        }
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<&str> = extraction
+            .candidates
+            .iter()
+            .map(|c| c.id.as_str())
+            .collect();
+        assert!(ids.contains(&"web.components"), "ts dir found: {ids:?}");
+        assert!(ids.contains(&"scripts"), "py dir found: {ids:?}");
     }
 
     /// Scenario: Discovery skips ignored directories.

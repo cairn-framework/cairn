@@ -22,7 +22,7 @@ Compares the current codebase against the existing blueprint and writes a timest
 cairn refine
 ```
 
-Each refine run creates a new change directory (`brownfield-refine-<timestamp>`) so prior proposals are never overwritten.
+Each refine run creates a new change directory (`brownfield-refine-<timestamp>`) so prior proposals are never overwritten. Nodes already declared in the blueprint are never re-proposed; when the blueprint and the code already agree, refine reports "no changes detected" and writes nothing.
 
 ## Discovery heuristics
 

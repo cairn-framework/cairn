@@ -287,10 +287,10 @@
         {
           "name": "run_refine",
           "kind": "function",
-          "signature": "pub fn run_refine(root: &Path) -> Result<String, CairnError>",
+          "signature": "pub fn run_refine(root: &Path) -> Result<Option<String>, CairnError>",
           "file": "src/brownfield/refine.rs",
-          "line": 25,
-          "end_line": 31
+          "line": 30,
+          "end_line": 57
         },
         {
           "name": "start_session",
@@ -1323,8 +1323,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 683,
-          "end_line": 701
+          "line": 684,
+          "end_line": 702
         },
         {
           "name": "build_export",
@@ -1364,7 +1364,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 79,
-          "end_line": 218
+          "end_line": 219
         },
         {
           "name": "run",

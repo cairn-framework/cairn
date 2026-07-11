@@ -37,7 +37,7 @@ pub(super) fn dispatch_change_tool(
                 .map(|change_id| {
                     json!({
                         "command": "refine",
-                        "status": "ok",
+                        "status": if change_id.is_some() { "ok" } else { "no_changes" },
                         "data": { "change_id": change_id },
                     })
                 })

@@ -110,9 +110,10 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "refine" {
         return match crate::brownfield::refine::run_refine(project_root) {
-            Ok(change_id) => ok(format!(
+            Ok(Some(change_id)) => ok(format!(
                 "refine complete; change written to meta/changes/{change_id}/\n"
             )),
+            Ok(None) => ok("refine complete; no changes detected\n".to_owned()),
             Err(e) => err(1, &e.to_string()),
         };
     }
