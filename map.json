@@ -6231,72 +6231,72 @@
           "kind": "function",
           "signature": "pub const fn address(&self) -> SocketAddr",
           "file": "src/ui/mod.rs",
-          "line": 187,
-          "end_line": 189
+          "line": 186,
+          "end_line": 188
         },
         {
           "name": "UiError",
           "kind": "enum",
           "signature": "pub enum UiError",
           "file": "src/ui/mod.rs",
-          "line": 133,
-          "end_line": 147
+          "line": 132,
+          "end_line": 146
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/ui/mod.rs",
-          "line": 110,
-          "end_line": 128
+          "line": 109,
+          "end_line": 127
         },
         {
           "name": "serve_current_thread",
           "kind": "function",
           "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 206,
-          "end_line": 219
+          "line": 205,
+          "end_line": 218
         },
         {
           "name": "start_background",
           "kind": "function",
           "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 226,
-          "end_line": 239
+          "line": 225,
+          "end_line": 238
         },
         {
           "name": "stop",
           "kind": "function",
           "signature": "pub fn stop(mut self)",
           "file": "src/ui/mod.rs",
-          "line": 192,
-          "end_line": 198
+          "line": 191,
+          "end_line": 197
         },
         {
           "name": "url",
           "kind": "function",
           "signature": "pub fn url(&self) -> String",
           "file": "src/ui/mod.rs",
-          "line": 181,
-          "end_line": 183
+          "line": 180,
+          "end_line": 182
         },
         {
           "name": "ServerHandle",
           "kind": "struct",
           "signature": "pub struct ServerHandle",
           "file": "src/ui/mod.rs",
-          "line": 172,
-          "end_line": 176
+          "line": 171,
+          "end_line": 175
         },
         {
           "name": "UiOptions",
           "kind": "struct",
           "signature": "pub struct UiOptions",
           "file": "src/ui/mod.rs",
-          "line": 85,
-          "end_line": 92
+          "line": 84,
+          "end_line": 91
         }
       ]
     },
@@ -6593,13 +6593,6 @@
     }
   ],
   "findings": [
-    {
-      "code": "CAIRN_GAP_UNRESOLVED",
-      "severity": "warning",
-      "message": "gap `dec.gap-cairn-state-should-beads-jsonl-exports-stay-git-tracked-now` is unresolved",
-      "node": "cairn.state",
-      "path": "././meta/decisions/gap-cairn-state-should-beads-jsonl-exports-stay-git-tracked-now.md"
-    },
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
