@@ -134,6 +134,7 @@ pub(super) fn contract_json(contract: &Contract) -> String {
     )
 }
 
+#[allow(dead_code)] // Reason: remains until contract/rationale endpoints are flipped in a later chunk.
 pub(super) fn artefact_response_json(root: &Path, kind: &str, node: &str) -> String {
     let artefacts = collect_artefacts(root, kind, node)
         .iter()

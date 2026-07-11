@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: ui module hosts integration tests for the embedded web server.
 //! Embedded HTTP server and browser UI for graph exploration.
 
 use std::{
@@ -477,6 +478,38 @@ mod tests {
             research["body"],
             "# API Research\nStudied payload evolution."
         );
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_sources_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("sources-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/sources")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        let sources = body["sources"].as_array().expect("sources array");
+        assert_eq!(sources.len(), 1);
+        let source = &sources[0];
+        assert_eq!(source["path"], "meta/sources/src.api.md");
+        assert_eq!(source["id"], "src.api");
+        assert_eq!(source["file"], "docs-source.txt");
+        assert_eq!(source["verification"], "verified");
+        assert_eq!(source["type"], "note");
+        assert_eq!(source["date"], "2026-03-19");
+        assert_eq!(source["title"], "API Source");
+        assert_eq!(source["body"], "# API Source\nBootstrap evidence.");
         assert!(body["schema_version"].is_u64());
 
         Ok(())

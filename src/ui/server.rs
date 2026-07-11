@@ -4,8 +4,8 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 use api::{
-    artefact_response_json, contract_response_json, dependency_json, finding_json, graph_json,
-    node_json, project_finding, rationale_json, status_json,
+    contract_response_json, dependency_json, finding_json, graph_json, node_json, project_finding,
+    rationale_json, status_json,
 };
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
@@ -200,7 +200,12 @@ impl Server {
                 Some(node.clone()),
                 std::collections::BTreeSet::new(),
             ),
-            "sources" => json(200, &artefact_response_json(&self.root, "sources", &node)),
+            "sources" => self.spine(
+                project,
+                "sources",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             "beads" => self.spine(
                 project,
                 "beads",
