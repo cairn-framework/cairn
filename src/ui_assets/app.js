@@ -494,7 +494,7 @@
           <button class="blueprint-trigger" onClick=${() => openReportIssue(version)} title="Report an issue">
             <span class="caps">${copy("webui.report.topbar")}</span>
           </button>
-          <button class="blueprint-trigger" onClick=${onOpenBlueprint} title="View blueprint source">
+          <button class="blueprint-trigger blueprint-open-trigger" onClick=${onOpenBlueprint} title="View blueprint source">
             <span class="caps">.blueprint</span>
           </button>
           <div class="avatar">CN</div>

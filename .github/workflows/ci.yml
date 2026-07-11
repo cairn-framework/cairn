@@ -66,3 +66,19 @@ jobs:
         run: sh scripts/check-design-tokens.sh
       - name: accessibility static audit
         run: sh scripts/check-a11y.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: visual harness
+        env:
+          CHROME_PATH: /usr/bin/google-chrome-stable
+        run: |
+          mkdir -p harness/out
+          rc=0
+          node harness/eval.mjs > harness/out/ci.log 2>&1 || rc=$?
+          score=$(grep -oE 'ux_defect_score=[0-9]+' harness/out/ci.log | cut -d= -f2)
+          if [ "$rc" -ne 0 ] || [ "$score" != "0" ]; then
+            echo "harness exit=$rc ux_defect_score=$score (must be 0)"
+            cat harness/out/ci.log
+            exit 1
+          fi
