@@ -256,13 +256,17 @@ impl Server {
             }
             Err(error) => {
                 // Unknown node keeps the legacy 404 contract; every other
-                // query failure is a server-side error.
+                // query failure is a server-side error. The wire keeps the
+                // spine's error code so clients can branch without parsing
+                // the HTTP status.
                 let status = if error.code == "CAIRN_QUERY_NODE_NOT_FOUND" {
                     404
                 } else {
                     500
                 };
-                Err(json(status, &finding_json(&project_finding(error.message))))
+                let mut finding = project_finding(error.message);
+                finding.code = error.code;
+                Err(json(status, &finding_json(&finding)))
             }
         }
     }

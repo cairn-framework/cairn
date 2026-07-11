@@ -428,7 +428,7 @@ mod tests {
 
         assert!(response.head.contains("404"));
         let body: Value = serde_json::from_str(&response.body)?;
-        assert_eq!(body["code"], "CAIRN_UI_PROJECT_LOAD_FAILED");
+        assert_eq!(body["code"], "CAIRN_QUERY_NODE_NOT_FOUND");
         Ok(())
     }
 
