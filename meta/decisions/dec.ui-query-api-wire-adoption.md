@@ -102,9 +102,21 @@ exactly one `schema_version` key, owned by the server constant.
 - `src/ui/mod.rs::test_ui_symbols_endpoint_returns_extracted_symbols` updated to
   assert `"id":"app.api"` instead of `"node":"app.api"`.
 
+### `/api/node/decisions` (FLIPPED)
+- Now served via `execute("decisions", {node})`. The spine op returns the enriched
+  canonical shape `{"node":"...","schema_version":1,"decisions":[{"id","status","nodes",
+  "informed_by","supersedes","refines","related","path","title","date","revisited",
+  "revisit_triggers","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"decisions",
+  "path","title","frontmatter","body"}]}` (built by `src/ui/api.rs`).
+- Snapshot `wire_format_snapshots__api_node_app_api_decisions.snap` rebased to the
+  new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.decisions`)
+  and falls back to the legacy `response.artefacts` for frozen fixtures.
+
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
 `status`, `graph`, `node`, `node/contract`,
-`node/decisions`, `node/research`, `node/sources`,
+`node/research`, `node/sources`,
 `node/rationale`, `depends`, `dependents`.

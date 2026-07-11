@@ -182,7 +182,12 @@ impl Server {
                 Some(node.clone()),
                 std::collections::BTreeSet::from([crate::query_api::QueryFlag::Symbols]),
             ),
-            "decisions" => json(200, &artefact_response_json(&self.root, "decisions", &node)),
+            "decisions" => self.spine(
+                project,
+                "decisions",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             "todos" => self.spine(
                 project,
                 "todos",

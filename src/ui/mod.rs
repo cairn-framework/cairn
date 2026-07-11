@@ -414,6 +414,40 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn test_ui_decisions_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("decisions-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/decisions")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        let decisions = body["decisions"].as_array().expect("decisions array");
+        assert_eq!(decisions.len(), 1);
+        let decision = &decisions[0];
+        assert_eq!(decision["path"], "meta/decisions/dec.api.md");
+        assert_eq!(decision["id"], "dec.api");
+        assert_eq!(decision["status"], "accepted");
+        assert_eq!(decision["nodes"], serde_json::json!(["app.api"]));
+        assert_eq!(decision["informed_by"], serde_json::json!(["res.api"]));
+        assert_eq!(decision["title"], "API Decision");
+        assert_eq!(
+            decision["body"],
+            "# API Decision\nUse stable JSON payloads."
+        );
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
     fn write_artefact_project(root: &Path) -> Result<(), Box<dyn Error>> {
         fs::create_dir_all(root.join("src/api"))?;
         fs::create_dir_all(root.join("meta/contracts"))?;
