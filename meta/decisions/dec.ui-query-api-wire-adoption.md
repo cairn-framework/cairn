@@ -27,6 +27,28 @@ These are intentional CLI-surface additions (the prior session chose to give the
 spine ops proper CLI presence), so they are documented in `docs/commands.md`,
 `docs/integration-contract.md`, and wired in `src/cli/mod.rs` (`uses_shared_json`).
 
+## Enriched artefact helpers (already landed)
+The canonical artefact handlers now expose `path`, `title`, and `body` plus any
+kind-specific fields so the webui can render the same cards without legacy
+`src/ui/api.rs` builders. The helpers live in `src/query_api/serialise.rs` and
+are unit-tested:
+
+- `title_from_body(body, fallback)` — extracts the first level-one Markdown
+  heading from an artefact body, falling back to the provided title.
+- `relative_path(path, root)` — strips the project root prefix so JSON wires are
+  stable and portable.
+- `todo_enriched_json` — adds `path`, `title`, and `body` to `todo_json`.
+- `decision_enriched_json` — adds `path`, `title`, `date`, `revisited`,
+  `revisit_triggers`, and `body` to `decision_json`.
+- `research_enriched_json` — adds `path`, `title`, and `body` to `research_json`.
+- `source_enriched_json` — adds `path`, `title`, and `body` to `source_json`.
+
+`src/query_api/handlers/artefacts.rs` wires these helpers into the response
+builders for the `todos`, `decisions`, `research`, and `sources` spine op
+responses; `src/query_api/handlers/node.rs` uses them for the `contract` and
+`rationale` records (the `contract` record gained a `title` field, while
+`rationale` uses the enriched source/research shapes for its referenced items).
+
 ## Recorded wire changes
 
 ### `/api/meta` (FLIPPED)
@@ -60,6 +82,17 @@ exactly one `schema_version` key, owned by the server constant.
   so the snapshot `wire_format_snapshots__api_lint.snap` required no delta and
   `app.js` needs no change (it reads `lint.findings[].{code,severity,node,path}`).
 
+### `/api/node/todos` (FLIPPED)
+- Now served via `execute("todos", {node})`. The spine op returns the enriched
+  canonical shape `{"node":"...","schema_version":1,"todos":[{"id","node","status",
+  "created","satisfies","path","title","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"todos",
+  "path","title","frontmatter","body"}]}` (built by `src/ui/api.rs`).
+- Snapshot `wire_format_snapshots__api_node_app_api_todos.snap` rebased to the
+  new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.todos`)
+  and falls back to the legacy `response.artefacts` for frozen fixtures.
+
 ### `/api/node/symbols` (FLIPPED, wrapper change)
 - Now served via `execute("get", {node, flags:[Symbols]})`. The canonical
   `node_json` embeds `symbols` inside the full node record, so the wire changes
@@ -69,9 +102,71 @@ exactly one `schema_version` key, owned by the server constant.
 - `src/ui/mod.rs::test_ui_symbols_endpoint_returns_extracted_symbols` updated to
   assert `"id":"app.api"` instead of `"node":"app.api"`.
 
+### `/api/node/decisions` (FLIPPED)
+- Now served via `execute("decisions", {node})`. The spine op returns the enriched
+  canonical shape `{"node":"...","schema_version":1,"decisions":[{"id","status","nodes",
+  "informed_by","supersedes","refines","related","path","title","date","revisited",
+  "revisit_triggers","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"decisions",
+  "path","title","frontmatter","body"}]}` (built by `src/ui/api.rs`).
+- Snapshot `wire_format_snapshots__api_node_app_api_decisions.snap` rebased to the
+  new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.decisions`)
+  and falls back to the legacy `response.artefacts` for frozen fixtures.
+
+### `/api/node/research` (FLIPPED)
+- Now served via `execute("research", {node})`. The spine op returns the enriched
+  canonical shape `{"node":"...","schema_version":1,"research":[{"id","nodes",
+  "sources","date","path","title","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"research",
+  "path","title","frontmatter","body"}]}` (built by `src/ui/api.rs`).
+- Snapshot `wire_format_snapshots__api_node_app_api_research.snap` rebased to the
+  new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.research`)
+  and falls back to the legacy `response.artefacts` for frozen fixtures.
+
+### `/api/node/sources` (FLIPPED)
+- Now served via `execute("sources", {node})`. The spine op returns the enriched
+  canonical shape `{"node":"...","schema_version":1,"sources":[{"id","file",
+  "verification","type","date","path","title","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"sources",
+  "path","title","frontmatter","body"}]}` (built by `src/ui/api.rs`).
+- Snapshot `wire_format_snapshots__api_node_app_api_sources.snap` rebased to the
+  new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.sources`)
+  and falls back to the legacy `response.artefacts` for frozen fixtures.
+
+### `/api/node/rationale` (FLIPPED)
+- Now served via `execute("rationale", {node})`. The spine op returns the
+  canonical shape `{"node":"...","schema_version":1,"decisions":[...],"research":[...],"sources":[...]}`
+  using enriched `decision_enriched_json`, `research_enriched_json`, and
+  `source_enriched_json` records.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"decisions"|"research"|"sources", "path","title","frontmatter","body"}]}`.
+- Snapshot `wire_format_snapshots__api_node_app_api_rationale.snap` rebased to
+  the new canonical shape.
+- `app.js` `fetchNodeArtefacts` now supports the rationale canonical shape by
+  merging `response.decisions`, `response.research`, and `response.sources`
+  into a single artefact list while preserving the legacy `response.artefacts`
+  fallback for frozen fixtures.
+
+### `/api/node/contract` (FLIPPED)
+- Now served via `execute("contract", {node})`. The spine op returns the
+  canonical shape `{"node":"...","schema_version":1,"contract":"<body>",
+  "contracts":[{"path","node","declared_by","title","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"contract",
+  "path","title","frontmatter":{"node":"..."},"body"}]}`.
+- **Semantic delta**: legacy matching included any contract where
+  `contract.node == node || contract.declared_by == node` across the whole
+  contract set. Canonical matching only considers contracts explicitly listed in
+  the node's `contracts` field and then requires `contract.node == node.id`.
+  A contract declared-by but not attached to the node is no longer surfaced.
+- Snapshot `wire_format_snapshots__api_node_app_api_contract.snap` rebased to
+  the new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape
+  (`response.contracts`) and falls back to the legacy `response.artefacts` for
+  frozen fixtures.
+
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`, `node`, `node/contract`,
-`node/decisions`, `node/todos`, `node/research`, `node/sources`,
-`node/rationale`, `depends`, `dependents`.
+`status`, `graph`, `node`, `depends`, `dependents`.

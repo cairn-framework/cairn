@@ -39,15 +39,6 @@ pub(super) const fn graph_edge_kind_name(kind: GraphEdgeKind) -> &'static str {
     }
 }
 
-pub(super) fn map_json(values: &BTreeMap<String, String>) -> String {
-    let fields = values
-        .iter()
-        .map(|(key, value)| format!("\"{}\":\"{}\"", esc(key), esc(value)))
-        .collect::<Vec<_>>()
-        .join(",");
-    format!("{{{fields}}}")
-}
-
 pub(super) fn string_array_json(values: &[String]) -> String {
     format!(
         "[{}]",

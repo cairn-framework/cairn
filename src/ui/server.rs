@@ -3,10 +3,7 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
-use api::{
-    artefact_response_json, contract_response_json, dependency_json, finding_json, graph_json,
-    node_json, project_finding, rationale_json, status_json,
-};
+use api::{dependency_json, finding_json, graph_json, node_json, project_finding, status_json};
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
 
@@ -175,24 +172,54 @@ impl Server {
                 |finding| json(404, &finding_json(&finding)),
                 |response| json(200, &node_json(&response.node)),
             ),
-            "contract" => json(200, &contract_response_json(project, &node)),
+            "contract" => self.spine(
+                project,
+                "contract",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             "symbols" => self.spine(
                 project,
                 "get",
                 Some(node.clone()),
                 std::collections::BTreeSet::from([crate::query_api::QueryFlag::Symbols]),
             ),
-            "decisions" => json(200, &artefact_response_json(&self.root, "decisions", &node)),
-            "todos" => json(200, &artefact_response_json(&self.root, "todos", &node)),
-            "research" => json(200, &artefact_response_json(&self.root, "research", &node)),
-            "sources" => json(200, &artefact_response_json(&self.root, "sources", &node)),
+            "decisions" => self.spine(
+                project,
+                "decisions",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
+            "todos" => self.spine(
+                project,
+                "todos",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
+            "research" => self.spine(
+                project,
+                "research",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
+            "sources" => self.spine(
+                project,
+                "sources",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             "beads" => self.spine(
                 project,
                 "beads",
                 Some(node.clone()),
                 std::collections::BTreeSet::new(),
             ),
-            "rationale" => json(200, &rationale_json(&self.root, &node)),
+            "rationale" => self.spine(
+                project,
+                "rationale",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             _ => text(404, "not found"),
         }
     }
@@ -227,7 +254,20 @@ impl Server {
                 }
                 Ok(response.data)
             }
-            Err(error) => Err(json(500, &finding_json(&project_finding(error.message)))),
+            Err(error) => {
+                // Unknown node keeps the legacy 404 contract; every other
+                // query failure is a server-side error. The wire keeps the
+                // spine's error code so clients can branch without parsing
+                // the HTTP status.
+                let status = if error.code == "CAIRN_QUERY_NODE_NOT_FOUND" {
+                    404
+                } else {
+                    500
+                };
+                let mut finding = project_finding(error.message);
+                finding.code = error.code;
+                Err(json(status, &finding_json(&finding)))
+            }
         }
     }
 

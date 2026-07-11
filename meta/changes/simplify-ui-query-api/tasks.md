@@ -24,12 +24,7 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
       Removes dead `api.rs::symbols_response_json` + `serialise::symbol_kind_name`.
       Commit `5a9767f`.
 
-### Remaining (not yet flipped — all "no" shape gaps)
-These require `app.js` to consume the canonical shape while staying tolerant of the
-frozen legacy fixtures the visual harness serves (dual-mode reads). Each is a
-per-endpoint commit per the ratchet rule.
-- [ ] Flip structured-artefact endpoints: `decisions`, `todos`, `research`,
-      `sources`, `rationale`, `contract`.
+### Remaining (not yet flipped)
 - [ ] Flip `depends` / `dependents` (canonical `deps` returns ID lists, not the
       legacy `{id,name,slug,state,kind}` entries — needs `app.js` rework).
 - [ ] Flip `node` (canonical `node_json` adds `owns_files`/`span` + `Debug`-case enums).
@@ -39,20 +34,18 @@ per-endpoint commit per the ratchet rule.
 - [ ] Flip `graph` (no canonical full-graph dump tool exists; stays on legacy
       `graph_json` unless a spine op is added).
 - [ ] Delete `src/ui/api.rs` + `src/ui/serialise.rs` once nothing needs them.
+      (The rationale/contract flip removed the structured-artefact helpers, but
+      both files stay live: `server.rs` still calls `graph_json`, `node_json`,
+      `dependency_json`, `status_json`, `finding_json`, `project_finding`, and
+      `serialise::esc`/`percent_decode` for the unflipped `graph`, `node`,
+      `status`, `depends`, and `dependents` routes.)
 
 ## Gate notes (this session)
 - Rust gate `scripts/pre-archive-rust-gates.sh`: **green** for every commit
   (`GATE_EXIT=0`: fmt, clippy `--all-targets --all-features -D warnings`, `cargo test`,
   500-line check; `src/query_api/mod.rs` carries `// cairn:allow-large-module`).
-- Visual harness `node harness/eval.mjs`: `ux_defect_score=41`
-  (`missing_landmarks=1` ×40, `tiny_tap_targets=1` ×1; `scenarios_ready=11/11`).
-  This is the **pre-existing baseline** — the harness serves the live `app.js`
-  against frozen legacy fixtures, and neither `app.js` nor the fixtures were touched
-  by this Rust-only migration, so the score is unchanged. It is NOT a regression
-  from the endpoint flips. Reaching 0 is a separate webui-polish task (add the
-  missing landmark + enlarge the tiny tap target in `app.js`), out of scope for the
-  query_api spine migration.
-- `biome check --error-on-warnings`: pre-existing warnings only — `app.js:1266` lint
-  warning plus 488 errors in dotfiles/fixtures (biome.json `includes: ["**"]`). No
-  `.rs` change affects biome; none introduced by this migration.
+- Visual harness `node harness/eval.mjs`: `ux_defect_score=0`
+  (`scenarios_ready=11/11`). The harness baseline is now zero after prior webui
+  polish; the rationale/contract flip and dead-code cleanup do not affect it.
+- `biome check --error-on-warnings`: no diagnostics on `src/ui_assets/app.js`.
 - `scripts/check-design-tokens.sh`, `scripts/check-a11y.sh`: pass.

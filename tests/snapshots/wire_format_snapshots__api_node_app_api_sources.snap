@@ -3,7 +3,18 @@ source: tests/wire_format_snapshots.rs
 expression: value
 ---
 {
-  "artefacts": [],
   "node": "app.api",
-  "schema_version": 1
+  "schema_version": 1,
+  "sources": [
+    {
+      "body": "# API Source\nBootstrap evidence.",
+      "date": "2026-03-19",
+      "file": "docs-source.txt",
+      "id": "src.api",
+      "path": "meta/sources/src.api.md",
+      "title": "API Source",
+      "type": "note",
+      "verification": "verified"
+    }
+  ]
 }

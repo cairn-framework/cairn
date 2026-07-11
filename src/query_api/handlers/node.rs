@@ -30,6 +30,7 @@ fn single_contract_json(contract: &Contract) -> Value {
         "path": contract.path,
         "node": contract.node,
         "declared_by": contract.declared_by,
+        "title": title_from_body(&contract.body, "Contract"),
         "body": contract.body,
     })
 }
@@ -96,6 +97,7 @@ pub(crate) fn files_json(
 }
 
 pub(crate) fn rationale_json(
+    root: &std::path::Path,
     scan_result: &scanner::ScanResult,
     node: &str,
 ) -> Result<Value, QueryError> {
@@ -134,18 +136,18 @@ pub(crate) fn rationale_json(
         .research
         .iter()
         .filter(|research| research_ids.contains(&research.id))
-        .map(research_json)
+        .map(|research| research_enriched_json(research, root))
         .collect::<Vec<_>>();
     let sources = scan_result
         .artefacts
         .sources
         .iter()
         .filter(|source| source_ids.contains(&source.id))
-        .map(source_json)
+        .map(|source| source_enriched_json(source, root))
         .collect::<Vec<_>>();
     Ok(json!({
         "node": node.id,
-        "decisions": decisions.iter().map(decision_json).collect::<Vec<_>>(),
+        "decisions": decisions.iter().map(|decision| decision_enriched_json(decision, root)).collect::<Vec<_>>(),
         "research": research,
         "sources": sources,
     }))

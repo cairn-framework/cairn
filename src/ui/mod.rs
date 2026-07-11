@@ -1,7 +1,7 @@
+// cairn:allow-large-module reason: ui module hosts integration tests for the embedded web server.
 //! Embedded HTTP server and browser UI for graph exploration.
 
 use std::{
-    collections::BTreeMap,
     error::Error,
     fmt, fs,
     io::{Read, Write},
@@ -17,7 +17,6 @@ use std::{
 };
 
 use crate::{
-    artefacts::{contract::Contract, frontmatter},
     blueprint::NodeKind,
     map::{
         graph::{Finding, FindingSeverity, Graph, NodeRecord},
@@ -242,6 +241,7 @@ pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError> {
 mod tests {
     use super::server::request_path;
     use super::*;
+    use serde_json::Value;
     use std::{
         fs,
         io::Read,
@@ -380,6 +380,293 @@ mod tests {
             head: head.to_owned(),
             body: body.to_owned(),
         })
+    }
+
+    #[test]
+    fn test_ui_todos_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("todos-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/todos")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        let todos = body["todos"].as_array().expect("todos array");
+        assert_eq!(todos.len(), 1);
+        let todo = &todos[0];
+        assert_eq!(todo["path"], "meta/todos/todo.api.md");
+        assert_eq!(todo["node"], "app.api");
+        assert_eq!(todo["status"], "open");
+        assert_eq!(todo["created"], "2026-04-01");
+        assert_eq!(todo["satisfies"], "status.contract");
+        assert_eq!(todo["title"], "API Todo");
+        assert_eq!(todo["body"], "# API Todo\nShip the endpoint.");
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_spine_endpoint_returns_404_for_unknown_node() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("todos-endpoint-unknown-node")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/no.such.node/todos")?;
+        server.stop();
+
+        assert!(response.head.contains("404"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["code"], "CAIRN_QUERY_NODE_NOT_FOUND");
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_decisions_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("decisions-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/decisions")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        let decisions = body["decisions"].as_array().expect("decisions array");
+        assert_eq!(decisions.len(), 1);
+        let decision = &decisions[0];
+        assert_eq!(decision["path"], "meta/decisions/dec.api.md");
+        assert_eq!(decision["id"], "dec.api");
+        assert_eq!(decision["status"], "accepted");
+        assert_eq!(decision["nodes"], serde_json::json!(["app.api"]));
+        assert_eq!(decision["informed_by"], serde_json::json!(["res.api"]));
+        assert_eq!(decision["title"], "API Decision");
+        assert_eq!(
+            decision["body"],
+            "# API Decision\nUse stable JSON payloads."
+        );
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_research_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("research-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/research")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        let research_items = body["research"].as_array().expect("research array");
+        assert_eq!(research_items.len(), 1);
+        let research = &research_items[0];
+        assert_eq!(research["path"], "meta/research/res.api.md");
+        assert_eq!(research["id"], "res.api");
+        assert_eq!(research["nodes"], serde_json::json!(["app.api"]));
+        assert_eq!(research["sources"], serde_json::json!(["src.api"]));
+        assert_eq!(research["date"], "2026-03-20");
+        assert_eq!(research["title"], "API Research");
+        assert_eq!(
+            research["body"],
+            "# API Research\nStudied payload evolution."
+        );
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_sources_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("sources-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/sources")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        let sources = body["sources"].as_array().expect("sources array");
+        assert_eq!(sources.len(), 1);
+        let source = &sources[0];
+        assert_eq!(source["path"], "meta/sources/src.api.md");
+        assert_eq!(source["id"], "src.api");
+        assert_eq!(source["file"], "docs-source.txt");
+        assert_eq!(source["verification"], "verified");
+        assert_eq!(source["type"], "note");
+        assert_eq!(source["date"], "2026-03-19");
+        assert_eq!(source["title"], "API Source");
+        assert_eq!(source["body"], "# API Source\nBootstrap evidence.");
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_contract_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("contract-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/contract")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        assert_eq!(
+            body["contract"],
+            "# API Contract\nGET /api/status returns health details."
+        );
+        let contracts = body["contracts"].as_array().expect("contracts array");
+        assert_eq!(contracts.len(), 1);
+        let contract = &contracts[0];
+        assert_eq!(contract["path"], "./meta/contracts/api.md");
+        assert_eq!(contract["node"], "app.api");
+        assert_eq!(contract["declared_by"], "app.api");
+        assert_eq!(contract["title"], "API Contract");
+        assert_eq!(
+            contract["body"],
+            "# API Contract\nGET /api/status returns health details."
+        );
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_ui_rationale_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("rationale-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/rationale")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+
+        let decisions = body["decisions"].as_array().expect("decisions array");
+        assert_eq!(decisions.len(), 1);
+        let decision = &decisions[0];
+        assert_eq!(decision["path"], "meta/decisions/dec.api.md");
+        assert_eq!(decision["id"], "dec.api");
+        assert_eq!(decision["title"], "API Decision");
+        assert_eq!(
+            decision["body"],
+            "# API Decision\nUse stable JSON payloads."
+        );
+
+        let research_items = body["research"].as_array().expect("research array");
+        assert_eq!(research_items.len(), 1);
+        let research = &research_items[0];
+        assert_eq!(research["path"], "meta/research/res.api.md");
+        assert_eq!(research["id"], "res.api");
+        assert_eq!(research["title"], "API Research");
+        assert_eq!(
+            research["body"],
+            "# API Research\nStudied payload evolution."
+        );
+
+        let sources = body["sources"].as_array().expect("sources array");
+        assert_eq!(sources.len(), 1);
+        let source = &sources[0];
+        assert_eq!(source["path"], "meta/sources/src.api.md");
+        assert_eq!(source["id"], "src.api");
+        assert_eq!(source["title"], "API Source");
+        assert_eq!(source["body"], "# API Source\nBootstrap evidence.");
+
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    fn write_artefact_project(root: &Path) -> Result<(), Box<dyn Error>> {
+        fs::create_dir_all(root.join("src/api"))?;
+        fs::create_dir_all(root.join("meta/contracts"))?;
+        fs::create_dir_all(root.join("meta/todos"))?;
+        fs::create_dir_all(root.join("meta/decisions"))?;
+        fs::create_dir_all(root.join("meta/research"))?;
+        fs::create_dir_all(root.join("meta/sources"))?;
+        fs::write(
+            root.join("src/api/lib.rs"),
+            "pub fn serve() {}\n#[cfg(test)]\nmod tests {}\n",
+        )?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            r#"System App "desc" id "app" {
+    Container Api "api" id "app.api" {
+        path "./src/api"
+        contract "./meta/contracts/api.md"
+        todos "./meta/todos"
+        decisions "./meta/decisions"
+        research "./meta/research"
+        sources "./meta/sources"
+    }
+}
+"#,
+        )?;
+        fs::write(
+            root.join("meta/contracts/api.md"),
+            "---\nnode: app.api\n---\n# API Contract\nGET /api/status returns health details.\n",
+        )?;
+        fs::write(
+            root.join("meta/todos/todo.api.md"),
+            "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\nsatisfies: status.contract\n---\n# API Todo\nShip the endpoint.\n",
+        )?;
+        fs::write(
+            root.join("meta/decisions/dec.api.md"),
+            "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# API Decision\nUse stable JSON payloads.\n",
+        )?;
+        fs::write(
+            root.join("meta/research/res.api.md"),
+            "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api]\ntags: [wire]\n---\n# API Research\nStudied payload evolution.\n",
+        )?;
+        fs::write(root.join("docs-source.txt"), "wire format source\n")?;
+        fs::write(
+            root.join("meta/sources/src.api.md"),
+            "---\nid: src.api\nfile: docs-source.txt\nsha256: ecf5dae7a91b73f6faec1d386583345afe598f4b8af0d647f28f0b0f46f7c633\nverification: verified\ntype: note\ndate: 2026-03-19\ntags: [wire]\ndescription: bootstrap source\n---\n# API Source\nBootstrap evidence.\n",
+        )?;
+        Ok(())
     }
 
     fn write_project(root: &Path) -> Result<(), Box<dyn Error>> {

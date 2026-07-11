@@ -3,20 +3,17 @@ source: tests/wire_format_snapshots.rs
 expression: value
 ---
 {
-  "artefacts": [
+  "node": "app.api",
+  "schema_version": 1,
+  "todos": [
     {
       "body": "# API Todo\nShip the endpoint.",
-      "frontmatter": {
-        "created": "2026-04-01",
-        "node": "app.api",
-        "satisfies": "status.contract",
-        "status": "open"
-      },
+      "created": "2026-04-01",
+      "node": "app.api",
       "path": "meta/todos/todo.api.md",
-      "title": "API Todo",
-      "type": "todos"
+      "satisfies": "status.contract",
+      "status": "open",
+      "title": "API Todo"
     }
-  ],
-  "node": "app.api",
-  "schema_version": 1
+  ]
 }

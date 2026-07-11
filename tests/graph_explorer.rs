@@ -187,7 +187,7 @@ fn test_ui_large_graph_api_serves_two_hundred_nodes() -> Result<(), Box<dyn std:
 fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(root.join("src/api"))?;
     fs::create_dir_all(root.join("meta/contracts"))?;
-    fs::create_dir_all(root.join("meta/decisions/kernel"))?;
+    fs::create_dir_all(root.join("meta/decisions"))?;
     fs::write(root.join("src/api/lib.rs"), "pub fn serve() {}\n")?;
     fs::write(
         root.join("cairn.blueprint"),
@@ -197,6 +197,7 @@ fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
             path "./src/api/lib.rs"
         }
         contract "./meta/contracts/api.md"
+        decisions "./meta/decisions"
     }
 }
 app.api -> app "reports"
@@ -207,8 +208,8 @@ app.api -> app "reports"
         "---\nnode: app.api\n---\n# API Contract\n",
     )?;
     fs::write(
-        root.join("meta/decisions/kernel/dec.api.md"),
-        "---\nnodes: [app.api]\n---\n# API Decision\n",
+        root.join("meta/decisions/dec.api.md"),
+        "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\n---\n# API Decision\n",
     )?;
     Ok(())
 }
