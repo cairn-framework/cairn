@@ -16,16 +16,8 @@ use std::{
     time::Duration,
 };
 
-use crate::{
-    map::{
-        graph::{Finding, FindingSeverity},
-        query::{self},
-    },
-    scanner,
-};
+use crate::scanner;
 
-mod api;
-mod serialise;
 mod server;
 
 use server::{Server, open_browser};

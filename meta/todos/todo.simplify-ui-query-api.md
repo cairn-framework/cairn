@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: in_progress
+status: done
 created: 2026-07-06
 ---
 
@@ -65,3 +65,13 @@ status, graph, deps ID lists), enumerated per-endpoint with blockers in
 `meta/changes/simplify-ui-query-api/tasks.md`. Each needs `app.js` consumer
 rework; the visual harness replays frozen legacy fixtures, so flips must keep
 `app.js` tolerant of both shapes or re-capture fixtures.
+
+## Status (2026-07-12)
+
+Complete. Final slice: `/api/status` flipped to `execute("status")` (canonical
+dashboard wire); `app.js` derives its node/edge/finding counts from the graph
+and lint payloads and no longer fetches `/api/status`; `src/ui/api.rs` and
+`src/ui/serialise.rs` deleted (`percent_decode` and a legacy-layout
+`error_json` moved into `server.rs` with tests). All wire deltas recorded in
+`dec.ui-query-api-wire-adoption`; every `/api/*` endpoint now routes through
+the query_api spine.

@@ -3,12 +3,19 @@ source: tests/wire_format_snapshots.rs
 expression: value
 ---
 {
-  "edges": 2,
-  "errors": 1,
-  "findings": 2,
-  "infos": 0,
-  "interface_hash": "b91967a14df3b069",
-  "nodes": 3,
-  "schema_version": 1,
-  "warnings": 1
+  "active_changes": [],
+  "next_recommended": null,
+  "open_todos": [
+    {
+      "created": "2026-04-01",
+      "node": "app.api",
+      "path": "<todo>",
+      "satisfies": "status.contract",
+      "status": "open"
+    }
+  ],
+  "recent_log_entries": [
+    "- note: bootstrap log entry"
+  ],
+  "schema_version": 1
 }

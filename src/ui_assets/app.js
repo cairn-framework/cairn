@@ -6,7 +6,7 @@
  * Source Serif 4; UI labels are in IBM Plex Sans.
  *
  * Data flow:
- *   boot          -> GET /api/graph, GET /api/status, GET /api/lint
+ *   boot          -> GET /api/graph, GET /api/lint
  *   select node   -> GET /api/node/:id plus six artefact kinds plus depends/dependents
  *   view source   -> GET /api/blueprint
  *
@@ -166,10 +166,6 @@
 
   async function fetchGraph() {
     return normaliseGraph(await fetchJson("/api/graph"));
-  }
-
-  async function fetchStatus() {
-    return fetchJson("/api/status");
   }
 
   async function fetchLint() {
@@ -484,7 +480,7 @@
   // Top bar
   // ==========================================================================
 
-  function TopBar({ status, selection, nodesById, onClear, onOpenCmd, onOpenBlueprint, version }) {
+  function TopBar({ graph, lint, selection, nodesById, onClear, onOpenCmd, onOpenBlueprint, version }) {
     const crumbs = [];
     const node = selection ? nodesById.get(selection.id) : null;
     if (node) {
@@ -516,7 +512,7 @@
       }
     }
 
-    const graphStats = status ? `${status.nodes} nodes, ${status.edges} edges, ${status.findings} findings` : "";
+    const graphStats = graph ? `${graph.nodes.length} nodes, ${graph.edges.length} edges, ${lint?.findings?.length ?? 0} findings` : "";
 
     return html`
       <header class="topbar">
@@ -1342,7 +1338,7 @@
     `;
   }
 
-  function EmptyInspector({ graph, status, lint, onSelect, onShowFindings }) {
+  function EmptyInspector({ graph, lint, onSelect, onShowFindings }) {
     const nodes = graph ? graph.nodes : [];
     const modules = nodes.filter((n) => n.kind === "module");
     const total = modules.length;
@@ -1354,7 +1350,7 @@
         <div class="ins-eyebrow">Map</div>
         <h2 class="ins-title">${graph?.nodes[0] ? graph.nodes[0].name : "Cairn"}</h2>
         <div class="ins-slug">
-          ${status ? `${status.nodes} nodes · ${status.edges} edges · ${status.findings} findings` : ""}
+          ${graph ? `${graph.nodes.length} nodes · ${graph.edges.length} edges · ${lint?.findings?.length ?? 0} findings` : ""}
         </div>
         ${graph?.nodes[0]?.description ? html`<p class="ins-desc">${graph.nodes[0].description}</p>` : null}
 
@@ -1741,7 +1737,6 @@
 
   function App() {
     const [graph, setGraph] = useState(null);
-    const [status, setStatus] = useState(null);
     const [lint, setLint] = useState(null);
     const [meta, setMeta] = useState(null);
     const [error, setError] = useState(null);
@@ -1762,17 +1757,15 @@
       let cancelled = false;
       setError(null);
       setGraph(null);
-      setStatus(null);
       setLint(null);
-      Promise.all([fetchGraph(), fetchStatus(), fetchLint()])
-        .then(([g, s, l]) => {
+      Promise.all([fetchGraph(), fetchLint()])
+        .then(([g, l]) => {
           if (cancelled) return;
           if (!g || !Array.isArray(g.nodes) || !Array.isArray(g.edges)) {
             setError(copy("empty-states.map-failed.body"));
             return;
           }
           setGraph(g);
-          setStatus(s);
           setLint(l);
         })
         .catch((err) => {
@@ -1946,7 +1939,6 @@
             />`
           : html`<${EmptyInspector}
               graph=${graph}
-              status=${status}
               lint=${lint}
               onSelect=${(id) => setSelectionId(id)}
               onShowFindings=${() => setShowFindings(true)}
@@ -1955,7 +1947,8 @@
     return html`
       <${Fragment}>
         <${TopBar}
-          status=${status}
+          graph=${graph}
+          lint=${lint}
           selection=${selectionId ? { id: selectionId } : null}
           nodesById=${nodesById}
           onClear=${(id) => setSelectionId(id || null)}

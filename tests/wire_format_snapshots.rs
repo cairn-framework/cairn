@@ -48,6 +48,14 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
         if *snapshot_name == "api_blueprint" {
             value["path"] = json!("<blueprint>");
         }
+        // Normalise the unstable file-system path in each open todo item.
+        if *snapshot_name == "api_status"
+            && let Some(todos) = value["open_todos"].as_array_mut()
+        {
+            for todo in todos {
+                todo["path"] = json!("<todo>");
+            }
+        }
         // Normalise the unstable file-system path in the node span (the
         // canonical query_api node wire carries the blueprint's absolute path).
         if *snapshot_name == "api_node_app_api" {
