@@ -433,11 +433,15 @@ fn execute_data_with_scan(
         }
         "status" => Ok(status_json(root, changes_dir, scan_result)),
         "context" => Ok(context_json(root, scan_result, loaded_config)),
-        "rationale" => rationale_json(scan_result, required(request.node.as_ref(), "node")?),
-        "todos" => todos_response_json(scan_result, request),
-        "decisions" => decisions_response_json(scan_result, request),
-        "research" => research_response_json(scan_result, required(request.node.as_ref(), "node")?),
-        "sources" => sources_response_json(scan_result, required(request.node.as_ref(), "node")?),
+        "rationale" => rationale_json(root, scan_result, required(request.node.as_ref(), "node")?),
+        "todos" => todos_response_json(root, scan_result, request),
+        "decisions" => decisions_response_json(root, scan_result, request),
+        "research" => {
+            research_response_json(root, scan_result, required(request.node.as_ref(), "node")?)
+        }
+        "sources" => {
+            sources_response_json(root, scan_result, required(request.node.as_ref(), "node")?)
+        }
         "hook" => hook_json(root, changes_dir, scan_result, request),
         "health" => Ok(health_json(root, changes_dir, scan_result)),
         "remediate" => Ok(remediate_json(root, changes_dir, scan_result)),

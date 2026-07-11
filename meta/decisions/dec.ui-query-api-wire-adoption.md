@@ -27,6 +27,28 @@ These are intentional CLI-surface additions (the prior session chose to give the
 spine ops proper CLI presence), so they are documented in `docs/commands.md`,
 `docs/integration-contract.md`, and wired in `src/cli/mod.rs` (`uses_shared_json`).
 
+## Enriched artefact helpers (already landed)
+The canonical artefact handlers now expose `path`, `title`, and `body` plus any
+kind-specific fields so the webui can render the same cards without legacy
+`src/ui/api.rs` builders. The helpers live in `src/query_api/serialise.rs` and
+are unit-tested:
+
+- `title_from_body(body, fallback)` — extracts the first level-one Markdown
+  heading from an artefact body, falling back to the provided title.
+- `relative_path(path, root)` — strips the project root prefix so JSON wires are
+  stable and portable.
+- `todo_enriched_json` — adds `path`, `title`, and `body` to `todo_json`.
+- `decision_enriched_json` — adds `path`, `title`, `date`, `revisited`,
+  `revisit_triggers`, and `body` to `decision_json`.
+- `research_enriched_json` — adds `path`, `title`, and `body` to `research_json`.
+- `source_enriched_json` — adds `path`, `title`, and `body` to `source_json`.
+
+`src/query_api/handlers/artefacts.rs` wires these helpers into the response
+builders for the `todos`, `decisions`, `research`, and `sources` spine op
+responses; `src/query_api/handlers/node.rs` uses them for the `contract` and
+`rationale` records (the `contract` record gained a `title` field, while
+`rationale` uses the enriched source/research shapes for its referenced items).
+
 ## Recorded wire changes
 
 ### `/api/meta` (FLIPPED)
@@ -60,6 +82,17 @@ exactly one `schema_version` key, owned by the server constant.
   so the snapshot `wire_format_snapshots__api_lint.snap` required no delta and
   `app.js` needs no change (it reads `lint.findings[].{code,severity,node,path}`).
 
+### `/api/node/todos` (FLIPPED)
+- Now served via `execute("todos", {node})`. The spine op returns the enriched
+  canonical shape `{"node":"...","schema_version":1,"todos":[{"id","node","status",
+  "created","satisfies","path","title","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"todos",
+  "path","title","frontmatter","body"}]}` (built by `src/ui/api.rs`).
+- Snapshot `wire_format_snapshots__api_node_app_api_todos.snap` rebased to the
+  new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.todos`)
+  and falls back to the legacy `response.artefacts` for frozen fixtures.
+
 ### `/api/node/symbols` (FLIPPED, wrapper change)
 - Now served via `execute("get", {node, flags:[Symbols]})`. The canonical
   `node_json` embeds `symbols` inside the full node record, so the wire changes
@@ -73,5 +106,5 @@ exactly one `schema_version` key, owned by the server constant.
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
 `status`, `graph`, `node`, `node/contract`,
-`node/decisions`, `node/todos`, `node/research`, `node/sources`,
+`node/decisions`, `node/research`, `node/sources`,
 `node/rationale`, `depends`, `dependents`.

@@ -242,6 +242,7 @@ pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError> {
 mod tests {
     use super::server::request_path;
     use super::*;
+    use serde_json::Value;
     use std::{
         fs,
         io::Read,
@@ -380,6 +381,86 @@ mod tests {
             head: head.to_owned(),
             body: body.to_owned(),
         })
+    }
+
+    #[test]
+    fn test_ui_todos_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("todos-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/todos")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        let todos = body["todos"].as_array().expect("todos array");
+        assert_eq!(todos.len(), 1);
+        let todo = &todos[0];
+        assert_eq!(todo["path"], "meta/todos/todo.api.md");
+        assert_eq!(todo["node"], "app.api");
+        assert_eq!(todo["status"], "open");
+        assert_eq!(todo["created"], "2026-04-01");
+        assert_eq!(todo["satisfies"], "status.contract");
+        assert_eq!(todo["title"], "API Todo");
+        assert_eq!(todo["body"], "# API Todo\nShip the endpoint.");
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    fn write_artefact_project(root: &Path) -> Result<(), Box<dyn Error>> {
+        fs::create_dir_all(root.join("src/api"))?;
+        fs::create_dir_all(root.join("meta/contracts"))?;
+        fs::create_dir_all(root.join("meta/todos"))?;
+        fs::create_dir_all(root.join("meta/decisions"))?;
+        fs::create_dir_all(root.join("meta/research"))?;
+        fs::create_dir_all(root.join("meta/sources"))?;
+        fs::write(
+            root.join("src/api/lib.rs"),
+            "pub fn serve() {}\n#[cfg(test)]\nmod tests {}\n",
+        )?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            r#"System App "desc" id "app" {
+    Container Api "api" id "app.api" {
+        path "./src/api"
+        contract "./meta/contracts/api.md"
+        todos "./meta/todos"
+        decisions "./meta/decisions"
+        research "./meta/research"
+        sources "./meta/sources"
+    }
+}
+"#,
+        )?;
+        fs::write(
+            root.join("meta/contracts/api.md"),
+            "---\nnode: app.api\n---\n# API Contract\nGET /api/status returns health details.\n",
+        )?;
+        fs::write(
+            root.join("meta/todos/todo.api.md"),
+            "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\nsatisfies: status.contract\n---\n# API Todo\nShip the endpoint.\n",
+        )?;
+        fs::write(
+            root.join("meta/decisions/dec.api.md"),
+            "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# API Decision\nUse stable JSON payloads.\n",
+        )?;
+        fs::write(
+            root.join("meta/research/res.api.md"),
+            "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api]\ntags: [wire]\n---\n# API Research\nStudied payload evolution.\n",
+        )?;
+        fs::write(root.join("docs-source.txt"), "wire format source\n")?;
+        fs::write(
+            root.join("meta/sources/src.api.md"),
+            "---\nid: src.api\nfile: docs-source.txt\nsha256: ecf5dae7a91b73f6faec1d386583345afe598f4b8af0d647f28f0b0f46f7c633\nverification: verified\ntype: note\ndate: 2026-03-19\ntags: [wire]\ndescription: bootstrap source\n---\n# API Source\nBootstrap evidence.\n",
+        )?;
+        Ok(())
     }
 
     fn write_project(root: &Path) -> Result<(), Box<dyn Error>> {

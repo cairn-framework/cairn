@@ -89,6 +89,72 @@ pub(super) fn source_json(source: &Source) -> Value {
     })
 }
 
+/// Extracts the first level-one Markdown heading from a body, falling back to
+/// the provided fallback title. Moved from `src/ui/api.rs` so the webui and
+/// `query_api` share one canonical title extraction.
+pub(crate) fn title_from_body(body: &str, fallback: &str) -> String {
+    body.lines()
+        .find_map(|line| line.trim().strip_prefix("# "))
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .unwrap_or(fallback)
+        .to_owned()
+}
+
+/// Strips the project root from an absolute path so JSON wires expose stable
+/// root-relative paths. Returns the original path unchanged if it is not below
+/// root.
+pub(crate) fn relative_path(path: &str, root: &std::path::Path) -> String {
+    let path = std::path::Path::new(path);
+    path.strip_prefix(root).map_or_else(
+        |_| path.to_string_lossy().into_owned(),
+        |p| p.to_string_lossy().into_owned(),
+    )
+}
+
+/// Enriched todo wire used by the webui, CLI `--json`, and MCP. Keeps the
+/// shared `todo_json` fields and adds the `title` and `body` the UI renders.
+pub(super) fn todo_enriched_json(todo: &Todo, root: &std::path::Path) -> Value {
+    let mut value = todo_json(todo);
+    value["path"] = json!(relative_path(&todo.path, root));
+    value["title"] = json!(title_from_body(&todo.body, "Artefact"));
+    value["body"] = json!(todo.body);
+    value
+}
+
+/// Enriched decision wire. Keeps the shared `decision_json` fields and adds
+/// `path`, `title`, `date`, `revisited`, `revisit_triggers`, and `body`.
+pub(super) fn decision_enriched_json(decision: &Decision, root: &std::path::Path) -> Value {
+    let mut value = decision_json(decision);
+    value["path"] = json!(relative_path(&decision.path, root));
+    value["title"] = json!(title_from_body(&decision.body, "Artefact"));
+    value["date"] = json!(decision.date);
+    value["revisited"] = json!(decision.revisited);
+    value["revisit_triggers"] = json!(decision.revisit_triggers);
+    value["body"] = json!(decision.body);
+    value
+}
+
+/// Enriched research wire. Keeps the shared `research_json` fields and adds
+/// `path`, `title`, and `body`.
+pub(super) fn research_enriched_json(research: &Research, root: &std::path::Path) -> Value {
+    let mut value = research_json(research);
+    value["path"] = json!(relative_path(&research.path, root));
+    value["title"] = json!(title_from_body(&research.body, "Artefact"));
+    value["body"] = json!(research.body);
+    value
+}
+
+/// Enriched source wire. Keeps the shared `source_json` fields and adds `path`,
+/// `title`, and `body`.
+pub(super) fn source_enriched_json(source: &Source, root: &std::path::Path) -> Value {
+    let mut value = source_json(source);
+    value["path"] = json!(relative_path(&source.path, root));
+    value["title"] = json!(title_from_body(&source.body, "Artefact"));
+    value["body"] = json!(source.body);
+    value
+}
+
 pub(super) fn findings_json(findings: &[Finding]) -> Vec<Value> {
     findings
         .iter()
@@ -259,6 +325,7 @@ pub(super) const fn hook_decision_name(decision: ExitDecision) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::artefacts::registry::ResearchMethod;
 
     #[test]
     fn test_todo_status_roundtrip() {
@@ -300,18 +367,96 @@ mod tests {
     }
 
     #[test]
-    fn test_source_verification_display_strings() {
+    fn test_enriched_artefact_wires_include_title_and_body() {
+        let root = std::path::Path::new("/project");
+        let todo = Todo {
+            path: "/project/meta/todos/todo.md".to_owned(),
+            node: "app.api".to_owned(),
+            status: TodoStatus::Open,
+            created: "2026-04-01".to_owned(),
+            satisfies: Some("status.contract".to_owned()),
+            body: "# Ship the endpoint\n\nDetails.".to_owned(),
+        };
+        let value = todo_enriched_json(&todo, root);
+        assert_eq!(value["path"], "meta/todos/todo.md");
+        assert_eq!(value["title"], "Ship the endpoint");
+        assert_eq!(value["body"], todo.body);
+        assert_eq!(value["status"], "open");
+
+        let decision = Decision {
+            id: "dec.api".to_owned(),
+            path: "/project/meta/decisions/dec.md".to_owned(),
+            nodes: vec!["app.api".to_owned()],
+            status: DecisionStatus::Accepted,
+            date: "2026-04-01".to_owned(),
+            revisited: Some("2026-05-01".to_owned()),
+            revisit_triggers: vec!["trigger-a".to_owned()],
+            informed_by: vec!["res.api".to_owned()],
+            supersedes: vec!["dec.old".to_owned()],
+            refines: vec!["dec.parent".to_owned()],
+            related: vec!["dec.cousin".to_owned()],
+            orphaned: false,
+            orphan_reason: None,
+            gap: false,
+            claims: None,
+            body: "# API Decision\nUse stable JSON.".to_owned(),
+        };
+        let value = decision_enriched_json(&decision, root);
+        assert_eq!(value["path"], "meta/decisions/dec.md");
+        assert_eq!(value["title"], "API Decision");
+        assert_eq!(value["body"], decision.body);
+        assert_eq!(value["date"], "2026-04-01");
+        assert_eq!(value["revisited"], "2026-05-01");
+        assert_eq!(value["revisit_triggers"], json!(["trigger-a"]));
+
+        let research = Research {
+            id: "res.api".to_owned(),
+            path: "/project/meta/research/res.md".to_owned(),
+            nodes: vec!["app.api".to_owned()],
+            date: "2026-03-20".to_owned(),
+            sources: vec!["src.api".to_owned()],
+            method: ResearchMethod::Primary,
+            tags: vec!["wire".to_owned()],
+            body: "# API Research\nStudied evolution.".to_owned(),
+        };
+        let value = research_enriched_json(&research, root);
+        assert_eq!(value["path"], "meta/research/res.md");
+        assert_eq!(value["title"], "API Research");
+        assert_eq!(value["body"], research.body);
+
+        let source = Source {
+            id: "src.api".to_owned(),
+            path: "/project/meta/sources/src.md".to_owned(),
+            file: "docs-source.txt".to_owned(),
+            sha256: None,
+            verification: SourceVerification::Verified,
+            source_type: "note".to_owned(),
+            date: "2026-03-19".to_owned(),
+            tags: vec!["wire".to_owned()],
+            description: "bootstrap source".to_owned(),
+            body: "# API Source\nBootstrap evidence.".to_owned(),
+        };
+        let value = source_enriched_json(&source, root);
+        assert_eq!(value["path"], "meta/sources/src.md");
+        assert_eq!(value["title"], "API Source");
+        assert_eq!(value["body"], source.body);
+    }
+
+    #[test]
+    fn test_relative_path_strips_root_when_possible() {
+        let root = std::path::Path::new("/project");
+        assert_eq!(relative_path("/project/meta/todo.md", root), "meta/todo.md");
         assert_eq!(
-            source_verification(SourceVerification::Verified),
-            "verified"
+            relative_path("/elsewhere/meta/todo.md", root),
+            "/elsewhere/meta/todo.md"
         );
-        assert_eq!(
-            source_verification(SourceVerification::External),
-            "external"
-        );
-        assert_eq!(
-            source_verification(SourceVerification::Unverified),
-            "unverified"
-        );
+        assert_eq!(relative_path("meta/todo.md", root), "meta/todo.md");
+    }
+
+    #[test]
+    fn test_title_from_body_falls_back_on_missing_heading() {
+        assert_eq!(title_from_body("No heading here", "Fallback"), "Fallback");
+        assert_eq!(title_from_body("# \n\nBody", "Fallback"), "Fallback");
+        assert_eq!(title_from_body("# Title\nBody", "Fallback"), "Title");
     }
 }

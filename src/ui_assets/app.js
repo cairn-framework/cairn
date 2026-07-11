@@ -159,8 +159,28 @@
 
   async function fetchNodeArtefacts(id, kind) {
     const response = await fetchJson(`/api/node/${percentEncodeId(id)}/${kind}`);
-    if (!response || !Array.isArray(response.artefacts)) return [];
-    return response.artefacts;
+    if (!response) return [];
+    // Legacy shape: { node, artefacts: [{ type, path, title, frontmatter, body }] }
+    if (Array.isArray(response.artefacts)) {
+      return response.artefacts.map((entry) => ({
+        type: entry.type,
+        path: entry.path,
+        title: entry.title,
+        body: entry.body,
+        status: entry.frontmatter?.status,
+      }));
+    }
+    // Canonical shape: { node, <kind>: [...] } (contract uses "contracts").
+    const key = kind === "contract" ? "contracts" : kind;
+    const list = response[key];
+    if (!Array.isArray(list)) return [];
+    return list.map((entry) => ({
+      type: kind === "contract" ? "contract" : kind,
+      path: entry.path,
+      title: entry.title,
+      body: entry.body,
+      status: entry.status,
+    }));
   }
 
   async function fetchNodeBeads(id) {
@@ -1040,8 +1060,8 @@
 
     const sortedDecisions = (decisions || []).slice().sort((a, b) => {
       const rank = (s) => (s === "proposed" ? 0 : s === "accepted" ? 1 : 2);
-      const sa = a.frontmatter?.status || "accepted";
-      const sb = b.frontmatter?.status || "accepted";
+      const sa = a.status ?? a.frontmatter?.status ?? "accepted";
+      const sb = b.status ?? b.frontmatter?.status ?? "accepted";
       return rank(sa) - rank(sb);
     });
 
@@ -1142,12 +1162,12 @@
               ? html`<div class="row-empty">${copy("empty-states.node-no-decisions.body")}</div>`
               : sortedDecisions.map(
                   (d) => html`
-                <button class=${clsx("artefact", "decision", d.frontmatter?.status || "accepted")}
+                <button class=${clsx("artefact", "decision", d.status ?? d.frontmatter?.status ?? "accepted")}
                   key=${d.path} onClick=${() => onSelectDecision(d)}>
                   <div class="artefact-head">
                     <span class="artefact-id">decision</span>
-                    <span class=${clsx("artefact-status", d.frontmatter?.status || "accepted")}>
-                      ${d.frontmatter?.status || "accepted"}
+                    <span class=${clsx("artefact-status", d.status ?? d.frontmatter?.status ?? "accepted")}>
+                      ${d.status ?? d.frontmatter?.status ?? "accepted"}
                     </span>
                   </div>
                   <div class="artefact-title">${d.title || d.path}</div>
@@ -1192,8 +1212,8 @@
   }
 
   function DecisionDetail({ decision, node, onBack, onSelect }) {
-    const status = decision.frontmatter?.status || "accepted";
-    const date = decision.frontmatter?.date || null;
+    const status = decision.status || decision.frontmatter?.status || "accepted";
+    const date = decision.date || decision.frontmatter?.date || null;
     const author = decision.frontmatter?.author || null;
 
     const body = decision.body || "";
@@ -1213,11 +1233,11 @@
           )
             .map((s) => String(s).trim())
             .filter(Boolean);
-    const informedBy = parseRefs(fm.informed_by);
-    const supersedes = parseRefs(fm.supersedes);
-    const related = parseRefs(fm.related);
-    const revisit = parseRefs(fm.revisit_triggers);
-    const revisited = fm.revisited ? String(fm.revisited).trim() : "";
+    const informedBy = decision.informed_by || parseRefs(fm.informed_by);
+    const supersedes = decision.supersedes || parseRefs(fm.supersedes);
+    const related = decision.related || parseRefs(fm.related);
+    const revisit = decision.revisit_triggers || parseRefs(fm.revisit_triggers);
+    const revisited = decision.revisited || (fm.revisited ? String(fm.revisited).trim() : "");
 
     return html`
       <section class="inspector decision-detail">
