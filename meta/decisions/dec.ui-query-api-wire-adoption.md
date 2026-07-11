@@ -136,8 +136,20 @@ exactly one `schema_version` key, owned by the server constant.
 - `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.sources`)
   and falls back to the legacy `response.artefacts` for frozen fixtures.
 
+### `/api/node/rationale` (FLIPPED)
+- Now served via `execute("rationale", {node})`. The spine op returns the
+  canonical shape `{"node":"...","schema_version":1,"decisions":[...],"research":[...],"sources":[...]}`
+  using enriched `decision_enriched_json`, `research_enriched_json`, and
+  `source_enriched_json` records.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"decisions"|"research"|"sources", "path","title","frontmatter","body"}]}`.
+- Snapshot `wire_format_snapshots__api_node_app_api_rationale.snap` rebased to
+  the new canonical shape.
+- `app.js` `fetchNodeArtefacts` now supports the rationale canonical shape by
+  merging `response.decisions`, `response.research`, and `response.sources`
+  into a single artefact list while preserving the legacy `response.artefacts`
+  fallback for frozen fixtures.
+
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`, `node`, `node/contract`,
-`node/rationale`, `depends`, `dependents`.
+`status`, `graph`, `node`, `node/contract`, `depends`, `dependents`.

@@ -212,7 +212,12 @@ impl Server {
                 Some(node.clone()),
                 std::collections::BTreeSet::new(),
             ),
-            "rationale" => json(200, &rationale_json(&self.root, &node)),
+            "rationale" => self.spine(
+                project,
+                "rationale",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             _ => text(404, "not found"),
         }
     }

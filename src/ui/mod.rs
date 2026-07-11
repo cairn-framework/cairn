@@ -515,6 +515,58 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn test_ui_rationale_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("rationale-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/rationale")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+
+        let decisions = body["decisions"].as_array().expect("decisions array");
+        assert_eq!(decisions.len(), 1);
+        let decision = &decisions[0];
+        assert_eq!(decision["path"], "meta/decisions/dec.api.md");
+        assert_eq!(decision["id"], "dec.api");
+        assert_eq!(decision["title"], "API Decision");
+        assert_eq!(
+            decision["body"],
+            "# API Decision\nUse stable JSON payloads."
+        );
+
+        let research_items = body["research"].as_array().expect("research array");
+        assert_eq!(research_items.len(), 1);
+        let research = &research_items[0];
+        assert_eq!(research["path"], "meta/research/res.api.md");
+        assert_eq!(research["id"], "res.api");
+        assert_eq!(research["title"], "API Research");
+        assert_eq!(
+            research["body"],
+            "# API Research\nStudied payload evolution."
+        );
+
+        let sources = body["sources"].as_array().expect("sources array");
+        assert_eq!(sources.len(), 1);
+        let source = &sources[0];
+        assert_eq!(source["path"], "meta/sources/src.api.md");
+        assert_eq!(source["id"], "src.api");
+        assert_eq!(source["title"], "API Source");
+        assert_eq!(source["body"], "# API Source\nBootstrap evidence.");
+
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
     fn write_artefact_project(root: &Path) -> Result<(), Box<dyn Error>> {
         fs::create_dir_all(root.join("src/api"))?;
         fs::create_dir_all(root.join("meta/contracts"))?;

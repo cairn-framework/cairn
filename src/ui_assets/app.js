@@ -170,6 +170,21 @@
         status: entry.frontmatter?.status,
       }));
     }
+    // Rationale canonical shape: { node, decisions: [...], research: [...], sources: [...] }
+    if (kind === "rationale") {
+      const kinds = ["decisions", "research", "sources"];
+      return kinds.flatMap((key) => {
+        const list = response[key];
+        if (!Array.isArray(list)) return [];
+        return list.map((entry) => ({
+          type: key,
+          path: entry.path,
+          title: entry.title,
+          body: entry.body,
+          status: entry.status,
+        }));
+      });
+    }
     // Canonical shape: { node, <kind>: [...] } (contract uses "contracts").
     const key = kind === "contract" ? "contracts" : kind;
     const list = response[key];
