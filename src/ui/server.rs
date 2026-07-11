@@ -3,7 +3,7 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
-use api::{dependency_json, finding_json, graph_json, node_json, project_finding, status_json};
+use api::{finding_json, graph_json, node_json, project_finding, status_json};
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
 
@@ -140,10 +140,20 @@ impl Server {
             return self.node_api(&project, node);
         }
         if let Some(node) = path.strip_prefix("/api/dependents/") {
-            return dependency_json(graph, node, false);
+            return self.spine(
+                &project,
+                "deps",
+                Some(percent_decode(node)),
+                std::collections::BTreeSet::from([crate::query_api::QueryFlag::Inbound]),
+            );
         }
         if let Some(node) = path.strip_prefix("/api/depends/") {
-            return dependency_json(graph, node, true);
+            return self.spine(
+                &project,
+                "deps",
+                Some(percent_decode(node)),
+                std::collections::BTreeSet::new(),
+            );
         }
         if path == "/api/blueprint" {
             // Legacy behaviour: a blueprint read failure is a 404, not a 200

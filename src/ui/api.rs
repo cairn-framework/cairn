@@ -4,7 +4,6 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 use serialise::*;
-use server::{Response, json};
 
 pub(super) fn graph_json(graph: &GraphResponse) -> String {
     let nodes = graph
@@ -44,48 +43,6 @@ pub(super) fn node_json(node: &NodeRecord) -> String {
         string_array_json(&node.contracts),
         state_name(node.state),
         string_array_json(&node.files)
-    )
-}
-
-pub(super) fn dependency_json(graph: &Graph, node: &str, outbound: bool) -> Response {
-    let decoded = percent_decode(node);
-    let result = if outbound {
-        query::depends(graph, &decoded, false)
-    } else {
-        query::dependents(graph, &decoded, false)
-    };
-    result.map_or_else(
-        |finding| json(404, &finding_json(&finding)),
-        |response| {
-            let entries = response
-                .nodes
-                .iter()
-                .map(|id| match graph.nodes.get(id) {
-                    Some(record) => format!(
-                        "{{\"id\":\"{}\",\"name\":\"{}\",\"slug\":\"{}\",\"state\":\"{}\",\"kind\":\"{}\"}}",
-                        esc(&record.id),
-                        esc(&record.name),
-                        esc(&record.id),
-                        state_name(record.state),
-                        kind_name(record.kind),
-                    ),
-                    None => format!(
-                        "{{\"id\":\"{}\",\"name\":\"{}\",\"slug\":\"{}\",\"state\":\"synced\",\"kind\":\"module\"}}",
-                        esc(id),
-                        esc(id),
-                        esc(id),
-                    ),
-                })
-                .collect::<Vec<_>>()
-                .join(",");
-            json(
-                200,
-                &format!(
-                    "{{\"node\":\"{}\",\"nodes\":[{entries}]}}",
-                    esc(&response.node),
-                ),
-            )
-        },
     )
 }
 

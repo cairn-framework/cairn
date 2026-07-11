@@ -166,7 +166,24 @@ exactly one `schema_version` key, owned by the server constant.
   (`response.contracts`) and falls back to the legacy `response.artefacts` for
   frozen fixtures.
 
+### `/api/depends/:id` and `/api/dependents/:id` (FLIPPED)
+- Now served via `execute("deps", {node})`; the dependents route adds the
+  `Inbound` flag. Wire: `{"node":"...","nodes":["id", ...]}` with bare node-ID
+  strings, matching `cairn deps`.
+- Legacy shape was `{"node":"...","nodes":[{"id","name","slug","state","kind"}]}`
+  with entries hydrated server-side from the graph (and a synthetic
+  `state:"synced"`/`kind:"module"` fallback for unknown IDs).
+- Hydration moves to the client: `app.js` maps ID strings through its loaded
+  `nodesById` graph index into `{id,name,state}` for `DependencyRow`; object
+  entries (legacy shape, frozen harness fixtures) pass through unchanged.
+- Unknown-node errors keep the legacy 404 contract via `Server::spine_data`
+  (`CAIRN_QUERY_NODE_NOT_FOUND`).
+- Snapshots `wire_format_snapshots__api_depends_app_api.snap` and
+  `wire_format_snapshots__api_dependents_app_api.snap` rebased.
+- Removes `api.rs::dependency_json` (last `Response`-returning builder in
+  `api.rs`).
+
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`, `node`, `depends`, `dependents`.
+`status`, `graph`, `node`.
