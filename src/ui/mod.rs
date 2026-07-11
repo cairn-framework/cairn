@@ -516,6 +516,42 @@ mod tests {
     }
 
     #[test]
+    fn test_ui_contract_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("contract-endpoint")?;
+        write_artefact_project(&root)?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/node/app.api/contract")?;
+        server.stop();
+
+        assert!(response.head.contains("200 OK"));
+        let body: Value = serde_json::from_str(&response.body)?;
+        assert_eq!(body["node"], "app.api");
+        assert_eq!(
+            body["contract"],
+            "# API Contract\nGET /api/status returns health details."
+        );
+        let contracts = body["contracts"].as_array().expect("contracts array");
+        assert_eq!(contracts.len(), 1);
+        let contract = &contracts[0];
+        assert_eq!(contract["path"], "./meta/contracts/api.md");
+        assert_eq!(contract["node"], "app.api");
+        assert_eq!(contract["declared_by"], "app.api");
+        assert_eq!(contract["title"], "API Contract");
+        assert_eq!(
+            contract["body"],
+            "# API Contract\nGET /api/status returns health details."
+        );
+        assert!(body["schema_version"].is_u64());
+
+        Ok(())
+    }
+
+    #[test]
     fn test_ui_rationale_endpoint_returns_enriched_canonical_shape() -> Result<(), Box<dyn Error>> {
         let root = temp_root("rationale-endpoint")?;
         write_artefact_project(&root)?;

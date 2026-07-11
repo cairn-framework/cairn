@@ -149,7 +149,24 @@ exactly one `schema_version` key, owned by the server constant.
   into a single artefact list while preserving the legacy `response.artefacts`
   fallback for frozen fixtures.
 
+### `/api/node/contract` (FLIPPED)
+- Now served via `execute("contract", {node})`. The spine op returns the
+  canonical shape `{"node":"...","schema_version":1,"contract":"<body>",
+  "contracts":[{"path","node","declared_by","title","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"contract",
+  "path","title","frontmatter":{"node":"..."},"body"}]}`.
+- **Semantic delta**: legacy matching included any contract where
+  `contract.node == node || contract.declared_by == node` across the whole
+  contract set. Canonical matching only considers contracts explicitly listed in
+  the node's `contracts` field and then requires `contract.node == node.id`.
+  A contract declared-by but not attached to the node is no longer surfaced.
+- Snapshot `wire_format_snapshots__api_node_app_api_contract.snap` rebased to
+  the new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape
+  (`response.contracts`) and falls back to the legacy `response.artefacts` for
+  frozen fixtures.
+
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`, `node`, `node/contract`, `depends`, `dependents`.
+`status`, `graph`, `node`, `depends`, `dependents`.

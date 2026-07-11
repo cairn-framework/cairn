@@ -175,7 +175,12 @@ impl Server {
                 |finding| json(404, &finding_json(&finding)),
                 |response| json(200, &node_json(&response.node)),
             ),
-            "contract" => json(200, &contract_response_json(project, &node)),
+            "contract" => self.spine(
+                project,
+                "contract",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             "symbols" => self.spine(
                 project,
                 "get",

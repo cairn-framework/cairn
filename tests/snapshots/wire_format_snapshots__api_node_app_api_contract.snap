@@ -3,15 +3,14 @@ source: tests/wire_format_snapshots.rs
 expression: value
 ---
 {
-  "artefacts": [
+  "contract": "# API Contract\nGET /api/status returns health details.",
+  "contracts": [
     {
       "body": "# API Contract\nGET /api/status returns health details.",
-      "frontmatter": {
-        "node": "app.api"
-      },
+      "declared_by": "app.api",
+      "node": "app.api",
       "path": "./meta/contracts/api.md",
-      "title": "API Contract",
-      "type": "contract"
+      "title": "API Contract"
     }
   ],
   "node": "app.api",
