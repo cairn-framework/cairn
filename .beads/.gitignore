@@ -77,3 +77,6 @@ bd.db
 
 # Runtime auto-import staging (local-only)
 .auto-import-issues.jsonl
+
+# Bead exports (bd retired for this repo: dec.native-todos-first; see dec.gap-...beads-jsonl resolution)
+*.jsonl
