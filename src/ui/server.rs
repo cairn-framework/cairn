@@ -3,10 +3,7 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
-use api::{
-    contract_response_json, dependency_json, finding_json, graph_json, node_json, project_finding,
-    rationale_json, status_json,
-};
+use api::{dependency_json, finding_json, graph_json, node_json, project_finding, status_json};
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
 

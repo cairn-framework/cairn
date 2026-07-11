@@ -2,7 +2,6 @@
 //! Embedded HTTP server and browser UI for graph exploration.
 
 use std::{
-    collections::BTreeMap,
     error::Error,
     fmt, fs,
     io::{Read, Write},
@@ -18,7 +17,6 @@ use std::{
 };
 
 use crate::{
-    artefacts::{contract::Contract, frontmatter},
     blueprint::NodeKind,
     map::{
         graph::{Finding, FindingSeverity, Graph, NodeRecord},
