@@ -69,3 +69,9 @@ GitHub issues one way, plus an inward unmapped-issue flagger. Summary:
   inheriting the 16-drift noise. That cleanup todo and this one are both on
   `cairn.root`.
 - Research dependency: `res.github-todo-sync` (this todo's `informed_by`).
+- **Consumes the `todo.unified-todo-write-surface` seam (soft dep).** Once the
+  unified write verb exists, todo mutations flow through one call the projector
+  can observe, making the mirror clean and PR-free: updating task state stops
+  requiring a code PR because state changes propagate through the verb to this
+  projection. The script can ship before the verb (reading files directly), but
+  design it so the verb becomes its trigger.

@@ -6594,6 +6594,13 @@
   ],
   "findings": [
     {
+      "code": "CAIRN_GAP_UNRESOLVED",
+      "severity": "warning",
+      "message": "gap `dec.gap-cairn-state-should-beads-jsonl-exports-stay-git-tracked-now` is unresolved",
+      "node": "cairn.state",
+      "path": "././meta/decisions/gap-cairn-state-should-beads-jsonl-exports-stay-git-tracked-now.md"
+    },
+    {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer",

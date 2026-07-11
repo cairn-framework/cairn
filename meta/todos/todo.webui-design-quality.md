@@ -21,3 +21,14 @@ dec:dec.webui-design-quality-direction
 - Bet C (`trace-the-truth hinge`, missing-proof gap) merged via #213; change dir archived.
 - Bet A (Map becomes a map) is **blocked**: `dec.webui-design-quality-direction` gates it on the bet D scorer (deferred, harness-gated) AND a maintainer aesthetic call (refined-current vs full geological metaphor). Neither is decidable from the loop. Left as a deferred, maintainer-gated unit.
 - Bet D (visual defect scorer / `ux_defect_score`) deferred: depends on the visual harness, not a standalone code task.
+
+## Review disposition (2026-07-11)
+
+Backlog review (adversarial + simplification) recommends this be treated as
+**superseded**. Bets B and C shipped (#212/#213); bet D is deferred and
+harness-gated (not a code task); the only live scope, bet A, is superseded by
+`todo.design-studio-exploration` (backed by accepted
+`dec.design-studio-exploration-method`), which owns the bet A direction question.
+No actionable loop work remains here. Kept `blocked` as a pointer; close when
+`todo.design-studio-exploration` resolves the direction. Do not start work under
+this slug; use `design-studio-exploration`.
