@@ -60,7 +60,7 @@ If a summariser backend is configured, it may override these with inferred names
 1. **Run extraction**: `cairn init --from-code` or `cairn refine`.
 2. **Inspect the change directory**: Review `proposal.md`, `blueprint.delta`, and stub contracts in `contracts/`.
 3. **Edit if needed**: Modify the blueprint delta or contracts directly, or discard the change and re-run.
-4. **Archive when satisfied**: `cairn change archive brownfield-init` (or the refine change ID) to apply the proposal.
+4. **Archive when satisfied**: `cairn change apply brownfield-init` (or the refine change ID) to apply the proposal.
 
 The workflow is identical to any other Cairn change: extraction produces a proposal, a human reviews it, and only then is it archived into the blueprint.
 

@@ -84,7 +84,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn change new <change-id>` | Scaffold a new change directory |
 | `cairn change show <change-id>` | Show details of a change |
 | `cairn change accept [<change-id>]` | Run acceptance gate for a change |
-| `cairn change archive <change-id>` | Archive a completed change |
+| `cairn change apply <change-id>` | Apply a completed change (alias: `archive`) |
 
 ### Brownfield
 

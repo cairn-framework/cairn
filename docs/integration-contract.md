@@ -89,7 +89,7 @@ Error responses from the MCP/query path:
 |---|---|---|
 | `scan` | `cairn_scan` | Re-scan project, update interface hashes |
 | `rename <old> <new>` | `cairn_rename` | Rename a node ID across all files |
-| `change archive <change>` | `cairn_archive` | Archive a completed change |
+| `change apply <change>` | `cairn_archive` | Apply a completed change |
 | `change new <id>` | — | Scaffold a new change directory |
 | `init` | `cairn_init` | Scaffold new cairn project |
 | `init --from-code` | `cairn_init_from_code` | Brownfield extraction from existing code |
