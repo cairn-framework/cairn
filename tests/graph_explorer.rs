@@ -37,6 +37,10 @@ fn test_ui_port_zero_starts_and_serves_graph_api() -> Result<(), Box<dyn std::er
     assert!(meta.contains("\"schema_version\":1"));
     assert!(meta.contains("\"name\":\"ui\""));
     assert!(node.contains("\"id\":\"app.api\""));
+    // Canonical query_api wire: owns_files/span present, Debug-case enums.
+    assert!(node.contains("\"owns_files\""));
+    assert!(node.contains("\"span\""));
+    assert!(node.contains("\"kind\":\"Container\""));
     Ok(())
 }
 #[test]

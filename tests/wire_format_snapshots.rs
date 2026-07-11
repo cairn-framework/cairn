@@ -48,6 +48,11 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
         if *snapshot_name == "api_blueprint" {
             value["path"] = json!("<blueprint>");
         }
+        // Normalise the unstable file-system path in the node span (the
+        // canonical query_api node wire carries the blueprint's absolute path).
+        if *snapshot_name == "api_node_app_api" {
+            value["span"]["file"] = json!("<blueprint>");
+        }
 
         // Every `/api/*` envelope carries a uniform top-level `schema_version`
         // (stamped at the single `json()` choke point). The literal tracks the

@@ -183,7 +183,31 @@ exactly one `schema_version` key, owned by the server constant.
 - Removes `api.rs::dependency_json` (last `Response`-returning builder in
   `api.rs`).
 
+### `/api/node/:id` (FLIPPED)
+- Now served via `execute("get", {node})` (no flags). Wire is the canonical
+  `query_api` node record: enums move to Debug case (`kind:"Container"`,
+  `state:"Synced"` instead of lowercase), and the record gains `owns_files`
+  (bool) and `span` (`{file,line,column,end_line,end_column}`, where `file`
+  is the blueprint's absolute path, same exposure as `/api/blueprint`'s
+  `path`).
+- Legacy shape was `api.rs::node_json` with lowercase enum names and no
+  `owns_files`/`span`.
+- `app.js` never fetches the bare node endpoint (the node panel is built from
+  `/api/graph` data), so no client change and no visual-harness impact.
+- Unknown-node errors keep the legacy 404 contract via `Server::spine_data`
+  (`CAIRN_QUERY_NODE_NOT_FOUND`), with one canonical nuance: the `get` op
+  falls back to `state::backlog::find` for ids that are not graph nodes, so
+  a backlog id now returns 200 with a backlog-item detail payload where the
+  legacy route returned 404. This matches the flipped `/symbols` route and
+  `cairn get` CLI semantics.
+- Snapshot `wire_format_snapshots__api_node_app_api.snap` rebased; the
+  snapshot test normalises `span.file` to `<blueprint>` like the blueprint
+  endpoint's `path`. `tests/graph_explorer.rs` pins the canonical markers
+  (`owns_files`, `span`, `kind:"Container"`).
+- `api.rs::node_json` remains only as a helper of `graph_json` (unflipped
+  `graph` route); it is no longer imported by `server.rs`.
+
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`, `node`.
+`status`, `graph`.
