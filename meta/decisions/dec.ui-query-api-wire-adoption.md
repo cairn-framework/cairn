@@ -114,9 +114,20 @@ exactly one `schema_version` key, owned by the server constant.
 - `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.decisions`)
   and falls back to the legacy `response.artefacts` for frozen fixtures.
 
+### `/api/node/research` (FLIPPED)
+- Now served via `execute("research", {node})`. The spine op returns the enriched
+  canonical shape `{"node":"...","schema_version":1,"research":[{"id","nodes",
+  "sources","date","path","title","body"}]}`.
+- Legacy shape was `{"node":"...","schema_version":1,"artefacts":[{"type":"research",
+  "path","title","frontmatter","body"}]}` (built by `src/ui/api.rs`).
+- Snapshot `wire_format_snapshots__api_node_app_api_research.snap` rebased to the
+  new canonical shape.
+- `app.js` `fetchNodeArtefacts` already reads the canonical shape (`response.research`)
+  and falls back to the legacy `response.artefacts` for frozen fixtures.
+
 ## Pending flips (not yet rebased here)
 The following endpoints still serve legacy `api.rs` shapes and are flipped in
 later per-endpoint steps; each will record its wire delta here when rebased:
 `status`, `graph`, `node`, `node/contract`,
-`node/research`, `node/sources`,
+`node/sources`,
 `node/rationale`, `depends`, `dependents`.

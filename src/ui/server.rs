@@ -194,7 +194,12 @@ impl Server {
                 Some(node.clone()),
                 std::collections::BTreeSet::new(),
             ),
-            "research" => json(200, &artefact_response_json(&self.root, "research", &node)),
+            "research" => self.spine(
+                project,
+                "research",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
+            ),
             "sources" => json(200, &artefact_response_json(&self.root, "sources", &node)),
             "beads" => self.spine(
                 project,

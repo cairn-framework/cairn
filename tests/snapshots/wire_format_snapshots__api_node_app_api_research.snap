@@ -3,21 +3,21 @@ source: tests/wire_format_snapshots.rs
 expression: value
 ---
 {
-  "artefacts": [
+  "node": "app.api",
+  "research": [
     {
       "body": "# API Research\nStudied payload evolution.",
-      "frontmatter": {
-        "date": "2026-03-20",
-        "id": "res.api",
-        "nodes": "[app.api]",
-        "sources": "[src.api]",
-        "tags": "[wire]"
-      },
+      "date": "2026-03-20",
+      "id": "res.api",
+      "nodes": [
+        "app.api"
+      ],
       "path": "meta/research/res.api.md",
-      "title": "API Research",
-      "type": "research"
+      "sources": [
+        "src.api"
+      ],
+      "title": "API Research"
     }
   ],
-  "node": "app.api",
   "schema_version": 1
 }
