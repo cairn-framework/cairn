@@ -1,21 +1,8 @@
-//! UI response serialisation helpers.
+//! Wire-level helpers for the embedded web server: URL percent-decoding and
+//! the legacy-layout API error body.
 
-// Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
-#![allow(clippy::wildcard_imports)]
-use super::*;
-
-pub(super) const fn severity_name(severity: FindingSeverity) -> &'static str {
-    match severity {
-        FindingSeverity::Error => "error",
-        FindingSeverity::Warning => "warning",
-        FindingSeverity::Info => "info",
-    }
-}
-
-pub(super) fn optional_json(value: Option<&str>) -> String {
-    value.map_or_else(|| "null".to_owned(), |text| format!("\"{}\"", esc(text)))
-}
-
+/// Decodes percent-encoded sequences and `+` as space, preserving invalid or
+/// truncated sequences verbatim (browser / RFC 3986 §2.1 behaviour).
 pub(super) fn percent_decode(value: &str) -> String {
     let mut output = String::new();
     let mut chars = value.chars();
@@ -55,13 +42,24 @@ pub(super) fn percent_decode(value: &str) -> String {
     output.replace('+', " ")
 }
 
-pub(super) fn esc(value: &str) -> String {
+fn esc(value: &str) -> String {
     value
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('\n', "\\n")
         .replace('\r', "\\r")
 }
+
+/// API error body in the legacy `finding_json` byte layout so error responses
+/// stay wire-identical across the `query_api` spine flip.
+pub(super) fn error_json(code: &str, message: &str) -> String {
+    format!(
+        "{{\"code\":\"{}\",\"severity\":\"error\",\"message\":\"{}\",\"node\":null,\"path\":null}}",
+        esc(code),
+        esc(message)
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,8 +96,6 @@ mod tests {
     /// literal `%` + the two characters unchanged.
     #[test]
     fn test_percent_decode_invalid_hex_pair_preserves_both_chars() {
-        // Bug: current impl eats 'G' and 'H' because the if-let chain consumes
-        // them from the iterator then falls through without pushing them.
         assert_eq!(percent_decode("%GHtest"), "%GHtest");
     }
 
@@ -112,5 +108,15 @@ mod tests {
     fn test_percent_decode_truncated_percent_one_char_preserved() {
         // `%G` at end — the `G` must not be silently dropped.
         assert_eq!(percent_decode("end%G"), "end%G");
+    }
+
+    // ── error_json ───────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_error_json_escapes_quotes_and_newlines_and_preserves_layout() {
+        assert_eq!(
+            error_json("CODE\"X", "line1\nline2\r\n\"end\""),
+            r#"{"code":"CODE\"X","severity":"error","message":"line1\nline2\r\n\"end\"","node":null,"path":null}"#
+        );
     }
 }

@@ -56,7 +56,7 @@ fn test_ui_status_and_lint_endpoints_return_two_hundred() -> Result<(), Box<dyn 
     let status = get(server.address(), "/api/status")?;
     let lint = get(server.address(), "/api/lint")?;
     server.stop();
-    assert!(status.contains("\"nodes\""));
+    assert!(status.contains("\"open_todos\""));
     assert!(lint.contains("\"findings\""));
     Ok(())
 }

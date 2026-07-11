@@ -2,9 +2,8 @@
 
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
+use super::wire::{error_json, percent_decode};
 use super::*;
-use api::{finding_json, project_finding, status_json};
-use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
 
 pub(super) struct Server {
@@ -121,13 +120,18 @@ impl Server {
     fn api(&self, path: &str) -> Response {
         let project = match self.load_project() {
             Ok(project) => project,
-            Err(error) => return json(500, &finding_json(&project_finding(error.to_string()))),
+            Err(error) => {
+                return json(
+                    500,
+                    &error_json("CAIRN_UI_PROJECT_LOAD_FAILED", &error.to_string()),
+                );
+            }
         };
         if path == "/api/meta" {
             return self.spine(&project, "ui_meta", None, std::collections::BTreeSet::new());
         }
         if path == "/api/status" {
-            return json(200, &status_json(&project));
+            return self.spine(&project, "status", None, std::collections::BTreeSet::new());
         }
         if path == "/api/graph" {
             return self.spine(&project, "graph", None, std::collections::BTreeSet::new());
@@ -275,9 +279,7 @@ impl Server {
                 } else {
                     500
                 };
-                let mut finding = project_finding(error.message);
-                finding.code = error.code;
-                Err(json(status, &finding_json(&finding)))
+                Err(json(status, &error_json(&error.code, &error.message)))
             }
         }
     }

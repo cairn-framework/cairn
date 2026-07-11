@@ -224,7 +224,22 @@ exactly one `schema_version` key, owned by the server constant.
   `serialise::{kind_name,state_name,graph_edge_kind_name,string_array_json}`
   deleted.
 
-## Pending flips (not yet rebased here)
-The following endpoint still serves legacy `api.rs` shapes and is flipped in
-a later per-endpoint step; it will record its wire delta here when rebased:
-`status`.
+### `/api/status` (FLIPPED)
+- Now served via `execute("status")`. Wire moves from the legacy summary
+  `{nodes,edges,findings,errors,warnings,infos,interface_hash}` to the
+  canonical dashboard model
+  `{active_changes,open_todos,recent_log_entries,next_recommended}`.
+- `app.js` no longer fetches `/api/status`: its "N nodes, N edges, N
+  findings" strings are derived client-side from the graph and lint
+  payloads it already loads at boot. The endpoint remains for API parity
+  with the CLI/MCP `status` op; dropping the boot fetch is deliberate,
+  not an oversight.
+- Snapshot `api_status` rebased.
+- With the flip, `src/ui/api.rs` and `src/ui/serialise.rs` are deleted.
+  `percent_decode` moves to `src/ui/server.rs` (tests included); the API
+  error wire keeps the legacy byte layout
+  `{"code","severity","message","node":null,"path":null}` via a small
+  `error_json` helper in `server.rs`.
+
+No pending flips remain; every `/api/*` endpoint is served through the
+`query_api` spine.

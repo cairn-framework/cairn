@@ -35,9 +35,12 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
       bare node endpoint, so no client change. Snapshot rebased with
       `span.file` normalised; delta recorded in
       `dec.ui-query-api-wire-adoption`.
-- [ ] Flip `status` (canonical `status_json` is a different dashboard model:
-      `active_changes`, `open_todos`, `recent_log_entries`, `next_recommended` — no
-      `nodes`/`edges`/`findings`; significant `app.js` rework).
+- [x] Flip `status` → `execute("status")`. Wire moves to the canonical
+      dashboard model (`active_changes`, `open_todos`, `recent_log_entries`,
+      `next_recommended`). `app.js` no longer fetches `/api/status`; the
+      "N nodes, N edges, N findings" strings derive client-side from the
+      graph and lint payloads. Snapshot `api_status` rebased (todo `path`
+      normalised); delta recorded in `dec.ui-query-api-wire-adoption`.
 - [x] Flip `graph` → new read-only spine op `graph` (`cairn_graph`, registry
       41→42) wrapping `query::graph` with canonical `node_json` records and
       Debug-case edge kinds. `app.js` normalises once at ingest
@@ -45,10 +48,10 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
       `api_graph` (rebased, span normalised) and `api_meta` (registry listing)
       updated; legacy `graph_json`/`node_json` and dead serialise helpers
       deleted. Delta recorded in `dec.ui-query-api-wire-adoption`.
-- [ ] Delete `src/ui/api.rs` + `src/ui/serialise.rs` once nothing needs them.
-      (`server.rs` still calls `status_json`, `finding_json`, `project_finding`,
-      and `serialise::esc`/`percent_decode` for the unflipped `status` route
-      and error paths.)
+- [x] Deleted `src/ui/api.rs` + `src/ui/serialise.rs`. `percent_decode`
+      (with tests) moved to `src/ui/server.rs`; the API error wire keeps
+      the legacy byte layout via `server.rs::error_json` (escaping
+      unit-tested). No `/api/*` endpoint serves a UI-side built shape.
 
 ## Gate notes (this session)
 - Rust gate `scripts/pre-archive-rust-gates.sh`: **green** for every commit
