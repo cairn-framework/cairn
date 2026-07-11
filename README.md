@@ -83,7 +83,7 @@ cairn scan                                                          # reconcile 
   <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
 </p>
 
-Already have a codebase? Run `cairn init --from-code` to draft the map from your source tree as a reviewable proposal. Then paste `.cairn/AGENTS.md` into your agent's instructions. Your agent reviews the draft, applies it with `cairn change archive brownfield-init`, and keeps the map in sync from there.
+Already have a codebase? Run `cairn init --from-code --apply` to draft the map from your source tree and land it in one step (drop `--apply` to review the proposal first and land it with `cairn change apply brownfield-init`). Then paste `.cairn/AGENTS.md` into your agent's instructions, and your agent keeps the map in sync from there.
 
 Once the draft is applied, `cairn scan` writes the map and lists every place the map and the code disagree: files on disk that no module claims (orphans), modules planned but not yet built (ghosts), and mismatches between the two. `cairn onboard` groups the leftover files and suggests where they fit. The gate only catches intent you have actually declared: contracts and decisions. Spell those out and the gate arms itself.
 

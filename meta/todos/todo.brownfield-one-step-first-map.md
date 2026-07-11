@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: open
+status: done
 created: 2026-07-10
 ---
 
@@ -22,3 +22,8 @@ docs (docs/brownfield.md), change ids, and code, where it is immediately recogni
 First-touch marketing surfaces (README, landing, quickstart) say "existing project" /
 "existing codebase" instead: the word fails a plain-language pass for AI-first devs who
 never did long-cycle software work.
+
+Resolved 2026-07-12: `cairn init --from-code --apply` applies the discovered
+proposal in one command via the shared archive path (dec.init-from-code-apply-flag).
+Default remains a reviewable proposal. First-run copy updated in README,
+quickstart, brownfield doc, agent-setup, and the init next-steps hint.

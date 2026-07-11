@@ -94,7 +94,7 @@ cairn init
 
 This creates a starter `cairn.blueprint`, a `cairn.config.yaml`, and `.cairn/AGENTS.md`, an agent-facing guide you can append to your project's `CLAUDE.md` or `AGENTS.md` so coding agents use the map (and report Cairn friction with `cairn feedback`). Open the blueprint in your editor.
 
-If the project already has a large codebase, `cairn init --from-code` discovers modules from the source tree and writes a reviewable proposal instead.
+If the project already has a large codebase, `cairn init --from-code` discovers modules from the source tree and writes a reviewable proposal instead. Add `--apply` to land the discovered map in one step: `cairn init --from-code --apply`.
 
 ### 2. Declare your modules
 

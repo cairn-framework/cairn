@@ -94,12 +94,49 @@ pub fn run(args: &[String]) -> CliResult {
         .unwrap_or_else(|| Path::new("."));
     if parsed.command == "init" {
         let from_code = parsed.command_args.iter().any(|a| a == "--from-code");
+        let apply = parsed.command_args.iter().any(|a| a == "--apply");
+        if apply && !from_code {
+            return err(2, "usage: cairn init --from-code --apply");
+        }
         if from_code {
             let force = parsed.command_args.iter().any(|a| a == "--force");
             return match crate::brownfield::init::run_init_from_code(project_root, force) {
-                Ok(change_id) => ok(format!(
-                    "brownfield init complete; change written to meta/changes/{change_id}/\n"
-                )),
+                Ok(change_id) => {
+                    if apply {
+                        // Delegate to the archive command so `--apply` shares
+                        // the conflict gate and path handling of `change apply`.
+                        // Use the paths init actually wrote (it hardcodes
+                        // cairn.blueprint and meta/changes), not --file /
+                        // --changes-dir overrides.
+                        let legacy_warning = legacy_blueprint_warning(project_root);
+                        let archive_parsed = ParsedArgs {
+                            json: parsed.json,
+                            strict: parsed.strict,
+                            file: project_root.join("cairn.blueprint"),
+                            changes_dir: std::path::PathBuf::from("meta/changes"),
+                            command: "archive".to_owned(),
+                            command_args: vec!["archive".to_owned(), change_id.clone()],
+                        };
+                        let mut result =
+                            run_archive_command(&archive_parsed, project_root, legacy_warning);
+                        if result.code != 0 {
+                            result.stderr = format!(
+                                "brownfield init discovery succeeded, but applying change `{change_id}` failed\n{}",
+                                result.stderr
+                            );
+                        } else if !parsed.json {
+                            result.stdout = format!(
+                                "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n{}",
+                                result.stdout
+                            );
+                        }
+                        result
+                    } else {
+                        ok(format!(
+                            "brownfield init complete; change written to meta/changes/{change_id}/\n"
+                        ))
+                    }
+                }
                 Err(e) => err(1, &e.to_string()),
             };
         }
@@ -1080,6 +1117,100 @@ mod tests {
         assert_eq!(version.code, 0);
         assert!(version.stdout.contains("cairn "));
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_populates_blueprint() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let root = temp_root("init-from-code-apply")?;
+        fs::create_dir_all(root.join("src/alpha"))?;
+        for i in 0..3 {
+            fs::write(root.join(format!("src/alpha/f{i}.rs")), "pub fn f() {}\n")?;
+        }
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        assert!(
+            result.stdout.contains("applied to cairn.blueprint"),
+            "stdout: {}",
+            result.stdout
+        );
+        let blueprint = fs::read_to_string(root.join("cairn.blueprint"))?;
+        assert!(
+            blueprint.contains(r#"id "src.alpha""#),
+            "blueprint must gain discovered nodes: {blueprint}"
+        );
+        assert!(
+            !root.join("meta/changes/brownfield-init").exists(),
+            "change must be archived out of meta/changes"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_json_emits_archive_envelope()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-from-code-apply-json")?;
+        fs::create_dir_all(root.join("src/alpha"))?;
+        for i in 0..3 {
+            fs::write(root.join(format!("src/alpha/f{i}.rs")), "pub fn f() {}\n")?;
+        }
+        let result = run_in(&root, &["--json", "init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(result.stdout.trim())
+            .unwrap_or_else(|e| panic!("json mode must emit valid JSON ({e}): {}", result.stdout));
+        assert_eq!(parsed["command"], "archive");
+        assert!(result.stderr.is_empty(), "stderr: {}", result.stderr);
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_apply_without_from_code_is_usage_error()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-apply-alone")?;
+        let result = run_in(&root, &["init", "--apply"]);
+        assert_eq!(result.code, 2);
+        assert!(
+            result
+                .stderr
+                .contains("usage: cairn init --from-code --apply")
+        );
+        assert!(
+            !root.join("cairn.blueprint").exists(),
+            "usage error must not scaffold the project"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_ignores_path_overrides()
+    -> Result<(), Box<dyn std::error::Error>> {
+        // init --from-code writes cairn.blueprint and meta/changes regardless
+        // of --file/--changes-dir, so --apply must archive from those paths.
+        let root = temp_root("init-from-code-apply-overrides")?;
+        fs::create_dir_all(root.join("src/alpha"))?;
+        for i in 0..3 {
+            fs::write(root.join(format!("src/alpha/f{i}.rs")), "pub fn f() {}\n")?;
+        }
+        let result = run_in(
+            &root,
+            &[
+                "--file",
+                &root.join("alt.blueprint").to_string_lossy(),
+                "--changes-dir",
+                &root.join("custom-changes").to_string_lossy(),
+                "init",
+                "--from-code",
+                "--apply",
+            ],
+        );
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let blueprint = fs::read_to_string(root.join("cairn.blueprint"))?;
+        assert!(
+            blueprint.contains(r#"id "src.alpha""#),
+            "blueprint must gain discovered nodes: {blueprint}"
+        );
+        assert!(!root.join("meta/changes/brownfield-init").exists());
         Ok(())
     }
 

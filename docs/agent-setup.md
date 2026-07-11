@@ -78,6 +78,9 @@ Look at the repository you are in.
    (The verb is `apply`; it means "apply this change and file it". The `archive`
    form is a supported alias.)
 
+   (When your user asks to skip the review and just get a first map,
+   `cairn init --from-code --apply` does steps 1 and 3 in one command.)
+
 4. Produce the first map:
 
    ```sh
