@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-06
 ---
 
@@ -100,3 +100,14 @@ render-canonical-json (#230, six commands stop-ruled with measured numbers),
 lsp-spine (#231). Outstanding: the remaining 11 ui-query-api endpoint flips
 (todo.simplify-ui-query-api, in_progress). This umbrella closes when that
 lands.
+
+## Status (2026-07-12)
+
+Closed. All eleven subtasks are done; none dropped. Final outstanding item
+(todo.simplify-ui-query-api) landed with PR #265: `/api/status` flipped to
+the query_api spine and `src/ui/api.rs` + `src/ui/serialise.rs` deleted.
+Verified against main: every `/api/*` endpoint routes through
+`query_api::execute_with_scan`, `app.js` no longer fetches `/api/status`,
+and the legacy UI serialisers are gone from `src/ui/`. The one-spine principle
+(every surface a thin consumer of canonical query_api JSON) now holds for
+CLI, webui, LSP, MCP, and export.
