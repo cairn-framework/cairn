@@ -5,6 +5,19 @@ use super::super::serialise::*;
 use super::super::util::*;
 use super::super::*;
 
+pub(crate) fn graph_response_json(scan_result: &scanner::ScanResult) -> Value {
+    let response = query::graph(&scan_result.graph);
+    json!({
+        "nodes": response.nodes.iter().map(|node| node_json(node, false)).collect::<Vec<_>>(),
+        "edges": response.edges.iter().map(|edge| json!({
+            "from": edge.from,
+            "to": edge.to,
+            "kind": format!("{:?}", edge.kind),
+            "description": edge.description,
+        })).collect::<Vec<_>>(),
+    })
+}
+
 pub(crate) fn count_findings(findings: &[crate::map::graph::Finding]) -> (usize, usize, usize) {
     let mut errors = 0usize;
     let mut warnings = 0usize;

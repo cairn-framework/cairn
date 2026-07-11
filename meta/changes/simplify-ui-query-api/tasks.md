@@ -38,12 +38,17 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
 - [ ] Flip `status` (canonical `status_json` is a different dashboard model:
       `active_changes`, `open_todos`, `recent_log_entries`, `next_recommended` — no
       `nodes`/`edges`/`findings`; significant `app.js` rework).
-- [ ] Flip `graph` (no canonical full-graph dump tool exists; stays on legacy
-      `graph_json` unless a spine op is added).
+- [x] Flip `graph` → new read-only spine op `graph` (`cairn_graph`, registry
+      41→42) wrapping `query::graph` with canonical `node_json` records and
+      Debug-case edge kinds. `app.js` normalises once at ingest
+      (`normaliseGraph`), tolerant of frozen legacy fixtures. Snapshots
+      `api_graph` (rebased, span normalised) and `api_meta` (registry listing)
+      updated; legacy `graph_json`/`node_json` and dead serialise helpers
+      deleted. Delta recorded in `dec.ui-query-api-wire-adoption`.
 - [ ] Delete `src/ui/api.rs` + `src/ui/serialise.rs` once nothing needs them.
-      (`server.rs` still calls `graph_json`, `node_json`, `status_json`,
-      `finding_json`, `project_finding`, and `serialise::esc`/`percent_decode`
-      for the unflipped `graph`, `node`, and `status` routes.)
+      (`server.rs` still calls `status_json`, `finding_json`, `project_finding`,
+      and `serialise::esc`/`percent_decode` for the unflipped `status` route
+      and error paths.)
 
 ## Gate notes (this session)
 - Rust gate `scripts/pre-archive-rust-gates.sh`: **green** for every commit

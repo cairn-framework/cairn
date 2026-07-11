@@ -516,7 +516,7 @@ fn render_loaded_project_command(
         "deps" => render_dependencies(parsed, root),
         // Spine ops (webui-first): the human rendering is the pretty canonical
         // JSON; the primary consumers are the webui and --json callers.
-        "ui_meta" | "blueprint" | "beads" => {
+        "ui_meta" | "blueprint" | "beads" | "graph" => {
             let request = crate::query_api::QueryRequest {
                 tool: parsed.command.clone(),
                 node: parsed.command_args.get(1).cloned(),
@@ -793,6 +793,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "order"
             | "islands"
             | "frontier"
+            | "graph"
             | "lint"
             | "scan"
             | "status"
@@ -849,6 +850,7 @@ mod tests {
             ("ui_meta", vec!["ui_meta"]),
             ("blueprint", vec!["blueprint"]),
             ("beads", vec!["beads", "app.api"]),
+            ("graph", vec!["graph"]),
         ];
 
         for (name, command) in cases {

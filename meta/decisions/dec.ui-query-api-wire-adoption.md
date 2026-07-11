@@ -204,10 +204,27 @@ exactly one `schema_version` key, owned by the server constant.
   snapshot test normalises `span.file` to `<blueprint>` like the blueprint
   endpoint's `path`. `tests/graph_explorer.rs` pins the canonical markers
   (`owns_files`, `span`, `kind:"Container"`).
-- `api.rs::node_json` remains only as a helper of `graph_json` (unflipped
-  `graph` route); it is no longer imported by `server.rs`.
+- `api.rs::node_json` remained only as a helper of `graph_json` until the
+  `/api/graph` flip below removed both.
+
+### `/api/graph` (FLIPPED)
+- Now served via a new read-only spine op `graph` (`cairn_graph`, registry
+  41 to 42) built on `query::graph`; `execute("graph")` with no node argument.
+- Wire: `{"nodes":[...],"edges":[...]}`. Nodes move from the legacy trimmed
+  record to the canonical `node_json` record: Debug-case `kind`/`state`
+  (`Module`, `Synced`), plus `owns_files` and `span`. Edges keep
+  `{from,to,kind,description}` but `kind` becomes Debug-case
+  (`Ownership`/`Dependency`).
+- `app.js` normalises once at the graph ingest boundary (`normaliseGraph`),
+  lowercasing node `kind`/`state` and edge `kind`, tolerant of the frozen
+  legacy lowercase fixtures the visual harness replays.
+- Snapshot `api_graph` rebased (span `file` normalised like the node
+  endpoint); `api_meta` rebased because `ui_meta` lists the new registry
+  entry. Legacy `api.rs::graph_json`/`node_json` and
+  `serialise::{kind_name,state_name,graph_edge_kind_name,string_array_json}`
+  deleted.
 
 ## Pending flips (not yet rebased here)
-The following endpoints still serve legacy `api.rs` shapes and are flipped in
-later per-endpoint steps; each will record its wire delta here when rebased:
-`status`, `graph`.
+The following endpoint still serves legacy `api.rs` shapes and is flipped in
+a later per-endpoint step; it will record its wire delta here when rebased:
+`status`.

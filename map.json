@@ -6231,72 +6231,72 @@
           "kind": "function",
           "signature": "pub const fn address(&self) -> SocketAddr",
           "file": "src/ui/mod.rs",
-          "line": 186,
-          "end_line": 188
+          "line": 185,
+          "end_line": 187
         },
         {
           "name": "UiError",
           "kind": "enum",
           "signature": "pub enum UiError",
           "file": "src/ui/mod.rs",
-          "line": 132,
-          "end_line": 146
+          "line": 131,
+          "end_line": 145
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/ui/mod.rs",
-          "line": 109,
-          "end_line": 127
+          "line": 108,
+          "end_line": 126
         },
         {
           "name": "serve_current_thread",
           "kind": "function",
           "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 205,
-          "end_line": 218
+          "line": 204,
+          "end_line": 217
         },
         {
           "name": "start_background",
           "kind": "function",
           "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 225,
-          "end_line": 238
+          "line": 224,
+          "end_line": 237
         },
         {
           "name": "stop",
           "kind": "function",
           "signature": "pub fn stop(mut self)",
           "file": "src/ui/mod.rs",
-          "line": 191,
-          "end_line": 197
+          "line": 190,
+          "end_line": 196
         },
         {
           "name": "url",
           "kind": "function",
           "signature": "pub fn url(&self) -> String",
           "file": "src/ui/mod.rs",
-          "line": 180,
-          "end_line": 182
+          "line": 179,
+          "end_line": 181
         },
         {
           "name": "ServerHandle",
           "kind": "struct",
           "signature": "pub struct ServerHandle",
           "file": "src/ui/mod.rs",
-          "line": 171,
-          "end_line": 175
+          "line": 170,
+          "end_line": 174
         },
         {
           "name": "UiOptions",
           "kind": "struct",
           "signature": "pub struct UiOptions",
           "file": "src/ui/mod.rs",
-          "line": 84,
-          "end_line": 91
+          "line": 83,
+          "end_line": 90
         }
       ]
     },

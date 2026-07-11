@@ -87,6 +87,91 @@ fn test_execute_returns_node_json_for_valid_request() {
 }
 
 #[test]
+fn test_registry_includes_graph_tool() {
+    let tools = registry();
+    let graph = tools.iter().find(|t| t.cli_name == "graph");
+    assert!(graph.is_some(), "registry must include graph tool");
+    let graph = graph.unwrap();
+    assert_eq!(graph.mcp_name, "cairn_graph");
+    assert_eq!(graph.safety, SafetyClass::ReadOnly);
+}
+
+#[test]
+fn test_execute_graph_returns_full_structural_graph() {
+    let tmp = std::env::temp_dir().join(format!("cairn-graph-test-{}", std::process::id()));
+    let _ = std::fs::create_dir_all(&tmp);
+    let _ = std::fs::write(
+        tmp.join("cairn.blueprint"),
+        "System Test \"T\" id \"t\" {\n}\n",
+    );
+    let request = QueryRequest {
+        tool: "graph".to_owned(),
+        ..QueryRequest::default()
+    };
+    let result = execute(
+        &tmp,
+        &tmp.join("cairn.blueprint"),
+        &tmp.join("meta/changes"),
+        &request,
+    );
+    assert!(result.is_ok(), "graph execute must succeed: {result:?}");
+    let response = result.unwrap();
+    let data = response.data;
+    let nodes = data
+        .get("nodes")
+        .expect("graph data must have nodes")
+        .as_array()
+        .expect("nodes must be an array");
+    assert!(!nodes.is_empty(), "graph nodes must not be empty");
+    for node in nodes {
+        assert!(node.get("id").is_some(), "node must have id");
+        let kind = node
+            .get("kind")
+            .and_then(Value::as_str)
+            .expect("node must have string kind");
+        assert!(
+            matches!(kind, "System" | "Container" | "Module" | "Actor"),
+            "unexpected node kind: {kind}"
+        );
+        let state = node
+            .get("state")
+            .and_then(Value::as_str)
+            .expect("node must have string state");
+        assert!(
+            matches!(state, "Synced" | "Ghost" | "Orphaned"),
+            "unexpected node state: {state}"
+        );
+        assert!(
+            node.get("owns_files").is_some(),
+            "node must have owns_files"
+        );
+        assert!(node.get("span").is_some(), "node must have span");
+    }
+    let edges = data
+        .get("edges")
+        .expect("graph data must have edges")
+        .as_array()
+        .expect("edges must be an array");
+    for edge in edges {
+        assert!(edge.get("from").is_some(), "edge must have from");
+        assert!(edge.get("to").is_some(), "edge must have to");
+        let kind = edge
+            .get("kind")
+            .and_then(Value::as_str)
+            .expect("edge must have string kind");
+        assert!(
+            matches!(kind, "Ownership" | "Dependency"),
+            "unexpected edge kind: {kind}"
+        );
+        assert!(
+            edge.get("description").is_some(),
+            "edge must have description"
+        );
+    }
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
 fn test_registry_includes_watch_tool() {
     let tools = registry();
     let watch = tools.iter().find(|t| t.cli_name == "watch");

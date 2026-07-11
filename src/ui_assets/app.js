@@ -141,8 +141,31 @@
     return response.json();
   }
 
+  function normaliseGraph(graph) {
+    // Tolerates both canonical wire shapes (Debug-case strings) and legacy
+    // fixture shapes (already lower-case strings) by normalising once at
+    // ingest. Non-array nodes/edges are passed through untouched so the
+    // boot-time contract check still surfaces malformed payloads.
+    if (!graph) return graph;
+    const normalised = { ...graph };
+    if (Array.isArray(graph.nodes)) {
+      normalised.nodes = graph.nodes.map((n) => ({
+        ...n,
+        kind: String(n.kind || "").toLowerCase(),
+        state: n.state ? String(n.state).toLowerCase() : n.state,
+      }));
+    }
+    if (Array.isArray(graph.edges)) {
+      normalised.edges = graph.edges.map((e) => ({
+        ...e,
+        kind: String(e.kind || "").toLowerCase(),
+      }));
+    }
+    return normalised;
+  }
+
   async function fetchGraph() {
-    return fetchJson("/api/graph");
+    return normaliseGraph(await fetchJson("/api/graph"));
   }
 
   async function fetchStatus() {

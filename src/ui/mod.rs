@@ -17,10 +17,9 @@ use std::{
 };
 
 use crate::{
-    blueprint::NodeKind,
     map::{
-        graph::{Finding, FindingSeverity, NodeRecord},
-        query::{self, GraphEdgeKind, GraphResponse},
+        graph::{Finding, FindingSeverity},
+        query::{self},
     },
     scanner,
 };
