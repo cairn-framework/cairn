@@ -41,6 +41,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn ui_meta` | List available query commands and their request/response schemas |
 | `cairn blueprint` | Show the raw blueprint file |
 | `cairn graph` | Dump the full structural graph of nodes and edges |
+
 ### Node inspection
 
 | Command | Description |

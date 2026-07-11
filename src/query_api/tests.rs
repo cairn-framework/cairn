@@ -102,7 +102,7 @@ fn test_execute_graph_returns_full_structural_graph() {
     let _ = std::fs::create_dir_all(&tmp);
     let _ = std::fs::write(
         tmp.join("cairn.blueprint"),
-        "System Test \"T\" id \"t\" {\n}\n",
+        "System Test \"T\" id \"t\" {\n    Module A \"A\" id \"t.a\" {\n    }\n    Module B \"B\" id \"t.b\" {\n    }\n}\nt.a -> t.b \"calls\"\n",
     );
     let request = QueryRequest {
         tool: "graph".to_owned(),
@@ -152,6 +152,13 @@ fn test_execute_graph_returns_full_structural_graph() {
         .expect("graph data must have edges")
         .as_array()
         .expect("edges must be an array");
+    assert!(!edges.is_empty(), "graph edges must not be empty");
+    let kinds = edges
+        .iter()
+        .filter_map(|edge| edge.get("kind").and_then(Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert!(kinds.contains("Ownership"), "expected an Ownership edge");
+    assert!(kinds.contains("Dependency"), "expected a Dependency edge");
     for edge in edges {
         assert!(edge.get("from").is_some(), "edge must have from");
         assert!(edge.get("to").is_some(), "edge must have to");
