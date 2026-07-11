@@ -30,9 +30,9 @@ fn test_ui_port_zero_starts_and_serves_graph_api() -> Result<(), Box<dyn std::er
 
     assert!(graph.contains("\"nodes\""));
     assert!(graph.contains("\"edges\""));
-    assert!(graph.contains("\"kind\":\"ownership\""));
-    assert!(graph.contains("\"kind\":\"dependency\""));
-    assert!(graph.contains("\"kind\":\"module\""));
+    assert!(graph.contains("\"kind\":\"Ownership\""));
+    assert!(graph.contains("\"kind\":\"Dependency\""));
+    assert!(graph.contains("\"kind\":\"Module\""));
     assert!(graph.contains("\"id\":\"app.api.lib\""));
     assert!(meta.contains("\"schema_version\":1"));
     assert!(meta.contains("\"name\":\"ui\""));
@@ -182,7 +182,7 @@ fn test_ui_large_graph_api_serves_two_hundred_nodes() -> Result<(), Box<dyn std:
 
     server.stop();
 
-    assert!(graph.matches("\"kind\":\"module\"").count() >= 200);
+    assert!(graph.matches("\"kind\":\"Module\"").count() >= 200);
     assert!(elapsed.as_secs_f32() < 2.0);
 
     Ok(())

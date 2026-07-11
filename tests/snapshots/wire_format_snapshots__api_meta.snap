@@ -71,6 +71,12 @@ expression: value
       "safety": "ReadOnly"
     },
     {
+      "name": "graph",
+      "request": "GraphRequest",
+      "response": "GraphResponse",
+      "safety": "ReadOnly"
+    },
+    {
       "name": "lint",
       "request": "LintRequest",
       "response": "LintResponse",

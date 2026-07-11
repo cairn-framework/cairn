@@ -3,7 +3,7 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
-use api::{finding_json, graph_json, project_finding, status_json};
+use api::{finding_json, project_finding, status_json};
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
 
@@ -123,7 +123,6 @@ impl Server {
             Ok(project) => project,
             Err(error) => return json(500, &finding_json(&project_finding(error.to_string()))),
         };
-        let graph = &project.graph;
         if path == "/api/meta" {
             return self.spine(&project, "ui_meta", None, std::collections::BTreeSet::new());
         }
@@ -131,7 +130,7 @@ impl Server {
             return json(200, &status_json(&project));
         }
         if path == "/api/graph" {
-            return json(200, &graph_json(&query::graph(graph)));
+            return self.spine(&project, "graph", None, std::collections::BTreeSet::new());
         }
         if path == "/api/lint" {
             return self.spine(&project, "lint", None, std::collections::BTreeSet::new());

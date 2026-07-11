@@ -7,25 +7,25 @@ expression: value
     {
       "description": "owns",
       "from": "app",
-      "kind": "ownership",
+      "kind": "Ownership",
       "to": "app.api"
     },
     {
       "description": "owns",
       "from": "app",
-      "kind": "ownership",
+      "kind": "Ownership",
       "to": "app.core"
     },
     {
       "description": "reports",
       "from": "app.api",
-      "kind": "dependency",
+      "kind": "Dependency",
       "to": "app.core"
     },
     {
       "description": "serves",
       "from": "app.core",
-      "kind": "dependency",
+      "kind": "Dependency",
       "to": "app.api"
     }
   ],
@@ -39,11 +39,19 @@ expression: value
       "description": "desc",
       "files": [],
       "id": "app",
-      "kind": "system",
+      "kind": "System",
       "name": "App",
+      "owns_files": false,
       "parent": null,
       "paths": [],
-      "state": "synced",
+      "span": {
+        "column": 1,
+        "end_column": 7,
+        "end_line": 1,
+        "file": "<blueprint>",
+        "line": 1
+      },
+      "state": "Synced",
       "tags": [
         "product"
       ]
@@ -58,13 +66,21 @@ expression: value
         "src/api/lib.rs"
       ],
       "id": "app.api",
-      "kind": "container",
+      "kind": "Container",
       "name": "Api",
+      "owns_files": true,
       "parent": "app",
       "paths": [
         "./src/api"
       ],
-      "state": "synced",
+      "span": {
+        "column": 5,
+        "end_column": 14,
+        "end_line": 6,
+        "file": "<blueprint>",
+        "line": 6
+      },
+      "state": "Synced",
       "tags": [
         "backend"
       ]
@@ -79,13 +95,21 @@ expression: value
         "src/core/lib.rs"
       ],
       "id": "app.core",
-      "kind": "module",
+      "kind": "Module",
       "name": "Core",
+      "owns_files": true,
       "parent": "app",
       "paths": [
         "./src/core"
       ],
-      "state": "synced",
+      "span": {
+        "column": 5,
+        "end_column": 11,
+        "end_line": 2,
+        "file": "<blueprint>",
+        "line": 2
+      },
+      "state": "Synced",
       "tags": [
         "backend"
       ]

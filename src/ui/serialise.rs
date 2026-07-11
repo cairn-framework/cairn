@@ -4,50 +4,12 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const fn kind_name(kind: NodeKind) -> &'static str {
-    match kind {
-        NodeKind::System => "system",
-        NodeKind::Container => "container",
-        NodeKind::Module => "module",
-        NodeKind::Actor => "actor",
-    }
-}
-
-/// Stable lowercase wire name for a reconciliation state.
-pub(super) const fn state_name(state: crate::map::NodeState) -> &'static str {
-    use crate::map::NodeState;
-    match state {
-        NodeState::Synced => "synced",
-        NodeState::Ghost => "ghost",
-        NodeState::Orphaned => "orphaned",
-    }
-}
-
 pub(super) const fn severity_name(severity: FindingSeverity) -> &'static str {
     match severity {
         FindingSeverity::Error => "error",
         FindingSeverity::Warning => "warning",
         FindingSeverity::Info => "info",
     }
-}
-
-/// Stable lowercase wire name for a symbol kind, matching `SymbolKind`'s
-pub(super) const fn graph_edge_kind_name(kind: GraphEdgeKind) -> &'static str {
-    match kind {
-        GraphEdgeKind::Ownership => "ownership",
-        GraphEdgeKind::Dependency => "dependency",
-    }
-}
-
-pub(super) fn string_array_json(values: &[String]) -> String {
-    format!(
-        "[{}]",
-        values
-            .iter()
-            .map(|value| format!("\"{}\"", esc(value)))
-            .collect::<Vec<_>>()
-            .join(",")
-    )
 }
 
 pub(super) fn optional_json(value: Option<&str>) -> String {

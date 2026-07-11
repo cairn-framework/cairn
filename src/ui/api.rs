@@ -5,47 +5,6 @@
 use super::*;
 use serialise::*;
 
-pub(super) fn graph_json(graph: &GraphResponse) -> String {
-    let nodes = graph
-        .nodes
-        .iter()
-        .map(node_json)
-        .collect::<Vec<_>>()
-        .join(",");
-    let edges = graph
-        .edges
-        .iter()
-        .map(|edge| {
-            format!(
-                "{{\"from\":\"{}\",\"to\":\"{}\",\"kind\":\"{}\",\"description\":\"{}\"}}",
-                esc(&edge.from),
-                esc(&edge.to),
-                graph_edge_kind_name(edge.kind),
-                esc(&edge.description)
-            )
-        })
-        .collect::<Vec<_>>()
-        .join(",");
-    format!("{{\"nodes\":[{nodes}],\"edges\":[{edges}]}}")
-}
-
-pub(super) fn node_json(node: &NodeRecord) -> String {
-    format!(
-        "{{\"id\":\"{}\",\"kind\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"tags\":{},\"parent\":{},\"children\":{},\"paths\":{},\"contracts\":{},\"state\":\"{}\",\"files\":{}}}",
-        esc(&node.id),
-        kind_name(node.kind),
-        esc(&node.name),
-        esc(&node.description),
-        string_array_json(&node.tags),
-        optional_json(node.parent.as_deref()),
-        string_array_json(&node.children),
-        string_array_json(&node.paths),
-        string_array_json(&node.contracts),
-        state_name(node.state),
-        string_array_json(&node.files)
-    )
-}
-
 pub(super) fn status_json(project: &scanner::ScanResult) -> String {
     let findings = query::lint(&project.graph).findings;
     let errors = findings

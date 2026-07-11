@@ -53,6 +53,13 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
         if *snapshot_name == "api_node_app_api" {
             value["span"]["file"] = json!("<blueprint>");
         }
+        if *snapshot_name == "api_graph"
+            && let Some(nodes) = value["nodes"].as_array_mut()
+        {
+            for node in nodes {
+                node["span"]["file"] = json!("<blueprint>");
+            }
+        }
 
         // Every `/api/*` envelope carries a uniform top-level `schema_version`
         // (stamped at the single `json()` choke point). The literal tracks the

@@ -37,8 +37,8 @@ use change_queries::dispatch_change_tool;
 use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
     bundle_json, context_json, contract_json, decisions_response_json, dependency_json,
-    docstring_json, files_json, frontier_json, hook_json, islands_json, neighbourhood_json,
-    rationale_json, research_response_json, sources_response_json, status_json,
+    docstring_json, files_json, frontier_json, graph_response_json, hook_json, islands_json,
+    neighbourhood_json, rationale_json, research_response_json, sources_response_json, status_json,
     todos_response_json,
 };
 pub(crate) use handlers::{health_json, remediate_json};
@@ -427,6 +427,7 @@ fn execute_data_with_scan(
             .map_err(|findings| findings_error(&findings)),
         "islands" => Ok(islands_json(scan_result)),
         "frontier" => frontier_json(scan_result),
+        "graph" => Ok(graph_response_json(scan_result)),
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
             Ok(json!({ "findings": findings_json(&response.findings) }))
