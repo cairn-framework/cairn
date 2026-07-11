@@ -14,6 +14,16 @@ cairn init --from-code
 
 If the change directory already exists, the command fails. Pass `--force` to overwrite.
 
+Pass `--apply` to apply the discovered proposal immediately, so the first map is one
+command away:
+
+```bash
+cairn init --from-code --apply
+```
+
+Without `--apply`, the proposal stays under `meta/changes/brownfield-init/` for review
+and lands with `cairn change apply brownfield-init` (step 4 below).
+
 ### `cairn refine`
 
 Compares the current codebase against the existing blueprint and writes a timestamped change containing only proposed additions, removals, or modifications.
@@ -60,9 +70,9 @@ If a summariser backend is configured, it may override these with inferred names
 1. **Run extraction**: `cairn init --from-code` or `cairn refine`.
 2. **Inspect the change directory**: Review `proposal.md`, `blueprint.delta`, and stub contracts in `contracts/`.
 3. **Edit if needed**: Modify the blueprint delta or contracts directly, or discard the change and re-run.
-4. **Archive when satisfied**: `cairn change apply brownfield-init` (or the refine change ID) to apply the proposal.
+4. **Apply when satisfied**: `cairn change apply brownfield-init` (or the refine change ID) to apply the proposal and file it in the archive.
 
-The workflow is identical to any other Cairn change: extraction produces a proposal, a human reviews it, and only then is it archived into the blueprint.
+The workflow is identical to any other Cairn change: extraction produces a proposal, a human reviews it, and only then is it applied to the blueprint.
 
 ## Output format
 

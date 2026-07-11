@@ -1323,8 +1323,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 684,
-          "end_line": 702
+          "line": 715,
+          "end_line": 733
         },
         {
           "name": "build_export",
@@ -1364,7 +1364,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 79,
-          "end_line": 219
+          "end_line": 250
         },
         {
           "name": "run",
