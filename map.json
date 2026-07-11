@@ -1652,6 +1652,7 @@
         "src/map/mod.rs",
         "src/map/query.rs",
         "src/map/spec_rule_coverage.rs",
+        "src/map/spec_rule_coverage/tests.rs",
         "src/map/test_coverage.rs"
       ],
       "contracts": [
@@ -6595,7 +6596,7 @@
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
-      "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer",
+      "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
       "node": null,
       "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
       "path": "docs/registries/spec-rules.md"

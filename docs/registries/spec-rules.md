@@ -16,6 +16,7 @@ passes scan into tracked cairn state, the way the spec mandates (spec.md:24). Se
 | Spec | `spec:<line>` anchor into `docs/spec.md`. |
 | Code | The `CAIRN_*` finding the rule's enforcer emits, in backticks. Empty (`-`) means no enforcer is named yet. |
 | Status | `enforced`, `pending`, or `declared` (see below). |
+| Deferred-by | Optional fifth cell on `pending` rows: the decision artefact deferring the rule's build (e.g. `dec.<slug>`). Empty (`-`) or absent means no deferral is recorded. The finding message names it inline. |
 
 ## Status semantics
 
@@ -80,9 +81,9 @@ does not count.
 Designed in the spec but not yet enforced. Each surfaces an Info-level finding
 until built.
 
-| Rule | Spec | Code | Status |
-|------|------|------|--------|
-| ADR revisit_triggers appear relevant to recent changes | spec:634 | - | pending |
+| Rule | Spec | Code | Status | Deferred-by |
+|------|------|------|--------|-------------|
+| ADR revisit_triggers appear relevant to recent changes | spec:634 | - | pending | dec.revisit-trigger-correlator-deferred |
 
 ## Declared rules
 
