@@ -1852,6 +1852,13 @@
       ])
         .then(([contracts, decisions, todos, beads, research, sources, depends, dependents, symbols]) => {
           if (cancelled) return;
+          // The deps spine op returns bare node-ID strings; hydrate them from
+          // the loaded graph. Object entries (legacy shape) pass through.
+          const hydrateDep = (entry) => {
+            if (typeof entry !== "string") return entry;
+            const record = nodesById.get(entry);
+            return record ? { id: record.id, name: record.name, state: record.state } : { id: entry, name: entry, state: "synced" };
+          };
           setDetail({
             contracts,
             decisions,
@@ -1859,8 +1866,8 @@
             beads,
             research,
             sources,
-            depends,
-            dependents,
+            depends: depends.map(hydrateDep),
+            dependents: dependents.map(hydrateDep),
             symbols,
           });
         })

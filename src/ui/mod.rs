@@ -19,7 +19,7 @@ use std::{
 use crate::{
     blueprint::NodeKind,
     map::{
-        graph::{Finding, FindingSeverity, Graph, NodeRecord},
+        graph::{Finding, FindingSeverity, NodeRecord},
         query::{self, GraphEdgeKind, GraphResponse},
     },
     scanner,

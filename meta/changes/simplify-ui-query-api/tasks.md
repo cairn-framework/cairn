@@ -23,10 +23,13 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
       `response.symbols` (unchanged path); endpoint test updated `node`→`id`.
       Removes dead `api.rs::symbols_response_json` + `serialise::symbol_kind_name`.
       Commit `5a9767f`.
+- [x] Flip `depends` / `dependents` → `execute("deps", {node})` (+`Inbound` flag
+      for dependents). Wire moves to bare ID lists; `app.js` hydrates via its
+      `nodesById` graph index (tolerant of legacy object entries for frozen
+      fixtures). Snapshots rebased; `api.rs::dependency_json` deleted; delta
+      recorded in `dec.ui-query-api-wire-adoption`.
 
 ### Remaining (not yet flipped)
-- [ ] Flip `depends` / `dependents` (canonical `deps` returns ID lists, not the
-      legacy `{id,name,slug,state,kind}` entries — needs `app.js` rework).
 - [ ] Flip `node` (canonical `node_json` adds `owns_files`/`span` + `Debug`-case enums).
 - [ ] Flip `status` (canonical `status_json` is a different dashboard model:
       `active_changes`, `open_todos`, `recent_log_entries`, `next_recommended` — no
@@ -34,11 +37,9 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
 - [ ] Flip `graph` (no canonical full-graph dump tool exists; stays on legacy
       `graph_json` unless a spine op is added).
 - [ ] Delete `src/ui/api.rs` + `src/ui/serialise.rs` once nothing needs them.
-      (The rationale/contract flip removed the structured-artefact helpers, but
-      both files stay live: `server.rs` still calls `graph_json`, `node_json`,
-      `dependency_json`, `status_json`, `finding_json`, `project_finding`, and
-      `serialise::esc`/`percent_decode` for the unflipped `graph`, `node`,
-      `status`, `depends`, and `dependents` routes.)
+      (`server.rs` still calls `graph_json`, `node_json`, `status_json`,
+      `finding_json`, `project_finding`, and `serialise::esc`/`percent_decode`
+      for the unflipped `graph`, `node`, and `status` routes.)
 
 ## Gate notes (this session)
 - Rust gate `scripts/pre-archive-rust-gates.sh`: **green** for every commit
