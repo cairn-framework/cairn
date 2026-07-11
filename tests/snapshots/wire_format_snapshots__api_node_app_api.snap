@@ -12,14 +12,22 @@ expression: value
     "src/api/lib.rs"
   ],
   "id": "app.api",
-  "kind": "container",
+  "kind": "Container",
   "name": "Api",
+  "owns_files": true,
   "parent": "app",
   "paths": [
     "./src/api"
   ],
   "schema_version": 1,
-  "state": "synced",
+  "span": {
+    "column": 5,
+    "end_column": 14,
+    "end_line": 6,
+    "file": "<blueprint>",
+    "line": 6
+  },
+  "state": "Synced",
   "tags": [
     "backend"
   ]

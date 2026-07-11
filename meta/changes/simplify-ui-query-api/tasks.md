@@ -30,7 +30,11 @@ Recorded schema decisions live in `meta/decisions/dec.ui-query-api-wire-adoption
       recorded in `dec.ui-query-api-wire-adoption`.
 
 ### Remaining (not yet flipped)
-- [ ] Flip `node` (canonical `node_json` adds `owns_files`/`span` + `Debug`-case enums).
+- [x] Flip `node` → `execute("get", {node})`. Wire moves to canonical record
+      (Debug-case enums, +`owns_files`, +`span`); `app.js` never fetches the
+      bare node endpoint, so no client change. Snapshot rebased with
+      `span.file` normalised; delta recorded in
+      `dec.ui-query-api-wire-adoption`.
 - [ ] Flip `status` (canonical `status_json` is a different dashboard model:
       `active_changes`, `open_todos`, `recent_log_entries`, `next_recommended` — no
       `nodes`/`edges`/`findings`; significant `app.js` rework).

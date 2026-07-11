@@ -3,7 +3,7 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
-use api::{finding_json, graph_json, node_json, project_finding, status_json};
+use api::{finding_json, graph_json, project_finding, status_json};
 use serialise::percent_decode;
 use std::{cell::RefCell, time::SystemTime};
 
@@ -178,9 +178,11 @@ impl Server {
         let (node, suffix) = path.split_once('/').unwrap_or((path, ""));
         let node = percent_decode(node);
         match suffix {
-            "" => query::get(&project.graph, &node).map_or_else(
-                |finding| json(404, &finding_json(&finding)),
-                |response| json(200, &node_json(&response.node)),
+            "" => self.spine(
+                project,
+                "get",
+                Some(node.clone()),
+                std::collections::BTreeSet::new(),
             ),
             "contract" => self.spine(
                 project,
