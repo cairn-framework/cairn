@@ -61,6 +61,7 @@ _No codes allocated yet._
 - CC001 -- verification blocked by upstream dependency -- phase-7.5c
 - CC002 -- pending suggested-edges entries block --strict validate -- phase-7.6
 - CC003 -- failed to enumerate changes directory -- phase-7.8 reforge cycle 3
+- CC004 -- active change has all tasks complete (CAIRN_CHANGE_TASKS_COMPLETE) -- change tasks-complete finding
 
 ## CH -- Hooks
 

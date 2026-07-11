@@ -209,9 +209,15 @@ push.
    comment; write a superseding decision instead.
 3. Merge once CI is green and review is satisfied. Re-run `cairn scan` after any
    rebase so the merged commit is still clean.
+4. Archive the change directory. If this iteration worked from a
+   `meta/changes/<id>/` change, run `cairn change apply <id>` after the merge so
+   the directory moves to `meta/changes/archive/` and `cairn status` stops
+   listing it as active. A merged change left active misleads the next
+   iteration (the `CAIRN_CHANGE_TASKS_COMPLETE` scan finding flags this).
 
-Exit criterion: the PR is merged, CI is green on the target branch, and
-`cairn scan` is clean against the merged state.
+Exit criterion: the PR is merged, CI is green on the target branch, the change
+directory (if any) is archived, and `cairn scan` is clean against the merged
+state.
 
 ## Phase 10: Continue
 

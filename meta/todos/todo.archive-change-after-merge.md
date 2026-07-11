@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.changes
-status: open
+status: done
 created: 2026-07-11
 ---
 

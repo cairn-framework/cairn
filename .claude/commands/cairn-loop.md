@@ -75,8 +75,9 @@ loop's own step-by-step progress. Durable cross-session work items go through
 
 9. **Merge** — drive the PR to merged. Subscribe to PR activity so CI and review
    events wake the session; on a CI failure, fix and re-push until green. Resolve
-   review threads. Merge once CI is green and review is satisfied, then re-run
-   `cairn scan` against the merged state.
+   review threads. Merge once CI is green and review is satisfied, then run
+   `cairn change apply <id>` to archive the change directory (if this unit had
+   one) and re-run `cairn scan` against the merged state.
 
 10. **Continue** — pick the next unit (a `cairn lint` finding first, else the
     backlog, else a deferred advisory or an improvement spotted this iteration)
