@@ -72,11 +72,11 @@ Look at the repository you are in.
 3. Apply the reviewed proposal:
 
    ```sh
-   cairn change archive brownfield-init
+   cairn change apply brownfield-init
    ```
 
-   (The verb is `archive`; it means "apply this change and file it". An
-   `apply` alias is planned.)
+   (The verb is `apply`; it means "apply this change and file it". The `archive`
+   form is a supported alias.)
 
 4. Produce the first map:
 

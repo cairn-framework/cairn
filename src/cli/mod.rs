@@ -294,9 +294,9 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
             }
         }
         Some("accept") => crate::cli::accept::run_accept_gate(change_id, parsed.json),
-        Some("archive") => {
+        Some(cmd @ ("archive" | "apply")) => {
             let Some(id) = change_id else {
-                return err(2, "usage: cairn change archive <change-id>");
+                return err(2, &format!("usage: cairn change {cmd} <change-id>"));
             };
             let root = project_root;
             let legacy_warning = legacy_blueprint_warning(root);
@@ -314,7 +314,7 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
         }
         _ => err(
             2,
-            "usage: cairn change <new|list|show|accept|archive> [args]",
+            "usage: cairn change <new|list|show|accept|apply|archive> [args]",
         ),
     }
 }
@@ -627,7 +627,7 @@ const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
     },
     CliOnlyCommand {
         name: "change",
-        description: "Manage changes: new, list, show, accept, archive",
+        description: "Manage changes: new, list, show, accept, apply, archive",
     },
     CliOnlyCommand {
         name: "decision",
@@ -1023,6 +1023,42 @@ mod tests {
         assert!(archive.stdout.contains("\"command\":\"archive\""));
         assert!(archive.stdout.contains("\"status\":\"ok\""));
         assert!(archive.stdout.contains("\"archive_path\":"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_apply_aliases_archive() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("apply-alias")?;
+        write_project(&root)?;
+        write_change(&root)?;
+
+        // `change apply` without an id shows a usage error.
+        let usage = run_in(&root, &["change", "apply"]);
+        assert_eq!(usage.code, 2);
+        assert!(usage.stderr.contains("usage: cairn change apply"));
+
+        // `change apply <id>` archives the change, same as `change archive`.
+        let apply = run_in(&root, &["change", "apply", "phase-7.5a-test-fortification"]);
+        assert_eq!(apply.code, 0, "stderr: {}", apply.stderr);
+        assert!(apply.stdout.contains("Archived"));
+        assert!(
+            !root
+                .join("meta/changes/phase-7.5a-test-fortification")
+                .exists(),
+            "active change directory must move out of meta/changes"
+        );
+        let archive_root = root.join("meta/changes/archive");
+        assert!(archive_root.exists(), "archive directory must be created");
+        let moved = fs::read_dir(&archive_root)?
+            .filter_map(Result::ok)
+            .any(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .ends_with("phase-7.5a-test-fortification")
+            });
+        assert!(moved, "change must be archived under a dated directory");
 
         Ok(())
     }

@@ -19,7 +19,7 @@ const BASE_BLUEPRINT: &str = "# cairn.blueprint\n\
 # Seeded by `cairn init --from-code`. The discovered modules are merged in when\n\
 # you archive the brownfield extraction:\n\
 #\n\
-#     cairn change archive brownfield-init\n\
+#     cairn change apply brownfield-init
 #\n\
 # Refine the map afterwards: nest modules under Systems and Containers, and add\n\
 # decisions, contracts, and edges as the architecture clarifies.\n";

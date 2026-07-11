@@ -314,7 +314,7 @@ fn test_every_registered_command_has_description() {
             assert!(
                 result
                     .stdout
-                    .contains("Manage changes: new, list, show, accept, archive"),
+                    .contains("Manage changes: new, list, show, accept, apply, archive"),
                 "help output must list the consolidated `change` command with its subcommands"
             );
             continue;

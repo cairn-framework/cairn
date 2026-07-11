@@ -31,7 +31,7 @@ Type "cat meta/changes/brownfield-init/proposal.md"
 Enter
 Sleep 2.5s
 
-Type "cairn change archive brownfield-init"
+Type "cairn change apply brownfield-init"
 Enter
 Sleep 2s
 
