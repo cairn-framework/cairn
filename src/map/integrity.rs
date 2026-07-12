@@ -62,34 +62,96 @@ pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
     Vec::new()
 }
 
-/// Computes a topological order for the dependency graph.
+/// Computes a deterministic topological order for the graph.
+///
+/// Ordering constraints:
+/// 1. Dependency edges: a node's dependencies sort before it.
+/// 2. Containment edges: children sort before their parent.
+/// 3. Ties break by node id, so the order is independent of declaration or
+///    key order.
+///
+/// Both edge kinds are hard constraints: a contradiction between them (for
+/// example a node depending on its own container's parent chain) is reported
+/// as a cycle, the same as a pure dependency cycle.
 ///
 /// # Errors
 ///
-/// Returns cycle findings when the dependency graph is cyclic.
+/// Returns cycle findings when the combined dependency and containment
+/// constraints are cyclic.
 pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
     let cycles = cycle_findings(graph);
     if !cycles.is_empty() {
         return Err(cycles);
     }
-    let mut visited = BTreeSet::new();
-    let mut order = Vec::new();
-    for id in graph.nodes.keys() {
-        visit(id, graph, &mut visited, &mut order);
-    }
-    Ok(order)
-}
-
-fn visit(id: &str, graph: &Graph, visited: &mut BTreeSet<String>, order: &mut Vec<String>) {
-    if !visited.insert(id.to_owned()) {
-        return;
-    }
-    if let Some(edges) = graph.outbound.get(id) {
+    // Precedence successors: `before -> [after]`. Dependency edge a->b means
+    // b precedes a; containment means child precedes parent. Both are hard.
+    let mut succ: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    let mut indegree: BTreeMap<&str, usize> =
+        graph.nodes.keys().map(|id| (id.as_str(), 0)).collect();
+    for (from, edges) in &graph.outbound {
         for edge in edges {
-            visit(&edge.to, graph, visited, order);
+            if !indegree.contains_key(edge.to.as_str()) {
+                continue;
+            }
+            if let Some(deg) = indegree.get_mut(from.as_str()) {
+                *deg += 1;
+                succ.entry(edge.to.as_str())
+                    .or_default()
+                    .push(from.as_str());
+            }
         }
     }
-    order.push(id.to_owned());
+    for node in graph.nodes.values() {
+        for child in &node.children {
+            if !indegree.contains_key(child.as_str()) {
+                continue;
+            }
+            if let Some(deg) = indegree.get_mut(node.id.as_str()) {
+                *deg += 1;
+                succ.entry(child.as_str())
+                    .or_default()
+                    .push(node.id.as_str());
+            }
+        }
+    }
+    let mut ready: BTreeSet<&str> = indegree
+        .iter()
+        .filter(|(_, deg)| **deg == 0)
+        .map(|(id, _)| *id)
+        .collect();
+    let mut order: Vec<String> = Vec::with_capacity(graph.nodes.len());
+    while order.len() < graph.nodes.len() {
+        let Some(&next) = ready.iter().next() else {
+            // Deadlock: the dependency graph alone is acyclic (checked
+            // above), so containment contradicts a dependency edge. Report
+            // the stuck nodes as a cycle rather than inventing an order.
+            let mut stuck: Vec<&str> = indegree.keys().copied().collect();
+            stuck.sort_unstable();
+            return Err(vec![Finding {
+                code: "CAIRN_ORDER_CYCLE".to_owned(),
+                severity: FindingSeverity::Error,
+                message: format!(
+                    "containment and dependency constraints are cyclic among: {}",
+                    stuck.join(", ")
+                ),
+                node: stuck.first().map(|s| (*s).to_owned()),
+                target: None,
+                path: None,
+            }]);
+        };
+        ready.remove(next);
+        indegree.remove(next);
+        order.push(next.to_owned());
+        for succ_id in succ.remove(next).unwrap_or_default() {
+            if let Some(deg) = indegree.get_mut(succ_id) {
+                *deg -= 1;
+                if *deg == 0 {
+                    ready.insert(succ_id);
+                }
+            }
+        }
+    }
+    Ok(order)
 }
 
 #[cfg(test)]
@@ -144,6 +206,18 @@ mod tests {
             inbound,
             findings: Vec::new(),
         }
+    }
+
+    fn with_containment(mut g: Graph, links: &[(&str, &str)]) -> Graph {
+        for (parent, child) in links {
+            g.nodes
+                .get_mut(*parent)
+                .unwrap()
+                .children
+                .push((*child).to_owned());
+            g.nodes.get_mut(*child).unwrap().parent = Some((*parent).to_owned());
+        }
+        g
     }
 
     fn has_cycle_code(findings: &[Finding]) -> bool {
@@ -280,5 +354,67 @@ mod tests {
             result.is_err(),
             "self-loop must cause topological_order to return Err"
         );
+    }
+
+    #[test]
+    fn test_topological_order_children_before_parent() {
+        // Containment only, no dependency edges: children sort before parent.
+        // IDs chosen so lexicographic key order alone would put the parent
+        // first ("app" < "ymir" < "zed").
+        let g = with_containment(
+            make_graph(&["app", "ymir", "zed"], &[]),
+            &[("app", "ymir"), ("app", "zed")],
+        );
+        let order = topological_order(&g).expect("acyclic");
+        let pos = |id: &str| order.iter().position(|n| n == id).unwrap();
+        assert!(
+            pos("ymir") < pos("app"),
+            "child ymir before parent: {order:?}"
+        );
+        assert!(
+            pos("zed") < pos("app"),
+            "child zed before parent: {order:?}"
+        );
+    }
+
+    #[test]
+    fn test_topological_order_nested_containment_deepest_first() {
+        // "alpha" contains "midge" contains "zeta": deepest first, even though
+        // key order puts the root first.
+        let g = with_containment(
+            make_graph(&["alpha", "midge", "zeta"], &[]),
+            &[("alpha", "midge"), ("midge", "zeta")],
+        );
+        let order = topological_order(&g).expect("acyclic");
+        let pos = |id: &str| order.iter().position(|n| n == id).unwrap();
+        assert!(pos("zeta") < pos("midge"), "{order:?}");
+        assert!(pos("midge") < pos("alpha"), "{order:?}");
+    }
+
+    #[test]
+    fn test_topological_order_containment_dep_conflict_is_cycle_error() {
+        // Child depends on its own parent: containment says child first,
+        // the dependency edge says parent first. Contradictory constraints
+        // are a cycle error, not a silently invented order.
+        let g = with_containment(
+            make_graph(&["parent", "child"], &[("child", "parent")]),
+            &[("parent", "child")],
+        );
+        let err = topological_order(&g).expect_err("contradictory constraints must be Err");
+        assert!(has_cycle_code(&err), "expected CAIRN_ORDER_CYCLE: {err:?}");
+    }
+
+    #[test]
+    fn test_topological_order_containment_and_deps_combined() {
+        // "app" contains "web" and "zlib"; "web" depends on "zlib".
+        let g = with_containment(
+            make_graph(&["app", "web", "zlib"], &[("web", "zlib")]),
+            &[("app", "web"), ("app", "zlib")],
+        );
+        let order = topological_order(&g).expect("acyclic");
+        let pos = |id: &str| order.iter().position(|n| n == id).unwrap();
+        assert!(pos("zlib") < pos("web"), "{order:?}");
+        assert!(pos("web") < pos("app"), "{order:?}");
+        assert!(pos("zlib") < pos("app"), "{order:?}");
     }
 }

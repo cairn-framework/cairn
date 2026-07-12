@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: open
+status: done
 created: 2026-07-12
 ---
 
@@ -26,3 +26,10 @@ frontier as Ghost-only, so synced leaf modules are intentionally excluded.
 Define and enforce a deterministic containment rule in `cairn order` (children
 before parent, or parent first, consistently) by including containment edges in
 the sort. Add a test.
+
+## Resolution (2026-07-12)
+Done. `topological_order` now sorts over a combined precedence graph
+(dependency edges + containment, children before parent, id tiebreak) via
+Kahn's algorithm; contradictory constraints are a `CAIRN_ORDER_CYCLE`
+finding. Ratified in `dec.order-containment-rule`. Tests in
+`src/map/integrity.rs`.
