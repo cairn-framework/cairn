@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-10
 ---
 
@@ -125,3 +125,18 @@ Every legacy issue in the list above has a recorded outcome.
   hook that such tooling would consume, so keep them on the minted artefacts.
 - This artefact plans closures only. The actual close/edit/comment on GitHub issues
   is performed by the parent or a dedicated tool, not by this planning pass.
+
+## Done (2026-07-12)
+
+All 28 legacy issues (#1 to #108 set) have recorded outcomes. 22 closed
+with a reason naming the superseding decision or merged work; 6 re-minted
+as native todos carrying `gh:#NNN` reference lines and closed pointing at
+the artefact: todo.webui-mobile-graph-nav (#72),
+todo.contract-loader-signatures (#63),
+todo.claude-md-progressive-disclosure (#70),
+todo.hooks-graphite-merge-guard (#86), todo.ci-hook-decision-pairing
+(#68), todo.formalize-debate-skill (#69). Two planned re-mints were
+closed as already implemented on inspection: #107 (suggested_edges module
+split exists) and #108 (copy.toml plus src/copy.rs shipped; residual
+migration lives in todo.remediate-copy-centralisation). Verified: zero
+open issues numbered 108 or lower.
