@@ -23,6 +23,8 @@
       "files": [
         "src/brownfield/discovery.rs",
         "src/brownfield/heuristics.rs",
+        "src/brownfield/import_edges.rs",
+        "src/brownfield/imports.rs",
         "src/brownfield/init.rs",
         "src/brownfield/interview.rs",
         "src/brownfield/mod.rs",
@@ -125,6 +127,14 @@
           "end_line": 59
         },
         {
+          "name": "ImportRef",
+          "kind": "enum",
+          "signature": "pub enum ImportRef",
+          "file": "src/brownfield/imports.rs",
+          "line": 16,
+          "end_line": 26
+        },
+        {
           "name": "MatchRule",
           "kind": "enum",
           "signature": "pub enum MatchRule",
@@ -153,8 +163,8 @@
           "kind": "function",
           "signature": "pub fn blueprint_delta(extraction: &Extraction) -> String",
           "file": "src/brownfield/mod.rs",
-          "line": 97,
-          "end_line": 131
+          "line": 101,
+          "end_line": 135
         },
         {
           "name": "build_request",
@@ -201,8 +211,8 @@
           "kind": "function",
           "signature": "pub fn discover(root: &Path) -> Result<Extraction, CairnError>",
           "file": "src/brownfield/discovery.rs",
-          "line": 87,
-          "end_line": 129
+          "line": 90,
+          "end_line": 133
         },
         {
           "name": "enrich_candidate",
@@ -211,6 +221,14 @@
           "file": "src/brownfield/summarise.rs",
           "line": 81,
           "end_line": 112
+        },
+        {
+          "name": "extract_imports",
+          "kind": "function",
+          "signature": "pub fn extract_imports(file: &Path, source: &str) -> Vec<ImportRef>",
+          "file": "src/brownfield/imports.rs",
+          "line": 58,
+          "end_line": 86
         },
         {
           "name": "id",
@@ -305,8 +323,8 @@
           "kind": "function",
           "signature": "pub fn stub_contract(candidate: &DiscoveredCandidate) -> String",
           "file": "src/brownfield/mod.rs",
-          "line": 41,
-          "end_line": 48
+          "line": 45,
+          "end_line": 52
         },
         {
           "name": "suggest_edges",
@@ -329,8 +347,8 @@
           "kind": "function",
           "signature": "pub fn write_change( root: &std::path::Path, change_id: &str, extraction: &Extraction, templates: &[templates::ContractTemplate], ) -> Result<(), CairnError>",
           "file": "src/brownfield/mod.rs",
-          "line": 56,
-          "end_line": 93
+          "line": 60,
+          "end_line": 97
         },
         {
           "name": "write_suggested_edges",
@@ -353,56 +371,56 @@
           "kind": "module",
           "signature": "pub mod init",
           "file": "src/brownfield/mod.rs",
-          "line": 16,
-          "end_line": 16
+          "line": 20,
+          "end_line": 20
         },
         {
           "name": "interview",
           "kind": "module",
           "signature": "pub mod interview",
           "file": "src/brownfield/mod.rs",
-          "line": 18,
-          "end_line": 18
+          "line": 22,
+          "end_line": 22
         },
         {
           "name": "onboard",
           "kind": "module",
           "signature": "pub mod onboard",
           "file": "src/brownfield/mod.rs",
-          "line": 20,
-          "end_line": 20
+          "line": 24,
+          "end_line": 24
         },
         {
           "name": "refine",
           "kind": "module",
           "signature": "pub mod refine",
           "file": "src/brownfield/mod.rs",
-          "line": 22,
-          "end_line": 22
+          "line": 26,
+          "end_line": 26
         },
         {
           "name": "suggest",
           "kind": "module",
           "signature": "pub mod suggest",
           "file": "src/brownfield/mod.rs",
-          "line": 24,
-          "end_line": 24
+          "line": 28,
+          "end_line": 28
         },
         {
           "name": "summarise",
           "kind": "module",
           "signature": "pub mod summarise",
           "file": "src/brownfield/mod.rs",
-          "line": 26,
-          "end_line": 26
+          "line": 30,
+          "end_line": 30
         },
         {
           "name": "templates",
           "kind": "module",
           "signature": "pub mod templates",
           "file": "src/brownfield/mod.rs",
-          "line": 28,
-          "end_line": 28
+          "line": 32,
+          "end_line": 32
         },
         {
           "name": "Candidate",
@@ -425,16 +443,16 @@
           "kind": "struct",
           "signature": "pub struct DiscoveredCandidate",
           "file": "src/brownfield/discovery.rs",
-          "line": 28,
-          "end_line": 45
+          "line": 30,
+          "end_line": 47
         },
         {
           "name": "DiscoveredEdge",
           "kind": "struct",
           "signature": "pub struct DiscoveredEdge",
           "file": "src/brownfield/discovery.rs",
-          "line": 49,
-          "end_line": 56
+          "line": 51,
+          "end_line": 58
         },
         {
           "name": "EnrichedCandidate",
@@ -449,8 +467,8 @@
           "kind": "struct",
           "signature": "pub struct Extraction",
           "file": "src/brownfield/discovery.rs",
-          "line": 60,
-          "end_line": 65
+          "line": 62,
+          "end_line": 67
         },
         {
           "name": "InterviewSession",
@@ -491,6 +509,14 @@
           "file": "src/brownfield/heuristics.rs",
           "line": 108,
           "end_line": 114
+        },
+        {
+          "name": "normalise_separators",
+          "kind": "function",
+          "signature": "pub(super) fn normalise_separators(path: &str) -> String",
+          "file": "src/brownfield/imports.rs",
+          "line": 380,
+          "end_line": 382
         }
       ]
     },
