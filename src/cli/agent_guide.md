@@ -33,18 +33,20 @@ scratch or `docs/` note as secondary context, never as current state.
 When recording a decision, research finding, or external source, place it in
 the correct typed directory under `meta/` and link it to the graph:
 
-- `meta/decisions/dec.<slug>.md` — decisions. Require `id`, `nodes:`, `status`,
-  `date`. Chain to research or sources via `informed_by: [res.X, src.Y]`.
-- `meta/research/res.<slug>.md` — research. Require `id`, `nodes:`. Cite
-  sources via `sources: [src.Z]`.
-- `meta/sources/src.<slug>.md` — external material. Require `id`, `file:`,
-  `verification`. Anchors transitively; carry no `nodes:` field.
-- `meta/todos/todo.<slug>.md` — durable per-node tasks. Require `node:`,
+- `meta/decisions/<slug>.md`: decisions. Require `id: dec.<slug>`, `nodes:`,
+  `status`, `date`. Chain to research or sources via `informed_by: [res.X, src.Y]`.
+- `meta/research/<slug>.md`: research. Require `id: res.<slug>`, `nodes:`.
+  Cite sources via `sources: [src.Z]`.
+- `meta/sources/<slug>.md`: external material. Require `id: src.<slug>`,
+  `file:`, `verification`. Anchors transitively; carry no `nodes:` field.
+- `meta/todos/todo.<slug>.md`: durable per-node tasks. Require `node:`,
   `status:`, `created:`. Scaffold with `cairn todo new <slug> --node <id>`;
   status changes are file edits (open, in_progress, done, blocked).
 
-Files are FLAT (no subfolders). Use slug namespacing for grouping:
-`res.gas-city.analysis`, not `research/gas-city/analysis.md`.
+Files are FLAT (no subfolders); filenames are slug-only: the typed prefix
+(`dec.`/`res.`/`src.`) lives only in the `id:` frontmatter field. Use slug
+namespacing for grouping: `res.gas-city.analysis` in the id (filename
+`gas-city.analysis.md`), not `research/gas-city/analysis.md`.
 Non-artefact material (docs, specs, PDFs) enters provenance only as a `source`
 citation: never inline its content as a typed artefact.
 
