@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-10
 ---
 
@@ -131,5 +131,30 @@ wont-fix) and either a linked cairn todo carrying `gh:#NNN` or a drafted close
 rationale.
 
 ## Dependencies and ordering
-Run before todo.github-issues-cleanup, which performs the actual closures in one
-sweep once these verdicts exist.
+Closures for #232 to #247 are owned by todo.feedback-issue-closures
+(gh:#247); todo.github-issues-cleanup explicitly excludes this issue range.
+
+## Verdicts (recorded 2026-07-12, verified against main at v0.2.0-dev)
+
+Verification ran five parallel probes (source reads + scratch-project repros
+against the freshly built main binary). Per-issue evidence lives in the linked
+todos; closures are deferred to todo.feedback-issue-closures (gh:#247).
+
+| Issue | Verdict | Disposition |
+|---|---|---|
+| #232 reconciler activation nondeterministic, language-blind | fixed-on-main | Close: init scaffolding and directory language inference are now language-aware (2026-07-09/10 archived changes, generic-language-reconciler); TS scratch probe reconciled with `reconciler_id: typescript-code`. |
+| #233 CT001 fires on multi-target nodes | fixed-on-main | Close: targets of one node now share a unified file set and interface hash (`src/reconcile/generic.rs:200`); repro no longer emits CT001. |
+| #234 accept hardcodes cargo gates | still-valid | todo.accept-language-aware-gates (gh:#234) |
+| #235 hook blocking inconsistent with scan errors | fixed-on-main | Close: any scan Error finding now deterministically blocks `hook all` (structural findings filter on severity Error, `src/hooks/mod.rs:175`); the hook also blocks on other independent inputs (interface findings, active-change conflicts, decision findings, `src/hooks/mod.rs:124-132`). Verified both directions in scratch probe. |
+| #236 neighbourhood shows no edges | still-valid | todo.neighbourhood-edges (gh:#236) |
+| #237 frontier omits leaves; order inverts containment | still-valid | Partial: todo.order-containment-fix (gh:#237); frontier half resolved by design (dec.frontier-query, Ghost-only). |
+| #238 no ghost vs implemented signal | still-valid | Partial: todo.ghost-module-signal (gh:#238); missing-dir Ghost works, empty-dir still reports Synced. |
+| #239 node-query ergonomics bundle | still-valid | Partial: todo.query-ergonomics (gh:#239); sub-gap (d) shared contracts fixed, (a)(b)(c) remain. |
+| #240 --json envelope violations | wont-fix | Superseded by dec.query-json-schema-version: schema-versioned data payload is the ratified contract. Doc residue folded into todo.cairn-dev-docs-sync. |
+| #241 change lifecycle read surface | still-valid | Partial: todo.change-read-surface (gh:#241); active-change definitions fixed by todo.status-active-changes-bug, progress/gate preview missing. |
+| #242 no project-wide todo listing; wrong created date | still-valid | Partial: todo.todo-listing (gh:#242); date bug fixed on main (`src/cli/commands/todo.rs:48`). |
+| #243 skill and finding-codes docs drift | still-valid | Urgent: todo.cairn-dev-docs-sync (gh:#243) |
+| #244 per-command --help falls back to global | still-valid | todo.per-command-help (gh:#244) |
+| #245 cairn-apply sequential Rust-only | still-valid | todo.cairn-apply-parallel-mode (gh:#245) |
+| #246 feedback structured fields, title truncation | still-valid | todo.feedback-structured-fields (gh:#246) |
+| #247 tracking umbrella | still-valid | todo.feedback-issue-closures (gh:#247) owns the closure sweep for #232 to #247; close the umbrella last. |
