@@ -1,0 +1,32 @@
+name: todo-sync
+
+# One-way projection of meta/todos/*.md into GitHub issues, run after merge
+# on the single-writer branch. Files in git are canonical; issues are derived
+# (dec.bead-github-sync, dec.native-todos-first). scripts/sync-github-todos.sh
+# is also runnable locally for ad-hoc sync.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "meta/todos/**"
+      - "scripts/sync-github-todos.sh"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: todo-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mirror native todos to issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: scripts/sync-github-todos.sh

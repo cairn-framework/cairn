@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-10
 informed_by: [res.github-todo-sync]
 ---
@@ -75,3 +75,17 @@ GitHub issues one way, plus an inward unmapped-issue flagger. Summary:
   requiring a code PR because state changes propagate through the verb to this
   projection. The script can ship before the verb (reading files directly), but
   design it so the verb becomes its trigger.
+
+## Done (2026-07-12)
+
+Shipped `scripts/sync-github-todos.sh` (one-way projector, marker line
+`cairn-todo: todo.<slug>` plus `cairn-todo` label, idempotent upsert,
+done/deleted closes, inward `cairn-todo-unmapped` flagging with no
+auto-import, `--dry-run` mode, repository scope guard) and
+`.github/workflows/todo-sync.yml` (push to main on `meta/todos/**`,
+issues:write only, also workflow_dispatch; runnable locally). Behavioural
+coverage in `tests/sync_github_todos.rs` against a stub `gh` recording
+mutations: create, no-op, done-close, reopen, deleted-todo close,
+external flag without import, mutation-free dry run. Live `--dry-run`
+verified against the real repo. The first real sync runs when this
+merges to main.
