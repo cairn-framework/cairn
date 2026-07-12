@@ -12,6 +12,8 @@
 /// Brownfield discovery: filesystem traversal for module candidates.
 pub mod discovery;
 mod heuristics;
+/// Brownfield import extraction: tree-sitter import walking for edges.
+mod imports;
 /// Brownfield init: cold-start extraction from existing code.
 pub mod init;
 /// Brownfield interview runner: multi-round elicitation session.

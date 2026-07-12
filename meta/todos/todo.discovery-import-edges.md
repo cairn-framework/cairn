@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: open
+status: done
 created: 2026-07-10
 ---
 
@@ -24,3 +24,16 @@ gets observed edges.
 Acceptance: the brownfield fixture in docs/assets/demo/brownfield-setup.sh
 (api imports auth, auth imports db) yields api -> auth and auth -> db
 edges, no cycle, `cairn scan` exit 0.
+
+## Done (2026-07-12)
+
+Implemented in `src/brownfield/imports.rs` (tree-sitter import extraction
+for Rust/TS/JS/Python/Go plus edge derivation) and wired into
+`discover()`. Edges are emitted only between co-discovered candidates,
+in import direction, with confidence scaled by import count; relative
+JS/TS references resolve by path, name matches skip ambiguous directory
+names rather than guess. Verified: the brownfield fixture yields exactly
+`src.api -> src.auth` and `src.auth -> src.db`, no cycle, `cairn scan`
+exit 0 after `change apply`. Unit tests cover each language's extractor;
+discovery tests mirror the fixture, relative-import resolution, and
+ambiguity skipping.

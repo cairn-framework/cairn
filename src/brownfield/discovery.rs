@@ -2,8 +2,9 @@
 //!
 //! Walks the filesystem from a project root and identifies directories
 //! with enough source files to be plausible module candidates. Works
-//! without an existing blueprint. Discovery never fabricates dependency
-//! edges: an edge it cannot observe in the code is not proposed.
+//! without an existing blueprint. Edges are derived only from imports
+//! observed in the candidates' source files, in import direction; an
+//! edge discovery cannot observe in the code is not proposed.
 
 use std::{
     collections::BTreeMap,
@@ -13,6 +14,7 @@ use std::{
 use crate::error::CairnError;
 
 use super::heuristics::path_derived_id;
+use super::imports;
 
 /// Supported source file extensions for candidate discovery.
 const SOURCE_EXTS: &[&str] = &["rs", "ts", "js", "py", "go"];
@@ -77,9 +79,10 @@ impl Default for Extraction {
 ///
 /// Walks the filesystem up to `MAX_DEPTH`, collecting directories that
 /// contain at least `MIN_FILES` source files. Each qualifying directory
-/// becomes a `DiscoveredCandidate`. No edges are inferred: proposing
-/// all-pairs "sibling" dependencies guaranteed a `CAIRN_ORDER_CYCLE`
-/// on first scan for any repo with two or more co-located modules.
+/// becomes a `DiscoveredCandidate`. Edges are derived only from observed
+/// imports, in import direction: proposing all-pairs "sibling"
+/// dependencies guaranteed a `CAIRN_ORDER_CYCLE` on first scan for any
+/// repo with two or more co-located modules.
 ///
 /// # Errors
 ///
@@ -121,6 +124,7 @@ pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
             });
         }
     }
+    imports::derive_import_edges(root, &mut candidates);
 
     Ok(Extraction {
         candidates,
@@ -236,6 +240,125 @@ mod tests {
         assert!(is_ignored_dir(Path::new("/repo/target")));
         assert!(is_ignored_dir(Path::new("/repo/node_modules")));
         assert!(!is_ignored_dir(Path::new("/repo/src")));
+    }
+    // ── derive_import_edges ─────────────────────────────────────────────────
+
+    fn write(root: &Path, rel: &str, content: &str) {
+        let path = root.join(rel);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, content).unwrap();
+    }
+
+    /// Mirror of docs/assets/demo/brownfield-setup.sh: api imports auth,
+    /// auth imports db. Discovery must emit exactly those directed edges.
+    #[test]
+    fn import_edges_follow_observed_direction() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        write(
+            root,
+            "src/main.rs",
+            "mod api;\nmod auth;\nmod db;\nfn main() { api::serve(); }\n",
+        );
+        write(
+            root,
+            "src/db/mod.rs",
+            "pub mod pool;\npub mod schema;\n\npub fn connect() {}\n",
+        );
+        write(root, "src/db/pool.rs", "pub fn get_pool() {}\n");
+        write(root, "src/db/schema.rs", "pub fn migrate() {}\n");
+        write(
+            root,
+            "src/auth/mod.rs",
+            "pub mod tokens;\npub mod session;\nuse crate::db;\n\npub fn login() { db::connect(); }\n",
+        );
+        write(root, "src/auth/tokens.rs", "pub fn issue() {}\n");
+        write(root, "src/auth/session.rs", "pub fn refresh() {}\n");
+        write(
+            root,
+            "src/api/mod.rs",
+            "pub mod routes;\npub mod handlers;\nuse crate::auth;\n\npub fn serve() { auth::login(); }\n",
+        );
+        write(root, "src/api/routes.rs", "pub fn register() {}\n");
+        write(root, "src/api/handlers.rs", "pub fn users() {}\n");
+
+        let extraction = discover(root).unwrap();
+        let mut edges: Vec<(String, String)> = extraction
+            .candidates
+            .iter()
+            .flat_map(|c| {
+                c.edges
+                    .iter()
+                    .map(|e| (c.id.clone(), e.target.clone()))
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+        edges.sort();
+        assert_eq!(
+            edges,
+            vec![
+                ("src.api".to_owned(), "src.auth".to_owned()),
+                ("src.auth".to_owned(), "src.db".to_owned()),
+            ],
+            "expected exactly api->auth and auth->db, no fabricated or reverse edges"
+        );
+        let auth = extraction
+            .candidates
+            .iter()
+            .find(|c| c.id == "src.auth")
+            .unwrap();
+        assert!((auth.edges[0].confidence - 0.6).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn relative_ts_imports_resolve_to_candidate_paths() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        for f in ["index.ts", "routes.ts", "handlers.ts"] {
+            let body = if f == "index.ts" {
+                "import { login } from \"../auth/session\";\nexport function serve() {}\n"
+            } else {
+                "export function x() {}\n"
+            };
+            write(root, &format!("src/api/{f}"), body);
+        }
+        for f in ["session.ts", "tokens.ts", "guard.ts"] {
+            write(root, &format!("src/auth/{f}"), "export function y() {}\n");
+        }
+        let extraction = discover(root).unwrap();
+        let api = extraction
+            .candidates
+            .iter()
+            .find(|c| c.id == "src.api")
+            .unwrap();
+        assert_eq!(api.edges.len(), 1);
+        assert_eq!(api.edges[0].target, "src.auth");
+    }
+
+    #[test]
+    fn ambiguous_segment_names_are_skipped() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        // Two candidates both named "db": segment match must not guess.
+        for parent in ["a", "b"] {
+            for f in ["x.rs", "y.rs", "z.rs"] {
+                write(root, &format!("{parent}/db/{f}"), "pub fn f() {}\n");
+            }
+        }
+        for f in ["m.rs", "n.rs", "o.rs"] {
+            write(
+                root,
+                &format!("core/{f}"),
+                "use crate::db;\npub fn g() {}\n",
+            );
+        }
+        let extraction = discover(root).unwrap();
+        let core = extraction
+            .candidates
+            .iter()
+            .find(|c| c.id == "core")
+            .unwrap();
+        assert!(core.edges.is_empty(), "ambiguous name must produce no edge");
     }
 
     // ── is_source_file ────────────────────────────────────────────────────────
