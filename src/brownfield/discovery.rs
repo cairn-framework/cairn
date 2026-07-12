@@ -14,7 +14,7 @@ use std::{
 use crate::error::CairnError;
 
 use super::heuristics::path_derived_id;
-use super::imports;
+use super::import_edges;
 
 /// Supported source file extensions for candidate discovery.
 const SOURCE_EXTS: &[&str] = &["rs", "ts", "js", "py", "go"];
@@ -124,7 +124,7 @@ pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
             });
         }
     }
-    imports::derive_import_edges(root, &mut candidates);
+    import_edges::derive_import_edges(root, &mut candidates);
 
     Ok(Extraction {
         candidates,

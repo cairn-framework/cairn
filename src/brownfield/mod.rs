@@ -12,7 +12,9 @@
 /// Brownfield discovery: filesystem traversal for module candidates.
 pub mod discovery;
 mod heuristics;
-/// Brownfield import extraction: tree-sitter import walking for edges.
+/// Brownfield edge derivation from observed imports.
+mod import_edges;
+/// Brownfield import extraction: tree-sitter import walking.
 mod imports;
 /// Brownfield init: cold-start extraction from existing code.
 pub mod init;
