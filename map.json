@@ -1776,16 +1776,16 @@
           "kind": "function",
           "signature": "pub fn islands(graph: &Graph) -> IslandsResponse",
           "file": "src/map/query.rs",
-          "line": 384,
-          "end_line": 408
+          "line": 391,
+          "end_line": 415
         },
         {
           "name": "lint",
           "kind": "function",
           "signature": "pub fn lint(graph: &Graph) -> LintResponse",
           "file": "src/map/query.rs",
-          "line": 370,
-          "end_line": 374
+          "line": 375,
+          "end_line": 381
         },
         {
           "name": "neighbourhood",
@@ -1800,8 +1800,8 @@
           "kind": "function",
           "signature": "pub fn neighbourhood_with_options( graph: &Graph, node: &str, include_orphans: bool, ) -> Result<NeighbourhoodResponse, Finding>",
           "file": "src/map/query.rs",
-          "line": 421,
-          "end_line": 431
+          "line": 428,
+          "end_line": 438
         },
         {
           "name": "order",
@@ -1832,8 +1832,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 70,
-          "end_line": 81
+          "line": 81,
+          "end_line": 187
         },
         {
           "name": "build",

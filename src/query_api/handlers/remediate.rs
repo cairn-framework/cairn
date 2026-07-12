@@ -331,7 +331,7 @@ pub(crate) fn remediate_json(
             "priority": 4,
             "action": "fix_order",
             "command": "cairn order",
-            "description": "A dependency cycle was detected in the blueprint. Review and fix dependency edges.",
+            "description": "An ordering cycle was detected in the blueprint (dependency edges, or containment contradicting a dependency edge). Review and fix the conflicting edges.",
             "nodes": [],
         }));
     }

@@ -366,10 +366,17 @@ fn compute_tier(
 }
 
 /// Returns grouped lint findings, including cycles.
+///
+/// Cycle detection goes through `topological_order`, which checks the
+/// dependency graph first (with a path-carrying message) and then the
+/// combined dependency + containment constraints, so a containment
+/// contradiction fails lint the same way `order` fails.
 #[must_use]
 pub fn lint(graph: &Graph) -> LintResponse {
     let mut findings = graph.findings.clone();
-    findings.extend(integrity::cycle_findings(graph));
+    if let Err(cycles) = integrity::topological_order(graph) {
+        findings.extend(cycles);
+    }
     LintResponse { findings }
 }
 
@@ -968,14 +975,33 @@ mod tests {
     }
 
     #[test]
-    fn test_lint_detects_cycles_via_cycle_findings() {
-        // a → b → a — lint must add cycle findings (no CAIRN_CYCLE_* finding from
-        // order alone; lint calls cycle_findings which does).
+    fn test_lint_detects_dependency_cycles() {
+        // a → b → a — lint must report the cycle as a finding.
         let g = make_graph(&["a", "b"], &[("a", "b"), ("b", "a")]);
         let resp = lint(&g);
         assert!(
             !resp.findings.is_empty(),
             "lint on cyclic graph must return findings"
+        );
+    }
+
+    #[test]
+    fn test_lint_detects_containment_dependency_contradiction() {
+        // "parent" contains "child" while "child" depends on "parent": order()
+        // rejects this as CAIRN_ORDER_CYCLE, so lint must report it too, or a
+        // graph that cannot be ordered would pass the lint gate.
+        let mut g = make_graph(&["parent", "child"], &[("child", "parent")]);
+        g.nodes
+            .get_mut("parent")
+            .unwrap()
+            .children
+            .push("child".to_owned());
+        g.nodes.get_mut("child").unwrap().parent = Some("parent".to_owned());
+        let resp = lint(&g);
+        assert!(
+            resp.findings.iter().any(|f| f.code == "CAIRN_ORDER_CYCLE"),
+            "lint must surface the combined-constraint cycle: {:?}",
+            resp.findings
         );
     }
 

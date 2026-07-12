@@ -123,10 +123,42 @@ pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
     while order.len() < graph.nodes.len() {
         let Some(&next) = ready.iter().next() else {
             // Deadlock: the dependency graph alone is acyclic (checked
-            // above), so containment contradicts a dependency edge. Report
-            // the stuck nodes as a cycle rather than inventing an order.
-            let mut stuck: Vec<&str> = indegree.keys().copied().collect();
-            stuck.sort_unstable();
+            // above), so containment contradicts a dependency edge. The
+            // remaining nodes all have unmet predecessors; peel those with
+            // no remaining successors (merely blocked downstream of the
+            // cycle) so the finding names only the cyclic structure.
+            let mut outdeg: BTreeMap<&str, usize> = BTreeMap::new();
+            let mut pred: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+            for (&before, afters) in &succ {
+                if !indegree.contains_key(before) {
+                    continue;
+                }
+                for &after in afters {
+                    if indegree.contains_key(after) {
+                        *outdeg.entry(before).or_insert(0) += 1;
+                        pred.entry(after).or_default().push(before);
+                    }
+                }
+            }
+            let mut peel: Vec<&str> = indegree
+                .keys()
+                .filter(|id| !outdeg.contains_key(*id))
+                .copied()
+                .collect();
+            let mut stuck: BTreeSet<&str> = indegree.keys().copied().collect();
+            while let Some(leaf) = peel.pop() {
+                stuck.remove(leaf);
+                for &p in pred.get(leaf).into_iter().flatten() {
+                    if let Some(deg) = outdeg.get_mut(p) {
+                        *deg -= 1;
+                        if *deg == 0 {
+                            outdeg.remove(p);
+                            peel.push(p);
+                        }
+                    }
+                }
+            }
+            let stuck: Vec<&str> = stuck.into_iter().collect();
             return Err(vec![Finding {
                 code: "CAIRN_ORDER_CYCLE".to_owned(),
                 severity: FindingSeverity::Error,
@@ -416,5 +448,27 @@ mod tests {
         assert!(pos("zlib") < pos("web"), "{order:?}");
         assert!(pos("web") < pos("app"), "{order:?}");
         assert!(pos("zlib") < pos("app"), "{order:?}");
+    }
+
+    #[test]
+    fn test_topological_order_cycle_finding_excludes_downstream_nodes() {
+        // "parent" contains "child" (cycle with dep child->parent); "aft"
+        // merely depends on "child" so it is blocked downstream but is NOT
+        // part of the contradiction. The finding must name only the cycle.
+        let g = with_containment(
+            make_graph(
+                &["parent", "child", "aft"],
+                &[("child", "parent"), ("aft", "child")],
+            ),
+            &[("parent", "child")],
+        );
+        let err = topological_order(&g).expect_err("contradiction must be Err");
+        let msg = &err[0].message;
+        assert!(msg.contains("child") && msg.contains("parent"), "{msg}");
+        assert!(
+            !msg.contains("aft"),
+            "downstream node reported as cyclic: {msg}"
+        );
+        assert_ne!(err[0].node.as_deref(), Some("aft"), "{:?}", err[0].node);
     }
 }
