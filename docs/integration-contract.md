@@ -116,6 +116,9 @@ Error responses from the MCP/query path:
 | CLI | Purpose | Exit semantics |
 |---|---|---|
 | `hook <kind>` | Pre-commit gate | Exit 0 = pass, Exit 1 = blocked |
+| `hook install` | Install a raw Git hook when no pre-commit framework owns it | Exit 0 = installed or already installed |
+| `hook status` | Report Cairn hook ownership | Exit 0 = reported |
+| `hook uninstall` | Remove only a Cairn-owned hook | Exit 0 = removed or absent |
 | `change accept [<change>]` | Full verification battery | JSON: `data.gate_outcome` = passed/failed/blocked |
 | `check [<node>]` | Non-blocking inspection | Always reports, never blocks |
 

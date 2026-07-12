@@ -38,8 +38,9 @@ pub(crate) use crate::copy;
 use commands::{
     init_project, legacy_blueprint_warning, run_archive_command, run_change_new,
     run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
-    run_hook_command, run_import_openspec, run_onboard_command, run_shared_json_command,
-    run_todo_command, run_ui_command, run_watch_command, run_workspace_command,
+    run_hook_command, run_hook_lifecycle_command, run_import_openspec, run_onboard_command,
+    run_shared_json_command, run_todo_command, run_ui_command, run_watch_command,
+    run_workspace_command,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, flag_value, lines,
@@ -422,6 +423,14 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         );
     }
     let legacy_warning = legacy_blueprint_warning(root);
+    if parsed.command == "hook"
+        && matches!(
+            parsed.command_args.get(1).map(String::as_str),
+            Some("install" | "status" | "uninstall")
+        )
+    {
+        return run_hook_lifecycle_command(parsed, root);
+    }
     let grep_decisions =
         parsed.command == "decisions" && parsed.command_args.iter().any(|arg| arg == "--grep");
     let node_scoped_lint =
