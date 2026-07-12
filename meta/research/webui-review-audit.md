@@ -15,13 +15,16 @@ Fixture data: 24 nodes, 50 edges, 0 findings. The findings surface was therefore
 
 ## Screenshots
 
-- /tmp/trackb-review/desktop-1440-default.png (default view)
-- /tmp/trackb-review/desktop-1440-node-selected.png (cairn.ui selected, inspector open)
-- /tmp/trackb-review/desktop-1440-changes-drawer.png (findings drawer open, empty state)
-- /tmp/trackb-review/desktop-1440-command-palette.png (query palette open)
-- /tmp/trackb-review/desktop-1440-palette-query.png (palette with "ghost" typed)
-- /tmp/trackb-review/desktop-1440-blueprint.png (blueprint overlay)
-- /tmp/trackb-review/mobile-390-default.png (390 px viewport)
+Captured to the `design-studio-greenfield` evidence branch at
+`harness-output/review-screenshots/` (commit a96a12b):
+
+- desktop-1440-default.png (default view)
+- desktop-1440-node-selected.png (cairn.ui selected, inspector open)
+- desktop-1440-changes-drawer.png (findings drawer open, empty state)
+- desktop-1440-command-palette.png (query palette open)
+- desktop-1440-palette-query.png (palette with "ghost" typed)
+- desktop-1440-blueprint.png (blueprint overlay)
+- mobile-390-default.png (390 px viewport)
 
 ## Findings (ordered by severity)
 
