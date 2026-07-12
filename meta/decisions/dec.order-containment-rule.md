@@ -49,6 +49,8 @@ finding, not a tie to break.
 - Blueprints where a child declares a dependency on its own ancestor now fail
   `cairn order` with a cycle finding naming the stuck nodes; the fix is to
   remove or invert the contradictory edge.
-- `cycle_findings` remains dependency-only (it feeds lint's cycle check);
-  the combined-constraint cycle is detected and reported by
-  `topological_order` itself.
+- `cycle_findings` remains dependency-only and keeps its path-carrying
+  message; `query::lint` routes cycle detection through
+  `topological_order` (which runs `cycle_findings` first), so a
+  combined-constraint contradiction fails lint and hooks, not just
+  `cairn order`.
