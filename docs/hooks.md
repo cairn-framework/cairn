@@ -68,15 +68,22 @@ Tensions do not independently fail the hook; they appear in the report alongside
 
 ## Integration
 
-### Pre-commit hook
+### Git hook installation
 
-Install the pre-commit hook once:
+Install a Cairn-managed hook explicitly. Installation is idempotent and never
+overwrites an existing unmarked hook:
 
 ```sh
-./scripts/install-pre-commit-hook.sh
+cairn hook install
+cairn hook install --pre-push
+cairn hook status
+cairn hook status --pre-push
+cairn hook uninstall
+cairn hook uninstall --pre-push
 ```
 
-This installs a Git pre-commit hook that runs `cargo fmt --check` and `cairn hook all` before every commit. Both must pass for the commit to succeed.
+If `.pre-commit-config.yaml` exists, add Cairn to that framework instead of
+installing a raw Git hook. Cairn honours Git's `core.hooksPath` setting.
 
 ### CI integration
 

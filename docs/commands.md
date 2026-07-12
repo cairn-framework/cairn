@@ -106,6 +106,12 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn hook tension` | Run tension verification hook (advisory) |
 | `cairn hook all` | Run all verification hooks |
 | `cairn hook architecture-decision` | Run architecture decision gate |
+| `cairn hook install` | Install a Cairn-managed pre-commit hook |
+| `cairn hook install --pre-push` | Install a Cairn-managed pre-push hook |
+| `cairn hook status --pre-push` | Report whether the Cairn pre-push hook is installed |
+| `cairn hook uninstall --pre-push` | Remove the Cairn-managed pre-push hook |
+| `cairn hook status` | Report whether a Cairn hook is installed |
+| `cairn hook uninstall` | Remove a Cairn-managed hook |
 
 ### Summariser and drafts (JSON-only)
 

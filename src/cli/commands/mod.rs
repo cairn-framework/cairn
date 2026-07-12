@@ -22,7 +22,7 @@ pub(crate) use change::run_change_new;
 pub(crate) use decision::run_decision_command;
 pub(crate) use feedback::run_feedback_command;
 pub(crate) use gap::run_gap_command;
-pub(crate) use hook::run_hook_command;
+pub(crate) use hook::{run_hook_command, run_hook_lifecycle_command};
 pub(crate) use import::run_import_openspec;
 pub(crate) use onboard::run_onboard_command;
 pub(crate) use project::{init_project, run_ui_command};

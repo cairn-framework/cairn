@@ -205,6 +205,12 @@ usage = "usage: cairn <command> [--file path] [--json]"
 unknown-command = "unknown command"
 migrate-dsl = "No blueprint file was found. Rename `cairn.dsl` to `cairn.blueprint`."
 
+[hooks]
+usage = "usage: cairn hook <structural|interface|tension|architecture-decision|all> or cairn hook <install|status|uninstall> [--pre-push]"
+existing = "refusing to replace an existing non-Cairn hook"
+pre-commit-conflict = "pre-commit configuration owns Git hooks. Add Cairn to that configuration instead of installing a raw hook."
+git-error = "unable to locate the Git hooks directory"
+
 # -- Decision scaffold --------------------------------------------------
 
 [decision]
