@@ -39,17 +39,25 @@ if [ "$DRY_RUN" -eq 0 ]; then
   gh label create "$UNMAPPED_LABEL" --description "Filed on GitHub without a native todo; needs triage" --color d93f0b 2>/dev/null || true
 fi
 
-# Current projection state: slug -> "number<TAB>state<TAB>title".
-declare -A ISSUE_NUM ISSUE_STATE ISSUE_TITLE
-while IFS=$'\t' read -r number state title slug; do
+# Current projection state, keyed by slug. The inventory is materialised
+# and validated BEFORE any mutation: a failed or partial list must abort
+# the run, never masquerade as an empty projection (which would recreate
+# every issue).
+PROJECTION="$(gh issue list --label "$LABEL" --state all --limit 500 \
+  --json number,state,title,body \
+  --jq '.[] | [(.number|tostring), .state, .title,
+        ((.body | capture("cairn-todo: todo\\.(?<s>[A-Za-z0-9._-]+)").s) // ""),
+        ((.body | capture("\nstatus: (?<st>[a-z_]+)").st) // ""),
+        ((.body | capture("\nnode: (?<n>[A-Za-z0-9._-]+)").n) // "")] | @tsv')"
+declare -A ISSUE_NUM ISSUE_STATE ISSUE_TITLE ISSUE_STATUS ISSUE_NODE
+while IFS=$'\t' read -r number state title slug status node_field; do
   [ -n "$slug" ] || continue
   ISSUE_NUM["$slug"]="$number"
   ISSUE_STATE["$slug"]="$state"
   ISSUE_TITLE["$slug"]="$title"
-done < <(gh issue list --label "$LABEL" --state all --limit 500 \
-  --json number,state,title,body \
-  --jq '.[] | [(.number|tostring), .state, .title,
-        ((.body | capture("cairn-todo: todo\\.(?<s>[A-Za-z0-9._-]+)").s) // "")] | @tsv')
+  ISSUE_STATUS["$slug"]="$status"
+  ISSUE_NODE["$slug"]="$node_field"
+done <<<"$PROJECTION"
 
 # Desired state from canonical todo files.
 declare -A SEEN
@@ -93,6 +101,12 @@ truth; edits here are never read back (dec.bead-github-sync)."
     echo "retitle #$number: $slug"
     run gh issue edit "$number" --title "$want_title"
   fi
+  if [ "${ISSUE_STATUS[$slug]:-}" != "$status" ] || [ "${ISSUE_NODE[$slug]:-}" != "$node" ]; then
+    # Canonical status or node changed (or the derived body was edited on
+    # GitHub): rewrite the projected body so files win on the next sync.
+    echo "rebody #$number: $slug ($status, $node)"
+    run gh issue edit "$number" --body "$body"
+  fi
   if [ "${ISSUE_STATE[$slug]}" = "OPEN" ] && [ "$want_state" = "CLOSED" ]; then
     echo "close #$number: $slug is done"
     run gh issue close "$number" --comment "Todo flipped to done in ${file}; closing the mirror."
@@ -111,15 +125,19 @@ for slug in "${!ISSUE_NUM[@]}"; do
   fi
 done
 
-# Inward: flag externally filed issues (no marker, no flag yet). Never import.
+# Inward: flag externally filed issues (no marker, no flag yet). Never
+# import. The scan is materialised and validated like the projection. The
+# triage comment posts BEFORE the exclusion label so a failed comment is
+# retried on the next run rather than skipped forever.
+UNMAPPED="$(gh issue list --state open --limit 500 --json number,labels,body \
+  --jq '.[] | select((.labels | map(.name) | index("'"$LABEL"'") or index("'"$UNMAPPED_LABEL"'") | not))
+             | select((.body // "" | test("cairn-todo: todo\\.")) | not)
+             | (.number|tostring)')"
 while IFS=$'\t' read -r number; do
   [ -n "$number" ] || continue
   echo "flag #$number: unmapped external issue"
-  run gh issue edit "$number" --add-label "$UNMAPPED_LABEL"
   run gh issue comment "$number" --body "Triage: this issue has no matching native todo in ${TODO_DIR} (the canonical tracker, see AGENTS.md). If the work is accepted, create one with \`cairn todo new <slug> --node <id>\` carrying a \`gh:#${number}\` reference; this mirror never auto-imports issues."
-done < <(gh issue list --state open --limit 500 --json number,labels,body \
-  --jq '.[] | select((.labels | map(.name) | index("'"$LABEL"'") or index("'"$UNMAPPED_LABEL"'") | not))
-             | select((.body // "" | test("cairn-todo: todo\\.")) | not)
-             | (.number|tostring)')
+  run gh issue edit "$number" --add-label "$UNMAPPED_LABEL"
+done <<<"$UNMAPPED"
 
 echo "sync complete"

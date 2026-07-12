@@ -31,6 +31,7 @@ impl Sandbox {
 root="{root}"
 args="$*"
 if [[ "$1 $2" == "issue list" ]]; then
+    [[ -e "$root/list-fails" ]] && exit 1
     if [[ "$args" == *"--label"* ]]; then cat "$root/projection.tsv"; else cat "$root/unmapped.txt"; fi
     exit 0
 fi
@@ -111,7 +112,7 @@ fn open_todo_without_issue_is_created() {
 
 #[test]
 fn matching_state_is_a_noop() {
-    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\n", "");
+    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n", "");
     sb.add_todo("alpha", "open", "Alpha Work");
     sb.run(false);
     let muts: Vec<String> = sb
@@ -124,7 +125,7 @@ fn matching_state_is_a_noop() {
 
 #[test]
 fn done_todo_closes_its_open_issue() {
-    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\n", "");
+    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n", "");
     sb.add_todo("alpha", "done", "Alpha Work");
     sb.run(false);
     assert!(
@@ -138,7 +139,10 @@ fn done_todo_closes_its_open_issue() {
 
 #[test]
 fn reopened_todo_reopens_closed_issue() {
-    let sb = Sandbox::new("7\tCLOSED\t[todo] Alpha Work\talpha\n", "");
+    let sb = Sandbox::new(
+        "7\tCLOSED\t[todo] Alpha Work\talpha\tblocked\tcairn.root\n",
+        "",
+    );
     sb.add_todo("alpha", "blocked", "Alpha Work");
     sb.run(false);
     assert!(
@@ -152,7 +156,7 @@ fn reopened_todo_reopens_closed_issue() {
 
 #[test]
 fn deleted_todo_closes_only_marker_owned_issue() {
-    let sb = Sandbox::new("7\tOPEN\t[todo] Gone Work\tgone\n", "");
+    let sb = Sandbox::new("7\tOPEN\t[todo] Gone Work\tgone\topen\tcairn.root\n", "");
     sb.run(false);
     let muts = sb.mutations();
     assert!(
@@ -183,7 +187,10 @@ fn external_issue_is_flagged_never_imported() {
 
 #[test]
 fn dry_run_performs_no_mutations() {
-    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\n", "42\n");
+    let sb = Sandbox::new(
+        "7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n",
+        "42\n",
+    );
     sb.add_todo("alpha", "done", "Alpha Work");
     sb.add_todo("beta", "open", "Beta Work");
     let out = sb.run(true);
@@ -204,5 +211,72 @@ fn done_todo_with_no_issue_is_not_projected() {
     assert!(
         muts.is_empty(),
         "done todos need no new issue, got {muts:?}"
+    );
+}
+#[test]
+fn status_change_rewrites_projected_body() {
+    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n", "");
+    sb.add_todo("alpha", "blocked", "Alpha Work");
+    sb.run(false);
+    let log = sb.mutations().join("\n");
+    assert!(
+        log.contains("issue edit 7 --body") && log.contains("status: blocked"),
+        "expected body rewrite for status change, got {log}"
+    );
+}
+
+#[test]
+fn node_change_rewrites_projected_body() {
+    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.ui\n", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    sb.run(false);
+    let log = sb.mutations().join("\n");
+    assert!(
+        log.contains("issue edit 7 --body") && log.contains("node: cairn.root"),
+        "expected body rewrite for node change, got {log}"
+    );
+}
+
+#[test]
+fn failed_inventory_aborts_without_mutation() {
+    let sb = Sandbox::new("", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    fs::write(sb.dir.path().join("list-fails"), "").unwrap();
+    let script = script_path();
+    let path = format!(
+        "{}:{}",
+        sb.dir.path().join("bin").display(),
+        std::env::var("PATH").unwrap_or_default()
+    );
+    let out = Command::new("bash")
+        .arg(&script)
+        .current_dir(sb.dir.path())
+        .env("PATH", path)
+        .env("GH_REPO", "stub/repo")
+        .output()
+        .expect("script spawns");
+    assert!(
+        !out.status.success(),
+        "a failed issue inventory must abort the run"
+    );
+    assert!(
+        sb.mutations().iter().all(|m| m.starts_with("label create")),
+        "no reconciliation mutation may follow a failed inventory, got {:?}",
+        sb.mutations()
+    );
+}
+
+#[test]
+fn triage_comment_precedes_exclusion_label() {
+    let sb = Sandbox::new("", "42\n");
+    sb.run(false);
+    let muts = sb.mutations();
+    let comment = muts.iter().position(|m| m.starts_with("issue comment 42"));
+    let label = muts
+        .iter()
+        .position(|m| m.starts_with("issue edit 42") && m.contains("cairn-todo-unmapped"));
+    assert!(
+        comment.is_some() && label.is_some() && comment < label,
+        "comment must post before the exclusion label so failures retry, got {muts:?}"
     );
 }
