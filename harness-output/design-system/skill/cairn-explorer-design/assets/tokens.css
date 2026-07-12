@@ -1,0 +1,56 @@
+/* Calibrated Instrument — canonical design tokens
+   Codified 2026-07-12 from harness-output/mocks/calibrated-instrument.html.
+   This file is the master; any consuming copy is vendored downstream. */
+
+:root {
+  /* Chassis: three close warm graphite steps (never blue-black) */
+  --ci-step-bezel: #2e2d29;
+  --ci-step-deck: #282723;
+  --ci-step-well: #211f1c;
+
+  /* Ink: chalk, never pure white */
+  --ci-chalk: #e8e4da;
+  --ci-chalk-dim: #a49f92;
+  --ci-chalk-faint: #6f6b60;
+
+  /* Signal: calibrated teal-green — interaction, selection, synced family */
+  --ci-signal: #5fb39a;
+  --ci-signal-deep: #3d8a72;
+
+  /* Alarm: instrument amber — drift only (ghost, orphaned, warnings) */
+  --ci-amber: #d99a2b;
+
+  /* Structure */
+  --ci-hairline: #3a382f;
+
+  /* Type */
+  --ci-font-ui: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ci-font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+  --ci-size-body: 13.5px;
+  --ci-size-node: 11.5px;
+  --ci-size-meta: 12px;
+  --ci-size-micro: 9.5px;
+  --ci-size-counter: 16px;
+  --ci-size-title: 19px;
+  --ci-track-micro: 0.2em;
+  --ci-track-lamp: 0.22em;
+
+  /* Spacing (4px base) */
+  --ci-s1: 4px;
+  --ci-s2: 8px;
+  --ci-s3: 12px;
+  --ci-s4: 16px;
+  --ci-s5: 20px;
+  --ci-s6: 28px;
+
+  /* Shape */
+  --ci-radius: 3px;
+  --ci-keel: 3px; /* node state keel width */
+
+  /* Motion */
+  --ci-ease: cubic-bezier(0.16, 1, 0.3, 1); /* ease-out-expo family */
+  --ci-dur: 140ms;
+
+  /* Emphasis */
+  --ci-dim-opacity: 0.6; /* de-emphasis floor: dim, never broken */
+}

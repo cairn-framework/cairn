@@ -1,62 +1,50 @@
-# Spec — Cairn Graph Explorer UI
+# Spec — Cairn Graph Explorer (greenfield design run)
 
-## Product
+## Purpose and audience
 
-A single-page browser UI served by a Rust binary (`cairn ui`) for navigating Cairn architecture graphs. The UI consumes a JSON API from the same origin and renders nodes, edges, artefacts (decisions, TODOs, research notes, reviews), and lint findings derived from a `cairn.dsl` project file.
+A read-only orientation instrument for a codebase's architecture graph. It answers: what exists, how is it connected, what state is it in, and why is it shaped this way. Users are a Rust monorepo maintainer checking drift and health, and contributors (human and AI) orienting before a change. They read code daily, value density over whitespace-as-decoration, and trust instruments over dashboards.
 
-This is an **in-progress refresh**, not a greenfield build. The backend and feature surface are fixed. The implementation files are `src/ui_assets/{index.html,style.css,app.js}` which are embedded into the Rust binary at compile time.
+## Aesthetic direction and creative tension
 
-## Audience
+Two candidate poles, each a full direction with its own creative tension:
 
-Software architects and senior engineers who maintain architecture decisions as code. They are comfortable in a terminal, read code daily, and use tools like Linear, Stripe Docs, and dev-oriented GitHub. They value information density over whitespace-as-decoration, and precise typography over loud color.
+1. **Geological / cairn-stones** — "A survey field-notebook WITH the calm of a museum plate." The product's own metaphor made literal: stacked stones, strata bands, survey-marker vocabulary (benchmarks, triangulation, elevation ticks). Warm mineral neutrals, engraved-plate typography, sediment layering as information hierarchy. Risk to defeat: theme-park kitsch.
+2. **Refined instrument / technical** — "A precision instrument WITH warmth." Flight-deck restraint: cool graphite surfaces, one calibrated accent, tabular numerals, hairline rules, dense readouts. Risk to defeat: generic dev-tool dark dashboard (the AI slop pole).
 
-## Features (fixed; do not remove)
+## Feature set
 
-1. **Graph canvas** — nodes and edges rendered in the left region; zoom (`+/-/reset`) and pan; keyboard-focusable.
-2. **Node selection** — clicking a node opens the right detail panel.
-3. **Detail panel** — shows node kind, name, ID, description, and a finding list when lint issues touch the node.
-4. **Layer navigation** — `Back` / `Next` plus a `N / M` counter to traverse neighbourhood layers.
-5. **Artefact panels** — sections for decisions, todos, research, reviews, and changes, each with filter toggles (`--include-todos`, `--include-research`, `--include-reviews`, `--include-deprecated-decisions`, `--include-changes` style).
-6. **Lint / finding badges** — per-node indicators plus a top-level list of findings with severity.
-7. **Schema / meta footer** — schema version, project name, generated timestamp.
-8. **Large-graph performance** — one fixture contains 200+ nodes and must stay interactive.
+Core (must render, from real frozen data):
+- Graph canvas: 25 nodes (system, container, module), 27 dependency edges plus ownership containment; pan or a legible static layout; node states (synced, ghost, orphaned) distinguishable.
+- Inspector panel: selected node identity, kind, state, paths, file and symbol counts, dependency edges in and out with descriptions, linked decisions and rationale with dates and status.
+- Status header: node and edge counts, findings count, interface hash, reconciliation state summary.
+- Findings surface: the lint findings list (renders the single info finding from map.json; empty state from copy.json when filtered clean).
 
-## API contract (read-only, do not change)
+Distinctive:
+- The reconciliation story is the hero: "declared vs real" must read at a glance.
+- Decision lineage visible from the node, not buried in a modal.
 
-- `GET /` — this HTML shell.
-- `GET /assets/style.css` — stylesheet.
-- `GET /assets/app.js` — client JS.
-- `GET /api/meta` — `{ schema_version, name, generated_at, ... }`.
-- `GET /api/graph` — `{ nodes: [...], edges: [...] }`. Nodes have `id`, `kind`, `name`, `description`, `tags`, `parent`, `children`, `paths`, `contracts`, `state`, `files`. Edges have `kind` (`ownership` | `dependency`) and endpoints.
-- `GET /api/node/<id>` — node detail.
-- `GET /api/neighbourhood/<id>` — node + expanded layer with artefact filters as query params.
-- `GET /api/lint` — structural findings with severities.
+## Technical stack
 
-## Technical constraints
+Static HTML mocks, one file per direction plus a shared inlined data script. No build step, no network, openable via file://. Vanilla JS + SVG for the graph canvas.
 
-- Vanilla HTML + CSS + JS only. No build step, no framework, no bundler. Files must remain importable as raw strings via Rust `include_str!`.
-- No external network fetches (no Google Fonts CDN, no CDN JS). System font stack is fine; self-hosted woff2 is allowed if trivial but the current build doesn't ship fonts so prefer system stack to avoid adding assets.
-- No npm, no node. No build tooling.
-- Graph rendering is currently canvas/SVG based in `app.js` — preserve whatever technique is already there; do not swap rendering engines.
+## Expected zones
 
-## Aesthetic direction
+1. Status header (top strip)
+2. Graph canvas (dominant region)
+3. Inspector panel (right column)
+4. Command surface (search or filter affordance, keyboard hints, view controls)
+5. Findings strip or drawer
 
-**Creative tension: editorial precision WITH structural warmth.**
+## Reference points
 
-A single label ("brutalist", "minimal", "dev-tool dark mode") would land on template output. The tension: this is a serious analytical tool — it needs the precision and density of a technical reference (think Stripe Docs, Rauno Freiberg's site, Linear's graph views, the SerenityOS man pages) — BUT it is for a human reading about *their own system*, so the surface should feel inhabited, not clinical. Warmth comes from deliberate typography, restrained but confident color, and spacing that breathes without becoming a dashboard.
+Survey monuments and geological survey plates; Swiss cartography (direction 1). Dieter Rams instrumentation, aircraft EFIS readouts, Berg blog-era hardware UIs (direction 2).
 
-Concrete anchors:
-- Typography: monospaced for all IDs, paths, file references, contract names. A well-tuned sans (system-ui / Inter-like fallback) for prose. Clear type scale. No Helvetica or Arial defaults.
-- Color: neutral base (warm off-white or deep slate), one signal color for selection / active, severity colors that look restrained (no hazard-tape red, no Bootstrap warning yellow).
-- Negative space: generous around headers, compact within artefact lists. Clear hierarchy between canvas, panel, and artefacts.
-- No gradients as decoration. No drop shadows as decoration. Border, rhythm, and type weight do the work.
-- Dark mode ready via CSS tokens (preferred starting theme: light, with `@media (prefers-color-scheme: dark)` override).
+## Anti-goals (aggressive)
 
-## Anti-patterns (explicitly reject)
-
-- Generic SaaS dashboard look (rounded cards, soft shadows, pastel palette, system blue CTA).
-- Bootstrap / Material / shadcn default aesthetic.
-- Full-width hero with centered marketing copy (this is a tool, not a landing page).
-- Over-animated interactions — a subtle transition is fine; bouncy springs are not.
-- Emoji icons or emoji-as-UI.
-- Single giant sidebar that pushes the graph to 60% width; the graph is the subject.
+- No glassmorphism, no purple-cyan gradients, no gradient text, no glow borders.
+- No identical card grids; no cards nested in cards.
+- No pure #000 or #fff anywhere.
+- No Inter-by-default typography voice; type must be chosen, not defaulted.
+- No dashboard hero-metric layout (big number, small label, accent swoosh).
+- No toy data: every visible node, edge, count and finding comes from the frozen fixtures.
+- Direction 1 must not become a parchment theme park; direction 2 must not become another dark dev dashboard.

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cairn Survey — Strata plate</title>
+<style>
+  :root{
+    /* mineral palette */
+    --limestone:#f3ead9;      /* paper ground */
+    --limestone-hi:#faf4e7;   /* specimen card sheet */
+    --putty:#e4d8c2;          /* bed mid-tone */
+    --putty-deep:#d8c9ae;     /* bed edge */
+    --shale:#2e2a23;          /* darkest ink, warm */
+    --shale-soft:#5c554a;     /* secondary ink */
+    --shale-faint:#8a8172;    /* tertiary ink */
+    --copper:#3e7561;         /* oxidised copper accent */
+    --copper-deep:#2c5a49;
+    --ochre:#b0771c;          /* hazard, drift only */
+    --rule:#c9bba0;           /* ledger hairline */
+
+    --serif:"Iowan Old Style","Palatino Nova",Palatino,Georgia,serif;
+    --grot:"Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif;
+
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{height:100%}
+  body{
+    background:var(--limestone);
+    color:var(--shale);
+    font-family:var(--grot);
+    font-size:14px;
+    line-height:1.45;
+    display:flex;flex-direction:column;
+  }
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  /* ── Survey header band ─────────────────────────── */
+  header{
+    display:flex;align-items:baseline;gap:var(--s5);
+    padding:var(--s3) var(--s5);
+    border-bottom:2px solid var(--shale);
+    flex-wrap:wrap;
+  }
+  .wordmark{font-family:var(--serif);font-size:21px;letter-spacing:.01em}
+  .wordmark .sub{font-family:var(--grot);font-size:11px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--shale-soft);margin-left:var(--s3)}
+  .facts{display:flex;gap:var(--s5);margin-left:auto;align-items:baseline;flex-wrap:wrap}
+  .fact{display:flex;gap:6px;align-items:baseline}
+  .fact b{font-family:var(--serif);font-size:17px;font-variant-numeric:tabular-nums}
+  .fact span{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--shale-soft)}
+  .hash{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--shale-faint)}
+  .seal{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1.5px solid var(--copper);color:var(--copper-deep);
+    border-radius:999px;padding:2px 12px;font-size:11px;
+    letter-spacing:.16em;text-transform:uppercase;
+  }
+  .seal::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--copper)}
+
+  /* ── Frame ──────────────────────────────────────── */
+  .frame{flex:1;display:grid;grid-template-columns:1fr 372px;min-height:0}
+  @media (max-width:900px){.frame{grid-template-columns:1fr}}
+
+  .plate{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--rule)}
+
+  /* ── Command surface ────────────────────────────── */
+  .commands{
+    display:flex;align-items:center;gap:var(--s4);
+    padding:var(--s2) var(--s5);
+    border-bottom:1px solid var(--rule);
+    flex-wrap:wrap;
+  }
+  .commands label.search{
+    display:flex;align-items:center;gap:8px;flex:0 1 300px;
+    border-bottom:1.5px solid var(--shale-soft);
+    padding:3px 2px;
+  }
+  .commands input{
+    border:0;background:none;outline:none;flex:1;
+    font:inherit;color:var(--shale);
+  }
+  .commands input::placeholder{color:var(--shale-faint)}
+  .kbd{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--shale-faint);
+    border:1px solid var(--rule);border-radius:3px;padding:0 5px}
+  .layers{display:flex;gap:var(--s3);margin-left:auto}
+  .layer{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--shale-soft);
+    padding:2px 4px;border-bottom:2px solid transparent}
+  .layer[aria-pressed="true"]{color:var(--shale);border-bottom-color:var(--copper);background:var(--putty)}
+  .layer[aria-pressed="false"]{opacity:.55}
+  .layer .sw{width:14px;height:8px;border:1px solid var(--shale-soft);border-radius:2px;background:var(--putty)}
+  .layer.sys .sw{height:10px;background:var(--putty-deep)}
+  .zone-title{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--shale-faint)}
+
+  /* ── Survey plate (canvas) ──────────────────────── */
+  .canvas-wrap{flex:1;overflow:auto;padding:var(--s5);position:relative;min-height:340px}
+  svg{display:block}
+  svg text{font-family:var(--grot)}
+  .stone{cursor:pointer}
+  .stone rect{
+    fill:var(--limestone-hi);stroke:var(--shale-soft);stroke-width:1;
+  }
+  .stone text{fill:var(--shale);font-size:11.5px}
+  .stone .meta{fill:var(--shale-faint);font-size:9px;font-variant-numeric:tabular-nums}
+  .stone:hover rect{stroke:var(--copper-deep);stroke-width:1.5}
+  .stone.sel rect{stroke:var(--copper-deep);stroke-width:2;fill:#eef0e4}
+  .stone.dim{opacity:.55}
+  .stone.hit rect{stroke:var(--copper);stroke-width:2}
+  .bed-label{fill:var(--shale-faint);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;font-family:var(--grot)}
+  .bed-band{fill:var(--putty);opacity:.5}
+  .bed-band.bedrock{fill:var(--putty-deep);opacity:.55}
+  .contact{stroke:var(--shale-soft);stroke-width:.8;fill:none;opacity:.34}
+  .contact.hl{stroke:var(--copper-deep);stroke-width:1.4;opacity:.95}
+  .contact.dim{opacity:.07}
+  .dip{stroke:var(--shale-soft);stroke-width:.8;opacity:.5}
+  .benchmark{fill:none;stroke:var(--copper-deep);stroke-width:1.3}
+  .benchmark .dot{fill:var(--copper-deep)}
+
+  /* legend */
+  .legend{
+    position:absolute;right:var(--s5);bottom:var(--s4);
+    background:var(--limestone-hi);border:1px solid var(--rule);
+    padding:var(--s2) var(--s3);display:flex;gap:var(--s4);font-size:10.5px;color:var(--shale-soft);flex-wrap:wrap;max-width:calc(100% - 48px)
+  }
+  .legend .it{display:flex;align-items:center;gap:6px}
+  .legend .st{width:22px;height:10px;border:1px solid var(--shale-soft);background:var(--limestone-hi)}
+  .legend .ghost{border-style:dashed;background:none}
+  .legend .orphan{transform:rotate(-6deg);border-bottom:2.5px solid var(--ochre)}
+
+  /* ── Specimen card (inspector) ──────────────────── */
+  aside{
+    padding-bottom:24px;
+    background:var(--limestone-hi);
+    overflow:auto;
+    box-shadow:-1px 0 0 var(--rule);
+    display:flex;flex-direction:column;
+  }
+  aside .pad{padding:var(--s4) var(--s5)}
+  aside header.spec{border-bottom:0;display:block;padding:var(--s4) var(--s5) var(--s3)}
+  .spec .zone-title{display:block;margin-bottom:var(--s2)}
+  .spec h2{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.15}
+  .spec .id{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--shale-faint);margin-top:2px}
+  .spec .desc{margin-top:var(--s2);color:var(--shale-soft);font-size:13px}
+  .statechip{display:inline-flex;align-items:center;gap:6px;margin-top:var(--s3);
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper-deep)}
+  .statechip::before{content:"";width:8px;height:8px;background:var(--copper);border-radius:1px}
+  .facts-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .facts-table td{padding:5px 0;border-top:1px solid var(--rule)}
+  .facts-table td:first-child{color:var(--shale-soft);width:45%}
+  .facts-table td:last-child{font-variant-numeric:tabular-nums}
+  .facts-table td.mono{font-family:ui-monospace,Menlo,monospace;font-size:11px}
+  .sect{border-top:1px solid var(--rule)}
+  .sect h3{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--shale-faint);font-weight:600;margin-bottom:var(--s2)}
+  .edge-row{padding:5px 0;border-top:1px dotted var(--rule);font-size:12.5px}
+  .edge-row:first-of-type{border-top:0}
+  .edge-row .dir{color:var(--copper-deep);font-size:10px;letter-spacing:.1em;margin-right:6px}
+  .edge-row .to{cursor:pointer;text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:2px}
+  .edge-row .why{color:var(--shale-soft);display:block;font-size:11.5px}
+  .dec{padding:var(--s2) 0;border-top:1px dotted var(--rule)}
+  .dec:first-of-type{border-top:0}
+  .dec .t{font-family:var(--serif);font-size:14.5px}
+  .dec .m{font-size:11px;color:var(--shale-faint);font-variant-numeric:tabular-nums}
+  .dec .m .ok{color:var(--copper-deep)}
+  .dec .x{font-size:12px;color:var(--shale-soft);margin-top:2px}
+  .empty{color:var(--shale-faint);font-size:12px;font-style:italic}
+
+  /* ── Findings ledger ────────────────────────────── */
+  .ledger{border-top:2px solid var(--shale);padding:var(--s2) var(--s5) var(--s3)}
+  .ledger .zone-title{display:inline-block;margin-right:var(--s4)}
+  .ledger table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:var(--s1)}
+  .ledger td{padding:5px 8px 5px 0;border-top:1px solid var(--rule);vertical-align:baseline}
+  .sev{font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    border:1px solid var(--shale-soft);border-radius:2px;padding:1px 7px;color:var(--shale-soft);white-space:nowrap}
+  .ledger .code{font-family:ui-monospace,Menlo,monospace;font-size:11px;overflow-wrap:anywhere}
+  .ledger .path{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--shale-soft)}
+  @media (max-width:600px){.ledger .path{overflow-wrap:anywhere}}
+  @media (max-width:520px){.kbd{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wordmark">Cairn<span class="sub">Architecture survey</span></div>
+  <div class="facts">
+    <div class="fact"><b id="f-nodes"></b><span>formations</span></div>
+    <div class="fact"><b id="f-edges"></b><span>contacts</span></div>
+    <div class="fact"><b id="f-findings"></b><span>findings</span></div>
+    <div class="fact hash" id="f-hash" title="interface hash"></div>
+    <div class="seal" id="seal">Survey clean</div>
+  </div>
+</header>
+
+<div class="frame">
+  <section class="plate" aria-label="Survey plate">
+    <div class="commands">
+      <span class="zone-title">Survey</span>
+      <label class="search"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="5" cy="5" r="3.6" fill="none" stroke="#5c554a"/><path d="M8 8l3 3" stroke="#5c554a"/></svg>
+        <input id="q" type="search" placeholder="Find a formation…" aria-label="Find a node">
+        <span class="kbd">/</span>
+      </label>
+      <div class="layers" role="group" aria-label="Layers">
+        <button class="layer sys" aria-pressed="true" data-kind="system"><span class="sw"></span>System</button>
+        <button class="layer" aria-pressed="true" data-kind="container"><span class="sw"></span>Containers</button>
+        <button class="layer" aria-pressed="true" data-kind="module"><span class="sw"></span>Modules</button>
+      </div>
+    </div>
+    <div class="canvas-wrap">
+      <svg id="plate" role="img" aria-label="Architecture graph as strata"></svg>
+      <div class="legend" aria-label="State legend">
+        <span class="it"><span class="st"></span>Synced</span>
+        <span class="it"><span class="st ghost"></span>Ghost (declared, not found)</span>
+        <span class="it"><span class="st orphan"></span>Orphaned (found, not declared)</span>
+      </div>
+    </div>
+    <div class="ledger">
+      <span class="zone-title">Ledger</span><span id="ledger-sum" style="font-size:12px;color:var(--shale-soft)"></span>
+      <table id="ledger-rows"></table>
+    </div>
+  </section>
+
+  <aside aria-label="Specimen card">
+    <header class="spec">
+      <span class="zone-title">Specimen</span>
+      <h2 id="i-name"></h2>
+      <div class="id" id="i-id"></div>
+      <p class="desc" id="i-desc"></p>
+      <span class="statechip" id="i-state"></span>
+    </header>
+    <div class="pad sect">
+      <h3>Survey facts</h3>
+      <table class="facts-table" id="i-facts"></table>
+    </div>
+    <div class="pad sect">
+      <h3>Contacts</h3>
+      <div id="i-edges"></div>
+    </div>
+    <div class="pad sect">
+      <h3>Decision lineage</h3>
+      <div id="i-decs"></div>
+    </div>
+  </aside>
+</div>
+
+<script src="data.js"></script>
+<script>
+const D = window.CAIRN_DATA;
+const byId = Object.fromEntries(D.nodes.map(n=>[n.id,n]));
+const svg = document.getElementById('plate');
+const NS = 'http://www.w3.org/2000/svg';
+
+/* ── strata layout ── */
+const W = Math.max(860, document.querySelector('.canvas-wrap').clientWidth - 48);
+const stoneH = 40, gapX = 10, gapY = 14, padX = 96, bedPad = 18;
+const system = D.nodes.find(n=>n.kind==='system');
+const containers = D.nodes.filter(n=>n.kind==='container');
+const beds = [];
+beds.push({label:'Bedrock · system', kind:'bedrock', stones:[system]});
+for(const c of containers){
+  const members = D.nodes.filter(n=>n.parent===c.id);
+  beds.push({label:c.name+' · container bed', kind:'bed', head:c, stones:members});
+}
+const loose = D.nodes.filter(n=>n.kind==='module' && (n.parent===system.id||!n.parent));
+beds.push({label:'Surface bed · modules', kind:'bed', stones:loose});
+
+const pos = {}; let y = 26;
+function stoneW(n){ return n.kind==='system' ? (W - padX - 24) : n.kind==='container' ? 210 : Math.max(112, n.name.length*7.2+34); }
+for(const bed of beds){
+  bed.y0 = y; y += 16; // bed label space
+  let x = padX, rowY = y;
+  const stones = bed.head ? [bed.head, ...bed.stones] : bed.stones;
+  for(const s of stones){
+    const w = stoneW(s);
+    if(x + w > W - 24){ x = padX; rowY += stoneH + gapY; }
+    pos[s.id] = {x, y:rowY, w, h:stoneH};
+    x += w + gapX;
+  }
+  y = rowY + stoneH + bedPad;
+  bed.y1 = y - bedPad/2;
+  y += 10;
+}
+svg.setAttribute('width', W); svg.setAttribute('height', y+6);
+svg.setAttribute('viewBox', `0 0 ${W} ${y+6}`);
+
+function el(tag, attrs, parent){ const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); (parent||svg).appendChild(e); return e; }
+
+/* bed bands */
+for(const bed of beds){
+  el('rect',{x:12,y:bed.y0,width:W-24,height:bed.y1-bed.y0, class:'bed-band'+(bed.kind==='bedrock'?' bedrock':''), rx:2});
+  const t = el('text',{x:padX-78,y:bed.y0+13,class:'bed-label'}); t.textContent = bed.label.split(' · ')[0];
+  el('line',{x1:12,x2:W-12,y1:bed.y1,y2:bed.y1,stroke:'#c9bba0','stroke-width':1});
+}
+
+/* contact lines (edges) */
+const edgeLayer = el('g',{});
+function edgePath(a,b){
+  const ax = a.x + a.w/2, ay = a.y + a.h, bx = b.x + b.w/2, by = b.y;
+  if(Math.abs(a.y-b.y)<1){ // same row: arc above
+    return `M ${ax} ${a.y} C ${ax} ${a.y-26}, ${bx} ${b.y-26}, ${bx} ${b.y}`;
+  }
+  const [sx,sy,ex,ey] = a.y < b.y ? [ax,ay,bx,by] : [ax,a.y,bx,b.y+b.h];
+  const mid = (sy+ey)/2;
+  return `M ${sx} ${sy} C ${sx} ${mid}, ${ex} ${mid}, ${ex} ${ey}`;
+}
+const edgeEls = D.edges.map(e=>{
+  const a=pos[e.from], b=pos[e.to]; if(!a||!b) return null;
+  const p = el('path',{d:edgePath(a,b),class:'contact'},edgeLayer);
+  p.dataset.from=e.from; p.dataset.to=e.to;
+  return p;
+}).filter(Boolean);
+
+/* stones */
+const stoneLayer = el('g',{});
+const stoneEls = {};
+for(const n of D.nodes){
+  const p = pos[n.id];
+  const g = el('g',{class:'stone','data-id':n.id,tabindex:0,role:'button','aria-label':n.name},stoneLayer);
+  const rx = n.kind==='module' ? 3 : 2;
+  el('rect',{x:p.x,y:p.y,width:p.w,height:p.h,rx},g);
+  const t = el('text',{x:p.x+12,y:p.y+18},g);
+  t.textContent = n.name;
+  if(n.kind!=='module') t.setAttribute('style','font-family:var(--serif);font-size:14px');
+  const m = el('text',{x:p.x+12,y:p.y+32,class:'meta'},g);
+  m.textContent = n.kind==='system' ? 'system · '+D.nodes.length+' formations'
+    : n.kind==='container' ? 'container · '+n.children.length+' members'
+    : `${n.files} files · ${n.symbols} symbols`;
+  stoneEls[n.id]=g;
+  g.addEventListener('click',()=>select(n.id));
+  g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(n.id);}});
+}
+
+/* benchmark mark for selection */
+const bm = el('g',{class:'benchmark',visibility:'hidden'});
+el('path',{d:'M 0 10 L 6 0 L 12 10 Z'},bm);
+el('circle',{cx:6,cy:6.5,r:1.6,class:'dot'},bm);
+
+/* ── selection ── */
+let selected = null;
+function neighbours(id){
+  const s = new Set([id]);
+  D.edges.forEach(e=>{ if(e.from===id)s.add(e.to); if(e.to===id)s.add(e.from); });
+  return s;
+}
+function select(id){
+  selected = id;
+  const nb = neighbours(id);
+  for(const nid in stoneEls){
+    stoneEls[nid].classList.toggle('sel', nid===id);
+    stoneEls[nid].classList.toggle('dim', !nb.has(nid));
+  }
+  edgeEls.forEach(p=>{
+    const on = p.dataset.from===id || p.dataset.to===id;
+    p.classList.toggle('hl',on); p.classList.toggle('dim',!on);
+  });
+  const p = pos[id];
+  bm.setAttribute('transform',`translate(${p.x+p.w+6},${p.y+p.h/2-6})`);
+  bm.setAttribute('visibility','visible');
+  renderInspector(id);
+}
+
+function renderInspector(id){
+  const n = byId[id];
+  document.getElementById('i-name').textContent = n.name;
+  document.getElementById('i-id').textContent = n.id;
+  document.getElementById('i-desc').textContent = n.description || '';
+  document.getElementById('i-state').textContent = n.state;
+  const facts = [
+    ['Kind', n.kind], ['Declared path', n.paths[0]||'(none)','mono'],
+    ['Files', n.files], ['Symbols', n.symbols], ['Contracts', n.contracts],
+  ];
+  document.getElementById('i-facts').innerHTML =
+    facts.map(([k,v,c])=>`<tr><td>${k}</td><td class="${c||''}">${v}</td></tr>`).join('');
+  const outs = D.edges.filter(e=>e.from===id), ins = D.edges.filter(e=>e.to===id);
+  const row = (e,dir)=>{
+    const other = dir==='out'? e.to : e.from;
+    return `<div class="edge-row"><span class="dir">${dir==='out'?'DEPENDS ON':'USED BY'}</span>`+
+      `<span class="to" data-nav="${other}">${byId[other].name}</span>`+
+      `<span class="why">${e.description}</span></div>`;
+  };
+  document.getElementById('i-edges').innerHTML =
+    (outs.map(e=>row(e,'out')).join('')+ins.map(e=>row(e,'in')).join('')) ||
+    '<div class="empty">No recorded contacts.</div>';
+  const decs = D.decisions[id]||[];
+  document.getElementById('i-decs').innerHTML = decs.length ? decs.map(d=>
+    `<div class="dec"><div class="t">${d.title}</div>`+
+    `<div class="m">${d.id} · ${d.date} · <span class="ok">${d.status}</span></div>`+
+    `<div class="x">${d.excerpt}…</div></div>`).join('')
+    : '<div class="empty">No decisions recorded for this formation.</div>';
+  document.querySelectorAll('#i-edges .to').forEach(elm=>
+    elm.addEventListener('click',()=>select(elm.dataset.nav)));
+}
+
+/* ── header facts ── */
+document.getElementById('f-nodes').textContent = D.status.nodes;
+document.getElementById('f-edges').textContent = D.status.edges;
+document.getElementById('f-findings').textContent = D.findings.length;
+document.getElementById('f-hash').textContent = D.status.interface_hash;
+if(D.findings.length){ const s=document.getElementById('seal');
+  s.textContent = D.findings.length + ' finding' + (D.findings.length>1?'s':''); }
+
+/* ── ledger ── */
+document.getElementById('ledger-sum').textContent =
+  D.findings.length ? '' : (D.copy['no-findings'].heading+' · '+D.copy['no-findings'].body);
+document.getElementById('ledger-rows').innerHTML = D.findings.map(f=>
+  `<tr><td><span class="sev">${f.severity}</span></td><td class="code">${f.code}</td>`+
+  `<td>${f.message}</td><td class="path">${f.path}</td></tr>`).join('');
+
+/* ── search + layers ── */
+const q = document.getElementById('q');
+addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} });
+q.addEventListener('input',()=>{
+  const v = q.value.trim().toLowerCase();
+  for(const id in stoneEls){
+    const hit = v && (id.toLowerCase().includes(v)||byId[id].name.toLowerCase().includes(v));
+    stoneEls[id].classList.toggle('hit',!!hit);
+    if(v) stoneEls[id].classList.toggle('dim',!hit);
+    else if(!selected) stoneEls[id].classList.remove('dim');
+  }
+  if(!v && selected) select(selected);
+});
+document.querySelectorAll('.layer').forEach(b=>b.addEventListener('click',()=>{
+  const on = b.getAttribute('aria-pressed')!=='true';
+  b.setAttribute('aria-pressed',on);
+  for(const n of D.nodes){ if(n.kind===b.dataset.kind)
+    stoneEls[n.id].style.display = on?'':'none'; }
+}));
+
+/* default selection: a richly-connected node */
+select('cairn.kernel.scanner');
+</script>
+</body>
+</html>
