@@ -29,6 +29,18 @@ Backlog review (adversarial + simplification) recommends this be treated as
 harness-gated (not a code task); the only live scope, bet A, is superseded by
 `todo.design-studio-exploration` (backed by accepted
 `dec.design-studio-exploration-method`), which owns the bet A direction question.
-No actionable loop work remains here. Kept `blocked` as a pointer; close when
-`todo.design-studio-exploration` resolves the direction. Do not start work under
-this slug; use `design-studio-exploration`.
+No actionable loop work remains here. Kept `blocked` as a pointer. (The
+"close when the direction resolves" instruction here is superseded by the
+2026-07-12 section below: the todo stays blocked as the bet D home.) Do
+not start work under this slug; use `design-studio-exploration`.
+
+## Supersession (2026-07-12)
+
+Both design-studio tracks have run. Bet A's aesthetic call is resolved by
+`dec.webui-design-direction` (calibrated instrument, geological state
+vocabulary as motif), informed by `res.design-studio-greenfield` and
+`res.webui-review-audit`. This todo's bet A line is superseded by
+`todo.design-studio-exploration` and that decision, ratified 2026-07-12.
+This todo stays open (blocked) as the home for bet D tracking only: bet D
+(design-quality scorer) remains deferred and harness gated. Bets B and C
+shipped; bet A is resolved by the decision above.
