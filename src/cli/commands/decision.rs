@@ -39,7 +39,10 @@ fn run_decision_new(
         .join(format!("dec.{slug}.md"))
         .exists()
     {
-        return err(1, &copy::lookup("decision.exists").replace("{slug}", slug));
+        return err(
+            1,
+            &copy::lookup("decision.exists-legacy").replace("{slug}", slug),
+        );
     }
     let content = decision_stub(slug, nodes, informed_by, &today_utc());
     write_new_artefact(
@@ -282,6 +285,11 @@ mod tests {
         assert_eq!(
             result.code, 1,
             "legacy dec.<slug>.md carries the same id; creating <slug>.md would collapse duplicate ids"
+        );
+        assert!(
+            result.stderr.contains("dec.my-rule.md"),
+            "legacy refusal must name the actual blocking file, got: {}",
+            result.stderr
         );
         assert!(
             !dir.path().join("meta/decisions/my-rule.md").exists(),
