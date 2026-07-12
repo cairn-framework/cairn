@@ -128,15 +128,17 @@ Every legacy issue in the list above has a recorded outcome.
 
 ## Done (2026-07-12)
 
-All 28 legacy issues (#1 to #108 set) have recorded outcomes. 22 closed
-with a reason naming the superseding decision or merged work; 6 re-minted
-as native todos carrying `gh:#NNN` reference lines and closed pointing at
-the artefact: todo.webui-mobile-graph-nav (#72),
-todo.contract-loader-signatures (#63),
-todo.claude-md-progressive-disclosure (#70),
+All 28 legacy issues (#1 to #108 set) have recorded outcomes, each closed
+with its bucketed reason: superseded by a named decision or merged work,
+already implemented, exploration-deferred, or research-era. 3 were
+re-minted as native todos carrying `gh:#NNN` reference lines and closed
+pointing at the artefact: todo.webui-mobile-graph-nav (#72),
 todo.hooks-graphite-merge-guard (#86), todo.ci-hook-decision-pairing
-(#68), todo.formalize-debate-skill (#69). Two planned re-mints were
-closed as already implemented on inspection: #107 (suggested_edges module
-split exists) and #108 (copy.toml plus src/copy.rs shipped; residual
-migration lives in todo.remediate-copy-centralisation). Verified: zero
-open issues numbered 108 or lower.
+(#68). Five planned re-mints were instead closed as already implemented
+on inspection, with a correcting comment on each issue: #107
+(suggested_edges module split exists), #108 (copy.toml plus src/copy.rs
+shipped; residual migration lives in todo.remediate-copy-centralisation),
+#63 (contract interface drift check CAIRN_CONTRACT_INTERFACE_DRIFT,
+c979a4d), #69 (debate convention in CLAUDE.md, 23a6a00), and #70
+(docs/agent/ progressive-disclosure split, 9b82223). Verified: zero open
+issues numbered 108 or lower.
