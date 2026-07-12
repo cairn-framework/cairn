@@ -231,10 +231,14 @@ mod tests {
         );
         let path = root.join(".git/hooks/pre-commit");
         assert!(is_cairn_hook(&path));
-        assert_eq!(
-            fs::metadata(&path).unwrap().permissions().mode() & 0o111,
-            0o111
-        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                fs::metadata(&path).unwrap().permissions().mode() & 0o111,
+                0o111
+            );
+        }
         let body = fs::read(&path).unwrap();
         assert_eq!(run_hook_lifecycle_command(&install, &root).code, 0);
         assert_eq!(fs::read(&path).unwrap(), body);
