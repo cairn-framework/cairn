@@ -20,8 +20,9 @@ pub(crate) fn run_decision_command(parsed: &ParsedArgs, root: &Path) -> CliResul
     }
 }
 
-/// Scaffolds `meta/decisions/dec.<slug>.md` with deterministic frontmatter and
-/// the standard Context/Decision/Rationale/Consequences sections.
+/// Scaffolds `meta/decisions/<slug>.md` (slug-only filename; the typed prefix
+/// lives in the `id:` frontmatter, per docs/conventions.md section 10) with
+/// deterministic frontmatter and the standard sections.
 fn run_decision_new(
     root: &Path,
     slug: &str,
@@ -31,11 +32,23 @@ fn run_decision_new(
     if !is_kebab_slug(slug) {
         return err(1, copy::lookup("decision.invalid-slug"));
     }
+    // A legacy prefixed file (`dec.<slug>.md`) carries the same id; creating
+    // `<slug>.md` beside it would silently collapse duplicate ids downstream.
+    if root
+        .join("meta/decisions")
+        .join(format!("dec.{slug}.md"))
+        .exists()
+    {
+        return err(
+            1,
+            &copy::lookup("decision.exists-legacy").replace("{slug}", slug),
+        );
+    }
     let content = decision_stub(slug, nodes, informed_by, &today_utc());
     write_new_artefact(
         root,
         "meta/decisions",
-        &format!("dec.{slug}.md"),
+        &format!("{slug}.md"),
         &content,
         &copy::lookup("decision.exists").replace("{slug}", slug),
         &copy::lookup("decision.created").replace("{slug}", slug),
@@ -237,15 +250,50 @@ mod tests {
     }
 
     #[test]
-    fn test_run_decision_new_writes_file_and_refuses_overwrite() {
+    fn test_run_decision_new_writes_slug_only_file_and_refuses_overwrite() {
         let dir = tempfile::tempdir().unwrap();
         let first = run_decision_new(dir.path(), "my-rule", &["app.core".to_owned()], &[]);
         assert_eq!(first.code, 0, "scaffold should succeed: {}", first.stderr);
-        assert!(dir.path().join("meta/decisions/dec.my-rule.md").exists());
+        assert!(
+            dir.path().join("meta/decisions/my-rule.md").exists(),
+            "filename must be slug-only per conventions section 10"
+        );
+        let content =
+            std::fs::read_to_string(dir.path().join("meta/decisions/my-rule.md")).unwrap();
+        assert!(
+            content.contains("id: dec.my-rule"),
+            "typed prefix must live in the id frontmatter"
+        );
         let second = run_decision_new(dir.path(), "my-rule", &["app.core".to_owned()], &[]);
         assert_eq!(
             second.code, 1,
             "must refuse to overwrite an existing decision"
+        );
+    }
+
+    #[test]
+    fn test_run_decision_new_refuses_when_legacy_prefixed_file_exists() {
+        let dir = tempfile::tempdir().unwrap();
+        let decisions = dir.path().join("meta/decisions");
+        std::fs::create_dir_all(&decisions).unwrap();
+        std::fs::write(
+            decisions.join("dec.my-rule.md"),
+            "---\nid: dec.my-rule\n---\n",
+        )
+        .unwrap();
+        let result = run_decision_new(dir.path(), "my-rule", &[], &[]);
+        assert_eq!(
+            result.code, 1,
+            "legacy dec.<slug>.md carries the same id; creating <slug>.md would collapse duplicate ids"
+        );
+        assert!(
+            result.stderr.contains("dec.my-rule.md"),
+            "legacy refusal must name the actual blocking file, got: {}",
+            result.stderr
+        );
+        assert!(
+            !dir.path().join("meta/decisions/my-rule.md").exists(),
+            "no file may be written when the legacy path blocks creation"
         );
     }
 }

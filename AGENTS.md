@@ -47,15 +47,17 @@ When **creating** a decision, research finding, or source, place it in `meta/` f
 the convention in docs/conventions.md section 10 ("Artefact organization and provenance
 links"):
 
-- `meta/decisions/dec.<slug>.md` — requires `id`, `nodes:`, `status`, `date`.
+- `meta/decisions/<slug>.md` (id `dec.<slug>`) — requires `id`, `nodes:`, `status`, `date`.
   Chain to evidence via `informed_by: [res.X, src.Y]`.
-- `meta/research/res.<slug>.md` — requires `id`, `nodes:`. Cite sources via
+- `meta/research/<slug>.md` (id `res.<slug>`) — requires `id`, `nodes:`. Cite sources via
   `sources: [src.Z]`.
-- `meta/sources/src.<slug>.md` — requires `id`, `file:`, `verification:`. No
+- `meta/sources/<slug>.md` (id `src.<slug>`) — requires `id`, `file:`, `verification:`. No
   `nodes:` field; anchors transitively through citations.
 
-Files are FLAT (no subfolders). Use slug namespacing for grouping
-(`res.gas-city.analysis`, not `research/gas-city/analysis.md`).
+Filenames are slug-only; the typed prefix lives only in the `id:` frontmatter
+(docs/conventions.md section 10). Files are FLAT (no subfolders). Use slug
+namespacing for grouping (id `res.gas-city.analysis`, filename
+`gas-city.analysis.md`, not `research/gas-city/analysis.md`).
 
 ## UI and visual work: use the design system
 
