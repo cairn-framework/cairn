@@ -6226,6 +6226,7 @@
         "tests/reconcile_target_fingerprint.rs",
         "tests/reconcile_typescript.rs",
         "tests/scanner_interface_hash.rs",
+        "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
         "tests/watch.rs",
         "tests/wire_format_snapshots.rs"
@@ -6619,6 +6620,13 @@
     }
   ],
   "findings": [
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.loop-efficiency-observations` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/loop-efficiency-observations.md"
+    },
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
