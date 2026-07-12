@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: open
+status: done
 created: 2026-07-10
 ---
 
@@ -77,3 +77,14 @@ question.
   browser tool.
 
 Informed by: res.design-studio-greenfield
+
+## Run record (2026-07-12)
+
+Both tracks executed. Track A on branch `design-studio-greenfield`
+(worktree `../cairn-ds-greenfield`, commit 30fcd7f): two poles built and
+browser evaluated over three iterations; Calibrated Instrument won 8.0 vs
+7.8 (zone total 126 vs 124); codified `design-dna.md`, `tokens.css`, and a
+skill template under `harness-output/`. Track B audit:
+`res.webui-review-audit` (verdict ready_with_nits, direction "refine, do
+not redesign"). Direction ratified in `dec.webui-design-direction`
+(accepted 2026-07-12); this todo is done.
