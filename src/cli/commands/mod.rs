@@ -15,6 +15,7 @@ mod onboard;
 mod project;
 mod todo;
 mod watch;
+mod wire;
 mod workspace;
 
 pub(crate) use archive::run_archive_command;
@@ -28,6 +29,7 @@ pub(crate) use onboard::run_onboard_command;
 pub(crate) use project::{init_project, run_ui_command};
 pub(crate) use todo::run_todo_command;
 pub(crate) use watch::run_watch_command;
+pub(crate) use wire::{preflight_wire_check, wire_agent_guide};
 pub(crate) use workspace::run_workspace_command;
 
 pub(crate) fn run_draft_command(

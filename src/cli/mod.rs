@@ -36,11 +36,11 @@ mod render;
 pub(crate) use crate::copy;
 
 use commands::{
-    init_project, legacy_blueprint_warning, run_archive_command, run_change_new,
-    run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
+    init_project, legacy_blueprint_warning, preflight_wire_check, run_archive_command,
+    run_change_new, run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
     run_hook_command, run_hook_lifecycle_command, run_import_openspec, run_onboard_command,
     run_shared_json_command, run_todo_command, run_ui_command, run_watch_command,
-    run_workspace_command,
+    run_workspace_command, wire_agent_guide,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, flag_value, lines,
@@ -96,8 +96,36 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "init" {
         let from_code = parsed.command_args.iter().any(|a| a == "--from-code");
         let apply = parsed.command_args.iter().any(|a| a == "--apply");
+        let wire = parsed.command_args.iter().any(|a| a == "--wire");
         if apply && !from_code {
             return err(2, "usage: cairn init --from-code --apply");
+        }
+        // `--wire` appends a cairn orientation reference to the project's agent
+        // instructions file. It is only valid on the standard scaffold path:
+        // `--from-code` returns before wiring would run, so reject the combo
+        // rather than silently ignoring the flag.
+        if wire && from_code {
+            return err(2, copy::lookup("init.wire.err-from-code-conflict"));
+        }
+        // Extract an optional explicit target file: `--wire CLAUDE.md`.
+        // `wire_file` is None (auto-detect) when --wire has no following arg.
+        let wire_file: Option<&str> = wire
+            .then(|| {
+                let idx = parsed.command_args.iter().position(|a| a == "--wire")?;
+                parsed
+                    .command_args
+                    .get(idx + 1)
+                    .filter(|a| !a.starts_with("--"))
+                    .map(String::as_str)
+            })
+            .flatten();
+        // Preflight: validate the wire target and check for symlink escapes
+        // before scaffolding so an invalid path does not create project files.
+        if wire {
+            let preflight = preflight_wire_check(project_root, wire_file);
+            if preflight.code != 0 {
+                return preflight;
+            }
         }
         if from_code {
             let force = parsed.command_args.iter().any(|a| a == "--force");
@@ -141,7 +169,22 @@ pub fn run(args: &[String]) -> CliResult {
                 Err(e) => err(1, &e.to_string()),
             };
         }
-        return init_project(project_root);
+        let result = init_project(project_root, wire);
+        if result.code != 0 {
+            return result;
+        }
+        if wire {
+            let wire_result = wire_agent_guide(project_root, wire_file);
+            if wire_result.code != 0 {
+                return wire_result;
+            }
+            return ok(format!(
+                "{}\n{}",
+                result.stdout.trim_end(),
+                wire_result.stdout
+            ));
+        }
+        return result;
     }
     if parsed.command == "import-openspec" {
         return run_import_openspec(project_root, parsed.json);
@@ -1187,6 +1230,206 @@ mod tests {
         assert!(
             !root.join("cairn.blueprint").exists(),
             "usage error must not scaffold the project"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_appends_reference_to_agents_md() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let root = temp_root("init-wire")?;
+        let result = run_in(&root, &["init", "--wire"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        assert!(
+            result.stdout.contains("Wired"),
+            "init --wire must report the wiring: {}",
+            result.stdout
+        );
+        let agents = fs::read_to_string(root.join("AGENTS.md"))?;
+        assert!(
+            agents.contains("cairn:agent-guide-begin"),
+            "init --wire must append the orientation block to AGENTS.md"
+        );
+        assert!(
+            agents.contains(".cairn/AGENTS.md"),
+            "wired block must reference the agent guide"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_with_from_code_is_rejected() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-from-code")?;
+        let result = run_in(&root, &["init", "--from-code", "--wire"]);
+        assert_eq!(result.code, 2);
+        assert!(
+            result.stderr.contains("not supported with --from-code"),
+            "must reject --wire + --from-code combo: {}",
+            result.stderr
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_prefers_existing_claude_md() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-claude")?;
+        fs::write(root.join("CLAUDE.md"), "# Existing project rules\n")?;
+        let result = run_in(&root, &["init", "--wire"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let claude = fs::read_to_string(root.join("CLAUDE.md"))?;
+        assert!(
+            claude.contains("cairn:agent-guide-begin"),
+            "wire must target CLAUDE.md when it exists"
+        );
+        assert!(
+            !root.join("AGENTS.md").exists(),
+            "must not create AGENTS.md when CLAUDE.md exists"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_explicit_target() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-explicit")?;
+        let result = run_in(&root, &["init", "--wire", ".cursor/rules/cairn.md"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let file = fs::read_to_string(root.join(".cursor/rules/cairn.md"))?;
+        assert!(
+            file.contains("cairn:agent-guide-begin"),
+            "explicit --wire <path> must write the orientation block to that path"
+        );
+        // Auto-detect targets must not have been created.
+        assert!(
+            !root.join("AGENTS.md").exists(),
+            "explicit target must suppress auto-detect file creation"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_invalid_target_does_not_scaffold()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-invalid")?;
+        let result = run_in(&root, &["init", "--wire", "/etc/CLAUDE.md"]);
+        assert_eq!(result.code, 2);
+        assert!(
+            !root.join("cairn.blueprint").exists(),
+            "invalid --wire target must not scaffold the project"
+        );
+        assert!(
+            !root.join(".cairn").exists(),
+            "invalid --wire target must not create .cairn/"
+        );
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_cli_init_wire_symlink_target_does_not_scaffold()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::unix::fs::symlink;
+        let root = temp_root("init-wire-symlink")?;
+        // Create a symlinked CLAUDE.md pointing outside the project.
+        let outside = tempfile::tempdir()?;
+        std::fs::write(outside.path().join("CLAUDE.md"), "# outside\n")?;
+        symlink(outside.path().join("CLAUDE.md"), root.join("CLAUDE.md"))?;
+
+        let result = run_in(&root, &["init", "--wire"]);
+        assert_eq!(result.code, 1, "must reject symlink target");
+        assert!(
+            !root.join("cairn.blueprint").exists(),
+            "symlink --wire target must not scaffold the project"
+        );
+        assert!(
+            !root.join(".cairn").exists(),
+            "symlink --wire target must not create .cairn/"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_preserves_onboarding_steps() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-next-steps")?;
+        let result = run_in(&root, &["init", "--wire"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        assert!(
+            result.stdout.contains("Wired"),
+            "init --wire must report the wiring result"
+        );
+        // Other onboarding steps must be preserved, not discarded.
+        assert!(
+            result.stdout.contains("cairn scan"),
+            "init --wire must preserve the scan step in next-steps"
+        );
+        // The wire step must not appear (wire-aware variant is used).
+        assert!(
+            !result.stdout.contains("cairn init --wire"),
+            "init --wire must not include the redundant wire step: {}",
+            result.stdout
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_directory_target_does_not_scaffold()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-dir")?;
+        let result = run_in(&root, &["init", "--wire", "."]);
+        assert_eq!(result.code, 1, "must reject directory target");
+        assert!(
+            !root.join("cairn.blueprint").exists(),
+            "directory --wire target must not scaffold the project"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_blueprint_collision_does_not_scaffold()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-blueprint")?;
+        let result = run_in(&root, &["init", "--wire", "cairn.blueprint"]);
+        assert_eq!(result.code, 2, "must reject scaffold file target");
+        assert!(
+            !root.join("cairn.blueprint").exists(),
+            "scaffold-colliding --wire target must not scaffold the project"
+        );
+        assert!(
+            !root.join(".cairn").exists(),
+            "scaffold-colliding --wire target must not create .cairn/"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_cairn_dir_collision_does_not_scaffold()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-cairn-dir")?;
+        let result = run_in(&root, &["init", "--wire", ".cairn/AGENTS.md"]);
+        assert_eq!(result.code, 2, "must reject .cairn/ target");
+        assert!(
+            !root.join("cairn.blueprint").exists(),
+            ".cairn/ --wire target must not scaffold the project"
+        );
+        assert!(
+            !root.join(".cairn").exists(),
+            ".cairn/ --wire target must not create .cairn/"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_wire_cairn_directory_collision_does_not_scaffold()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-wire-cairn")?;
+        let result = run_in(&root, &["init", "--wire", ".cairn"]);
+        assert_eq!(result.code, 2, "must reject .cairn directory target");
+        assert!(
+            !root.join("cairn.blueprint").exists(),
+            ".cairn --wire target must not scaffold the project"
+        );
+        assert!(
+            !root.join(".cairn").exists(),
+            ".cairn --wire target must not create .cairn/"
         );
         Ok(())
     }

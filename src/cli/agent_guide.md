@@ -1,8 +1,9 @@
 # Working with cairn in this repository
 
 This project uses [cairn](https://github.com/cairn-framework/cairn) to keep the
-declared architecture (`cairn.blueprint`) and the code in sync. Append this
-section to your CLAUDE.md or AGENTS.md, or reference it from there.
+declared architecture (`cairn.blueprint`) and the code in sync. Run
+`cairn init --wire` to append a reference to this guide in your CLAUDE.md or
+AGENTS.md automatically, or paste a link manually.
 
 ## Orientation
 
