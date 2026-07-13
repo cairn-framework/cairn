@@ -339,7 +339,10 @@ fn render_brief_data(
             .map(|contract| contract.body.trim().to_owned())
     });
     let gates = crate::copy::lookup("brief.gates");
-    let staleness = crate::copy::lookup("brief.staleness-note");
+    let staleness = match source {
+        BriefSource::Todo(_) => crate::copy::lookup("brief.staleness-note-todos"),
+        BriefSource::Bead(_) => crate::copy::lookup("brief.staleness-note-beads"),
+    };
 
     let data = BriefData {
         source,
@@ -974,6 +977,46 @@ mod tests {
         // no id to address directly.
         let named = render_brief(&brief_parsed(&["brief", "cairn-a"], false), &dir, &scan);
         assert!(named.contains("Brief: cairn-a [P1] Alpha"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_brief_native_todo_has_no_repo_specific_gates_or_staleness() {
+        // A native-todo brief must not leak cairn-repo-specific gates (cargo)
+        // or beads-backlog staleness guidance (`bd ready`) into a downstream
+        // repository's surface. Gates stay generic; staleness uses the
+        // todo-specific note instead of the beads one.
+        let dir = tmpdir("brief-native-no-leak");
+        write_export(&dir, &[]);
+        let scan = scan_with_todos(
+            Vec::new(),
+            Vec::new(),
+            ContractSet::default(),
+            vec![todo_fixture("app.core", "2026-01-01", "# Wire the thing")],
+        );
+        let human = render_brief(&brief_parsed(&["brief"], false), &dir, &scan);
+        assert!(
+            !human.contains("cargo "),
+            "native-todo brief must not carry cargo gates:\n{human}"
+        );
+        assert!(
+            !human.contains("bd ready"),
+            "native-todo brief must not carry beads staleness:\n{human}"
+        );
+
+        let json = render_brief(&brief_parsed(&["brief"], true), &dir, &scan);
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(
+            !value["brief"]["gates"].as_str().unwrap().contains("cargo "),
+            "gates must be generic, not repo-specific"
+        );
+        assert!(
+            !value["brief"]["staleness"]
+                .as_str()
+                .unwrap()
+                .contains("bd ready"),
+            "staleness must be todo-specific, not beads guidance"
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 

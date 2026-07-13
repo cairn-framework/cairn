@@ -264,12 +264,13 @@ created = "created meta/todos/todo.{slug}.md; fill in the task, then run `cairn 
 [brief]
 gates = """
 Gates that will judge this unit (all must pass before merge):
-  cargo build                                          # zero warnings
-  cargo clippy --all-targets --all-features -- -D warnings
-  cargo test
+  cairn hook all                                       # exit 0
   cairn scan                                           # zero findings
-  cairn hook all                                       # exit 0"""
-staleness-note = "Note: the beads export can lag live Dolt. `bd ready` is authoritative; cross-check before committing to this unit."
+
+Language and build gates belong to the repository: declare them in its hook
+config and AGENTS.md, not in cairn."""
+staleness-note-todos = "Note: native todos live in meta/todos/ and are authoritative for the current checkout; reconcile against the repository's own task tracking before committing to this unit."
+staleness-note-beads = "Note: the beads export can lag live Dolt. `bd ready` is authoritative; cross-check before committing to this unit."
 unlinked-hint = "No graph node is linked to this bead, so no node-specific decisions or contract are surfaced. Bind one with `bd update {id} --label cairn-node:<node>` so future briefs load its constraints."
 not-found = "No bead matches `{id}`. Run `bd ready` to list available work."
 empty = "Nothing to do. The backlog is empty and the project is clean."
