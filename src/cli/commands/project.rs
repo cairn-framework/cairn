@@ -59,7 +59,7 @@ const SKILL_FILES: &[(&str, &str)] = &[
     ),
 ];
 
-pub(crate) fn init_project(root: &Path) -> CliResult {
+pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
     let already_initialized = root.join("cairn.blueprint").exists();
     let writes = [
         (
@@ -94,19 +94,19 @@ pub(crate) fn init_project(root: &Path) -> CliResult {
         }
     }
     if already_initialized {
-        return ok(reinit_message(&backfilled));
+        return ok(reinit_message(&backfilled, wire));
     }
-    ok(format!(
-        "{}\n\n{}\n",
-        copy::lookup("init.done"),
+    let next_steps = if wire {
+        copy::lookup("init.next-steps-wired")
+    } else {
         copy::lookup("init.next-steps")
-    ))
+    };
+    ok(format!("{}\n\n{}\n", copy::lookup("init.done"), next_steps))
 }
-
 /// Build the message for `cairn init` run in an already-initialized project:
 /// report what (if anything) was backfilled and the next steps that make sense
 /// when the blueprint already exists, instead of claiming a fresh scaffold.
-fn reinit_message(backfilled: &[&str]) -> String {
+fn reinit_message(backfilled: &[&str], wire: bool) -> String {
     let mut msg = copy::lookup("init.already").to_string();
     if backfilled.is_empty() {
         msg.push('\n');
@@ -120,7 +120,11 @@ fn reinit_message(backfilled: &[&str]) -> String {
         }
     }
     msg.push_str("\n\n");
-    msg.push_str(copy::lookup("init.next-steps-existing"));
+    msg.push_str(if wire {
+        copy::lookup("init.next-steps-existing-wired")
+    } else {
+        copy::lookup("init.next-steps-existing")
+    });
     msg.push('\n');
     msg
 }
@@ -132,7 +136,7 @@ mod tests {
     #[test]
     fn test_init_project_emits_cairn_skills_and_loop_guide() {
         let dir = tempfile::tempdir().unwrap();
-        let result = init_project(dir.path());
+        let result = init_project(dir.path(), false);
         assert_eq!(result.code, 0, "init should succeed: {}", result.stderr);
 
         // Every bundled cairn-* skill lands in the fresh repo.
@@ -184,7 +188,7 @@ mod tests {
     #[test]
     fn test_init_starter_blueprint_wires_todos_pointer() {
         let dir = tempfile::tempdir().unwrap();
-        let result = init_project(dir.path());
+        let result = init_project(dir.path(), false);
         assert_eq!(result.code, 0, "init should succeed: {}", result.stderr);
 
         let blueprint = std::fs::read_to_string(dir.path().join("cairn.blueprint")).unwrap();
@@ -203,7 +207,7 @@ mod tests {
     fn test_reinit_on_existing_project_does_not_claim_fresh_scaffold() {
         let dir = tempfile::tempdir().unwrap();
         // First init writes the full scaffold and reports a fresh project.
-        let first = init_project(dir.path());
+        let first = init_project(dir.path(), false);
         assert_eq!(first.code, 0, "first init should succeed: {}", first.stderr);
         assert!(
             first.stdout.contains(copy::lookup("init.done")),
@@ -212,7 +216,7 @@ mod tests {
 
         // Second init in the same dir must recognize the existing blueprint,
         // not re-announce a fresh scaffold or claim a starter was written.
-        let second = init_project(dir.path());
+        let second = init_project(dir.path(), false);
         assert_eq!(second.code, 0, "re-init should succeed: {}", second.stderr);
         assert!(
             second.stdout.contains(copy::lookup("init.already")),
@@ -237,7 +241,7 @@ mod tests {
         // the scaffold (e.g. created by hand or partially deleted).
         std::fs::write(dir.path().join("cairn.blueprint"), "System X id \"x\" {}\n").unwrap();
 
-        let result = init_project(dir.path());
+        let result = init_project(dir.path(), false);
         assert_eq!(result.code, 0, "re-init should succeed: {}", result.stderr);
         assert!(
             result.stdout.contains(copy::lookup("init.already")),
