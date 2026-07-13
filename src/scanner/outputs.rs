@@ -44,22 +44,54 @@ pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()> {
         }
     }
     let _ = writeln!(out);
+    let _ = writeln!(out, "## Orphaned");
+    let mut orphaned_paths: Vec<&str> = graph
+        .findings
+        .iter()
+        .filter(|f| f.code == "CAIRN_RECONCILE_ORPHANED_FILE")
+        .filter_map(|f| f.path.as_deref())
+        .collect();
+    orphaned_paths.sort_unstable();
+    orphaned_paths.dedup();
+    if orphaned_paths.is_empty() {
+        let _ = writeln!(out, "None");
+    } else {
+        for p in &orphaned_paths {
+            let _ = writeln!(out, "- {p}");
+        }
+    }
+    let _ = writeln!(out);
     let _ = writeln!(out, "## Active changes");
     let _ = writeln!(out);
     let _ = writeln!(out, "None in Phase 1.");
     let _ = writeln!(out);
     let _ = writeln!(out, "## Findings");
-    let mut has_findings = false;
-    for finding in &graph.findings {
-        let _ = writeln!(
-            out,
-            "- {:?}: {} {}",
-            finding.severity, finding.code, finding.message
-        );
-        has_findings = true;
-    }
-    if !has_findings {
+    let mut sorted: Vec<&_> = graph.findings.iter().collect();
+    sorted.sort_by(|a, b| {
+        fn rank(s: FindingSeverity) -> u8 {
+            match s {
+                FindingSeverity::Error => 0,
+                FindingSeverity::Warning => 1,
+                FindingSeverity::Info => 2,
+            }
+        }
+        rank(a.severity)
+            .cmp(&rank(b.severity))
+            .then_with(|| a.code.cmp(&b.code))
+            .then_with(|| a.message.cmp(&b.message))
+    });
+    if sorted.is_empty() {
         let _ = writeln!(out, "None");
+    } else {
+        for finding in sorted {
+            let _ = writeln!(
+                out,
+                "- {}: {} {}",
+                finding.severity.name(),
+                finding.code,
+                finding.message
+            );
+        }
     }
     let path = root.join("map.md");
     if let Ok(existing) = fs::read_to_string(&path)
@@ -172,8 +204,129 @@ mod tests {
         assert!(content.contains("- sync-a"));
         assert!(content.contains("## Ghost"));
         assert!(content.contains("- ghost-b"));
+        assert!(content.contains("## Orphaned"));
         assert!(content.contains("## Findings"));
-        assert!(content.contains("Error: F1 oops"));
+        assert!(
+            content.contains("error: F1 oops"),
+            "findings must use canonical lowercase severity via .name()"
+        );
+    }
+
+    #[test]
+    fn write_map_renders_orphaned_section() {
+        let tmp = tempdir().unwrap();
+        let mut graph = empty_graph();
+        graph.nodes.insert("sync-a".to_owned(), bare_node("sync-a"));
+        // Production orphaned files come from findings, not NodeState.
+        graph.findings.push(Finding {
+            code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
+            severity: FindingSeverity::Info,
+            message: "Rust file `src/stray.rs` is not owned by any eligible node".to_owned(),
+            node: None,
+            target: None,
+            path: Some("src/stray.rs".to_owned()),
+        });
+        graph.findings.push(Finding {
+            code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
+            severity: FindingSeverity::Info,
+            message: "Rust file `src/another.rs` is not owned by any eligible node".to_owned(),
+            node: None,
+            target: None,
+            path: Some("src/another.rs".to_owned()),
+        });
+
+        write_map(tmp.path(), &graph).unwrap();
+
+        let content = std::fs::read_to_string(tmp.path().join("map.md")).unwrap();
+        assert!(
+            content.contains("- src/another.rs"),
+            "orphaned file paths must appear in the map"
+        );
+        assert!(
+            content.contains("- src/stray.rs"),
+            "orphaned file paths must appear in the map"
+        );
+        // Verify deterministic sort order (another.rs < stray.rs).
+        let another_pos = content.find("- src/another.rs").unwrap();
+        let stray_pos = content.find("- src/stray.rs").unwrap();
+        assert!(another_pos < stray_pos, "orphaned paths must be sorted");
+        // Verify section order: Ghost before Orphaned before Findings.
+        let ghost_pos = content.find("## Ghost").unwrap();
+        let orphaned_pos = content.find("## Orphaned").unwrap();
+        let findings_pos = content.find("## Findings").unwrap();
+        assert!(
+            ghost_pos < orphaned_pos && orphaned_pos < findings_pos,
+            "section order must be Ghost < Orphaned < Findings"
+        );
+    }
+
+    #[test]
+    fn write_map_empty_orphaned_section_says_none() {
+        let tmp = tempdir().unwrap();
+        let graph = empty_graph();
+
+        write_map(tmp.path(), &graph).unwrap();
+
+        let content = std::fs::read_to_string(tmp.path().join("map.md")).unwrap();
+        // Orphaned section exists and says None when empty.
+        let orphaned_pos = content.find("## Orphaned").unwrap();
+        let after_orphaned = &content[orphaned_pos..];
+        let next_section = after_orphaned.find("## Active").unwrap();
+        let orphaned_body = &after_orphaned[..next_section];
+        assert!(
+            orphaned_body.contains("None"),
+            "empty orphaned section must say None"
+        );
+    }
+
+    #[test]
+    fn write_map_sorts_findings_by_severity() {
+        let tmp = tempdir().unwrap();
+        let mut graph = empty_graph();
+        // Insert in reverse severity order: Info, Warning, Error.
+        graph
+            .findings
+            .push(sample_finding("I1", FindingSeverity::Info, "info msg"));
+        graph
+            .findings
+            .push(sample_finding("W1", FindingSeverity::Warning, "warn msg"));
+        graph
+            .findings
+            .push(sample_finding("E1", FindingSeverity::Error, "err msg"));
+
+        write_map(tmp.path(), &graph).unwrap();
+
+        let content = std::fs::read_to_string(tmp.path().join("map.md")).unwrap();
+        let error_pos = content.find("error: E1").unwrap();
+        let warning_pos = content.find("warning: W1").unwrap();
+        let info_pos = content.find("info: I1").unwrap();
+        assert!(
+            error_pos < warning_pos && warning_pos < info_pos,
+            "findings must be sorted Error < Warning < Info by position: E@{error_pos} W@{warning_pos} I@{info_pos}"
+        );
+    }
+
+    #[test]
+    fn write_map_sorts_findings_deterministic_tie_breaker() {
+        let tmp = tempdir().unwrap();
+        let mut graph = empty_graph();
+        // Two warnings: sort by code, then message.
+        graph
+            .findings
+            .push(sample_finding("W2", FindingSeverity::Warning, "beta"));
+        graph
+            .findings
+            .push(sample_finding("W1", FindingSeverity::Warning, "alpha"));
+
+        write_map(tmp.path(), &graph).unwrap();
+
+        let content = std::fs::read_to_string(tmp.path().join("map.md")).unwrap();
+        let w1_pos = content.find("warning: W1").unwrap();
+        let w2_pos = content.find("warning: W2").unwrap();
+        assert!(
+            w1_pos < w2_pos,
+            "same-severity findings must be sorted by code: W1@{w1_pos} W2@{w2_pos}"
+        );
     }
 
     #[test]
