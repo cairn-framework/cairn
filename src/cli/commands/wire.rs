@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: security-focused path validation tests require cohesion with the guarded functions
 //! `cairn init --wire` implementation: appends an idempotent cairn
 //! orientation reference to the project's agent instructions file.
 // Reason: child module imports re-exported public surface from parent via use super::*
