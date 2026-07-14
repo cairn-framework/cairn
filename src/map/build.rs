@@ -64,6 +64,7 @@ fn insert_node(
             node: Some(node.id.clone()),
             target: None,
             path: None,
+            deferred_by: None,
         });
         return;
     }
@@ -109,6 +110,7 @@ fn validate_edges(graph: &mut Graph, edges: &[Edge]) {
                 node: None,
                 target: None,
                 path: None,
+                deferred_by: None,
             });
             continue;
         }
@@ -145,7 +147,8 @@ fn validate_ids(graph: &mut Graph) {
                 node: Some(id.clone()),
                 target: None,
                 path: None,
-            });
+                        deferred_by: None,
+});
         }
     }
 }
@@ -171,6 +174,7 @@ fn validate_path_ties(graph: &mut Graph) {
                 node: None,
                 target: None,
                 path: Some(path),
+                deferred_by: None,
             });
         }
     }
@@ -186,6 +190,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
                 node: Some(contract.node.clone()),
                 target: None,
                 path: Some(contract.path.clone()),
+                deferred_by: None,
             });
         }
     }
@@ -204,6 +209,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
                     node: Some(node.id.clone()),
                     target: None,
                     path: Some(pointer.clone()),
+                    deferred_by: None,
                 });
             }
         }
@@ -464,6 +470,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         };
         let a = ast(vec![leaf("app.api")], vec![]);
         let g = build_graph(

@@ -376,6 +376,8 @@ mod tests {
             changes_dir: std::path::PathBuf::from("meta/changes"),
             command: "decisions".to_owned(),
             command_args: args.iter().map(|arg| (*arg).to_owned()).collect(),
+            verbose: false,
+            brief: false,
         }
     }
 

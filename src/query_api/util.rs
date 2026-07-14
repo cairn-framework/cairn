@@ -83,6 +83,7 @@ mod tests {
             node: None,
             target: None,
             path: path.map(std::convert::Into::into),
+            deferred_by: None,
         }
     }
 

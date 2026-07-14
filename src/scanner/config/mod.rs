@@ -192,6 +192,7 @@ fn parse_config(source: &str, config: &mut Config) {
                 node: None,
                 target: None,
                 path: Some("cairn.config.yaml".to_owned()),
+                deferred_by: None,
             });
         }
 

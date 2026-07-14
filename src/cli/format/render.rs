@@ -17,7 +17,7 @@ pub(crate) fn render_node(node: &NodeRecord, json: bool) -> String {
     }
 }
 
-pub(crate) fn render_findings(findings: &[Finding], json: bool) -> String {
+pub(crate) fn render_findings(findings: &[Finding], json: bool, verbose: bool) -> String {
     if json {
         if findings.is_empty() {
             return "{\"findings\":[]}\n".to_owned();
@@ -40,10 +40,22 @@ pub(crate) fn render_findings(findings: &[Finding], json: bool) -> String {
     } else if findings.is_empty() {
         format!(
             "Findings:\n{}\n",
-            super::super::copy::lookup("empty-states.cli-clean-map.body")
+            crate::copy::lookup("empty-states.cli-clean-map.body")
         )
     } else {
         let mut out = String::from("Findings:\n");
+        out.push_str(&render_finding_lines(findings, verbose));
+        out
+    }
+}
+
+/// Renders finding lines (without the `Findings:` header). When `verbose` is
+/// false, findings deferred by a decision collapse into a single summary line
+/// per decision; non-deferred findings always render in full. Verbose mode
+/// renders every finding in full regardless of deferral.
+pub(crate) fn render_finding_lines(findings: &[Finding], verbose: bool) -> String {
+    if verbose {
+        let mut out = String::new();
         for finding in findings {
             let _ = writeln!(
                 out,
@@ -51,8 +63,39 @@ pub(crate) fn render_findings(findings: &[Finding], json: bool) -> String {
                 finding.severity, finding.code, finding.message
             );
         }
-        out
+        return out;
     }
+    let mut counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    for finding in findings {
+        if let Some(dec) = &finding.deferred_by {
+            *counts.entry(dec.clone()).or_insert(0) += 1;
+        }
+    }
+    let mut out = String::new();
+    let mut emitted: std::collections::HashSet<String> = std::collections::HashSet::new();
+    for finding in findings {
+        match &finding.deferred_by {
+            Some(dec) => {
+                if emitted.insert(dec.clone()) {
+                    let count = *counts.get(dec).unwrap_or(&0);
+                    let noun = if count == 1 { "finding" } else { "findings" };
+                    let line = crate::copy::lookup("findings.deferred-collapsed")
+                        .replace("{count}", &count.to_string())
+                        .replace("{noun}", noun)
+                        .replace("{decision}", dec);
+                    let _ = writeln!(out, "{line}");
+                }
+            }
+            None => {
+                let _ = writeln!(
+                    out,
+                    "{:?}: {} {}",
+                    finding.severity, finding.code, finding.message
+                );
+            }
+        }
+    }
+    out
 }
 
 pub(crate) fn todo_line(todo: &Todo) -> String {
@@ -224,7 +267,7 @@ mod tests {
 
     #[test]
     fn test_render_findings_empty_json() {
-        assert_eq!(render_findings(&[], true), "{\"findings\":[]}\n");
+        assert_eq!(render_findings(&[], true, false), "{\"findings\":[]}\n");
     }
 
     #[test]
@@ -236,8 +279,9 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         };
-        let rendered = render_findings(&[finding], true);
+        let rendered = render_findings(&[finding], true, false);
         assert!(rendered.contains("\"code\":\"CAIRN_TEST\""));
         assert!(rendered.contains("\"severity\":\"error\""));
         assert!(rendered.contains("\"message\":\"bad\""));
@@ -252,8 +296,9 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         };
-        let rendered = render_findings(&[finding], false);
+        let rendered = render_findings(&[finding], false, false);
         assert!(rendered.starts_with("Findings:\n"));
         assert!(rendered.contains("Warning: CAIRN_TEST look out"));
     }

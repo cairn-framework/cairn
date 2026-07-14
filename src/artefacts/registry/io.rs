@@ -145,6 +145,7 @@ pub(super) fn error(
         node,
         target: None,
         path,
+        deferred_by: None,
     }
 }
 
@@ -161,6 +162,7 @@ pub(super) fn warning(
         node,
         target: None,
         path,
+        deferred_by: None,
     }
 }
 
@@ -181,6 +183,7 @@ pub(super) fn info(
         node,
         target: None,
         path,
+        deferred_by: None,
     }
 }
 

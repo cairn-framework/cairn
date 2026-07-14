@@ -20,7 +20,9 @@ pub(crate) fn run_gap_command(
     };
     let node = match scan_result.graph.resolve(node_arg) {
         Ok(node) => node,
-        Err(finding) => return findings_output(parsed.json, std::slice::from_ref(&finding)),
+        Err(finding) => {
+            return findings_output(parsed.json, parsed.verbose, std::slice::from_ref(&finding));
+        }
     };
     let question = format::flag_value(&parsed.command_args, "--question")
         .unwrap_or_default()
@@ -130,6 +132,8 @@ mod tests {
             changes_dir: PathBuf::from("meta/changes"),
             command: "gap".to_owned(),
             command_args: args.iter().map(|s| (*s).to_owned()).collect(),
+            verbose: false,
+            brief: false,
         }
     }
 

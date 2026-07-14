@@ -42,7 +42,8 @@ pub(crate) fn check_blueprint_change_decisions(
                 node: Some(node_id.to_owned()),
                 target: None,
                 path: None,
-            });
+                        deferred_by: None,
+});
         }
     };
 
@@ -101,6 +102,7 @@ pub(crate) fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactS
                 node: Some(node.id.clone()),
                 target: None,
                 path: None,
+                deferred_by: None,
             });
         }
     }
@@ -123,6 +125,7 @@ pub(crate) fn check_orphan_beads(graph: &mut Graph, root: &Path) {
                 node: Some(node.to_owned()),
                 target: None,
                 path: None,
+                deferred_by: None,
             });
         }
     }
@@ -155,7 +158,8 @@ pub(crate) fn check_claims(graph: &mut Graph, artefacts: &ArtefactSet, root: &Pa
                 node: Some(decision.nodes.first().cloned().unwrap_or_default()),
                 target: None,
                 path: Some(decision.path.clone()),
-            });
+                        deferred_by: None,
+});
             continue;
         };
         let claimed: BTreeSet<String> = claims.items.iter().cloned().collect();
@@ -181,7 +185,8 @@ pub(crate) fn check_claims(graph: &mut Graph, artefacts: &ArtefactSet, root: &Pa
                 node: Some(decision.nodes.first().cloned().unwrap_or_default()),
                 target: None,
                 path: Some(decision.path.clone()),
-            });
+                        deferred_by: None,
+});
         }
     }
 }
@@ -201,7 +206,8 @@ pub(crate) fn check_gitignored_paths(graph: &mut Graph, ast: &blueprint::Ast, ig
                     node: Some(node.id.clone()),
                     target: None,
                     path: Some(path.clone()),
-                });
+                                deferred_by: None,
+});
             }
         }
     };
@@ -242,7 +248,8 @@ pub(crate) fn check_contract_interface_drift(
                     node: Some(contract.node.clone()),
                     target: None,
                     path: Some(contract.path.clone()),
-                });
+                                deferred_by: None,
+});
             }
         }
     }

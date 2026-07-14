@@ -11,6 +11,7 @@ fn finding(severity: FindingSeverity, code: &str) -> Finding {
         node: None,
         target: None,
         path: None,
+        deferred_by: None,
     }
 }
 

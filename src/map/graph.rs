@@ -64,6 +64,10 @@ pub struct Finding {
     pub target: Option<String>,
     /// Optional file path.
     pub path: Option<String>,
+    /// Decision id this finding is deferred by, if any (set at the emission site).
+    /// Skipped in `--json` so the wire format is unchanged.
+    #[serde(skip)]
+    pub deferred_by: Option<String>,
 }
 
 /// Flattened node record.
@@ -161,6 +165,7 @@ impl Graph {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         })
     }
 
@@ -246,6 +251,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         };
         assert_eq!(f.to_string(), "CAIRN_TEST: something went wrong");
     }
@@ -268,6 +274,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         });
         assert!(!g.has_errors(), "warning alone must not count as error");
     }
@@ -282,6 +289,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         });
         assert!(g.has_errors());
     }

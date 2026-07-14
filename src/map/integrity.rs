@@ -39,6 +39,7 @@ pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
                                         node: Some(start.to_owned()),
                                         target: None,
                                         path: None,
+                                        deferred_by: None,
                                     }];
                                 }
                                 2 => {}
@@ -169,6 +170,7 @@ pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
                 node: stuck.first().map(|s| (*s).to_owned()),
                 target: None,
                 path: None,
+                deferred_by: None,
             }]);
         };
         ready.remove(next);

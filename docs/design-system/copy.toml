@@ -126,6 +126,7 @@ cta = "Run `cairn change new <change-id>` to propose one."
 # -- Findings -----------------------------------------------------------
 
 [findings]
+deferred-collapsed = "{count} deferred {noun} deferred by {decision}"
 
 [findings.severity]
 error = "Error: a blocking issue that must be resolved."
@@ -242,6 +243,12 @@ git-error = "unable to locate the Git hooks directory"
 
 # -- Decision scaffold --------------------------------------------------
 
+# -- Status (brief mode) --------------------------------------------------
+
+[status.brief]
+findings = "Findings: {total} ({errors} errors, {warnings} warnings, {info} info)"
+open-todos = "Open todos: {count}"
+todo-overflow = "(+{remaining} more)"
 [decision]
 usage = "usage: cairn decision new <slug> [--node <id>] [--informed-by <id>]"
 invalid-slug = "decision slug must be kebab-case: lowercase letters and digits separated by single hyphens"

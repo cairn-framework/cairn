@@ -98,6 +98,8 @@ fn parsed(json: bool) -> ParsedArgs {
         changes_dir: std::path::PathBuf::from("meta/changes"),
         command: "status".to_owned(),
         command_args: vec!["status".to_owned()],
+        verbose: false,
+        brief: false,
     }
 }
 

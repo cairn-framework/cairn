@@ -212,7 +212,8 @@ fn struct_literal_code_field_counts_as_emission() {
     let (_d, g) = run(
         "| R | spec:1 | `CAIRN_FOO` | enforced |\n",
         "src/check.rs",
-        "fn f() { push(Finding { code: \"CAIRN_FOO\".to_owned() }); }",
+        "fn f() { push(Finding { code: \"CAIRN_FOO\".to_owned(),         deferred_by: None,
+}); }",
     );
     assert!(g.findings.is_empty(), "{:?}", codes(&g));
 }

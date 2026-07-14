@@ -85,7 +85,15 @@ pub(crate) fn validate_spec_rule_coverage(graph: &mut Graph, root: &Path) {
                 rule.status.label()
             ),
         };
-        if let Some(dec) = &rule.deferred_by {
+        // A deferral only applies while the rule is still pending. Once a rule
+        // is enforced (emitter still missing) the deferral no longer applies:
+        // the finding resurfaces in full and must not be collapsed.
+        let deferred_by = if rule.status == Status::Pending {
+            rule.deferred_by.clone()
+        } else {
+            None
+        };
+        if let Some(dec) = &deferred_by {
             message.push_str(" (deferred by ");
             message.push_str(dec);
             message.push(')');
@@ -99,6 +107,7 @@ pub(crate) fn validate_spec_rule_coverage(graph: &mut Graph, root: &Path) {
             // rules sharing one spec anchor do not dedup-collapse.
             target: Some(format!("{} {}", rule.spec, rule.rule)),
             path: Some(REGISTRY.to_owned()),
+            deferred_by,
         });
     }
 }

@@ -91,6 +91,7 @@ fn load_member(project: &WorkspaceProject) -> Result<scanner::ScanResult, Findin
         node: None,
         target: None,
         path: Some(project.root.display().to_string()),
+        deferred_by: None,
     })
 }
 

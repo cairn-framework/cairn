@@ -61,6 +61,7 @@ pub fn architecture_findings(
                 node: Some(module.id.clone()),
                 target: None,
                 path: Some("cairn.blueprint".to_owned()),
+                deferred_by: None,
             });
         }
     }
@@ -78,6 +79,7 @@ pub fn architecture_findings(
                 node: Some(module.id.clone()),
                 target: None,
                 path: Some("cairn.blueprint".to_owned()),
+                deferred_by: None,
             });
         }
     }
@@ -102,7 +104,8 @@ pub fn architecture_findings(
                 node: Some(id.to_string()),
                 target: None,
                 path: Some("cairn.blueprint".to_owned()),
-            });
+                        deferred_by: None,
+});
         }
     }
 

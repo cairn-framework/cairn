@@ -43,6 +43,7 @@ pub(crate) fn validate_test_coverage(graph: &mut Graph, root: &Path) {
                 node: Some(node.id.clone()),
                 target: None,
                 path: Some(first_rust.clone()),
+                deferred_by: None,
             });
         }
     }

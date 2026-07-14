@@ -38,6 +38,7 @@ impl Reconciler for FixtureReconciler {
             node: Some("fixture.observation".to_owned()),
             target: None,
             path: None,
+            deferred_by: None,
         }];
 
         Ok(ReconcileReport {

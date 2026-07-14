@@ -1,7 +1,5 @@
 //! Hook report renderers.
 
-use std::fmt::Write;
-
 use crate::{
     hooks::{ExitDecision, HookKind, HookReport},
     map::graph::Finding,
@@ -9,7 +7,11 @@ use crate::{
 
 /// Renders a hook report as human-readable text.
 #[must_use]
-pub fn render_human(report: &HookReport) -> String {
+/// Renders a hook report for human consumption.
+///
+/// When `verbose` is false, decision-deferred findings collapse into a single
+/// summary line per decision. When true, every finding is rendered in full.
+pub(crate) fn render_human_verbose(report: &HookReport, verbose: bool) -> String {
     let mut output = format!(
         "Hook: {}\nDecision: {}\nElapsed: {}ms\n",
         hook_name(report.kind),
@@ -20,15 +22,16 @@ pub fn render_human(report: &HookReport) -> String {
         output.push_str("Findings:\nNone\n");
     } else {
         output.push_str("Findings:\n");
-        for finding in &report.findings {
-            let _ = writeln!(
-                output,
-                "{:?}: {} {}",
-                finding.severity, finding.code, finding.message
-            );
-        }
+        output.push_str(&crate::cli::render_finding_lines(&report.findings, verbose));
     }
     output
+}
+
+/// Renders a hook report for human consumption, collapsing deferred findings
+/// by default. Kept for the stable public API and existing unit tests.
+#[must_use]
+pub fn render_human(report: &HookReport) -> String {
+    render_human_verbose(report, false)
 }
 
 /// Renders a hook report as JSON.
@@ -115,6 +118,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         }
     }
 

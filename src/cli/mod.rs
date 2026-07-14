@@ -34,6 +34,7 @@ mod render;
 // across cli submodules resolve unchanged; the module itself lives at
 // `crate::copy` (shared with query_api, which also needs copy lookups).
 pub(crate) use crate::copy;
+pub(crate) use format::render_finding_lines;
 
 use commands::{
     init_project, legacy_blueprint_warning, preflight_wire_check, run_archive_command,
@@ -138,14 +139,12 @@ pub fn run(args: &[String]) -> CliResult {
                         // cairn.blueprint and meta/changes), not --file /
                         // --changes-dir overrides.
                         let legacy_warning = legacy_blueprint_warning(project_root);
-                        let archive_parsed = ParsedArgs {
-                            json: parsed.json,
-                            strict: parsed.strict,
-                            file: project_root.join("cairn.blueprint"),
-                            changes_dir: std::path::PathBuf::from("meta/changes"),
-                            command: "archive".to_owned(),
-                            command_args: vec!["archive".to_owned(), change_id.clone()],
-                        };
+                        let archive_parsed = delegated_archive_args(
+                            &parsed,
+                            project_root.join("cairn.blueprint"),
+                            std::path::PathBuf::from("meta/changes"),
+                            &change_id,
+                        );
                         let mut result =
                             run_archive_command(&archive_parsed, project_root, legacy_warning);
                         if result.code != 0 {
@@ -269,6 +268,7 @@ pub fn run(args: &[String]) -> CliResult {
                         node: None,
                         target: None,
                         path: None,
+                        deferred_by: None,
                     })
                 ));
             }
@@ -288,6 +288,7 @@ pub fn run(args: &[String]) -> CliResult {
                     node: None,
                     target: None,
                     path: None,
+                    deferred_by: None,
                 })
             ));
         }
@@ -361,14 +362,7 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
             }
             // render_show reads change id from command_args[1]; synthesise
             // a view of args as the old top-level `show <id>` shape.
-            let show_parsed = ParsedArgs {
-                json: parsed.json,
-                strict: parsed.strict,
-                file: parsed.file.clone(),
-                changes_dir: parsed.changes_dir.clone(),
-                command: "show".to_owned(),
-                command_args: vec!["show".to_owned(), id.to_owned()],
-            };
+            let show_parsed = delegated_show_args(parsed, id);
             match render_show(&show_parsed, project_root) {
                 Ok(stdout) => ok(stdout),
                 Err(finding) => error_output(parsed.json, &finding.code, &finding.message),
@@ -383,14 +377,8 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
             let legacy_warning = legacy_blueprint_warning(root);
             // archive reads change id from command_args[1]; synthesise
             // the old top-level `archive <id>` shape.
-            let archive_parsed = ParsedArgs {
-                json: parsed.json,
-                strict: parsed.strict,
-                file: parsed.file.clone(),
-                changes_dir: parsed.changes_dir.clone(),
-                command: "archive".to_owned(),
-                command_args: vec!["archive".to_owned(), id.to_owned()],
-            };
+            let archive_parsed =
+                delegated_archive_args(parsed, parsed.file.clone(), parsed.changes_dir.clone(), id);
             run_archive_command(&archive_parsed, root, legacy_warning)
         }
         _ => err(
@@ -399,9 +387,86 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
         ),
     }
 }
+
+fn delegated_archive_args(
+    parsed: &ParsedArgs,
+    file: std::path::PathBuf,
+    changes_dir: std::path::PathBuf,
+    id: &str,
+) -> ParsedArgs {
+    ParsedArgs {
+        json: parsed.json,
+        strict: parsed.strict,
+        file,
+        changes_dir,
+        command: "archive".to_owned(),
+        command_args: vec!["archive".to_owned(), id.to_owned()],
+        verbose: parsed.verbose,
+        brief: parsed.brief,
+    }
+}
+
+fn delegated_show_args(parsed: &ParsedArgs, id: &str) -> ParsedArgs {
+    ParsedArgs {
+        json: parsed.json,
+        strict: parsed.strict,
+        file: parsed.file.clone(),
+        changes_dir: parsed.changes_dir.clone(),
+        command: "show".to_owned(),
+        command_args: vec!["show".to_owned(), id.to_owned()],
+        verbose: parsed.verbose,
+        brief: parsed.brief,
+    }
+}
+
+#[cfg(test)]
+mod delegation_tests {
+    use super::*;
+    fn parent(verbose: bool, brief: bool) -> ParsedArgs {
+        ParsedArgs {
+            json: false,
+            strict: false,
+            verbose,
+            brief,
+            file: std::path::PathBuf::from("cairn.blueprint"),
+            changes_dir: std::path::PathBuf::from("meta/changes"),
+            command: "change".to_owned(),
+            command_args: vec!["change".to_owned()],
+        }
+    }
+    #[test]
+    fn delegated_archive_args_propagates_flags() {
+        let p = parent(true, true);
+        let a = delegated_archive_args(
+            &p,
+            std::path::PathBuf::from("f"),
+            std::path::PathBuf::from("c"),
+            "x",
+        );
+        assert!(a.verbose && a.brief && a.command == "archive");
+        let p2 = parent(false, false);
+        let a2 = delegated_archive_args(
+            &p2,
+            std::path::PathBuf::from("f"),
+            std::path::PathBuf::from("c"),
+            "x",
+        );
+        assert!(!a2.verbose && !a2.brief);
+    }
+    #[test]
+    fn delegated_show_args_propagates_flags() {
+        let p = parent(true, false);
+        let s = delegated_show_args(&p, "x");
+        assert!(s.verbose && !s.brief && s.command == "show");
+    }
+}
+// Reason: CLI parsing keeps independent output and validation mode flags together.
+#[allow(clippy::struct_excessive_bools)]
 struct ParsedArgs {
     json: bool,
     strict: bool,
+    verbose: bool,
+    brief: bool,
     file: PathBuf,
     changes_dir: PathBuf,
     command: String,
@@ -412,6 +477,8 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     let mut json = false;
 
     let mut strict = false;
+    let mut verbose = false;
+    let mut brief = false;
     let mut file = PathBuf::from("cairn.blueprint");
     let mut changes_dir = PathBuf::from("meta/changes");
     let mut command_args = Vec::new();
@@ -421,6 +488,8 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
         match arg.as_str() {
             "--json" => json = true,
             "--strict" => strict = true,
+            "--verbose" => verbose = true,
+            "--brief" => brief = true,
             "--file" => {
                 let Some(value) = iter.next() else {
                     return Err(err(2, "--file requires a path"));
@@ -443,6 +512,8 @@ fn parse_args(args: &[String]) -> Result<ParsedArgs, CliResult> {
     Ok(ParsedArgs {
         json,
         strict,
+        verbose,
+        brief,
         file,
         changes_dir,
         command: command.to_owned(),
@@ -509,7 +580,7 @@ fn run_project_command(parsed: &ParsedArgs) -> CliResult {
         Err(error) => return error_output(parsed.json, "CAIRN_COMMAND_FAILED", &error),
     };
     if requires_valid_map(parsed.command.as_str()) && scan_result.graph.has_errors() {
-        return findings_output(parsed.json, &scan_result.graph.findings);
+        return findings_output(parsed.json, parsed.verbose, &scan_result.graph.findings);
     }
     render_loaded_project_command(parsed, root, &scan_result, legacy_warning)
 }
@@ -573,7 +644,7 @@ fn render_loaded_project_command(
         }
         "order" => match query::order(&scan_result.graph) {
             Ok(response) => Ok(format!("Order:\n{}\n", lines(&response.nodes))),
-            Err(findings) => return findings_output(parsed.json, &findings),
+            Err(findings) => return findings_output(parsed.json, parsed.verbose, &findings),
         },
         "frontier" => match query::frontier(&scan_result.graph) {
             Ok(response) => {
@@ -600,7 +671,7 @@ fn render_loaded_project_command(
                 }
                 Ok(out)
             }
-            Err(findings) => return findings_output(parsed.json, &findings),
+            Err(findings) => return findings_output(parsed.json, parsed.verbose, &findings),
         },
         "deps" => render_dependencies(parsed, root),
         // Spine ops (webui-first): the human rendering is the pretty canonical
@@ -653,7 +724,7 @@ fn render_loaded_project_command(
                         findings.iter().map(finding_json).collect::<Vec<_>>().join(",")
                     )
                 } else {
-                    render_findings(&findings, false)
+                render_findings(&findings, false, parsed.verbose)
                 };
                 return CliResult {
                     code: u8::from(has_errors),
@@ -674,7 +745,7 @@ fn render_loaded_project_command(
             } else {
                 u8::from(has_error)
             };
-            let stdout = render_findings(&response.findings, parsed.json);
+            let stdout = render_findings(&response.findings, parsed.json, parsed.verbose);
             return CliResult {
                 code,
                 stdout,
@@ -684,7 +755,7 @@ fn render_loaded_project_command(
         other => return unknown_command_error(other),
     }
     .map_or_else(
-        |finding| finding_output(parsed.json, finding),
+        |finding| finding_output(parsed.json, parsed.verbose, finding),
         |stdout| CliResult {
             code: 0,
             stdout,

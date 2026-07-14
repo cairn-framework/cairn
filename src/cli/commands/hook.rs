@@ -36,7 +36,7 @@ pub(crate) fn run_hook_command(
         stdout: if parsed.json {
             hooks::render_json(&report)
         } else {
-            hooks::render_human(&report)
+            hooks::render_human_verbose(&report, parsed.verbose)
         },
         stderr: legacy_warning,
     }
@@ -302,6 +302,8 @@ mod tests {
             changes_dir: PathBuf::from("meta/changes"),
             command: "hook".to_owned(),
             command_args: args.into_iter().map(str::to_owned).collect(),
+            verbose: false,
+            brief: false,
         }
     }
 

@@ -11,6 +11,7 @@ pub(crate) fn node_arg(args: &[String]) -> Result<&str, Finding> {
         node: None,
         target: None,
         path: None,
+        deferred_by: None,
     })
 }
 
@@ -19,16 +20,16 @@ pub(crate) fn flag_value<'a>(args: &'a [String], flag: &str) -> Option<&'a str> 
         .find_map(|pair| (pair[0] == flag).then_some(pair[1].as_str()))
 }
 
-pub(crate) fn findings_output(json: bool, findings: &[Finding]) -> CliResult {
+pub(crate) fn findings_output(json: bool, verbose: bool, findings: &[Finding]) -> CliResult {
     CliResult {
         code: 1,
-        stdout: super::render::render_findings(findings, json),
+        stdout: super::render::render_findings(findings, json, verbose),
         stderr: String::new(),
     }
 }
 
-pub(crate) fn finding_output(json: bool, finding: Finding) -> CliResult {
-    findings_output(json, &[finding])
+pub(crate) fn finding_output(json: bool, verbose: bool, finding: Finding) -> CliResult {
+    findings_output(json, verbose, &[finding])
 }
 
 pub(crate) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
@@ -39,8 +40,9 @@ pub(crate) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
         node: None,
         target: None,
         path: None,
+        deferred_by: None,
     };
-    finding_output(json, finding)
+    finding_output(json, false, finding)
 }
 
 pub(crate) fn ok(stdout: String) -> CliResult {

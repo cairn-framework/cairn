@@ -153,6 +153,7 @@ fn reconcile_targets(
                 node: Some(target.id.node_id.clone()),
                 target: Some(target.id.as_str()),
                 path: Some(target.id.path.to_string_lossy().to_string()),
+                deferred_by: None,
             });
             reports.push(TargetReport {
                 target_id: target.id.clone(),
@@ -202,6 +203,7 @@ fn reconcile_targets(
                 node: Some(target.id.node_id.clone()),
                 target: Some(target.id.as_str()),
                 path: Some(target.id.path.to_string_lossy().to_string()),
+                deferred_by: None,
             });
             None
         } else {
@@ -326,6 +328,7 @@ fn detect_divergence(
                     node: Some(node_id.to_owned()),
                     target: Some(role.clone()),
                     path: None,
+                    deferred_by: None,
                 });
             } else {
                 findings.push(crate::map::graph::Finding {
@@ -338,7 +341,8 @@ fn detect_divergence(
                     node: Some(node_id.to_owned()),
                     target: Some(role.clone()),
                     path: None,
-                });
+                                deferred_by: None,
+});
             }
         }
     }
