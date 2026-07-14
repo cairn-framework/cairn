@@ -69,7 +69,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn sources <node>` | List sources linked to a node |
 | `cairn decision new <slug>` | Scaffold a new decision artefact |
 | `cairn todo new <slug> --node <id>` | Scaffold a new todo artefact |
-| `cairn todo set <slug> <open|in_progress|done|blocked>` | Set a todo's status via a surgical frontmatter edit (`dec.todo-write-surface`) |
+| `cairn todo set <slug> <open\|in_progress\|done\|blocked>` | Set a todo's status via a surgical frontmatter edit (`dec.todo-write-surface`) |
 | `cairn gap <node> --question "<text>"` | Log an unresolved question as a proposed decision artefact |
 
 ### Optional integrations
