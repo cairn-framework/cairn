@@ -64,7 +64,8 @@ consumer.
 - `cairn todo set <slug> <status>` is added per
   docs/skills/cairn-add-cli-command (dispatch, `--json`, command_reference tests),
   rewrites only the status field, and rejects invalid status with a clear error.
-  Body edit verb added or explicitly deferred.
+  Body-edit verb (`cairn todo edit`) explicitly deferred to a follow-up change;
+  `cairn todo set` covers status stewardship only (per dec.todo-write-surface).
 - The write path is structured so a backend projection can hook it without every
   caller re-parsing frontmatter; file-only remains the default.
 - All Rust gates pass; wire-format snapshots unchanged.

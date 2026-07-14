@@ -10,19 +10,15 @@ pub(super) fn parse_todo_status(
     path: &Path,
     set: &mut ArtefactSet,
 ) -> Option<TodoStatus> {
-    match value {
-        "open" => Some(TodoStatus::Open),
-        "in_progress" => Some(TodoStatus::InProgress),
-        "done" => Some(TodoStatus::Done),
-        "blocked" => Some(TodoStatus::Blocked),
-        _ => {
-            set.findings.push(error_finding(
-                "CAIRN_TODO_STATUS_INVALID",
-                format!("todo `{}` has invalid status `{value}`", path.display()),
-                Some(path_string(path)),
-            ));
-            None
-        }
+    if let Some(status) = TodoStatus::from_cli(value) {
+        Some(status)
+    } else {
+        set.findings.push(error_finding(
+            "CAIRN_TODO_STATUS_INVALID",
+            format!("todo `{}` has invalid status `{value}`", path.display()),
+            Some(path_string(path)),
+        ));
+        None
     }
 }
 
