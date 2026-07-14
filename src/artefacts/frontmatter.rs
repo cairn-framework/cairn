@@ -115,27 +115,45 @@ fn clean_scalar(value: &str) -> String {
         .to_owned()
 }
 
+/// Failure modes of [`set_field`], surfaced to the user with distinct messages.
+#[derive(Debug, PartialEq)]
+pub enum SetFieldError {
+    /// The document has no valid frontmatter fence: either it does not open
+    /// with `---`, or no closing `---` appears before EOF.
+    NoFrontmatter,
+    /// A valid frontmatter block exists, but it contains no top-level `key`.
+    KeyNotFound,
+}
+
 /// Returns `source` with the frontmatter field `key` set to `value`, leaving
 /// every other byte (ordering, indentation, body, and line endings) untouched.
 ///
 /// Requires the document to open with a `---` fence; the closing `---` fence is
 /// the next one. Within that block it replaces the value on the line whose key
 /// (the text before the first `:`) is exactly `key` and which is top-level
-/// (not indented). Returns `None` when the document is not a valid frontmatter
-/// block, the key is absent, or only a nested (indented) key exists. Lines are
-/// rejoined with `\n`, so the edit is byte-for-byte identical for both LF and
-/// CRLF inputs except for the single changed value: a CRLF target line keeps its
+/// (not indented).
+///
+/// On success the edited string is byte-for-byte identical for both LF and CRLF
+/// inputs except for the single changed value: a CRLF target line keeps its
 /// trailing `\r`, and every other line keeps its original ending.
-#[must_use]
-pub fn set_field(source: &str, key: &str, value: &str) -> Option<String> {
+///
+/// # Errors
+///
+/// Returns `Err(NoFrontmatter)` when the document is not a valid frontmatter
+/// block (no opening fence, or no closing fence before EOF), and
+/// `Err(KeyNotFound)` when a valid frontmatter block exists but contains no
+/// top-level `key` (a nested/indented key does not count).
+pub fn set_field(source: &str, key: &str, value: &str) -> Result<String, SetFieldError> {
     let lines: Vec<&str> = source.split('\n').collect();
     let is_fence = |l: &&str| l.strip_suffix('\r').unwrap_or(*l) == "---";
     if !lines.first().is_some_and(is_fence) {
-        return None;
+        return Err(SetFieldError::NoFrontmatter);
     }
     let open = 0;
-    let close = lines[open + 1..].iter().position(is_fence)?;
-    let close = open + 1 + close;
+    let close = match lines[open + 1..].iter().position(is_fence) {
+        Some(c) => open + 1 + c,
+        None => return Err(SetFieldError::NoFrontmatter),
+    };
     let mut target: Option<usize> = None;
     for (i, line) in lines[open + 1..close].iter().enumerate() {
         let stripped = line.strip_suffix('\r').unwrap_or(*line);
@@ -150,7 +168,9 @@ pub fn set_field(source: &str, key: &str, value: &str) -> Option<String> {
             break;
         }
     }
-    let target = target?;
+    let Some(target) = target else {
+        return Err(SetFieldError::KeyNotFound);
+    };
     let target_line = lines[target];
     let indent = target_line.len() - target_line.trim_start().len();
     let mut new_line = format!("{}{key}: {value}", &target_line[..indent]);
@@ -165,5 +185,5 @@ pub fn set_field(source: &str, key: &str, value: &str) -> Option<String> {
             out.push(line);
         }
     }
-    Some(out.join("\n"))
+    Ok(out.join("\n"))
 }

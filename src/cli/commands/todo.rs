@@ -3,7 +3,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::decision::{flag_values, is_kebab_slug, title_from_slug, today_utc, write_new_artefact};
-use crate::artefacts::frontmatter::set_field;
+use crate::artefacts::frontmatter::{SetFieldError, set_field};
 use crate::artefacts::registry::types::TodoStatus;
 use std::fs;
 
@@ -90,11 +90,20 @@ fn run_todo_set(root: &Path, slug: &str, status: &str, json: bool) -> CliResult 
             );
         }
     };
-    let Some(updated) = set_field(&source, "status", token) else {
-        return err(
-            1,
-            &copy::lookup("todo.missing-status-field").replace("{slug}", slug),
-        );
+    let updated = match set_field(&source, "status", token) {
+        Ok(s) => s,
+        Err(SetFieldError::NoFrontmatter) => {
+            return err(
+                1,
+                &copy::lookup("todo.malformed-frontmatter").replace("{slug}", slug),
+            );
+        }
+        Err(SetFieldError::KeyNotFound) => {
+            return err(
+                1,
+                &copy::lookup("todo.missing-status-field").replace("{slug}", slug),
+            );
+        }
     };
     if let Err(e) = fs::write(&path, &updated) {
         return err(
@@ -259,12 +268,18 @@ mod tests {
     #[test]
     fn test_set_field_requires_leading_fence() {
         // A body with thematic breaks but no leading frontmatter must be left
-        // untouched (return None) so we never mutate a non-frontmatter region.
+        // untouched (return Err) so we never mutate a non-frontmatter region.
         let body = "# Title\n\n---\nstatus: open\n---\n";
-        assert_eq!(set_field(body, "status", "done"), None);
-        // A proper frontmatter block without the key returns None too.
+        assert_eq!(
+            set_field(body, "status", "done"),
+            Err(SetFieldError::NoFrontmatter)
+        );
+        // A proper frontmatter block without the key returns Err(KeyNotFound).
         let fm = "---\nnode: x\n---\nbody\n";
-        assert_eq!(set_field(fm, "status", "done"), None);
+        assert_eq!(
+            set_field(fm, "status", "done"),
+            Err(SetFieldError::KeyNotFound)
+        );
     }
 
     #[test]
@@ -323,9 +338,12 @@ mod tests {
     #[test]
     fn test_set_field_ignores_nested_status() {
         // A nested (indented) status under a map key with NO top-level status
-        // field must return None, never rewrite the nested line.
+        // field must return Err(KeyNotFound), never rewrite the nested line.
         let fm = "---\nnode: x\nmap:\n  status: open\n---\nbody\n";
-        assert_eq!(set_field(fm, "status", "done"), None);
+        assert_eq!(
+            set_field(fm, "status", "done"),
+            Err(SetFieldError::KeyNotFound)
+        );
     }
 
     #[test]
@@ -379,6 +397,39 @@ mod tests {
         assert!(
             after.contains("Body with status: open inline."),
             "body must be untouched:\n{after}"
+        );
+    }
+    #[test]
+    fn test_set_field_no_closing_fence() {
+        // An opening fence with no closing fence is malformed frontmatter.
+        let bad = "---\nnode: x\nstatus: open\nbody without close\n";
+        assert_eq!(
+            set_field(bad, "status", "done"),
+            Err(SetFieldError::NoFrontmatter)
+        );
+    }
+
+    #[test]
+    fn test_run_todo_set_malformed_frontmatter_errors() {
+        let tmp = tempdir().unwrap();
+        let root = tmp.path();
+        let dir = root.join("meta/todos");
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("todo.broken.md");
+        // Opening fence present, but no closing fence -> malformed frontmatter.
+        let content = "---\nnode: cairn.kernel.cli\nstatus: open\nbody has no closing fence\n";
+        fs::write(&path, content).unwrap();
+        let res = run_todo_set(root, "broken", "done", false);
+        assert_eq!(res.code, 1, "malformed frontmatter must error");
+        assert!(
+            res.stderr.to_lowercase().contains("frontmatter"),
+            "unexpected: {}",
+            res.stderr
+        );
+        let after = fs::read_to_string(&path).unwrap();
+        assert_eq!(
+            after, content,
+            "file must be unchanged on malformed frontmatter"
         );
     }
 }
