@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-12
 ---
 
@@ -43,3 +43,5 @@ recommendations with a one-word blocked reason each.
   `docs/design-system/copy.toml` per the loop convention.
 
 Informed by: res.loop-efficiency-observations
+
+Landed: PR #320 (squash d476383).
