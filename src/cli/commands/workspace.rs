@@ -100,7 +100,7 @@ fn render_workspace_lint(parsed: &ParsedArgs, workspace: &Workspace) -> CliResul
     };
     CliResult {
         code,
-        stdout: render_findings(&findings, parsed.json),
+        stdout: render_findings(&findings, parsed.json, parsed.verbose),
         stderr: String::new(),
     }
 }
@@ -191,6 +191,8 @@ mod tests {
             changes_dir: PathBuf::from("meta/changes"),
             command: "workspace".to_owned(),
             command_args: args.iter().map(|s| (*s).to_owned()).collect(),
+            verbose: false,
+            brief: false,
         }
     }
 

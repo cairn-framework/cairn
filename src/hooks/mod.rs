@@ -10,6 +10,7 @@ use std::{
 mod architecture;
 mod render;
 
+pub(crate) use render::render_human_verbose;
 pub use render::{render_human, render_json};
 
 use crate::{
@@ -209,6 +210,7 @@ fn interface_findings(root: &Path, current: &scanner::state::TargetHashes) -> Ve
             node: None,
             target: None,
             path: Some(path_string(&state_path)),
+            deferred_by: None,
         }]
     }
 }
@@ -443,6 +445,7 @@ fn detect_duplicate_targets<'a>(
             node: None,
             target: None,
             path: Some(path_string(&changes[0].path)),
+            deferred_by: None,
         });
     }
 }

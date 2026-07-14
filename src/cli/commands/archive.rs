@@ -16,7 +16,7 @@ pub(crate) fn run_archive_command(
     if !conflict_findings.is_empty() {
         return CliResult {
             code: 1,
-            stdout: render_findings(&conflict_findings, parsed.json),
+            stdout: render_findings(&conflict_findings, parsed.json, parsed.verbose),
             stderr: legacy_warning,
         };
     }

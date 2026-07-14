@@ -131,6 +131,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         };
         let json = finding_json(&finding);
         assert!(json.contains("\"code\":\"CAIRN_TEST\\\"\""));

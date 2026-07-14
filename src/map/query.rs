@@ -966,6 +966,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         });
         let resp = lint(&g);
         assert!(

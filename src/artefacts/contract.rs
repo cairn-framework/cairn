@@ -57,6 +57,7 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                         node: Some(node_id.clone()),
                         target: None,
                         path: Some(pointer.clone()),
+                        deferred_by: None,
                     });
                     continue;
                 };
@@ -70,6 +71,7 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                         node: Some(contract_node.clone()),
                         target: None,
                         path: Some(pointer.clone()),
+                        deferred_by: None,
                     });
                 }
                 if contract_node != node_id {
@@ -83,7 +85,8 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                         node: Some(node_id.clone()),
                         target: None,
                         path: Some(pointer.clone()),
-                    });
+                                        deferred_by: None,
+});
                 }
                 set.contracts.insert(
                     pointer.clone(),
@@ -104,6 +107,7 @@ pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet {
                 node: Some(node_id),
                 target: None,
                 path: Some(pointer),
+                deferred_by: None,
             }),
         }
     }

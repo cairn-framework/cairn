@@ -212,6 +212,7 @@ fn discover_source_files(
                 node: None,
                 target: None,
                 path: Some(rel.into_owned()),
+                deferred_by: None,
             });
         }
     }

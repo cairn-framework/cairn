@@ -228,6 +228,7 @@ fn test_build_request_filters_interface_findings() {
         node: Some("app.auth".to_owned()),
         target: None,
         path: None,
+        deferred_by: None,
     });
     graph.findings.push(Finding {
         code: "CT002".to_owned(),
@@ -236,6 +237,7 @@ fn test_build_request_filters_interface_findings() {
         node: Some("app.db".to_owned()),
         target: None,
         path: None,
+        deferred_by: None,
     });
 
     let config = Config::default();

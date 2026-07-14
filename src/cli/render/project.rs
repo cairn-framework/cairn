@@ -110,6 +110,62 @@ pub(crate) fn render_backlog(
     })
 }
 
+fn render_status_brief(
+    scan_result: &scanner::ScanResult,
+    root: &Path,
+    open: &[Todo],
+    next_recommended: Option<&str>,
+) -> String {
+    let total = scan_error_count(scan_result)
+        + scan_warning_count(scan_result)
+        + scan_info_count(scan_result);
+    let findings_line = crate::copy::lookup("status.brief.findings")
+        .replace("{total}", &total.to_string())
+        .replace("{errors}", &scan_error_count(scan_result).to_string())
+        .replace("{warnings}", &scan_warning_count(scan_result).to_string())
+        .replace("{info}", &scan_info_count(scan_result).to_string());
+    let mut out = String::from("Status:\n");
+    out.push_str(&findings_line);
+    out.push('\n');
+    out.push_str(
+        &crate::copy::lookup("status.brief.open-todos").replace("{count}", &open.len().to_string()),
+    );
+    out.push('\n');
+    for todo in open.iter().take(5) {
+        out.push_str(&super::super::format::todo_line(todo));
+        out.push('\n');
+    }
+    let remaining = open.len().saturating_sub(5);
+    out.push_str(
+        &crate::copy::lookup("status.brief.todo-overflow")
+            .replace("{remaining}", &remaining.to_string()),
+    );
+    out.push('\n');
+    out.push_str("Recent log entries:\n");
+    let brief_log = fs::read_to_string(root.join(".cairn/log.md"))
+        .map(|content| {
+            let mut seen = std::collections::HashSet::new();
+            content
+                .lines()
+                .rev()
+                .filter(|line| !line.trim().is_empty())
+                .filter(|line| seen.insert(line.to_string()))
+                .take(5)
+                .map(str::to_string)
+                .collect::<Vec<String>>()
+        })
+        .unwrap_or_default();
+    if brief_log.is_empty() {
+        out.push_str("None\n");
+    } else {
+        out.push_str(&brief_log.join("\n"));
+        out.push('\n');
+    }
+    out.push_str("Next recommended:\n");
+    out.push_str(next_recommended.unwrap_or("None"));
+    out
+}
+
 pub(crate) fn render_status(
     parsed: &ParsedArgs,
     scan_result: &scanner::ScanResult,
@@ -158,6 +214,8 @@ pub(crate) fn render_status(
                 .as_deref()
                 .map_or_else(|| "null".to_owned(), |value| format!("\"{}\"", esc(value)))
         )
+    } else if parsed.brief {
+        render_status_brief(scan_result, root, &open, next_recommended.as_deref())
     } else {
         let active_changes =
             crate::changes::discover(root, &root.join(&parsed.changes_dir)).unwrap_or_default();

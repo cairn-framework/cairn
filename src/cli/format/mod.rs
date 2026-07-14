@@ -8,7 +8,8 @@ mod util;
 
 pub(crate) use json::{decisions_json, finding_json, string_array_json, todos_json};
 pub(crate) use render::{
-    decision_line, render_findings, render_node, research_line, review_line, todo_line,
+    decision_line, render_finding_lines, render_findings, render_node, research_line, review_line,
+    todo_line,
 };
 pub(crate) use util::{
     err, error_output, esc, finding_output, findings_output, flag_value, lines, node_arg, ok,

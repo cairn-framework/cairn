@@ -248,6 +248,7 @@ mod tests {
             node: None,
             target: None,
             path: Some(path.to_owned()),
+            deferred_by: None,
         }
     }
 
@@ -419,6 +420,7 @@ mod tests {
                 node: None,
                 target: None,
                 path: Some("src/other/file.rs".to_owned()),
+                deferred_by: None,
             },
         ];
         let report = analyze(&findings);

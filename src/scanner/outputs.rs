@@ -181,6 +181,7 @@ mod tests {
             node: None,
             target: None,
             path: None,
+            deferred_by: None,
         }
     }
 
@@ -225,6 +226,7 @@ mod tests {
             node: None,
             target: None,
             path: Some("src/stray.rs".to_owned()),
+            deferred_by: None,
         });
         graph.findings.push(Finding {
             code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
@@ -233,6 +235,7 @@ mod tests {
             node: None,
             target: None,
             path: Some("src/another.rs".to_owned()),
+            deferred_by: None,
         });
 
         write_map(tmp.path(), &graph).unwrap();

@@ -41,6 +41,7 @@ pub(crate) fn render_show(parsed: &ParsedArgs, root: &Path) -> Result<String, Fi
         node: None,
         target: None,
         path: None,
+        deferred_by: None,
     })?;
     let request = QueryRequest {
         tool: "show".to_owned(),
@@ -115,6 +116,8 @@ mod tests {
             changes_dir: std::path::PathBuf::from("meta/changes"),
             command: "show".to_owned(),
             command_args: args.iter().map(|arg| (*arg).to_owned()).collect(),
+            verbose: false,
+            brief: false,
         }
     }
 
