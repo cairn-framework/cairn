@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-11
 related: [dec.todo-write-surface, dec.native-todos-first, dec.bead-github-sync, todo.github-todo-sync]
 ---
