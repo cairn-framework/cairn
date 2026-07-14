@@ -257,6 +257,13 @@ invalid-slug = "todo slug must be kebab-case: lowercase letters and digits separ
 missing-node = "cairn todo new requires exactly one --node <id>"
 exists = "a todo already exists at meta/todos/todo.{slug}.md"
 created = "created meta/todos/todo.{slug}.md; fill in the task, then run `cairn scan`"
+set-usage = "usage: cairn todo set <slug> <open|in_progress|done|blocked>"
+invalid-status = "todo status must be one of open|in_progress|done|blocked (got `{status}`)"
+not-found = "no todo found at meta/todos/todo.{slug}.md"
+missing-status-field = "todo at meta/todos/todo.{slug}.md has no `status:` field to update"
+set-success = "set meta/todos/todo.{slug}.md status -> {status}"
+io-read-error = "failed to read {path}: {error}"
+io-write-error = "failed to write {path}: {error}"
 
 
 # -- Brief (fused next-unit orientation) --------------------------------

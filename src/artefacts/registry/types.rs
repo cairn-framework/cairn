@@ -35,6 +35,31 @@ pub enum TodoStatus {
     Blocked,
 }
 
+impl TodoStatus {
+    /// Parses a CLI status token into a [`TodoStatus`].
+    #[must_use]
+    pub fn from_cli(value: &str) -> Option<Self> {
+        match value {
+            "open" => Some(Self::Open),
+            "in_progress" => Some(Self::InProgress),
+            "done" => Some(Self::Done),
+            "blocked" => Some(Self::Blocked),
+            _ => None,
+        }
+    }
+
+    /// Canonical on-disk / CLI token for this status.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Open => "open",
+            Self::InProgress => "in_progress",
+            Self::Done => "done",
+            Self::Blocked => "blocked",
+        }
+    }
+}
+
 /// Parsed todo.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Todo {

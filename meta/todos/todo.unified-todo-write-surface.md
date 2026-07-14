@@ -2,7 +2,7 @@
 node: cairn.kernel.cli
 status: open
 created: 2026-07-11
-related: [dec.native-todos-first, dec.bead-github-sync, todo.github-todo-sync]
+related: [dec.todo-write-surface, dec.native-todos-first, dec.bead-github-sync, todo.github-todo-sync]
 ---
 
 # Unified todo write surface: one command to create, edit, and set status
@@ -22,18 +22,17 @@ format. This is the same pattern the change path already uses: with
 `config.state_backend=='beads'`, `cairn change new` writes `tasks.md` and mints
 beads from it in one write.
 
-## Blocker: this revisits a ratified decision
+## Blocker: resolved by dec.todo-write-surface (2026-07-13)
 
 `dec.native-todos-first` ruling 2 deliberately shipped `cairn todo new` with
-**no claim verb and no close verb**, on the principle that "validating or
-applying declared state is cairn's job, creating/claiming/sequencing work items
-is workflow and **cairn does not do workflow**." A `cairn todo set` verb reverses
-that ruling. This todo therefore requires a **decision artefact first**
-(`cairn gap` or `cairn decision new`) that the owner ratifies, re-drawing the
-line between "cairn does not do workflow" and "cairn owns the one write surface
-for its own declared state." Do not implement before that decision is accepted.
+**no claim verb and no close verb**, on the principle that "cairn does not do
+workflow." Revisiting that ruling required a decision artefact first.
+`dec.todo-write-surface` (accepted 2026-07-13, ratification delegated by the
+owner) re-draws the line from "no mutation verbs" to "no coordination verbs":
+`cairn todo set` is sanctioned state stewardship; claim/assign verbs remain
+out of scope. This todo is buildable.
 
-## Proposed direction (subject to the decision)
+## Proposed direction
 
 - `cairn todo set <slug> <status>` validates the status enum and rewrites only
   the frontmatter field, leaving the body untouched. Files stay canonical; git
@@ -60,12 +59,13 @@ consumer.
 
 ## Acceptance
 
-- A decision artefact revisiting `dec.native-todos-first` ruling 2 is written and
-  ratified by the owner before any code.
-- If ratified: `cairn todo set <slug> <status>` is added per
+- ~~A decision artefact revisiting `dec.native-todos-first` ruling 2 is written
+  and ratified~~ Done: `dec.todo-write-surface` (accepted 2026-07-13).
+- `cairn todo set <slug> <status>` is added per
   docs/skills/cairn-add-cli-command (dispatch, `--json`, command_reference tests),
   rewrites only the status field, and rejects invalid status with a clear error.
-  Body edit verb added or explicitly deferred.
+  Body-edit verb (`cairn todo edit`) explicitly deferred to a follow-up change;
+  `cairn todo set` covers status stewardship only (per dec.todo-write-surface).
 - The write path is structured so a backend projection can hook it without every
   caller re-parsing frontmatter; file-only remains the default.
 - All Rust gates pass; wire-format snapshots unchanged.

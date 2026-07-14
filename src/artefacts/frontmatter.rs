@@ -114,3 +114,56 @@ fn clean_scalar(value: &str) -> String {
         .trim_matches('\'')
         .to_owned()
 }
+
+/// Returns `source` with the frontmatter field `key` set to `value`, leaving
+/// every other byte (ordering, indentation, body, and line endings) untouched.
+///
+/// Requires the document to open with a `---` fence; the closing `---` fence is
+/// the next one. Within that block it replaces the value on the line whose key
+/// (the text before the first `:`) is exactly `key` and which is top-level
+/// (not indented). Returns `None` when the document is not a valid frontmatter
+/// block, the key is absent, or only a nested (indented) key exists. Lines are
+/// rejoined with `\n`, so the edit is byte-for-byte identical for both LF and
+/// CRLF inputs except for the single changed value: a CRLF target line keeps its
+/// trailing `\r`, and every other line keeps its original ending.
+#[must_use]
+pub fn set_field(source: &str, key: &str, value: &str) -> Option<String> {
+    let lines: Vec<&str> = source.split('\n').collect();
+    let is_fence = |l: &&str| l.strip_suffix('\r').unwrap_or(*l) == "---";
+    if !lines.first().is_some_and(is_fence) {
+        return None;
+    }
+    let open = 0;
+    let close = lines[open + 1..].iter().position(is_fence)?;
+    let close = open + 1 + close;
+    let mut target: Option<usize> = None;
+    for (i, line) in lines[open + 1..close].iter().enumerate() {
+        let stripped = line.strip_suffix('\r').unwrap_or(*line);
+        if stripped.starts_with(char::is_whitespace) {
+            continue; // only top-level keys are eligible
+        }
+        let Some((k, _)) = stripped.split_once(':') else {
+            continue;
+        };
+        if k == key {
+            target = Some(open + 1 + i);
+            break;
+        }
+    }
+    let target = target?;
+    let target_line = lines[target];
+    let indent = target_line.len() - target_line.trim_start().len();
+    let mut new_line = format!("{}{key}: {value}", &target_line[..indent]);
+    if target_line.ends_with('\r') {
+        new_line.push('\r');
+    }
+    let mut out: Vec<&str> = Vec::with_capacity(lines.len());
+    for (i, line) in lines.iter().enumerate() {
+        if i == target {
+            out.push(new_line.as_str());
+        } else {
+            out.push(line);
+        }
+    }
+    Some(out.join("\n"))
+}

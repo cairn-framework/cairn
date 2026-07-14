@@ -85,7 +85,7 @@ This repo's own development uses cairn's native Todo artefact (`docs/spec.md`
 §8.2, "Todo (authority)"), the same mechanism a fresh `cairn init` user gets.
 Add work with `cairn todo new <slug> --node <id>`, which scaffolds
 `meta/todos/todo.<slug>.md`; there is no separate claim/close verb, status
-changes (`open`, `in_progress`, `done`, `blocked`) are plain file edits.
+changes (`open`, `in_progress`, `done`, `blocked`) go through the sanctioned write verb `cairn todo set <slug> <status>` (surgical frontmatter edit; `dec.todo-write-surface`), not ad-hoc file edits.
 Inspect with `cairn todos <node>` or `cairn status`.
 
 Projects that separately run beads (`bd`) get a read-only, per-node view
