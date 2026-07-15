@@ -28,6 +28,7 @@ mod accept;
 mod commands;
 pub mod export;
 mod format;
+mod help;
 mod render;
 
 // Re-exported so existing `super::copy::`/`crate::cli::copy::` call sites
@@ -82,8 +83,19 @@ pub fn run(args: &[String]) -> CliResult {
     if args == ["--version"] {
         return ok(format!("{}\n", version_label()));
     }
-    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
+    if args.is_empty() {
         return ok(help_text());
+    }
+    if let Some(target) = help::help_request(args) {
+        match target {
+            help::HelpTarget::Global => return ok(help_text()),
+            help::HelpTarget::Command(name) => {
+                if let Some(page) = help::command_help_text(name) {
+                    return ok(page);
+                }
+                return unknown_command_error(name);
+            }
+        }
     }
     let parsed = match parse_args(args) {
         Ok(parsed) => parsed,
@@ -836,7 +848,7 @@ const MCP_ONLY_TOOLS: &[&str] = &["init_from_code"];
 
 /// Top-level spellings retired under `cairn change <sub>`; kept out of
 /// CLI help but retained on the wire.
-const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
+pub(crate) const RETIRED_TOP_LEVEL: &[&str] = &["accept", "archive", "changes", "show"];
 
 /// Returns all command names the CLI recognises: every non-compound,
 /// non-MCP-only, non-retired registry tool plus the CLI-only table.
@@ -867,7 +879,7 @@ pub fn all_command_names() -> Vec<&'static str> {
 /// the CLI-only table otherwise. The registry is the single source of truth,
 /// so adding a registry operation makes it appear in CLI help with no
 /// hand-maintained list edit.
-fn command_description(name: &str) -> &'static str {
+pub(crate) fn command_description(name: &str) -> &'static str {
     if let Some(tool) = registry().iter().find(|t| t.cli_name == name) {
         return tool.description;
     }
@@ -1699,7 +1711,20 @@ app.api -> app.core "reports"
     fn test_help_flag_with_other_args() {
         let result = run(&["scan".to_owned(), "--help".to_owned()]);
         assert_eq!(result.code, 0, "--help with command should still show help");
-        assert!(result.stdout.contains("Commands:"));
+        // Per-command help: command-specific usage, not the global catalogue.
+        assert!(
+            result.stdout.contains("Usage:") && result.stdout.contains("scan"),
+            "expected per-command scan help, got:
+{}",
+            result.stdout
+        );
+        assert!(
+            !result.stdout.contains(
+                "Commands:
+  backlog"
+            ),
+            "scan --help must not fall back to the global command list"
+        );
     }
 
     #[test]
