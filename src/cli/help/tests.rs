@@ -311,6 +311,10 @@ fn refine_help_does_not_list_json() {
         !text.contains("--json"),
         "refine ignores --json (plain text only):\n{text}"
     );
+    assert!(
+        text.contains("--file"),
+        "refine uses project_root from --file:\n{text}"
+    );
 }
 
 #[test]
@@ -319,6 +323,10 @@ fn change_new_help_does_not_list_json() {
     assert!(
         !text.contains("--json"),
         "change new ignores --json:\n{text}"
+    );
+    assert!(
+        text.contains("--file"),
+        "change new writes under project_root from --file:\n{text}"
     );
 }
 
@@ -367,4 +375,50 @@ fn init_help_lists_json_and_file() {
     for flag in ["--from-code", "--apply", "--wire", "--force"] {
         assert!(text.contains(flag), "init help missing {flag}:\n{text}");
     }
+}
+
+#[test]
+fn change_list_help_lists_changes_dir() {
+    let text = command_help_text("change list").expect("change list help");
+    assert!(text.contains("--changes-dir"), "{text}");
+    assert!(text.contains("--file"), "{text}");
+    assert!(text.contains("--json"), "{text}");
+}
+
+#[test]
+fn draft_accept_help_lists_file_and_edited() {
+    let text = command_help_text("draft accept").expect("draft accept help");
+    assert!(text.contains("--edited"), "{text}");
+    assert!(text.contains("--file"), "{text}");
+    assert!(text.contains("--changes-dir"), "{text}");
+}
+
+#[test]
+fn ui_help_lists_file() {
+    let text = command_help_text("ui").expect("ui help");
+    assert!(
+        text.contains("--file"),
+        "ui uses parsed.file as blueprint_path:\n{text}"
+    );
+    assert!(text.contains("--port"), "{text}");
+}
+
+#[test]
+fn workspace_lint_help_lists_file() {
+    let text = command_help_text("workspace lint").expect("workspace lint help");
+    assert!(
+        text.contains("--file"),
+        "workspace root from --file parent:\n{text}"
+    );
+    assert!(text.contains("--strict"), "{text}");
+}
+
+#[test]
+fn hook_install_help_lists_file() {
+    // Lifecycle hooks receive root from parsed.file.parent() (mod.rs run path
+    // + hook.rs:49). Advertise --file alongside --pre-push.
+    let text = command_help_text("hook install").expect("hook install help");
+    assert!(text.contains("--file"), "{text}");
+    assert!(text.contains("--pre-push"), "{text}");
+    assert!(text.contains("--json"), "{text}");
 }
