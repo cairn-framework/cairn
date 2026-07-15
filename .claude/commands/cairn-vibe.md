@@ -25,24 +25,49 @@ for ghost-node / architecture pressure only; it is not the todo source.
 
 **Setup**
 
-Cairn must reflect current source. Build and put it on PATH first:
+Cairn must reflect current source. Do all director build and query work in a
+dedicated director worktree, never the main checkout. Running `cairn scan` or a
+build in the main checkout rewrites the tracked, committed `map.json` snapshot
+and dirties it. Create the worktree first. Each tool call is independent: the
+cwd and environment do not carry across calls. A lone `cd` or `export PATH`
+does not affect the next call, so bind every director command to its concrete
+path in the same call.
+
+Pick and record a unique concrete director worktree path, never a fixed shared
+name. This example uses `/tmp/cairn-director-1699999999`; substitute a unique
+suffix and reuse that exact literal in every Setup/Orient command and at
+teardown.
+
+(`<main-checkout>` is the path to your primary clone, e.g. the repo root;
+substitute the real path in every command.)
 
 ```bash
-cargo build --release
-export PATH="$PWD/target/release:$PATH"
+git -C <main-checkout> fetch origin
+git -C <main-checkout> worktree add --detach /tmp/cairn-director-1699999999 origin/main
+( cd /tmp/cairn-director-1699999999 && cargo build --release )
 ```
+
+Use `/tmp/cairn-director-1699999999` only for Setup and Orient. Run every
+Setup/Orient cairn command via
+`/tmp/cairn-director-1699999999/target/release/cairn <args>` (or `cd
+/tmp/cairn-director-1699999999 && ./target/release/cairn <args>` in each call).
+Do not rely on an exported PATH, a persisted cwd, or a `$DIRECTOR_WT` variable
+across calls.
 
 **Roles (RACI)**
 
 - **Workers**: implement the unit, add or extend tests, push the feature branch,
   and open the unit PR (`gh pr create`). Mechanical units go to `fast`; design or
   judgment units go to `good`.
-- **Director**: runs Setup and Orient (read-only cairn queries plus the one local
-  `cargo build --release`), commissions the two reviewer subagents, adjudicates,
-  and squash-merges when CI is green and review is satisfied. For release, the
-  director (directly or via a dedicated release worker) opens the release-prep PR
-  and creates the tag, only after the phase-2 disposition and after confirming no
-  material divergence. The director MUST NOT implement unit or product code.
+- **Director**: runs Setup and Orient (read-only cairn queries plus the local
+  `cargo build --release`) in the dedicated director worktree, never the main
+  checkout, and runs a fresh local `cargo build --release` in each post-merge
+  verification worktree. The director commissions the two reviewer subagents,
+  adjudicates, and squash-merges when CI is green and review is satisfied. For
+  release, the director (directly or via a dedicated release worker) opens the
+  release-prep PR and creates the tag, only after the phase-2 disposition and
+  after confirming no material divergence. The director MUST NOT implement unit
+  or product code.
 
 **Steps**
 
@@ -52,18 +77,30 @@ progress. Durable cross-session work items go through `cairn todo new <slug>
 --node <id>` and status edits via `cairn todo set` on the resulting
 `meta/todos/todo.<slug>.md` (this repo's native tracker), not bd.
 
-1. **Orient** - run `cairn status`, `cairn change list`, `cairn next`,
-   `cairn lint --json`, and (per candidate node) `cairn todos <node>`. Optionally
-   glance at `cairn frontier` as a secondary signal for ghost-node / architecture
-   pressure; do not treat it as a todo backlog. Record the baseline: `cairn lint`
-   has no new findings (the one accepted deferred Info is fine) and exits 0;
-   `cairn hook all` exits 0; and `cairn scan` must be zero findings (run it now
-   if not already clean). Triage any pre-existing scan finding or new lint
-   finding before proposing a block. Name the open unblocked todos and which
-   todos are already blocked on maintainer authorisation or an external
-   dependency. Exit criterion: if there are no open unblocked todos and no
-   actionable next unit, report the state and stop (do not manufacture work);
-   otherwise proceed to phase 2 with a written backlog snapshot.
+1. **Orient** - in the dedicated director worktree from Setup, never the main
+   checkout, run `/tmp/cairn-director-1699999999/target/release/cairn status`,
+   `/tmp/cairn-director-1699999999/target/release/cairn change list`,
+   `/tmp/cairn-director-1699999999/target/release/cairn next`,
+   `/tmp/cairn-director-1699999999/target/release/cairn lint --json`, and (per
+   candidate node) `/tmp/cairn-director-1699999999/target/release/cairn todos
+   <node>`. Optionally glance at
+   `/tmp/cairn-director-1699999999/target/release/cairn frontier` as a secondary
+   signal for ghost-node / architecture pressure; do not treat it as a todo
+   backlog. Record the baseline:
+   `/tmp/cairn-director-1699999999/target/release/cairn lint` has no new findings
+   (the one accepted deferred Info is fine) and exits 0;
+   `/tmp/cairn-director-1699999999/target/release/cairn hook all` exits 0; and
+   `/tmp/cairn-director-1699999999/target/release/cairn scan` must be zero
+   findings (run it now if not already clean). Triage any pre-existing scan
+   finding or new lint finding before proposing a block. Name the open unblocked
+   todos and which todos are already blocked on maintainer authorisation or an
+   external dependency. At Orient's end, immediately remove the director
+   worktree:
+   `git -C <main-checkout> worktree remove --force /tmp/cairn-director-1699999999`.
+   It exists only for Setup and Orient. Exit criterion: if there are no open
+   unblocked todos and no actionable next unit, report the state and stop (do not
+   manufacture work); otherwise proceed to phase 2 with a written backlog
+   snapshot.
 
 2. **Recommend block and release, then ask** - this is the defining gate. From
    live `cairn status`, `cairn next`, and per-node `cairn todos <node>`, group
@@ -100,11 +137,13 @@ progress. Durable cross-session work items go through `cairn todo new <slug>
 3. **Execute (director fan-out)** - work each todo in the approved cluster as
    its own unit. Assign each unit to a worker session: `fast` for mechanical or
    well-specified work, `good` for design or judgment. Parallelise independent
-   units in separate git worktrees so they never share a working tree. Each
-   unit follows the `/cairn-loop` discipline (workers implement, test, push, and
-   open the PR):
+   units in separate git worktrees branching from `origin/main` so they never
+   share a working tree. No agent, worker or director, builds, scans, or edits in
+   the main checkout. Fetch `origin` immediately before fan-out so worker
+   worktrees branch from the current `origin/main`. Each unit follows the
+   `/cairn-loop` discipline (workers implement, test, push, and open the PR):
 
-   - feature branch from current main (NEVER commit to main);
+   - feature branch from `origin/main` (NEVER commit to main);
    - smallest change that meets a written success criterion;
    - a test for the changed behaviour (test-first for a bugfix);
    - gates green: when Rust changed, `cargo fmt --check`,
@@ -127,8 +166,28 @@ progress. Durable cross-session work items go through `cairn todo new <slug>
    back to the owning worker to fix, then re-review. Squash-merge with
    `--delete-branch` once CI is green and review is satisfied. CodeRabbit is
    advisory only: address its comments if it posts in time, never block on it.
-   After each merge, re-run `cairn scan` against the merged state and archive
-   any change directory with `cairn change apply <id>` if the unit had one.
+   After each merge, if the unit had a `meta/changes/<id>/` change directory,
+   archive it after the merge in a fresh branch worktree. Immediately before
+   creating it, run `git -C <main-checkout> fetch origin` in the same call; create
+   it from the updated `origin/main`, never the main checkout or a throwaway
+   verification worktree.
+   Run `cairn change apply <id>`, commit the archive move, and land it via a
+   small PR that passes the same mandatory review gate as any unit: CI green,
+   review satisfied. Then re-run `cairn scan` against the resulting merged main
+   in a fresh verification worktree. A merged change left active misleads the
+   next iteration; the `CAIRN_CHANGE_TASKS_COMPLETE` scan finding flags this.
+   For each post-merge verification, choose and record a fresh unique concrete
+   path containing the merge SHA, such as `/tmp/cairn-verify-a1b2c3d`, and
+   substitute the actual merge SHA consistently in every command in one call:
+
+   ```bash
+   git -C <main-checkout> fetch origin
+   git -C <main-checkout> worktree add --detach /tmp/cairn-verify-a1b2c3d origin/main
+   ( cd /tmp/cairn-verify-a1b2c3d && cargo build --release && ./target/release/cairn scan )
+   git -C <main-checkout> worktree remove --force /tmp/cairn-verify-a1b2c3d
+   ```
+
+   Do not reuse a stale director worktree or stale binary.
    Exit criterion: every unit PR is merged (or explicitly dropped with
    maintainer notice), CI is green on main, and `cairn scan` is clean
    (zero findings).
@@ -174,13 +233,27 @@ through. Name the next natural open-todo cluster if one is visible.
 
 - Never commit to main. Every unit lands via a feature branch and a reviewed
   PR.
+- The main checkout is never an agent working directory: no builds, scans, or
+  edits there. Worker worktrees branch from `origin/main`. At session end, the
+  main checkout's `git status` must equal its status at session start. If it
+  began clean, fetch origin and fast-forward it once (`git -C <main-checkout>
+  fetch origin && git -C <main-checkout> merge --ff-only origin/main`) at the
+  end; if it drifted, investigate the leak before finishing. Do not
+  fast-forward after every PR: workers branch from `origin/main`, so one
+  fast-forward at the end suffices and avoids churn. Prune any finished worker
+  worktrees at session end, so no worktrees leak between sessions.
+- Worker file edits must use absolute worktree paths. The edit and write tools
+  resolve relative paths against the session root (typically the main checkout),
+  not the shell working directory, so `cd` into a worktree does not isolate
+  edits; a relative path can silently write outside the worktree.
 - Native-todos-first: never create new bd issues for this repo's own work
   (`dec.native-todos-first`). Status edits go through `cairn todo set`.
 - Do not contradict an accepted decision without writing a superseding one.
-- Director scope: MAY run Setup/Orient read-only commands and the one local
-  `cargo build --release`, and owns orchestration, verification-by-reading, PR
-  merges, and the pre-approved release-prep + tag. MUST NOT implement unit or
-  product code (that is worker work).
+- Director scope: MAY run Setup/Orient read-only commands, the local `cargo
+  build --release` there, and fresh post-merge verification builds, and owns
+  orchestration, verification-by-reading, PR merges, and the pre-approved
+  release-prep + tag. MUST NOT implement unit or product code (that is worker
+  work).
 - Kill finished worker sessions so the roster stays legible.
 - A clean `cairn scan` (zero findings) is the target state. A scan finding is a
   blocked unit, not a formality. `cairn lint` may carry the one accepted deferred
