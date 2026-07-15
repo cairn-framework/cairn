@@ -89,6 +89,32 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn change accept [<change-id>]` | Run acceptance gate for a change |
 | `cairn change apply <change-id>` | Apply a completed change (alias: `archive`) |
 
+`cairn change accept` runs a language-aware verification battery, then (when a
+change id is given) `cairn lint --strict <id>` and suggested-edge triage.
+
+Language battery selection:
+
+1. If `cairn.config.yaml` has a top-level `gates:` key, run exactly those steps
+   (an empty list means zero language steps).
+2. Else if the project language is Rust, run the cargo battery
+   (`build`, `clippy -D warnings`, `fmt --check`, `test --workspace --locked`).
+3. Else skip the language battery with an informational `skipped` finding
+   (does not fail the gate). Configure `gates:` to run project-specific checks.
+
+Example `gates:` block:
+
+```yaml
+gates:
+  - name: typecheck
+    command: tsc --noEmit
+  - name: unit
+    command: bun test
+```
+
+Each `command` is executed directly as argv: it is split on whitespace into
+program + arguments. There is no shell, so quoting, pipes, redirects, and
+operators are not supported. Prefer simple commands without spaces in args.
+
 ### Brownfield
 
 | Command | Description |
