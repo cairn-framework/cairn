@@ -89,7 +89,7 @@ loop's own step-by-step progress. Durable cross-session work items go through
     blocker already surfaced, or when told to stop. When attended and you have
     surfaced a decision-ready recommendation that needs the maintainer's
     ratification, stop and ask; when unattended, instead persist the
-    recommendation as a `meta/` artefact, file a deferred bead, and continue.
+    recommendation as a `meta/` artefact and, if follow-up work is needed, capture it with `cairn todo new <slug> --node <id>` (this repo's native tracker, never bd), then continue.
 
 **Output**
 
