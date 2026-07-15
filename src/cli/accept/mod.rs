@@ -79,7 +79,7 @@ fn load_gate_context(
 /// Apply a language-battery selection to findings.
 ///
 /// Shared by production `run_accept_gate` and hermetic wiring tests so the
-/// SkipInfo detail/state path cannot drift from the live battery.
+/// `SkipInfo` detail/state path cannot drift from the live battery.
 fn apply_language_battery(
     findings: &mut Vec<VerificationFinding>,
     selection: BatterySelection,
