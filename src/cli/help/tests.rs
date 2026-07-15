@@ -303,3 +303,56 @@ fn pre_command_value_flags_do_not_become_command_tokens() {
         );
     }
 }
+
+#[test]
+fn refine_help_does_not_list_json() {
+    let text = command_help_text("refine").expect("refine help");
+    assert!(
+        !text.contains("--json"),
+        "refine ignores --json (plain text only):\n{text}"
+    );
+}
+
+#[test]
+fn change_new_help_does_not_list_json() {
+    let text = command_help_text("change new").expect("change new help");
+    assert!(
+        !text.contains("--json"),
+        "change new ignores --json:\n{text}"
+    );
+}
+
+#[test]
+fn gap_help_lists_json_and_verbose() {
+    let text = command_help_text("gap").expect("gap help");
+    assert!(text.contains("--json"), "{text}");
+    assert!(text.contains("--verbose"), "{text}");
+    assert!(text.contains("--question"), "{text}");
+}
+
+#[test]
+fn feedback_help_lists_json() {
+    let text = command_help_text("feedback").expect("feedback help");
+    assert!(text.contains("--json"), "{text}");
+}
+
+#[test]
+fn change_archive_help_lists_verbose() {
+    let text = command_help_text("change archive").expect("change archive help");
+    assert!(text.contains("--verbose"), "{text}");
+    assert!(text.contains("--json"), "{text}");
+}
+
+#[test]
+fn todo_family_help_options_do_not_list_node() {
+    // --node is only consumed by `todo new`. The family page may mention it in
+    // the Arguments synopsis, but must not list it under Options.
+    let text = command_help_text("todo").expect("todo help");
+    let options = text.split("Options:").nth(1).unwrap_or("");
+    assert!(
+        !options.contains("--node"),
+        "family Options must not advertise subcommand-only --node:\n{text}"
+    );
+    let new_page = command_help_text("todo new").expect("todo new help");
+    assert!(new_page.contains("--node"), "{new_page}");
+}

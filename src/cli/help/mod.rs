@@ -47,12 +47,18 @@ struct CommandHelpSpec {
 /// `json` + `file` + `help`: default for project-loaded read commands.
 const FLAGS_BASIC: &[&str] = &["json", "file", "help"];
 const FLAGS_JSON_HELP: &[&str] = &["json", "help"];
+/// Help only: command writes human text and ignores `--json`.
+const FLAGS_HELP_ONLY: &[&str] = &["help"];
 /// Lint honours `--node` (folded check); scan does not.
 const FLAGS_LINT: &[&str] = &["node", "strict", "verbose", "json", "file", "help"];
 const FLAGS_SCAN: &[&str] = &["strict", "verbose", "json", "file", "help"];
 const FLAGS_STATUS: &[&str] = &["brief", "json", "file", "help"];
 const FLAGS_ACCEPT: &[&str] = &["json", "help"];
 const FLAGS_WORKSPACE_LINT: &[&str] = &["strict", "verbose", "json", "help"];
+/// Archive/apply: `--json` and conflict-path `--verbose`.
+const FLAGS_ARCHIVE: &[&str] = &["verbose", "json", "file", "help"];
+/// Gap writes a proposed decision and honours `--json` / `--verbose` on errors.
+const FLAGS_GAP: &[&str] = &["question", "verbose", "json", "file", "help"];
 
 /// Every recognised top-level and compound spelling, including retired aliases.
 /// Coverage of top-level names is enforced by `every_recognised_command_has_help`.
@@ -96,10 +102,10 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         "export",
         &["format", "output", "file", "changes-dir", "json", "help"],
     ),
-    spec("feedback", "feedback", &["help"]),
+    spec("feedback", "feedback", FLAGS_BASIC),
     spec("files", "files", FLAGS_BASIC),
     spec("frontier", "frontier", FLAGS_BASIC),
-    spec("gap", "gap", &["question", "file", "help"]),
+    spec("gap", "gap", FLAGS_GAP),
     spec("get", "get", &["symbols", "json", "file", "help"]),
     spec("graph", "graph", FLAGS_BASIC),
     spec("health", "health", FLAGS_BASIC),
@@ -131,26 +137,26 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("onboard", "onboard", FLAGS_BASIC),
     spec("order", "order", FLAGS_BASIC),
     spec("rationale", "rationale", FLAGS_BASIC),
-    spec("refine", "refine", FLAGS_JSON_HELP),
+    spec("refine", "refine", FLAGS_HELP_ONLY),
     spec("remediate", "remediate", FLAGS_BASIC),
     spec("rename", "rename", &["json", "file", "help"]),
     spec("research", "research", FLAGS_BASIC),
     spec("scan", "scan", FLAGS_SCAN),
     spec("sources", "sources", FLAGS_BASIC),
     spec("status", "status", FLAGS_STATUS),
-    spec("todo", "todo", &["node-flag", "help"]),
+    spec("todo", "todo", FLAGS_HELP_ONLY),
     spec("todos", "todos", &["status", "json", "file", "help"]),
     spec("ui", "ui", &["port", "no-open", "help"]),
     spec("ui_meta", "ui_meta", FLAGS_BASIC),
     spec("watch", "watch", &["interval", "once", "help"]),
     spec("workspace", "workspace", FLAGS_JSON_HELP),
     // --- compound change family --------------------------------------------
-    spec("change new", "change-new", FLAGS_JSON_HELP),
+    spec("change new", "change-new", FLAGS_HELP_ONLY),
     spec("change list", "change-list", FLAGS_JSON_HELP),
     spec("change show", "change-show", FLAGS_JSON_HELP),
     spec("change accept", "change-accept", FLAGS_ACCEPT),
-    spec("change apply", "change-apply", FLAGS_JSON_HELP),
-    spec("change archive", "change-archive", FLAGS_JSON_HELP),
+    spec("change apply", "change-apply", FLAGS_ARCHIVE),
+    spec("change archive", "change-archive", FLAGS_ARCHIVE),
     // --- compound draft family ---------------------------------------------
     spec("draft list", "draft-list", FLAGS_JSON_HELP),
     spec("draft show", "draft-show", FLAGS_JSON_HELP),
@@ -184,7 +190,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     // --- retired top-level aliases -----------------------------------------
     // preferred/description come from copy.toml under help.commands.<copy_key>
     spec("accept", "accept", FLAGS_ACCEPT),
-    spec("archive", "archive", FLAGS_JSON_HELP),
+    spec("archive", "archive", FLAGS_ARCHIVE),
     spec("changes", "changes", FLAGS_JSON_HELP),
     spec("show", "show", FLAGS_JSON_HELP),
 ];
