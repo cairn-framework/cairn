@@ -1,25 +1,22 @@
 # Finding Codes Reference
 
-All cairn lint finding codes, their severities, and remediation steps.
+Common cairn lint finding codes, their severities, and remediation steps. Not every emitted code is listed here; see `docs/registries/error-codes.md` for the full registry.
 
 ## Error findings (block hooks)
 
 These findings cause `cairn hook structural` and `cairn hook all` to exit 1 (fail).
 
-### CAIRN_ORPHANED_FILE
+### CAIRN_INTEGRITY_DUPLICATE_ID
 
 **Severity:** Error
-**Meaning:** A file exists on disk but no module in `cairn.blueprint` claims it via a `path` declaration.
-**Remediation:**
-1. Add the file's directory or path to an existing module's `path` declaration, OR
-2. Declare a new Module in `cairn.blueprint` with a `path` covering this file, OR
-3. Add the path to `exclude_paths` in `cairn.config.yaml` if it's intentionally outside the graph
+**Meaning:** Same node ID appears more than once in the blueprint.
+**Remediation:** Remove the duplicate declaration from `cairn.blueprint`.
 
-### CAIRN_GHOST_FILE
+### CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT
 
 **Severity:** Error
-**Meaning:** A module's `path` declaration references a file or directory that doesn't exist on disk.
-**Remediation:** Either create the missing file/directory or update the `path` in `cairn.blueprint` to the correct location.
+**Meaning:** Edge references a node ID not in the graph.
+**Remediation:** Fix the edge's `from` or `to` ID in `cairn.blueprint` to reference an existing node.
 
 ### CAIRN_INTERFACE_HASH_CHANGED
 
@@ -30,10 +27,10 @@ These findings cause `cairn hook structural` and `cairn hook all` to exit 1 (fai
 ### CAIRN_REVIEW_UNKNOWN_NODE
 
 **Severity:** Error
-**Meaning:** A review, contract, or artefact references a node ID that doesn't exist in the blueprint.
+**Meaning:** A review references a node ID that doesn't exist in the blueprint.
 **Remediation:** Fix the `node:` or `nodes:` field in the artefact's frontmatter to reference a valid node ID. Run `cairn get <id>` to verify node existence.
 
-### CAIRN_CYCLE_DETECTED
+### CAIRN_ORDER_CYCLE
 
 **Severity:** Error
 **Meaning:** The dependency edge graph contains a cycle. Cairn requires a DAG (directed acyclic graph).
@@ -51,6 +48,19 @@ These findings cause `cairn hook structural` and `cairn hook all` to exit 1 (fai
 **Meaning:** The blueprint's structural shape changed for a node (module added, removed, or reassigned across containers) but no decision artefact has that node's ID in its `nodes` field.
 **Remediation:** Author a decision artefact covering the changed node. The decision should explain why the structural change was made. Only active decisions (proposed or accepted) satisfy the gate; deprecated or superseded decisions do not count. First scan creates a baseline; the gate only fires on subsequent scans when a previous snapshot exists. If no decisions exist in the project at all, the gate is skipped.
 
+### CT001
+
+**Severity:** Error
+**Meaning:** Interface contradiction: multiple targets claim the same contract role with divergent interfaces.
+**Remediation:** Review the targets for the conflicting contract role. Either align their interfaces or mark the asymmetry as intentional via `multi_target.intentional_asymmetry` in `cairn.config.yaml`:
+
+```yaml
+multi_target:
+  intentional_asymmetry:
+    node: <node-id>
+    reason: <explanation>
+```
+
 ## Warning findings (advisory)
 
 These findings are surfaced in `cairn hook tension` and in `cairn lint` output but do not block commits.
@@ -60,6 +70,25 @@ These findings are surfaced in `cairn hook tension` and in `cairn lint` output b
 **Severity:** Warning
 **Meaning:** A leaf node in the blueprint has no accepted decision artefact covering it (no decision has this node's ID in its `nodes` field).
 **Remediation:** Author a decision artefact with `nodes: [<this-node-id>]` and `status: accepted` explaining why this module exists and how it's shaped. Only fires when at least one decision exists in the project (avoids noise in fresh projects).
+
+## Info findings (informational)
+
+These findings are surfaced in `cairn lint` and `cairn scan` output but do not block any hook.
+
+### CAIRN_RECONCILE_ORPHANED_FILE
+
+**Severity:** Info
+**Meaning:** A file exists on disk but no module in `cairn.blueprint` claims it via a `path` declaration.
+**Remediation:**
+1. Add the file's directory or path to an existing module's `path` declaration, OR
+2. Declare a new Module in `cairn.blueprint` with a `path` covering this file, OR
+3. Add the path to `exclude_paths` in `cairn.config.yaml` if it's intentionally outside the graph
+
+### CAIRN_SOURCE_UNVERIFIED
+
+**Severity:** Info
+**Meaning:** A source artefact has `verification: unverified` in its frontmatter, meaning its contents have not been checked against the original.
+**Remediation:** Verify the source against the original and update the frontmatter to `verification: verified` (with a `sha256` field) or `verification: external` (for URL-based sources).
 
 ## CLI errors (not scan findings)
 

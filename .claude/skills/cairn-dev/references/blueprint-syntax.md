@@ -100,8 +100,8 @@ Tags don't affect behavior. They're useful for filtering and documentation.
 - A path can point to a file (`./src/main.rs`) or a directory (`./src/parser`)
 - Directory paths claim all files recursively under that directory
 - Multiple `path` lines are allowed per module
-- Files not claimed by any module's path are reported as `CAIRN_ORPHANED_FILE`
-- Paths referencing nonexistent files are reported as `CAIRN_GHOST_FILE`
+- Files not claimed by any module's path are reported as `CAIRN_RECONCILE_ORPHANED_FILE` (Info severity)
+- Paths referencing nonexistent files produce a `NodeState::Ghost` node (not a lint finding; ghost nodes are surfaced by `cairn frontier`)
 
 ## Complete example
 
