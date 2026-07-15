@@ -1,0 +1,200 @@
+//! Unit tests for per-command help routing.
+
+use super::super::{RETIRED_TOP_LEVEL, all_command_names};
+use super::*;
+
+#[test]
+fn bare_help_flags_resolve_to_global() {
+    for argv in [
+        args(&["--help"]),
+        args(&["-h"]),
+        args(&["--json", "--help"]),
+        args(&["--file", "x.blueprint", "-h"]),
+    ] {
+        assert_eq!(help_request(&argv), Some(HelpTarget::Global), "{argv:?}");
+    }
+}
+
+#[test]
+fn command_help_flags_resolve_to_command() {
+    let cases = [
+        (args(&["neighbourhood", "--help"]), "neighbourhood"),
+        (args(&["accept", "-h"]), "accept"),
+        (args(&["--json", "frontier", "--help"]), "frontier"),
+        // Longest-prefix: change accept, not bare change.
+        (args(&["change", "accept", "--help"]), "change accept"),
+        (args(&["draft", "list", "-h"]), "draft list"),
+        (args(&["todo", "set", "--help"]), "todo set"),
+    ];
+    for (argv, expected) in cases {
+        assert_eq!(
+            help_request(&argv),
+            Some(HelpTarget::Command(expected)),
+            "{argv:?}"
+        );
+    }
+}
+
+#[test]
+fn no_help_flag_yields_none() {
+    assert_eq!(help_request(&args(&["neighbourhood", "app.api"])), None);
+    assert_eq!(help_request(&args(&["--json", "status"])), None);
+}
+
+#[test]
+fn every_recognised_command_has_help() {
+    for name in all_command_names() {
+        let text = command_help_text(name)
+            .unwrap_or_else(|| panic!("missing help page for registered command `{name}`"));
+        assert!(
+            text.contains("Usage:"),
+            "`{name}` help missing Usage line:\n{text}"
+        );
+        // Must not be the global command catalogue.
+        assert!(
+            !text.contains("Commands:\n  backlog"),
+            "`{name}` help fell back to global list"
+        );
+    }
+    for name in RETIRED_TOP_LEVEL {
+        let text = command_help_text(name)
+            .unwrap_or_else(|| panic!("missing help page for retired command `{name}`"));
+        assert!(
+            !text.contains("Commands:\n  backlog"),
+            "retired `{name}` help fell back to global list"
+        );
+        assert!(
+            text.contains("Prefer:"),
+            "retired `{name}` help should point at the preferred spelling:\n{text}"
+        );
+    }
+}
+
+#[test]
+fn help_specs_cover_all_top_level_and_retired() {
+    let spec_names: Vec<&str> = COMMAND_HELP.iter().map(|s| s.name).collect();
+    // No duplicates.
+    let mut sorted = spec_names.clone();
+    sorted.sort_unstable();
+    let mut dedup = sorted.clone();
+    dedup.dedup();
+    assert_eq!(sorted, dedup, "duplicate entries in COMMAND_HELP");
+
+    for name in all_command_names() {
+        assert!(
+            spec_names.contains(&name),
+            "COMMAND_HELP missing top-level `{name}`"
+        );
+    }
+    for name in RETIRED_TOP_LEVEL {
+        assert!(
+            spec_names.contains(name),
+            "COMMAND_HELP missing retired `{name}`"
+        );
+    }
+    // Compound registry tools must also surface.
+    for tool in crate::query_api::registry() {
+        if tool.cli_name.contains(' ') {
+            assert!(
+                spec_names.contains(&tool.cli_name),
+                "COMMAND_HELP missing compound registry tool `{}`",
+                tool.cli_name
+            );
+        }
+    }
+}
+
+#[test]
+fn neighbourhood_help_lists_command_flags() {
+    let text = command_help_text("neighbourhood").expect("neighbourhood help");
+    for flag in [
+        "--include-orphans",
+        "--include-research",
+        "--include-todos",
+        "--include-reviews",
+        "--include-deprecated-decisions",
+        "--include-changes",
+        "--json",
+    ] {
+        assert!(text.contains(flag), "missing {flag} in:\n{text}");
+    }
+    assert!(text.contains("<node>"), "missing node arg in:\n{text}");
+    assert!(!text.contains("Commands:\n  backlog"));
+}
+
+#[test]
+fn accept_help_is_per_command_not_global() {
+    let text = command_help_text("accept").expect("accept help");
+    assert!(text.contains("accept"), "{text}");
+    assert!(text.contains("--json"), "{text}");
+    assert!(!text.contains("Commands:\n  backlog"), "{text}");
+    assert!(text.contains("change accept"), "{text}");
+}
+
+#[test]
+fn change_accept_help_is_accept_specific() {
+    let text = command_help_text("change accept").expect("change accept help");
+    assert!(text.contains("change accept"), "{text}");
+    assert!(
+        text.contains("[change-id]") || text.contains("change-id"),
+        "{text}"
+    );
+    assert!(text.contains("--json"), "{text}");
+    assert!(!text.contains("Commands:\n  backlog"), "{text}");
+    // Must not be the generic change family overview.
+    assert!(
+        !text.contains("new|list|show|accept|apply|archive"),
+        "change accept help should not list the whole family:\n{text}"
+    );
+}
+
+#[test]
+fn context_help_lists_depth_and_scope() {
+    let text = command_help_text("context").expect("context help");
+    assert!(text.contains("--depth"), "{text}");
+    assert!(text.contains("--scope"), "{text}");
+    assert!(text.contains("--mermaid"), "{text}");
+}
+
+#[test]
+fn frontier_help_is_per_command() {
+    let text = command_help_text("frontier").expect("frontier help");
+    assert!(text.contains("frontier"), "{text}");
+    assert!(!text.contains("Commands:\n  backlog"), "{text}");
+}
+
+#[test]
+fn unknown_command_has_no_help_page() {
+    assert!(command_help_text("not-a-real-command").is_none());
+    assert!(!is_known_help_command("not-a-real-command"));
+}
+
+#[test]
+fn flag_and_usage_copy_keys_resolve() {
+    for spec in COMMAND_HELP {
+        for key in spec.flags {
+            let path = format!("help.flags.{key}");
+            let value = copy::lookup(&path);
+            assert_ne!(
+                value, path,
+                "missing copy key {path} (referenced by `{}`)",
+                spec.name
+            );
+            assert!(
+                value.contains("--") || *key == "help",
+                "flag copy {path} should document a flag: {value}"
+            );
+        }
+        let usage_key = format!("help.commands.{}.usage", spec.copy_key);
+        let usage = copy::lookup(&usage_key);
+        assert_ne!(
+            usage, usage_key,
+            "missing usage copy for `{}` (key {usage_key})",
+            spec.name
+        );
+    }
+}
+
+fn args(items: &[&str]) -> Vec<String> {
+    items.iter().map(|s| (*s).to_owned()).collect()
+}
