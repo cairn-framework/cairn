@@ -69,10 +69,16 @@ The file is large (2205 lines) but not pure production. Verified structure
   ~591, `all_command_names` ~844, `help_text` ~881, suggestion helpers).
 - Lines 977 to 2205: large `#[cfg(test)] mod tests` (1229 lines).
 
-True split by brace-matched test modules: **935 production / 1270 test**
-lines (not "421 production then mostly tests"). The first `#[cfg(test)]` is
-**not** the production/test boundary; substantial production code continues
-after `delegation_tests`. The allow-list reason remains accurate ("CLI
+True split: **935 production / 1270 test** lines out of 2205. Accounting
+rule (reproducible): every line from a top-level `#[cfg(test)]` attribute
+through the matching `mod` closing brace counts as test, with string-aware
+brace matching so raw-string fixtures inside `mod tests` do not end the
+module early. That yields `delegation_tests` 422-462 (41 lines) plus `tests`
+977-2205 (1229 lines) = 1270 test; 2205 - 1270 = 935 production. (Excluding
+the two attribute lines and two `mod` headers would give 1266 test, the
+reviewer's approximate figure; this report includes those four lines as
+test.) The first `#[cfg(test)]` is **not** the production/test boundary;
+substantial production code continues after `delegation_tests`. The allow-list reason remains accurate ("CLI
 dispatch hub; natural seam is per-command modules which already exist for
 newer commands"). Production dispatch already delegates many commands to
 `src/cli/commands/*` (todo, decision, hook, wire, workspace, ...). Residual
