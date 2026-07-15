@@ -23,19 +23,19 @@ If `cairn context` shows findings, triage them before adding new ones.
 
 | Use case | Command | Key flags |
 |---|---|---|
-| **Orientation** | `cairn context` | `--json` |
+| **Orientation** | `cairn context` | `--json`, `--depth <N\|all>`, `--scope <node>` |
 | **Full scan** | `cairn scan` | `--json` |
-| **Lint findings** | `cairn lint` | `--json` (exit 1 on errors) |
-| **Node-scoped lint** | `cairn lint --node <id>` | exit 0 unless error-severity findings |
+| **Lint findings** | `cairn lint` | `--json`, `--strict`, `--node <id>` |
 | **Inspect node** | `cairn get <node>` | `--json` |
 | **Node + neighbours** | `cairn neighbourhood <node>` | `--json`, `--include-todos`, `--include-changes`, `--include-orphans` |
 | **Node files** | `cairn files <node>` | `--json` |
-| **Dependency graph** | `cairn deps <node>` / `cairn deps <node> --direction in` | `--json`, `--transitive` |
+| **Dependency graph** | `cairn deps <node>` | `--json`, `--direction in`, `--transitive` |
 | **Build order** | `cairn order` | `--json` |
 | **Provenance trail** | `cairn rationale <node>` | `--json` |
 | **Decisions** | `cairn decisions <node>` | `--json`, `--status accepted` |
 | **Todos** | `cairn todos <node>` | `--json`, `--status open` |
 | **New todo** | `cairn todo new <slug> --node <id>` | scaffolds `meta/todos/todo.<slug>.md` |
+| **Set todo status** | `cairn todo set <slug> <open\|in_progress\|done\|blocked>` | sanctioned mutation verb per `dec.todo-write-surface` |
 | **Research** | `cairn research <node>` | `--json` |
 | **Sources** | `cairn sources <node>` | `--json` |
 | **Contracts** | `cairn contract <node>` | `--json` |
@@ -43,17 +43,37 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Commit gate** | `cairn hook <structural\|interface\|tension\|all>` | `--json` |
 | **Active changes** | `cairn change list` | `--json` |
 | **Change details** | `cairn change show <change-id>` | `--json` |
-| **Brownfield onboard** | `cairn onboard` | `--json` |
-| **Record cairn friction** | `cairn feedback "<message>"` | `--json`; logs to `.cairn/feedback.md`, prints upstream issue link |
+| **Acceptance gate** | `cairn change accept [<change-id>]` | `--json` (gate_outcome in data) |
+| **New change** | `cairn change new <change-id>` | scaffolds `meta/changes/<change-id>/` |
+| **Apply change** | `cairn change apply <change-id>` | applies a change to the blueprint |
+| **Archive change** | `cairn change archive <change-id>` | archives a completed change |
+| **Bootstrap** | `cairn init` | creates blueprint, config, meta dirs |
 | **Brownfield extract** | `cairn init --from-code` | `--force` (overwrite existing) |
 | **Brownfield refine** | `cairn refine` | writes timestamped change |
+| **Export** | `cairn export --format <json\|md\|mermaid> --output <path>` | full graph export |
+| **Brownfield onboard** | `cairn onboard` | `--json` |
 | **Disconnected islands** | `cairn islands` | `--json` |
-| **Acceptance gate** | `cairn change accept [<change-id>]` | `--json` (gate_outcome in data) |
-| **Export** | `cairn export --format <json\|dot> --output <path>` | full graph export |
-| **Bootstrap** | `cairn init` | creates blueprint, config, meta dirs |
 | **Web explorer** | `cairn ui` | `--port <N>` |
-
-Node IDs use dotted notation (e.g. `cairn.kernel.scanner`). Run `cairn get <id>` to verify a node exists.
+| **Blueprint** | `cairn blueprint` | `--json` |
+| **Bundle** | `cairn bundle <node>` | `--json` |
+| **Brief** | `cairn brief <node>` | `--json` |
+| **Next unit** | `cairn next` | `--json` |
+| **Frontier** | `cairn frontier` | `--json` |
+| **Graph dump** | `cairn graph` | `--json` |
+| **Health check** | `cairn health` | `--json` |
+| **Remediate** | `cairn remediate` | `--json` |
+| **Docstring** | `cairn docstring <node>` | `--json` |
+| **Rename node** | `cairn rename <old-id> <new-id>` | renames across project |
+| **Draft proposals** | `cairn draft list\|show\|edit\|discard\|accept\|create` | `--json` |
+| **Backlog beads** | `cairn backlog <node>` | `--json` |
+| **Beads** | `cairn beads <node>` | `--json` |
+| **Import openspec** | `cairn import-openspec` | migrates openspec changes to meta/changes |
+| **Decision scaffold** | `cairn decision new <slug> [--node <id>] [--informed-by <id>]` | scaffolds `meta/decisions/dec.<slug>.md` |
+| **Gap** | `cairn gap <node> --question "<text>"` | logs unresolved question as proposed decision |
+| **Record friction** | `cairn feedback "<message>"` | `--json`; logs to `.cairn/feedback.md`, prints upstream issue link |
+| **Watch** | `cairn watch` | watches for finding changes and emits events |
+| **UI meta** | `cairn ui_meta` | lists available query commands and their schemas |
+| **Workspace** | `cairn workspace <status\|lint\|frontier>` | aggregates status, lint, frontier across workspace members |
 
 ## The development loop
 
@@ -143,7 +163,7 @@ satisfies: <change-id>    # optional: links to a change
 Description of the work item.
 ```
 
-Scaffold with `cairn todo new <slug> --node <id>`, which writes `meta/todos/todo.<slug>.md`. Status changes are file edits; there is no separate close verb.
+Scaffold with `cairn todo new <slug> --node <id>`, which writes `meta/todos/todo.<slug>.md`. Change status with `cairn todo set <slug> <open|in_progress|done|blocked>`, which rewrites only the frontmatter `status` field. Hand-editing the file remains legal but is the discouraged path; `cairn todo set` is the sanctioned mutation verb per `dec.todo-write-surface`.
 
 ### Research
 
@@ -206,13 +226,14 @@ Common finding codes:
 
 | Code | Severity | Meaning |
 |---|---|---|
-| `CAIRN_RECONCILE_ORPHANED_FILE` | Error | File exists on disk but no node claims it via `path` |
+| `CAIRN_RECONCILE_ORPHANED_FILE` | Info | File exists on disk but no node claims it via `path` |
 | `CAIRN_INTEGRITY_DUPLICATE_ID` | Error | Same node ID appears more than once in the blueprint |
 | `CAIRN_INTEGRITY_INVALID_EDGE_ENDPOINT` | Error | Edge references a node ID not in the graph |
 | `CAIRN_INTERFACE_HASH_CHANGED` | Error | Module's public interface changed since last scan |
 | `CAIRN_ORDER_CYCLE` | Error | Dependency cycle found in the edge graph |
 | `CAIRN_REVIEW_UNKNOWN_NODE` | Error | Review/contract references a node ID not in the graph |
 | `CAIRN_PROVENANCE_NO_DECISION` | Warning | Leaf node has no accepted decision covering it |
+| `CT001` | Error | Interface contradiction: multiple targets claim same contract role with divergent interfaces |
 | `CAIRN_SOURCE_UNVERIFIED` | Info | Source artefact has not been verified |
 
 Use `cairn lint --json | jq '.findings[] | select(.severity == "error")'` to filter for blockers.
@@ -244,19 +265,17 @@ The pre-commit hook typically runs `cairn hook structural`. CI can run `cairn ho
 - Don't use `cairn lint` to gate commits. Use `cairn hook` which has correct blocking semantics.
 - Don't modify `cairn.blueprint` without running `cairn scan` afterward to verify.
 - Don't add artefact files without ensuring the node declares the artefact directory in its blueprint entry.
+## JSON output contract
 
-## JSON envelope contract
-
-All commands with `--json` produce a consistent envelope:
+Every `query_api` command with `--json` produces a `data` payload with a top-level `schema_version` field (currently `1`). The stamp is applied at a single choke point in `query_api::execute`, so every command shares one versioned contract from one constant. See `dec.query-json-schema-version` for the full rationale.
 
 ```json
-{"command":"<name>","status":"ok|error","data":{...}}
+{"schema_version":1,"findings":[],...}
 ```
 
-- `status: "ok"` means the command succeeded (findings may still exist in data)
-- `status: "error"` means the command failed or verification was incomplete
-- `accept --json` includes `data.gate_outcome` ("passed", "failed", or "blocked")
-- Exit codes: 0 = clean success, 1 = success with findings or operational error, 2 = usage error
+- `schema_version` is present in every `query_api` `--json` output. Bumping the wire contract means bumping `query_api::SCHEMA_VERSION`.
+- The `cairn export` envelope and the summariser request/response wire schemas keep their own independent version constants; they are not command envelopes.
+- Exit codes: 0 = success (no blocking findings), 1 = blocking findings or command failure, 2 = usage error (unknown command, missing argument)
 
 ## User-facing copy
 
