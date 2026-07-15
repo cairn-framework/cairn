@@ -356,3 +356,15 @@ fn todo_family_help_options_do_not_list_node() {
     let new_page = command_help_text("todo new").expect("todo new help");
     assert!(new_page.contains("--node"), "{new_page}");
 }
+
+#[test]
+fn init_help_lists_json_and_file() {
+    // project_root comes from --file (mod.rs:104-108); --json is preserved on
+    // `init --from-code --apply` via the archive delegate (mod.rs:167-173).
+    let text = command_help_text("init").expect("init help");
+    assert!(text.contains("--json"), "{text}");
+    assert!(text.contains("--file"), "{text}");
+    for flag in ["--from-code", "--apply", "--wire", "--force"] {
+        assert!(text.contains(flag), "init help missing {flag}:\n{text}");
+    }
+}

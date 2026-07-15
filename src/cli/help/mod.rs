@@ -114,7 +114,15 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec(
         "init",
         "init",
-        &["from-code", "apply", "wire", "force", "help"],
+        &[
+            "from-code",
+            "apply",
+            "wire",
+            "force",
+            "json",
+            "file",
+            "help",
+        ],
     ),
     spec("islands", "islands", FLAGS_BASIC),
     spec("lint", "lint", FLAGS_LINT),
