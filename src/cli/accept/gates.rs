@@ -322,12 +322,7 @@ mod tests {
     fn load_and_select_typescript_without_gates_skips() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
-        std::fs::write(
-            root.join("app.ts"),
-            "export const x = 1;
-",
-        )
-        .unwrap();
+        std::fs::write(root.join("app.ts"), "export const x = 1;\n").unwrap();
         // No cairn.config.yaml => gates absent.
         let config = crate::scanner::config::load(root).unwrap();
         assert!(
@@ -349,18 +344,10 @@ mod tests {
     fn load_and_select_with_gates_config_runs_configured_steps() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
-        std::fs::write(
-            root.join("app.ts"),
-            "export const x = 1;
-",
-        )
-        .unwrap();
+        std::fs::write(root.join("app.ts"), "export const x = 1;\n").unwrap();
         std::fs::write(
             root.join("cairn.config.yaml"),
-            "gates:
-  - name: unit
-    command: true
-",
+            "gates:\n  - name: unit\n    command: true\n",
         )
         .unwrap();
         let config = crate::scanner::config::load(root).unwrap();

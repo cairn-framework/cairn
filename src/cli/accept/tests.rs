@@ -196,19 +196,33 @@ fn test_format_findings_shows_skipped() {
 
 #[test]
 fn test_blank_command_gate_fails_with_nonzero_exit() {
-    // A configured gate with a blank command must be Failed, not Blocked,
-    // so acceptance exits non-zero (has_failed drives the exit code).
-    let step = AcceptStep {
-        name: "typecheck".to_string(),
-        program: String::new(),
-        args: Vec::new(),
-        fail_msg: "typecheck failed".to_string(),
-        block_msg: "could not run typecheck".to_string(),
-    };
+    // Configured gate with blank/whitespace-only command must be Failed, not
+    // Blocked, so acceptance exits non-zero (has_failed drives the exit code).
+    // Drive the full production seam: load config -> select -> apply.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("main.ts"), "export {};\n").unwrap();
+    std::fs::write(
+        root.join("cairn.config.yaml"),
+        "gates:\n  - name: typecheck\n    command: \"   \"\n",
+    )
+    .unwrap();
+    let (configured, gates, language) = load_gate_context(root).unwrap();
+    assert!(configured, "gates: key must be present");
+    assert_eq!(gates.len(), 1);
+    assert_eq!(gates[0].name, "typecheck");
+    // Parser retains the whitespace-only command; selection yields empty program.
+    assert!(
+        gates[0].command.chars().all(char::is_whitespace)
+            || gates[0].command.is_empty()
+            || gates[0].command.trim().is_empty()
+    );
+    let selection = select_language_battery(language, configured, &gates);
     let mut findings = Vec::new();
-    run_accept_step(&mut findings, &step, true);
+    apply_language_battery(&mut findings, selection, true);
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].state, VerificationState::Failed);
+    assert_eq!(findings[0].test, "typecheck");
     assert!(
         findings[0]
             .detail
@@ -234,70 +248,58 @@ fn test_blank_command_gate_fails_with_nonzero_exit() {
 
 #[test]
 fn test_load_gate_context_skip_wiring_end_to_end() {
-    // Drive config load -> language infer -> selection -> production skip
-    // finding shape without spawning real gate commands.
+    // Drive config load -> language infer -> selection -> production helper
+    // (apply_language_battery) without spawning real gate commands.
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
-    std::fs::write(
-        root.join("main.ts"),
-        "export {};
-",
-    )
-    .unwrap();
+    std::fs::write(root.join("main.ts"), "export {};\n").unwrap();
     let (configured, gates, language) = load_gate_context(root).unwrap();
     assert!(!configured);
     assert_eq!(language, Language::TypeScript);
     let selection = select_language_battery(language, configured, &gates);
     let mut findings = Vec::new();
-    match selection {
-        BatterySelection::SkipInfo { language } => {
-            assert_eq!(language, "typescript");
-            findings.push(VerificationFinding {
-                test: format!("language battery ({language})"),
-                state: VerificationState::Skipped,
-                detail: Some(format!(
-                    "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
-                )),
-            });
-        }
-        BatterySelection::Steps(steps) => panic!("expected SkipInfo, got {steps:?}"),
-    }
-    let has_failed = findings
-        .iter()
-        .any(|f| f.state == VerificationState::Failed);
-    assert!(!has_failed);
+    apply_language_battery(&mut findings, selection, true);
+    assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].state, VerificationState::Skipped);
+    assert_eq!(findings[0].test, "language battery (typescript)");
     assert!(
         findings[0]
             .detail
             .as_ref()
-            .is_some_and(|d| d.contains("no gates configured for typescript"))
+            .is_some_and(|d| d.contains("no gates configured for typescript")),
+        "detail: {:?}",
+        findings[0].detail
     );
+    let has_failed = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Failed);
+    let has_blocked = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Blocked);
+    assert!(!has_failed);
+    assert!(!has_blocked);
     assert_eq!(u8::from(has_failed), 0);
+    let out = format_json(&findings, has_failed, has_blocked);
+    let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    assert_eq!(parsed["data"]["gate_outcome"], "passed");
+    assert_eq!(parsed["data"]["steps"][0]["state"], "skipped");
 }
 
 #[test]
 fn test_load_gate_context_with_gates_selects_steps() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
-    std::fs::write(
-        root.join("main.ts"),
-        "export {};
-",
-    )
-    .unwrap();
+    std::fs::write(root.join("main.ts"), "export {};\n").unwrap();
     std::fs::write(
         root.join("cairn.config.yaml"),
-        "gates:
-  - name: unit
-command: true
-",
+        "gates:\n  - name: unit\n    command: true\n",
     )
     .unwrap();
     let (configured, gates, language) = load_gate_context(root).unwrap();
     assert!(configured);
     assert_eq!(language, Language::TypeScript);
-    match select_language_battery(language, configured, &gates) {
+    let selection = select_language_battery(language, configured, &gates);
+    match &selection {
         BatterySelection::Steps(steps) => {
             assert_eq!(steps.len(), 1);
             assert_eq!(steps[0].program, "true");
@@ -307,4 +309,15 @@ command: true
             panic!("gates config must not skip, got SkipInfo({language})")
         }
     }
+    // Production helper must run the configured step (true exits 0).
+    let mut findings = Vec::new();
+    apply_language_battery(&mut findings, selection, true);
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].state, VerificationState::Passed);
+    assert_eq!(findings[0].test, "unit");
+    let has_failed = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Failed);
+    assert!(!has_failed);
+    assert_eq!(u8::from(has_failed), 0);
 }

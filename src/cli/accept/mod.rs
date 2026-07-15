@@ -18,22 +18,8 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
 
     match load_gate_context(&root) {
         Ok((gates_configured, configured_gates, language)) => {
-            match select_language_battery(language, gates_configured, &configured_gates) {
-                BatterySelection::Steps(steps) => {
-                    for step in steps {
-                        run_accept_step(&mut findings, &step, json);
-                    }
-                }
-                BatterySelection::SkipInfo { language } => {
-                    findings.push(VerificationFinding {
-                        test: format!("language battery ({language})"),
-                        state: VerificationState::Skipped,
-                        detail: Some(format!(
-                            "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
-                        )),
-                    });
-                }
-            }
+            let selection = select_language_battery(language, gates_configured, &configured_gates);
+            apply_language_battery(&mut findings, selection, json);
         }
         Err(message) => {
             // Do not fall back by language when config is unreadable: that would
@@ -87,6 +73,33 @@ fn load_gate_context(
             Ok((config.gates_configured, config.gates, language))
         }
         Err(error) => Err(format!("could not load cairn.config.yaml: {error}")),
+    }
+}
+
+/// Apply a language-battery selection to findings.
+///
+/// Shared by production `run_accept_gate` and hermetic wiring tests so the
+/// SkipInfo detail/state path cannot drift from the live battery.
+fn apply_language_battery(
+    findings: &mut Vec<VerificationFinding>,
+    selection: BatterySelection,
+    quiet: bool,
+) {
+    match selection {
+        BatterySelection::Steps(steps) => {
+            for step in steps {
+                run_accept_step(findings, &step, quiet);
+            }
+        }
+        BatterySelection::SkipInfo { language } => {
+            findings.push(VerificationFinding {
+                test: format!("language battery ({language})"),
+                state: VerificationState::Skipped,
+                detail: Some(format!(
+                    "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
+                )),
+            });
+        }
     }
 }
 
