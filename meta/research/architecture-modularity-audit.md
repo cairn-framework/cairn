@@ -15,10 +15,13 @@ Primary measurement of the cairn repo on branch `architecture-modularity-audit`
 Sources of measurement:
 
 1. Line counts via `wc -l` / `wc -c` over `src/**/*.{rs,js,css}`.
-2. Git change-hotspots via `git log --numstat --format=COMMIT` over all history
-   for paths under `src/` (324 commits with src/ numstat).
+2. Git change-hotspots via `git log --since='6 months ago' --numstat
+   --format=COMMIT` for paths under `src/`, plus a 30-day cross-check. The
+   repository's entire `src/` history (324 commits, 2026-04-15 to 2026-07-14)
+   falls inside the six-month window, so six-month counts equal all-history
+   counts; the 30-day window is the non-trivial recent signal.
 3. Co-change pairs: files that appear together in the same commit (pairs with
-   2 to 25 files per commit to skip bulk renames).
+   2 to 25 files per commit to skip bulk renames), computed for both windows.
 4. Coupling: parse of `use crate::...` (including multi-line brace forms) into
    top-level module fan-in / fan-out; cycle detection on that directed graph.
 5. Blueprint conformance: declared edges in `cairn.blueprint` versus realised
@@ -123,9 +126,15 @@ command/render fan-out already present under `commands/`, `render/`,
 
 ## 2. Change-hotspots (git churn)
 
-All-history numstat over `src/` (324 commits):
+Primary window: `--since='6 months ago'` (audit date 2026-07-15). That window
+contains **324** commits touching `src/`, dated 2026-04-15 to 2026-07-14, which
+is the entire `src/` history of this repository. Six-month and all-history
+counts are therefore identical; all-history is not reported as a separate
+table. A 30-day cross-check (`--since='30 days ago'`, 144 commits, 2026-06-15
+to 2026-07-14) is included below to show whether the same files remain hot in
+recent work.
 
-### Top files by commit count
+### Six-month window (primary): top files by commit count
 
 | Commits | File |
 |---:|---|
@@ -145,7 +154,7 @@ All-history numstat over `src/` (324 commits):
 | 12 | `src/cli/render/remediate.rs` |
 | 12 | `src/map/query.rs` |
 
-### Top-level module churn (sum of file-commit counts)
+### Six-month window: top-level module churn (sum of file-commit counts)
 
 | Sum | Module |
 |---:|---|
@@ -161,7 +170,7 @@ All-history numstat over `src/` (324 commits):
 | 48 | `map` |
 | 48 | `ui` |
 
-### Top co-change pairs
+### Six-month window: top co-change pairs
 
 | Count | Pair |
 |---:|---|
@@ -176,16 +185,59 @@ All-history numstat over `src/` (324 commits):
 | 7 | `src/ui/mod.rs` + `src/ui_assets/app.js` |
 | 7 | `src/ui/server.rs` + `src/ui_assets/app.js` |
 
+### 30-day cross-check (recent pressure)
+
+144 commits in the last 30 days. Rankings shift but the same offenders stay
+near the top:
+
+| Commits (30d) | File |
+|---:|---|
+| 32 | `src/cli/mod.rs` |
+| 18 | `src/cli/render/project.rs` |
+| 15 | `src/ui_assets/app.js` |
+| 15 | `src/query_api/mod.rs` |
+| 12 | `src/cli/render/remediate.rs` |
+| 11 | `src/ui/api.rs` (historical) |
+| 11 | `src/cli/render/node.rs` |
+| 10 | `src/cli/format/json.rs` |
+| 10 | `src/cli/render/mod.rs` |
+| 10 | `src/cli/commands/mod.rs` |
+| 10 | `src/ui/server.rs` |
+| 9 | `src/ui_assets/style.css` |
+| 9 | `src/scanner/mod.rs` |
+
+30-day module churn (sum of file-commit counts): `cli` 208, `query_api` 78,
+`scanner` 49, `changes` 41, `artefacts` 40, `ui` 34, `map` 29, `ui_assets` 24.
+
+30-day top co-change pairs:
+
+| Count | Pair |
+|---:|---|
+| 10 | `src/cli/mod.rs` + `src/query_api/mod.rs` |
+| 8 | `src/ui/api.rs` + `src/ui/server.rs` (historical) |
+| 7 | `src/cli/commands/mod.rs` + `src/cli/mod.rs` |
+| 7 | `src/ui_assets/app.js` + `src/ui_assets/style.css` |
+| 7 | `src/cli/mod.rs` + `src/cli/render/project.rs` |
+| 7 | `src/cli/render/mod.rs` + `src/cli/render/project.rs` |
+| 6 | `src/ui/mod.rs` + `src/ui_assets/app.js` |
+| 6 | `src/ui/server.rs` + `src/ui_assets/app.js` |
+
 Interpretation:
 
-- `cli/mod.rs` is the single worst merge hotspot in the Rust tree (81 commits;
-  co-changes with query registry and scanner).
+- `cli/mod.rs` is the single worst merge hotspot in the Rust tree (81 commits
+  in six months; still 32 in the last 30 days; co-changes with query registry
+  and scanner).
 - WebUI is a **paired** hotspot: `app.js` and `style.css` move together 14
-  times; agents editing "look" and "behaviour" still collide across two large
-  files.
+  times in six months and 7 times in 30 days; agents editing "look" and
+  "behaviour" still collide across two large files.
+- Recent pressure concentrates even more on the CLI render subtree
+  (`render/project.rs` 18, `render/remediate.rs` 12, `render/node.rs` 11 in
+  30 days), which is consistent with the completed simplify-architecture
+  programme landing presentation changes through render modules.
 - The completed simplify-architecture programme (todo.simplify-architecture,
   closed 2026-07-12) already removed the `ui/api.rs` + `ui/serialise.rs`
-  parallel spine; historical co-change on those paths is legacy signal.
+  parallel spine; co-change on those paths is legacy signal that still appears
+  in both windows because the flips landed inside them.
 
 ## 3. Coupling (who imports whom)
 
@@ -475,7 +527,8 @@ artefacts/map or query_api/summariser (track when those modules next change).
 
 ```text
 wc -l / find line counts
-git log --numstat --format='COMMIT %H' -- src/
+git log --since='6 months ago' --numstat --format='COMMIT %H' -- src/
+git log --since='30 days ago' --numstat --format='COMMIT %H' -- src/
 python coupling / co-change scripts (session-local)
 cairn files cairn.ui
 cairn files cairn.kernel.cli
