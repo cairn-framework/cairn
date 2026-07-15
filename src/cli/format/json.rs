@@ -165,6 +165,34 @@ mod tests {
         assert!(json.contains("\"files\":[\"src/lib.rs\"]"));
     }
 
+    #[test]
+    fn test_node_json_reports_ghost_state() {
+        // `cairn get --json` must expose Ghost so empty scaffolding is not
+        // mistaken for Synced (gh:#238).
+        let node = NodeRecord {
+            kind: NodeKind::Module,
+            id: "app.empty".to_owned(),
+            name: "empty".to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: vec!["./src/empty".to_owned()],
+            owns_files: true,
+            symbols: Vec::new(),
+            contracts: Vec::new(),
+            state: NodeState::Ghost,
+            files: Vec::new(),
+            span: Span::point("test", 1, 1),
+        };
+        let json = node_json(&node);
+        assert!(
+            json.contains("\"state\":\"Ghost\""),
+            "get json must report Ghost state: {json}"
+        );
+        assert!(json.contains("\"files\":[]"));
+    }
+
     // ── todos_json ───────────────────────────────────────────────────────────
 
     fn todo(status: TodoStatus, satisfies: Option<&str>) -> Todo {

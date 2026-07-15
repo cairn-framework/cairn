@@ -143,4 +143,24 @@ mod tests {
         assert!(rendered.contains("Health: needs attention"));
         assert!(rendered.contains("errors: 0, warnings: 0, info: 0"));
     }
+
+    #[test]
+    fn format_health_human_shows_ghost_module_count() {
+        // health must count Ghost modules separately from Synced so empty
+        // scaffolding is not reported as implemented (gh:#238).
+        let health = serde_json::json!({
+            "clean": true,
+            "summary": {
+                "total_errors": 0,
+                "total_warnings": 0,
+                "total_info": 0,
+                "modules": { "synced": 2, "ghost": 1, "orphaned": 0 }
+            }
+        });
+        let rendered = format_health_human(&health, 0, 0);
+        assert!(
+            rendered.contains("modules: 2 synced, 1 ghost, 0 orphaned"),
+            "health human form must surface ghost count: {rendered}"
+        );
+    }
 }

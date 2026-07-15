@@ -383,3 +383,24 @@ fn render_backlog_unknown_node_errs() {
     assert!(render_backlog(&backlog_args("missing", false), &dir, &scan).is_err());
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn render_context_shows_ghost_suffix_for_ghost_node() {
+    // Empty scaffolding (and any Ghost) must be visible in context output.
+    let mut empty = node_record("app.empty");
+    empty.state = NodeState::Ghost;
+    empty.paths = vec!["./src/empty".to_owned()];
+    let mut real = node_record("app.real");
+    real.state = NodeState::Synced;
+    real.paths = vec!["./src/real".to_owned()];
+    let scan = scan_with_nodes(vec![system("app", "App", "Smoke"), empty, real]);
+    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
+    assert!(
+        rendered.contains("empty [Ghost]"),
+        "context must show [Ghost] suffix for empty scaffolding: {rendered}"
+    );
+    assert!(
+        !rendered.contains("real [Ghost]") && !rendered.contains("real [Synced]"),
+        "Synced nodes must not carry a state suffix: {rendered}"
+    );
+}

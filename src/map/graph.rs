@@ -7,9 +7,10 @@ use crate::blueprint::{NodeKind, Span};
 /// Runtime state assigned during reconciliation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum NodeState {
-    /// Declared path exists and has claimed files.
+    /// Declared path exists and owns claimed source files (or no paths).
     Synced,
-    /// Declared path or contract target is currently absent.
+    /// Declared structure with no owned source files yet (missing path or
+    /// empty scaffolding).
     Ghost,
     /// Source reality exists but no eligible node owns it.
     Orphaned,
