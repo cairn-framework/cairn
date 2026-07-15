@@ -18,6 +18,11 @@ The cairn-apply skill assumes a single sequential agent and Rust gates.
   frontier-node assignment, or blueprint `path` claims as write-ownership
   boundaries.
 
+## Field report (owner, 2026-07-13)
+- A downstream TypeScript repo received the cargo-flavoured guidance in
+  practice and had to override it via its own AGENTS.md; drift confirmed in
+  the wild, not just on inspection.
+
 ## Task
 Rewrite the skill for language-aware gate derivation (from `cairn.config.yaml`
 or project language) and add a documented parallel mode: split a change into

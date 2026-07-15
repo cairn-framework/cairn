@@ -569,40 +569,48 @@
           "kind": "enum",
           "signature": "pub enum ClaimsMode",
           "file": "src/artefacts/registry/types.rs",
-          "line": 70,
-          "end_line": 75
+          "line": 95,
+          "end_line": 100
         },
         {
           "name": "DecisionStatus",
           "kind": "enum",
           "signature": "pub enum DecisionStatus",
           "file": "src/artefacts/registry/types.rs",
-          "line": 57,
-          "end_line": 66
+          "line": 82,
+          "end_line": 91
         },
         {
           "name": "ResearchMethod",
           "kind": "enum",
           "signature": "pub enum ResearchMethod",
           "file": "src/artefacts/registry/types.rs",
-          "line": 180,
-          "end_line": 186
+          "line": 205,
+          "end_line": 211
         },
         {
           "name": "ReviewType",
           "kind": "enum",
           "signature": "pub enum ReviewType",
           "file": "src/artefacts/registry/types.rs",
-          "line": 129,
-          "end_line": 136
+          "line": 154,
+          "end_line": 161
+        },
+        {
+          "name": "SetFieldError",
+          "kind": "enum",
+          "signature": "pub enum SetFieldError",
+          "file": "src/artefacts/frontmatter.rs",
+          "line": 120,
+          "end_line": 126
         },
         {
           "name": "SourceVerification",
           "kind": "enum",
           "signature": "pub enum SourceVerification",
           "file": "src/artefacts/registry/types.rs",
-          "line": 190,
-          "end_line": 197
+          "line": 215,
+          "end_line": 222
         },
         {
           "name": "TodoStatus",
@@ -611,6 +619,22 @@
           "file": "src/artefacts/registry/types.rs",
           "line": 27,
           "end_line": 36
+        },
+        {
+          "name": "as_str",
+          "kind": "function",
+          "signature": "pub fn as_str(self) -> &'static str",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 53,
+          "end_line": 60
+        },
+        {
+          "name": "from_cli",
+          "kind": "function",
+          "signature": "pub fn from_cli(value: &str) -> Option<Self>",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 41,
+          "end_line": 49
         },
         {
           "name": "load_artefacts",
@@ -626,7 +650,7 @@
           "signature": "pub fn load_contracts(root: &Path, ast: &Ast) -> ContractSet",
           "file": "src/artefacts/contract.rs",
           "line": 44,
-          "end_line": 111
+          "end_line": 115
         },
         {
           "name": "parse",
@@ -635,6 +659,14 @@
           "file": "src/artefacts/frontmatter.rs",
           "line": 18,
           "end_line": 94
+        },
+        {
+          "name": "set_field",
+          "kind": "function",
+          "signature": "pub fn set_field(source: &str, key: &str, value: &str) -> Result<String, SetFieldError>",
+          "file": "src/artefacts/frontmatter.rs",
+          "line": 146,
+          "end_line": 189
         },
         {
           "name": "contract",
@@ -673,24 +705,24 @@
           "kind": "struct",
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
-          "line": 247,
-          "end_line": 264
+          "line": 272,
+          "end_line": 289
         },
         {
           "name": "ChangeRecord",
           "kind": "struct",
           "signature": "pub struct ChangeRecord",
           "file": "src/artefacts/registry/types.rs",
-          "line": 231,
-          "end_line": 243
+          "line": 256,
+          "end_line": 268
         },
         {
           "name": "Claims",
           "kind": "struct",
           "signature": "pub struct Claims",
           "file": "src/artefacts/registry/types.rs",
-          "line": 79,
-          "end_line": 86
+          "line": 104,
+          "end_line": 111
         },
         {
           "name": "Contract",
@@ -713,8 +745,8 @@
           "kind": "struct",
           "signature": "pub struct Decision",
           "file": "src/artefacts/registry/types.rs",
-          "line": 90,
-          "end_line": 125
+          "line": 115,
+          "end_line": 150
         },
         {
           "name": "Frontmatter",
@@ -729,32 +761,32 @@
           "kind": "struct",
           "signature": "pub struct Research",
           "file": "src/artefacts/registry/types.rs",
-          "line": 159,
-          "end_line": 176
+          "line": 184,
+          "end_line": 201
         },
         {
           "name": "Review",
           "kind": "struct",
           "signature": "pub struct Review",
           "file": "src/artefacts/registry/types.rs",
-          "line": 140,
-          "end_line": 155
+          "line": 165,
+          "end_line": 180
         },
         {
           "name": "Source",
           "kind": "struct",
           "signature": "pub struct Source",
           "file": "src/artefacts/registry/types.rs",
-          "line": 201,
-          "end_line": 222
+          "line": 226,
+          "end_line": 247
         },
         {
           "name": "Todo",
           "kind": "struct",
           "signature": "pub struct Todo",
           "file": "src/artefacts/registry/types.rs",
-          "line": 40,
-          "end_line": 53
+          "line": 65,
+          "end_line": 78
         },
         {
           "name": "load_decisions",
@@ -1342,16 +1374,16 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 71,
-          "end_line": 73
+          "line": 72,
+          "end_line": 74
         },
         {
           "name": "all_command_names",
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 773,
-          "end_line": 791
+          "line": 844,
+          "end_line": 862
         },
         {
           "name": "build_export",
@@ -1390,8 +1422,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 80,
-          "end_line": 300
+          "line": 81,
+          "end_line": 301
         },
         {
           "name": "run",
@@ -1438,8 +1470,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 60,
-          "end_line": 67
+          "line": 61,
+          "end_line": 68
         },
         {
           "name": "EdgeEntry",
@@ -1462,8 +1494,8 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 58,
+          "end_line": 58
         },
         {
           "name": "blueprint_root",
@@ -1519,7 +1551,7 @@
           "signature": "pub(crate) fn run_gap_command( parsed: &ParsedArgs, root: &Path, scan_result: &scanner::ScanResult, ) -> CliResult",
           "file": "src/cli/commands/gap.rs",
           "line": 13,
-          "end_line": 67
+          "end_line": 69
         },
         {
           "name": "mermaid",
@@ -1586,24 +1618,24 @@
           "kind": "function",
           "signature": "pub const fn exit_code(&self) -> u8",
           "file": "src/hooks/mod.rs",
-          "line": 64,
-          "end_line": 69
+          "line": 65,
+          "end_line": 70
         },
         {
           "name": "ExitDecision",
           "kind": "enum",
           "signature": "pub enum ExitDecision",
           "file": "src/hooks/mod.rs",
-          "line": 37,
-          "end_line": 42
+          "line": 38,
+          "end_line": 43
         },
         {
           "name": "HookKind",
           "kind": "enum",
           "signature": "pub enum HookKind",
           "file": "src/hooks/mod.rs",
-          "line": 22,
-          "end_line": 33
+          "line": 23,
+          "end_line": 34
         },
         {
           "name": "architecture_findings",
@@ -1611,55 +1643,63 @@
           "signature": "pub fn architecture_findings( old_ast: &Ast, new_ast: &Ast, decisions: &[Decision], escape_hatch: bool, ) -> Vec<Finding>",
           "file": "src/hooks/architecture.rs",
           "line": 33,
-          "end_line": 110
+          "end_line": 113
         },
         {
           "name": "architecture_findings_from_project",
           "kind": "function",
           "signature": "pub fn architecture_findings_from_project(root: &Path) -> Vec<Finding>",
           "file": "src/hooks/architecture.rs",
-          "line": 142,
-          "end_line": 164
+          "line": 145,
+          "end_line": 167
         },
         {
           "name": "detect_active_change_conflicts",
           "kind": "function",
           "signature": "pub fn detect_active_change_conflicts(changes_dir: &Path) -> Vec<Finding>",
           "file": "src/hooks/mod.rs",
-          "line": 133,
-          "end_line": 170
+          "line": 134,
+          "end_line": 171
         },
         {
           "name": "render_human",
           "kind": "function",
           "signature": "pub fn render_human(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 12,
-          "end_line": 32
+          "line": 33,
+          "end_line": 35
         },
         {
           "name": "render_json",
           "kind": "function",
           "signature": "pub fn render_json(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 36,
-          "end_line": 63
+          "line": 39,
+          "end_line": 66
         },
         {
           "name": "run",
           "kind": "function",
           "signature": "pub fn run( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> HookReport",
           "file": "src/hooks/mod.rs",
-          "line": 74,
-          "end_line": 129
+          "line": 75,
+          "end_line": 130
         },
         {
           "name": "HookReport",
           "kind": "struct",
           "signature": "pub struct HookReport",
           "file": "src/hooks/mod.rs",
-          "line": 46,
-          "end_line": 59
+          "line": 47,
+          "end_line": 60
+        },
+        {
+          "name": "render_human_verbose",
+          "kind": "function",
+          "signature": "pub(crate) fn render_human_verbose(report: &HookReport, verbose: bool) -> String",
+          "file": "src/hooks/render.rs",
+          "line": 14,
+          "end_line": 28
         }
       ]
     },
@@ -1740,7 +1780,7 @@
           "signature": "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>",
           "file": "src/map/integrity.rs",
           "line": 7,
-          "end_line": 63
+          "end_line": 64
         },
         {
           "name": "dependents",
@@ -1795,8 +1835,8 @@
           "kind": "function",
           "signature": "pub fn has_errors(&self) -> bool",
           "file": "src/map/graph.rs",
-          "line": 169,
-          "end_line": 173
+          "line": 174,
+          "end_line": 178
         },
         {
           "name": "islands",
@@ -1843,8 +1883,8 @@
           "kind": "function",
           "signature": "pub fn resolve(&self, value: &str) -> Result<&NodeRecord, Finding>",
           "file": "src/map/graph.rs",
-          "line": 134,
-          "end_line": 165
+          "line": 138,
+          "end_line": 170
         },
         {
           "name": "symbols",
@@ -1859,8 +1899,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 81,
-          "end_line": 187
+          "line": 82,
+          "end_line": 189
         },
         {
           "name": "build",
@@ -1907,8 +1947,8 @@
           "kind": "struct",
           "signature": "pub struct EdgeRef",
           "file": "src/map/graph.rs",
-          "line": 104,
-          "end_line": 111
+          "line": 108,
+          "end_line": 115
         },
         {
           "name": "FilesResponse",
@@ -1924,7 +1964,7 @@
           "signature": "pub struct Finding",
           "file": "src/map/graph.rs",
           "line": 53,
-          "end_line": 67
+          "end_line": 71
         },
         {
           "name": "FrontierEntry",
@@ -1947,8 +1987,8 @@
           "kind": "struct",
           "signature": "pub struct Graph",
           "file": "src/map/graph.rs",
-          "line": 115,
-          "end_line": 126
+          "line": 119,
+          "end_line": 130
         },
         {
           "name": "GraphEdgeResponse",
@@ -2003,8 +2043,8 @@
           "kind": "struct",
           "signature": "pub struct NodeRecord",
           "file": "src/map/graph.rs",
-          "line": 71,
-          "end_line": 100
+          "line": 75,
+          "end_line": 104
         },
         {
           "name": "NodeResponse",
@@ -2219,8 +2259,8 @@
           "kind": "function",
           "signature": "pub fn append_log(root: &Path, graph: &Graph) -> io::Result<()>",
           "file": "src/scanner/outputs.rs",
-          "line": 105,
-          "end_line": 123
+          "line": 110,
+          "end_line": 128
         },
         {
           "name": "build",
@@ -2251,8 +2291,8 @@
           "kind": "function",
           "signature": "pub fn is_intentional_asymmetry( &self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf], ) -> Option<&IntentionalAsymmetry>",
           "file": "src/scanner/config/mod.rs",
-          "line": 487,
-          "end_line": 496
+          "line": 488,
+          "end_line": 497
         },
         {
           "name": "load",
@@ -2267,16 +2307,16 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 354,
-          "end_line": 430
+          "line": 358,
+          "end_line": 434
         },
         {
           "name": "matches",
           "kind": "function",
           "signature": "pub fn matches(&self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 468,
-          "end_line": 481
+          "line": 469,
+          "end_line": 482
         },
         {
           "name": "migrate_single_hash",
@@ -2315,8 +2355,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 437,
-          "end_line": 473
+          "line": 441,
+          "end_line": 477
         },
         {
           "name": "write",
@@ -2348,7 +2388,7 @@
           "signature": "pub fn write_map(root: &Path, graph: &Graph) -> io::Result<()>",
           "file": "src/scanner/outputs.rs",
           "line": 15,
-          "end_line": 98
+          "end_line": 103
         },
         {
           "name": "config",
@@ -6213,6 +6253,7 @@
         "tests/kernel.rs",
         "tests/landing_assets.rs",
         "tests/mcp.rs",
+        "tests/output_token_efficiency.rs",
         "tests/phase_10_distribution.rs",
         "tests/phase_7_6_ai_provenance.rs",
         "tests/phase_7_7_ux_foundation.rs",
@@ -6413,16 +6454,16 @@
           "kind": "function",
           "signature": "pub fn frontier(workspace: &Workspace) -> WorkspaceFrontier",
           "file": "src/workspace/mod.rs",
-          "line": 224,
-          "end_line": 260
+          "line": 225,
+          "end_line": 261
         },
         {
           "name": "lint",
           "kind": "function",
           "signature": "pub fn lint(workspace: &Workspace) -> Vec<Finding>",
           "file": "src/workspace/mod.rs",
-          "line": 189,
-          "end_line": 205
+          "line": 190,
+          "end_line": 206
         },
         {
           "name": "load",
@@ -6437,16 +6478,16 @@
           "kind": "function",
           "signature": "pub fn status(workspace: &Workspace) -> WorkspaceStatus",
           "file": "src/workspace/mod.rs",
-          "line": 144,
-          "end_line": 182
+          "line": 145,
+          "end_line": 183
         },
         {
           "name": "MemberStatus",
           "kind": "struct",
           "signature": "pub struct MemberStatus",
           "file": "src/workspace/mod.rs",
-          "line": 112,
-          "end_line": 128
+          "line": 113,
+          "end_line": 129
         },
         {
           "name": "Workspace",
@@ -6461,8 +6502,8 @@
           "kind": "struct",
           "signature": "pub struct WorkspaceFrontier",
           "file": "src/workspace/mod.rs",
-          "line": 210,
-          "end_line": 218
+          "line": 211,
+          "end_line": 219
         },
         {
           "name": "WorkspaceProject",
@@ -6477,8 +6518,8 @@
           "kind": "struct",
           "signature": "pub struct WorkspaceStatus",
           "file": "src/workspace/mod.rs",
-          "line": 131,
-          "end_line": 136
+          "line": 132,
+          "end_line": 137
         }
       ]
     }
