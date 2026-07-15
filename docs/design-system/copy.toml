@@ -544,69 +544,99 @@ usage = "cairn show <change-id> [options]"
 args = "  <change-id>  Change id to show"
 
 [help.commands.change-new]
+description = "Scaffold a new change directory"
 usage = "cairn change new <change-id> [options]"
 args = "  <change-id>  New change identifier"
 
 [help.commands.change-list]
+description = "List active and archived changes"
 usage = "cairn change list [options]"
 
 [help.commands.change-show]
+description = "Show details of a change"
 usage = "cairn change show <change-id> [options]"
 args = "  <change-id>  Change id to show"
 
 [help.commands.change-accept]
+description = "Run the acceptance gate for a change"
 usage = "cairn change accept [change-id] [options]"
 args = "  [change-id]  Optional change id to lint and check suggested edges for"
 
 [help.commands.change-apply]
+description = "Apply (archive) a completed change"
 usage = "cairn change apply <change-id> [options]"
 args = "  <change-id>  Change id to apply (archive)"
 
 [help.commands.change-archive]
+description = "Archive a completed change"
 usage = "cairn change archive <change-id> [options]"
 args = "  <change-id>  Change id to archive"
 
 [help.commands.draft-list]
+description = "List pending draft proposals"
 usage = "cairn draft list [options]"
 
 [help.commands.draft-show]
+description = "Show a draft proposal"
 usage = "cairn draft show <id> [options]"
 args = "  <id>  Draft identifier"
 
 [help.commands.draft-edit]
+description = "Edit a draft proposal in your editor"
 usage = "cairn draft edit <id> [options]"
 args = "  <id>  Draft identifier"
 
 [help.commands.draft-discard]
+description = "Discard a draft proposal"
 usage = "cairn draft discard <id> [options]"
 args = "  <id>  Draft identifier"
 
 [help.commands.draft-accept]
+description = "Accept a draft proposal and apply it"
 usage = "cairn draft accept <id> [options]"
 args = "  <id>  Draft identifier"
 
 [help.commands.draft-create]
+description = "Generate a contract summary draft for a node"
 usage = "cairn draft create <node> [options]"
 args = "  <node>  Node id to summarise into a draft"
 
 [help.commands.decision-new]
+description = "Scaffold a new decision artefact"
 usage = "cairn decision new <slug> [options]"
 args = "  <slug>  Kebab-case decision slug"
 
 [help.commands.todo-new]
+description = "Scaffold a new todo artefact"
 usage = "cairn todo new <slug> --node <id> [options]"
 args = "  <slug>  Kebab-case todo slug"
 
 [help.commands.todo-set]
+description = "Update the status of a todo artefact"
 usage = "cairn todo set <slug> <open|in_progress|done|blocked> [options]"
 args = """  <slug>    Todo slug
   <status>  One of open, in_progress, done, blocked"""
 
 [help.commands.workspace-status]
+description = "Aggregate status across a cairn.workspace"
 usage = "cairn workspace status [options]"
 
 [help.commands.workspace-lint]
+description = "Aggregate lint findings across a cairn.workspace"
 usage = "cairn workspace lint [options]"
 
 [help.commands.workspace-frontier]
+description = "Aggregate frontier across a cairn.workspace"
 usage = "cairn workspace frontier [options]"
+
+[help.commands.hook-install]
+usage = "cairn hook install [--pre-push] [options]"
+description = "Install a Cairn git hook"
+
+[help.commands.hook-status]
+usage = "cairn hook status [--pre-push] [options]"
+description = "Show whether a Cairn git hook is installed"
+
+[help.commands.hook-uninstall]
+usage = "cairn hook uninstall [--pre-push] [options]"
+description = "Remove a Cairn git hook"

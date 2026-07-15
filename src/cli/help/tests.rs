@@ -198,3 +198,108 @@ fn flag_and_usage_copy_keys_resolve() {
 fn args(items: &[&str]) -> Vec<String> {
     items.iter().map(|s| (*s).to_owned()).collect()
 }
+
+#[test]
+fn scan_help_does_not_list_node() {
+    let text = command_help_text("scan").expect("scan help");
+    assert!(
+        !text.contains("--node"),
+        "scan does not honour --node; help must not advertise it:\n{text}"
+    );
+    for flag in ["--strict", "--verbose", "--json", "--file"] {
+        assert!(text.contains(flag), "scan help missing {flag}:\n{text}");
+    }
+}
+
+#[test]
+fn lint_help_lists_node() {
+    let text = command_help_text("lint").expect("lint help");
+    assert!(
+        text.contains("--node"),
+        "lint help must list --node:\n{text}"
+    );
+    assert!(text.contains("--strict"), "{text}");
+}
+
+#[test]
+fn workspace_lint_help_lists_strict_and_verbose() {
+    let text = command_help_text("workspace lint").expect("workspace lint help");
+    assert!(text.contains("--strict"), "{text}");
+    assert!(text.contains("--verbose"), "{text}");
+    assert!(text.contains("--json"), "{text}");
+    assert!(
+        text.contains("Aggregate lint"),
+        "workspace lint must use its own description, not the family blurb:\n{text}"
+    );
+}
+
+#[test]
+fn todo_set_help_lists_json_and_own_description() {
+    let text = command_help_text("todo set").expect("todo set help");
+    assert!(text.contains("--json"), "{text}");
+    assert!(
+        text.contains("Update the status"),
+        "todo set must use its own description:\n{text}"
+    );
+    assert!(
+        !text.contains("Scaffold a new todo"),
+        "todo set must not use the family scaffold blurb:\n{text}"
+    );
+}
+
+#[test]
+fn draft_family_help_does_not_list_edited() {
+    let text = command_help_text("draft").expect("draft help");
+    assert!(
+        !text.contains("--edited"),
+        "only draft accept honours --edited:\n{text}"
+    );
+    let accept = command_help_text("draft accept").expect("draft accept help");
+    assert!(accept.contains("--edited"), "{accept}");
+}
+
+#[test]
+fn hook_family_help_does_not_list_pre_push() {
+    let text = command_help_text("hook").expect("hook help");
+    assert!(
+        !text.contains("--pre-push"),
+        "only hook install/status/uninstall honour --pre-push:\n{text}"
+    );
+    let install = command_help_text("hook install").expect("hook install help");
+    assert!(install.contains("--pre-push"), "{install}");
+}
+
+#[test]
+fn change_accept_has_own_description() {
+    let text = command_help_text("change accept").expect("change accept help");
+    assert!(
+        text.contains("Run the acceptance gate"),
+        "change accept must not use the family Manage changes blurb:\n{text}"
+    );
+    assert!(
+        !text.contains("Manage changes:"),
+        "change accept must not use the family blurb:\n{text}"
+    );
+}
+
+#[test]
+fn pre_command_value_flags_do_not_become_command_tokens() {
+    let cases = [
+        (args(&["--depth", "2", "context", "--help"]), "context"),
+        (
+            args(&["--scope", "app.api", "context", "--help"]),
+            "context",
+        ),
+        (args(&["--port", "9999", "ui", "--help"]), "ui"),
+        (args(&["--status", "open", "todos", "--help"]), "todos"),
+        (args(&["--interval", "3", "watch", "--help"]), "watch"),
+        (args(&["--node", "app.api", "lint", "--help"]), "lint"),
+    ];
+    for (argv, expected) in cases {
+        assert_eq!(
+            help_request(&argv),
+            Some(HelpTarget::Command(expected)),
+            "pre-command value flag must not hijack routing: {argv:?}"
+        );
+    }
+}

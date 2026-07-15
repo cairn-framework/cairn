@@ -44,29 +44,32 @@ struct CommandHelpSpec {
 }
 
 /// Shared flag sets referenced by multiple commands (keeps the table short).
+/// `json` + `file` + `help`: default for project-loaded read commands.
 const FLAGS_BASIC: &[&str] = &["json", "file", "help"];
 const FLAGS_JSON_HELP: &[&str] = &["json", "help"];
-const FLAGS_NODE: &[&str] = &["json", "file", "help"];
+/// Lint honours `--node` (folded check); scan does not.
 const FLAGS_LINT: &[&str] = &["node", "strict", "verbose", "json", "file", "help"];
+const FLAGS_SCAN: &[&str] = &["strict", "verbose", "json", "file", "help"];
 const FLAGS_STATUS: &[&str] = &["brief", "json", "file", "help"];
 const FLAGS_ACCEPT: &[&str] = &["json", "help"];
+const FLAGS_WORKSPACE_LINT: &[&str] = &["strict", "verbose", "json", "help"];
 
 /// Every recognised top-level and compound spelling, including retired aliases.
 /// Coverage of top-level names is enforced by `every_recognised_command_has_help`.
 const COMMAND_HELP: &[CommandHelpSpec] = &[
     // --- top-level (alphabetical) ------------------------------------------
-    spec("backlog", "backlog", FLAGS_NODE),
-    spec("beads", "beads", FLAGS_NODE),
+    spec("backlog", "backlog", FLAGS_BASIC),
+    spec("beads", "beads", FLAGS_BASIC),
     spec("blueprint", "blueprint", FLAGS_BASIC),
     spec("brief", "brief", FLAGS_BASIC),
-    spec("bundle", "bundle", FLAGS_NODE),
+    spec("bundle", "bundle", FLAGS_BASIC),
     spec("change", "change", FLAGS_JSON_HELP),
     spec(
         "context",
         "context",
         &["depth", "scope", "mermaid", "json", "file", "help"],
     ),
-    spec("contract", "contract", FLAGS_NODE),
+    spec("contract", "contract", FLAGS_BASIC),
     spec(
         "decision",
         "decision",
@@ -87,20 +90,20 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         "docstring",
         &["language", "json", "file", "help"],
     ),
-    spec("draft", "draft", &["edited", "json", "help"]),
+    spec("draft", "draft", FLAGS_JSON_HELP),
     spec(
         "export",
         "export",
         &["format", "output", "file", "changes-dir", "json", "help"],
     ),
     spec("feedback", "feedback", &["help"]),
-    spec("files", "files", FLAGS_NODE),
+    spec("files", "files", FLAGS_BASIC),
     spec("frontier", "frontier", FLAGS_BASIC),
     spec("gap", "gap", &["question", "file", "help"]),
     spec("get", "get", &["symbols", "json", "file", "help"]),
     spec("graph", "graph", FLAGS_BASIC),
     spec("health", "health", FLAGS_BASIC),
-    spec("hook", "hook", &["pre-push", "json", "file", "help"]),
+    spec("hook", "hook", &["verbose", "json", "file", "help"]),
     spec("import-openspec", "import-openspec", FLAGS_JSON_HELP),
     spec(
         "init",
@@ -127,13 +130,13 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("next", "next", FLAGS_BASIC),
     spec("onboard", "onboard", FLAGS_BASIC),
     spec("order", "order", FLAGS_BASIC),
-    spec("rationale", "rationale", FLAGS_NODE),
+    spec("rationale", "rationale", FLAGS_BASIC),
     spec("refine", "refine", FLAGS_JSON_HELP),
     spec("remediate", "remediate", FLAGS_BASIC),
     spec("rename", "rename", &["json", "file", "help"]),
-    spec("research", "research", FLAGS_NODE),
-    spec("scan", "scan", FLAGS_LINT),
-    spec("sources", "sources", FLAGS_NODE),
+    spec("research", "research", FLAGS_BASIC),
+    spec("scan", "scan", FLAGS_SCAN),
+    spec("sources", "sources", FLAGS_BASIC),
     spec("status", "status", FLAGS_STATUS),
     spec("todo", "todo", &["node-flag", "help"]),
     spec("todos", "todos", &["status", "json", "file", "help"]),
@@ -162,10 +165,22 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         &["node-flag", "informed-by", "help"],
     ),
     spec("todo new", "todo-new", &["node-flag", "help"]),
-    spec("todo set", "todo-set", &["help"]),
+    spec("todo set", "todo-set", FLAGS_JSON_HELP),
     spec("workspace status", "workspace-status", FLAGS_JSON_HELP),
-    spec("workspace lint", "workspace-lint", FLAGS_JSON_HELP),
+    spec("workspace lint", "workspace-lint", FLAGS_WORKSPACE_LINT),
     spec("workspace frontier", "workspace-frontier", FLAGS_JSON_HELP),
+    // --- hook lifecycle (only these honour --pre-push) -----------------------
+    spec(
+        "hook install",
+        "hook-install",
+        &["pre-push", "json", "help"],
+    ),
+    spec("hook status", "hook-status", &["pre-push", "json", "help"]),
+    spec(
+        "hook uninstall",
+        "hook-uninstall",
+        &["pre-push", "json", "help"],
+    ),
     // --- retired top-level aliases -----------------------------------------
     // preferred/description come from copy.toml under help.commands.<copy_key>
     spec("accept", "accept", FLAGS_ACCEPT),
@@ -208,14 +223,44 @@ pub(crate) fn help_request(args: &[String]) -> Option<HelpTarget<'_>> {
     Some(HelpTarget::Command(tokens[0]))
 }
 
-/// Non-flag argv tokens, skipping known global options and their values.
+/// Non-flag argv tokens, skipping known options and their values.
+///
+/// Value-taking flags listed here may appear *before* the command
+/// (`cairn --depth 2 context --help`). Their values must not be treated as
+/// command tokens.
 fn command_tokens(args: &[String]) -> Vec<&str> {
     let mut tokens = Vec::new();
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
-            "--help" | "-h" | "--json" | "--strict" | "--verbose" | "--brief" | "--version" => {}
-            "--file" | "--changes-dir" => {
+            // Boolean / switch flags (no value).
+            "--help"
+            | "-h"
+            | "--json"
+            | "--strict"
+            | "--verbose"
+            | "--brief"
+            | "--version"
+            | "--symbols"
+            | "--transitive"
+            | "--include-orphans"
+            | "--include-todos"
+            | "--include-research"
+            | "--include-reviews"
+            | "--include-deprecated-decisions"
+            | "--include-changes"
+            | "--edited"
+            | "--mermaid"
+            | "--from-code"
+            | "--apply"
+            | "--force"
+            | "--once"
+            | "--no-open"
+            | "--pre-push" => {}
+            // Value-taking flags: consume the following token when present.
+            "--file" | "--changes-dir" | "--depth" | "--scope" | "--port" | "--status"
+            | "--language" | "--direction" | "--interval" | "--format" | "--output" | "--node"
+            | "--grep" | "--question" | "--informed-by" | "--wire" => {
                 let _ = iter.next();
             }
             s if s.starts_with('-') => {}
