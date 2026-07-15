@@ -59,6 +59,14 @@ fn test_partial_prefix_not_matched() {
 }
 
 #[test]
+fn test_partial_suffix_not_matched() {
+    // Pattern "src" must not match "mysrc" (segment boundary required).
+    assert!(!is_ignored("mysrc", &ignores(&["src"])));
+    assert!(!is_ignored("foo/mysrc", &ignores(&["src"])));
+    assert!(is_ignored("foo/src", &ignores(&["src"])));
+}
+
+#[test]
 fn test_empty_pattern_is_skipped() {
     assert!(!is_ignored("foo.txt", &ignores(&[""])));
     // slash-only pattern trims to empty and is also skipped
