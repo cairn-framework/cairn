@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-12
 ---
 
@@ -27,3 +27,9 @@ Using the verdict table in todo.capture-feedback-issues:
 ## Acceptance
 Issues #232 to #247 are all closed on GitHub, each with a rationale or a
 pointer to its owning native todo.
+
+## Done
+2026-07-15: Issues #232 to #247 closed on GitHub per the recorded verdicts in
+todo.capture-feedback-issues. Fixed-on-main: #232, #233, #235. Wont-fix: #240
+(superseded by dec.query-json-schema-version). Still-valid remainder each closed
+pointing at its owning native todo. Umbrella #247 closed last.
