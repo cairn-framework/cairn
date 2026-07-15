@@ -2,11 +2,11 @@
 node: cairn.ui
 status: open
 created: 2026-07-15
+related: [todo.architecture-modularity-audit, todo.webui-mobile-graph-nav, todo.webui-simplicity-review, todo.ui-assets-blueprint-path]
 ---
 
 # WebUI feature-module split (Option A)
 
-related: [todo.architecture-modularity-audit, todo.webui-mobile-graph-nav, todo.webui-simplicity-review, todo.ui-assets-blueprint-path]
 
 ## Problem
 

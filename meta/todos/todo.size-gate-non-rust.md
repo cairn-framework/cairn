@@ -2,11 +2,11 @@
 node: cairn.root
 status: open
 created: 2026-07-15
+related: [todo.architecture-modularity-audit, todo.modularity-scan-finding, todo.ui-assets-blueprint-path]
 ---
 
 # Extend file-size gate beyond Rust sources
 
-related: [todo.architecture-modularity-audit, todo.modularity-scan-finding, todo.ui-assets-blueprint-path]
 
 ## Problem
 

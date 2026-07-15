@@ -58,20 +58,27 @@ flagships (`app.js`, `style.css`) grew past 2000 lines with zero gate signal.
 
 ### `src/cli/mod.rs` composition
 
-Not a pure 2200-line production god-module. Structure:
+The file is large (2205 lines) but not pure production. Verified structure
+(brace-matched `#[cfg(test)]` modules, 2026-07-15):
 
-- Lines 1 to ~301: production dispatch (`run`, early command branches).
-- Lines ~303 to ~421: change/project helpers and parse.
-- Line 422: first `#[cfg(test)]` (delegation tests).
-- Lines ~978 to 2205: large integration-style `mod tests`.
+- Lines 1 to 301: production dispatch (`run`, early command branches).
+- Lines 303 to 421: change helpers still in production.
+- Lines 422 to 462: small `#[cfg(test)] mod delegation_tests` (41 lines).
+- Lines 463 to 976: **more production** after the first test block
+  (`parse_args` ~476, `run_project_command` ~523, `render_loaded_project_command`
+  ~591, `all_command_names` ~844, `help_text` ~881, suggestion helpers).
+- Lines 977 to 2205: large `#[cfg(test)] mod tests` (1229 lines).
 
-Approximate split: ~421 production lines before the first test module, then
-~1784 lines of tests and secondary helpers. The allow-list reason is accurate
-("CLI dispatch hub; natural seam is per-command modules which already exist
-for newer commands"). Production dispatch already delegates many commands to
+True split by brace-matched test modules: **935 production / 1270 test**
+lines (not "421 production then mostly tests"). The first `#[cfg(test)]` is
+**not** the production/test boundary; substantial production code continues
+after `delegation_tests`. The allow-list reason remains accurate ("CLI
+dispatch hub; natural seam is per-command modules which already exist for
+newer commands"). Production dispatch already delegates many commands to
 `src/cli/commands/*` (todo, decision, hook, wire, workspace, ...). Residual
 hot path in the hub: global `--help` short-circuit at `src/cli/mod.rs:85-86`,
-command registry/help text, and the large colocated test suite.
+command registry/help text, project/change dispatch that still lives here,
+and the large colocated test suite.
 
 ### `src/ui_assets/app.js` composition
 
@@ -132,7 +139,9 @@ is the entire `src/` history of this repository. Six-month and all-history
 counts are therefore identical; all-history is not reported as a separate
 table. A 30-day cross-check (`--since='30 days ago'`, 144 commits, 2026-06-15
 to 2026-07-14) is included below to show whether the same files remain hot in
-recent work.
+recent work. Module-churn SUMS below are full-tree numstat aggregations and
+can differ by small deltas (±1 to 11) from path-scoped `git rev-list --count`;
+file-level ranks and co-change pairs are exact.
 
 ### Six-month window (primary): top files by commit count
 
@@ -261,13 +270,28 @@ High fan-out presentation / orchestration modules:
 
 ### Fan-in (unique importers)
 
-| Module | Fan-in | Importers (module level) |
+| Module | Fan-in | Importers (strict module-level `use crate::<name>` / `use crate::<name>::...`) |
 |---|---:|---|
 | `map` | 12 | artefacts, brownfield, changes, cli, hooks, lsp, query_api, reconcile, scanner, summariser, watch, workspace |
-| `blueprint` | ~8-10 | artefacts, brownfield, changes, cli, hooks, map, query_api, reconcile, scanner, summariser |
-| `scanner` | ~8 | changes, cli, hooks, query_api, reconcile, summariser, ui, workspace |
-| `artefacts` | ~7 | changes, cli, hooks, map, query_api, scanner, summariser |
+| `blueprint` | 10 | artefacts, brownfield, changes, cli, hooks, map, query_api, reconcile, scanner, summariser |
+| `scanner` | **2** | `reconcile` (`use crate::scanner::config` in `src/reconcile/target.rs`), `ui` (`use crate::scanner` in `src/ui/mod.rs`) |
+| `artefacts` | 7 | changes, cli, hooks, map, query_api, scanner, summariser |
 | `persist` | 5 | changes, scanner, suggested_edges, summariser, workspace |
+
+Strict module-level fan-in for a target `T` counts only import statements whose
+path begins `use crate::T` or `use crate::T::...`. It does **not** count
+grouped brace imports (`use crate::{ ..., T, ... }`) or path-qualified body
+uses (`crate::T::...` with no matching `use`).
+
+**Scanner separately (not in the fan-in column above):**
+
+- Grouped brace imports that name `scanner` among other roots: `changes`,
+  `cli`, `hooks`, `query_api`, `summariser`, `workspace` (and further
+  `cli`/`query_api` subfiles that re-import via braces).
+- Path-qualified body uses without adding new modules beyond the above:
+  `crate::scanner::scan` / `load_project` in `cli/commands/{onboard,watch}.rs`,
+  `crate::scanner::state::BlueprintSnapshot` in several `cli/render` tests and
+  `query_api/handlers/bundle.rs`.
 
 `map` is the structural centre of the crate: high fan-in is expected for a
 graph domain model, but it means edits to shared map types have wide blast

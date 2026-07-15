@@ -1,14 +1,19 @@
 ---
-node: cairn.kernel.scanner
+node: cairn.kernel.map
 status: open
 created: 2026-07-15
+related: [todo.architecture-modularity-audit, todo.size-gate-non-rust]
 ---
 
 # Oversized-module scan finding
 
-related: [todo.architecture-modularity-audit, todo.size-gate-non-rust]
 
 ## Problem
+
+Primary home: `cairn.kernel.map` (graph construction and integrity checks;
+sister structural findings already live here). Emission is via the scan
+pipeline, but the check belongs with map integrity, not scanner
+orchestration.
 
 Cairn dogfoods cairn, yet a node can own a 2000-line file and still scan
 clean. Map validation checks path existence and edge *endpoints*

@@ -2,11 +2,11 @@
 node: cairn.ui
 status: open
 created: 2026-07-15
+related: [todo.architecture-modularity-audit, todo.webui-feature-module-split, todo.size-gate-non-rust]
 ---
 
 # Claim src/ui_assets on cairn.ui blueprint path
 
-related: [todo.architecture-modularity-audit, todo.webui-feature-module-split, todo.size-gate-non-rust]
 
 ## Problem
 
