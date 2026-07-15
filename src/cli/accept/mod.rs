@@ -1,58 +1,50 @@
 //! `cairn change accept` verification battery and gate logic.
 
+mod gates;
+
+use std::path::Path;
 use std::process::{Command, ExitStatus};
 
 use crate::cli::{CliResult, format::esc};
+use crate::reconcile::target::Language;
 use crate::verification::VerificationState;
+
+use gates::{AcceptStep, BatterySelection, select_language_battery};
 
 /// Run the verification battery for `cairn change accept`.
 pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
     let mut findings = Vec::new();
+    let root = std::env::current_dir().unwrap_or_default();
 
-    run_step(
-        &mut findings,
-        "cargo build",
-        || run_command("cargo", &["build"], json),
-        "build failed",
-        "could not run cargo build",
-    );
-
-    run_step(
-        &mut findings,
-        "cargo clippy",
-        || {
-            run_command(
-                "cargo",
-                &[
-                    "clippy",
-                    "--all-targets",
-                    "--all-features",
-                    "--",
-                    "-D",
-                    "warnings",
-                ],
-                json,
-            )
-        },
-        "clippy warnings found",
-        "could not run cargo clippy",
-    );
-
-    run_step(
-        &mut findings,
-        "cargo fmt",
-        || run_command("cargo", &["fmt", "--check"], json),
-        "formatting issues found",
-        "could not run cargo fmt",
-    );
-
-    run_step(
-        &mut findings,
-        "cargo test --workspace --locked",
-        || run_command("cargo", &["test", "--workspace", "--locked"], json),
-        "tests failed",
-        "could not run cargo test",
-    );
+    match load_gate_context(&root) {
+        Ok((gates_configured, configured_gates, language)) => {
+            match select_language_battery(language, gates_configured, &configured_gates) {
+                BatterySelection::Steps(steps) => {
+                    for step in steps {
+                        run_accept_step(&mut findings, &step, json);
+                    }
+                }
+                BatterySelection::SkipInfo { language } => {
+                    findings.push(VerificationFinding {
+                        test: format!("language battery ({language})"),
+                        state: VerificationState::Skipped,
+                        detail: Some(format!(
+                            "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
+                        )),
+                    });
+                }
+            }
+        }
+        Err(message) => {
+            // Do not fall back by language when config is unreadable: that would
+            // silently bypass an explicit `gates:` block.
+            findings.push(VerificationFinding {
+                test: "load cairn.config.yaml".to_string(),
+                state: VerificationState::Blocked,
+                detail: Some(message),
+            });
+        }
+    }
 
     if let Some(id) = change_id {
         run_step(
@@ -62,11 +54,7 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
             "validation failed",
             "could not run validation",
         );
-        check_suggested_edges(
-            &mut findings,
-            id,
-            &std::env::current_dir().unwrap_or_default(),
-        );
+        check_suggested_edges(&mut findings, id, &root);
     }
 
     let has_failed = findings
@@ -87,6 +75,30 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
         stdout: output,
         stderr: String::new(),
     }
+}
+
+fn load_gate_context(
+    root: &Path,
+) -> Result<(bool, Vec<crate::scanner::config::GateStep>, Language), String> {
+    match crate::scanner::config::load(root) {
+        Ok(config) => {
+            let language = Language::infer_from_directory(root, Path::new("."), &config.ignores)
+                .unwrap_or(Language::Unknown);
+            Ok((config.gates_configured, config.gates, language))
+        }
+        Err(error) => Err(format!("could not load cairn.config.yaml: {error}")),
+    }
+}
+
+fn run_accept_step(findings: &mut Vec<VerificationFinding>, step: &AcceptStep, quiet: bool) {
+    let args: Vec<&str> = step.args.iter().map(String::as_str).collect();
+    run_step(
+        findings,
+        &step.name,
+        || run_command(&step.program, &args, quiet),
+        &step.fail_msg,
+        &step.block_msg,
+    );
 }
 
 fn run_step(
@@ -126,11 +138,7 @@ fn run_step(
     }
 }
 
-fn check_suggested_edges(
-    findings: &mut Vec<VerificationFinding>,
-    change_id: &str,
-    root: &std::path::Path,
-) {
+fn check_suggested_edges(findings: &mut Vec<VerificationFinding>, change_id: &str, root: &Path) {
     let change_dir = root.join("meta/changes").join(change_id);
     match crate::suggested_edges::validate_strict(change_id, &change_dir) {
         Ok(()) => {
@@ -211,6 +219,7 @@ fn state_str(state: &VerificationState) -> &'static str {
         VerificationState::Passed => "passed",
         VerificationState::Failed => "failed",
         VerificationState::Blocked => "blocked",
+        VerificationState::Skipped => "skipped",
     }
 }
 
@@ -329,26 +338,14 @@ mod tests {
         assert_eq!(parsed["data"]["gate_outcome"], "blocked");
     }
 
-    // ── truncate_stderr ───────────────────────────────────────────────────────
-
     #[test]
     fn test_truncate_stderr_multibyte_chars_do_not_panic() {
-        // U+2192 RIGHTWARDS ARROW is 3 UTF-8 bytes (0xE2 0x86 0x92).
-        // 170 arrows = 510 bytes; byte 512 falls inside the 171st arrow
-        // (a continuation byte), which is NOT a char boundary.
-        // &s[..512] on this input panics in the original code.
-        let long = "→".repeat(200); // 600 bytes
+        let long = "→".repeat(200);
         assert_eq!(long.len(), 600);
-        assert!(
-            !long.is_char_boundary(512),
-            "byte 512 must not be a char boundary"
-        );
+        assert!(!long.is_char_boundary(512));
         let result = truncate_stderr(&long, 512);
-        assert!(
-            result.ends_with("..."),
-            "truncated output must end with '...'"
-        );
-        assert!(result.len() < long.len(), "must be shorter than input");
+        assert!(result.ends_with("..."));
+        assert!(result.len() < long.len());
     }
 
     #[test]
@@ -369,8 +366,6 @@ mod tests {
         assert_eq!(truncate_stderr(&exactly, 512), exactly);
     }
 
-    // ── state_str ─────────────────────────────────────────────────────────────
-
     #[test]
     fn test_state_str_all_variants() {
         assert_eq!(state_str(&VerificationState::Draft), "draft");
@@ -378,9 +373,8 @@ mod tests {
         assert_eq!(state_str(&VerificationState::Passed), "passed");
         assert_eq!(state_str(&VerificationState::Failed), "failed");
         assert_eq!(state_str(&VerificationState::Blocked), "blocked");
+        assert_eq!(state_str(&VerificationState::Skipped), "skipped");
     }
-
-    // ── format_findings ───────────────────────────────────────────────────────
 
     #[test]
     fn test_format_findings_single_passed_step() {
@@ -425,18 +419,11 @@ mod tests {
             detail: None,
         }];
         let out = format_findings(&findings, false);
-        assert!(
-            !out.contains("Note:"),
-            "blocked note must not appear when has_blocked is false"
-        );
+        assert!(!out.contains("Note:"));
     }
-
-    // ── format_json gaps ──────────────────────────────────────────────────────
 
     #[test]
     fn test_format_json_failed_wins_over_blocked() {
-        // When both has_failed and has_blocked are true, gate_outcome must be
-        // "failed" — failed takes precedence in the if-else chain.
         let findings = vec![VerificationFinding {
             test: "cargo test".to_string(),
             state: VerificationState::Failed,
@@ -445,5 +432,49 @@ mod tests {
         let out = format_json(&findings, true, true);
         let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
         assert_eq!(parsed["data"]["gate_outcome"], "failed");
+    }
+
+    #[test]
+    fn test_skipped_info_does_not_fail_or_block() {
+        let findings = vec![VerificationFinding {
+            test: "language battery (typescript)".to_string(),
+            state: VerificationState::Skipped,
+            detail: Some(
+                "no gates configured for typescript; configure a `gates:` section in cairn.config.yaml to run build/test checks"
+                    .to_string(),
+            ),
+        }];
+        let has_failed = findings
+            .iter()
+            .any(|f| f.state == VerificationState::Failed);
+        let has_blocked = findings
+            .iter()
+            .any(|f| f.state == VerificationState::Blocked);
+        assert!(!has_failed);
+        assert!(!has_blocked);
+        let out = format_json(&findings, has_failed, has_blocked);
+        let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+        assert_eq!(parsed["status"], "ok");
+        assert_eq!(parsed["data"]["gate_outcome"], "passed");
+        assert_eq!(parsed["data"]["steps"][0]["state"], "skipped");
+        assert!(
+            parsed["data"]["steps"][0]["detail"]
+                .as_str()
+                .unwrap()
+                .contains("no gates configured for typescript")
+        );
+        assert_eq!(u8::from(has_failed), 0);
+    }
+
+    #[test]
+    fn test_format_findings_shows_skipped() {
+        let findings = vec![VerificationFinding {
+            test: "language battery (python)".to_string(),
+            state: VerificationState::Skipped,
+            detail: Some("no gates configured for python".to_string()),
+        }];
+        let out = format_findings(&findings, false);
+        assert!(out.contains("[SKIPPED] language battery (python)"));
+        assert!(out.contains("no gates configured for python"));
     }
 }

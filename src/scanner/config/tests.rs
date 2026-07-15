@@ -263,6 +263,69 @@ fn test_parse_config_duplicate_unknown_key_warns_once() {
     assert_eq!(config.findings.len(), 1);
 }
 
+// ── parse_config gates ────────────────────────────────────────────────────
+
+#[test]
+fn test_parse_config_gates_section() {
+    let mut config = Config::default();
+    parse_config(
+        "gates:\n  - name: typecheck\n    command: tsc --noEmit\n  - name: unit\n    command: bun test\n",
+        &mut config,
+    );
+    assert_eq!(config.gates.len(), 2);
+    assert_eq!(config.gates[0].name, "typecheck");
+    assert_eq!(config.gates[0].command, "tsc --noEmit");
+    assert_eq!(config.gates[1].name, "unit");
+    assert_eq!(config.gates[1].command, "bun test");
+}
+
+#[test]
+fn test_parse_config_gates_absent_is_empty() {
+    let mut config = Config::default();
+    parse_config("context: \"hello\"\nignore:\n  - dist\n", &mut config);
+    assert!(config.gates.is_empty());
+}
+
+#[test]
+fn test_parse_config_gates_is_known_top_level_key() {
+    let mut config = Config::default();
+    parse_config("gates:\n  - name: build\n    command: true\n", &mut config);
+    assert!(
+        config.findings.is_empty(),
+        "gates must be a known top-level key: {:?}",
+        config.findings
+    );
+    assert_eq!(config.gates.len(), 1);
+    assert_eq!(config.gates[0].name, "build");
+    assert_eq!(config.gates[0].command, "true");
+}
+
+#[test]
+fn test_parse_config_gates_inline_list_item_fields() {
+    // Inline form on the dash line: `- name: foo` then indented `command:`.
+    let mut config = Config::default();
+    parse_config(
+        "gates:\n  - name: fmt\n    command: biome check\n",
+        &mut config,
+    );
+    assert_eq!(config.gates.len(), 1);
+    assert_eq!(config.gates[0].name, "fmt");
+    assert_eq!(config.gates[0].command, "biome check");
+}
+
+#[test]
+fn test_parse_config_empty_gates_sets_configured() {
+    let mut config = Config::default();
+    parse_config("gates:\n", &mut config);
+    assert!(config.gates_configured, "empty gates: must mark configured");
+    assert!(config.gates.is_empty());
+    assert!(
+        config.findings.is_empty(),
+        "gates must not warn as unknown: {:?}",
+        config.findings
+    );
+}
+
 // ── load_ignore_file ──────────────────────────────────────────────────────
 
 #[test]

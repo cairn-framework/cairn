@@ -15,6 +15,8 @@ pub enum VerificationState {
     Failed,
     /// Test could not execute because of an upstream missing piece.
     Blocked,
+    /// Step intentionally skipped (informational; does not fail the gate).
+    Skipped,
 }
 
 #[cfg(test)]
@@ -29,6 +31,7 @@ mod tests {
             VerificationState::Passed,
             VerificationState::Failed,
             VerificationState::Blocked,
+            VerificationState::Skipped,
         ];
 
         for variant in variants {
