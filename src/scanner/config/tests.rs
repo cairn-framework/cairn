@@ -292,6 +292,10 @@ fn test_parse_config_gates_absent_is_empty() {
     let mut config = Config::default();
     parse_config("context: \"hello\"\nignore:\n  - dist\n", &mut config);
     assert!(config.gates.is_empty());
+    assert!(
+        !config.gates_configured,
+        "absent gates: key must leave gates_configured false"
+    );
 }
 
 #[test]

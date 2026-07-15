@@ -51,12 +51,20 @@ pub fn select_language_battery(
             .iter()
             .map(|g| {
                 let (program, args) = split_command(&g.command);
+                let name = if g.name.is_empty() {
+                    "unnamed gate".to_owned()
+                } else {
+                    g.name.clone()
+                };
+                // Blank/whitespace-only command is a config error: surface as a
+                // step with empty program so the runner marks it Failed (not
+                // Blocked). Legitimate missing toolchains still Blocked.
                 AcceptStep {
-                    name: g.name.clone(),
+                    name: name.clone(),
                     program,
                     args,
-                    fail_msg: format!("{} failed", g.name),
-                    block_msg: format!("could not run {}", g.name),
+                    fail_msg: format!("{name} failed"),
+                    block_msg: format!("could not run {name}"),
                 }
             })
             .collect();
@@ -116,6 +124,21 @@ fn cargo_battery() -> Vec<AcceptStep> {
     ]
 }
 
+/// Detail string when a configured gate has no runnable program.
+///
+/// Returns `Some` when `program` is empty (blank/whitespace-only command).
+#[must_use]
+pub fn blank_command_failure_detail(step: &AcceptStep) -> Option<String> {
+    if step.program.is_empty() {
+        Some(format!(
+            "{} has no command; configure a non-empty `command:` in cairn.config.yaml",
+            step.name
+        ))
+    } else {
+        None
+    }
+}
+
 /// Split a gate command string on whitespace into program + args.
 ///
 /// Simple whitespace split: no shell quoting. Prefer commands without spaces
@@ -130,6 +153,7 @@ fn split_command(command: &str) -> (String, Vec<String>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::Path;
 
     #[test]
     fn configured_gates_override_rust() {
@@ -254,5 +278,106 @@ mod tests {
         let (program, args) = split_command("true");
         assert_eq!(program, "true");
         assert!(args.is_empty());
+    }
+
+    #[test]
+    fn blank_command_gate_yields_empty_program_and_failure_detail() {
+        let gates = vec![GateStep {
+            name: "typecheck".to_owned(),
+            command: "   ".to_owned(),
+        }];
+        match select_language_battery(Language::TypeScript, true, &gates) {
+            BatterySelection::Steps(steps) => {
+                assert_eq!(steps.len(), 1);
+                assert!(steps[0].program.is_empty(), "whitespace-only command");
+                let detail = blank_command_failure_detail(&steps[0])
+                    .expect("blank command must produce failure detail");
+                assert!(detail.contains("typecheck"));
+                assert!(detail.contains("no command"));
+            }
+            other @ BatterySelection::SkipInfo { .. } => {
+                panic!("expected Steps, got {other:?}")
+            }
+        }
+    }
+
+    #[test]
+    fn missing_command_field_gate_yields_empty_program() {
+        let gates = vec![GateStep {
+            name: "typecheck".to_owned(),
+            command: String::new(),
+        }];
+        match select_language_battery(Language::Rust, true, &gates) {
+            BatterySelection::Steps(steps) => {
+                assert!(steps[0].program.is_empty());
+                assert!(blank_command_failure_detail(&steps[0]).is_some());
+            }
+            other @ BatterySelection::SkipInfo { .. } => {
+                panic!("expected Steps, got {other:?}")
+            }
+        }
+    }
+
+    #[test]
+    fn load_and_select_typescript_without_gates_skips() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        std::fs::write(
+            root.join("app.ts"),
+            "export const x = 1;
+",
+        )
+        .unwrap();
+        // No cairn.config.yaml => gates absent.
+        let config = crate::scanner::config::load(root).unwrap();
+        assert!(
+            !config.gates_configured,
+            "absent gates: must leave gates_configured false"
+        );
+        let language = Language::infer_from_directory(root, Path::new("."), &config.ignores)
+            .unwrap_or(Language::Unknown);
+        assert_eq!(language, Language::TypeScript);
+        match select_language_battery(language, config.gates_configured, &config.gates) {
+            BatterySelection::SkipInfo { language } => {
+                assert_eq!(language, "typescript");
+            }
+            other @ BatterySelection::Steps(_) => panic!("expected SkipInfo, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn load_and_select_with_gates_config_runs_configured_steps() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        std::fs::write(
+            root.join("app.ts"),
+            "export const x = 1;
+",
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("cairn.config.yaml"),
+            "gates:
+  - name: unit
+    command: true
+",
+        )
+        .unwrap();
+        let config = crate::scanner::config::load(root).unwrap();
+        assert!(config.gates_configured);
+        assert_eq!(config.gates.len(), 1);
+        let language = Language::infer_from_directory(root, Path::new("."), &config.ignores)
+            .unwrap_or(Language::Unknown);
+        match select_language_battery(language, config.gates_configured, &config.gates) {
+            BatterySelection::Steps(steps) => {
+                assert_eq!(steps.len(), 1);
+                assert_eq!(steps[0].name, "unit");
+                assert_eq!(steps[0].program, "true");
+                assert!(blank_command_failure_detail(&steps[0]).is_none());
+            }
+            other @ BatterySelection::SkipInfo { .. } => {
+                panic!("expected Steps from gates config, got {other:?}")
+            }
+        }
     }
 }

@@ -1,0 +1,310 @@
+//! Unit tests for the accept gate.
+use super::*;
+
+#[test]
+fn test_format_json_produces_valid_json() {
+    let findings = vec![
+        VerificationFinding {
+            test: "cargo build".to_string(),
+            state: VerificationState::Passed,
+            detail: None,
+        },
+        VerificationFinding {
+            test: "cargo test".to_string(),
+            state: VerificationState::Failed,
+            detail: Some("tests failed".to_string()),
+        },
+    ];
+    let output = format_json(&findings, true, false);
+    let parsed: serde_json::Value = serde_json::from_str(output.trim())
+        .unwrap_or_else(|e| panic!("invalid JSON from accept --json: {e}\n{output}"));
+    assert_eq!(parsed["command"], "accept");
+    assert_eq!(parsed["status"], "error");
+    assert_eq!(parsed["data"]["gate_outcome"], "failed");
+    let steps = parsed["data"]["steps"].as_array().expect("steps array");
+    assert_eq!(steps.len(), 2);
+    assert_eq!(steps[0]["state"], "passed");
+    assert_eq!(steps[1]["state"], "failed");
+    assert_eq!(steps[1]["detail"], "tests failed");
+}
+
+#[test]
+fn test_format_json_passed_status() {
+    let findings = vec![VerificationFinding {
+        test: "cargo build".to_string(),
+        state: VerificationState::Passed,
+        detail: None,
+    }];
+    let output = format_json(&findings, false, false);
+    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["data"]["gate_outcome"], "passed");
+}
+
+#[test]
+fn test_format_json_blocked_status() {
+    let findings = vec![VerificationFinding {
+        test: "cargo build".to_string(),
+        state: VerificationState::Blocked,
+        detail: Some("not installed".to_string()),
+    }];
+    let output = format_json(&findings, false, true);
+    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    assert_eq!(parsed["status"], "error");
+    assert_eq!(parsed["data"]["gate_outcome"], "blocked");
+}
+
+#[test]
+fn test_truncate_stderr_multibyte_chars_do_not_panic() {
+    let long = "→".repeat(200);
+    assert_eq!(long.len(), 600);
+    assert!(!long.is_char_boundary(512));
+    let result = truncate_stderr(&long, 512);
+    assert!(result.ends_with("..."));
+    assert!(result.len() < long.len());
+}
+
+#[test]
+fn test_truncate_stderr_ascii_truncates_at_exact_limit() {
+    let long = "x".repeat(600);
+    let result = truncate_stderr(&long, 512);
+    assert_eq!(result, format!("{}...", "x".repeat(512)));
+}
+
+#[test]
+fn test_truncate_stderr_short_string_returned_unchanged() {
+    assert_eq!(truncate_stderr("hello", 512), "hello");
+}
+
+#[test]
+fn test_truncate_stderr_exactly_at_limit_not_truncated() {
+    let exactly = "x".repeat(512);
+    assert_eq!(truncate_stderr(&exactly, 512), exactly);
+}
+
+#[test]
+fn test_state_str_all_variants() {
+    assert_eq!(state_str(&VerificationState::Draft), "draft");
+    assert_eq!(state_str(&VerificationState::Planned), "planned");
+    assert_eq!(state_str(&VerificationState::Passed), "passed");
+    assert_eq!(state_str(&VerificationState::Failed), "failed");
+    assert_eq!(state_str(&VerificationState::Blocked), "blocked");
+    assert_eq!(state_str(&VerificationState::Skipped), "skipped");
+}
+
+#[test]
+fn test_format_findings_single_passed_step() {
+    let findings = vec![VerificationFinding {
+        test: "cargo build".to_string(),
+        state: VerificationState::Passed,
+        detail: None,
+    }];
+    let out = format_findings(&findings, false);
+    assert!(out.contains("Verification Battery Results:"));
+    assert!(out.contains("[PASSED] cargo build"));
+    assert!(out.ends_with('\n'));
+}
+
+#[test]
+fn test_format_findings_detail_in_parentheses() {
+    let findings = vec![VerificationFinding {
+        test: "cargo test".to_string(),
+        state: VerificationState::Failed,
+        detail: Some("3 tests failed".to_string()),
+    }];
+    let out = format_findings(&findings, false);
+    assert!(out.contains("[FAILED] cargo test (3 tests failed)"));
+}
+
+#[test]
+fn test_format_findings_blocked_note_appended() {
+    let findings = vec![VerificationFinding {
+        test: "cargo clippy".to_string(),
+        state: VerificationState::Blocked,
+        detail: None,
+    }];
+    let out = format_findings(&findings, true);
+    assert!(out.contains("Note: Blocked outcomes do not fail the gate"));
+}
+
+#[test]
+fn test_format_findings_no_blocked_note_when_false() {
+    let findings = vec![VerificationFinding {
+        test: "cargo build".to_string(),
+        state: VerificationState::Passed,
+        detail: None,
+    }];
+    let out = format_findings(&findings, false);
+    assert!(!out.contains("Note:"));
+}
+
+#[test]
+fn test_format_json_failed_wins_over_blocked() {
+    let findings = vec![VerificationFinding {
+        test: "cargo test".to_string(),
+        state: VerificationState::Failed,
+        detail: None,
+    }];
+    let out = format_json(&findings, true, true);
+    let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    assert_eq!(parsed["data"]["gate_outcome"], "failed");
+}
+
+#[test]
+fn test_skipped_info_does_not_fail_or_block() {
+    let findings = vec![VerificationFinding {
+        test: "language battery (typescript)".to_string(),
+        state: VerificationState::Skipped,
+        detail: Some(
+            "no gates configured for typescript; configure a `gates:` section in cairn.config.yaml to run build/test checks"
+                .to_string(),
+        ),
+    }];
+    let has_failed = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Failed);
+    let has_blocked = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Blocked);
+    assert!(!has_failed);
+    assert!(!has_blocked);
+    let out = format_json(&findings, has_failed, has_blocked);
+    let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["data"]["gate_outcome"], "passed");
+    assert_eq!(parsed["data"]["steps"][0]["state"], "skipped");
+    assert!(
+        parsed["data"]["steps"][0]["detail"]
+            .as_str()
+            .unwrap()
+            .contains("no gates configured for typescript")
+    );
+    assert_eq!(u8::from(has_failed), 0);
+}
+
+#[test]
+fn test_format_findings_shows_skipped() {
+    let findings = vec![VerificationFinding {
+        test: "language battery (python)".to_string(),
+        state: VerificationState::Skipped,
+        detail: Some("no gates configured for python".to_string()),
+    }];
+    let out = format_findings(&findings, false);
+    assert!(out.contains("[SKIPPED] language battery (python)"));
+    assert!(out.contains("no gates configured for python"));
+}
+
+#[test]
+fn test_blank_command_gate_fails_with_nonzero_exit() {
+    // A configured gate with a blank command must be Failed, not Blocked,
+    // so acceptance exits non-zero (has_failed drives the exit code).
+    let step = AcceptStep {
+        name: "typecheck".to_string(),
+        program: String::new(),
+        args: Vec::new(),
+        fail_msg: "typecheck failed".to_string(),
+        block_msg: "could not run typecheck".to_string(),
+    };
+    let mut findings = Vec::new();
+    run_accept_step(&mut findings, &step, true);
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].state, VerificationState::Failed);
+    assert!(
+        findings[0]
+            .detail
+            .as_ref()
+            .is_some_and(|d| d.contains("no command")),
+        "detail: {:?}",
+        findings[0].detail
+    );
+    let has_failed = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Failed);
+    let has_blocked = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Blocked);
+    assert!(has_failed);
+    assert!(!has_blocked);
+    assert_eq!(u8::from(has_failed), 1);
+    let out = format_json(&findings, has_failed, has_blocked);
+    let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    assert_eq!(parsed["data"]["gate_outcome"], "failed");
+    assert_eq!(parsed["status"], "error");
+}
+
+#[test]
+fn test_load_gate_context_skip_wiring_end_to_end() {
+    // Drive config load -> language infer -> selection -> production skip
+    // finding shape without spawning real gate commands.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(
+        root.join("main.ts"),
+        "export {};
+",
+    )
+    .unwrap();
+    let (configured, gates, language) = load_gate_context(root).unwrap();
+    assert!(!configured);
+    assert_eq!(language, Language::TypeScript);
+    let selection = select_language_battery(language, configured, &gates);
+    let mut findings = Vec::new();
+    match selection {
+        BatterySelection::SkipInfo { language } => {
+            assert_eq!(language, "typescript");
+            findings.push(VerificationFinding {
+                test: format!("language battery ({language})"),
+                state: VerificationState::Skipped,
+                detail: Some(format!(
+                    "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
+                )),
+            });
+        }
+        BatterySelection::Steps(steps) => panic!("expected SkipInfo, got {steps:?}"),
+    }
+    let has_failed = findings
+        .iter()
+        .any(|f| f.state == VerificationState::Failed);
+    assert!(!has_failed);
+    assert_eq!(findings[0].state, VerificationState::Skipped);
+    assert!(
+        findings[0]
+            .detail
+            .as_ref()
+            .is_some_and(|d| d.contains("no gates configured for typescript"))
+    );
+    assert_eq!(u8::from(has_failed), 0);
+}
+
+#[test]
+fn test_load_gate_context_with_gates_selects_steps() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(
+        root.join("main.ts"),
+        "export {};
+",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("cairn.config.yaml"),
+        "gates:
+  - name: unit
+command: true
+",
+    )
+    .unwrap();
+    let (configured, gates, language) = load_gate_context(root).unwrap();
+    assert!(configured);
+    assert_eq!(language, Language::TypeScript);
+    match select_language_battery(language, configured, &gates) {
+        BatterySelection::Steps(steps) => {
+            assert_eq!(steps.len(), 1);
+            assert_eq!(steps[0].program, "true");
+            assert_eq!(steps[0].name, "unit");
+        }
+        BatterySelection::SkipInfo { language } => {
+            panic!("gates config must not skip, got SkipInfo({language})")
+        }
+    }
+}
