@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.4.0
+
+### Agent navigation
+
+- New `cairn locate <symbol>` (CLI `--json` and `cairn_locate` MCP tool): repo-wide public-symbol reverse lookup over the reconciler's persisted SymbolRecords; collisions return every match with its owning node id, landing agents on the node's contract and decisions (#389).
+
+### Orientation truth
+
+- `cairn status` and `cairn next` now agree on `next_recommended`: both delegate to one shared selection (top remediation action, then top open native todo, then top ready bead, per dec.native-todos-first). Query and webui `schema_version` bump to 2 (#387).
+- `cairn bundle` and `brief` surface the project's real verification gates (explicit `gates:` config, else the language battery accept runs) instead of stale static copy; accept resolves and executes gates from the `--file`-derived project root (#391).
+
+### Ownership and scanning
+
+- Claim-only assets targets: `cairn.config.yaml` targets accept `language: assets` for non-code directories; such targets claim files without a reconciler and without the unknown-language warning. `cairn.ui` now owns `src/ui_assets` (#390).
+
+### Process automation
+
+- `map.json` merge contention between concurrent PRs is resolved by a custom git merge driver that regenerates the snapshot on the merged tree; setup is one `make`-wired per-clone config, documented with its GitHub-UI limitation (dec.map-snapshot-merge-driver) (#388).
+
+### Guards and hygiene
+
+- New meta-test fails when a `CAIRN_*` finding code ships untested (documented allowlist burn-down) or unregistered; the error-codes registry is reconciled with every emitted code and descriptions rewritten from actual validator conditions (#392).
+- The three command-reference guards retarget consolidated AGENTS.md (#385).
+- Flaky `test_complete_session_writes_genesis` fixed: interview test helper used a fixed temp path shared across processes; per-test `TempDir` now isolates it (#386).
 ## v0.3.0
 
 ### CLI truth
