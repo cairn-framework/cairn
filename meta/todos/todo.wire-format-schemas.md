@@ -35,3 +35,7 @@ Motivation: `res.a2ui-analysis` finding 8. Note
 dec.simplify-cli-subset-folds already cites a "query JSON schema
 versioning convention" that has no artifact; this creates it. Needs a
 change proposal (touches the external contract).
+
+## Review note (2026-07-16)
+
+Adversarial backlog review verified the json!() saturation (~40 ad-hoc literals across src/query_api; only MapSnapshot is a proper serde struct) but REFUTED the keystone claim: next-recommended-unification step 1, change-read-surface, symbol-locate-query, and bundle-real-gates do not require this landing first. Disposition: defer (L effort, preventive hygiene); pursue after the converged S/M wins, not as a prerequisite.
