@@ -14,10 +14,11 @@ against the wrong (already-merged) change id.
 
 Two halves, both in scope:
 
-1. Workflow (semi-deterministic): add a post-merge step to phase 9 of
-   `docs/agent/cairn-dev-workflow.md` (and the `/cairn-loop` command doc):
-   after the PR merges, run `cairn change apply <id>` to move the change
-   directory to `meta/changes/archive/`.
+1. Workflow (semi-deterministic): after the PR merges, run
+   `cairn change apply <id>` so the change directory moves to
+   `meta/changes/archive/`. The harness-mode procedure lives in the
+   `cairn-loop-landing` skill (archive-before-commit on the unit branch so
+   completion and archival land in the same squash commit).
 2. Detector (deterministic): a new info-level scan finding (e.g.
    `CAIRN_CHANGE_TASKS_COMPLETE`) emitted when an active change directory
    has every checkbox in `tasks.md` checked. Message should suggest
