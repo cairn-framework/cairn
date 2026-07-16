@@ -314,4 +314,4 @@ The marketing landing lives at `docs/landing/index.html`. It is static HTML cons
 - `docs/design-system/README.md`: design system consumption patterns
 - `test/fixtures/cairn.blueprint`: example blueprint file
 - `AGENTS.md`: agent-facing conventions for working in this repo
-- `CLAUDE.md`: repo-level notes, terminology state, and workflow conventions
+- `CLAUDE.md`: Claude Code compatibility pointer to the authoritative `AGENTS.md`

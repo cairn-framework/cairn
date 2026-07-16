@@ -5,7 +5,7 @@
 # (docs/landing/index.html) ride on the design-system tokens
 # (docs/design-system/tokens.css) and must source every colour and rem-based
 # size from a `var(--token)`, never a hardcoded literal. The stylesheet header,
-# the landing's <style> header, CLAUDE.md, and AGENTS.md all carry this rule;
+# the landing's <style> header and AGENTS.md all carry this rule;
 # biome's recommended rules cannot express it, so this gate enforces it
 # deterministically.
 #

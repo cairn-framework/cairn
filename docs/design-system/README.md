@@ -163,10 +163,10 @@ This design system uses the phase 2.6 terminology:
 - `blueprint` (the declarative file), `.blueprint` (the extension)
 - `map` (the reconciled view), `map.md` (the generated snapshot)
 
-Pre-rename names from earlier spec revisions (see the phase 2.6 rename proposal for the full list) must not appear in current-tense UI copy. Archived phases may reference them as historical record. See `/CLAUDE.md` for the full terminology state and the load-bearing vocabulary set (interface hash, rationale tension vs. interface contradiction, ghost / synced / orphaned / drift, neighbourhood, reconciler, hinge, artefact).
+Pre-rename names from earlier spec revisions (see the phase 2.6 rename proposal for the full list) must not appear in current-tense UI copy. Archived phases may reference them as historical record. See `/AGENTS.md` for the full terminology state and the load-bearing vocabulary set (interface hash, rationale tension vs. interface contradiction, ghost / synced / orphaned / drift, neighbourhood, reconciler, hinge, artefact).
 
 ## Further reading
 
 - `/docs/spec.md` for the canonical spec (provenance and authority chains, reconciler interface, artefact types)
-- `/CLAUDE.md` for the terminology section and repo-level conventions
+- `/AGENTS.md` for the terminology section and repo-level conventions
 - `/openspec/changes/phase-2.6-terminology-rename/` for the rename rationale and the rules this design system follows

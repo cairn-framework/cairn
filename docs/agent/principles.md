@@ -3,7 +3,7 @@
 Load this file when: making architecture decisions, adding new artefact types,
 or proposing changes to the two-chain topology.
 
-Three principles, complementary to the negative-space "What to avoid" list in CLAUDE.md:
+Three principles, complementary to the negative-space guardrails in `AGENTS.md`:
 
 1. **Typed artefacts encode obligations, not labels.** Each direct type (`contract`,
    `decision`, `todo`, `research`, `review`, `source`) has a different role in the
