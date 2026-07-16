@@ -142,6 +142,68 @@ mod cli {
         );
     }
 
+    /// Scenario: Human health info count agrees with the JSON summary count.
+    /// Regression: the renderer read `summary.total_info` while the JSON
+    /// payload emitted `summary.info`, so human `cairn health` always
+    /// reported info: 0.
+    #[test]
+    fn test_health__human_info_count_matches_json_summary() {
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        std::fs::write(
+            &bp,
+            r#"System Test "Test system" id "test" {
+}
+"#,
+        )
+        .expect("write blueprint");
+        // A change directory with every task checked produces the
+        // Info-severity CAIRN_CHANGE_TASKS_COMPLETE finding, so the health
+        // info count is non-zero.
+        let change_dir = root.path().join("meta/changes/complete-change");
+        std::fs::create_dir_all(&change_dir).expect("create change dir");
+        std::fs::write(
+            change_dir.join("proposal.md"),
+            "# Proposal: complete change\n",
+        )
+        .expect("write proposal");
+        std::fs::write(
+            change_dir.join("tasks.md"),
+            "# Tasks\n\n- [x] design\n- [x] implement\n",
+        )
+        .expect("write tasks");
+
+        let json_result = cairn::cli::run(&[
+            "--json".to_owned(),
+            "--file".to_owned(),
+            bp.to_string_lossy().to_string(),
+            "health".to_owned(),
+        ]);
+        assert_eq!(json_result.code, 0, "health --json exits zero");
+        let parsed: serde_json::Value = serde_json::from_str(json_result.stdout.trim())
+            .expect("health --json must produce valid JSON");
+        let info = parsed["summary"]["total_info"]
+            .as_u64()
+            .expect("health summary must carry total_info");
+        assert!(
+            info >= 1,
+            "fixture must produce at least one info finding; summary: {}",
+            parsed["summary"]
+        );
+
+        let human_result = cairn::cli::run(&[
+            "--file".to_owned(),
+            bp.to_string_lossy().to_string(),
+            "health".to_owned(),
+        ]);
+        assert_eq!(human_result.code, 0, "health exits zero");
+        assert!(
+            human_result.stdout.contains(&format!("info: {info}")),
+            "human health info count must match JSON summary count {info}; got: {}",
+            human_result.stdout
+        );
+    }
+
     /// Scenario: Scan --strict exits non-zero on Warning findings.
     #[test]
     fn test_scan__strict_exits_non_zero_on_warning_findings() {
