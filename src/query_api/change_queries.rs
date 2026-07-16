@@ -49,7 +49,11 @@ pub(super) fn dispatch_change_tool(
                 }),
         ),
         "archive" => {
-            let change = match required(request.change.as_ref(), "change") {
+            let change = match required(
+                request.change.as_ref(),
+                "CAIRN_QUERY_MISSING_CHANGE",
+                "change",
+            ) {
                 Ok(change) => change,
                 Err(error) => return Some(Err(error)),
             };
@@ -69,11 +73,19 @@ pub(super) fn dispatch_change_tool(
             )
         }
         "rename" => {
-            let old_id = match required(request.old_id.as_ref(), "old_id") {
+            let old_id = match required(
+                request.old_id.as_ref(),
+                "CAIRN_QUERY_MISSING_OLD_ID",
+                "old_id",
+            ) {
                 Ok(value) => value,
                 Err(error) => return Some(Err(error)),
             };
-            let new_id = match required(request.new_id.as_ref(), "new_id") {
+            let new_id = match required(
+                request.new_id.as_ref(),
+                "CAIRN_QUERY_MISSING_NEW_ID",
+                "new_id",
+            ) {
                 Ok(value) => value,
                 Err(error) => return Some(Err(error)),
             };
@@ -109,7 +121,7 @@ pub(super) fn show_change(
     changes_dir: &Path,
     change: Option<&String>,
 ) -> Result<Value, QueryError> {
-    let change_id = required(change, "change")?;
+    let change_id = required(change, "CAIRN_QUERY_MISSING_CHANGE", "change")?;
     let changes = changes::discover(root, changes_dir).map_err(|error| QueryError {
         code: "CAIRN_CHANGES_DISCOVERY_FAILED".to_owned(),
         message: error.to_string(),
@@ -174,7 +186,7 @@ fn list_drafts(root: &Path) -> Result<Value, QueryError> {
 }
 
 fn show_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryError> {
-    let id = required(draft_id, "node")?;
+    let id = required(draft_id, "CAIRN_QUERY_MISSING_NODE", "node")?;
     let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
     let draft = store.read(id).map_err(|e| QueryError {
         code: "CAIRN_DRAFT_NOT_FOUND".to_owned(),
@@ -186,7 +198,7 @@ fn show_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryErro
 }
 
 fn discard_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryError> {
-    let id = required(draft_id, "node")?;
+    let id = required(draft_id, "CAIRN_QUERY_MISSING_NODE", "node")?;
     let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
     let draft = store.read(id).map_err(|e| QueryError {
         code: "CAIRN_DRAFT_NOT_FOUND".to_owned(),
@@ -231,7 +243,7 @@ fn discard_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryE
 }
 
 fn edit_draft(root: &Path, draft_id: Option<&String>) -> Result<Value, QueryError> {
-    let id = required(draft_id, "node")?;
+    let id = required(draft_id, "CAIRN_QUERY_MISSING_NODE", "node")?;
     let store = crate::summariser::DraftStore::new(root.join(".cairn/state/summariser"));
     let draft = store.read(id).map_err(|e| QueryError {
         code: "CAIRN_DRAFT_NOT_FOUND".to_owned(),
@@ -284,7 +296,7 @@ fn accept_draft(
     blueprint_path: &Path,
     request: &QueryRequest,
 ) -> Result<Value, QueryError> {
-    let id = required(request.node.as_ref(), "node")?;
+    let id = required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?;
     let edited = request.has(QueryFlag::Edited);
     crate::summariser::accept(root, id, blueprint_path, edited).map_err(|e| QueryError {
         code: "CAIRN_DRAFT_ACCEPT_FAILED".to_owned(),

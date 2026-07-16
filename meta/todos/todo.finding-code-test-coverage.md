@@ -1,6 +1,6 @@
 ---
 node: cairn.tests
-status: open
+status: done
 created: 2026-07-16
 ---
 
@@ -26,3 +26,19 @@ Overlap: `todo.error-codes-registry-completeness` tracks the sibling
 guard (emitted code with no registry entry in
 `docs/registries/error-codes.md`). Both need the same scan of emitted
 codes; land together or share a helper. No change proposal needed.
+
+## Resolution (2026-07-16)
+
+Added `tests/finding_code_coverage.rs`, sharing one AST-based scan (via
+`tree-sitter-rust`) with `todo.error-codes-registry-completeness`'s
+registry test: `scan_codebase()` builds the emitted/asserted sets both
+tests use.
+
+The real audit found 99 distinct emitted `CAIRN_*` codes (not 103; the
+codebase has moved on since this todo was filed) and 35 untested, not
+~20: the estimate here was a rough read, not a full scan. The 35-entry
+burn-down list lives in `UNCOVERED_ALLOWLIST` in the test file, with a
+reason grouped per subsystem in the constant's doc comment. `cargo test
+--test finding_code_coverage` also fails on any allowlist entry that is
+stale (no longer emitted, or now covered by a test), so the list can't
+silently rot upward either.

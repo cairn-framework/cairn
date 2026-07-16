@@ -59,7 +59,11 @@ pub(crate) fn decisions_response_json(
 ) -> Result<Value, QueryError> {
     let node = scan_result
         .graph
-        .resolve(required(request.node.as_ref(), "node")?)
+        .resolve(required(
+            request.node.as_ref(),
+            "CAIRN_QUERY_MISSING_NODE",
+            "node",
+        )?)
         .map_err(finding_error)?;
     let status = request
         .status

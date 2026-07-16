@@ -41,7 +41,11 @@ pub(crate) fn docstring_json(
 ) -> Result<Value, QueryError> {
     let node = scan_result
         .graph
-        .resolve(required(request.node.as_ref(), "node")?)
+        .resolve(required(
+            request.node.as_ref(),
+            "CAIRN_QUERY_MISSING_NODE",
+            "node",
+        )?)
         .map_err(finding_error)?;
     let language = request.language.as_deref().unwrap_or("rust");
     let depends = query::depends(&scan_result.graph, &node.id, false)

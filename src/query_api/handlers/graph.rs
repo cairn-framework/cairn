@@ -38,9 +38,11 @@ pub(crate) fn neighbourhood_json(
     scan_result: &scanner::ScanResult,
     request: &QueryRequest,
 ) -> Result<Value, QueryError> {
-    let response =
-        query::neighbourhood(&scan_result.graph, required(request.node.as_ref(), "node")?)
-            .map_err(finding_error)?;
+    let response = query::neighbourhood(
+        &scan_result.graph,
+        required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+    )
+    .map_err(finding_error)?;
     let node_ids = neighbourhood_ids(&scan_result.graph, &response.node.id);
     let decisions = scan_result
         .artefacts
@@ -113,7 +115,7 @@ pub(crate) fn dependency_json(
     request: &QueryRequest,
     outbound: bool,
 ) -> Result<Value, QueryError> {
-    let node = required(request.node.as_ref(), "node")?;
+    let node = required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?;
     let response = if outbound {
         query::depends(&scan_result.graph, node, request.has(QueryFlag::Transitive))
     } else {
