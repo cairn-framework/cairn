@@ -72,6 +72,7 @@ If cairn misbehaves, surprises you, or gets in your way (a confusing message,
 a wrong finding, a missing capability), record it before moving on:
 
     cairn feedback "what you expected, and what happened instead"
+    cairn feedback "scan misses new dir" --area scanner --severity minor
 
 Entries accumulate in `.cairn/feedback.md`, and the command prints a prefilled
 link for filing the report upstream on the cairn issue tracker.

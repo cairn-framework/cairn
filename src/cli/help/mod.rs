@@ -277,7 +277,7 @@ fn command_tokens(args: &[String]) -> Vec<&str> {
             // Value-taking flags: consume the following token when present.
             "--file" | "--changes-dir" | "--depth" | "--scope" | "--port" | "--status"
             | "--language" | "--direction" | "--interval" | "--format" | "--output" | "--node"
-            | "--grep" | "--question" | "--informed-by" | "--wire" => {
+            | "--grep" | "--question" | "--informed-by" | "--wire" | "--area" | "--severity" => {
                 let _ = iter.next();
             }
             s if s.starts_with('-') => {}
