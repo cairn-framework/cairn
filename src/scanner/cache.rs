@@ -198,15 +198,27 @@ pub(crate) fn write_reconciler_cache(
 }
 
 /// Rebuilds the `(Vec<TargetReport>, Vec<Finding>)` from cached reconciler reports.
+#[allow(clippy::too_many_lines)] // Reason: cached report building naturally iterates targets, handles special asset and unknown branches, and merges cache entries.
 pub(crate) fn build_reports_from_cache(
     cached: &BTreeMap<String, crate::reconcile::ReconcileReport>,
     targets: &[Target],
+    root: &Path,
+    ignores: &[String],
     config: &config::Config,
 ) -> (Vec<TargetReport>, Vec<crate::map::graph::Finding>) {
     let mut reports = Vec::new();
     let mut all_findings = Vec::new();
 
     for target in targets {
+        if target.language == Language::Assets {
+            let (report, finding) = super::build_assets_report(target, root, ignores);
+            if let Some(finding) = finding {
+                all_findings.push(finding);
+            }
+            reports.push(report);
+            continue;
+        }
+
         if target.language == Language::Unknown {
             all_findings.push(Finding {
                 code: "CAIRN_RECONCILE_LANGUAGE_UNKNOWN".to_owned(),

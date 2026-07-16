@@ -206,6 +206,10 @@ targets:
     path: src/api
     language: typescript
     contract_role: public_api
+  # Explicit claim-only assets override (no language inference, no symbol extraction).
+  - node: cairn.ui
+    path: ./src/ui_assets
+    language: assets
 
 ignore:
   - "**/node_modules/**"

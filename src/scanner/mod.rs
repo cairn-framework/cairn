@@ -14,7 +14,7 @@ mod tests;
 
 use std::{
     collections::BTreeMap,
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
 };
 
 use crate::{
@@ -29,7 +29,7 @@ use crate::{
     },
     reconcile::{
         CodeReconciler, ReconcileRequest, Reconciler, ReconcilerId, spec_for,
-        target::{Language, Target, TargetId},
+        target::{Language, Target, TargetId, claim_assets_files},
     },
 };
 
@@ -71,6 +71,15 @@ pub struct ScanResult {
     pub blueprint_snapshot: state::BlueprintSnapshot,
 }
 
+fn normalized_components(path: &Path) -> Vec<std::ffi::OsString> {
+    let normalized = path.to_string_lossy().replace('\\', "/");
+    Path::new(&normalized)
+        .components()
+        .filter(|component| *component != Component::CurDir)
+        .map(|component| component.as_os_str().to_owned())
+        .collect()
+}
+
 fn build_targets(
     ast: &blueprint::Ast,
     config: &config::Config,
@@ -82,10 +91,17 @@ fn build_targets(
         collect_targets(node, &mut targets, root, ignores);
     }
     for target_config in &config.targets {
-        if let Some(target) = targets
-            .iter_mut()
-            .find(|t| t.id.node_id == target_config.node_id)
-        {
+        if let Some(target) = targets.iter_mut().find(|t| {
+            if t.id.node_id != target_config.node_id {
+                return false;
+            }
+            if target_config.path.as_os_str().is_empty() {
+                return true;
+            }
+            let config_components = normalized_components(&target_config.path);
+            let target_components = normalized_components(&t.id.path);
+            config_components == target_components
+        }) {
             if let Some(lang) = Language::from_language_str(&target_config.language) {
                 target.language = lang;
                 target.reconciler_id = lang.reconciler_id();
@@ -120,6 +136,66 @@ fn collect_targets(
     }
 }
 
+fn build_assets_report(
+    target: &Target,
+    root: &Path,
+    ignores: &[String],
+) -> (TargetReport, Option<Finding>) {
+    match claim_assets_files(root, &target.id.path, ignores) {
+        Ok(claimed_files) => {
+            let finding = if claimed_files.is_empty() {
+                Some(Finding {
+                    code: "CAIRN_RECONCILE_EMPTY_TARGET".to_owned(),
+                    severity: FindingSeverity::Warning,
+                    message: format!(
+                        "Target `{}` at `{}` discovered zero files",
+                        target.id.node_id,
+                        target.id.path.display()
+                    ),
+                    node: Some(target.id.node_id.clone()),
+                    target: Some(target.id.as_str()),
+                    path: Some(target.id.path.to_string_lossy().to_string()),
+                    deferred_by: None,
+                })
+            } else {
+                None
+            };
+            (
+                TargetReport {
+                    target_id: target.id.clone(),
+                    language: target.language,
+                    reconciler_id: target.reconciler_id.clone(),
+                    claimed_files,
+                    symbols: std::sync::Arc::new(Vec::new()),
+                    symbol_records: std::sync::Arc::new(Vec::new()),
+                    hash: None,
+                },
+                finding,
+            )
+        }
+        Err(error) => (
+            TargetReport {
+                target_id: target.id.clone(),
+                language: target.language,
+                reconciler_id: target.reconciler_id.clone(),
+                claimed_files: Vec::new(),
+                symbols: std::sync::Arc::new(Vec::new()),
+                symbol_records: std::sync::Arc::new(Vec::new()),
+                hash: None,
+            },
+            Some(Finding {
+                code: error.code,
+                severity: FindingSeverity::Warning,
+                message: error.message,
+                node: Some(target.id.node_id.clone()),
+                target: Some(target.id.as_str()),
+                path: Some(target.id.path.to_string_lossy().to_string()),
+                deferred_by: None,
+            }),
+        ),
+    }
+}
+
 #[allow(clippy::too_many_lines)] // Reason: target reconciliation naturally spans cache, per-language dispatch, and report construction.
 fn reconcile_targets(
     targets: &[Target],
@@ -130,7 +206,7 @@ fn reconcile_targets(
 ) -> (Vec<TargetReport>, Vec<crate::map::graph::Finding>) {
     let cache_key = cache::compute_reconciler_cache_key(ast, ignores, targets, root);
     if let Some(cached) = cache::try_load_reconciler_cache(root, &cache_key) {
-        return cache::build_reports_from_cache(&cached, targets, config);
+        return cache::build_reports_from_cache(&cached, targets, root, ignores, config);
     }
 
     let mut reports = Vec::new();
@@ -141,6 +217,15 @@ fn reconcile_targets(
     let mut reconciler_cache: BTreeMap<Language, crate::reconcile::ReconcileReport> =
         BTreeMap::new();
     for target in targets {
+        if target.language == Language::Assets {
+            let (report, finding) = build_assets_report(target, root, ignores);
+            if let Some(finding) = finding {
+                all_findings.push(finding);
+            }
+            reports.push(report);
+            continue;
+        }
+
         if target.language == Language::Unknown {
             all_findings.push(Finding {
                 code: "CAIRN_RECONCILE_LANGUAGE_UNKNOWN".to_owned(),

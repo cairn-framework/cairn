@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use super::{Config, GateStep, IntentionalAsymmetry, TargetConfig};
 use crate::map::graph::{Finding, FindingSeverity};
-use crate::reconcile::target::{SUPPORTED_LANGUAGES, language_error_message};
+use crate::reconcile::target::{VALID_CONFIG_LANGUAGES, language_error_message};
 
 // Reason: config parser is a single-pass state machine with many small
 // transitions; extracting every arm would obscure the linear flow.
@@ -199,7 +199,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
                     "node" => target.node_id = value,
                     "path" => target.path = PathBuf::from(value),
                     "language" => {
-                        if !SUPPORTED_LANGUAGES.contains(&value.as_str()) {
+                        if !VALID_CONFIG_LANGUAGES.contains(&value.as_str()) {
                             eprintln!(
                                 "error: unsupported language `{value}`; {}",
                                 language_error_message()

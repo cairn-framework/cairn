@@ -90,6 +90,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
 
     Module UI "Read-only web graph explorer and API server" id "cairn.ui" @ui {
         path "./src/ui"
+        path "./src/ui_assets"
         contract "./meta/contracts/ui.md"
     }
 

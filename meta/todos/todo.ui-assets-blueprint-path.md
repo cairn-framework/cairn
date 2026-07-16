@@ -1,8 +1,8 @@
 ---
 node: cairn.ui
-status: open
+status: done
 created: 2026-07-15
-related: [todo.architecture-modularity-audit, todo.webui-feature-module-split, todo.size-gate-non-rust]
+related: [todo.architecture-modularity-audit, todo.webui-feature-module-split, todo.size-gate-non-rust, dec.claim-only-assets-targets]
 ---
 
 # Claim src/ui_assets on cairn.ui blueprint path
@@ -43,3 +43,7 @@ files are invisible to:
 
 Small, enabling. Land before or with the size-gate extension and webui split
 so ownership, gates, and modules agree on where the frontend lives.
+
+## Resolution (2026-07-16)
+
+Implemented claim-only assets targets. By setting `language: assets` on `cairn.ui` target `path: ./src/ui_assets` in `cairn.config.yaml`, the scanner claims the assets without parser warnings or symbol-extraction, resolving the blueprint coverage gap.

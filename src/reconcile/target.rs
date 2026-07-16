@@ -2,7 +2,7 @@
 
 use std::{fs, path::Path};
 
-use crate::reconcile::ReconcilerId;
+use crate::reconcile::{ReconcileError, ReconcilerId};
 use crate::scanner::config;
 
 /// Default contract role assigned to targets without explicit configuration.
@@ -42,6 +42,8 @@ pub enum Language {
     Python,
     /// Go source files.
     Go,
+    /// Non-code assets claimed explicitly via config; never inferred.
+    Assets,
     /// Unknown language: no reconciler available.
     Unknown,
 }
@@ -68,6 +70,7 @@ impl Language {
             "typescript" | "ts" => Some(Self::TypeScript),
             "python" | "py" => Some(Self::Python),
             "go" => Some(Self::Go),
+            "assets" => Some(Self::Assets),
             _ => None,
         }
     }
@@ -80,6 +83,7 @@ impl Language {
             Self::TypeScript => "typescript",
             Self::Python => "python",
             Self::Go => "go",
+            Self::Assets => "assets",
             Self::Unknown => "unknown",
         }
     }
@@ -92,6 +96,7 @@ impl Language {
             Self::TypeScript => ReconcilerId("typescript-code".to_owned()),
             Self::Python => ReconcilerId("python-code".to_owned()),
             Self::Go => ReconcilerId("go-code".to_owned()),
+            Self::Assets => ReconcilerId("assets".to_owned()),
             Self::Unknown => ReconcilerId("none".to_owned()),
         }
     }
@@ -196,14 +201,76 @@ impl Target {
     }
 }
 
+/// Claims every non-ignored file under a claim-only assets target.
+///
+/// Explicit-config only: no language inference, no symbol extraction. Mirrors
+/// the ignore-aware walk idiom used by [`Language::infer_from_directory`].
+///
+/// # Errors
+///
+/// Returns a `CAIRN_RECONCILE_READ_DIR` or `CAIRN_RECONCILE_READ_DIR_ENTRY`
+/// error when the target directory or an entry within it cannot be read
+/// (missing path, permission denied). Distinct from an empty-but-readable
+/// directory, which returns `Ok(vec![])`.
+pub fn claim_assets_files(
+    root: &Path,
+    target_path: &Path,
+    ignores: &[String],
+) -> Result<Vec<String>, ReconcileError> {
+    let abs_dir = root.join(target_path);
+    let mut files = Vec::new();
+    assets_walk(root, &abs_dir, ignores, &mut files)?;
+    files.sort();
+    Ok(files)
+}
+
+fn assets_walk(
+    root: &Path,
+    dir: &Path,
+    ignores: &[String],
+    files: &mut Vec<String>,
+) -> Result<(), ReconcileError> {
+    for entry in fs::read_dir(dir).map_err(|error| ReconcileError {
+        code: "CAIRN_RECONCILE_READ_DIR".to_owned(),
+        message: format!("failed to read `{}`: {error}", dir.display()),
+    })? {
+        let entry = entry.map_err(|error| ReconcileError {
+            code: "CAIRN_RECONCILE_READ_DIR_ENTRY".to_owned(),
+            message: error.to_string(),
+        })?;
+        let path = entry.path();
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if config::is_ignored(&rel, ignores) {
+            continue;
+        }
+        let file_type = entry.file_type().map_err(|error| ReconcileError {
+            code: "CAIRN_RECONCILE_READ_DIR_ENTRY".to_owned(),
+            message: error.to_string(),
+        })?;
+        if file_type.is_dir() {
+            assets_walk(root, &path, ignores, files)?;
+        } else if file_type.is_file() {
+            files.push(rel);
+        }
+    }
+    Ok(())
+}
+
 /// List of supported language identifiers as strings.
 pub const SUPPORTED_LANGUAGES: &[&str] = &["rust", "typescript", "python", "go"];
+
+/// List of accepted languages in configuration overrides.
+pub const VALID_CONFIG_LANGUAGES: &[&str] = &["rust", "typescript", "python", "go", "assets"];
 
 /// Returns the error message for unsupported languages.
 #[must_use]
 pub fn language_error_message() -> String {
     format!(
         "supported languages are: {}",
-        SUPPORTED_LANGUAGES.join(", ")
+        VALID_CONFIG_LANGUAGES.join(", ")
     )
 }
