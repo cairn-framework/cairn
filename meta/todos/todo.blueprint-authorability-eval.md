@@ -35,6 +35,11 @@ and the METRIC-line convention from the existing webui harness. No CI
 scheduling, issue filing, or dataset encryption until the harness runs
 unattended; those are downstream apparatus, not the instrument.
 
+Owner direction (2026-07-16): the benchmark runs can be driven through
+the oh-my-pi harness's autoresearch command/extension rather than a
+bespoke runner; scope this todo's harness work to the task prompts,
+fixtures, and deterministic scoring, and let oh-my-pi own orchestration.
+
 Motivation: `res.a2ui-analysis` finding 9. Overlap: the navigation family
 is the same idea as `todo.agent-effectiveness-benchmarks` on the
 codeatlas branch (res.codeatlas-analysis finding 2); one harness should
