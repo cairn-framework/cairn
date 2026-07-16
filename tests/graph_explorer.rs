@@ -34,7 +34,7 @@ fn test_ui_port_zero_starts_and_serves_graph_api() -> Result<(), Box<dyn std::er
     assert!(graph.contains("\"kind\":\"Dependency\""));
     assert!(graph.contains("\"kind\":\"Module\""));
     assert!(graph.contains("\"id\":\"app.api.lib\""));
-    assert!(meta.contains("\"schema_version\":1"));
+    assert!(meta.contains("\"schema_version\":2"));
     assert!(meta.contains("\"name\":\"ui\""));
     assert!(node.contains("\"id\":\"app.api\""));
     // Canonical query_api wire: owns_files/span present, Debug-case enums.

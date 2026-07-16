@@ -70,145 +70,110 @@ fn format_remediate_human(remediate: &serde_json::Value) -> String {
     lines.join("\n") + "\n"
 }
 
-/// Returns open native todos from the scan result, sorted by creation date
-/// then path so ties resolve deterministically.
-pub(super) fn open_native_todos(scan_result: &scanner::ScanResult) -> Vec<&Todo> {
-    let mut todos: Vec<&Todo> = scan_result
-        .artefacts
-        .todos
-        .iter()
-        .filter(|todo| todo.status == TodoStatus::Open)
-        .collect();
-    todos.sort_by(|a, b| a.created.cmp(&b.created).then_with(|| a.path.cmp(&b.path)));
-    todos
-}
-
 pub(crate) fn render_next(
     parsed: &ParsedArgs,
     root: &Path,
     scan_result: &scanner::ScanResult,
 ) -> String {
     let changes_dir = root.join(&parsed.changes_dir);
-    let health = query_api::health_json(root, &changes_dir, scan_result);
-    let clean = health
-        .get("clean")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false);
-    if clean {
-        render_next_clean(root, scan_result, parsed.json)
-    } else {
-        render_next_dirty(root, &changes_dir, scan_result, parsed.json)
+    match query_api::select_next(root, &changes_dir, scan_result) {
+        query_api::NextSelection::Dirty(action) => render_next_action(action, parsed.json),
+        query_api::NextSelection::Clean(query_api::CleanItem::NativeTodo(todo)) => {
+            render_next_todo(todo, scan_result, parsed.json)
+        }
+        query_api::NextSelection::Clean(query_api::CleanItem::Bead(bead)) => {
+            render_next_bead(root, &bead, parsed.json)
+        }
+        query_api::NextSelection::Clean(query_api::CleanItem::None) => {
+            if parsed.json {
+                "{\"next\":null,\"clean\":true,\"ready\":0}\n".to_owned()
+            } else {
+                "Next: nothing to do. Project is clean.\n".to_owned()
+            }
+        }
     }
 }
 
-/// Renders `next` for a clean project: the top open native todo takes
-/// priority, falling back to the top ready bead when none are open.
-fn render_next_clean(root: &Path, scan_result: &scanner::ScanResult, json: bool) -> String {
-    let todos = open_native_todos(scan_result);
-    if let Some(top) = todos.first() {
-        return if json {
-            format!(
-                "{{\"next\":{{\"todo\":\"{}\",\"node\":\"{}\",\"title\":\"{}\",\"source\":\"native-todos\"}},\"clean\":true,\"ready\":{}}}\n",
-                esc(&top.path),
-                esc(&top.node),
-                esc(&decision_summary(&top.body)),
-                todos.len()
-            )
-        } else {
-            format!(
-                "Next: {}\n  source: native todos ({} open)\n  run: cairn todos {}\n",
-                decision_summary(&top.body),
-                todos.len(),
-                top.node
-            )
-        };
-    }
-    let items = crate::state::backlog::read(root);
-    let ready = crate::state::backlog::ready(&items);
-    let Some(top) = ready.first() else {
-        return if json {
-            "{\"next\":null,\"clean\":true,\"ready\":0}\n".to_owned()
-        } else {
-            "Next: nothing to do. Project is clean.\n".to_owned()
-        };
-    };
+fn render_next_todo(todo: &Todo, scan_result: &scanner::ScanResult, json: bool) -> String {
+    let open_count = query_api::open_native_todos(scan_result).len();
     if json {
         format!(
-            "{{\"next\":{{\"bead\":\"{}\",\"title\":\"{}\",\"priority\":{},\"source\":\"beads-backlog\"}},\"clean\":true,\"ready\":{}}}\n",
-            esc(&top.id),
-            esc(&top.title),
-            top.priority,
-            ready.len()
+            "{{\"next\":{{\"todo\":\"{}\",\"node\":\"{}\",\"title\":\"{}\",\"source\":\"native-todos\"}},\"clean\":true,\"ready\":{open_count}}}\n",
+            esc(&todo.path),
+            esc(&todo.node),
+            esc(&decision_summary(&todo.body)),
+        )
+    } else {
+        format!(
+            "Next: {}\n  source: native todos ({} open)\n  run: cairn todos {}\n",
+            decision_summary(&todo.body),
+            open_count,
+            todo.node
+        )
+    }
+}
+
+fn render_next_bead(root: &Path, bead: &crate::state::backlog::BacklogItem, json: bool) -> String {
+    let backlog = crate::state::backlog::read(root);
+    let ready_count = crate::state::backlog::ready(&backlog).len();
+    if json {
+        format!(
+            "{{\"next\":{{\"bead\":\"{}\",\"title\":\"{}\",\"priority\":{},\"source\":\"beads-backlog\"}},\"clean\":true,\"ready\":{ready_count}}}\n",
+            esc(&bead.id),
+            esc(&bead.title),
+            bead.priority,
         )
     } else {
         let mut out = vec![
-            format!("Next: {} [P{}] {}", top.id, top.priority, top.title),
-            format!("  source: beads backlog ({} ready)", ready.len()),
-            format!("  run: bd show {}", top.id),
+            format!("Next: {} [P{}] {}", bead.id, bead.priority, bead.title),
+            format!("  source: beads backlog ({} ready)", ready_count),
+            format!("  run: bd show {}", bead.id),
         ];
-        if let Some(node) = top.linked_node() {
+        if let Some(node) = bead.linked_node() {
             out.push(format!("  node: {node}"));
         }
         out.join("\n") + "\n"
     }
 }
 
-/// Renders `next` for a project with outstanding findings: the top
-/// remediation action.
-fn render_next_dirty(
-    root: &Path,
-    changes_dir: &Path,
-    scan_result: &scanner::ScanResult,
-    json: bool,
-) -> String {
-    let remediate = query_api::remediate_json(root, changes_dir, scan_result);
-    let empty: Vec<serde_json::Value> = Vec::new();
-    let actions = remediate
-        .get("actions")
-        .and_then(serde_json::Value::as_array)
-        .unwrap_or(&empty);
+fn render_next_action(action: Option<serde_json::Value>, json: bool) -> String {
+    let first = action.unwrap_or(serde_json::Value::Null);
     if json {
-        let first = actions.first().unwrap_or(&serde_json::Value::Null);
         return format!("{{\"next\":{first},\"clean\":false}}\n");
     }
-    actions.first().map_or_else(
-        || "Next: nothing to do.\n".to_owned(),
-        |first| {
-            let name = first
-                .get("action")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("unknown");
-            let command = first
-                .get("command")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("");
-            let description = first
-                .get("description")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("");
-            let nodes = first
-                .get("nodes")
-                .and_then(serde_json::Value::as_array)
-                .map(|arr: &Vec<serde_json::Value>| {
-                    arr.iter()
-                        .filter_map(serde_json::Value::as_str)
-                        .collect::<Vec<_>>()
-                })
-                .unwrap_or_default();
-            let mut lines = Vec::new();
-            lines.push(format!("Next action: {name}"));
-            if !description.is_empty() {
-                lines.push(format!("  {description}"));
-            }
-            if !command.is_empty() {
-                lines.push(format!("  run: {command}"));
-            }
-            if !nodes.is_empty() {
-                lines.push(format!("  nodes: {}", nodes.join(", ")));
-            }
-            lines.join("\n") + "\n"
-        },
-    )
+    let name = first
+        .get("action")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown");
+    let command = first
+        .get("command")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("");
+    let description = first
+        .get("description")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("");
+    let nodes = first
+        .get("nodes")
+        .and_then(serde_json::Value::as_array)
+        .map(|arr: &Vec<serde_json::Value>| {
+            arr.iter()
+                .filter_map(serde_json::Value::as_str)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let mut lines = Vec::new();
+    lines.push(format!("Next action: {name}"));
+    if !description.is_empty() {
+        lines.push(format!("  {description}"));
+    }
+    if !command.is_empty() {
+        lines.push(format!("  run: {command}"));
+    }
+    if !nodes.is_empty() {
+        lines.push(format!("  nodes: {}", nodes.join(", ")));
+    }
+    lines.join("\n") + "\n"
 }
 
 /// Extracts a one-line summary from a decision body (first markdown heading or
@@ -300,7 +265,7 @@ pub(crate) fn render_brief(
     scan_result: &scanner::ScanResult,
 ) -> String {
     if parsed.command_args.get(1).is_none() {
-        let todos = open_native_todos(scan_result);
+        let todos = query_api::open_native_todos(scan_result);
         if let Some(todo) = todos.first().copied() {
             return render_brief_data(parsed, scan_result, &BriefSource::Todo(todo), true);
         }
@@ -916,7 +881,7 @@ mod tests {
                 todo_fixture("app.earlier", "2026-01-15", "# Earlier todo"),
             ],
         );
-        let open = open_native_todos(&scan);
+        let open = query_api::open_native_todos(&scan);
         assert_eq!(open.len(), 2, "done todo must be excluded");
         assert_eq!(open[0].node, "app.earlier", "earliest created sorts first");
         assert_eq!(open[1].node, "app.later");
@@ -935,13 +900,13 @@ mod tests {
             ContractSet::default(),
             vec![todo_fixture("app.core", "2026-01-01", "# Wire the thing")],
         );
-        let human = render_next_clean(&dir, &scan, false);
+        let human = render_next(&brief_parsed(&["next"], false), &dir, &scan);
         assert!(human.contains("Wire the thing"));
         assert!(human.contains("source: native todos (1 open)"));
         assert!(human.contains("run: cairn todos app.core"));
         assert!(!human.contains("Alpha"), "must not fall through to beads");
 
-        let json = render_next_clean(&dir, &scan, true);
+        let json = render_next(&brief_parsed(&["next"], true), &dir, &scan);
         let value: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(value["next"]["source"], "native-todos");
         assert_eq!(value["next"]["node"], "app.core");
@@ -957,7 +922,7 @@ mod tests {
             &[r#"{"id":"cairn-a","title":"Alpha","status":"open","priority":1}"#],
         );
         let scan = scan_with(Vec::new(), Vec::new(), ContractSet::default());
-        let human = render_next_clean(&dir, &scan, false);
+        let human = render_next(&brief_parsed(&["next"], false), &dir, &scan);
         assert!(human.contains("Alpha"));
         assert!(human.contains("source: beads backlog"));
         let _ = std::fs::remove_dir_all(&dir);

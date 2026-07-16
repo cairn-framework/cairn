@@ -2132,6 +2132,7 @@
         "src/query_api/handlers/bundle.rs",
         "src/query_api/handlers/graph.rs",
         "src/query_api/handlers/mod.rs",
+        "src/query_api/handlers/next_selection.rs",
         "src/query_api/handlers/node.rs",
         "src/query_api/handlers/project.rs",
         "src/query_api/handlers/remediate.rs",
@@ -2151,104 +2152,104 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 54,
-          "end_line": 54
+          "line": 56,
+          "end_line": 56
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 173,
-          "end_line": 175
+          "line": 175,
+          "end_line": 177
         },
         {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 108,
-          "end_line": 129
+          "line": 110,
+          "end_line": 131
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 58,
-          "end_line": 63
+          "line": 60,
+          "end_line": 65
         },
         {
           "name": "envelope_json",
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 339,
-          "end_line": 346
+          "line": 341,
+          "end_line": 348
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 350,
-          "end_line": 357
+          "line": 352,
+          "end_line": 359
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 202,
-          "end_line": 260
+          "line": 204,
+          "end_line": 262
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 268,
-          "end_line": 319
+          "line": 270,
+          "end_line": 321
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 189,
-          "end_line": 195
+          "line": 191,
+          "end_line": 197
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 152,
-          "end_line": 161
+          "line": 154,
+          "end_line": 163
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 85,
-          "end_line": 104
+          "line": 87,
+          "end_line": 106
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 139,
-          "end_line": 148
+          "line": 141,
+          "end_line": 150
         },
         {
           "name": "ToolMetadata",
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 67,
-          "end_line": 81
+          "line": 69,
+          "end_line": 83
         },
         {
           "name": "bundle_json",
@@ -2263,8 +2264,8 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 329,
-          "end_line": 335
+          "line": 331,
+          "end_line": 337
         }
       ]
     },
