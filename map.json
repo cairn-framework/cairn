@@ -6720,9 +6720,9 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
-      "message": "research `res.a2ui-architecture-lessons` is not linked from any decision",
+      "message": "research `res.a2ui-analysis` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/res.a2ui-architecture-lessons.md"
+      "path": "././meta/research/a2ui-analysis.md"
     },
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
