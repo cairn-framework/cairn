@@ -108,7 +108,6 @@ fn help_specs_cover_all_top_level_and_retired() {
 fn neighbourhood_help_lists_command_flags() {
     let text = command_help_text("neighbourhood").expect("neighbourhood help");
     for flag in [
-        "--include-orphans",
         "--include-research",
         "--include-todos",
         "--include-reviews",
@@ -120,6 +119,11 @@ fn neighbourhood_help_lists_command_flags() {
     }
     assert!(text.contains("<node>"), "missing node arg in:\n{text}");
     assert!(!text.contains("Commands:\n  backlog"));
+    // Retired with gh:#236: edges are always shown, the flag is gone.
+    assert!(
+        !text.contains("--include-orphans"),
+        "retired --include-orphans must not be advertised:\n{text}"
+    );
 }
 
 #[test]

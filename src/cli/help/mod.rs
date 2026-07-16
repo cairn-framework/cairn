@@ -137,7 +137,6 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         "neighbourhood",
         "neighbourhood",
         &[
-            "include-orphans",
             "include-todos",
             "include-research",
             "include-reviews",
@@ -256,7 +255,6 @@ fn command_tokens(args: &[String]) -> Vec<&str> {
             | "--version"
             | "--symbols"
             | "--transitive"
-            | "--include-orphans"
             | "--include-todos"
             | "--include-research"
             | "--include-reviews"

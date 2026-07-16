@@ -1,9 +1,9 @@
 //! Phase 7.6 AI Provenance Foundation acceptance-criterion tests.
 //!
 //! Tests covering the cairn library schema and reader contracts for the
-//! trace sidecar, the suggested-edges queue, the islands query, and
-//! neighbourhood `--include-orphans`. CLI-level trace rendering scenarios
-//! were retired along with the cairn workflow runner per decision #105.
+//! trace sidecar, the suggested-edges queue, the islands query, and the
+//! neighbourhood edge listing. CLI-level trace rendering scenarios were
+//! retired along with the cairn workflow runner per decision #105.
 
 mod provenance_foundation {
     use cairn::provenance::{
@@ -358,44 +358,73 @@ mod cli {
         );
     }
 
-    /// Scenario: Neighbourhood with --include-orphans surfaces reverse-only nodes.
+    /// Regression (gh:#236): the default human output must show the same
+    /// inbound and outbound edges the JSON output reports; edge visibility
+    /// is not gated by any flag.
     #[test]
-    fn test_neighbourhood_include_orphans_surfaces_reverse_only() {
-        let result = cairn::cli::run(&[
-            "--file".to_owned(),
-            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
-            "neighbourhood".to_owned(),
-            "cairn.kernel.parser".to_owned(),
-            "--include-orphans".to_owned(),
-        ]);
-        assert_eq!(result.code, 0, "neighbourhood exits zero");
+    fn test_neighbourhood_human_edges_match_json() {
+        let argv = |json: bool| {
+            let mut args = Vec::new();
+            if json {
+                args.push("--json".to_owned());
+            }
+            args.extend([
+                "--file".to_owned(),
+                "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+                "neighbourhood".to_owned(),
+                "cairn.kernel.parser".to_owned(),
+            ]);
+            args
+        };
+        let json_result = cairn::cli::run(&argv(true));
+        assert_eq!(json_result.code, 0, "json neighbourhood exits zero");
+        let data: serde_json::Value =
+            serde_json::from_str(&json_result.stdout).expect("json output parses");
+        let ids = |key: &str| -> Vec<String> {
+            data[key]
+                .as_array()
+                .expect("edge list is an array")
+                .iter()
+                .map(|v| v.as_str().expect("edge id is a string").to_owned())
+                .collect()
+        };
+        let inbound = ids("inbound");
+        let outbound = ids("outbound");
         assert!(
-            result.stdout.contains("cairn.kernel.scanner"),
-            "output must include inbound neighbour cairn.kernel.scanner with --include-orphans, got: {}",
-            result.stdout
+            inbound.contains(&"cairn.kernel.scanner".to_owned()),
+            "fixture must give the anchor an inbound edge, got {inbound:?}"
         );
+
+        let human = cairn::cli::run(&argv(false));
+        assert_eq!(human.code, 0, "human neighbourhood exits zero");
+        for id in inbound.iter().chain(outbound.iter()) {
+            assert!(
+                human.stdout.contains(id),
+                "human output must show edge neighbour {id} reported by JSON, got: {}",
+                human.stdout
+            );
+        }
     }
 
     /// Scenario: Both forms (CLI and MCP) delegate to the library query.
     #[test]
     fn test_both_forms_delegate_to_library_query() {
-        // Structural assertion: islands and neighbourhood_with_options
-        // are typed library entrypoints. Future MCP/CLI surfaces consume
-        // these without re-implementing graph traversal.
+        // Structural assertion: islands and neighbourhood are typed
+        // library entrypoints. Future MCP/CLI surfaces consume these
+        // without re-implementing graph traversal.
         let _: fn(&cairn::map::Graph) -> cairn::map::query::IslandsResponse =
             cairn::map::query::islands;
         let _: fn(
             &cairn::map::Graph,
             &str,
-            bool,
         )
             -> Result<cairn::map::query::NeighbourhoodResponse, cairn::map::graph::Finding> =
-            cairn::map::query::neighbourhood_with_options;
+            cairn::map::query::neighbourhood;
     }
 }
 
 mod query {
-    use cairn::map::query::{ISLANDS_SCHEMA_VERSION, islands, neighbourhood_with_options};
+    use cairn::map::query::{ISLANDS_SCHEMA_VERSION, islands, neighbourhood};
 
     /// Scenario: Islands returns one entry per connected component.
     /// We exercise the algorithm against an empty graph for which the
@@ -433,13 +462,13 @@ mod query {
         assert!(response.islands.len() <= 1);
     }
 
-    /// Scenario: Neighbourhood with `include_orphans` surfaces inbound-only neighbours.
+    /// Scenario (gh:#236): the neighbourhood query reports both edge
+    /// directions in one response.
     ///
     /// Builds a tiny graph: anchor has one outbound edge to `out` and one
-    /// inbound edge from `inb`. With `include_orphans=false` the response
-    /// has only `out`; with `true` the response also includes `inb`.
+    /// inbound edge from `inb`. The response carries both neighbours.
     #[test]
-    fn test_query_neighbourhood_include_orphans_surfaces_inbound_only() {
+    fn test_query_neighbourhood_reports_both_edge_directions() {
         use cairn::blueprint::{NodeKind, Span};
         use cairn::map::graph::{EdgeRef, NodeRecord, NodeState};
         use std::collections::BTreeMap;
@@ -494,17 +523,9 @@ mod query {
             findings: Vec::new(),
         };
 
-        let without = neighbourhood_with_options(&graph, "anchor", false).expect("without");
-        assert_eq!(without.outbound, vec!["out".to_owned()]);
-        assert!(
-            without.inbound.is_empty(),
-            "include_orphans=false must drop inbound, got {:?}",
-            without.inbound
-        );
-
-        let with = neighbourhood_with_options(&graph, "anchor", true).expect("with");
-        assert_eq!(with.outbound, vec!["out".to_owned()]);
-        assert_eq!(with.inbound, vec!["inb".to_owned()]);
+        let response = neighbourhood(&graph, "anchor").expect("anchor resolves");
+        assert_eq!(response.outbound, vec!["out".to_owned()]);
+        assert_eq!(response.inbound, vec!["inb".to_owned()]);
     }
 
     /// Scenario: Islands query response is versioned.
