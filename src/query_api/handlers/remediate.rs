@@ -66,7 +66,7 @@ pub(crate) fn health_json(
         "summary": {
             "total_errors": total_errors,
             "total_warnings": total_warnings,
-            "info": total_info,
+            "total_info": total_info,
             "modules": {
                 "synced": synced,
                 "ghost": ghost,
