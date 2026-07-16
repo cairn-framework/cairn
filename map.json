@@ -6809,20 +6809,6 @@
       "path": "././meta/research/codeatlas-analysis.md"
     },
     {
-      "code": "CAIRN_CHANGE_TASKS_COMPLETE",
-      "severity": "info",
-      "message": "change `claim-only-assets-targets` has all tasks complete; run `cairn change apply claim-only-assets-targets` to archive it",
-      "node": "claim-only-assets-targets",
-      "path": "./meta/changes/claim-only-assets-targets/tasks.md"
-    },
-    {
-      "code": "CAIRN_CHANGE_TASKS_COMPLETE",
-      "severity": "info",
-      "message": "change `symbol-locate-query` has all tasks complete; run `cairn change apply symbol-locate-query` to archive it",
-      "node": "symbol-locate-query",
-      "path": "./meta/changes/symbol-locate-query/tasks.md"
-    },
-    {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
