@@ -645,3 +645,12 @@ description = "Show whether a Cairn git hook is installed"
 [help.commands.hook-uninstall]
 usage = "cairn hook uninstall [--pre-push] [options]"
 description = "Remove a Cairn git hook"
+
+# -- Symbol locate -------------------------------------------------------
+[locate]
+missing-symbol = "symbol argument is required"
+no-matches = "No public symbol definitions found for `{symbol}`."
+
+[help.commands.locate]
+usage = "cairn locate <symbol> [options]"
+args = "  <symbol>  Exact name of a public symbol to locate across the project"

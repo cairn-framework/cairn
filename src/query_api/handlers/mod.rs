@@ -3,6 +3,7 @@
 mod artefacts;
 mod bundle;
 mod graph;
+mod locate;
 mod next_selection;
 mod node;
 mod project;
@@ -16,6 +17,7 @@ pub(super) use bundle::bundle_json;
 pub(super) use graph::{
     dependency_json, frontier_json, graph_response_json, islands_json, neighbourhood_json,
 };
+pub(super) use locate::locate_json;
 pub(crate) use next_selection::{CleanItem, NextSelection, open_native_todos, select_next};
 pub(super) use node::{contract_json, docstring_json, files_json, rationale_json};
 pub(super) use project::{context_json, status_json};

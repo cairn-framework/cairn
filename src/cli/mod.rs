@@ -50,9 +50,9 @@ use format::{
 };
 use render::{
     render_backlog, render_brief, render_bundle, render_changes, render_context, render_decisions,
-    render_dependencies, render_files, render_get, render_health, render_neighbourhood,
-    render_next, render_rationale, render_remediate, render_research, render_show, render_sources,
-    render_status, render_todos,
+    render_dependencies, render_files, render_get, render_health, render_locate,
+    render_neighbourhood, render_next, render_rationale, render_remediate, render_research,
+    render_show, render_sources, render_status, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -329,6 +329,7 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
                 let request = crate::query_api::QueryRequest {
                     tool: "changes".to_owned(),
                     node: None,
+                    symbol: None,
                     change: None,
                     old_id: None,
                     new_id: None,
@@ -357,6 +358,7 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
                 let request = crate::query_api::QueryRequest {
                     tool: "show".to_owned(),
                     node: None,
+                    symbol: None,
                     change: Some(id.to_owned()),
                     old_id: None,
                     new_id: None,
@@ -610,6 +612,7 @@ fn render_loaded_project_command(
         "get" => render_get(parsed, root, scan_result),
         "neighbourhood" => render_neighbourhood(parsed, root, scan_result),
         "files" => render_files(parsed, root),
+        "locate" => render_locate(parsed, root, scan_result),
         "bundle" => render_bundle(parsed, scan_result),
         "gap" => return run_gap_command(parsed, root, scan_result),
         "todos" => render_todos(parsed, root),
@@ -960,6 +963,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "contract"
             | "docstring"
             | "files"
+            | "locate"
             | "bundle"
             | "deps"
             | "order"

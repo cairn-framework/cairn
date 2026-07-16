@@ -59,6 +59,7 @@ pub(crate) fn run_draft_command(
     let request = crate::query_api::QueryRequest {
         tool: tool.to_owned(),
         node,
+        symbol: None,
         change: None,
         old_id: None,
         new_id: None,
@@ -92,11 +93,18 @@ pub(crate) fn execute_json_request(
 ) -> CliResult {
     let changes_dir = root.join(&parsed.changes_dir);
     match crate::query_api::execute(root, &parsed.file, &changes_dir, request) {
-        Ok(response) => CliResult {
-            code: shared_exit_code(&request.tool, &response.data),
-            stdout: format!("{}\n", response.data),
-            stderr: legacy_warning,
-        },
+        Ok(response) => {
+            let stdout = if request.tool == "locate" {
+                format!("{}\n", response.data["matches"])
+            } else {
+                format!("{}\n", response.data)
+            };
+            CliResult {
+                code: shared_exit_code(&request.tool, &response.data),
+                stdout,
+                stderr: legacy_warning,
+            }
+        }
         Err(error) => CliResult {
             code: 1,
             stdout: format!("{{\"error\":{}}}\n", crate::query_api::error_json(&error)),
@@ -113,6 +121,9 @@ pub(crate) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
         // first positional token even in a flag-first invocation (e.g.
         // `cairn --json todos --status open app.kernel` resolves app.kernel).
         node: positional_node(&parsed.command_args).cloned(),
+        symbol: (parsed.command == "locate")
+            .then(|| positional_node(&parsed.command_args).cloned())
+            .flatten(),
         change: arg(1),
         old_id: arg(1),
         new_id: arg(2),

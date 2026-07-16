@@ -255,6 +255,12 @@ expression: value
       "request": "NodeRequest",
       "response": "BeadsResponse",
       "safety": "ReadOnly"
+    },
+    {
+      "name": "locate",
+      "request": "LocateRequest",
+      "response": "LocateResponse",
+      "safety": "ReadOnly"
     }
   ],
   "schema_version": 2,

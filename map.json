@@ -1356,6 +1356,7 @@
         "src/cli/render/changes_view.rs",
         "src/cli/render/context_view.rs",
         "src/cli/render/health.rs",
+        "src/cli/render/locate.rs",
         "src/cli/render/mod.rs",
         "src/cli/render/node.rs",
         "src/cli/render/project.rs",
@@ -1395,8 +1396,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 856,
-          "end_line": 874
+          "line": 859,
+          "end_line": 877
         },
         {
           "name": "blank_command_failure_detail",
@@ -1539,8 +1540,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 851,
-          "end_line": 851
+          "line": 854,
+          "end_line": 854
         },
         {
           "name": "blueprint_root",
@@ -1555,8 +1556,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 882,
-          "end_line": 890
+          "line": 885,
+          "end_line": 893
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -2131,6 +2132,7 @@
         "src/query_api/handlers/artefacts.rs",
         "src/query_api/handlers/bundle.rs",
         "src/query_api/handlers/graph.rs",
+        "src/query_api/handlers/locate.rs",
         "src/query_api/handlers/mod.rs",
         "src/query_api/handlers/next_selection.rs",
         "src/query_api/handlers/node.rs",
@@ -2160,16 +2162,16 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 175,
-          "end_line": 177
+          "line": 177,
+          "end_line": 179
         },
         {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 110,
-          "end_line": 131
+          "line": 112,
+          "end_line": 133
         },
         {
           "name": "SafetyClass",
@@ -2184,48 +2186,48 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 341,
-          "end_line": 348
+          "line": 343,
+          "end_line": 350
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 352,
-          "end_line": 359
+          "line": 354,
+          "end_line": 361
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 204,
-          "end_line": 262
+          "line": 206,
+          "end_line": 264
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 270,
-          "end_line": 321
+          "line": 272,
+          "end_line": 323
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 191,
-          "end_line": 197
+          "line": 193,
+          "end_line": 199
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 154,
-          "end_line": 163
+          "line": 156,
+          "end_line": 165
         },
         {
           "name": "QueryRequest",
@@ -2233,15 +2235,15 @@
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
           "line": 87,
-          "end_line": 106
+          "end_line": 108
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 141,
-          "end_line": 150
+          "line": 143,
+          "end_line": 152
         },
         {
           "name": "ToolMetadata",
@@ -2264,8 +2266,8 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 331,
-          "end_line": 337
+          "line": 333,
+          "end_line": 339
         }
       ]
     },
@@ -6731,6 +6733,13 @@
       "message": "research `res.codeatlas-analysis` is not linked from any decision",
       "node": null,
       "path": "././meta/research/codeatlas-analysis.md"
+    },
+    {
+      "code": "CAIRN_CHANGE_TASKS_COMPLETE",
+      "severity": "info",
+      "message": "change `symbol-locate-query` has all tasks complete; run `cairn change apply symbol-locate-query` to archive it",
+      "node": "symbol-locate-query",
+      "path": "./meta/changes/symbol-locate-query/tasks.md"
     },
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",

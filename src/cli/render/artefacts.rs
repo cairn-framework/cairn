@@ -17,6 +17,7 @@ pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, F
     let request = QueryRequest {
         tool: "todos".to_owned(),
         node,
+        symbol: None,
         change: None,
         old_id: None,
         new_id: None,
@@ -138,6 +139,7 @@ pub(crate) fn render_research(parsed: &ParsedArgs, root: &Path) -> Result<String
     let request = QueryRequest {
         tool: "research".to_owned(),
         node: Some(node.to_owned()),
+        symbol: None,
         change: None,
         old_id: None,
         new_id: None,
@@ -184,6 +186,7 @@ pub(crate) fn render_sources(parsed: &ParsedArgs, root: &Path) -> Result<String,
     let request = QueryRequest {
         tool: "sources".to_owned(),
         node: Some(node.to_owned()),
+        symbol: None,
         change: None,
         old_id: None,
         new_id: None,
@@ -226,6 +229,7 @@ pub(crate) fn render_rationale(parsed: &ParsedArgs, root: &Path) -> Result<Strin
     let request = QueryRequest {
         tool: "rationale".to_owned(),
         node: Some(node.to_owned()),
+        symbol: None,
         change: None,
         old_id: None,
         new_id: None,

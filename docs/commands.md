@@ -48,6 +48,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn get <node>` | Inspect a node by ID |
 | `cairn files <node>` | List files owned by a node |
+| `cairn locate <symbol>` | Locate exact definitions of a public symbol across the project |
 | `cairn get <node> --symbols` | Public symbols extracted from a node |
 | `cairn bundle <node>` | Generate bundle: contract, decisions, dependency interfaces, and gates for a node |
 | `cairn contract <node>` | Show the contract for a node |

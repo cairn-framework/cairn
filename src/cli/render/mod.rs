@@ -9,6 +9,7 @@ mod bundle;
 mod changes_view;
 mod context_view;
 mod health;
+mod locate;
 mod node;
 mod project;
 mod remediate;
@@ -19,6 +20,7 @@ pub(crate) use artefacts::{
 pub(crate) use bundle::render_bundle;
 pub(crate) use changes_view::{render_changes, render_show};
 pub(crate) use health::render_health;
+pub(crate) use locate::render_locate;
 pub(crate) use node::{render_files, render_get, render_neighbourhood};
 pub(crate) use project::{render_backlog, render_context, render_dependencies, render_status};
 pub(crate) use remediate::{render_brief, render_next, render_remediate};

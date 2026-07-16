@@ -162,6 +162,7 @@ pub(crate) fn render_files(parsed: &ParsedArgs, root: &Path) -> Result<String, F
     let request = QueryRequest {
         tool: "files".to_owned(),
         node: Some(node.to_owned()),
+        symbol: None,
         change: None,
         old_id: None,
         new_id: None,

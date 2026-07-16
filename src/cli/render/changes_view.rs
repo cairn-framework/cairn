@@ -46,6 +46,7 @@ pub(crate) fn render_show(parsed: &ParsedArgs, root: &Path) -> Result<String, Fi
     let request = QueryRequest {
         tool: "show".to_owned(),
         node: None,
+        symbol: None,
         change: Some(change_id.clone()),
         old_id: None,
         new_id: None,

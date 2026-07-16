@@ -137,6 +137,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     ),
     spec("islands", "islands", FLAGS_BASIC),
     spec("lint", "lint", FLAGS_LINT),
+    spec("locate", "locate", FLAGS_BASIC),
     spec(
         "neighbourhood",
         "neighbourhood",

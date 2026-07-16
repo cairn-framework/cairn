@@ -4,7 +4,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 42] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 43] = [
     tool(
         "get",
         "cairn_get",
@@ -341,6 +341,14 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 42] = [
         SafetyClass::ReadOnly,
         "List backlog beads linked to a node",
     ),
+    tool(
+        "locate",
+        "cairn_locate",
+        "LocateRequest",
+        "LocateResponse",
+        SafetyClass::ReadOnly,
+        "Locate exact definitions of a public symbol across the project",
+    ),
 ];
 
 pub(super) const fn tool(
@@ -460,7 +468,7 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 42);
+        assert_eq!(TOOL_REGISTRY.len(), 43);
     }
 
     #[test]
