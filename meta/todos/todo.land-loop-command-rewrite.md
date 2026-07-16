@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: blocked
+status: done
 created: 2026-07-13
 related: [dec.loop-command-harness-model]
 ---
