@@ -37,8 +37,8 @@ Finishing that unit IS this iteration. Recover in place:
 2. Decide coherence: complete the unfinished work, or trim incomplete work
    back to a single coherent landed unit. Prefer trimming over expanding when
    the diff has sprawled beyond one reviewable PR.
-3. Continue at Verify (the command's gate), then Land via the
-   `cairn-loop-landing` skill.
+3. Return `RECOVERED`. The command continues at Verify, then Land via
+   `cairn-loop-landing`. Do not invoke landing from this skill.
 
 Invariant (a fail-closed backstop, owned by the command): **no checkout of
 any kind until the tree is clean.** If intent is unclear, do not guess; emit
