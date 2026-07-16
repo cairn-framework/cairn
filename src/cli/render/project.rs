@@ -190,7 +190,7 @@ pub(crate) fn render_status(
         .unwrap_or_default();
     let backlog = crate::state::backlog::read(root);
     let ready = crate::state::backlog::ready(&backlog);
-    let native_todos = super::remediate::open_native_todos(scan_result);
+    let native_todos = crate::query_api::open_native_todos(scan_result);
     let next_recommended = native_todos.first().map_or_else(
         || {
             ready

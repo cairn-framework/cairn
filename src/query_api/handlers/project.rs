@@ -4,6 +4,7 @@
 use super::super::serialise::*;
 use super::super::*;
 use super::graph::count_findings;
+use super::next_selection::{CleanItem, NextSelection, select_next};
 
 pub(crate) fn status_json(
     root: &Path,
@@ -27,10 +28,12 @@ pub(crate) fn status_json(
                 .collect()
         })
         .unwrap_or_default();
-    let backlog = crate::state::backlog::read(root);
-    let next_recommended = crate::state::backlog::ready(&backlog)
-        .first()
-        .map_or(Value::Null, |top| top.to_json());
+    let next_recommended = match select_next(root, changes_dir, scan_result) {
+        NextSelection::Dirty(action) => action.unwrap_or(Value::Null),
+        NextSelection::Clean(CleanItem::NativeTodo(todo)) => todo_json(todo),
+        NextSelection::Clean(CleanItem::Bead(bead)) => bead.to_json(),
+        NextSelection::Clean(CleanItem::None) => Value::Null,
+    };
     let active_changes = crate::changes::discover(root, changes_dir)
         .unwrap_or_default()
         .iter()
@@ -143,4 +146,44 @@ pub(crate) fn context_json(
             "ready": backlog_ready,
         },
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn status_json_next_recommended_matches_shared_selection() {
+        let tmp =
+            std::env::temp_dir().join(format!("cairn-status-selection-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp);
+        std::fs::create_dir_all(tmp.join(".beads")).unwrap();
+        std::fs::create_dir_all(tmp.join("meta/todos")).unwrap();
+        std::fs::write(
+            tmp.join("cairn.blueprint"),
+            "System Test \"T\" id \"t\" {\n    Container Work \"work\" id \"t.work\" {\n        path \"./meta/todos\"\n        todos \"./meta/todos\"\n    }\n}\n",
+        )
+        .unwrap();
+        std::fs::write(
+            tmp.join("meta/todos/todo.next.md"),
+            "---\nnode: t.work\nstatus: open\ncreated: 2026-01-01\n---\n# Do todo\n",
+        )
+        .unwrap();
+        std::fs::write(
+            tmp.join(".beads/issues.jsonl"),
+            "{\"id\":\"cairn-aaa\",\"title\":\"Do thing\",\"status\":\"open\",\"priority\":2}\n",
+        )
+        .unwrap();
+        let changes = tmp.join("meta/changes");
+        let scan = crate::scanner::load_project(&tmp, &tmp.join("cairn.blueprint")).unwrap();
+        let status = status_json(&tmp, &changes, &scan);
+        let expected = match select_next(&tmp, &changes, &scan) {
+            NextSelection::Dirty(action) => action.unwrap_or(Value::Null),
+            NextSelection::Clean(CleanItem::NativeTodo(todo)) => todo_json(todo),
+            NextSelection::Clean(CleanItem::Bead(bead)) => bead.to_json(),
+            NextSelection::Clean(CleanItem::None) => Value::Null,
+        };
+        assert_eq!(status["next_recommended"], expected);
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
 }

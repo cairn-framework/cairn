@@ -34,6 +34,9 @@ mod serialise;
 mod util;
 
 use change_queries::dispatch_change_tool;
+pub(crate) use handlers::{
+    CleanItem, NextSelection, health_json, open_native_todos, remediate_json, select_next,
+};
 use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
     bundle_json, context_json, contract_json, decisions_response_json, dependency_json,
@@ -41,7 +44,6 @@ use handlers::{
     neighbourhood_json, rationale_json, research_response_json, sources_response_json, status_json,
     todos_response_json,
 };
-pub(crate) use handlers::{health_json, remediate_json};
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{backlog_item_detail_json, findings_json, node_json, relevant_rules};
 use util::{finding_error, findings_error, load_for, required};
@@ -51,7 +53,7 @@ use util::{finding_error, findings_error, load_for, required};
 /// Both the CLI `--json` surface (which prints `data` directly) and the MCP
 /// envelope (which wraps `data`) carry this version on the top-level data
 /// object so consumers can branch on the output contract uniformly.
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

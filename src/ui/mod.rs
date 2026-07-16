@@ -69,7 +69,7 @@ static COPY_JSON: LazyLock<String> = LazyLock::new(|| {
     serde_json::to_string(&table).expect("TOML table must serialise to JSON")
 });
 
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
 
 /// Runtime options for the graph explorer server.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -261,7 +261,7 @@ mod tests {
         assert!(graph.head.contains("application/json"));
         assert!(graph.body.contains("\"nodes\""));
         assert!(asset.head.contains("text/css"));
-        assert!(meta.body.contains("\"schema_version\":1"));
+        assert!(meta.body.contains("\"schema_version\":2"));
         assert!(
             meta.body
                 .contains(&format!("\"version\":\"{}\"", env!("CARGO_PKG_VERSION")))
@@ -307,7 +307,7 @@ mod tests {
         server.stop();
 
         assert!(response.head.contains("200 OK"));
-        assert!(response.body.contains("\"schema_version\":1"));
+        assert!(response.body.contains("\"schema_version\":2"));
         assert!(response.body.contains("\"id\":\"app.api\""));
         assert!(response.body.contains("\"name\":\"serve\""));
         assert!(response.body.contains("\"kind\":\"function\""));
