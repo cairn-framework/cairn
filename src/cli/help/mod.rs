@@ -109,7 +109,11 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         "export",
         &["format", "output", "file", "changes-dir", "json", "help"],
     ),
-    spec("feedback", "feedback", FLAGS_BASIC),
+    spec(
+        "feedback",
+        "feedback",
+        &["area", "severity", "json", "file", "help"],
+    ),
     spec("files", "files", FLAGS_BASIC),
     spec("frontier", "frontier", FLAGS_BASIC),
     spec("gap", "gap", FLAGS_GAP),

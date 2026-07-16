@@ -1568,11 +1568,40 @@ mod tests {
         assert_eq!(second.code, 0);
         assert!(second.stdout.contains("\"command\":\"feedback\""));
         assert!(second.stdout.contains("\"issue_url\":"));
+        assert!(!second.stdout.contains("\"area\":"));
+
+        let structured = run_in(
+            &root,
+            &[
+                "--json",
+                "feedback",
+                "--area",
+                "scanner",
+                "--severity",
+                "high",
+                "lint hid a finding",
+            ],
+        );
+        assert_eq!(structured.code, 0);
+        assert!(structured.stdout.contains("\"area\":\"scanner\""));
+        assert!(structured.stdout.contains("\"severity\":\"high\""));
+        // Flags stay out of the generated title and land in the body.
+        assert!(structured.stdout.contains("title=lint%20hid%20a%20finding"));
+        assert!(
+            structured.stdout.contains(
+                "body=lint%20hid%20a%20finding%0A%0Aarea%3A%20scanner%0Aseverity%3A%20high"
+            )
+        );
+
+        let missing_value = run_in(&root, &["feedback", "broke", "--severity"]);
+        assert_eq!(missing_value.code, 2);
+        assert!(missing_value.stderr.contains("--severity requires a value"));
 
         let log = fs::read_to_string(root.join(".cairn/feedback.md"))?;
         assert!(log.starts_with("# Cairn feedback log"));
         assert!(log.contains("scan said X, expected Y"));
         assert!(log.contains("ui crashed"));
+        assert!(log.contains("lint hid a finding\n\narea: scanner\nseverity: high"));
 
         Ok(())
     }
