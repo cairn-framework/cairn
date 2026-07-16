@@ -163,7 +163,7 @@ These commands require the `--json` flag and are grouped under one `draft` comma
 | `cairn watch` | Watch for finding changes and emit JSON events |
 | `cairn import-openspec` | Migrate openspec changes to meta/changes/ |
 | `cairn docstring <node>` | Generate a docstring for a node (JSON-only) |
-| `cairn feedback "<message>"` | Record cairn friction in `.cairn/feedback.md` and print a prefilled upstream issue link |
+| `cairn feedback "<message>" [--area <area>] [--severity <level>]` | Record cairn friction in `.cairn/feedback.md` and print a prefilled upstream issue link; optional area and severity land in the log entry, the issue body, and `--json` output |
 | `cairn workspace <status\|lint\|frontier>` | Aggregate status, lint, and frontier queries across a `cairn.workspace` |
 
 ### Clean-state workflow

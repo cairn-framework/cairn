@@ -346,6 +346,8 @@ fn gap_help_lists_json_and_verbose() {
 fn feedback_help_lists_json() {
     let text = command_help_text("feedback").expect("feedback help");
     assert!(text.contains("--json"), "{text}");
+    assert!(text.contains("--area <area>"), "{text}");
+    assert!(text.contains("--severity <level>"), "{text}");
 }
 
 #[test]

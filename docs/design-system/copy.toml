@@ -217,7 +217,7 @@ err-from-code-conflict = "usage: cairn init --wire (not supported with --from-co
 # -- Feedback -------------------------------------------------------------
 
 [feedback]
-usage = "usage: cairn feedback \"<what you expected, what happened instead>\""
+usage = "usage: cairn feedback \"<what you expected, what happened instead>\" [--area <area>] [--severity <level>]"
 recorded = "Feedback recorded in .cairn/feedback.md"
 cta = "File it upstream when convenient:"
 
@@ -340,6 +340,8 @@ language = "  --language <lang>              Target language for docstring"
 edited = "  --edited                       Accept the edited draft text"
 pre-push = "  --pre-push                     Target the pre-push hook (install/status/uninstall)"
 question = "  --question <text>              The unresolved question to log"
+area = "  --area <area>                  Area of cairn the friction relates to"
+severity = "  --severity <level>             How disruptive it was (e.g. low, medium, high)"
 informed-by = "  --informed-by <id>             Research id that informs the decision"
 from-code = "  --from-code                    Derive modules from existing code"
 apply = "  --apply                        Write the derived blueprint (with --from-code)"
@@ -418,7 +420,7 @@ args = """  list                    List pending drafts
 usage = "cairn export --output <path> [options]"
 
 [help.commands.feedback]
-usage = "cairn feedback \"<what you expected, what happened instead>\""
+usage = "cairn feedback \"<what you expected, what happened instead>\" [options]"
 args = "  <message>  Free-form friction report"
 
 [help.commands.files]

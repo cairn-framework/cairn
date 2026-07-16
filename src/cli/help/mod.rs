@@ -109,7 +109,11 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         "export",
         &["format", "output", "file", "changes-dir", "json", "help"],
     ),
-    spec("feedback", "feedback", FLAGS_BASIC),
+    spec(
+        "feedback",
+        "feedback",
+        &["area", "severity", "json", "file", "help"],
+    ),
     spec("files", "files", FLAGS_BASIC),
     spec("frontier", "frontier", FLAGS_BASIC),
     spec("gap", "gap", FLAGS_GAP),
@@ -271,7 +275,7 @@ fn command_tokens(args: &[String]) -> Vec<&str> {
             // Value-taking flags: consume the following token when present.
             "--file" | "--changes-dir" | "--depth" | "--scope" | "--port" | "--status"
             | "--language" | "--direction" | "--interval" | "--format" | "--output" | "--node"
-            | "--grep" | "--question" | "--informed-by" | "--wire" => {
+            | "--grep" | "--question" | "--informed-by" | "--wire" | "--area" | "--severity" => {
                 let _ = iter.next();
             }
             s if s.starts_with('-') => {}
