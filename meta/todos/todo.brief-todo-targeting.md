@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-13
 related: [dec.cairn-brief-orientation, dec.native-todos-first]
 ---
@@ -25,3 +25,16 @@ exists for the no-argument case.
 
 Read-side targeting only. Listing is owned by todo.todo-listing; mutation
 surface by todo.unified-todo-write-surface.
+
+## Resolution (2026-07-16)
+
+Shipped in `src/cli/render/remediate.rs`: `cairn brief todo.<slug>` now
+resolves the named native todo by file name (`todo.<slug>.md`) and fuses the
+same node, decision, contract, and gate context via the existing
+`render_brief_data` path. Precedence is deterministic: an argument starting
+with `todo.` targets a native todo (an unknown slug errors, never falling
+through to beads); any other argument resolves as a bead id. A named todo
+briefs in any status and carries a not-ready warning when it is not open.
+Unknown-slug and not-ready copy lives in `docs/design-system/copy.toml`
+under `[brief]`; help text and `docs/commands.md` document the rule. Bare
+node ids were not added: they did not fall out of the slug path naturally.

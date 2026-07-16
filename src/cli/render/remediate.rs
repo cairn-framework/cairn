@@ -240,10 +240,23 @@ fn resolve_brief_bead(
     }
 }
 
+/// Resolves a `todo.<slug>` brief target against the loaded native todos by
+/// file name: the target names `todo.<slug>.md` regardless of which declared
+/// todos directory holds it. Any status matches; readiness is reported
+/// separately so a done or blocked todo still briefs with a warning.
+fn resolve_brief_todo<'a>(scan_result: &'a scanner::ScanResult, target: &str) -> Option<&'a Todo> {
+    let file_name = format!("{target}.md");
+    scan_result
+        .artefacts
+        .todos
+        .iter()
+        .find(|todo| Path::new(&todo.path).file_name() == Some(std::ffi::OsStr::new(&file_name)))
+}
+
 /// The task-tracking source a brief resolves from. Native Todo artefacts take
-/// priority over the beads backlog (`dec.native-todos-first`); an explicit id
-/// argument always resolves against the backlog, since todos have no stable
-/// id to target by.
+/// priority over the beads backlog (`dec.native-todos-first`). An explicit
+/// argument starting with `todo.` targets a native todo by slug; any other
+/// argument resolves against the backlog.
 enum BriefSource<'a> {
     /// A native `meta/todos/` artefact.
     Todo(&'a Todo),
@@ -275,11 +288,12 @@ impl BriefSource<'_> {
     }
 }
 
-/// Renders `cairn brief [<id>]`: the next (or named) ready unit fused with its
-/// binding decisions, contract, acceptance criteria, and the gates that judge
-/// it, so a fresh agent can pick up work safely from one command. An open
-/// native todo takes priority over the beads backlog when no explicit id is
-/// given (todos have no id to target directly).
+/// Renders `cairn brief [<target>]`: the next (or named) ready unit fused
+/// with its binding decisions, contract, acceptance criteria, and the gates
+/// that judge it, so a fresh agent can pick up work safely from one command.
+/// With no argument an open native todo takes priority over the beads
+/// backlog. A target starting with `todo.` resolves a native todo by slug;
+/// any other target resolves as a bead id.
 pub(crate) fn render_brief(
     parsed: &ParsedArgs,
     root: &Path,
@@ -290,6 +304,21 @@ pub(crate) fn render_brief(
         if let Some(todo) = todos.first().copied() {
             return render_brief_data(parsed, scan_result, &BriefSource::Todo(todo), true);
         }
+    }
+    if let Some(target) = parsed
+        .command_args
+        .get(1)
+        .filter(|target| target.starts_with("todo."))
+    {
+        let Some(todo) = resolve_brief_todo(scan_result, target) else {
+            let message = crate::copy::lookup("brief.todo-not-found").replace("{id}", target);
+            if parsed.json {
+                return format!("{{\"brief\":null,\"message\":\"{}\"}}\n", esc(&message));
+            }
+            return format!("{message}\n");
+        };
+        let ready_now = todo.status == TodoStatus::Open;
+        return render_brief_data(parsed, scan_result, &BriefSource::Todo(todo), ready_now);
     }
 
     let items = crate::state::backlog::read(root);
@@ -425,11 +454,17 @@ fn format_brief_json(data: &BriefData) -> String {
 /// warning, linked node, task body, binding decisions, contract, and gates.
 fn format_brief_human(data: &BriefData) -> String {
     let mut out = match data.source {
-        BriefSource::Todo(todo) => vec![
-            format!("Brief: {}", decision_summary(&todo.body)),
-            "  source: native todos".to_owned(),
-            format!("  run: cairn todos {}", todo.node),
-        ],
+        BriefSource::Todo(todo) => {
+            let mut lines = vec![
+                format!("Brief: {}", decision_summary(&todo.body)),
+                "  source: native todos".to_owned(),
+                format!("  run: cairn todos {}", todo.node),
+            ];
+            if !data.ready_now {
+                lines.push(format!("  {}", crate::copy::lookup("brief.not-ready-todo")));
+            }
+            lines
+        }
         BriefSource::Bead(bead) => {
             let mut lines = vec![
                 format!("Brief: {} [P{}] {}", bead.id, bead.priority, bead.title),
@@ -975,8 +1010,8 @@ mod tests {
         assert_eq!(value["brief"]["todo"], "meta/todos/todo.app.core.md");
         assert_eq!(value["brief"]["title"], "Wire the thing");
 
-        // An explicit id argument still targets the beads backlog: todos have
-        // no id to address directly.
+        // An explicit argument that does not start with `todo.` still
+        // targets the beads backlog.
         let named = render_brief(&brief_parsed(&["brief", "cairn-a"], false), &dir, &scan);
         assert!(named.contains("Brief: cairn-a [P1] Alpha"));
         let _ = std::fs::remove_dir_all(&dir);
@@ -1019,6 +1054,129 @@ mod tests {
                 .contains("bd ready"),
             "staleness must be todo-specific, not beads guidance"
         );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_brief_named_todo_slug_resolves_fused_context() {
+        // `cairn brief todo.<slug>` must resolve the named native todo and
+        // fuse the same node, decision, and contract context the bead path
+        // gets, even when the beads backlog also has entries.
+        let dir = tmpdir("brief-named-todo");
+        write_export(
+            &dir,
+            &[r#"{"id":"cairn-a","title":"Alpha","status":"open","priority":1}"#],
+        );
+        let node = node_record("app.core", vec!["meta/contracts/core.md".to_owned()]);
+        let mut contracts = ContractSet::default();
+        contracts.contracts.insert(
+            "meta/contracts/core.md".to_owned(),
+            Contract {
+                path: "meta/contracts/core.md".to_owned(),
+                declared_by: "app.core".to_owned(),
+                node: "app.core".to_owned(),
+                body: "Public interface: run".to_owned(),
+                interface: Vec::new(),
+            },
+        );
+        let decisions = vec![decision("dec.core-shape", &["app.core"], "# Core shape")];
+        let scan = scan_with_todos(
+            vec![node],
+            decisions,
+            contracts,
+            vec![
+                todo_fixture("app.other", "2026-01-01", "# Earlier todo"),
+                todo_fixture("app.core", "2026-02-01", "# Wire the thing"),
+            ],
+        );
+        // Names the LATER todo, so the pick is targeting, not top-of-list.
+        let human = render_brief(
+            &brief_parsed(&["brief", "todo.app.core"], false),
+            &dir,
+            &scan,
+        );
+        assert!(human.contains("Brief: Wire the thing"));
+        assert!(human.contains("source: native todos"));
+        assert!(human.contains("node: app.core"));
+        assert!(human.contains("dec.core-shape"));
+        assert!(human.contains("Public interface: run"));
+        assert!(!human.contains("Alpha"), "must not fall through to beads");
+        assert!(!human.contains("Earlier todo"), "must pick the named todo");
+
+        let json = render_brief(
+            &brief_parsed(&["brief", "todo.app.core"], true),
+            &dir,
+            &scan,
+        );
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(value["brief"]["source"], "native-todos");
+        assert_eq!(value["brief"]["todo"], "meta/todos/todo.app.core.md");
+        assert_eq!(value["brief"]["node"], "app.core");
+        assert_eq!(value["brief"]["ready"], true);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_brief_named_todo_unknown_slug_errors() {
+        // An unknown `todo.` target must fail with a clear message, never
+        // fall through to bead resolution.
+        let dir = tmpdir("brief-named-todo-missing");
+        write_export(
+            &dir,
+            &[r#"{"id":"cairn-a","title":"Alpha","status":"open","priority":1}"#],
+        );
+        let scan = scan_with_todos(
+            Vec::new(),
+            Vec::new(),
+            ContractSet::default(),
+            vec![todo_fixture("app.core", "2026-01-01", "# Wire the thing")],
+        );
+        let human = render_brief(&brief_parsed(&["brief", "todo.nope"], false), &dir, &scan);
+        assert!(human.contains("No todo matches `todo.nope`"), "{human}");
+        assert!(!human.contains("Alpha"), "must not fall through to beads");
+
+        let json = render_brief(&brief_parsed(&["brief", "todo.nope"], true), &dir, &scan);
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(value["brief"].is_null());
+        assert!(
+            value["message"]
+                .as_str()
+                .unwrap()
+                .contains("No todo matches")
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_brief_named_todo_not_open_flags_not_ready() {
+        // A named todo briefs in any status, with readiness reported so a
+        // done or blocked unit is not silently presented as workable.
+        let dir = tmpdir("brief-named-todo-done");
+        write_export(&dir, &[]);
+        let scan = scan_with_todos(
+            Vec::new(),
+            Vec::new(),
+            ContractSet::default(),
+            vec![Todo {
+                status: TodoStatus::Done,
+                ..todo_fixture("app.core", "2026-01-01", "# Wire the thing")
+            }],
+        );
+        let human = render_brief(
+            &brief_parsed(&["brief", "todo.app.core"], false),
+            &dir,
+            &scan,
+        );
+        assert!(human.contains("Brief: Wire the thing"));
+        assert!(human.contains("this todo is not open"), "{human}");
+
+        let json = render_brief(
+            &brief_parsed(&["brief", "todo.app.core"], true),
+            &dir,
+            &scan,
+        );
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(value["brief"]["ready"], false);
         let _ = std::fs::remove_dir_all(&dir);
     }
 

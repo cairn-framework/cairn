@@ -34,7 +34,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn health` | Comprehensive health check: lint, hooks, and module state |
 | `cairn remediate` | Generate an ordered action plan from current findings |
 | `cairn next` | Show the next ready unit of work |
-| `cairn brief [<id>]` | Fused next-unit brief: task, binding decisions, contract, and gates |
+| `cairn brief [<target>]` | Fused next-unit brief: task, binding decisions, contract, and gates. A `todo.<slug>` target names a native todo; any other target is a bead id |
 | `cairn scan` | Scan the project and report findings |
 | `cairn lint --node <id>` | Inspect findings for a single node (non-blocking) |
 | `cairn lint` | Lint the blueprint and report findings (blocking) |

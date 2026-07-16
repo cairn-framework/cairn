@@ -288,9 +288,11 @@ staleness-note-todos = "Note: native todos live in meta/todos/ and are authorita
 staleness-note-beads = "Note: the beads export can lag live Dolt. `bd ready` is authoritative; cross-check before committing to this unit."
 unlinked-hint = "No graph node is linked to this bead, so no node-specific decisions or contract are surfaced. Bind one with `bd update {id} --label cairn-node:<node>` so future briefs load its constraints."
 not-found = "No bead matches `{id}`. Run `bd ready` to list available work."
+todo-not-found = "No todo matches `{id}`. Run `cairn status` to list open todos."
 empty = "Nothing to do. The backlog is empty and the project is clean."
 none-ready = "No ready work: every open bead is blocked by a dependency. Run `bd ready` and `bd blocked` to see what is gated."
 not-ready = "Warning: this bead is not in the ready set (closed, or blocked by an open dependency). It may already be done or not yet actionable; check `bd ready` before working it."
+not-ready-todo = "Warning: this todo is not open (in progress, done, or blocked). Check its status in meta/todos/ before working it."
 
 # -- Webui: report an issue ----------------------------------------------
 
@@ -363,8 +365,10 @@ args = "  [node]  Optional node id; omit to list all linked beads"
 usage = "cairn blueprint [options]"
 
 [help.commands.brief]
-usage = "cairn brief [bead-id] [options]"
-args = "  [bead-id]  Optional bead id; omit to brief the next ready unit"
+usage = "cairn brief [target] [options]"
+args = """  [target]  Optional unit to brief; omit to brief the next ready unit.
+            A target starting with `todo.` resolves the native todo at
+            meta/todos/<target>.md; any other target resolves as a bead id."""
 
 [help.commands.bundle]
 usage = "cairn bundle <node> [options]"
