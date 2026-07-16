@@ -50,7 +50,7 @@ This repo dogfoods cairn. The root `cairn.blueprint` describes the module graph.
 
 Module IDs follow dotted notation rooted at `cairn` (e.g. `cairn.kernel.map`, `cairn.reconcile`, `cairn.ui`). Run `cairn get <any-known-id>` to verify a node exists, or open `cairn.blueprint` to see the full ID list.
 
-To develop cairn itself, follow the **Cairn Dev Loop** in `docs/agent/cairn-dev-workflow.md`: a repeatable orient, scope, propose, implement, verify, record, land sequence driven by cairn's own queries and gates. Invoke `/cairn-loop` to run one iteration.
+To develop cairn itself, run the **Cairn Dev Loop** via `/cairn-loop` (`.claude/commands/cairn-loop.md` plus the skills it loads). That command is the sole normative orchestrator: one unit per session, fail-closed recovery, single squash commit. A short descriptive overview lives in `docs/agent/cairn-dev-workflow.md` and is never normative.
 
 When adding new source files or directories, check whether they fall under an existing module's `path` declaration in `cairn.blueprint`. If not, either add them to an existing module or declare a new one. A clean `cairn scan` (zero findings) is the target state.
 

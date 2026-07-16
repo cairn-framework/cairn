@@ -64,4 +64,4 @@ maintainer steer before code:
 ## Agent Entry Points
 
 - `cairn context` / `cairn next` / `cairn backlog <node>` / `cairn rationale <id>`.
-- Dev loop: `docs/agent/cairn-dev-workflow.md` via `/cairn-loop`. `bd ready` for work.
+- Dev loop: `/cairn-loop` (command is normative; `docs/agent/cairn-dev-workflow.md` is a descriptive overview).
