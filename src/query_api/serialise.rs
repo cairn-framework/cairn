@@ -170,6 +170,25 @@ pub(super) fn findings_json(findings: &[Finding]) -> Vec<Value> {
         .collect()
 }
 
+/// IDs of accepted decisions that reference the node directly. Shared by the
+/// `get` JSON payload and the human `cairn get` rendering so both surfaces
+/// carry the same accepted-decision pointers.
+pub(crate) fn accepted_decision_ids(
+    scan_result: &scanner::ScanResult,
+    node_id: &str,
+) -> Vec<String> {
+    scan_result
+        .artefacts
+        .decisions
+        .iter()
+        .filter(|decision| {
+            decision.status == DecisionStatus::Accepted
+                && decision.nodes.iter().any(|node| node == node_id)
+        })
+        .map(|decision| decision.id.clone())
+        .collect()
+}
+
 pub(crate) fn neighbourhood_ids(graph: &crate::map::Graph, node: &str) -> BTreeSet<String> {
     let mut ids = BTreeSet::from([node.to_owned()]);
     if let Some(edges) = graph.inbound.get(node) {
