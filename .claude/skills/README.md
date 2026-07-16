@@ -12,6 +12,8 @@ All skills are **tracked operational config**, not user-local preferences.
 | `cairn-archive/` | Archive a completed change. |
 | `cairn-explore/` | Explore the Cairn graph and query project state. |
 | `cairn-dev/` | Development workflow for iterating on Cairn itself. |
+| `cairn-loop-recovery/` | State-recovery procedure for the `/cairn-loop` command. |
+| `cairn-loop-landing/` | Land and fail-closed merge procedure for `/cairn-loop`. |
 
 These evolve alongside Cairn's phase conventions. Edit them when the workflow changes.
 
