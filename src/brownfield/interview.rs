@@ -218,16 +218,28 @@ fn write_session(change_dir: &Path, session: &InterviewSession) -> Result<(), Ca
 mod tests {
     use super::*;
 
-    fn temp_change_dir(name: &str) -> std::path::PathBuf {
-        let root = std::env::temp_dir().join(name);
-        let change_dir = root.join("meta/changes/test-change");
+    /// Build an isolated change directory for a test.
+    ///
+    /// Returns the owning `TempDir` alongside the change directory path;
+    /// the caller must keep the `TempDir` bound for the test's duration
+    /// (it deletes the directory tree on drop). Each call gets a fresh,
+    /// randomly-named directory, so concurrent test runs (or repeated
+    /// invocations of the same test binary) never share a path -- a
+    /// prior fixed-name scheme let two overlapping `cargo test` runs
+    /// race on the same `interview-session.json`.
+    fn temp_change_dir(name: &str) -> (tempfile::TempDir, std::path::PathBuf) {
+        let dir = tempfile::Builder::new()
+            .prefix(&format!("cairn-interview-{name}-"))
+            .tempdir()
+            .expect("tempdir should succeed");
+        let change_dir = dir.path().join("meta/changes/test-change");
         std::fs::create_dir_all(change_dir.join("research")).unwrap();
-        change_dir
+        (dir, change_dir)
     }
 
     #[test]
     fn test_start_session_creates_file() {
-        let dir = temp_change_dir("bf-int-start");
+        let (_tmp, dir) = temp_change_dir("bf-int-start");
         let session =
             start_session(&dir, "test-change", &["Q1".to_owned()]).expect("start should succeed");
 
@@ -239,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_record_answer_advances_cursor() {
-        let dir = temp_change_dir("bf-int-answer");
+        let (_tmp, dir) = temp_change_dir("bf-int-answer");
         let session = start_session(&dir, "test-change", &["Q1".to_owned(), "Q2".to_owned()])
             .expect("start should succeed");
 
@@ -252,7 +264,7 @@ mod tests {
 
     #[test]
     fn test_record_answer_completes_at_end() {
-        let dir = temp_change_dir("bf-int-complete");
+        let (_tmp, dir) = temp_change_dir("bf-int-complete");
         let session =
             start_session(&dir, "test-change", &["Q1".to_owned()]).expect("start should succeed");
 
@@ -263,7 +275,7 @@ mod tests {
 
     #[test]
     fn test_complete_session_writes_genesis() {
-        let dir = temp_change_dir("bf-int-genesis");
+        let (_tmp, dir) = temp_change_dir("bf-int-genesis");
         let session = start_session(&dir, "test-change", &["What?".to_owned()])
             .expect("start should succeed");
 
@@ -277,7 +289,7 @@ mod tests {
 
     #[test]
     fn test_abandon_session_removes_file() {
-        let dir = temp_change_dir("bf-int-abandon");
+        let (_tmp, dir) = temp_change_dir("bf-int-abandon");
         start_session(&dir, "test-change", &["Q1".to_owned()]).expect("start should succeed");
 
         assert!(dir.join("research/interview-session.json").exists());
@@ -287,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_resume_session_reads_existing() {
-        let dir = temp_change_dir("bf-int-resume");
+        let (_tmp, dir) = temp_change_dir("bf-int-resume");
         let session = start_session(&dir, "test-change", &["Q1".to_owned(), "Q2".to_owned()])
             .expect("start should succeed");
 
@@ -301,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_resume_session_returns_none_when_missing() {
-        let dir = temp_change_dir("bf-int-none");
+        let (_tmp, dir) = temp_change_dir("bf-int-none");
         let result = resume_session(&dir).expect("resume should succeed");
         assert!(result.is_none());
     }
