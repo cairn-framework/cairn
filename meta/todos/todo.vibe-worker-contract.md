@@ -40,5 +40,7 @@ one-unit assignment.
   contract, including the substantial-vs-surgical Propose rule, and no
   longer relies solely on "follows the /cairn-loop discipline" by reference.
 - The conditional change-directory wording in phase 4 is reconciled with the
-  rule (a change directory exists exactly when the unit was substantial).
+  rule: substantial units are expected to create a change directory, and
+  phase 4 archives any that exists regardless of how the unit was
+  classified.
 - Prose follows house style: no em-dashes, plain English.
