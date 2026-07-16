@@ -1,20 +1,18 @@
 //! Artefact query renderers (todos, decisions, research, sources, rationale).
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{decision_line, decisions_json, flag_value, lines, node_arg};
+use super::super::format::{
+    decision_line, decisions_json, flag_value, lines, node_arg, positional_node,
+};
 use super::super::*;
 use crate::query_api::{QueryRequest, parse_decision_status_filter};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
 pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
-    // The node is optional: bare `cairn todos` (or a leading flag such as
-    // `--status`) lists todos project-wide.
-    let node = parsed
-        .command_args
-        .get(1)
-        .filter(|arg| !arg.starts_with("--"))
-        .cloned();
+    // The node is optional: bare `cairn todos` (with or without leading
+    // flags such as `--status`) lists todos project-wide.
+    let node = positional_node(&parsed.command_args).cloned();
     let status = flag_value(&parsed.command_args, "--status").map(ToOwned::to_owned);
     let request = QueryRequest {
         tool: "todos".to_owned(),

@@ -1274,6 +1274,35 @@ fn test_todos_project_wide_and_descendant_listing() -> Result<(), Box<dyn std::e
     assert!(data["node"].is_null());
     assert_eq!(data["todos"].as_array().map(Vec::len), Some(1));
 
+    // Flag-first with a trailing node scopes to that node, human text.
+    let flag_first = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["todos", "--status", "open", "app.auth"])
+        .output()?;
+    assert!(
+        flag_first.status.success(),
+        "flag-first todos with node must succeed"
+    );
+    let flag_first = String::from_utf8(flag_first.stdout)?;
+    assert!(
+        flag_first.contains("Todos for app.auth:"),
+        "trailing node must scope the listing, got: {flag_first}"
+    );
+
+    // Flag-first with a trailing node scopes to that node, JSON path.
+    let flag_first_json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "todos", "--status", "open", "app.auth"])
+        .output()?;
+    assert!(
+        flag_first_json.status.success(),
+        "flag-first --json todos with node must succeed"
+    );
+    let data: serde_json::Value =
+        serde_json::from_str(&String::from_utf8(flag_first_json.stdout)?)?;
+    assert_eq!(data["node"], "app.auth", "trailing node must be resolved");
+    assert_eq!(data["todos"].as_array().map(Vec::len), Some(1));
+
     // Container node: aggregates descendants' todos (`app` contains
     // `app.auth`, which carries the fixture todo).
     let container = Command::new(env!("CARGO_BIN_EXE_cairn"))
