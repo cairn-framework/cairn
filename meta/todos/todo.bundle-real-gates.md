@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: open
+status: done
 created: 2026-07-16
 ---
 
@@ -32,3 +32,7 @@ per-codebase commands and its AGENTS.md bans guessed build sequences).
 Overlap: `todo.agent-context-bundle` is the natural home for the second
 step; the stale copy fix proceeds independently. First step needs no
 change proposal; the per-target step does.
+
+## Resolution
+
+2026-07-16: Completed step 1 by resolving the accept gate recipe once from project configuration and language fallback, then rendering the exact name and command in bundle and brief human and JSON surfaces. Tests cover configured `gates:` and Rust battery fallback recipes. JSON keeps `gates` as a string, so `SCHEMA_VERSION` remains 1 and no wire-shape or snapshot change was needed. Updated the brief copy to describe Cairn accept gate resolution. Step 2, optional per-target gate overrides and their accept execution semantics, is deferred to its own proposal. Accept previously resolved from the process cwd, predating this change; once the brief displayed exact recipes this exposed a real `--file` root divergence, fixed by threading the project root through accept resolution and every spawned gate command.

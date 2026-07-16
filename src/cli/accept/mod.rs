@@ -6,20 +6,18 @@ use std::path::Path;
 use std::process::{Command, ExitStatus};
 
 use crate::cli::{CliResult, format::esc};
-use crate::reconcile::target::Language;
 use crate::verification::VerificationState;
 
 use gates::{AcceptStep, BatterySelection, blank_command_failure_detail, select_language_battery};
 
 /// Run the verification battery for `cairn change accept`.
-pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
+pub fn run_accept_gate(project_root: &Path, change_id: Option<&str>, json: bool) -> CliResult {
     let mut findings = Vec::new();
-    let root = std::env::current_dir().unwrap_or_default();
 
-    match load_gate_context(&root) {
-        Ok((gates_configured, configured_gates, language)) => {
-            let selection = select_language_battery(language, gates_configured, &configured_gates);
-            apply_language_battery(&mut findings, selection, json);
+    match crate::scanner::gate_recipe::resolve_gate_recipe(project_root) {
+        Ok(recipe) => {
+            let selection = select_language_battery(recipe);
+            apply_language_battery(&mut findings, selection, project_root, json);
         }
         Err(message) => {
             // Do not fall back by language when config is unreadable: that would
@@ -36,11 +34,11 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
         run_step(
             &mut findings,
             &format!("cairn lint --strict {id}"),
-            || run_command("cairn", &["lint", "--strict", id], json),
+            || run_command("cairn", &["lint", "--strict", id], project_root, json),
             "validation failed",
             "could not run validation",
         );
-        check_suggested_edges(&mut findings, id, &root);
+        check_suggested_edges(&mut findings, id, project_root);
     }
 
     let has_failed = findings
@@ -63,19 +61,6 @@ pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult {
     }
 }
 
-fn load_gate_context(
-    root: &Path,
-) -> Result<(bool, Vec<crate::scanner::config::GateStep>, Language), String> {
-    match crate::scanner::config::load(root) {
-        Ok(config) => {
-            let language = Language::infer_from_directory(root, Path::new("."), &config.ignores)
-                .unwrap_or(Language::Unknown);
-            Ok((config.gates_configured, config.gates, language))
-        }
-        Err(error) => Err(format!("could not load cairn.config.yaml: {error}")),
-    }
-}
-
 /// Apply a language-battery selection to findings.
 ///
 /// Shared by production `run_accept_gate` and hermetic wiring tests so the
@@ -83,12 +68,13 @@ fn load_gate_context(
 fn apply_language_battery(
     findings: &mut Vec<VerificationFinding>,
     selection: BatterySelection,
+    project_root: &Path,
     quiet: bool,
 ) {
     match selection {
         BatterySelection::Steps(steps) => {
             for step in steps {
-                run_accept_step(findings, &step, quiet);
+                run_accept_step(findings, &step, project_root, quiet);
             }
         }
         BatterySelection::SkipInfo { language } => {
@@ -103,7 +89,12 @@ fn apply_language_battery(
     }
 }
 
-fn run_accept_step(findings: &mut Vec<VerificationFinding>, step: &AcceptStep, quiet: bool) {
+fn run_accept_step(
+    findings: &mut Vec<VerificationFinding>,
+    step: &AcceptStep,
+    project_root: &Path,
+    quiet: bool,
+) {
     // Configured gate with blank/whitespace-only command: fail closed (exit 1).
     // Do not spawn; do not classify as Blocked (Blocked does not flip the exit code).
     if let Some(detail) = blank_command_failure_detail(step) {
@@ -118,7 +109,7 @@ fn run_accept_step(findings: &mut Vec<VerificationFinding>, step: &AcceptStep, q
     run_step(
         findings,
         &step.name,
-        || run_command(&step.program, &args, quiet),
+        || run_command(&step.program, &args, project_root, quiet),
         &step.fail_msg,
         &step.block_msg,
     );
@@ -218,10 +209,11 @@ fn truncate_stderr(s: &str, max_bytes: usize) -> String {
 fn run_command(
     cmd: &str,
     args: &[&str],
+    project_root: &Path,
     quiet: bool,
 ) -> Result<(ExitStatus, String), std::io::Error> {
     let mut c = Command::new(cmd);
-    c.args(args);
+    c.args(args).current_dir(project_root);
     if quiet {
         c.stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::piped());

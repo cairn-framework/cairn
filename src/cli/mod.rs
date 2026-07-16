@@ -382,7 +382,7 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
                 Err(finding) => error_output(parsed.json, &finding.code, &finding.message),
             }
         }
-        Some("accept") => crate::cli::accept::run_accept_gate(change_id, parsed.json),
+        Some("accept") => crate::cli::accept::run_accept_gate(project_root, change_id, parsed.json),
         Some(cmd @ ("archive" | "apply")) => {
             let Some(id) = change_id else {
                 return err(2, &format!("usage: cairn change {cmd} <change-id>"));
@@ -613,7 +613,7 @@ fn render_loaded_project_command(
         "neighbourhood" => render_neighbourhood(parsed, root, scan_result),
         "files" => render_files(parsed, root),
         "locate" => render_locate(parsed, root, scan_result),
-        "bundle" => render_bundle(parsed, scan_result),
+        "bundle" => render_bundle(parsed, root, scan_result),
         "gap" => return run_gap_command(parsed, root, scan_result),
         "todos" => render_todos(parsed, root),
         "decisions" => render_decisions(parsed, scan_result),
