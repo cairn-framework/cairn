@@ -39,6 +39,8 @@ status-untracked:
 
 install-hooks:
 	prek install --install-hooks --hook-type pre-commit --hook-type pre-push
+	git config merge.cairn-map.driver 'scripts/merge-map-json.sh %O %A %B %P'
+	git config merge.cairn-map.recursive binary
 
 biome-check:
 	biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css

@@ -285,6 +285,32 @@ scripts/install-pre-commit-hook.sh
 
 The hook recreates `.git/hooks/pre-commit`, which is not committed by Git, and runs `cargo fmt --check` plus `cairn hook all` before each commit.
 
+To resolve `map.json` merge conflicts automatically instead of by hand
+(`dec.map-snapshot-merge-driver`), register the custom merge driver once
+per clone:
+
+```sh
+git config merge.cairn-map.driver 'scripts/merge-map-json.sh %O %A %B %P'
+git config merge.cairn-map.recursive binary
+```
+
+`make install-hooks` does this for you. The driver resolves conflicts by
+reconstructing the merged tree in a temporary Git worktree and running
+`cairn scan --strict` there, so two PRs that both touch `map.json` merge
+cleanly instead of conflicting. This driver handles plain `git merge` only
+(requiring `GITHEAD_<sha>` environment variables); rebase and cherry-pick
+conflicts fall back to a normal Git conflict, resolved manually by running
+`cairn scan`.
+
+**Limitations:** GitHub's server-side mergeability check does not run custom
+drivers, so a concurrent PR will still show as CONFLICTING in the GitHub UI
+after its sibling merges. The driver resolves conflicts locally via:
+```sh
+git fetch origin && git merge origin/main
+# (merge driver auto-resolves map.json)
+git push
+```
+
 Run the local quality suite before pushing:
 
 ```sh

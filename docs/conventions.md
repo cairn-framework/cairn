@@ -295,6 +295,38 @@ The Cairn spec v0.6 contains items at the "Declared" maturity level -- capabilit
 
 Hooks are managed via [prek](https://github.com/j178/prek) (Rust rewrite of pre-commit, drop-in `.pre-commit-config.yaml` compatible). After clone, run `make install-hooks` to install both pre-commit and pre-push stages. Pre-commit runs `cargo fmt --check` plus the em-dash detector. Pre-push runs `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test --locked`, `cargo doc --no-deps` (with `RUSTDOCFLAGS=-D warnings`), and `cairn lint`. CI mirrors the pre-push battery as a server-side safety net.
 
+
+### `map.json` merge-driver setup
+
+`map.json` is a committed, deterministic snapshot. Each clone should register
+its merge driver once so concurrent PRs can resolve snapshot conflicts by
+reconstructing the merged tree in a temporary Git worktree and running `cairn scan --strict`
+there, rather than attempting a textual or JSON merge:
+
+```sh
+git config merge.cairn-map.driver 'scripts/merge-map-json.sh %O %A %B %P'
+git config merge.cairn-map.recursive binary
+```
+
+The second line stops Git from reusing this driver to compute a virtual ancestor
+in a criss-cross merge (an internal merge step, unrelated to the final merge,
+where reusing a regenerating driver has no coherent meaning). `binary` is Git's
+built-in driver, which always reports a conflict for that step.
+
+The same commands are run by `make install-hooks`. This driver handles plain
+`git merge` only (requiring `GITHEAD_<sha>` environment variables); rebase
+and cherry-pick conflicts fall back to a normal Git conflict, resolved
+manually by running `cairn scan`. If the local build or scan fails, the
+driver fails loudly and leaves the conflict for manual resolution.
+
+**Limitations:** GitHub's server-side mergeability check does not run custom
+drivers, so a concurrent PR will still show as CONFLICTING in the GitHub UI
+after its sibling merges. The driver resolves conflicts locally via:
+```sh
+git fetch origin && git merge origin/main
+# (merge driver auto-resolves map.json)
+git push
+```
 ---
 
 ## 9. Genesis Transcript
@@ -431,3 +463,4 @@ NOT yet gated (author-side POLICY only; the scanner is silent):
 - Artefact-id renames. `cairn rename` renames graph NODE ids only, and its frontmatter rewriter is substring-based, so it can corrupt `informed_by`/`sources` references where a node id is a substring of an artefact id. Artefact ids are immutable-by-policy until a safe cascade exists; renames are manual and unguarded.
 
 Codification. This section is the normative home of the rules above; it DOCUMENTS the shipped checks rather than proposing them. The `agent_guide.md` delivered by `cairn init` SHOULD carry only a short orienting note pointing here, not a restatement of the layout. To make the policy-tier rules mechanical, the following NET-NEW gates are recommended (tracked as open questions): `CAIRN_ARTEFACT_DUPLICATE_ID` (across the dec/res/src union), an id-prefix-conformance check, and an 'unwired artefact under a meta/ pointer root' check. The phrase 'mechanically verifiable' MUST NOT be applied to any rule until its gate exists; until then describe it as detected (advisory) or as policy.
+

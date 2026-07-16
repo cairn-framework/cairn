@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.scanner
-status: open
+status: done
 created: 2026-07-16
 related: [dec.persistent-map-snapshot]
 ---
@@ -44,3 +44,15 @@ merge cleanly one after the other without a manual conflict-resolution
 session, either via the merge driver or via CI regeneration. The chosen
 mechanism is documented and its decision artefact links back to this todo
 and to `dec.persistent-map-snapshot`.
+
+
+## Resolution
+
+Resolved 2026-07-16 with the preferred custom Git merge driver. The
+`.gitattributes` entry registers `map.json merge=cairn-map`; the executable
+`scripts/merge-map-json.sh` regenerates the snapshot with `cairn scan --strict`
+and fails loudly when regeneration is unavailable. The one-time per-clone
+configuration is documented in `README.md` and `docs/conventions.md`, and
+`make install-hooks` applies it. Decision `dec.map-snapshot-merge-driver`
+amends and reaffirms `dec.persistent-map-snapshot`; `map.json` remains tracked
+and the CI-regeneration fallback was not needed.
