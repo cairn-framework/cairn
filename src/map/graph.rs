@@ -375,7 +375,7 @@ mod tests {
         );
     }
 
-    // ── Graph::resolve — suffix aliases ───────────────────────────────────────
+    // ── Graph::resolve: suffix aliases ────────────────────────────────────────
 
     #[test]
     fn test_resolve_unique_dotted_suffix_returns_node() {
