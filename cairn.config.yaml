@@ -1,0 +1,4 @@
+targets:
+  - node: cairn.ui
+    path: ./src/ui_assets
+    language: assets

@@ -33,7 +33,7 @@ fn import_kinds(language: Language) -> &'static [&'static str] {
         Language::TypeScript => &["import_statement", "export_statement"],
         Language::Python => &["import_statement", "import_from_statement"],
         Language::Go => &["import_declaration"],
-        Language::Unknown => &[],
+        Language::Assets | Language::Unknown => &[],
     }
 }
 
@@ -128,7 +128,7 @@ fn resolve_node(
             }
         }
         Language::Go => resolve_go(node, source, refs),
-        Language::Unknown => {}
+        Language::Assets | Language::Unknown => {}
     }
 }
 

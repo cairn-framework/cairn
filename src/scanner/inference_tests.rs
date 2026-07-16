@@ -221,7 +221,8 @@ fn build_reports_from_cache_empty_target_has_no_hash() {
         },
     );
     let config = crate::scanner::config::Config::default();
-    let (reports, findings) = super::cache::build_reports_from_cache(&cached, &[target], &config);
+    let (reports, findings) =
+        super::cache::build_reports_from_cache(&cached, &[target], Path::new("."), &[], &config);
     assert_eq!(reports.len(), 1);
     assert!(reports[0].hash.is_none());
     assert!(
@@ -240,7 +241,8 @@ fn build_reports_from_cache_unknown_target_has_no_hash() {
     );
     let cached = std::collections::BTreeMap::new();
     let config = crate::scanner::config::Config::default();
-    let (reports, findings) = super::cache::build_reports_from_cache(&cached, &[target], &config);
+    let (reports, findings) =
+        super::cache::build_reports_from_cache(&cached, &[target], Path::new("."), &[], &config);
     assert_eq!(reports.len(), 1);
     assert!(reports[0].hash.is_none());
     assert!(
@@ -248,4 +250,171 @@ fn build_reports_from_cache_unknown_target_has_no_hash() {
             .iter()
             .any(|f| f.code == "CAIRN_RECONCILE_LANGUAGE_UNKNOWN")
     );
+}
+
+#[test]
+fn scan_assets_target_claims_files_without_warnings() {
+    let dir = temp_dir("scan-assets-dir");
+    let assets_dir = dir.join("src/ui_assets");
+    std::fs::create_dir_all(&assets_dir).unwrap();
+    std::fs::write(assets_dir.join("app.js"), "console.log('hi');").unwrap();
+    std::fs::write(assets_dir.join("style.css"), "body {}").unwrap();
+    std::fs::write(
+        dir.join("cairn.blueprint"),
+        r#"System App "app" id "app" {
+    Module UI "ui" id "app.ui" @no-contract {
+        path "./src/ui_assets"
+    }
+}
+"#,
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("cairn.config.yaml"),
+        r"targets:
+  - node: app.ui
+    path: ./src/ui_assets
+    language: assets
+",
+    )
+    .unwrap();
+
+    // First scan to generate cache
+    let result = super::load_project(&dir, &dir.join("cairn.blueprint")).unwrap();
+    let reports: Vec<_> = result.target_reports.iter().collect();
+    assert_eq!(reports.len(), 1);
+    assert_eq!(reports[0].language, Language::Assets);
+    assert!(reports[0].hash.is_none());
+    assert_eq!(reports[0].claimed_files.len(), 2);
+    assert!(
+        reports[0]
+            .claimed_files
+            .iter()
+            .any(|f| f.ends_with("app.js"))
+    );
+    assert!(
+        reports[0]
+            .claimed_files
+            .iter()
+            .any(|f| f.ends_with("style.css"))
+    );
+    assert!(
+        result.graph.findings.is_empty(),
+        "expected 0 findings, got {:?}",
+        result.graph.findings
+    );
+
+    // Add a new asset file (cache key does not invalidate because it excludes txt files)
+    std::fs::write(assets_dir.join("extra.txt"), "hello").unwrap();
+
+    // Second scan (loads from cache, but re-walks assets targets)
+    let result2 = super::load_project(&dir, &dir.join("cairn.blueprint")).unwrap();
+    let reports2: Vec<_> = result2.target_reports.iter().collect();
+    assert_eq!(reports2.len(), 1);
+    assert_eq!(reports2[0].language, Language::Assets);
+    assert!(reports2[0].hash.is_none());
+
+    // All three files should be claimed, sorted alphabetically
+    assert_eq!(reports2[0].claimed_files.len(), 3);
+    assert!(reports2[0].claimed_files[0].ends_with("app.js"));
+    assert!(reports2[0].claimed_files[1].ends_with("extra.txt"));
+    assert!(reports2[0].claimed_files[2].ends_with("style.css"));
+    assert!(
+        result2.graph.findings.is_empty(),
+        "expected 0 findings, got {:?}",
+        result2.graph.findings
+    );
+
+    cleanup(&dir);
+}
+
+#[test]
+fn scan_empty_assets_target_warns_empty_target() {
+    let dir = temp_dir("scan-empty-assets-dir");
+    let assets_dir = dir.join("src/ui_assets");
+    std::fs::create_dir_all(&assets_dir).unwrap();
+    std::fs::write(
+        dir.join("cairn.blueprint"),
+        r#"System App "app" id "app" {
+    Module UI "ui" id "app.ui" @no-contract {
+        path "./src/ui_assets"
+    }
+}
+"#,
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("cairn.config.yaml"),
+        r"targets:
+  - node: app.ui
+    path: ./src/ui_assets
+    language: assets
+",
+    )
+    .unwrap();
+
+    let result = super::load_project(&dir, &dir.join("cairn.blueprint")).unwrap();
+    let reports: Vec<_> = result.target_reports.iter().collect();
+    assert_eq!(reports.len(), 1);
+    assert_eq!(reports[0].language, Language::Assets);
+    assert!(reports[0].hash.is_none());
+    assert!(reports[0].claimed_files.is_empty());
+
+    // Should warn EMPTY_TARGET
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|f| f.code == "CAIRN_RECONCILE_EMPTY_TARGET")
+    );
+    cleanup(&dir);
+}
+
+#[test]
+fn scan_missing_assets_target_reports_read_dir_error() {
+    let dir = temp_dir("scan-missing-assets-dir");
+    std::fs::create_dir_all(dir.join("src")).unwrap();
+    std::fs::write(
+        dir.join("cairn.blueprint"),
+        r#"System App "app" id "app" {
+    Module UI "ui" id "app.ui" @no-contract {
+        path "./src/missing_assets"
+    }
+}
+"#,
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("cairn.config.yaml"),
+        r"targets:
+  - node: app.ui
+    path: ./src/missing_assets
+    language: assets
+",
+    )
+    .unwrap();
+
+    for _ in 0..2 {
+        let result = super::load_project(&dir, &dir.join("cairn.blueprint")).unwrap();
+        let report = result.target_reports.first().unwrap();
+        assert_eq!(report.language, Language::Assets);
+        assert!(report.claimed_files.is_empty());
+        assert!(report.hash.is_none());
+        assert!(
+            result
+                .graph
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "CAIRN_RECONCILE_READ_DIR" })
+        );
+        assert!(
+            !result
+                .graph
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "CAIRN_RECONCILE_EMPTY_TARGET" })
+        );
+    }
+    cleanup(&dir);
 }

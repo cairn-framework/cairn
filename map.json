@@ -2357,8 +2357,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 358,
-          "end_line": 434
+          "line": 443,
+          "end_line": 519
         },
         {
           "name": "matches",
@@ -2405,8 +2405,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 441,
-          "end_line": 477
+          "line": 526,
+          "end_line": 562
         },
         {
           "name": "write",
@@ -3123,8 +3123,16 @@
           "kind": "const",
           "signature": "pub const SUPPORTED_LANGUAGES",
           "file": "src/reconcile/target.rs",
-          "line": 200,
-          "end_line": 200
+          "line": 264,
+          "end_line": 264
+        },
+        {
+          "name": "VALID_CONFIG_LANGUAGES",
+          "kind": "const",
+          "signature": "pub const VALID_CONFIG_LANGUAGES",
+          "file": "src/reconcile/target.rs",
+          "line": 267,
+          "end_line": 267
         },
         {
           "name": "new",
@@ -3140,7 +3148,7 @@
           "signature": "pub enum Language",
           "file": "src/reconcile/target.rs",
           "line": 36,
-          "end_line": 47
+          "end_line": 49
         },
         {
           "name": "SymbolKind",
@@ -3155,8 +3163,8 @@
           "kind": "function",
           "signature": "pub fn as_str(&self) -> &'static str",
           "file": "src/reconcile/target.rs",
-          "line": 77,
-          "end_line": 85
+          "line": 80,
+          "end_line": 89
         },
         {
           "name": "as_str",
@@ -3167,20 +3175,28 @@
           "end_line": 31
         },
         {
+          "name": "claim_assets_files",
+          "kind": "function",
+          "signature": "pub fn claim_assets_files( root: &Path, target_path: &Path, ignores: &[String], ) -> Result<Vec<String>, ReconcileError>",
+          "file": "src/reconcile/target.rs",
+          "line": 215,
+          "end_line": 225
+        },
+        {
           "name": "from_extension",
           "kind": "function",
           "signature": "pub fn from_extension(path: &Path) -> Option<Self>",
           "file": "src/reconcile/target.rs",
-          "line": 52,
-          "end_line": 61
+          "line": 54,
+          "end_line": 63
         },
         {
           "name": "from_language_str",
           "kind": "function",
           "signature": "pub fn from_language_str(s: &str) -> Option<Self>",
           "file": "src/reconcile/target.rs",
-          "line": 65,
-          "end_line": 73
+          "line": 67,
+          "end_line": 76
         },
         {
           "name": "from_sorted",
@@ -3203,16 +3219,16 @@
           "kind": "function",
           "signature": "pub fn infer_from_directory(root: &Path, path: &Path, ignores: &[String]) -> Option<Self>",
           "file": "src/reconcile/target.rs",
-          "line": 104,
-          "end_line": 129
+          "line": 109,
+          "end_line": 134
         },
         {
           "name": "language_error_message",
           "kind": "function",
           "signature": "pub fn language_error_message() -> String",
           "file": "src/reconcile/target.rs",
-          "line": 204,
-          "end_line": 209
+          "line": 271,
+          "end_line": 276
         },
         {
           "name": "new",
@@ -3235,8 +3251,8 @@
           "kind": "function",
           "signature": "pub fn new(node_id: String, path: std::path::PathBuf, language: Language) -> Self",
           "file": "src/reconcile/target.rs",
-          "line": 181,
-          "end_line": 189
+          "line": 186,
+          "end_line": 194
         },
         {
           "name": "normalize_symbol",
@@ -3251,8 +3267,8 @@
           "kind": "function",
           "signature": "pub fn reconciler_id(&self) -> ReconcilerId",
           "file": "src/reconcile/target.rs",
-          "line": 89,
-          "end_line": 97
+          "line": 93,
+          "end_line": 102
         },
         {
           "name": "spec_for",
@@ -3267,8 +3283,8 @@
           "kind": "function",
           "signature": "pub fn with_contract_role(mut self, role: String) -> Self",
           "file": "src/reconcile/target.rs",
-          "line": 193,
-          "end_line": 196
+          "line": 198,
+          "end_line": 201
         },
         {
           "name": "code",
@@ -3459,8 +3475,8 @@
           "kind": "struct",
           "signature": "pub struct Target",
           "file": "src/reconcile/target.rs",
-          "line": 167,
-          "end_line": 176
+          "line": 172,
+          "end_line": 181
         },
         {
           "name": "TargetId",
@@ -6342,12 +6358,19 @@
       "name": "UI",
       "state": "synced",
       "paths": [
-        "./src/ui"
+        "./src/ui",
+        "./src/ui_assets"
       ],
       "files": [
         "src/ui/mod.rs",
         "src/ui/server.rs",
-        "src/ui/wire.rs"
+        "src/ui/wire.rs",
+        "src/ui_assets/app.js",
+        "src/ui_assets/index.html",
+        "src/ui_assets/style.css",
+        "src/ui_assets/vendor/htm.min.js",
+        "src/ui_assets/vendor/preact-hooks.min.js",
+        "src/ui_assets/vendor/preact.min.js"
       ],
       "contracts": [
         "./meta/contracts/ui.md"
@@ -6733,6 +6756,13 @@
       "message": "research `res.codeatlas-analysis` is not linked from any decision",
       "node": null,
       "path": "././meta/research/codeatlas-analysis.md"
+    },
+    {
+      "code": "CAIRN_CHANGE_TASKS_COMPLETE",
+      "severity": "info",
+      "message": "change `claim-only-assets-targets` has all tasks complete; run `cairn change apply claim-only-assets-targets` to archive it",
+      "node": "claim-only-assets-targets",
+      "path": "./meta/changes/claim-only-assets-targets/tasks.md"
     },
     {
       "code": "CAIRN_CHANGE_TASKS_COMPLETE",

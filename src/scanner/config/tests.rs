@@ -419,3 +419,26 @@ fn test_asymmetry_rejects_extra_path() {
     // targets has p1 only; passing [p1, p2] is a different set.
     assert!(!asym.matches("app.api", "public_api", &[&p1, &p2]));
 }
+
+#[test]
+fn test_parse_assets_language_target() {
+    let yaml = r"
+targets:
+  - node: app.ui
+    path: ./src/ui_assets
+    language: assets
+    contract_role: public_api
+";
+    let mut config = Config::default();
+    parse_config(yaml, &mut config);
+    assert_eq!(config.findings.len(), 0);
+    assert_eq!(config.targets.len(), 1);
+    assert_eq!(config.targets[0].node_id, "app.ui");
+    assert_eq!(
+        config.targets[0].path,
+        std::path::PathBuf::from("./src/ui_assets")
+    );
+    assert_eq!(config.targets[0].language, "assets");
+    assert_eq!(config.targets[0].contract_role, "public_api");
+    assert!(crate::reconcile::target::VALID_CONFIG_LANGUAGES.contains(&"assets"));
+}

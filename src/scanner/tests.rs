@@ -666,3 +666,57 @@ fn known_language_target_hash_is_some() {
     );
     let _ = fs::remove_dir_all(&root);
 }
+
+#[test]
+fn test_build_targets_path_scoped_override() {
+    use crate::blueprint::{Ast, Node, NodeKind, Span};
+    use crate::scanner::config::{Config, TargetConfig};
+
+    let ast = Ast {
+        nodes: vec![Node {
+            kind: NodeKind::Module,
+            name: "UI".to_owned(),
+            description: String::new(),
+            id: "cairn.ui".to_owned(),
+            tags: Vec::new(),
+            paths: vec!["./src/ui".to_owned(), "./src/ui_assets".to_owned()],
+            owns_files: true,
+            contracts: Vec::new(),
+            raw_fields: Vec::new(),
+            children: Vec::new(),
+            span: Span::point("test", 1, 1),
+        }],
+        edges: Vec::new(),
+    };
+
+    let mut config = Config::default();
+    config.targets.push(TargetConfig {
+        node_id: "cairn.ui".to_owned(),
+        path: std::path::PathBuf::from("./src/ui_assets/"),
+        language: "assets".to_owned(),
+        contract_role: "public_api".to_owned(),
+    });
+
+    let temp_root =
+        std::env::temp_dir().join(format!("cairn-test-build-targets-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&temp_root);
+    std::fs::create_dir_all(&temp_root).unwrap();
+
+    let targets = super::build_targets(&ast, &config, &temp_root, &[]);
+    assert_eq!(targets.len(), 2);
+
+    // The target matching ./src/ui should retain its default inferred language (Unknown or Rust if inferred)
+    // The target matching ./src/ui_assets should override its language to Assets
+    let ui_target = targets
+        .iter()
+        .find(|t| t.id.path == std::path::Path::new("src/ui"))
+        .unwrap();
+    let assets_target = targets
+        .iter()
+        .find(|t| t.id.path == std::path::Path::new("src/ui_assets"))
+        .unwrap();
+
+    assert_eq!(ui_target.language, Language::Unknown);
+    assert_eq!(assets_target.language, Language::Assets);
+    let _ = std::fs::remove_dir_all(&temp_root);
+}
