@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.3.0
+
+### CLI truth
+
+- Human `cairn neighbourhood` now shows the same inbound and outbound edges as `--json`; the `--include-orphans` flag, whose only effect was hiding inbound edges, is removed (#354).
+- Human `cairn health` info count now matches the JSON summary, and the health JSON key `summary.info` is renamed to `summary.total_info` to match its sibling keys (#353).
+
+### Query ergonomics
+
+- `cairn get` now carries accepted-decision pointers in both JSON and human output (#355).
+- `cairn rationale` labels neighbour-sourced decisions as transitive, with a `via` array in JSON and a `(via <node>)` suffix in human output (#355).
+- Node lookup accepts unambiguous dotted-suffix aliases (e.g. `scanner` for `cairn.kernel.scanner`); ambiguous suffixes list the candidates (#355).
+
+### Todos and orientation
+
+- Bare `cairn todos` lists todos project-wide; `cairn todos <container>` aggregates descendants via containment edges; the node argument resolves correctly after leading flags (#356).
+- `cairn brief todo.<slug>` targets a native todo directly, fusing the same decision, contract, and gate context as the bead path (#357).
+
+### Feedback
+
+- `cairn feedback` gains structured `--area` and `--severity` flags carried into the log, issue body, and JSON output; generated issue titles truncate at word boundaries (#358).
+
+### Workflow
+
+- The cairn-vibe session workflow isolates director work in disposable worktrees and guards the main checkout from build and scan artefacts (#352).
+
+
 ## v0.2.0
 
 This release contains breaking CLI changes: old subcommand names were folded into flags and grouped verbs.

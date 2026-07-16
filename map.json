@@ -1320,7 +1320,9 @@
         "./src/cli"
       ],
       "files": [
-        "src/cli/accept.rs",
+        "src/cli/accept/gates.rs",
+        "src/cli/accept/mod.rs",
+        "src/cli/accept/tests.rs",
         "src/cli/commands/archive.rs",
         "src/cli/commands/change.rs",
         "src/cli/commands/decision.rs",
@@ -1345,8 +1347,11 @@
         "src/cli/format/mod.rs",
         "src/cli/format/render.rs",
         "src/cli/format/util.rs",
+        "src/cli/help/mod.rs",
+        "src/cli/help/tests.rs",
         "src/cli/mod.rs",
         "src/cli/render/artefacts.rs",
+        "src/cli/render/artefacts/tests.rs",
         "src/cli/render/bundle.rs",
         "src/cli/render/changes_view.rs",
         "src/cli/render/context_view.rs",
@@ -1374,16 +1379,32 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 72,
-          "end_line": 74
+          "line": 73,
+          "end_line": 75
+        },
+        {
+          "name": "BatterySelection",
+          "kind": "enum",
+          "signature": "pub enum BatterySelection",
+          "file": "src/cli/accept/gates.rs",
+          "line": 30,
+          "end_line": 35
         },
         {
           "name": "all_command_names",
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 844,
-          "end_line": 862
+          "line": 856,
+          "end_line": 874
+        },
+        {
+          "name": "blank_command_failure_detail",
+          "kind": "function",
+          "signature": "pub fn blank_command_failure_detail(step: &AcceptStep) -> Option<String>",
+          "file": "src/cli/accept/gates.rs",
+          "line": 131,
+          "end_line": 140
         },
         {
           "name": "build_export",
@@ -1422,8 +1443,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 81,
-          "end_line": 301
+          "line": 82,
+          "end_line": 313
         },
         {
           "name": "run",
@@ -1437,9 +1458,17 @@
           "name": "run_accept_gate",
           "kind": "function",
           "signature": "pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult",
-          "file": "src/cli/accept.rs",
-          "line": 9,
-          "end_line": 90
+          "file": "src/cli/accept/mod.rs",
+          "line": 15,
+          "end_line": 64
+        },
+        {
+          "name": "select_language_battery",
+          "kind": "function",
+          "signature": "pub fn select_language_battery( language: Language, gates_configured: bool, configured_gates: &[GateStep], ) -> BatterySelection",
+          "file": "src/cli/accept/gates.rs",
+          "line": 44,
+          "end_line": 80
         },
         {
           "name": "export",
@@ -1448,6 +1477,14 @@
           "file": "src/cli/mod.rs",
           "line": 29,
           "end_line": 29
+        },
+        {
+          "name": "AcceptStep",
+          "kind": "struct",
+          "signature": "pub struct AcceptStep",
+          "file": "src/cli/accept/gates.rs",
+          "line": 15,
+          "end_line": 26
         },
         {
           "name": "ArtefactEntry",
@@ -1470,8 +1507,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 61,
-          "end_line": 68
+          "line": 62,
+          "end_line": 69
         },
         {
           "name": "EdgeEntry",
@@ -1494,8 +1531,16 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 58,
-          "end_line": 58
+          "line": 59,
+          "end_line": 59
+        },
+        {
+          "name": "RETIRED_TOP_LEVEL",
+          "kind": "const",
+          "signature": "pub(crate) const RETIRED_TOP_LEVEL",
+          "file": "src/cli/mod.rs",
+          "line": 851,
+          "end_line": 851
         },
         {
           "name": "blueprint_root",
@@ -1504,6 +1549,14 @@
           "file": "src/cli/export/mod.rs",
           "line": 79,
           "end_line": 83
+        },
+        {
+          "name": "command_description",
+          "kind": "function",
+          "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
+          "file": "src/cli/mod.rs",
+          "line": 882,
+          "end_line": 890
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -1712,7 +1765,8 @@
         "./src/map"
       ],
       "files": [
-        "src/map/build.rs",
+        "src/map/build/mod.rs",
+        "src/map/build/tests.rs",
         "src/map/contract_coverage.rs",
         "src/map/graph.rs",
         "src/map/integrity.rs",
@@ -1739,16 +1793,16 @@
           "kind": "function",
           "signature": "pub const fn name(self) -> &'static str",
           "file": "src/map/graph.rs",
-          "line": 42,
-          "end_line": 48
+          "line": 43,
+          "end_line": 49
         },
         {
           "name": "FindingSeverity",
           "kind": "enum",
           "signature": "pub enum FindingSeverity",
           "file": "src/map/graph.rs",
-          "line": 21,
-          "end_line": 28
+          "line": 22,
+          "end_line": 29
         },
         {
           "name": "GraphEdgeKind",
@@ -1764,13 +1818,13 @@
           "signature": "pub enum NodeState",
           "file": "src/map/graph.rs",
           "line": 9,
-          "end_line": 16
+          "end_line": 17
         },
         {
           "name": "build_graph",
           "kind": "function",
           "signature": "pub fn build_graph( ast: &Ast, root: &Path, contracts: &ContractSet, claimed_files: &mut BTreeMap<String, Vec<String>>, external_findings: Vec<Finding>, ) -> Graph",
-          "file": "src/map/build.rs",
+          "file": "src/map/build/mod.rs",
           "line": 13,
           "end_line": 38
         },
@@ -1835,8 +1889,8 @@
           "kind": "function",
           "signature": "pub fn has_errors(&self) -> bool",
           "file": "src/map/graph.rs",
-          "line": 174,
-          "end_line": 178
+          "line": 204,
+          "end_line": 208
         },
         {
           "name": "islands",
@@ -1863,14 +1917,6 @@
           "end_line": 183
         },
         {
-          "name": "neighbourhood_with_options",
-          "kind": "function",
-          "signature": "pub fn neighbourhood_with_options( graph: &Graph, node: &str, include_orphans: bool, ) -> Result<NeighbourhoodResponse, Finding>",
-          "file": "src/map/query.rs",
-          "line": 428,
-          "end_line": 438
-        },
-        {
           "name": "order",
           "kind": "function",
           "signature": "pub fn order(graph: &Graph) -> Result<OrderResponse, Vec<Finding>>",
@@ -1883,8 +1929,8 @@
           "kind": "function",
           "signature": "pub fn resolve(&self, value: &str) -> Result<&NodeRecord, Finding>",
           "file": "src/map/graph.rs",
-          "line": 138,
-          "end_line": 170
+          "line": 142,
+          "end_line": 200
         },
         {
           "name": "symbols",
@@ -1947,8 +1993,8 @@
           "kind": "struct",
           "signature": "pub struct EdgeRef",
           "file": "src/map/graph.rs",
-          "line": 108,
-          "end_line": 115
+          "line": 109,
+          "end_line": 116
         },
         {
           "name": "FilesResponse",
@@ -1963,8 +2009,8 @@
           "kind": "struct",
           "signature": "pub struct Finding",
           "file": "src/map/graph.rs",
-          "line": 53,
-          "end_line": 71
+          "line": 54,
+          "end_line": 72
         },
         {
           "name": "FrontierEntry",
@@ -1987,8 +2033,8 @@
           "kind": "struct",
           "signature": "pub struct Graph",
           "file": "src/map/graph.rs",
-          "line": 119,
-          "end_line": 130
+          "line": 120,
+          "end_line": 131
         },
         {
           "name": "GraphEdgeResponse",
@@ -2043,8 +2089,8 @@
           "kind": "struct",
           "signature": "pub struct NodeRecord",
           "file": "src/map/graph.rs",
-          "line": 75,
-          "end_line": 104
+          "line": 76,
+          "end_line": 105
         },
         {
           "name": "NodeResponse",
@@ -2234,6 +2280,7 @@
         "src/scanner/cache.rs",
         "src/scanner/checks.rs",
         "src/scanner/config/mod.rs",
+        "src/scanner/config/parse.rs",
         "src/scanner/config/tests.rs",
         "src/scanner/inference_tests.rs",
         "src/scanner/mod.rs",
@@ -2283,24 +2330,24 @@
           "kind": "function",
           "signature": "pub fn is_ignored(path: &str, ignores: &[String]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 104,
-          "end_line": 119
+          "line": 124,
+          "end_line": 139
         },
         {
           "name": "is_intentional_asymmetry",
           "kind": "function",
           "signature": "pub fn is_intentional_asymmetry( &self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf], ) -> Option<&IntentionalAsymmetry>",
           "file": "src/scanner/config/mod.rs",
-          "line": 488,
-          "end_line": 497
+          "line": 194,
+          "end_line": 203
         },
         {
           "name": "load",
           "kind": "function",
           "signature": "pub fn load(root: &Path) -> Result<Config, ConfigError>",
           "file": "src/scanner/config/mod.rs",
-          "line": 75,
-          "end_line": 100
+          "line": 95,
+          "end_line": 120
         },
         {
           "name": "load_project",
@@ -2315,8 +2362,8 @@
           "kind": "function",
           "signature": "pub fn matches(&self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 469,
-          "end_line": 482
+          "line": 175,
+          "end_line": 188
         },
         {
           "name": "migrate_single_hash",
@@ -2435,24 +2482,32 @@
           "kind": "struct",
           "signature": "pub struct Config",
           "file": "src/scanner/config/mod.rs",
-          "line": 36,
-          "end_line": 51
+          "line": 49,
+          "end_line": 71
         },
         {
           "name": "ConfigError",
           "kind": "struct",
           "signature": "pub struct ConfigError",
           "file": "src/scanner/config/mod.rs",
-          "line": 55,
-          "end_line": 60
+          "line": 75,
+          "end_line": 80
+        },
+        {
+          "name": "GateStep",
+          "kind": "struct",
+          "signature": "pub struct GateStep",
+          "file": "src/scanner/config/mod.rs",
+          "line": 40,
+          "end_line": 45
         },
         {
           "name": "IntentionalAsymmetry",
           "kind": "struct",
           "signature": "pub struct IntentionalAsymmetry",
           "file": "src/scanner/config/mod.rs",
-          "line": 23,
-          "end_line": 32
+          "line": 25,
+          "end_line": 34
         },
         {
           "name": "MapSnapshot",
@@ -2499,8 +2554,8 @@
           "kind": "struct",
           "signature": "pub struct TargetConfig",
           "file": "src/scanner/config/mod.rs",
-          "line": 10,
-          "end_line": 19
+          "line": 12,
+          "end_line": 21
         },
         {
           "name": "TargetReport",
@@ -3503,7 +3558,7 @@
           "signature": "pub enum VerificationState",
           "file": "src/verification.rs",
           "line": 7,
-          "end_line": 18
+          "end_line": 20
         },
         {
           "name": "code",
@@ -3799,7 +3854,7 @@
           "signature": "pub enum VerificationState",
           "file": "src/verification.rs",
           "line": 7,
-          "end_line": 18
+          "end_line": 20
         },
         {
           "name": "code",
@@ -4095,7 +4150,7 @@
           "signature": "pub enum VerificationState",
           "file": "src/verification.rs",
           "line": 7,
-          "end_line": 18
+          "end_line": 20
         },
         {
           "name": "code",
@@ -4391,7 +4446,7 @@
           "signature": "pub enum VerificationState",
           "file": "src/verification.rs",
           "line": 7,
-          "end_line": 18
+          "end_line": 20
         },
         {
           "name": "code",
@@ -4687,7 +4742,7 @@
           "signature": "pub enum VerificationState",
           "file": "src/verification.rs",
           "line": 7,
-          "end_line": 18
+          "end_line": 20
         },
         {
           "name": "code",
@@ -4983,7 +5038,7 @@
           "signature": "pub enum VerificationState",
           "file": "src/verification.rs",
           "line": 7,
-          "end_line": 18
+          "end_line": 20
         },
         {
           "name": "code",
@@ -5279,7 +5334,7 @@
           "signature": "pub enum VerificationState",
           "file": "src/verification.rs",
           "line": 7,
-          "end_line": 18
+          "end_line": 20
         },
         {
           "name": "code",
