@@ -6720,6 +6720,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.a2ui-analysis` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/a2ui-analysis.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.codeatlas-analysis` is not linked from any decision",
       "node": null,
       "path": "././meta/research/codeatlas-analysis.md"
