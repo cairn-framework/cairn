@@ -1,6 +1,6 @@
 ---
 node: cairn.state
-status: open
+status: done
 created: 2026-07-11
 ---
 
@@ -16,3 +16,4 @@ To ratify: flip this todo's `status` to `done` when approving/merging the PR
 that carries this change. To veto: revert the ignore rule, `git add` the
 exports back, flip the gap decision back to `proposed`, and mark this todo
 `done` with a note.
+Ratified by owner 2026-07-16; untracking stands.
