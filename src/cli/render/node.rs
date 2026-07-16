@@ -4,7 +4,9 @@
 use super::super::format::{lines, node_arg, render_node};
 use super::super::*;
 use super::{scan_error_count, scan_error_warning};
-use crate::query_api::{QueryRequest, neighbourhood_ids, research_for_nodes};
+use crate::query_api::{
+    QueryRequest, accepted_decision_ids, neighbourhood_ids, research_for_nodes,
+};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
@@ -17,6 +19,14 @@ pub(crate) fn render_get(
         match query::get(&scan_result.graph, node) {
             Ok(response) => {
                 let mut output = render_node(&response.node, parsed.json);
+                if !parsed.json {
+                    use std::fmt::Write;
+                    let _ = write!(
+                        output,
+                        "Accepted decisions:\n{}\n",
+                        lines(&accepted_decision_ids(scan_result, &response.node.id))
+                    );
+                }
                 if parsed.command_args.iter().any(|arg| arg == "--symbols") {
                     output.push_str(&symbols_block(scan_result, node));
                 }
@@ -290,7 +300,99 @@ fn symbols_block(scan_result: &scanner::ScanResult, node: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        artefacts::registry::{Decision, DecisionStatus},
+        map::{Graph, NodeRecord, NodeState},
+        scanner::{ScanResult, state::TargetHashes},
+    };
     use serde_json::json;
+    use std::collections::BTreeMap;
+
+    fn node_record(id: &str) -> NodeRecord {
+        NodeRecord {
+            kind: crate::blueprint::NodeKind::Module,
+            id: id.to_owned(),
+            name: id.to_owned(),
+            description: String::new(),
+            tags: Vec::new(),
+            parent: None,
+            children: Vec::new(),
+            paths: Vec::new(),
+            owns_files: false,
+            symbols: Vec::new(),
+            contracts: Vec::new(),
+            state: NodeState::Synced,
+            files: Vec::new(),
+            span: crate::blueprint::Span::point("test", 1, 1),
+        }
+    }
+
+    fn decision(id: &str, status: DecisionStatus) -> Decision {
+        Decision {
+            id: id.to_owned(),
+            path: format!("meta/decisions/{id}.md"),
+            nodes: vec!["app".to_owned()],
+            status,
+            date: "2026-07-16".to_owned(),
+            revisited: None,
+            revisit_triggers: Vec::new(),
+            informed_by: Vec::new(),
+            supersedes: Vec::new(),
+            refines: Vec::new(),
+            related: Vec::new(),
+            orphaned: false,
+            orphan_reason: None,
+            gap: false,
+            claims: None,
+            body: String::new(),
+        }
+    }
+
+    #[test]
+    fn render_get_human_lists_accepted_decisions() {
+        let mut nodes = BTreeMap::new();
+        nodes.insert("app".to_owned(), node_record("app"));
+        let scan = ScanResult {
+            graph: Graph {
+                nodes,
+                names: BTreeMap::new(),
+                outbound: BTreeMap::new(),
+                inbound: BTreeMap::new(),
+                findings: Vec::new(),
+            },
+            artefacts: crate::artefacts::registry::ArtefactSet {
+                decisions: vec![
+                    decision("dec.kept", DecisionStatus::Accepted),
+                    decision("dec.pending", DecisionStatus::Proposed),
+                ],
+                ..Default::default()
+            },
+            contracts: crate::artefacts::contract::ContractSet::default(),
+            interface_hash: String::new(),
+            target_reports: Vec::new(),
+            target_hashes: TargetHashes::default(),
+            blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),
+        };
+        let parsed = ParsedArgs {
+            json: false,
+            strict: false,
+            file: std::path::PathBuf::from("cairn.blueprint"),
+            changes_dir: std::path::PathBuf::from("meta/changes"),
+            command: "get".to_owned(),
+            command_args: vec!["get".to_owned(), "app".to_owned()],
+            verbose: false,
+            brief: false,
+        };
+        let rendered = render_get(&parsed, Path::new("."), &scan).expect("get must resolve");
+        assert!(
+            rendered.contains("Accepted decisions:\n- dec.kept"),
+            "human get must list accepted decision pointers: {rendered}"
+        );
+        assert!(
+            !rendered.contains("dec.pending"),
+            "non-accepted decisions must not appear: {rendered}"
+        );
+    }
 
     #[test]
     fn files_text_lists_node_files_when_no_target_report() {

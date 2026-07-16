@@ -245,8 +245,19 @@ fn rationale_text(data: &Value) -> String {
         .map_or(&[][..], std::ops::Deref::deref)
         .iter()
         .map(|value| {
+            let via = value["via"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .map(|node| node.as_str().unwrap_or_default().to_owned())
+                .collect::<Vec<_>>();
+            let via_suffix = if via.is_empty() {
+                String::new()
+            } else {
+                format!(" (via {})", via.join(", "))
+            };
             format!(
-                "{} [{}] {}",
+                "{} [{}] {}{via_suffix}",
                 value["id"].as_str().unwrap_or_default(),
                 value["status"].as_str().unwrap_or_default(),
                 value["path"].as_str().unwrap_or_default()
@@ -447,6 +458,38 @@ mod tests {
         let rendered = render_decisions(&p, &scan).unwrap();
         assert!(rendered.contains("dec.live"));
         assert!(!rendered.contains("dec.old"));
+    }
+
+    #[test]
+    fn rationale_text_labels_transitive_decisions_with_via() {
+        let data = serde_json::json!({
+            "node": "app",
+            "decisions": [
+                {
+                    "id": "dec.direct",
+                    "status": "accepted",
+                    "path": "meta/decisions/dec.direct.md",
+                },
+                {
+                    "id": "dec.neighbour",
+                    "status": "accepted",
+                    "path": "meta/decisions/dec.neighbour.md",
+                    "via": ["app.db"],
+                },
+            ],
+            "research": [],
+            "sources": [],
+        });
+        let rendered = rationale_text(&data);
+        assert!(
+            rendered
+                .contains("dec.neighbour [accepted] meta/decisions/dec.neighbour.md (via app.db)"),
+            "transitive decision must carry a via label: {rendered}"
+        );
+        assert!(
+            rendered.contains("dec.direct [accepted] meta/decisions/dec.direct.md\n"),
+            "direct decision must render without a via label: {rendered}"
+        );
     }
 
     #[test]

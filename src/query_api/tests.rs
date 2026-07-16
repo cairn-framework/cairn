@@ -409,6 +409,43 @@ fn test_execute_get_resolves_bead_when_not_a_node() {
 }
 
 #[test]
+fn test_execute_get_includes_accepted_decision_pointers() {
+    let tmp = std::env::temp_dir().join(format!("cairn-get-decisions-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    let _ = std::fs::create_dir_all(tmp.join("meta/decisions"));
+    let _ = std::fs::write(
+        tmp.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Api \"api\" id \"app.api\" {\n        decisions \"./meta/decisions\"\n    }\n}\n",
+    );
+    let _ = std::fs::write(
+        tmp.join("meta/decisions/dec.keep.md"),
+        "---\nid: dec.keep\nnodes: [app.api]\nstatus: accepted\ndate: 2026-07-01\n---\n# Keep\nBody.\n",
+    );
+    let _ = std::fs::write(
+        tmp.join("meta/decisions/dec.pending.md"),
+        "---\nid: dec.pending\nnodes: [app.api]\nstatus: proposed\ndate: 2026-07-01\n---\n# Pending\nBody.\n",
+    );
+    let request = QueryRequest {
+        tool: "get".to_owned(),
+        node: Some("app.api".to_owned()),
+        ..QueryRequest::default()
+    };
+    let result = execute(
+        &tmp,
+        &tmp.join("cairn.blueprint"),
+        &tmp.join("meta/changes"),
+        &request,
+    )
+    .expect("get must succeed");
+    assert_eq!(
+        result.data.get("decisions"),
+        Some(&json!(["dec.keep"])),
+        "get must list accepted-decision pointers and omit non-accepted ones"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
 fn test_execute_stamps_schema_version_on_read_commands() {
     // The universal stamp lives at the `execute` choke point, so the
     // `debug_assert!` there enforces the object-payload invariant for *every*

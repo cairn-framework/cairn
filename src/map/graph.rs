@@ -131,11 +131,14 @@ pub struct Graph {
 }
 
 impl Graph {
-    /// Resolves an exact node ID or unambiguous name.
+    /// Resolves an exact node ID, unambiguous name, or unambiguous dotted
+    /// suffix alias (e.g. `kernel.scanner` for `cairn.kernel.scanner`).
     ///
     /// # Errors
     ///
-    /// Returns a query finding when the value is not an ID or unambiguous name.
+    /// Returns a query finding when the value is not an ID, unambiguous name,
+    /// or unambiguous suffix alias. An ambiguous suffix lists the candidate
+    /// IDs in the finding message.
     pub fn resolve(&self, value: &str) -> Result<&NodeRecord, Finding> {
         if let Some(node) = self.nodes.get(value) {
             return Ok(node);
@@ -145,6 +148,32 @@ impl Graph {
             && let Some(node) = self.nodes.get(id)
         {
             return Ok(node);
+        }
+        if !value.is_empty() {
+            let dotted = format!(".{value}");
+            let candidates = self
+                .nodes
+                .keys()
+                .filter(|id| id.ends_with(&dotted))
+                .cloned()
+                .collect::<Vec<_>>();
+            if let [id] = candidates.as_slice() {
+                return Ok(&self.nodes[id]);
+            }
+            if candidates.len() > 1 {
+                return Err(Finding {
+                    code: "CAIRN_QUERY_NODE_NOT_FOUND".to_owned(),
+                    severity: FindingSeverity::Error,
+                    message: format!(
+                        "node `{value}` is ambiguous; candidates: {}",
+                        candidates.join(", ")
+                    ),
+                    node: None,
+                    target: None,
+                    path: None,
+                    deferred_by: None,
+                });
+            }
         }
         let suggestion = self
             .nodes
@@ -346,13 +375,74 @@ mod tests {
         );
     }
 
+    // ── Graph::resolve — suffix aliases ───────────────────────────────────────
+
+    #[test]
+    fn test_resolve_unique_dotted_suffix_returns_node() {
+        let mut g = one_node_graph("cairn.kernel.scanner");
+        g.nodes
+            .insert("cairn.kernel.map".to_owned(), bare_node("cairn.kernel.map"));
+        assert_eq!(
+            g.resolve("scanner").expect("suffix must resolve").id,
+            "cairn.kernel.scanner"
+        );
+        assert_eq!(
+            g.resolve("kernel.scanner")
+                .expect("multi-segment suffix must resolve")
+                .id,
+            "cairn.kernel.scanner"
+        );
+    }
+
+    #[test]
+    fn test_resolve_ambiguous_suffix_lists_candidates() {
+        let mut g = one_node_graph("app.api");
+        g.nodes.insert("test.api".to_owned(), bare_node("test.api"));
+        let err = g.resolve("api").unwrap_err();
+        assert_eq!(err.code, "CAIRN_QUERY_NODE_NOT_FOUND");
+        assert!(
+            err.message.contains("ambiguous"),
+            "ambiguous suffix must be reported as ambiguous: {}",
+            err.message
+        );
+        assert!(
+            err.message.contains("app.api") && err.message.contains("test.api"),
+            "ambiguous suffix must list all candidate IDs: {}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn test_resolve_suffix_requires_segment_boundary() {
+        // "pi" is a trailing substring of "app.api" but not a dotted suffix.
+        let g = one_node_graph("app.api");
+        assert!(
+            g.resolve("pi").is_err(),
+            "non-segment suffix must not resolve"
+        );
+    }
+
+    #[test]
+    fn test_resolve_exact_id_wins_over_suffix_alias() {
+        // "kernel.map" exists as a full ID and as a suffix of another node;
+        // the exact ID must win without an ambiguity error.
+        let mut g = one_node_graph("kernel.map");
+        g.nodes
+            .insert("cairn.kernel.map".to_owned(), bare_node("cairn.kernel.map"));
+        assert_eq!(
+            g.resolve("kernel.map").expect("exact ID wins").id,
+            "kernel.map"
+        );
+    }
+
     // ── Graph::resolve — suggestions ──────────────────────────────────────────
 
     #[test]
     fn test_resolve_unknown_with_partial_match_includes_suggestion() {
-        // Searching for "api" when "app.api" exists — "app.api" contains "api".
+        // "app.a" is a partial match for "app.api" but not a dotted suffix,
+        // so resolve still fails with a suggestion.
         let g = one_node_graph("app.api");
-        let err = g.resolve("api").unwrap_err();
+        let err = g.resolve("app.a").unwrap_err();
         assert!(
             err.message.contains("suggestion"),
             "message must include 'suggestion' when a partial match exists: {}",
