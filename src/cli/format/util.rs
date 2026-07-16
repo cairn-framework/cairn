@@ -3,6 +3,18 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 
+pub(crate) fn symbol_arg(args: &[String]) -> Result<&str, Finding> {
+    args.get(1).map(String::as_str).ok_or_else(|| Finding {
+        code: "CAIRN_CLI_MISSING_SYMBOL".to_owned(),
+        severity: FindingSeverity::Error,
+        message: crate::copy::lookup("locate.missing-symbol").to_owned(),
+        node: None,
+        target: None,
+        path: None,
+        deferred_by: None,
+    })
+}
+
 pub(crate) fn node_arg(args: &[String]) -> Result<&str, Finding> {
     args.get(1).map(String::as_str).ok_or_else(|| Finding {
         code: "CAIRN_CLI_MISSING_NODE".to_owned(),

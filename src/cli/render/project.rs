@@ -246,6 +246,7 @@ pub(crate) fn render_dependencies(parsed: &ParsedArgs, root: &Path) -> Result<St
     let request = QueryRequest {
         tool: "deps".to_owned(),
         node: Some(node.to_owned()),
+        symbol: None,
         change: None,
         old_id: None,
         new_id: None,

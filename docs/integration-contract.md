@@ -52,6 +52,7 @@ Error responses from the MCP/query path:
 | `neighbourhood <node>` | `cairn_neighbourhood` | Node + inbound/outbound edges |
 | `contract <node>` | `cairn_contract` | Contract body text |
 | `files <node>` | `cairn_files` | File paths owned by the node |
+| `locate <symbol>` | `cairn_locate` | All exact public symbol definitions with owning node ids and source locations |
 | `bundle <node>` | `cairn_bundle` | Contract, decisions, dependency interfaces, and gates composed for one node |
 | `deps <node>` | `cairn_depends` | Outbound dependency edges |
 | `deps <node> --direction in` | `cairn_dependents` | Inbound dependency edges |

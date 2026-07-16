@@ -180,6 +180,7 @@ fn request_from_arguments(
     QueryRequest {
         tool: name.to_owned(),
         node: string_arg(arguments, "node").or_else(|| string_arg(arguments, "id")),
+        symbol: string_arg(arguments, "symbol"),
         change: string_arg(arguments, "change").or_else(|| string_arg(arguments, "change_id")),
         old_id: string_arg(arguments, "old_id"),
         new_id: string_arg(arguments, "new_id"),
@@ -249,6 +250,9 @@ fn input_schema(schema: &str) -> Value {
     let properties = match schema {
         "NodeRequest" | "ArtefactNodeRequest" => json!({
             "node": { "type": "string" },
+        }),
+        "LocateRequest" => json!({
+            "symbol": { "type": "string" },
         }),
         "NeighbourhoodRequest" => json!({
             "node": { "type": "string" },

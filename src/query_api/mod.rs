@@ -41,8 +41,8 @@ use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
     bundle_json, context_json, contract_json, decisions_response_json, dependency_json,
     docstring_json, files_json, frontier_json, graph_response_json, hook_json, islands_json,
-    neighbourhood_json, rationale_json, research_response_json, sources_response_json, status_json,
-    todos_response_json,
+    locate_json, neighbourhood_json, rationale_json, research_response_json, sources_response_json,
+    status_json, todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{backlog_item_detail_json, findings_json, node_json, relevant_rules};
@@ -89,6 +89,8 @@ pub struct QueryRequest {
     pub tool: String,
     /// Optional node name or ID.
     pub node: Option<String>,
+    /// Optional symbol name for `locate` exact-name lookup.
+    pub symbol: Option<String>,
     /// Optional change ID.
     pub change: Option<String>,
     /// Optional old node ID for rename operations.
@@ -422,6 +424,10 @@ fn execute_data_with_scan(
         "contract" => contract_json(scan_result, required(request.node.as_ref(), "node")?),
         "docstring" => docstring_json(scan_result, request),
         "files" => files_json(scan_result, required(request.node.as_ref(), "node")?),
+        "locate" => Ok(locate_json(
+            scan_result,
+            required(request.symbol.as_ref(), "symbol")?,
+        )),
         "bundle" => bundle_json(scan_result, required(request.node.as_ref(), "node")?),
         "deps" => dependency_json(scan_result, request, !request.has(QueryFlag::Inbound)),
         "order" => query::order(&scan_result.graph)

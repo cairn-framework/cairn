@@ -275,6 +275,7 @@ pub(crate) fn requires_valid_map(command: &str) -> bool {
             | "sources"
             | "rationale"
             | "status"
+            | "locate"
     )
 }
 

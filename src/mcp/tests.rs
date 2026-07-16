@@ -222,3 +222,18 @@ fn test_resolve_path_absolute_is_returned_unchanged() {
     let result = resolve_path(root, Path::new("/absolute/blueprint"));
     assert_eq!(result, PathBuf::from("/absolute/blueprint"));
 }
+
+#[test]
+fn locate_tool_exposes_symbol_argument_and_maps_it() {
+    let tools = tools_json(false);
+    let locate = tools
+        .iter()
+        .find(|tool| tool["name"] == "cairn_locate")
+        .expect("locate MCP tool must be registered");
+    assert_eq!(
+        locate["inputSchema"]["properties"]["symbol"]["type"],
+        "string"
+    );
+    let request = request_from_arguments("cairn_locate", &json!({"symbol": "X"}), false);
+    assert_eq!(request.symbol.as_deref(), Some("X"));
+}

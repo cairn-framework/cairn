@@ -586,6 +586,44 @@ fn test_phase_2_loads_artefacts_and_query_commands() -> Result<(), Box<dyn std::
     assert!(status.contains("todo.md"));
     assert!(status.contains("scan: nodes=2"));
 
+    // locate hit
+    let locate_hit = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["locate", "login"])
+        .output()?;
+    assert!(locate_hit.status.success());
+    let stdout_hit = String::from_utf8(locate_hit.stdout)?;
+    assert!(stdout_hit.contains("login:\n"));
+    assert!(stdout_hit.contains("src/auth/lib.rs:1-1 [function] pub fn login() (app.auth)"));
+
+    // locate no match
+    let locate_miss = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["locate", "definitely_missing"])
+        .output()?;
+    assert!(locate_miss.status.success());
+    let stdout_miss = String::from_utf8(locate_miss.stdout)?;
+    assert!(stdout_miss.contains("No public symbol definitions found for `definitely_missing`."));
+
+    // locate --json hit
+    let locate_json_hit = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "locate", "login"])
+        .output()?;
+    assert!(locate_json_hit.status.success());
+    let json_hit_out = String::from_utf8(locate_json_hit.stdout)?;
+    assert!(json_hit_out.contains("\"node_id\":\"app.auth\""));
+    assert!(json_hit_out.contains("\"file\":\"src/auth/lib.rs\""));
+
+    // locate --json no match
+    let locate_json_miss = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "locate", "definitely_missing"])
+        .output()?;
+    assert!(locate_json_miss.status.success());
+    let json_miss_out = String::from_utf8(locate_json_miss.stdout)?;
+    assert_eq!(json_miss_out.trim(), "[]");
+
     Ok(())
 }
 

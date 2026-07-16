@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: open
+status: done
 created: 2026-07-16
 ---
 
@@ -24,3 +24,15 @@ cannot do.
 
 Needs a change proposal before implementation (new CLI verb plus MCP
 tool surface).
+
+## Resolution (2026-07-16)
+
+Implemented the exact-name `locate` query over reconciled SymbolRecords,
+including all collision matches with owning node ids and source ranges.
+Added the shared query-api registry surface, CLI human/JSON command, and MCP
+`cairn_locate` tool with a symbol argument schema. Added production-path
+location and collision tests, MCP contract coverage, and deliberately updated
+the api metadata wire snapshot. Manual verification covered a real unique
+symbol (`normalize_symbol`), a collision (`build`), and a no-match query;
+all returned exit 0, with JSON no-match data containing an empty `matches`
+array. The full workspace test suite, format, clippy, and strict scan gates pass.
