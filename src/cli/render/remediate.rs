@@ -267,7 +267,7 @@ pub(crate) fn render_brief(
     if parsed.command_args.get(1).is_none() {
         let todos = query_api::open_native_todos(scan_result);
         if let Some(todo) = todos.first().copied() {
-            return render_brief_data(parsed, scan_result, &BriefSource::Todo(todo), true);
+            return render_brief_data(parsed, root, scan_result, &BriefSource::Todo(todo), true);
         }
     }
     if let Some(target) = parsed
@@ -283,7 +283,13 @@ pub(crate) fn render_brief(
             return format!("{message}\n");
         };
         let ready_now = todo.status == TodoStatus::Open;
-        return render_brief_data(parsed, scan_result, &BriefSource::Todo(todo), ready_now);
+        return render_brief_data(
+            parsed,
+            root,
+            scan_result,
+            &BriefSource::Todo(todo),
+            ready_now,
+        );
     }
 
     let items = crate::state::backlog::read(root);
@@ -301,13 +307,20 @@ pub(crate) fn render_brief(
     let ready_now = crate::state::backlog::ready(&items)
         .iter()
         .any(|item| item.id == bead.id);
-    render_brief_data(parsed, scan_result, &BriefSource::Bead(&bead), ready_now)
+    render_brief_data(
+        parsed,
+        root,
+        scan_result,
+        &BriefSource::Bead(&bead),
+        ready_now,
+    )
 }
 
 /// Resolves node/decisions/contract for `source` and renders the brief in the
 /// requested format. Shared by the native-todo and beads-backlog paths.
 fn render_brief_data(
     parsed: &ParsedArgs,
+    root: &Path,
     scan_result: &scanner::ScanResult,
     source: &BriefSource,
     ready_now: bool,
@@ -332,7 +345,7 @@ fn render_brief_data(
             .filter(|contract| contract.node == node.id)
             .map(|contract| contract.body.trim().to_owned())
     });
-    let gates = crate::copy::lookup("brief.gates");
+    let gates = crate::query_api::format_gates(root);
     let staleness = match source {
         BriefSource::Todo(_) => crate::copy::lookup("brief.staleness-note-todos"),
         BriefSource::Bead(_) => crate::copy::lookup("brief.staleness-note-beads"),
@@ -361,7 +374,7 @@ struct BriefData<'a> {
     node: Option<&'a crate::map::NodeRecord>,
     decisions: &'a [&'a Decision],
     contract: Option<&'a str>,
-    gates: &'a str,
+    gates: String,
     staleness: &'a str,
 }
 
@@ -471,7 +484,7 @@ fn format_brief_human(data: &BriefData) -> String {
         _ => "  none".to_owned(),
     });
     out.push(String::new());
-    out.push(data.gates.to_owned());
+    out.push(data.gates.clone());
     out.push(String::new());
     out.push(data.staleness.to_owned());
     out.join("\n") + "\n"

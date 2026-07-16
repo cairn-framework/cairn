@@ -8,6 +8,7 @@ use super::super::*;
 
 pub(crate) fn render_bundle(
     parsed: &ParsedArgs,
+    root: &Path,
     scan_result: &scanner::ScanResult,
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
@@ -71,7 +72,7 @@ pub(crate) fn render_bundle(
             }
         }
         out.push_str("\nGates:\n");
-        out.push_str(crate::copy::lookup("brief.gates"));
+        out.push_str(&crate::query_api::format_gates(root));
         out.push('\n');
         Ok(out)
     })

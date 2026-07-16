@@ -1388,8 +1388,8 @@
           "kind": "enum",
           "signature": "pub enum BatterySelection",
           "file": "src/cli/accept/gates.rs",
-          "line": 30,
-          "end_line": 35
+          "line": 28,
+          "end_line": 33
         },
         {
           "name": "all_command_names",
@@ -1404,8 +1404,8 @@
           "kind": "function",
           "signature": "pub fn blank_command_failure_detail(step: &AcceptStep) -> Option<String>",
           "file": "src/cli/accept/gates.rs",
-          "line": 131,
-          "end_line": 140
+          "line": 105,
+          "end_line": 114
         },
         {
           "name": "build_export",
@@ -1458,18 +1458,18 @@
         {
           "name": "run_accept_gate",
           "kind": "function",
-          "signature": "pub fn run_accept_gate(change_id: Option<&str>, json: bool) -> CliResult",
+          "signature": "pub fn run_accept_gate(project_root: &Path, change_id: Option<&str>, json: bool) -> CliResult",
           "file": "src/cli/accept/mod.rs",
-          "line": 15,
-          "end_line": 64
+          "line": 14,
+          "end_line": 62
         },
         {
           "name": "select_language_battery",
           "kind": "function",
-          "signature": "pub fn select_language_battery( language: Language, gates_configured: bool, configured_gates: &[GateStep], ) -> BatterySelection",
+          "signature": "pub fn select_language_battery(recipe: GateRecipe) -> BatterySelection",
           "file": "src/cli/accept/gates.rs",
-          "line": 44,
-          "end_line": 80
+          "line": 42,
+          "end_line": 100
         },
         {
           "name": "export",
@@ -1484,8 +1484,8 @@
           "kind": "struct",
           "signature": "pub struct AcceptStep",
           "file": "src/cli/accept/gates.rs",
-          "line": 15,
-          "end_line": 26
+          "line": 13,
+          "end_line": 24
         },
         {
           "name": "ArtefactEntry",
@@ -2129,6 +2129,7 @@
       ],
       "files": [
         "src/query_api/change_queries.rs",
+        "src/query_api/gates.rs",
         "src/query_api/handlers/artefacts.rs",
         "src/query_api/handlers/bundle.rs",
         "src/query_api/handlers/graph.rs",
@@ -2154,120 +2155,120 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 56,
-          "end_line": 56
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 177,
-          "end_line": 179
+          "line": 178,
+          "end_line": 180
         },
         {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 112,
-          "end_line": 133
+          "line": 113,
+          "end_line": 134
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 60,
-          "end_line": 65
+          "line": 61,
+          "end_line": 66
         },
         {
           "name": "envelope_json",
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 343,
-          "end_line": 350
+          "line": 345,
+          "end_line": 352
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 354,
-          "end_line": 361
+          "line": 356,
+          "end_line": 363
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 206,
-          "end_line": 264
+          "line": 208,
+          "end_line": 266
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 272,
-          "end_line": 323
+          "line": 274,
+          "end_line": 325
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 193,
-          "end_line": 199
+          "line": 195,
+          "end_line": 201
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 156,
-          "end_line": 165
+          "line": 157,
+          "end_line": 166
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 87,
-          "end_line": 108
+          "line": 88,
+          "end_line": 109
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 143,
-          "end_line": 152
+          "line": 144,
+          "end_line": 153
         },
         {
           "name": "ToolMetadata",
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 69,
-          "end_line": 83
+          "line": 70,
+          "end_line": 84
         },
         {
           "name": "bundle_json",
           "kind": "function",
-          "signature": "pub(crate) fn bundle_json( scan_result: &scanner::ScanResult, node: &str, ) -> Result<Value, QueryError>",
+          "signature": "pub(crate) fn bundle_json( root: &Path, scan_result: &scanner::ScanResult, node: &str, ) -> Result<Value, QueryError>",
           "file": "src/query_api/handlers/bundle.rs",
           "line": 12,
-          "end_line": 95
+          "end_line": 96
         },
         {
           "name": "lint_findings",
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 333,
-          "end_line": 339
+          "line": 335,
+          "end_line": 341
         }
       ]
     },
@@ -2285,6 +2286,7 @@
         "src/scanner/config/mod.rs",
         "src/scanner/config/parse.rs",
         "src/scanner/config/tests.rs",
+        "src/scanner/gate_recipe.rs",
         "src/scanner/inference_tests.rs",
         "src/scanner/mod.rs",
         "src/scanner/outputs.rs",
@@ -2305,6 +2307,14 @@
           "end_line": 17
         },
         {
+          "name": "GateRecipe",
+          "kind": "enum",
+          "signature": "pub enum GateRecipe",
+          "file": "src/scanner/gate_recipe.rs",
+          "line": 27,
+          "end_line": 38
+        },
+        {
           "name": "append_log",
           "kind": "function",
           "signature": "pub fn append_log(root: &Path, graph: &Graph) -> io::Result<()>",
@@ -2319,6 +2329,14 @@
           "file": "src/scanner/snapshot.rs",
           "line": 69,
           "end_line": 101
+        },
+        {
+          "name": "cargo_battery",
+          "kind": "function",
+          "signature": "pub fn cargo_battery() -> Vec<GateRecipeStep>",
+          "file": "src/scanner/gate_recipe.rs",
+          "line": 44,
+          "end_line": 63
         },
         {
           "name": "is_empty",
@@ -2357,8 +2375,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 443,
-          "end_line": 519
+          "line": 444,
+          "end_line": 520
         },
         {
           "name": "matches",
@@ -2401,12 +2419,28 @@
           "end_line": 30
         },
         {
+          "name": "resolve_gate_recipe",
+          "kind": "function",
+          "signature": "pub fn resolve_gate_recipe(root: &Path) -> Result<GateRecipe, String>",
+          "file": "src/scanner/gate_recipe.rs",
+          "line": 109,
+          "end_line": 119
+        },
+        {
           "name": "scan",
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 526,
-          "end_line": 562
+          "line": 527,
+          "end_line": 563
+        },
+        {
+          "name": "select_gate_recipe",
+          "kind": "function",
+          "signature": "pub fn select_gate_recipe( language: Language, gates_configured: bool, configured_gates: &[GateStep], ) -> GateRecipe",
+          "file": "src/scanner/gate_recipe.rs",
+          "line": 72,
+          "end_line": 98
         },
         {
           "name": "write",
@@ -2453,24 +2487,24 @@
           "kind": "module",
           "signature": "pub mod outputs",
           "file": "src/scanner/mod.rs",
-          "line": 9,
-          "end_line": 9
+          "line": 10,
+          "end_line": 10
         },
         {
           "name": "snapshot",
           "kind": "module",
           "signature": "pub mod snapshot",
           "file": "src/scanner/mod.rs",
-          "line": 10,
-          "end_line": 10
+          "line": 11,
+          "end_line": 11
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/scanner/mod.rs",
-          "line": 11,
-          "end_line": 11
+          "line": 12,
+          "end_line": 12
         },
         {
           "name": "BlueprintSnapshot",
@@ -2495,6 +2529,14 @@
           "file": "src/scanner/config/mod.rs",
           "line": 75,
           "end_line": 80
+        },
+        {
+          "name": "GateRecipeStep",
+          "kind": "struct",
+          "signature": "pub struct GateRecipeStep",
+          "file": "src/scanner/gate_recipe.rs",
+          "line": 18,
+          "end_line": 23
         },
         {
           "name": "GateStep",
@@ -2533,8 +2575,8 @@
           "kind": "struct",
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
-          "line": 57,
-          "end_line": 72
+          "line": 58,
+          "end_line": 73
         },
         {
           "name": "SnapshotEdge",
@@ -2565,8 +2607,8 @@
           "kind": "struct",
           "signature": "pub struct TargetReport",
           "file": "src/scanner/mod.rs",
-          "line": 38,
-          "end_line": 53
+          "line": 39,
+          "end_line": 54
         },
         {
           "name": "TargetHashes",
@@ -2591,6 +2633,14 @@
           "file": "src/scanner/mod.rs",
           "line": 5,
           "end_line": 5
+        },
+        {
+          "name": "gate_recipe",
+          "kind": "module",
+          "signature": "pub(crate) mod gate_recipe",
+          "file": "src/scanner/mod.rs",
+          "line": 7,
+          "end_line": 7
         }
       ]
     },

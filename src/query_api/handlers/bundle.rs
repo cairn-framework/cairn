@@ -10,6 +10,7 @@ use super::super::*;
 /// (research/sources), dependency interfaces from outbound neighbours'
 /// extracted symbols, and the standing quality gates.
 pub(crate) fn bundle_json(
+    root: &Path,
     scan_result: &scanner::ScanResult,
     node: &str,
 ) -> Result<Value, QueryError> {
@@ -90,7 +91,7 @@ pub(crate) fn bundle_json(
         "decisions": decisions.iter().map(decision_json).collect::<Vec<_>>(),
         "rationale": { "research": research, "sources": sources },
         "dependencies": dependencies,
-        "gates": crate::copy::lookup("brief.gates"),
+        "gates": crate::query_api::format_gates(root),
     }))
 }
 
@@ -176,21 +177,24 @@ mod tests {
 
     #[test]
     fn bundle_reports_missing_contract_for_uncontracted_node() {
+        let dir = tempfile::tempdir().unwrap();
         let scan = scan_with(
             vec![leaf("app.api")],
             Vec::new(),
             ContractSet::default(),
             Vec::new(),
         );
-        let result = bundle_json(&scan, "app.api").expect("bundle must resolve a known node");
+        let result =
+            bundle_json(dir.path(), &scan, "app.api").expect("bundle must resolve a known node");
         assert!(result["contract"].is_null());
         assert_eq!(result["missing"], json!(["contract"]));
     }
 
     #[test]
     fn bundle_returns_finding_error_for_unknown_node() {
+        let dir = tempfile::tempdir().unwrap();
         let scan = scan_with(Vec::new(), Vec::new(), ContractSet::default(), Vec::new());
-        let err = bundle_json(&scan, "app.bogus").expect_err("unknown node must error");
+        let err = bundle_json(dir.path(), &scan, "app.bogus").expect_err("unknown node must error");
         assert_eq!(err.code, "CAIRN_QUERY_NODE_NOT_FOUND");
     }
 
@@ -236,8 +240,11 @@ mod tests {
                 line: 1,
                 end_line: 1,
             });
+        let dir = tempfile::tempdir().unwrap();
+        // Set up a cargo project fallback scenario
+        std::fs::write(dir.path().join("main.rs"), "fn main() {}\n").unwrap();
 
-        let result = bundle_json(&scan, "app.api").expect("bundle must succeed");
+        let result = bundle_json(dir.path(), &scan, "app.api").expect("bundle must succeed");
         assert_eq!(result["contract"], json!("# Contract body"));
         assert_eq!(result["missing"], json!(Vec::<String>::new()));
         assert_eq!(result["decisions"][0]["id"], json!("dec.api-shape"));
@@ -246,6 +253,29 @@ mod tests {
             result["dependencies"][0]["symbols"][0]["signature"],
             json!("pub fn connect() -> Db")
         );
-        assert!(!result["gates"].as_str().unwrap().is_empty());
+        let gates = result["gates"].as_str().unwrap();
+        assert!(gates.contains("cargo build"), "gates: {gates}");
+        assert!(gates.contains("cargo clippy"), "gates: {gates}");
+    }
+    #[test]
+    fn bundle_json_uses_configured_gates() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("cairn.config.yaml"),
+            "gates:\n  - name: my-custom-gate\n    command: custom-cmd\n",
+        )
+        .unwrap();
+        let scan = scan_with(
+            vec![leaf("app.api")],
+            Vec::new(),
+            ContractSet::default(),
+            Vec::new(),
+        );
+        let result = bundle_json(dir.path(), &scan, "app.api").expect("bundle must succeed");
+        let gates = result["gates"].as_str().unwrap();
+        assert!(
+            gates.contains("my-custom-gate: custom-cmd"),
+            "gates: {gates}"
+        );
     }
 }

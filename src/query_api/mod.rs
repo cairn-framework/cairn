@@ -28,6 +28,7 @@ use crate::{
 };
 
 mod change_queries;
+mod gates;
 mod handlers;
 mod registry;
 mod serialise;
@@ -183,6 +184,7 @@ pub const fn registry() -> &'static [ToolMetadata] {
 /// shares them instead of keeping copies (todo.simplify-dedup-format-util).
 /// `requires_valid_map` is additionally used by both the CLI dispatch loop
 /// and the MCP query-API path to gate commands on a clean graph.
+pub(crate) use gates::format_gates;
 pub(crate) use serialise::{
     accepted_decision_ids, decision_status, neighbourhood_ids, parse_decision_status_filter,
     requires_valid_map, research_for_nodes, todo_status,
@@ -428,7 +430,7 @@ fn execute_data_with_scan(
             scan_result,
             required(request.symbol.as_ref(), "symbol")?,
         )),
-        "bundle" => bundle_json(scan_result, required(request.node.as_ref(), "node")?),
+        "bundle" => bundle_json(root, scan_result, required(request.node.as_ref(), "node")?),
         "deps" => dependency_json(scan_result, request, !request.has(QueryFlag::Inbound)),
         "order" => query::order(&scan_result.graph)
             .map(|response| json!({ "nodes": response.nodes }))

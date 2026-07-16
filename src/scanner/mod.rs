@@ -4,6 +4,7 @@
 pub(crate) mod cache;
 pub(crate) mod checks;
 pub mod config;
+pub(crate) mod gate_recipe;
 #[cfg(test)]
 mod inference_tests;
 pub mod outputs;

@@ -207,19 +207,14 @@ fn test_blank_command_gate_fails_with_nonzero_exit() {
         "gates:\n  - name: typecheck\n    command: \"   \"\n",
     )
     .unwrap();
-    let (configured, gates, language) = load_gate_context(root).unwrap();
-    assert!(configured, "gates: key must be present");
-    assert_eq!(gates.len(), 1);
-    assert_eq!(gates[0].name, "typecheck");
-    // Parser retains the whitespace-only command; selection yields empty program.
-    assert!(
-        gates[0].command.chars().all(char::is_whitespace)
-            || gates[0].command.is_empty()
-            || gates[0].command.trim().is_empty()
-    );
-    let selection = select_language_battery(language, configured, &gates);
+    let recipe = crate::scanner::gate_recipe::resolve_gate_recipe(root).unwrap();
+    assert!(matches!(
+        recipe,
+        crate::scanner::gate_recipe::GateRecipe::Configured(_)
+    ));
+    let selection = select_language_battery(recipe);
     let mut findings = Vec::new();
-    apply_language_battery(&mut findings, selection, true);
+    apply_language_battery(&mut findings, selection, root, true);
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].state, VerificationState::Failed);
     assert_eq!(findings[0].test, "typecheck");
@@ -253,12 +248,14 @@ fn test_load_gate_context_skip_wiring_end_to_end() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
     std::fs::write(root.join("main.ts"), "export {};\n").unwrap();
-    let (configured, gates, language) = load_gate_context(root).unwrap();
-    assert!(!configured);
-    assert_eq!(language, Language::TypeScript);
-    let selection = select_language_battery(language, configured, &gates);
+    let recipe = crate::scanner::gate_recipe::resolve_gate_recipe(root).unwrap();
+    assert!(matches!(
+        recipe,
+        crate::scanner::gate_recipe::GateRecipe::SkipInfo { .. }
+    ));
+    let selection = select_language_battery(recipe);
     let mut findings = Vec::new();
-    apply_language_battery(&mut findings, selection, true);
+    apply_language_battery(&mut findings, selection, root, true);
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].state, VerificationState::Skipped);
     assert_eq!(findings[0].test, "language battery (typescript)");
@@ -295,10 +292,12 @@ fn test_load_gate_context_with_gates_selects_steps() {
         "gates:\n  - name: unit\n    command: true\n",
     )
     .unwrap();
-    let (configured, gates, language) = load_gate_context(root).unwrap();
-    assert!(configured);
-    assert_eq!(language, Language::TypeScript);
-    let selection = select_language_battery(language, configured, &gates);
+    let recipe = crate::scanner::gate_recipe::resolve_gate_recipe(root).unwrap();
+    assert!(matches!(
+        recipe,
+        crate::scanner::gate_recipe::GateRecipe::Configured(_)
+    ));
+    let selection = select_language_battery(recipe);
     match &selection {
         BatterySelection::Steps(steps) => {
             assert_eq!(steps.len(), 1);
@@ -311,7 +310,7 @@ fn test_load_gate_context_with_gates_selects_steps() {
     }
     // Production helper must run the configured step (true exits 0).
     let mut findings = Vec::new();
-    apply_language_battery(&mut findings, selection, true);
+    apply_language_battery(&mut findings, selection, root, true);
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].state, VerificationState::Passed);
     assert_eq!(findings[0].test, "unit");
@@ -320,4 +319,22 @@ fn test_load_gate_context_with_gates_selects_steps() {
         .any(|f| f.state == VerificationState::Failed);
     assert!(!has_failed);
     assert_eq!(u8::from(has_failed), 0);
+}
+
+#[test]
+fn accept_runs_gate_commands_from_project_root() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("marker.txt"), "ok\n").unwrap();
+    std::fs::write(
+        root.join("cairn.config.yaml"),
+        "gates:\n  - name: read marker\n    command: cat marker.txt\n",
+    )
+    .unwrap();
+
+    let result = run_accept_gate(root, None, true);
+
+    assert_eq!(result.code, 0, "accept output: {}", result.stdout);
+    assert!(result.stdout.contains("\"test\":\"read marker\""));
+    assert!(result.stdout.contains("\"state\":\"passed\""));
 }

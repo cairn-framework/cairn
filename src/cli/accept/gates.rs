@@ -7,9 +7,7 @@
 //!    and emit an informational finding so acceptance can still pass via the
 //!    language-agnostic `cairn lint` + suggested-edges steps.
 
-use crate::reconcile::target::Language;
-use crate::scanner::config::GateStep;
-
+use crate::scanner::gate_recipe::GateRecipe;
 /// A single verification step the accept battery will run.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AcceptStep {
@@ -41,89 +39,65 @@ pub enum BatterySelection {
 /// Otherwise Rust keeps the cargo battery; every other language (including
 /// unknown) skips with an informational finding.
 #[must_use]
-pub fn select_language_battery(
-    language: Language,
-    gates_configured: bool,
-    configured_gates: &[GateStep],
-) -> BatterySelection {
-    if gates_configured {
-        let steps = configured_gates
-            .iter()
-            .map(|g| {
-                let (program, args) = split_command(&g.command);
-                let name = if g.name.is_empty() {
-                    "unnamed gate".to_owned()
-                } else {
-                    g.name.clone()
-                };
-                // Blank/whitespace-only command is a config error: surface as a
-                // step with empty program so the runner marks it Failed (not
-                // Blocked). Legitimate missing toolchains still Blocked.
-                AcceptStep {
-                    name: name.clone(),
-                    program,
-                    args,
-                    fail_msg: format!("{name} failed"),
-                    block_msg: format!("could not run {name}"),
-                }
-            })
-            .collect();
-        return BatterySelection::Steps(steps);
-    }
-
-    match language {
-        Language::Rust => BatterySelection::Steps(cargo_battery()),
-        other => BatterySelection::SkipInfo {
-            language: other.as_str().to_owned(),
-        },
+pub fn select_language_battery(recipe: GateRecipe) -> BatterySelection {
+    match recipe {
+        GateRecipe::Configured(steps) => {
+            let accept_steps = steps
+                .into_iter()
+                .map(|step| {
+                    let (program, args) = split_command(&step.command);
+                    AcceptStep {
+                        name: step.name.clone(),
+                        program,
+                        args,
+                        fail_msg: format!("{} failed", step.name),
+                        block_msg: format!("could not run {}", step.name),
+                    }
+                })
+                .collect();
+            BatterySelection::Steps(accept_steps)
+        }
+        GateRecipe::Fallback(steps) => {
+            let accept_steps = steps
+                .into_iter()
+                .map(|step| {
+                    let (program, args) = split_command(&step.command);
+                    let (fail_msg, block_msg) = match step.name.as_str() {
+                        "cargo build" => (
+                            "build failed".to_owned(),
+                            "could not run cargo build".to_owned(),
+                        ),
+                        "cargo clippy" => (
+                            "clippy warnings found".to_owned(),
+                            "could not run cargo clippy".to_owned(),
+                        ),
+                        "cargo fmt" => (
+                            "formatting issues found".to_owned(),
+                            "could not run cargo fmt".to_owned(),
+                        ),
+                        "cargo test --workspace --locked" => (
+                            "tests failed".to_owned(),
+                            "could not run cargo test".to_owned(),
+                        ),
+                        _ => (
+                            format!("{} failed", step.name),
+                            format!("could not run {}", step.name),
+                        ),
+                    };
+                    AcceptStep {
+                        name: step.name,
+                        program,
+                        args,
+                        fail_msg,
+                        block_msg,
+                    }
+                })
+                .collect();
+            BatterySelection::Steps(accept_steps)
+        }
+        GateRecipe::SkipInfo { language } => BatterySelection::SkipInfo { language },
     }
 }
-
-/// Hardcoded cargo battery: byte-identical to the pre-language-aware accept gate.
-fn cargo_battery() -> Vec<AcceptStep> {
-    vec![
-        AcceptStep {
-            name: "cargo build".to_owned(),
-            program: "cargo".to_owned(),
-            args: vec!["build".to_owned()],
-            fail_msg: "build failed".to_owned(),
-            block_msg: "could not run cargo build".to_owned(),
-        },
-        AcceptStep {
-            name: "cargo clippy".to_owned(),
-            program: "cargo".to_owned(),
-            args: vec![
-                "clippy".to_owned(),
-                "--all-targets".to_owned(),
-                "--all-features".to_owned(),
-                "--".to_owned(),
-                "-D".to_owned(),
-                "warnings".to_owned(),
-            ],
-            fail_msg: "clippy warnings found".to_owned(),
-            block_msg: "could not run cargo clippy".to_owned(),
-        },
-        AcceptStep {
-            name: "cargo fmt".to_owned(),
-            program: "cargo".to_owned(),
-            args: vec!["fmt".to_owned(), "--check".to_owned()],
-            fail_msg: "formatting issues found".to_owned(),
-            block_msg: "could not run cargo fmt".to_owned(),
-        },
-        AcceptStep {
-            name: "cargo test --workspace --locked".to_owned(),
-            program: "cargo".to_owned(),
-            args: vec![
-                "test".to_owned(),
-                "--workspace".to_owned(),
-                "--locked".to_owned(),
-            ],
-            fail_msg: "tests failed".to_owned(),
-            block_msg: "could not run cargo test".to_owned(),
-        },
-    ]
-}
-
 /// Detail string when a configured gate has no runnable program.
 ///
 /// Returns `Some` when `program` is empty (blank/whitespace-only command).
@@ -155,13 +129,16 @@ mod tests {
     use super::*;
     use std::path::Path;
 
+    use crate::reconcile::target::Language;
+    use crate::scanner::config::GateStep;
+    use crate::scanner::gate_recipe::select_gate_recipe;
     #[test]
     fn configured_gates_override_rust() {
         let gates = vec![GateStep {
             name: "bun test".to_owned(),
             command: "bun test".to_owned(),
         }];
-        match select_language_battery(Language::Rust, true, &gates) {
+        match select_language_battery(select_gate_recipe(Language::Rust, true, &gates)) {
             BatterySelection::Steps(steps) => {
                 assert_eq!(steps.len(), 1);
                 assert_eq!(steps[0].name, "bun test");
@@ -174,7 +151,7 @@ mod tests {
 
     #[test]
     fn rust_without_gates_keeps_cargo_battery() {
-        match select_language_battery(Language::Rust, false, &[]) {
+        match select_language_battery(select_gate_recipe(Language::Rust, false, &[])) {
             BatterySelection::Steps(steps) => {
                 assert_eq!(steps.len(), 4);
                 assert_eq!(steps[0].name, "cargo build");
@@ -201,7 +178,7 @@ mod tests {
 
     #[test]
     fn typescript_without_gates_skips_with_info() {
-        match select_language_battery(Language::TypeScript, false, &[]) {
+        match select_language_battery(select_gate_recipe(Language::TypeScript, false, &[])) {
             BatterySelection::SkipInfo { language } => {
                 assert_eq!(language, "typescript");
             }
@@ -211,7 +188,7 @@ mod tests {
 
     #[test]
     fn python_without_gates_skips() {
-        match select_language_battery(Language::Python, false, &[]) {
+        match select_language_battery(select_gate_recipe(Language::Python, false, &[])) {
             BatterySelection::SkipInfo { language } => assert_eq!(language, "python"),
             other @ BatterySelection::Steps(_) => panic!("expected SkipInfo, got {other:?}"),
         }
@@ -219,7 +196,7 @@ mod tests {
 
     #[test]
     fn go_without_gates_skips() {
-        match select_language_battery(Language::Go, false, &[]) {
+        match select_language_battery(select_gate_recipe(Language::Go, false, &[])) {
             BatterySelection::SkipInfo { language } => assert_eq!(language, "go"),
             other @ BatterySelection::Steps(_) => panic!("expected SkipInfo, got {other:?}"),
         }
@@ -227,7 +204,7 @@ mod tests {
 
     #[test]
     fn unknown_without_gates_skips() {
-        match select_language_battery(Language::Unknown, false, &[]) {
+        match select_language_battery(select_gate_recipe(Language::Unknown, false, &[])) {
             BatterySelection::SkipInfo { language } => assert_eq!(language, "unknown"),
             other @ BatterySelection::Steps(_) => panic!("expected SkipInfo, got {other:?}"),
         }
@@ -245,7 +222,7 @@ mod tests {
                 command: "bun test".to_owned(),
             },
         ];
-        match select_language_battery(Language::TypeScript, true, &gates) {
+        match select_language_battery(select_gate_recipe(Language::TypeScript, true, &gates)) {
             BatterySelection::Steps(steps) => {
                 assert_eq!(steps.len(), 2);
                 assert_eq!(steps[0].program, "tsc");
@@ -258,7 +235,7 @@ mod tests {
 
     #[test]
     fn explicit_empty_gates_runs_zero_steps_even_for_rust() {
-        match select_language_battery(Language::Rust, true, &[]) {
+        match select_language_battery(select_gate_recipe(Language::Rust, true, &[])) {
             BatterySelection::Steps(steps) => assert!(steps.is_empty()),
             other @ BatterySelection::SkipInfo { .. } => {
                 panic!("expected empty Steps, got {other:?}")
@@ -286,7 +263,7 @@ mod tests {
             name: "typecheck".to_owned(),
             command: "   ".to_owned(),
         }];
-        match select_language_battery(Language::TypeScript, true, &gates) {
+        match select_language_battery(select_gate_recipe(Language::TypeScript, true, &gates)) {
             BatterySelection::Steps(steps) => {
                 assert_eq!(steps.len(), 1);
                 assert!(steps[0].program.is_empty(), "whitespace-only command");
@@ -307,7 +284,7 @@ mod tests {
             name: "typecheck".to_owned(),
             command: String::new(),
         }];
-        match select_language_battery(Language::Rust, true, &gates) {
+        match select_language_battery(select_gate_recipe(Language::Rust, true, &gates)) {
             BatterySelection::Steps(steps) => {
                 assert!(steps[0].program.is_empty());
                 assert!(blank_command_failure_detail(&steps[0]).is_some());
@@ -332,7 +309,11 @@ mod tests {
         let language = Language::infer_from_directory(root, Path::new("."), &config.ignores)
             .unwrap_or(Language::Unknown);
         assert_eq!(language, Language::TypeScript);
-        match select_language_battery(language, config.gates_configured, &config.gates) {
+        match select_language_battery(select_gate_recipe(
+            language,
+            config.gates_configured,
+            &config.gates,
+        )) {
             BatterySelection::SkipInfo { language } => {
                 assert_eq!(language, "typescript");
             }
@@ -355,7 +336,11 @@ mod tests {
         assert_eq!(config.gates.len(), 1);
         let language = Language::infer_from_directory(root, Path::new("."), &config.ignores)
             .unwrap_or(Language::Unknown);
-        match select_language_battery(language, config.gates_configured, &config.gates) {
+        match select_language_battery(select_gate_recipe(
+            language,
+            config.gates_configured,
+            &config.gates,
+        )) {
             BatterySelection::Steps(steps) => {
                 assert_eq!(steps.len(), 1);
                 assert_eq!(steps[0].name, "unit");
