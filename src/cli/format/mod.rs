@@ -13,4 +13,5 @@ pub(crate) use render::{
 };
 pub(crate) use util::{
     err, error_output, esc, finding_output, findings_output, flag_value, lines, node_arg, ok,
+    positional_node,
 };

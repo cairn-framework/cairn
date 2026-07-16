@@ -15,6 +15,24 @@ pub(crate) fn node_arg(args: &[String]) -> Result<&str, Finding> {
     })
 }
 
+/// Finds the positional node token: the first non-flag token after the
+/// command name, skipping the values of value-taking flags so that
+/// `todos --status open app.kernel` resolves `app.kernel`, not `open`.
+/// Returns `None` when no positional token is present.
+pub(crate) fn positional_node(args: &[String]) -> Option<&String> {
+    // Flags that consume the following token as their value.
+    const VALUE_FLAGS: &[&str] = &["--direction", "--grep", "--language", "--status"];
+    let mut tokens = args.iter().skip(1);
+    while let Some(token) = tokens.next() {
+        if VALUE_FLAGS.contains(&token.as_str()) {
+            tokens.next();
+        } else if !token.starts_with("--") {
+            return Some(token);
+        }
+    }
+    None
+}
+
 pub(crate) fn flag_value<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
     args.windows(2)
         .find_map(|pair| (pair[0] == flag).then_some(pair[1].as_str()))
@@ -221,6 +239,39 @@ mod tests {
     fn test_flag_value_returns_first_occurrence_when_repeated() {
         let args = args(&["--format", "json", "--format", "mermaid"]);
         assert_eq!(flag_value(&args, "--format"), Some("json"));
+    }
+
+    // ── positional_node ──────────────────────────────────────────────────────
+
+    #[test]
+    fn test_positional_node_returns_trailing_node_after_value_flag() {
+        let a = args(&["todos", "--status", "open", "app.kernel"]);
+        assert_eq!(positional_node(&a), Some(&"app.kernel".to_owned()));
+    }
+
+    #[test]
+    fn test_positional_node_returns_leading_node_before_flags() {
+        let a = args(&["todos", "app.kernel", "--status", "open"]);
+        assert_eq!(positional_node(&a), Some(&"app.kernel".to_owned()));
+    }
+
+    #[test]
+    fn test_positional_node_flag_only_invocation_returns_none() {
+        let a = args(&["todos", "--status", "open"]);
+        assert_eq!(positional_node(&a), None);
+    }
+
+    #[test]
+    fn test_positional_node_bare_command_returns_none() {
+        let a = args(&["todos"]);
+        assert_eq!(positional_node(&a), None);
+    }
+
+    #[test]
+    fn test_positional_node_skips_boolean_flag_but_not_its_neighbour() {
+        // `--transitive` takes no value, so the following token is the node.
+        let a = args(&["rationale", "--transitive", "app.kernel"]);
+        assert_eq!(positional_node(&a), Some(&"app.kernel".to_owned()));
     }
 
     // ── node_arg ─────────────────────────────────────────────────────────────

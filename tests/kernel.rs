@@ -1239,6 +1239,97 @@ fn write_change(
     Ok(())
 }
 
+#[test]
+fn test_todos_project_wide_and_descendant_listing() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("todos-listing")?;
+    write_phase_2_fixture(&root)?;
+
+    // Bare `cairn todos`: project-wide listing, human text.
+    let bare = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["todos"])
+        .output()?;
+    assert!(bare.status.success(), "bare todos must succeed");
+    let bare = String::from_utf8(bare.stdout)?;
+    assert!(bare.contains("Todos (project-wide):"), "got: {bare}");
+    assert!(bare.contains("app.auth"), "got: {bare}");
+
+    // Bare `cairn --json todos`: project-wide listing with a null node.
+    let bare_json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "todos"])
+        .output()?;
+    assert!(bare_json.status.success(), "bare --json todos must succeed");
+    let data: serde_json::Value = serde_json::from_str(&String::from_utf8(bare_json.stdout)?)?;
+    assert!(data["node"].is_null(), "project-wide node must be null");
+    assert_eq!(data["todos"].as_array().map(Vec::len), Some(1));
+
+    // Bare with a status filter but no node still lists project-wide.
+    let filtered = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "todos", "--status", "open"])
+        .output()?;
+    assert!(filtered.status.success(), "flag-first todos must succeed");
+    let data: serde_json::Value = serde_json::from_str(&String::from_utf8(filtered.stdout)?)?;
+    assert!(data["node"].is_null());
+    assert_eq!(data["todos"].as_array().map(Vec::len), Some(1));
+
+    // Flag-first with a trailing node scopes to that node, human text.
+    let flag_first = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["todos", "--status", "open", "app.auth"])
+        .output()?;
+    assert!(
+        flag_first.status.success(),
+        "flag-first todos with node must succeed"
+    );
+    let flag_first = String::from_utf8(flag_first.stdout)?;
+    assert!(
+        flag_first.contains("Todos for app.auth:"),
+        "trailing node must scope the listing, got: {flag_first}"
+    );
+
+    // Flag-first with a trailing node scopes to that node, JSON path.
+    let flag_first_json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "todos", "--status", "open", "app.auth"])
+        .output()?;
+    assert!(
+        flag_first_json.status.success(),
+        "flag-first --json todos with node must succeed"
+    );
+    let data: serde_json::Value =
+        serde_json::from_str(&String::from_utf8(flag_first_json.stdout)?)?;
+    assert_eq!(data["node"], "app.auth", "trailing node must be resolved");
+    assert_eq!(data["todos"].as_array().map(Vec::len), Some(1));
+
+    // Container node: aggregates descendants' todos (`app` contains
+    // `app.auth`, which carries the fixture todo).
+    let container = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "todos", "app"])
+        .output()?;
+    assert!(container.status.success(), "container todos must succeed");
+    let data: serde_json::Value = serde_json::from_str(&String::from_utf8(container.stdout)?)?;
+    assert_eq!(data["node"], "app");
+    assert_eq!(
+        data["todos"].as_array().map(Vec::len),
+        Some(1),
+        "container listing must include descendants' todos"
+    );
+
+    // Leaf without todos stays empty: no cross-node leakage.
+    let leaf = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "todos", "app.store"])
+        .output()?;
+    assert!(leaf.status.success(), "leaf todos must succeed");
+    let data: serde_json::Value = serde_json::from_str(&String::from_utf8(leaf.stdout)?)?;
+    assert_eq!(data["todos"].as_array().map(Vec::len), Some(0));
+
+    Ok(())
+}
+
 fn write_phase_2_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(root.join("src/auth"))?;
     fs::create_dir_all(root.join("src/store"))?;

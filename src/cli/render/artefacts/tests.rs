@@ -199,6 +199,29 @@ fn todos_text_lists_matching_todos() {
 }
 
 #[test]
+fn todos_text_null_node_renders_project_wide_heading() {
+    let data = serde_json::json!({
+        "node": null,
+        "todos": [
+            {
+                "node": "app.api",
+                "status": "open",
+                "path": "meta/todos/todo.api.md",
+            },
+            {
+                "node": "app.db",
+                "status": "done",
+                "path": "meta/todos/todo.db.md",
+            },
+        ],
+    });
+    let rendered = todos_text(&data);
+    assert!(rendered.contains("Todos (project-wide):"));
+    assert!(rendered.contains("app.api"));
+    assert!(rendered.contains("app.db"));
+}
+
+#[test]
 fn todos_text_renders_filtered_todos() {
     // The status filter lives in the query_api handler; the renderer only
     // transforms whatever the canonical JSON carries. Feed the already

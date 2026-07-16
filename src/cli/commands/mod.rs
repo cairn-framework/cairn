@@ -1,7 +1,7 @@
 //! Shared CLI command helpers and re-exports of per-command implementations.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::format::flag_value;
+use super::format::{flag_value, positional_node};
 use super::*;
 
 mod archive;
@@ -109,7 +109,10 @@ pub(crate) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
     let arg = |index: usize| parsed.command_args.get(index).cloned();
     crate::query_api::QueryRequest {
         tool: parsed.command.clone(),
-        node: arg(1),
+        // Flag tokens and their values are never a node, so the node is the
+        // first positional token even in a flag-first invocation (e.g.
+        // `cairn --json todos --status open app.kernel` resolves app.kernel).
+        node: positional_node(&parsed.command_args).cloned(),
         change: arg(1),
         old_id: arg(1),
         new_id: arg(2),
