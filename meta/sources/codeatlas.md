@@ -1,6 +1,6 @@
 ---
 id: src.codeatlas
-file: https://github.com/Aeres-u99/CodeAtlas
+file: https://github.com/Aeres-u99/CodeAtlas/tree/442353638c3e7260e495df423fb7ca035703d6c3
 verification: external
 type: tool
 date: 2026-07-16
@@ -34,7 +34,8 @@ Load-bearing facts for cairn:
   Method gaps: single self-reported run, no variance, no harness described.
 - **Fragile extraction layer.** One ctags subprocess per file in a
   sequential walk; Rust/TS visibility derived by substring-matching the
-  ctags pattern text for `pub ` / `export ` (misses `pub(crate)`); the
+  ctags pattern text for `pub` or `export` followed by a space, which is
+  why `pub(crate)` is missed; the
   `Sig` field is declared but never populated; `.codeatlasignore` is
   resolved against CWD rather than repo root.
 - **Compressed output schema.** Single-character JSON keys (`n`/`t`/`l`/`f`)
