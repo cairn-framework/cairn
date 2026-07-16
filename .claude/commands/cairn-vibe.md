@@ -140,19 +140,33 @@ progress. Durable cross-session work items go through `cairn todo new <slug>
    units in separate git worktrees branching from `origin/main` so they never
    share a working tree. No agent, worker or director, builds, scans, or edits in
    the main checkout. Fetch `origin` immediately before fan-out so worker
-   worktrees branch from the current `origin/main`. Each unit follows the
-   `/cairn-loop` discipline (workers implement, test, push, and open the PR):
+   worktrees branch from the current `origin/main`.
 
+   Workers are separate sessions: they never see this command or
+   `/cairn-loop`, so a reference to "the Loop discipline" is meaningless to
+   them. The director MUST include the following worker-assignment contract,
+   in full, in every worker prompt. Workers must not run `/cairn-loop`
+   itself: its select-the-next-unit-and-continue behaviour conflicts with a
+   bounded one-unit assignment.
+
+   - the exact todo slug and node, and the one-unit boundary: implement,
+     test, push, and open the PR for this unit only, then stop; never select
+     further work;
+   - the propose rule, stated directly: substantial work (a new command or
+     public surface, a schema or contract change, cross-module behaviour)
+     scaffolds a change with the `cairn-propose` skill and implements it via
+     `cairn-apply`; small surgical work skips the change directory and
+     states a written success criterion inline;
    - feature branch from `origin/main` (NEVER commit to main);
-   - smallest change that meets a written success criterion;
+   - smallest change that meets the written success criterion;
    - a test for the changed behaviour (test-first for a bugfix);
    - gates green: when Rust changed, `cargo fmt --check`,
      `cargo clippy --all-targets --all-features -- -D warnings`,
      `cargo test`; always `cairn scan` (zero findings) and
      `cairn hook all` (exit 0);
-   - keep each todo's frontmatter status in sync ONLY via `cairn todo set`
+   - keep the todo's frontmatter status in sync ONLY via `cairn todo set`
      (native tracker; never bd/beads);
-   - keep PRs small, one per logical unit.
+   - keep the PR small, one per logical unit.
 
    The director verifies each worker's output by reading the touched files
    before trusting it. Kill finished worker sessions so the roster stays
@@ -166,7 +180,9 @@ progress. Durable cross-session work items go through `cairn todo new <slug>
    back to the owning worker to fix, then re-review. Squash-merge with
    `--delete-branch` once CI is green and review is satisfied. CodeRabbit is
    advisory only: address its comments if it posts in time, never block on it.
-   After each merge, if the unit had a `meta/changes/<id>/` change directory,
+   After each merge, if the unit has a `meta/changes/<id>/` change directory
+   (expected for substantial units per the propose rule in phase 3, but
+   archive any that exists regardless of how the unit was classified),
    archive it after the merge in a fresh branch worktree. Immediately before
    creating it, run `git -C <main-checkout> fetch origin` in the same call; create
    it from the updated `origin/main`, never the main checkout or a throwaway
