@@ -180,8 +180,9 @@ progress. Durable cross-session work items go through `cairn todo new <slug>
    back to the owning worker to fix, then re-review. Squash-merge with
    `--delete-branch` once CI is green and review is satisfied. CodeRabbit is
    advisory only: address its comments if it posts in time, never block on it.
-   After each merge, if the unit was substantial and therefore has a
-   `meta/changes/<id>/` change directory (per the propose rule in phase 3),
+   After each merge, if the unit has a `meta/changes/<id>/` change directory
+   (expected for substantial units per the propose rule in phase 3, but
+   archive any that exists regardless of how the unit was classified),
    archive it after the merge in a fresh branch worktree. Immediately before
    creating it, run `git -C <main-checkout> fetch origin` in the same call; create
    it from the updated `origin/main`, never the main checkout or a throwaway
