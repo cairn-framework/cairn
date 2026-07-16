@@ -403,7 +403,7 @@ fn execute_data_with_scan(
     }
     match metadata.cli_name {
         "get" => {
-            let id = required(request.node.as_ref(), "node")?;
+            let id = required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?;
             query::get(&scan_result.graph, id).map_or_else(
                 |finding| {
                     crate::state::backlog::find(root, id).map_or_else(
@@ -421,16 +421,33 @@ fn execute_data_with_scan(
         }
         "ui_meta" => Ok(ui_meta_json()),
         "blueprint" => Ok(blueprint_json(blueprint_path)),
-        "beads" => Ok(beads_json(root, required(request.node.as_ref(), "node")?)),
+        "beads" => Ok(beads_json(
+            root,
+            required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+        )),
         "neighbourhood" => neighbourhood_json(root, changes_dir, scan_result, request),
-        "contract" => contract_json(scan_result, required(request.node.as_ref(), "node")?),
+        "contract" => contract_json(
+            scan_result,
+            required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+        ),
         "docstring" => docstring_json(scan_result, request),
-        "files" => files_json(scan_result, required(request.node.as_ref(), "node")?),
+        "files" => files_json(
+            scan_result,
+            required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+        ),
         "locate" => Ok(locate_json(
             scan_result,
-            required(request.symbol.as_ref(), "symbol")?,
+            required(
+                request.symbol.as_ref(),
+                "CAIRN_QUERY_MISSING_SYMBOL",
+                "symbol",
+            )?,
         )),
-        "bundle" => bundle_json(root, scan_result, required(request.node.as_ref(), "node")?),
+        "bundle" => bundle_json(
+            root,
+            scan_result,
+            required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+        ),
         "deps" => dependency_json(scan_result, request, !request.has(QueryFlag::Inbound)),
         "order" => query::order(&scan_result.graph)
             .map(|response| json!({ "nodes": response.nodes }))
@@ -444,20 +461,28 @@ fn execute_data_with_scan(
         }
         "status" => Ok(status_json(root, changes_dir, scan_result)),
         "context" => Ok(context_json(root, scan_result, loaded_config)),
-        "rationale" => rationale_json(root, scan_result, required(request.node.as_ref(), "node")?),
+        "rationale" => rationale_json(
+            root,
+            scan_result,
+            required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+        ),
         "todos" => todos_response_json(root, scan_result, request),
         "decisions" => decisions_response_json(root, scan_result, request),
-        "research" => {
-            research_response_json(root, scan_result, required(request.node.as_ref(), "node")?)
-        }
-        "sources" => {
-            sources_response_json(root, scan_result, required(request.node.as_ref(), "node")?)
-        }
+        "research" => research_response_json(
+            root,
+            scan_result,
+            required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+        ),
+        "sources" => sources_response_json(
+            root,
+            scan_result,
+            required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?,
+        ),
         "hook" => hook_json(root, changes_dir, scan_result, request),
         "health" => Ok(health_json(root, changes_dir, scan_result)),
         "remediate" => Ok(remediate_json(root, changes_dir, scan_result)),
         "draft create" => {
-            let node_id = required(request.node.as_ref(), "node")?;
+            let node_id = required(request.node.as_ref(), "CAIRN_QUERY_MISSING_NODE", "node")?;
             let settings =
                 crate::summariser::SummariserSettings::load(root).map_err(|e| QueryError {
                     code: "CAIRN_SUMMARISER_CONFIG_ERROR".to_owned(),

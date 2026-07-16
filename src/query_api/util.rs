@@ -23,9 +23,13 @@ pub(super) fn load_for(
     })
 }
 
-pub(super) fn required<'a>(value: Option<&'a String>, name: &str) -> Result<&'a str, QueryError> {
+pub(super) fn required<'a>(
+    value: Option<&'a String>,
+    code: &'static str,
+    name: &str,
+) -> Result<&'a str, QueryError> {
     value.map(String::as_str).ok_or_else(|| QueryError {
-        code: format!("CAIRN_QUERY_MISSING_{}", name.to_ascii_uppercase()),
+        code: code.to_owned(),
         message: format!("`{name}` is required"),
         source_span: None,
         remediation: None,
@@ -90,14 +94,17 @@ mod tests {
     #[test]
     fn required_returns_value_when_present() {
         let value = "present".to_owned();
-        assert_eq!(required(Some(&value), "field").unwrap(), "present");
+        assert_eq!(
+            required(Some(&value), "CAIRN_QUERY_MISSING_NODE", "node").unwrap(),
+            "present"
+        );
     }
 
     #[test]
     fn required_reports_missing_field() {
-        let err = required(None, "field").unwrap_err();
-        assert_eq!(err.code, "CAIRN_QUERY_MISSING_FIELD");
-        assert_eq!(err.message, "`field` is required");
+        let err = required(None, "CAIRN_QUERY_MISSING_NODE", "node").unwrap_err();
+        assert_eq!(err.code, "CAIRN_QUERY_MISSING_NODE");
+        assert_eq!(err.message, "`node` is required");
         assert!(err.source_span.is_none());
         assert!(err.remediation.is_none());
     }
