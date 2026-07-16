@@ -57,12 +57,9 @@ pub(crate) fn render_neighbourhood(
     scan_result: &scanner::ScanResult,
 ) -> Result<String, Finding> {
     node_arg(&parsed.command_args).and_then(|node| {
-        let include_orphans = parsed
-            .command_args
-            .iter()
-            .any(|arg| arg == "--include-orphans");
-        let response =
-            query::neighbourhood_with_options(&scan_result.graph, node, include_orphans)?;
+        // Same query the JSON handler uses (query_api::handlers::graph), so
+        // human and JSON output always show the same inbound/outbound edges.
+        let response = query::neighbourhood(&scan_result.graph, node)?;
         Ok({
             let include_todos = parsed.command_args.iter().any(|arg| arg == "--include-todos");
             let include_research = parsed

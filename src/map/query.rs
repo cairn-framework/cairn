@@ -1,4 +1,4 @@
-// cairn:allow-large-module reason: hub for typed query responses (get, neighbourhood, files, depends/dependents, graph, order, lint, islands, neighbourhood_with_options) plus their unit tests; per-query splits already exist for renderers in src/cli/render.rs but the typed surface lives together.
+// cairn:allow-large-module reason: hub for typed query responses (get, neighbourhood, files, depends/dependents, graph, order, lint, islands) plus their unit tests; per-query splits already exist for renderers in src/cli/render.rs but the typed surface lives together.
 //! Typed query services over map graphs.
 
 use super::{
@@ -414,29 +414,6 @@ pub fn islands(graph: &Graph) -> IslandsResponse {
     }
 }
 
-/// Returns direct graph neighbours.
-///
-/// When `include_orphans` is `false` the response carries only the
-/// outbound-edge neighbours, matching the spec scenario "with
-/// `include_orphans: false` includes only the outbound-edge neighbour".
-/// When `true` the inbound neighbours (nodes that depend on `node` but
-/// are not reachable forward from it) are also included.
-///
-/// # Errors
-///
-/// Returns a finding when the node cannot be resolved.
-pub fn neighbourhood_with_options(
-    graph: &Graph,
-    node: &str,
-    include_orphans: bool,
-) -> Result<NeighbourhoodResponse, Finding> {
-    let mut response = neighbourhood(graph, node)?;
-    if !include_orphans {
-        response.inbound.clear();
-    }
-    Ok(response)
-}
-
 fn compute_components(graph: &Graph) -> std::collections::BTreeMap<String, usize> {
     let mut index: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
     let mut next: usize = 0;
@@ -678,10 +655,10 @@ mod tests {
         assert_eq!(resp.islands.len(), 2);
     }
 
-    /// Cycle 3: `include_orphans` contract pinned against the default
-    /// neighbourhood query.
+    /// gh:#236: the neighbourhood query reports both edge directions;
+    /// inbound edges are never dropped from the response.
     #[test]
-    fn neighbourhood_with_options_diverges_against_default() {
+    fn neighbourhood_returns_inbound_and_outbound_edges() {
         let mut nodes = BTreeMap::new();
         nodes.insert("anchor".to_owned(), node("anchor", None, &[]));
         nodes.insert("out".to_owned(), node("out", None, &[]));
@@ -715,13 +692,9 @@ mod tests {
             inbound,
             findings: Vec::new(),
         };
-        let with_orphans = neighbourhood_with_options(&graph, "anchor", true).expect("with");
-        let default = neighbourhood(&graph, "anchor").expect("default");
-        assert_eq!(with_orphans.inbound, default.inbound);
-        assert_eq!(with_orphans.outbound, default.outbound);
-        let no_orphans = neighbourhood_with_options(&graph, "anchor", false).expect("no orphans");
-        assert!(no_orphans.inbound.is_empty());
-        assert_eq!(no_orphans.outbound, default.outbound);
+        let response = neighbourhood(&graph, "anchor").expect("anchor resolves");
+        assert_eq!(response.inbound, vec!["inb".to_owned()]);
+        assert_eq!(response.outbound, vec!["out".to_owned()]);
     }
 
     // ── graph builder helpers ─────────────────────────────────────────────────

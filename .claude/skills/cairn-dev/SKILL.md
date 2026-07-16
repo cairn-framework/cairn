@@ -27,7 +27,7 @@ If `cairn context` shows findings, triage them before adding new ones.
 | **Full scan** | `cairn scan` | `--json` |
 | **Lint findings** | `cairn lint` | `--json`, `--strict`, `--node <id>` |
 | **Inspect node** | `cairn get <node>` | `--json` |
-| **Node + neighbours** | `cairn neighbourhood <node>` | `--json`, `--include-todos`, `--include-changes`, `--include-orphans` |
+| **Node + neighbours** | `cairn neighbourhood <node>` | `--json`, `--include-todos`, `--include-changes` |
 | **Node files** | `cairn files <node>` | `--json` |
 | **Dependency graph** | `cairn deps <node>` | `--json`, `--direction in`, `--transitive` |
 | **Build order** | `cairn order` | `--json` |
@@ -206,7 +206,6 @@ For iterative refinement after the initial extraction:
 ```bash
 cairn refine               # Re-discover, writes timestamped change dir
 cairn islands              # See disconnected components that may need edges
-cairn neighbourhood <node> --include-orphans  # Find files near a node not yet claimed
 cairn onboard              # Group orphaned files by directory with suggestions
 ```
 
