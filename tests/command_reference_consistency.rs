@@ -148,11 +148,11 @@ fn test_all_registered_commands_in_integration_contract() {
 }
 
 #[test]
-fn test_claude_md_documents_debate_format() {
-    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/CLAUDE.md")).unwrap();
+fn test_agents_md_documents_debate_format() {
+    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/AGENTS.md")).unwrap();
     assert!(
-        content.contains("Debate format"),
-        "CLAUDE.md must document the debate format convention"
+        content.contains("/debate"),
+        "AGENTS.md must document the debate convention"
     );
     assert!(
         content.contains("**For**")
@@ -238,31 +238,35 @@ fn test_agent_principles_doc_exists() {
 }
 
 #[test]
-fn test_claude_md_has_pointers_to_agent_subdocs() {
-    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/CLAUDE.md")).unwrap();
+fn test_agents_md_has_pointers_to_agent_subdocs() {
+    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/AGENTS.md")).unwrap();
     assert!(
         content.contains("docs/agent/voice.md"),
-        "CLAUDE.md must point to docs/agent/voice.md"
+        "AGENTS.md must point to docs/agent/voice.md"
     );
     assert!(
         content.contains("docs/agent/principles.md"),
-        "CLAUDE.md must point to docs/agent/principles.md"
+        "AGENTS.md must point to docs/agent/principles.md"
     );
 }
 
 #[test]
-fn test_claude_md_preserves_load_bearing_rules() {
-    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/CLAUDE.md")).unwrap();
+fn test_agents_md_preserves_load_bearing_rules() {
+    let content = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/AGENTS.md")).unwrap();
     assert!(
         content.contains("em-dash") || content.contains("Em-dash"),
-        "CLAUDE.md must still contain the em-dash ban"
+        "AGENTS.md must still contain the em-dash ban"
     );
     assert!(
         content.contains("no-verify"),
-        "CLAUDE.md must still contain the hook-skip ban"
+        "AGENTS.md must still contain the hook-skip ban"
     );
     assert!(
-        content.contains("What to avoid"),
-        "CLAUDE.md must still contain the What to avoid section"
+        content.contains("## Guardrails"),
+        "AGENTS.md must still contain the Guardrails section"
+    );
+    assert!(
+        content.contains("historical record"),
+        "AGENTS.md must still forbid rewriting archived phases"
     );
 }
