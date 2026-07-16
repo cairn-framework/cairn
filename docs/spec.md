@@ -731,7 +731,7 @@ Primary form is a CLI. Same underlying queries exposed via MCP (v2) and LSP (v3)
 - `cairn get <node>`: node metadata, tags, path, current state, list of attached artefacts.
 - `cairn neighbourhood <node> [--include-types contract,todos,research] [--include-changes]`: the node, its inbound and outbound edges, and requested artefact types for directly connected nodes. **Default returns contracts and accepted decisions.** Todos, research, reviews, deprecated decisions, and active changes are opt-in.
 - `cairn contract <node>`: the parsed contract.
-- `cairn todos <node> [--status open]`: todos for a node.
+- `cairn todos [node] [--status open]`: todos for a node and its descendants (following containment edges); with no node, todos across the whole project.
 - `cairn decisions <node> [--status accepted]`: decisions applying to a node.
 - `cairn research <node>`: research artefacts linked to a node.
 - `cairn sources <node>`: sources cited by research and decisions attached to a node. Transitive.

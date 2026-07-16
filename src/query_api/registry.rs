@@ -131,7 +131,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 42] = [
         "ArtefactNodeRequest",
         "TodosResponse",
         SafetyClass::ReadOnly,
-        "List todos linked to a node",
+        "List todos for a node and its descendants, or project-wide",
     ),
     tool(
         "decisions",

@@ -8,11 +8,17 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 
 pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
-    let node = node_arg(&parsed.command_args)?;
+    // The node is optional: bare `cairn todos` (or a leading flag such as
+    // `--status`) lists todos project-wide.
+    let node = parsed
+        .command_args
+        .get(1)
+        .filter(|arg| !arg.starts_with("--"))
+        .cloned();
     let status = flag_value(&parsed.command_args, "--status").map(ToOwned::to_owned);
     let request = QueryRequest {
         tool: "todos".to_owned(),
-        node: Some(node.to_owned()),
+        node,
         change: None,
         old_id: None,
         new_id: None,
@@ -31,9 +37,13 @@ pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, F
     .data;
     Ok(todos_text(&data))
 }
-/// Renders the canonical `todos_response_json` data as human text.
+/// Renders the canonical `todos_response_json` data as human text. A null
+/// `node` marks a project-wide listing.
 fn todos_text(data: &Value) -> String {
-    let node_id = data["node"].as_str().unwrap_or_default();
+    let heading = data["node"].as_str().map_or_else(
+        || "Todos (project-wide):".to_owned(),
+        |node_id| format!("Todos for {node_id}:"),
+    );
     let todo_lines: Vec<String> = data["todos"]
         .as_array()
         .map_or(&[][..], std::ops::Deref::deref)
@@ -47,7 +57,7 @@ fn todos_text(data: &Value) -> String {
             )
         })
         .collect();
-    format!("Todos for {node_id}:\n{}\n", lines(&todo_lines))
+    format!("{heading}\n{}\n", lines(&todo_lines))
 }
 
 pub(crate) fn render_decisions(

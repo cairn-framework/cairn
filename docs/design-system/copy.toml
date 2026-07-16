@@ -510,7 +510,7 @@ args = """  new <slug> --node <id>                              Scaffold a todo
 
 [help.commands.todos]
 usage = "cairn todos [node] [options]"
-args = "  [node]  Optional node id; omit to list across the project"
+args = "  [node]  Optional node id; includes the node's descendants. Omit to list across the project"
 
 [help.commands.ui]
 usage = "cairn ui [options]"

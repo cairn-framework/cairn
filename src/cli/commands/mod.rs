@@ -109,7 +109,9 @@ pub(crate) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequ
     let arg = |index: usize| parsed.command_args.get(index).cloned();
     crate::query_api::QueryRequest {
         tool: parsed.command.clone(),
-        node: arg(1),
+        // A leading flag token is never a node, so a flag-first invocation
+        // (e.g. `cairn --json todos --status open`) carries no node.
+        node: arg(1).filter(|value| !value.starts_with("--")),
         change: arg(1),
         old_id: arg(1),
         new_id: arg(2),
