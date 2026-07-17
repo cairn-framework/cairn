@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: meta-test suite for CAIRN finding-code coverage and registry-completeness gates; both tests share one tree-sitter scan of src/ and splitting would duplicate that scan setup across files for no benefit
 //! Meta-test guarding `CAIRN_*` finding/error codes against two kinds of
 //! silent drift:
 //!

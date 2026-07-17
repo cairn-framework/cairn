@@ -67,9 +67,9 @@ single-line block form; JS/CSS vendor path segments are skipped, while Rust vend
 only; fan-in/fan-out quotas and import-graph edge realisation stay out of
 scope, per the approach above.
 
-Severity is Info, not Warning. Every currently-oversized file under `src/`
-already carries a valid marker (`src/cli/mod.rs`, `src/map/query.rs`,
-`src/cli/render/remediate.rs`, `src/ui_assets/app.js`,
+At initial shipment, severity was Info, not Warning. Every then-oversized
+file under `src/` already carried a valid marker (`src/cli/mod.rs`,
+`src/map/query.rs`, `src/cli/render/remediate.rs`, `src/ui_assets/app.js`,
 `src/ui_assets/style.css`, plus several `tests.rs` split-outs), so Warning
 would have been safe against `src/` alone. But the check's scope is every
 node-owned claimed file project-wide, matching `TargetReport.claimed_files`
@@ -77,14 +77,23 @@ rather than narrowing to the shell gate's `src/`-only discovery, and several
 `cairn.tests`-owned files under `tests/` (`tests/kernel.rs`,
 `tests/phase_9_brownfield.rs`, `tests/finding_code_coverage.rs`,
 `tests/phase_7_7_ux_foundation.rs`, `tests/phase_7_6_ai_provenance.rs`,
-`tests/phase_10_distribution.rs`, `tests/output_token_efficiency.rs`) are
-already oversized and unmarked (the
-shell gate never discovers `tests/`, so none carry a marker yet). Warning
-would fail `cairn scan --strict` on a clean checkout of this repo; Info
-keeps the signal visible without blocking. Confirmed via
-`cairn scan --strict` (no `--json`, which routes through a different reply
-path that does not apply `--strict` promotion): exit 0 with 7
-`CAIRN_MODULE_OVERSIZED` Info findings.
+`tests/phase_10_distribution.rs`, `tests/output_token_efficiency.rs`) were
+then oversized and unmarked (the
+shell gate never discovers `tests/`, so none carried a marker yet). Warning
+would have failed `cairn scan --strict` on that checkout; Info kept the
+signal visible without blocking. Confirmed via `cairn scan --strict` (no
+`--json`, which routes through a different reply path that does not apply
+`--strict` promotion): exit 0 with 7 `CAIRN_MODULE_OVERSIZED` Info findings
+at that time.
+
+Update (`todo.oversized-test-file-baseline`, 2026-07-17): the seven-file
+baseline above cleared. Six files carry a `cairn:allow-large-module`
+marker; the former `tests/output_token_efficiency.rs` was split at its
+Part A/Part B seam into `tests/output_token_efficiency_findings.rs` and
+`tests/output_token_efficiency_status_brief.rs`, both under the 500-line
+limit with no marker needed. Severity is now Warning; `cairn scan --strict`
+stays green on this clean checkout with zero `CAIRN_MODULE_OVERSIZED`
+findings.
 
 Wired into `cairn scan` and `cairn lint` automatically (both render
 `graph.findings` generically). `cairn remediate` needed an explicit

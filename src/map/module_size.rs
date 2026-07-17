@@ -24,15 +24,15 @@
 //!   as the shell gate's `case "$first_nonblank" in "$prefix"*"$suffix")`
 //!   glob would.
 //!
-//! Severity is Info, not Warning: the check scans every node-owned claimed
-//! file project-wide (per `TargetReport.claimed_files`), which is broader
-//! than `scripts/check-file-sizes.sh` (`src/` and `src/ui_assets/` only).
-//! Several `cairn.tests`-owned files under `tests/` are already oversized
-//! and unmarked (the Rust marker syntax works there too, but the shell gate
-//! never discovers `tests/` so none carry one yet). Warning would fail
-//! `cairn scan --strict` on a clean checkout, so this stays advisory until
-//! those files are either marked or the shell gate's scope is extended to
-//! match.
+//! Severity is Warning. It started as Info because `cairn.tests`-owned
+//! files under `tests/` were oversized and unmarked (the shell gate never
+//! discovers `tests/`, so none carried a marker). `todo.oversized-test-file-baseline`
+//! cleared that baseline: every previously oversized `tests/*.rs` file was
+//! resolved (marked or split below the limit), so `cairn scan --strict`
+//! stays green on a clean checkout and Warning now blocks any newly
+//! introduced unmarked oversized claimed file project-wide. The shell gate
+//! discovers Rust only under `src/`, while JS/CSS are also walked from
+//! blueprint-declared paths; it never discovers `tests/*.rs`.
 
 use std::{fs, path::Path};
 
@@ -143,7 +143,7 @@ pub(crate) fn validate_module_sizes(graph: &mut Graph, root: &Path) {
             }
             graph.findings.push(Finding {
                 code: "CAIRN_MODULE_OVERSIZED".to_owned(),
-                severity: FindingSeverity::Info,
+                severity: FindingSeverity::Warning,
                 message: format!(
                     "module `{}` claims `{file}` at {lines} lines, over the {MODULE_SIZE_LIMIT_LINES}-line guideline with no allow-list marker",
                     node.id
@@ -225,7 +225,7 @@ mod tests {
             .iter()
             .find(|f| f.code == "CAIRN_MODULE_OVERSIZED")
             .unwrap();
-        assert_eq!(finding.severity, FindingSeverity::Info);
+        assert_eq!(finding.severity, FindingSeverity::Warning);
         assert_eq!(finding.node.as_deref(), Some("app.api"));
         assert_eq!(finding.path.as_deref(), Some("big.rs"));
     }

@@ -6428,7 +6428,8 @@
         "tests/kernel.rs",
         "tests/landing_assets.rs",
         "tests/mcp.rs",
-        "tests/output_token_efficiency.rs",
+        "tests/output_token_efficiency_findings.rs",
+        "tests/output_token_efficiency_status_brief.rs",
         "tests/phase_10_distribution.rs",
         "tests/phase_7_6_ai_provenance.rs",
         "tests/phase_7_7_ux_foundation.rs",
@@ -6855,61 +6856,19 @@
   ],
   "findings": [
     {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.herdr-plugin-feasibility` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/herdr-plugin-feasibility.md"
+    },
+    {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
       "node": null,
       "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
       "path": "docs/registries/spec-rules.md"
-    },
-    {
-      "code": "CAIRN_MODULE_OVERSIZED",
-      "severity": "info",
-      "message": "module `cairn.tests` claims `tests/finding_code_coverage.rs` at 853 lines, over the 500-line guideline with no allow-list marker",
-      "node": "cairn.tests",
-      "path": "tests/finding_code_coverage.rs"
-    },
-    {
-      "code": "CAIRN_MODULE_OVERSIZED",
-      "severity": "info",
-      "message": "module `cairn.tests` claims `tests/kernel.rs` at 2319 lines, over the 500-line guideline with no allow-list marker",
-      "node": "cairn.tests",
-      "path": "tests/kernel.rs"
-    },
-    {
-      "code": "CAIRN_MODULE_OVERSIZED",
-      "severity": "info",
-      "message": "module `cairn.tests` claims `tests/output_token_efficiency.rs` at 637 lines, over the 500-line guideline with no allow-list marker",
-      "node": "cairn.tests",
-      "path": "tests/output_token_efficiency.rs"
-    },
-    {
-      "code": "CAIRN_MODULE_OVERSIZED",
-      "severity": "info",
-      "message": "module `cairn.tests` claims `tests/phase_10_distribution.rs` at 536 lines, over the 500-line guideline with no allow-list marker",
-      "node": "cairn.tests",
-      "path": "tests/phase_10_distribution.rs"
-    },
-    {
-      "code": "CAIRN_MODULE_OVERSIZED",
-      "severity": "info",
-      "message": "module `cairn.tests` claims `tests/phase_7_6_ai_provenance.rs` at 544 lines, over the 500-line guideline with no allow-list marker",
-      "node": "cairn.tests",
-      "path": "tests/phase_7_6_ai_provenance.rs"
-    },
-    {
-      "code": "CAIRN_MODULE_OVERSIZED",
-      "severity": "info",
-      "message": "module `cairn.tests` claims `tests/phase_7_7_ux_foundation.rs` at 868 lines, over the 500-line guideline with no allow-list marker",
-      "node": "cairn.tests",
-      "path": "tests/phase_7_7_ux_foundation.rs"
-    },
-    {
-      "code": "CAIRN_MODULE_OVERSIZED",
-      "severity": "info",
-      "message": "module `cairn.tests` claims `tests/phase_9_brownfield.rs` at 1819 lines, over the 500-line guideline with no allow-list marker",
-      "node": "cairn.tests",
-      "path": "tests/phase_9_brownfield.rs"
     }
   ]
 }

@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: Phase 7.7 UX tests intentionally pair live FindingSeverity/copy/CLI/JSON invariants with cairn_planned scenarios from the same module__scenario acceptance matrix; keeping satisfied and pending rows together prevents the archived matrix from losing coverage context.
 // Reason: design.md prescribes `module__scenario` test names; the
 // `__` collides with the rustc non_snake_case lint despite being
 // syntactically valid snake_case identifiers.

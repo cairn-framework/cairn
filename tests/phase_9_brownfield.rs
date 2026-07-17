@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: Phase 9 brownfield tests share the module__scenario acceptance matrix across heuristic discovery, refine, review, MCP, suggest, interview, templates, and obligations; seven live invariants and planned rows must stay co-located so implementation status cannot drift from the archived phase contract.
 // Reason: design.md prescribes `module__scenario` test names; the
 // `__` collides with the rustc non_snake_case lint despite being
 // syntactically valid snake_case identifiers.
