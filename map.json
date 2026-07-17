@@ -2157,32 +2157,32 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 180,
-          "end_line": 182
+          "line": 227,
+          "end_line": 229
         },
         {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 115,
-          "end_line": 136
+          "line": 117,
+          "end_line": 138
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 63,
-          "end_line": 68
+          "line": 65,
+          "end_line": 70
         },
         {
           "name": "WorkItemSource",
@@ -2197,72 +2197,128 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 347,
-          "end_line": 354
+          "line": 394,
+          "end_line": 401
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 358,
-          "end_line": 365
+          "line": 405,
+          "end_line": 412
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 210,
-          "end_line": 268
+          "line": 257,
+          "end_line": 315
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 276,
-          "end_line": 327
+          "line": 323,
+          "end_line": 374
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 197,
-          "end_line": 203
+          "line": 244,
+          "end_line": 250
+        },
+        {
+          "name": "EnvelopeFinding",
+          "kind": "struct",
+          "signature": "pub struct EnvelopeFinding",
+          "file": "src/query_api/mod.rs",
+          "line": 160,
+          "end_line": 173
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 159,
-          "end_line": 168
+          "line": 206,
+          "end_line": 215
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 90,
-          "end_line": 111
+          "line": 92,
+          "end_line": 113
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 146,
-          "end_line": 155
+          "line": 148,
+          "end_line": 157
+        },
+        {
+          "name": "RemediateResponse",
+          "kind": "struct",
+          "signature": "pub struct RemediateResponse",
+          "file": "src/query_api/handlers/remediate.rs",
+          "line": 381,
+          "end_line": 388
+        },
+        {
+          "name": "ResponseEnvelopeSchema",
+          "kind": "struct",
+          "signature": "pub struct ResponseEnvelopeSchema",
+          "file": "src/query_api/mod.rs",
+          "line": 187,
+          "end_line": 196
+        },
+        {
+          "name": "StatusActiveChange",
+          "kind": "struct",
+          "signature": "pub struct StatusActiveChange",
+          "file": "src/query_api/handlers/project.rs",
+          "line": 22,
+          "end_line": 29
+        },
+        {
+          "name": "StatusResponse",
+          "kind": "struct",
+          "signature": "pub struct StatusResponse",
+          "file": "src/query_api/handlers/project.rs",
+          "line": 49,
+          "end_line": 61
+        },
+        {
+          "name": "StatusTodo",
+          "kind": "struct",
+          "signature": "pub struct StatusTodo",
+          "file": "src/query_api/handlers/project.rs",
+          "line": 33,
+          "end_line": 45
         },
         {
           "name": "ToolMetadata",
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 72,
-          "end_line": 86
+          "line": 74,
+          "end_line": 88
+        },
+        {
+          "name": "VersionedDataSchema",
+          "kind": "struct",
+          "signature": "pub struct VersionedDataSchema",
+          "file": "src/query_api/mod.rs",
+          "line": 177,
+          "end_line": 183
         },
         {
           "name": "WorkItem",
@@ -2279,6 +2335,14 @@
           "file": "src/query_api/handlers/bundle.rs",
           "line": 12,
           "end_line": 96
+        },
+        {
+          "name": "context_json",
+          "kind": "function",
+          "signature": "pub(crate) fn context_json( root: &Path, scan_result: &scanner::ScanResult, config: &scanner::config::Config, ) -> Value",
+          "file": "src/query_api/handlers/project.rs",
+          "line": 111,
+          "end_line": 204
         },
         {
           "name": "from_bead",
@@ -2305,12 +2369,52 @@
           "end_line": 52
         },
         {
+          "name": "health_json",
+          "kind": "function",
+          "signature": "pub(crate) fn health_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
+          "file": "src/query_api/handlers/remediate.rs",
+          "line": 40,
+          "end_line": 90
+        },
+        {
+          "name": "hook_json",
+          "kind": "function",
+          "signature": "pub(crate) fn hook_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, request: &QueryRequest, ) -> Result<Value, QueryError>",
+          "file": "src/query_api/handlers/remediate.rs",
+          "line": 8,
+          "end_line": 38
+        },
+        {
           "name": "lint_findings",
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 337,
-          "end_line": 343
+          "line": 384,
+          "end_line": 390
+        },
+        {
+          "name": "remediate_actions_raw",
+          "kind": "function",
+          "signature": "pub(crate) fn remediate_actions_raw( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Vec<Value>",
+          "file": "src/query_api/handlers/remediate.rs",
+          "line": 95,
+          "end_line": 372
+        },
+        {
+          "name": "remediate_json",
+          "kind": "function",
+          "signature": "pub(crate) fn remediate_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
+          "file": "src/query_api/handlers/remediate.rs",
+          "line": 391,
+          "end_line": 407
+        },
+        {
+          "name": "status_json",
+          "kind": "function",
+          "signature": "pub(crate) fn status_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
+          "file": "src/query_api/handlers/project.rs",
+          "line": 63,
+          "end_line": 109
         },
         {
           "name": "spine",

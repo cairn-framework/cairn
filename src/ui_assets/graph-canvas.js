@@ -16,6 +16,7 @@ function SystemNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     <g class=${clsx("canvas-node", dimmed && "dimmed")}
        transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
        onClick=${() => onSelect(node)} data-kind="system">
+      <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
       <rect width=${node.width} height=${node.height} rx="6"
             fill="var(--stone-3)"
             stroke=${strokeColor}
@@ -39,6 +40,7 @@ function ContainerNode({ node, selected, onSelect, dimmed, findingSeverity }) {
     <g class=${clsx("canvas-node", dimmed && "dimmed")}
        transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
        onClick=${() => onSelect(node)} data-kind="container">
+      <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
       <rect width=${node.width} height=${node.height} rx="6"
             fill="var(--stone-3)"
             stroke=${strokeColor}
@@ -74,6 +76,7 @@ function ModuleNode({ node, selected, hovered, dimmed, findingSeverity, onSelect
        onMouseEnter=${() => onHover(node.id)}
        onMouseLeave=${() => onHover(null)}
        data-kind="module">
+      <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
       <rect x="2" y="3" width=${node.width} height=${node.height} rx="6" fill="rgba(0,0,0,0.3)"/>
       <rect width=${node.width} height=${node.height} rx="6"
             fill=${hovered ? "var(--stone-4)" : "var(--stone-3)"}
@@ -151,10 +154,13 @@ function DividerNode({ node }) {
   `;
 }
 
-function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, onHover, edgeTrace }) {
+function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, onHover, edgeTrace, focusNodeIds = [], focusToken }) {
   const svgRef = useRef(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
   const [panState, setPanState] = useState(null);
+  const pointersRef = useRef(new Map());
+  const gestureRef = useRef(null);
+  const dragRef = useRef(false);
   const nodeSeverity = useMemo(() => nodeSeverityById(lint), [lint]);
 
   const { nodes, totalHeight } = layoutData;
@@ -169,6 +175,24 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
     const rect = svgRef.current.getBoundingClientRect();
     setViewport({ x: rect.width / 2 - 900, y: 40, zoom: 1 });
   }, [graph]);
+  useEffect(() => {
+    if (!svgRef.current || !focusToken || focusNodeIds.length === 0) return;
+    const targets = focusNodeIds.map((id) => nodesById.get(id)).filter(Boolean);
+    if (targets.length === 0) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const minX = Math.min(...targets.map((n) => n.x - n.width / 2));
+    const maxX = Math.max(...targets.map((n) => n.x + n.width / 2));
+    const minY = Math.min(...targets.map((n) => n.y - n.height / 2));
+    const maxY = Math.max(...targets.map((n) => n.y + n.height / 2));
+    const spanX = Math.max(1, maxX - minX);
+    const spanY = Math.max(1, maxY - minY);
+    const zoom = Math.max(0.4, Math.min(1.4, Math.min((rect.width - 48) / spanX, (rect.height - 96) / spanY)));
+    setViewport({
+      x: rect.width / 2 - ((minX + maxX) / 2) * zoom,
+      y: rect.height / 2 - ((minY + maxY) / 2) * zoom,
+      zoom,
+    });
+  }, [focusNodeIds, focusToken, nodesById]);
 
   const ownershipEdges = useMemo(() => {
     if (!graph) return [];
@@ -206,16 +230,47 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
     return map;
   }, [graph]);
 
-  const onMouseDown = (e) => {
-    if (e.button !== 0) return;
-    setPanState({
-      startX: e.clientX,
-      startY: e.clientY,
-      origX: viewport.x,
-      origY: viewport.y,
-    });
+  const onPointerDown = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    dragRef.current = false;
+    setPanState({ startX: e.clientX, startY: e.clientY, origX: viewport.x, origY: viewport.y });
+    if (pointersRef.current.size === 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      gestureRef.current = {
+        distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+        zoom: viewport.zoom,
+        x: viewport.x,
+        y: viewport.y,
+        centreX: (a.x + b.x) / 2,
+        centreY: (a.y + b.y) / 2,
+      };
+    }
   };
-  const onMouseMove = (e) => {
+  const onPointerMove = (e) => {
+    if (!pointersRef.current.has(e.pointerId)) return;
+    if (panState && !dragRef.current && Math.hypot(e.clientX - panState.startX, e.clientY - panState.startY) > 4) {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      dragRef.current = true;
+    }
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size >= 2 && gestureRef.current) {
+      const [a, b] = [...pointersRef.current.values()];
+      const gesture = gestureRef.current;
+      const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const zoom = Math.max(0.4, Math.min(2, gesture.zoom * (distance / gesture.distance)));
+      const rect = e.currentTarget.getBoundingClientRect();
+      const localX = (a.x + b.x) / 2 - rect.left;
+      const localY = (a.y + b.y) / 2 - rect.top;
+      const startLocalX = gesture.centreX - rect.left;
+      const startLocalY = gesture.centreY - rect.top;
+      setViewport({
+        zoom,
+        x: localX - (startLocalX - gesture.x) * (zoom / gesture.zoom),
+        y: localY - (startLocalY - gesture.y) * (zoom / gesture.zoom),
+      });
+      return;
+    }
     if (!panState) return;
     setViewport((v) => ({
       ...v,
@@ -223,15 +278,22 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
       y: panState.origY + (e.clientY - panState.startY),
     }));
   };
-  const onMouseUp = () => setPanState(null);
+  const onPointerUp = (e) => {
+    pointersRef.current.delete(e.pointerId);
+    gestureRef.current = null;
+    if (pointersRef.current.size === 0) {
+      setPanState(null);
+      dragRef.current = false;
+    } else {
+      const [remaining] = [...pointersRef.current.values()];
+      setPanState({ startX: remaining.x, startY: remaining.y, origX: viewport.x, origY: viewport.y });
+    }
+  };
   const onWheel = (e) => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       const delta = -e.deltaY * 0.002;
-      setViewport((v) => ({
-        ...v,
-        zoom: Math.max(0.4, Math.min(2.0, v.zoom + delta)),
-      }));
+      setViewport((v) => ({ ...v, zoom: Math.max(0.4, Math.min(2.0, v.zoom + delta)) }));
     } else {
       setViewport((v) => ({ ...v, x: v.x - e.deltaX, y: v.y - e.deltaY }));
     }
@@ -254,8 +316,8 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
 
   return html`
     <section class=${clsx("graph-canvas", panState && "panning")}
-             onMouseDown=${onMouseDown} onMouseMove=${onMouseMove}
-             onMouseUp=${onMouseUp} onMouseLeave=${onMouseUp}
+             onPointerDown=${onPointerDown} onPointerMove=${onPointerMove}
+             onPointerUp=${onPointerUp} onPointerCancel=${onPointerUp}
              onWheel=${onWheel} aria-label="Architecture map">
       <div class="graph-bg"></div>
       <div class="chain-banner">
@@ -282,7 +344,7 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
           ${ownershipEdges.map((e, i) => {
             const m = edgeMidpoint(e.from, e.to);
             return html`
-              <g key=${`ol-${i}`} class=${clsx("edge-label", isDimmed(e) && "dimmed")}
+              <g key=${`ol-${i}`} class=${clsx("edge-label", isTraced(e) && "traced", isDimmed(e) && "dimmed")}
                  transform=${`translate(${m.x}, ${m.y})`}
                  opacity=${isTraced(e) || !edgeTrace ? 1 : 0.3}>
                 <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-faded)"
@@ -292,7 +354,7 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
           ${dependencyEdges.map((e, i) => {
             const m = edgeMidpoint(e.from, e.to);
             return html`
-              <g key=${`dl-${i}`} class=${clsx("edge-label", isDimmed(e) && "dimmed")}
+              <g key=${`dl-${i}`} class=${clsx("edge-label", isTraced(e) && "traced", isDimmed(e) && "dimmed")}
                  transform=${`translate(${m.x}, ${m.y})`}
                  opacity=${isTraced(e) || !edgeTrace ? 1 : 0.3}>
                 <text font-size="9" font-family="var(--font-mono)" fill="var(--ink-faded)"

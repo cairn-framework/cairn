@@ -463,6 +463,8 @@ kbd {
   overflow: hidden;
   background: var(--stone-1);
   cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 
 .graph-canvas:active,
@@ -2641,10 +2643,55 @@ button.path-row:hover {
     transform: translateY(100%);
   }
 
+  .app {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
   .topbar {
+    height: auto;
     min-height: 48px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "left right" "center center";
     gap: var(--s-2);
-    padding: 0 var(--s-3);
+    padding: var(--s-2) var(--s-3);
+  }
+
+  .topbar-left {
+    grid-area: left;
+  }
+  .topbar-center {
+    grid-area: center;
+  }
+  .topbar-right {
+    grid-area: right;
+  }
+
+  .cmd-trigger {
+    height: 44px;
+    max-width: none;
+  }
+
+  .topbar-right {
+    gap: var(--s-2);
+  }
+
+  .blueprint-trigger {
+    gap: var(--s-1);
+    min-width: 44px;
+    padding: 0 var(--s-2);
+  }
+
+  .blueprint-trigger .caps {
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
   }
 
   .chain-banner {
@@ -2700,6 +2747,9 @@ button.path-row:hover {
 
   .cmd-palette {
     max-height: 90vh;
+  }
+  .edge-label:not(.traced) {
+    opacity: 0;
   }
 }
 
