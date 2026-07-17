@@ -171,7 +171,8 @@ const UNCOVERED_ALLOWLIST: &[&str] = &[
     "CAIRN_SUMMARISER_GENERATION_FAILED",
     // summariser prompt building failure
     "CAIRN_SUMMARISER_PROMPT_ERROR",
-    // ui server project load failure
+    // ui server project load failure: asserted through the HTTP error body
+    // in src/ui/mod.rs, which the code == classifier cannot see
     "CAIRN_UI_PROJECT_LOAD_FAILED",
     // required query change parameter path is not currently exercised
     "CAIRN_QUERY_MISSING_CHANGE",

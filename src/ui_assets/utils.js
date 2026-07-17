@@ -119,7 +119,16 @@ function openReportIssue(version) {
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
   if (!response.ok && response.status !== 404) {
-    throw new Error(`request failed: ${url} (${response.status})`);
+    let detail = `request failed: ${url} (${response.status})`;
+    try {
+      const body = await response.json();
+      if (body && typeof body.code === "string" && typeof body.message === "string") {
+        detail = `${body.code}: ${body.message}`;
+      }
+    } catch {
+      // Non-JSON error body: keep the generic message above.
+    }
+    throw new Error(detail);
   }
   if (response.status === 204) return null;
   return response.json();

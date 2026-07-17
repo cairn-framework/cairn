@@ -140,6 +140,7 @@ impl Server {
         let project = match self.load_project() {
             Ok(project) => project,
             Err(error) => {
+                eprintln!("cairn ui: project load failed: {error}");
                 return json(
                     500,
                     &error_json("CAIRN_UI_PROJECT_LOAD_FAILED", &error.to_string()),
@@ -335,11 +336,25 @@ impl Server {
         if !should_reload && let Some(scan) = self.cached_scan.borrow().as_ref() {
             return Ok(scan.clone());
         }
-        let scan = scanner::load_project(&self.root, blueprint_path).map_err(UiError::Project)?;
-        *self.cached_mtime.borrow_mut() = current_mtime;
-        *self.cached_watched_mtime.borrow_mut() = current_watched_mtime;
-        *self.cached_scan.borrow_mut() = Some(scan.clone());
-        Ok(scan)
+        match scanner::load_project(&self.root, blueprint_path) {
+            Ok(scan) => {
+                *self.cached_mtime.borrow_mut() = current_mtime;
+                *self.cached_watched_mtime.borrow_mut() = current_watched_mtime;
+                *self.cached_scan.borrow_mut() = Some(scan.clone());
+                Ok(scan)
+            }
+            Err(source) => {
+                // First load (no cached scan) still errors. A mid-session
+                // parse error falls back to the last good scan so the UI
+                // keeps working instead of hard-failing every route.
+                if let Some(scan) = self.cached_scan.borrow().as_ref() {
+                    eprintln!("cairn ui: project reload failed, serving cached scan: {source}");
+                    Ok(scan.clone())
+                } else {
+                    Err(UiError::Project(source))
+                }
+            }
+        }
     }
     fn watched_files_mtime(&self) -> Option<SystemTime> {
         let scan = self.cached_scan.borrow();
