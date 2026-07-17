@@ -307,9 +307,6 @@ function EmptyInspector({ graph, lint, onShowFindings, onOpenCmd }) {
     <section class="inspector empty-inspector">
       <div class="ins-eyebrow">Map</div>
       <h2 class="ins-title">${graph?.nodes[0] ? graph.nodes[0].name : "Cairn"}</h2>
-      <div class="ins-slug">
-        ${graph ? `${graph.nodes.length} nodes · ${graph.edges.length} edges · ${lint?.findings?.length ?? 0} findings` : ""}
-      </div>
       ${graph?.nodes[0]?.description ? html`<p class="ins-desc">${graph.nodes[0].description}</p>` : null}
 
       <button class="overview-action" onClick=${onOpenCmd}>
@@ -337,7 +334,6 @@ function EmptyInspector({ graph, lint, onShowFindings, onOpenCmd }) {
           ? html`<button class="findings-link" onClick=${onShowFindings}>
             <span class="caps">${copy("webui.findings-label")}</span>
             <span>${copy("webui.findings-open")}</span>
-            <span class="findings-link-count">${lint.findings.length}</span>
           </button>`
           : html`<div class="row-empty">${copy("empty-states.map-clean.body")}</div>`
       }

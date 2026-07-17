@@ -324,6 +324,7 @@ report = "Open the issue reporter from the report row."
 # -- Webui: report an issue ----------------------------------------------
 [webui.report]
 topbar = "Report an issue"
+topbar_short = "Report"
 palette = "Report an issue"
 
 
