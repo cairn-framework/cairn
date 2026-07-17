@@ -1794,16 +1794,16 @@
           "kind": "function",
           "signature": "pub const fn name(self) -> &'static str",
           "file": "src/map/graph.rs",
-          "line": 43,
-          "end_line": 49
+          "line": 51,
+          "end_line": 57
         },
         {
           "name": "FindingSeverity",
           "kind": "enum",
           "signature": "pub enum FindingSeverity",
           "file": "src/map/graph.rs",
-          "line": 22,
-          "end_line": 29
+          "line": 30,
+          "end_line": 37
         },
         {
           "name": "GraphEdgeKind",
@@ -1818,8 +1818,8 @@
           "kind": "enum",
           "signature": "pub enum NodeState",
           "file": "src/map/graph.rs",
-          "line": 9,
-          "end_line": 17
+          "line": 15,
+          "end_line": 23
         },
         {
           "name": "build_graph",
@@ -1890,8 +1890,8 @@
           "kind": "function",
           "signature": "pub fn has_errors(&self) -> bool",
           "file": "src/map/graph.rs",
-          "line": 204,
-          "end_line": 208
+          "line": 216,
+          "end_line": 220
         },
         {
           "name": "islands",
@@ -1930,8 +1930,8 @@
           "kind": "function",
           "signature": "pub fn resolve(&self, value: &str) -> Result<&NodeRecord, Finding>",
           "file": "src/map/graph.rs",
-          "line": 142,
-          "end_line": 200
+          "line": 154,
+          "end_line": 212
         },
         {
           "name": "symbols",
@@ -1994,8 +1994,8 @@
           "kind": "struct",
           "signature": "pub struct EdgeRef",
           "file": "src/map/graph.rs",
-          "line": 109,
-          "end_line": 116
+          "line": 121,
+          "end_line": 128
         },
         {
           "name": "FilesResponse",
@@ -2010,8 +2010,8 @@
           "kind": "struct",
           "signature": "pub struct Finding",
           "file": "src/map/graph.rs",
-          "line": 54,
-          "end_line": 72
+          "line": 64,
+          "end_line": 84
         },
         {
           "name": "FrontierEntry",
@@ -2034,8 +2034,8 @@
           "kind": "struct",
           "signature": "pub struct Graph",
           "file": "src/map/graph.rs",
-          "line": 120,
-          "end_line": 131
+          "line": 132,
+          "end_line": 143
         },
         {
           "name": "GraphEdgeResponse",
@@ -2090,8 +2090,8 @@
           "kind": "struct",
           "signature": "pub struct NodeRecord",
           "file": "src/map/graph.rs",
-          "line": 76,
-          "end_line": 105
+          "line": 88,
+          "end_line": 117
         },
         {
           "name": "NodeResponse",
@@ -2140,6 +2140,7 @@
         "src/query_api/handlers/project.rs",
         "src/query_api/handlers/remediate.rs",
         "src/query_api/handlers/spine.rs",
+        "src/query_api/handlers/work_item.rs",
         "src/query_api/mod.rs",
         "src/query_api/registry.rs",
         "src/query_api/serialise.rs",
@@ -2155,104 +2156,120 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 178,
-          "end_line": 180
+          "line": 180,
+          "end_line": 182
         },
         {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 113,
-          "end_line": 134
+          "line": 115,
+          "end_line": 136
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 61,
-          "end_line": 66
+          "line": 63,
+          "end_line": 68
+        },
+        {
+          "name": "WorkItemSource",
+          "kind": "enum",
+          "signature": "pub enum WorkItemSource",
+          "file": "src/query_api/handlers/work_item.rs",
+          "line": 13,
+          "end_line": 20
         },
         {
           "name": "envelope_json",
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 345,
-          "end_line": 352
+          "line": 347,
+          "end_line": 354
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 356,
-          "end_line": 363
+          "line": 358,
+          "end_line": 365
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 208,
-          "end_line": 266
+          "line": 210,
+          "end_line": 268
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 274,
-          "end_line": 325
+          "line": 276,
+          "end_line": 327
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 195,
-          "end_line": 201
+          "line": 197,
+          "end_line": 203
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 157,
-          "end_line": 166
+          "line": 159,
+          "end_line": 168
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 88,
-          "end_line": 109
+          "line": 90,
+          "end_line": 111
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 144,
-          "end_line": 153
+          "line": 146,
+          "end_line": 155
         },
         {
           "name": "ToolMetadata",
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 70,
-          "end_line": 84
+          "line": 72,
+          "end_line": 86
+        },
+        {
+          "name": "WorkItem",
+          "kind": "struct",
+          "signature": "pub struct WorkItem",
+          "file": "src/query_api/handlers/work_item.rs",
+          "line": 24,
+          "end_line": 37
         },
         {
           "name": "bundle_json",
@@ -2263,12 +2280,44 @@
           "end_line": 96
         },
         {
+          "name": "from_bead",
+          "kind": "function",
+          "signature": "pub(crate) fn from_bead(bead: &BacklogItem) -> Self",
+          "file": "src/query_api/handlers/work_item.rs",
+          "line": 54,
+          "end_line": 62
+        },
+        {
+          "name": "from_finding_action",
+          "kind": "function",
+          "signature": "pub(crate) fn from_finding_action(action: &Value) -> Option<WorkItem>",
+          "file": "src/query_api/handlers/work_item.rs",
+          "line": 67,
+          "end_line": 94
+        },
+        {
+          "name": "from_todo",
+          "kind": "function",
+          "signature": "pub(crate) fn from_todo(todo: &Todo) -> Self",
+          "file": "src/query_api/handlers/work_item.rs",
+          "line": 44,
+          "end_line": 52
+        },
+        {
           "name": "lint_findings",
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 335,
-          "end_line": 341
+          "line": 337,
+          "end_line": 343
+        },
+        {
+          "name": "spine",
+          "kind": "module",
+          "signature": "pub(super) mod spine",
+          "file": "src/query_api/handlers/mod.rs",
+          "line": 11,
+          "end_line": 11
         }
       ]
     },
@@ -2327,8 +2376,8 @@
           "kind": "function",
           "signature": "pub fn build(graph: &Graph, interface_hash: &str) -> MapSnapshot",
           "file": "src/scanner/snapshot.rs",
-          "line": 69,
-          "end_line": 101
+          "line": 75,
+          "end_line": 107
         },
         {
           "name": "cargo_battery",
@@ -2447,8 +2496,8 @@
           "kind": "function",
           "signature": "pub fn write(root: &Path, snapshot: &MapSnapshot) -> io::Result<()>",
           "file": "src/scanner/snapshot.rs",
-          "line": 108,
-          "end_line": 111
+          "line": 114,
+          "end_line": 117
         },
         {
           "name": "write_blueprint_snapshot",
@@ -2559,8 +2608,8 @@
           "kind": "struct",
           "signature": "pub struct MapSnapshot",
           "file": "src/scanner/snapshot.rs",
-          "line": 22,
-          "end_line": 33
+          "line": 24,
+          "end_line": 35
         },
         {
           "name": "NodeFingerprint",
@@ -2583,16 +2632,16 @@
           "kind": "struct",
           "signature": "pub struct SnapshotEdge",
           "file": "src/scanner/snapshot.rs",
-          "line": 58,
-          "end_line": 65
+          "line": 64,
+          "end_line": 71
         },
         {
           "name": "SnapshotNode",
           "kind": "struct",
           "signature": "pub struct SnapshotNode",
           "file": "src/scanner/snapshot.rs",
-          "line": 37,
-          "end_line": 54
+          "line": 41,
+          "end_line": 58
         },
         {
           "name": "TargetConfig",
@@ -3205,8 +3254,8 @@
           "kind": "enum",
           "signature": "pub enum SymbolKind",
           "file": "src/reconcile/symbol.rs",
-          "line": 23,
-          "end_line": 50
+          "line": 27,
+          "end_line": 54
         },
         {
           "name": "as_str",
@@ -3309,8 +3358,8 @@
           "kind": "function",
           "signature": "pub fn normalize_symbol(text: &str) -> String",
           "file": "src/reconcile/symbol.rs",
-          "line": 58,
-          "end_line": 88
+          "line": 62,
+          "end_line": 92
         },
         {
           "name": "reconciler_id",
@@ -3517,8 +3566,8 @@
           "kind": "struct",
           "signature": "pub struct SymbolRecord",
           "file": "src/reconcile/symbol.rs",
-          "line": 5,
-          "end_line": 18
+          "line": 7,
+          "end_line": 20
         },
         {
           "name": "Target",
@@ -6393,6 +6442,7 @@
         "tests/reconcile_target_fingerprint.rs",
         "tests/reconcile_typescript.rs",
         "tests/scanner_interface_hash.rs",
+        "tests/schema_validation.rs",
         "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
         "tests/watch.rs",

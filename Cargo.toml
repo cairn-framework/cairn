@@ -86,6 +86,7 @@ workspace = true
 cairn-macros = { path = "cairn-macros", version = "0.1.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+schemars = { version = "0.8", features = ["derive"] }
 toml = "0.8"
 tree-sitter = "0.26.8"
 tree-sitter-rust = "0.24.2"
@@ -118,5 +119,6 @@ panic = "abort"
 inherits = "release"
 
 [dev-dependencies]
+jsonschema = "0.18"
 insta = { version = "1", features = ["json", "yaml", "redactions"] }
 tempfile = "3"

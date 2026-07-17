@@ -4,7 +4,7 @@
 use super::super::serialise::*;
 use super::super::*;
 use super::graph::count_findings;
-use super::next_selection::{CleanItem, NextSelection, select_next};
+use super::next_selection::{select_next, work_item_for_selection};
 
 pub(crate) fn status_json(
     root: &Path,
@@ -28,12 +28,10 @@ pub(crate) fn status_json(
                 .collect()
         })
         .unwrap_or_default();
-    let next_recommended = match select_next(root, changes_dir, scan_result) {
-        NextSelection::Dirty(action) => action.unwrap_or(Value::Null),
-        NextSelection::Clean(CleanItem::NativeTodo(todo)) => todo_json(todo),
-        NextSelection::Clean(CleanItem::Bead(bead)) => bead.to_json(),
-        NextSelection::Clean(CleanItem::None) => Value::Null,
-    };
+    let next_recommended = work_item_for_selection(&select_next(root, changes_dir, scan_result))
+        .map_or(Value::Null, |item| {
+            serde_json::to_value(item).expect("WorkItem serialises")
+        });
     let active_changes = crate::changes::discover(root, changes_dir)
         .unwrap_or_default()
         .iter()
@@ -177,12 +175,8 @@ mod tests {
         let changes = tmp.join("meta/changes");
         let scan = crate::scanner::load_project(&tmp, &tmp.join("cairn.blueprint")).unwrap();
         let status = status_json(&tmp, &changes, &scan);
-        let expected = match select_next(&tmp, &changes, &scan) {
-            NextSelection::Dirty(action) => action.unwrap_or(Value::Null),
-            NextSelection::Clean(CleanItem::NativeTodo(todo)) => todo_json(todo),
-            NextSelection::Clean(CleanItem::Bead(bead)) => bead.to_json(),
-            NextSelection::Clean(CleanItem::None) => Value::Null,
-        };
+        let expected = work_item_for_selection(&select_next(&tmp, &changes, &scan))
+            .map_or(Value::Null, |item| serde_json::to_value(item).unwrap());
         assert_eq!(status["next_recommended"], expected);
         let _ = std::fs::remove_dir_all(&tmp);
     }

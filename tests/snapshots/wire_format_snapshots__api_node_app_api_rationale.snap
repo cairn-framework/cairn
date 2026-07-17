@@ -40,7 +40,7 @@ expression: value
       "title": "API Research"
     }
   ],
-  "schema_version": 2,
+  "schema_version": 3,
   "sources": [
     {
       "body": "# API Source\nBootstrap evidence.",

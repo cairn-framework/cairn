@@ -122,16 +122,14 @@ fn test_gitignored_path_surfaces_remediation_action() -> Result<(), Box<dyn std:
 
     let gitignore_action = actions
         .iter()
-        .find(|a| a["action"] == "fix_gitignored_path")
-        .ok_or_else(|| format!("expected a fix_gitignored_path action, got: {stdout}"))?;
-    let nodes: Vec<&str> = gitignore_action["nodes"]
-        .as_array()
-        .map(|arr| arr.iter().filter_map(serde_json::Value::as_str).collect())
-        .unwrap_or_default();
-    assert!(
-        nodes.contains(&"app.lib"),
-        "action should name the affected node app.lib, got: {nodes:?}"
-    );
+        .find(|a| {
+            a["title"]
+                .as_str()
+                .is_some_and(|title| title.contains(".gitignore"))
+        })
+        .ok_or_else(|| format!("expected a gitignored-path finding, got: {stdout}"))?;
+    assert_eq!(gitignore_action["source"], "finding");
+    assert_eq!(gitignore_action["node"], "app.lib");
     Ok(())
 }
 

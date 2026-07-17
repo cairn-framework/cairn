@@ -18,7 +18,9 @@ pub const SCHEMA_VERSION: u32 = 1;
 
 /// Committed machine-readable map snapshot. Deterministic: `BTreeMap`
 /// ordering, no timestamps.
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 pub struct MapSnapshot {
     /// Wire schema version, starts at 1.
     pub schema_version: u32,
@@ -33,7 +35,9 @@ pub struct MapSnapshot {
 }
 
 /// One node's snapshot record.
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 pub struct SnapshotNode {
     /// Stable node ID.
     pub id: String,
@@ -54,7 +58,9 @@ pub struct SnapshotNode {
 }
 
 /// One dependency edge.
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 pub struct SnapshotEdge {
     /// Source node ID.
     pub from: String,

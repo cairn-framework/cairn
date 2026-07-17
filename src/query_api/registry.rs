@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: single tool registry plus its coverage tests remain cohesive
 //! MCP query tool registry.
 
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
@@ -478,6 +479,86 @@ mod tests {
                 !tool.description.is_empty(),
                 "registry tool `{}` is missing a description",
                 tool.cli_name
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod response_schema_tests {
+    use super::*;
+    use std::collections::BTreeSet;
+
+    // Burn-down list: these response envelopes pre-date committed schemas.
+    // Remove an entry when schemas/<label>.schema.json lands.
+    const UNSCHEMAD_ALLOWLIST: &[&str] = &[
+        "NodeResponse",
+        "NeighbourhoodResponse",
+        "ContractResponse",
+        "DocstringResponse",
+        "FilesResponse",
+        "BundleResponse",
+        "DependencyResponse",
+        "OrderResponse",
+        "IslandsResponse",
+        "FrontierResponse",
+        "GraphResponse",
+        "LintResponse",
+        "StatusResponse",
+        "RationaleResponse",
+        "TodosResponse",
+        "DecisionsResponse",
+        "ResearchResponse",
+        "SourcesResponse",
+        "ChangesResponse",
+        "ShowChangeResponse",
+        "HookReport",
+        "HealthResponse",
+        "RemediateResponse",
+        "UiServerResponse",
+        "ScanResponse",
+        "ArchiveResponse",
+        "RenameResponse",
+        "InitResponse",
+        "ContextResponse",
+        "InitFromCodeResponse",
+        "RefineResponse",
+        "DraftsResponse",
+        "DraftShowResponse",
+        "DraftDiscardResponse",
+        "DraftEditResponse",
+        "DraftAcceptResponse",
+        "SummariseResponse",
+        "WatchResponse",
+        "UiMetaResponse",
+        "BlueprintResponse",
+        "BeadsResponse",
+        "LocateResponse",
+    ];
+
+    #[test]
+    fn every_response_schema_is_backed_or_allowlisted() {
+        let allow: BTreeSet<&str> = UNSCHEMAD_ALLOWLIST.iter().copied().collect();
+        let schema_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("schemas");
+        let mut seen = BTreeSet::new();
+        for tool in &TOOL_REGISTRY {
+            let label = tool.response_schema;
+            if seen.insert(label) {
+                let filename = format!("{label}.schema.json");
+                assert!(
+                    schema_dir.join(&filename).is_file() || allow.contains(label),
+                    "response schema {label} has no schemas/{filename} and is not allowlisted"
+                );
+            }
+        }
+        for label in allow {
+            assert!(
+                seen.contains(label),
+                "stale unschema'd allowlist entry: {label}"
+            );
+            assert!(
+                !schema_dir.join(format!("{label}.schema.json")).is_file(),
+                "remove {label} from allowlist now its schema exists"
             );
         }
     }

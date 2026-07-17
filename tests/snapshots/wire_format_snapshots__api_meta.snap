@@ -263,6 +263,6 @@ expression: value
       "safety": "ReadOnly"
     }
   ],
-  "schema_version": 2,
+  "schema_version": 3,
   "version": "[version]"
 }

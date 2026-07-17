@@ -206,13 +206,18 @@ pub(crate) fn render_status(
         },
     );
     if parsed.json {
+        let next_json = crate::query_api::work_item_for_selection(&crate::query_api::select_next(
+            root,
+            &root.join(&parsed.changes_dir),
+            scan_result,
+        ))
+        .map_or(serde_json::Value::Null, |item| {
+            serde_json::to_value(item).expect("WorkItem serialises")
+        });
         format!(
-            "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{},\"next_recommended\":{}}}\n",
+            "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{},\"next_recommended\":{next_json}}}\n",
             todos_json(&open),
             string_array_json(&log_entries),
-            next_recommended
-                .as_deref()
-                .map_or_else(|| "null".to_owned(), |value| format!("\"{}\"", esc(value)))
         )
     } else if parsed.brief {
         render_status_brief(scan_result, root, &open, next_recommended.as_deref())

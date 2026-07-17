@@ -92,11 +92,11 @@ pub(crate) fn health_json(
 // Reason: remediate action generation naturally spans many finding codes and
 // action branches; extracting each branch would fragment the remediation logic.
 #[allow(clippy::too_many_lines)]
-pub(crate) fn remediate_json(
+pub(crate) fn remediate_actions_raw(
     root: &Path,
     changes_dir: &Path,
     scan_result: &scanner::ScanResult,
-) -> Value {
+) -> Vec<Value> {
     let lint_response = query::lint(&scan_result.graph);
     let hook_report =
         crate::hooks::run(crate::hooks::HookKind::All, root, changes_dir, scan_result);
@@ -349,8 +349,20 @@ pub(crate) fn remediate_json(
             .and_then(serde_json::Value::as_u64)
             .unwrap_or(99)
     });
-    json!({
-        "actions": actions,
-        "total_actions": actions.len(),
-    })
+    actions
+}
+
+/// Returns remediation actions projected to the shared work-item wire shape.
+pub(crate) fn remediate_json(
+    root: &Path,
+    changes_dir: &Path,
+    scan_result: &scanner::ScanResult,
+) -> Value {
+    let actions = remediate_actions_raw(root, changes_dir, scan_result);
+    let projected: Vec<Value> = actions
+        .iter()
+        .filter_map(super::work_item::from_finding_action)
+        .map(|item| serde_json::to_value(item).expect("WorkItem serialises"))
+        .collect();
+    json!({ "actions": projected, "total_actions": projected.len() })
 }

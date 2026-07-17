@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Finding",
+  "description": "Finding with stable code.",
+  "type": "object",
+  "required": [
+    "code",
+    "message",
+    "node",
+    "path",
+    "severity"
+  ],
+  "properties": {
+    "code": {
+      "description": "Stable finding code.",
+      "type": "string"
+    },
+    "message": {
+      "description": "Human-readable message.",
+      "type": "string"
+    },
+    "node": {
+      "description": "Optional node ID.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "path": {
+      "description": "Optional file path.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "severity": {
+      "description": "Severity.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/FindingSeverity"
+        }
+      ]
+    },
+    "target": {
+      "description": "Optional target node ID or contract role.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "definitions": {
+    "FindingSeverity": {
+      "description": "Integrity or reconciliation finding severity.",
+      "oneOf": [
+        {
+          "description": "Blocks successful lint/map validation.",
+          "type": "string",
+          "enum": [
+            "error"
+          ]
+        },
+        {
+          "description": "Advisory finding.",
+          "type": "string",
+          "enum": [
+            "warning"
+          ]
+        },
+        {
+          "description": "Informational nudge that does not block hooks or gates.",
+          "type": "string",
+          "enum": [
+            "info"
+          ]
+        }
+      ]
+    }
+  }
+}

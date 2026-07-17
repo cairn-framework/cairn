@@ -11,10 +11,13 @@ pub(crate) fn render_remediate(
     scan_result: &scanner::ScanResult,
 ) -> String {
     let changes_dir = root.join(&parsed.changes_dir);
-    let remediate = query_api::remediate_json(root, &changes_dir, scan_result);
     if parsed.json {
+        let remediate = query_api::remediate_json(root, &changes_dir, scan_result);
         format!("{remediate}\n")
     } else {
+        let remediate = serde_json::json!({
+            "actions": query_api::remediate_actions_raw(root, &changes_dir, scan_result),
+        });
         format_remediate_human(&remediate)
     }
 }
@@ -97,11 +100,10 @@ pub(crate) fn render_next(
 fn render_next_todo(todo: &Todo, scan_result: &scanner::ScanResult, json: bool) -> String {
     let open_count = query_api::open_native_todos(scan_result).len();
     if json {
+        let item = query_api::WorkItem::from_todo(todo);
         format!(
-            "{{\"next\":{{\"todo\":\"{}\",\"node\":\"{}\",\"title\":\"{}\",\"source\":\"native-todos\"}},\"clean\":true,\"ready\":{open_count}}}\n",
-            esc(&todo.path),
-            esc(&todo.node),
-            esc(&decision_summary(&todo.body)),
+            "{{\"next\":{},\"clean\":true,\"ready\":{open_count}}}\n",
+            serde_json::to_string(&item).expect("WorkItem serialises")
         )
     } else {
         format!(
@@ -117,11 +119,10 @@ fn render_next_bead(root: &Path, bead: &crate::state::backlog::BacklogItem, json
     let backlog = crate::state::backlog::read(root);
     let ready_count = crate::state::backlog::ready(&backlog).len();
     if json {
+        let item = query_api::WorkItem::from_bead(bead);
         format!(
-            "{{\"next\":{{\"bead\":\"{}\",\"title\":\"{}\",\"priority\":{},\"source\":\"beads-backlog\"}},\"clean\":true,\"ready\":{ready_count}}}\n",
-            esc(&bead.id),
-            esc(&bead.title),
-            bead.priority,
+            "{{\"next\":{},\"clean\":true,\"ready\":{ready_count}}}\n",
+            serde_json::to_string(&item).expect("WorkItem serialises")
         )
     } else {
         let mut out = vec![
@@ -139,7 +140,11 @@ fn render_next_bead(root: &Path, bead: &crate::state::backlog::BacklogItem, json
 fn render_next_action(action: Option<serde_json::Value>, json: bool) -> String {
     let first = action.unwrap_or(serde_json::Value::Null);
     if json {
-        return format!("{{\"next\":{first},\"clean\":false}}\n");
+        let item = query_api::from_finding_action(&first);
+        let value = item.map_or(serde_json::Value::Null, |item| {
+            serde_json::to_value(item).expect("WorkItem serialises")
+        });
+        return format!("{{\"next\":{value},\"clean\":false}}\n");
     }
     let name = first
         .get("action")
@@ -176,22 +181,8 @@ fn render_next_action(action: Option<serde_json::Value>, json: bool) -> String {
     lines.join("\n") + "\n"
 }
 
-/// Extracts a one-line summary from a decision body (first markdown heading or
-/// first non-empty line), trimmed to a readable length.
-pub(super) fn decision_summary(body: &str) -> String {
-    let line = body
-        .lines()
-        .map(str::trim)
-        .find(|line| !line.is_empty())
-        .unwrap_or("");
-    let cleaned = line.trim_start_matches('#').trim();
-    if cleaned.chars().count() > 100 {
-        let truncated: String = cleaned.chars().take(97).collect();
-        format!("{truncated}...")
-    } else {
-        cleaned.to_owned()
-    }
-}
+/// Shared title extraction used by human renderers and `WorkItem` projection.
+pub(super) use crate::query_api::decision_summary;
 
 fn resolve_brief_bead(
     parsed: &ParsedArgs,
@@ -921,7 +912,7 @@ mod tests {
 
         let json = render_next(&brief_parsed(&["next"], true), &dir, &scan);
         let value: serde_json::Value = serde_json::from_str(&json).unwrap();
-        assert_eq!(value["next"]["source"], "native-todos");
+        assert_eq!(value["next"]["source"], "todo");
         assert_eq!(value["next"]["node"], "app.core");
         assert_eq!(value["clean"], true);
         let _ = std::fs::remove_dir_all(&dir);

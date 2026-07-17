@@ -1,7 +1,9 @@
 //! Structured symbol records extracted by the reconcilers.
 
 /// One extracted public symbol with its source location.
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 pub struct SymbolRecord {
     /// Identifier name.
     pub name: String,
@@ -18,7 +20,9 @@ pub struct SymbolRecord {
 }
 
 /// Language-agnostic symbol kind.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum SymbolKind {
     /// Function or method.
