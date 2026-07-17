@@ -3,7 +3,7 @@
  */
 
 import { edgeMidpoint, ownershipPath } from "./layout.js";
-import { balanceFromCount, clsx, displayState, html, nodeSeverityById, truncate, useEffect, useMemo, useRef, useState } from "./utils.js";
+import { balanceFromCount, clsx, copy, displayState, html, nodeSeverityById, truncate, useEffect, useMemo, useRef, useState } from "./utils.js";
 
 // ==========================================================================
 // Graph canvas
@@ -154,6 +154,69 @@ function DividerNode({ node }) {
   `;
 }
 
+function ChainCoachMark() {
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem("cairn:v2:chain-coach") !== "dismissed";
+    } catch (_err) {
+      return true;
+    }
+  });
+  if (!open) return null;
+  const dismiss = () => {
+    setOpen(false);
+    try {
+      localStorage.setItem("cairn:v2:chain-coach", "dismissed");
+    } catch (_err) {
+      // storage disabled; the coach-mark remains dismissed for this session
+    }
+  };
+  return html`
+    <div class="chain-banner coach-mark" role="note">
+      <div class="coach-mark-copy">${copy("webui.chain-coach-body")}</div>
+      <div class="coach-mark-legend">
+        <div class="label prov"><span class="rule"></span>Provenance</div>
+        <div class="label hinge"><span class="rule"></span>Hinge<span class="rule"></span></div>
+        <div class="label auth">Authority<span class="rule"></span></div>
+      </div>
+      <button class="coach-mark-dismiss" onClick=${dismiss}>${copy("webui.chain-coach-dismiss")}</button>
+    </div>
+  `;
+}
+
+function Minimap({ graph, selection, onSelect }) {
+  const [hoveredId, setHoveredId] = useState(null);
+  return html`
+    <div class="graph-minimap" aria-label=${copy("webui.minimap-label")}>
+      ${
+        graph
+          ? graph.nodes
+              .filter((n) => n.kind === "module")
+              .slice(0, 48)
+              .map((m) => {
+                const active = selection && selection.id === m.id;
+                const state = displayState(m.state);
+                return html`
+                  <div class="mini-item" key=${m.id}
+                    onMouseEnter=${() => setHoveredId(m.id)}
+                    onMouseLeave=${() => setHoveredId(null)}>
+                    <button class=${clsx("mini-dot", state, active && "active")}
+                      type="button"
+                      style="height:22px"
+                      aria-label=${`${m.name}: ${state}`}
+                      onFocus=${() => setHoveredId(m.id)}
+                      onClick=${() => onSelect(m.id)}
+                      onBlur=${() => setHoveredId(null)}
+                      title=${`${m.name}: ${state}`}></button>
+                    ${hoveredId === m.id ? html`<span class="mini-label">${m.name}</span>` : null}
+                  </div>
+                `;
+              })
+          : null
+      }
+    </div>
+  `;
+}
 function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, onHover, edgeTrace, focusNodeIds = [], focusToken }) {
   const svgRef = useRef(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
@@ -320,11 +383,7 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
              onPointerUp=${onPointerUp} onPointerCancel=${onPointerUp}
              onWheel=${onWheel} aria-label="Architecture map">
       <div class="graph-bg"></div>
-      <div class="chain-banner">
-        <div class="label prov"><span class="rule"></span>Provenance</div>
-        <div class="label hinge"><span class="rule"></span>Hinge<span class="rule"></span></div>
-        <div class="label auth">Authority<span class="rule"></span></div>
-      </div>
+      <${ChainCoachMark}/>
       <svg ref=${svgRef} class="graph-svg" width="100%" height="100%">
         <g transform=${`translate(${viewport.x}, ${viewport.y}) scale(${viewport.zoom})`}>
           <line x1="900" y1="20" x2="900" y2=${totalHeight}
@@ -392,24 +451,7 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
         <button class="reset" onClick=${fit}>fit</button>
       </div>
 
-      <div class="graph-minimap" title="Overview of reconciliation state">
-        ${
-          graph
-            ? graph.nodes
-                .filter((n) => n.kind === "module")
-                .slice(0, 48)
-                .map((m) => {
-                  const active = selection && selection.id === m.id;
-                  const state = displayState(m.state);
-                  return html`<div key=${m.id}
-                  class=${clsx("mini-dot", state, active && "active")}
-                  style="height:22px"
-                  onClick=${() => onSelect(m.id)}
-                  title=${`${m.name}: ${state}`}></div>`;
-                })
-            : null
-        }
-      </div>
+      <${Minimap} graph=${graph} selection=${selection} onSelect=${onSelect}/>
 
       <div class="graph-legend">
         <span class="sw synced"></span> synced

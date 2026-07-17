@@ -28,6 +28,11 @@ heading = "No paths declared"
 body = "This node has no source paths declared."
 cta = "cairn get <node>"
 
+[empty-states.node-no-artefacts]
+heading = "No artefacts yet"
+body = "This node has no artefacts yet. Its blueprint entry is ready to explore."
+cta = ""
+
 [empty-states.node-no-contracts]
 heading = "No contracts"
 body = "No contracts are attached to this node."
@@ -295,11 +300,20 @@ none-ready = "No ready work: every open bead is blocked by a dependency. Run `bd
 not-ready = "Warning: this bead is not in the ready set (closed, or blocked by an open dependency). It may already be done or not yet actionable; check `bd ready` before working it."
 not-ready-todo = "Warning: this todo is not open (in progress, done, or blocked). Check its status in meta/todos/ before working it."
 
-# -- Webui: report an issue ----------------------------------------------
+# -- Webui: overview, findings, coach-mark, minimap ------------------------
+[webui]
+overview-action = "Query the map, or click any stone to inspect it."
+findings-label = "Findings"
+findings-open = "Open the findings drawer"
+chain-coach-body = "Each node is the hinge between provenance evidence on the left and authority rules on the right."
+chain-coach-dismiss = "Got it"
+minimap-label = "Map node overview"
 
+# -- Webui: report an issue ----------------------------------------------
 [webui.report]
 topbar = "Report an issue"
 palette = "Report an issue"
+
 
 
 # -- Per-command help -----------------------------------------------------

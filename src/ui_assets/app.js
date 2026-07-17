@@ -17,7 +17,7 @@
 import { BlueprintModal } from "./blueprint-modal.js";
 import { CommandPalette } from "./command-palette.js";
 import { DecisionDetail } from "./decision-detail.js";
-import { ChangesDrawer, FindingsPanel } from "./findings-panel.js";
+import { ChangesDrawer } from "./findings-panel.js";
 import { GraphCanvas } from "./graph-canvas.js";
 import { EmptyInspector, ModuleInspector } from "./inspector.js";
 import { buildLayout } from "./layout.js";
@@ -43,7 +43,6 @@ function App() {
   const [blueprintOpen, setBlueprintOpen] = useState(false);
   const [blueprint, setBlueprint] = useState(null);
   const [blueprintFocus, setBlueprintFocus] = useState(null);
-  const [showFindings, setShowFindings] = useState(false);
   const [bootTick, setBootTick] = useState(0);
 
   useEffect(() => {
@@ -136,6 +135,17 @@ function App() {
 
   const layoutData = useMemo(() => buildLayout(graph, artefactCountsById), [graph, artefactCountsById]);
 
+  const focusNodeIds = useMemo(() => {
+    if (!selectionId || !graph) return [];
+    const ids = new Set([selectionId]);
+    for (const edge of graph.edges) {
+      if (edge.kind !== "dependency") continue;
+      if (edge.from === selectionId) ids.add(edge.to);
+      if (edge.to === selectionId) ids.add(edge.from);
+    }
+    return [...ids];
+  }, [graph, selectionId]);
+
   useEffect(() => {
     if (!selectionId || !graph) {
       setDetail({});
@@ -200,42 +210,32 @@ function App() {
 
   const selectedNode = selectionId ? nodesById.get(selectionId) : null;
 
-  const inspector = showFindings
-    ? html`<${FindingsPanel}
-        lint=${lint}
-        selectionId=${selectionId}
+  const inspector = selectedDecision
+    ? html`<${DecisionDetail}
+        decision=${selectedDecision}
+        node=${selectedNode}
+        onBack=${() => setSelectedDecision(null)}
         onSelect=${(id) => {
-          setShowFindings(false);
+          setSelectedDecision(null);
           setSelectionId(id);
         }}
-        onBack=${() => setShowFindings(false)}
       />`
-    : selectedDecision
-      ? html`<${DecisionDetail}
-          decision=${selectedDecision}
+    : selectedNode
+      ? html`<${ModuleInspector}
           node=${selectedNode}
-          onBack=${() => setSelectedDecision(null)}
-          onSelect=${(id) => {
-            setSelectedDecision(null);
-            setSelectionId(id);
-          }}
+          detail=${detail}
+          lint=${lint}
+          onSelect=${(id) => setSelectionId(id)}
+          onSelectDecision=${(d) => setSelectedDecision(d)}
+          onViewBlueprint=${openBlueprint}
+          onClose=${() => setSelectionId(null)}
         />`
-      : selectedNode
-        ? html`<${ModuleInspector}
-            node=${selectedNode}
-            detail=${detail}
-            lint=${lint}
-            onSelect=${(id) => setSelectionId(id)}
-            onSelectDecision=${(d) => setSelectedDecision(d)}
-            onViewBlueprint=${openBlueprint}
-            onClose=${() => setSelectionId(null)}
-          />`
-        : html`<${EmptyInspector}
-            graph=${graph}
-            lint=${lint}
-            onSelect=${(id) => setSelectionId(id)}
-            onShowFindings=${() => setShowFindings(true)}
-          />`;
+      : html`<${EmptyInspector}
+          graph=${graph}
+          lint=${lint}
+          onShowFindings=${() => setDrawerOpen(true)}
+          onOpenCmd=${() => setCmdOpen(true)}
+        />`;
 
   return html`
     <${Fragment}>
@@ -271,6 +271,8 @@ function App() {
                 lint=${lint}
                 onSelect=${(id) => setSelectionId(id)}
                 onHover=${setHoveredId}
+                focusNodeIds=${focusNodeIds}
+                focusToken=${`${selectionId}:${focusNodeIds.join(",")}`}
                 edgeTrace=${hoveredId}
               />`
         }
