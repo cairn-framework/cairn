@@ -72,6 +72,44 @@ fn work_item_schema_accepts_status_json_projection() {
 }
 
 #[test]
+fn response_envelope_schema_accepts_real_query_output() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let response = cairn::query_api::execute(
+        root,
+        &root.join("cairn.blueprint"),
+        &root.join(".cairn/changes"),
+        &cairn::query_api::QueryRequest {
+            tool: "status".to_owned(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let envelope = cairn::query_api::envelope_json(&response);
+    assert_valid("envelope", &envelope);
+}
+
+#[test]
+fn response_schemas_accept_representative_outputs() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    for (tool, schema_name) in [
+        ("status", "StatusResponse"),
+        ("remediate", "RemediateResponse"),
+    ] {
+        let response = cairn::query_api::execute(
+            root,
+            &root.join("cairn.blueprint"),
+            &root.join(".cairn/changes"),
+            &cairn::query_api::QueryRequest {
+                tool: tool.to_owned(),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert_valid(schema_name, &response.data);
+    }
+}
+
+#[test]
 fn committed_schemas_match_rust_types() {
     let generated = [
         (
@@ -86,6 +124,22 @@ fn committed_schemas_match_rust_types() {
         (
             "work-item",
             serde_json::to_value(schemars::schema_for!(cairn::query_api::WorkItem)).unwrap(),
+        ),
+        (
+            "envelope",
+            serde_json::to_value(schemars::schema_for!(
+                cairn::query_api::ResponseEnvelopeSchema
+            ))
+            .unwrap(),
+        ),
+        (
+            "StatusResponse",
+            serde_json::to_value(schemars::schema_for!(cairn::query_api::StatusResponse)).unwrap(),
+        ),
+        (
+            "RemediateResponse",
+            serde_json::to_value(schemars::schema_for!(cairn::query_api::RemediateResponse))
+                .unwrap(),
         ),
     ];
     for (name, value) in generated {

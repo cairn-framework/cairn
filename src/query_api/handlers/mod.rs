@@ -24,7 +24,9 @@ pub(crate) use next_selection::{
     work_item_for_selection,
 };
 pub(super) use node::{contract_json, docstring_json, files_json, rationale_json};
+pub use project::{StatusActiveChange, StatusResponse, StatusTodo};
 pub(super) use project::{context_json, status_json};
+pub use remediate::RemediateResponse;
 pub(super) use remediate::hook_json;
 pub(crate) use remediate::{health_json, remediate_actions_raw, remediate_json};
 pub(super) use spine::{beads_json, blueprint_json, ui_meta_json};

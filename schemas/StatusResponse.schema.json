@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "StatusActiveChange": {
+      "description": "One active change in a status response.",
+      "properties": {
+        "id": {
+          "description": "Stable change identifier.",
+          "type": "string"
+        },
+        "summary": {
+          "description": "Short operation summary.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Human-readable change title.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "summary",
+        "title"
+      ],
+      "type": "object"
+    },
+    "StatusTodo": {
+      "description": "One open todo in a status response.",
+      "properties": {
+        "created": {
+          "description": "Creation date.",
+          "type": "string"
+        },
+        "node": {
+          "description": "Referenced node identifier.",
+          "type": "string"
+        },
+        "path": {
+          "description": "Todo source path.",
+          "type": "string"
+        },
+        "satisfies": {
+          "description": "Optional satisfied contract clause.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "description": "Todo lifecycle status.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created",
+        "node",
+        "path",
+        "satisfies",
+        "status"
+      ],
+      "type": "object"
+    },
+    "WorkItem": {
+      "description": "Stable presentation shape shared by next-action JSON surfaces.",
+      "properties": {
+        "command": {
+          "description": "Suggested command, when available.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "node": {
+          "description": "Related graph node, when available.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rank": {
+          "description": "Cross-source queue rank; lower ranks are more urgent.",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "source": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/WorkItemSource"
+            }
+          ],
+          "description": "Provenance category."
+        },
+        "title": {
+          "description": "Human-readable title.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command",
+        "node",
+        "rank",
+        "source",
+        "title"
+      ],
+      "type": "object"
+    },
+    "WorkItemSource": {
+      "description": "The source category of a projected work item.",
+      "oneOf": [
+        {
+          "description": "An ephemeral finding remediation action.",
+          "enum": [
+            "finding"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "A durable native todo artefact.",
+          "enum": [
+            "todo"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "A read-only beads backlog item.",
+          "enum": [
+            "bead"
+          ],
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "description": "Wire shape of the `status` query response.",
+  "properties": {
+    "active_changes": {
+      "description": "Active change summaries.",
+      "items": {
+        "$ref": "#/definitions/StatusActiveChange"
+      },
+      "type": "array"
+    },
+    "next_recommended": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/WorkItem"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Recommended next work item, when one exists."
+    },
+    "open_todos": {
+      "description": "Open todo artefacts.",
+      "items": {
+        "$ref": "#/definitions/StatusTodo"
+      },
+      "type": "array"
+    },
+    "recent_log_entries": {
+      "description": "Most recent log lines.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "description": "Wire schema version stamped on every query-API response.",
+      "format": "uint32",
+      "minimum": 0.0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "active_changes",
+    "next_recommended",
+    "open_todos",
+    "recent_log_entries",
+    "schema_version"
+  ],
+  "title": "StatusResponse",
+  "type": "object"
+}

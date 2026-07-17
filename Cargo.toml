@@ -42,6 +42,7 @@ include = [
     "src/ui_assets/*.js",
     "src/ui_assets/*.css",
     "src/ui_assets/vendor/*.js",
+    "schemas/*.schema.json",
     "docs/design-system/copy.toml",
     "docs/design-system/tokens.css",
     "docs/design-system/components.css",

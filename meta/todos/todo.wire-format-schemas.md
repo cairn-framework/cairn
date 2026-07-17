@@ -45,17 +45,15 @@ Adversarial backlog review verified the json!() saturation (~40 ad-hoc literals 
 2026-07-17: Component schemas for `MapSnapshot`, `Finding`, and the shared
 `WorkItem` projection landed, with schema validation/drift tests, the
 `TOOL_REGISTRY` response-label allowlist gate, integration-contract docs, and
-version-3 wire snapshots. The JSON-envelope increment remains open: registered
-`StatusResponse`, `RemediateResponse`, and other response envelopes remain on
-the explicit unschema'd allowlist. This todo stays `in_progress` until
-full-envelope schemas land and the allowlist is burned down.
+version-3 wire snapshots. The JSON-envelope increment and first allowlist slice
+landed `schemas/envelope.schema.json` plus full schemas for `StatusResponse`
+and `RemediateResponse`. This todo stays `in_progress` while the remaining
+40 response labels are burned down.
 
 ## Status
 
-2026-07-17: Component schemas for `MapSnapshot`, `Finding`, and the shared
-`WorkItem` projection landed, along with validation/drift tests and the
-`TOOL_REGISTRY` response-label allowlist gate. The JSON envelope increment
-remains open: the registered `StatusResponse`, `RemediateResponse`, and
-other response envelopes still use the explicit unschema'd allowlist rather
-than committed full-envelope schemas. Continue with envelope schema files
-and burn down the allowlist before marking this todo done.
+2026-07-17: Added `schemas/envelope.schema.json` for the query API MCP
+envelope, requiring `data.schema_version` while permitting heterogeneous
+tool-specific data. Added full post-dispatch schemas and validation tests for
+`StatusResponse` and `RemediateResponse`, and refactored both handlers to
+serialise typed structs without changing wire snapshots. The allowlist now has 40 remaining labels: NodeResponse, NeighbourhoodResponse, ContractResponse, DocstringResponse, FilesResponse, BundleResponse, DependencyResponse, OrderResponse, IslandsResponse, FrontierResponse, GraphResponse, LintResponse, RationaleResponse, TodosResponse, DecisionsResponse, ResearchResponse, SourcesResponse, ChangesResponse, ShowChangeResponse, HookReport, HealthResponse, UiServerResponse, ScanResponse, ArchiveResponse, RenameResponse, InitResponse, ContextResponse, InitFromCodeResponse, RefineResponse, DraftsResponse, DraftShowResponse, DraftDiscardResponse, DraftEditResponse, DraftAcceptResponse, SummariseResponse, WatchResponse, UiMetaResponse, BlueprintResponse, BeadsResponse, and LocateResponse. Continue burning it down before marking this todo done.
