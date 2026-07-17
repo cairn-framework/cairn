@@ -333,12 +333,22 @@ The hybrid closes both halves now for the same standalone, dependency-free
 cost.
 
 Acceptance operationalisation: counts must always match the commands at read
-time. The pane meets this by never caching displayed counts: each rendered
+time. Uncached per-render derivation is necessary but not sufficient on its
+own: the terminal retains the last rendered snapshot between triggers, so a
+reader could see a stale frame captured before a change. The pane closes this
+with a read-triggered refresh handshake plus a snapshot sidecar. Each rendered
 snapshot re-runs `cairn lint --json` and `cairn status --json` (about 0.23s
-CPU per lint run, acceptable per render) and shows the collection time
-alongside. Watch events and the status poll are triggers that decide when a
-new snapshot is rendered; the displayed numbers always come from the commands
-run for that snapshot.
+CPU per lint run, acceptable per render) and shows the collection time, so a
+count shown at read time was just derived from the commands themselves; it
+also writes the derived counts and timestamp to `.cairn/dashboard-snapshot.json`.
+A verifier forces a fresh frame with the on-demand handshake (`touch
+.cairn/dashboard-refresh`), waits for the next snapshot
+(identified by a monotonic counter in the rendered output), then compares the
+sidecar against fresh `cairn lint --json` and `cairn status --json`. Watch
+events and the status-poll delta are triggers that decide when a new snapshot
+is rendered; the displayed numbers always come from the commands run for that
+snapshot, and a command failure leaves the last valid sidecar intact rather
+than publishing false zeros.
 
 MCP-wrapper and harness-hook event push (Q4) are real and plumbing-point
 verified, but neither is needed to close the dashboard gap; they surface
