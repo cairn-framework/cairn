@@ -6574,6 +6574,7 @@
         "src/ui/wire.rs",
         "src/ui_assets/app.js",
         "src/ui_assets/blueprint-modal.js",
+        "src/ui_assets/canvas-chrome.js",
         "src/ui_assets/command-palette.js",
         "src/ui_assets/decision-detail.js",
         "src/ui_assets/findings-panel.js",

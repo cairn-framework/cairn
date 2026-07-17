@@ -4,23 +4,25 @@
 
 import { edgeMidpoint, ownershipPath } from "./layout.js";
 import { balanceFromCount, clsx, copy, displayState, html, nodeSeverityById, truncate, useEffect, useMemo, useRef, useState } from "./utils.js";
-
-// ==========================================================================
-// Graph canvas
-// ==========================================================================
+import { ChainCoachMark, Minimap } from "./canvas-chrome.js";
 
 function SystemNode({ node, selected, onSelect, dimmed, findingSeverity }) {
   const d = node.data;
   const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
   return html`
-    <g class=${clsx("canvas-node", dimmed && "dimmed")}
+    <g class=${clsx("canvas-node", "system-node", selected && "selected", dimmed && "dimmed")}
        transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
        onClick=${() => onSelect(node)} data-kind="system">
       <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
-      <rect width=${node.width} height=${node.height} rx="6"
+      ${
+        selected
+          ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="9"/>`
+          : null
+      }
+      <rect class="system-body" width=${node.width} height=${node.height} rx="6"
             fill="var(--stone-3)"
             stroke=${strokeColor}
-            stroke-width=${selected ? 1.5 : 1}/>
+            stroke-width=${selected ? 2.5 : 1}/>
       <rect width=${node.width} height="1" fill="rgba(255,245,220,0.08)"/>
       <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
             fill="var(--ink-faded)" letter-spacing="2.5" style="text-transform:uppercase">SYSTEM</text>
@@ -37,14 +39,19 @@ function ContainerNode({ node, selected, onSelect, dimmed, findingSeverity }) {
   const d = node.data;
   const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : "var(--seam-thin)";
   return html`
-    <g class=${clsx("canvas-node", dimmed && "dimmed")}
+    <g class=${clsx("canvas-node", "container-node", selected && "selected", dimmed && "dimmed")}
        transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
        onClick=${() => onSelect(node)} data-kind="container">
       <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
-      <rect width=${node.width} height=${node.height} rx="6"
+      ${
+        selected
+          ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="9"/>`
+          : null
+      }
+      <rect class="container-body" width=${node.width} height=${node.height} rx="6"
             fill="var(--stone-3)"
             stroke=${strokeColor}
-            stroke-width=${selected ? 1.5 : 1}/>
+            stroke-width=${selected ? 2.5 : 1}/>
       <rect width=${node.width} height="1" fill="rgba(255,245,220,0.08)"/>
       <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
             fill="var(--ink-faded)" letter-spacing="2.5" style="text-transform:uppercase">CONTAINER</text>
@@ -59,33 +66,56 @@ function ContainerNode({ node, selected, onSelect, dimmed, findingSeverity }) {
 
 function ModuleNode({ node, selected, hovered, dimmed, findingSeverity, onSelect, onHover, dependentCount }) {
   const d = node.data;
-  const recon = d.state || "synced";
-  const base = displayState(recon);
-  const breath = findingSeverity === "error" || findingSeverity === "warning" || base === "orphaned";
-  const statusColor = base === "planned" ? "var(--planned)" : base === "orphaned" ? "var(--orphaned)" : "var(--synced)";
-  const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : base === "planned" ? "var(--planned)" : base === "orphaned" ? "var(--orphaned)" : "var(--seam-thin)";
+  const state = d.state || "synced";
+  const stateKind = displayState(state);
+  const breath = findingSeverity === "error" || findingSeverity === "warning" || stateKind === "orphaned";
+  const statusColor =
+    stateKind === "planned"
+      ? "var(--planned)"
+      : stateKind === "orphaned"
+        ? "var(--prov-1)"
+        : "var(--synced)";
+  const strokeColor = selected
+    ? "var(--seam-carved)"
+    : findingSeverity === "error"
+      ? "var(--drift)"
+      : findingSeverity === "warning"
+        ? "var(--orphaned)"
+        : findingSeverity === "info"
+          ? "var(--settled)"
+          : stateKind === "planned"
+            ? "var(--planned)"
+            : stateKind === "orphaned"
+              ? "var(--prov-1)"
+              : "var(--seam-thin)";
+  const stateWash = stateKind === "planned" ? "var(--planned-wash)" : "var(--prov-wash)";
+  const stateLabel = stateKind === "synced" ? null : stateKind;
 
   const counts = node.counts || { provenance: 0, authority: 0, decisions: 0, contracts: 0 };
   const provStrength = Math.max(0.15, balanceFromCount(counts.provenance) / 5);
   const authStrength = Math.max(0.15, balanceFromCount(counts.authority) / 5);
 
   return html`
-    <g class=${clsx("canvas-node", breath && "breathing", dimmed && "dimmed")}
+    <g class=${clsx("canvas-node", "module-node", `state-${stateKind}`, selected && "selected", breath && "breathing", dimmed && "dimmed")}
        transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
        onClick=${() => onSelect(node)}
        onMouseEnter=${() => onHover(node.id)}
        onMouseLeave=${() => onHover(null)}
        data-kind="module">
       <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
-      <rect x="2" y="3" width=${node.width} height=${node.height} rx="6" fill="rgba(0,0,0,0.3)"/>
-      <rect width=${node.width} height=${node.height} rx="6"
+      ${
+        selected
+          ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="8"/>`
+          : null
+      }
+      <rect x="2" y="3" width=${node.width} height=${node.height} rx="6" fill="var(--stone-3)"/>
+      <rect class="module-body" width=${node.width} height=${node.height} rx="6"
             fill=${hovered ? "var(--stone-4)" : "var(--stone-3)"}
             stroke=${strokeColor}
-            stroke-width=${selected ? 1.5 : 1}
-            stroke-dasharray=${base === "orphaned" ? "2 3" : "0"}/>
+            stroke-width=${selected ? 2.5 : 1}
+            stroke-dasharray="0"/>
       <rect width=${node.width} height="1" fill="rgba(255,245,220,0.1)"/>
-      <rect x="0" y="0" width="3" height=${node.height}
-            fill="var(--prov-2)" opacity=${provStrength * 0.7 + 0.3}/>
+      <rect class="state-keel" x="0" y="0" width="3" height=${node.height}/>
       <rect x=${node.width - 3} y="0" width="3" height=${node.height}
             fill="var(--auth-2)" opacity=${authStrength * 0.7 + 0.3}/>
       <text x="14" y="20" font-size="10" font-family="var(--font-mono)"
@@ -107,22 +137,23 @@ function ModuleNode({ node, selected, hovered, dimmed, findingSeverity, onSelect
               fill=${findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : "var(--settled)"}/>`
           : null
       }
-      <text x="14" y="46" font-size="17" font-family="var(--font-serif)"
+      <text class="module-name" x="14" y="46" font-size="17" font-family="var(--font-serif)"
             fill="var(--ink-char)" font-weight="500" letter-spacing="-0.3"
+            transform=${stateKind === "orphaned" ? "rotate(-5 14 46)" : null}
             style="font-variation-settings: 'opsz' 20">${truncate(d.name, 22)}</text>
       <text x="14" y="62" font-size="10.5" font-family="var(--font-mono)"
             fill="var(--ink-faded)" letter-spacing="0.4">${truncate(d.id, 28)}</text>
       ${
-        base !== "synced"
+        stateLabel
           ? html`<g transform=${`translate(${node.width - 74}, 30)`}>
             <rect x="0" y="0" width="58" height="16" rx="3"
-                  fill=${base === "planned" ? "var(--planned-wash)" : "var(--orphan-wash)"}
-                  stroke=${base === "planned" ? "var(--planned)" : "var(--orphaned)"}
+                  fill=${stateWash}
+                  stroke=${statusColor}
                   stroke-width="0.75"/>
             <text x="29" y="11" font-size="9" font-family="var(--font-mono)"
-                  fill=${base === "planned" ? "var(--planned)" : "var(--orphaned)"}
+                  fill=${statusColor}
                   letter-spacing="1.2" text-anchor="middle"
-                  style="text-transform:uppercase">${base}</text>
+                  style="text-transform:uppercase">${stateLabel}</text>
           </g>`
           : null
       }
@@ -154,72 +185,16 @@ function DividerNode({ node }) {
   `;
 }
 
-function ChainCoachMark() {
-  const [open, setOpen] = useState(() => {
-    try {
-      return localStorage.getItem("cairn:v2:chain-coach") !== "dismissed";
-    } catch (_err) {
-      return true;
-    }
-  });
-  if (!open) return null;
-  const dismiss = () => {
-    setOpen(false);
-    try {
-      localStorage.setItem("cairn:v2:chain-coach", "dismissed");
-    } catch (_err) {
-      // storage disabled; the coach-mark remains dismissed for this session
-    }
-  };
-  return html`
-    <div class="chain-banner coach-mark" role="note">
-      <div class="coach-mark-copy">${copy("webui.chain-coach-body")}</div>
-      <div class="coach-mark-legend">
-        <div class="label prov"><span class="rule"></span>Provenance</div>
-        <div class="label hinge"><span class="rule"></span>Hinge<span class="rule"></span></div>
-        <div class="label auth">Authority<span class="rule"></span></div>
-      </div>
-      <button class="coach-mark-dismiss" onClick=${dismiss}>${copy("webui.chain-coach-dismiss")}</button>
-    </div>
-  `;
-}
-
-function Minimap({ graph, selection, onSelect }) {
-  const [hoveredId, setHoveredId] = useState(null);
-  return html`
-    <div class="graph-minimap" aria-label=${copy("webui.minimap-label")}>
-      ${
-        graph
-          ? graph.nodes
-              .filter((n) => n.kind === "module")
-              .slice(0, 48)
-              .map((m) => {
-                const active = selection && selection.id === m.id;
-                const state = displayState(m.state);
-                return html`
-                  <div class="mini-item" key=${m.id}
-                    onMouseEnter=${() => setHoveredId(m.id)}
-                    onMouseLeave=${() => setHoveredId(null)}>
-                    <button class=${clsx("mini-dot", state, active && "active")}
-                      type="button"
-                      style="height:22px"
-                      aria-label=${`${m.name}: ${state}`}
-                      onFocus=${() => setHoveredId(m.id)}
-                      onClick=${() => onSelect(m.id)}
-                      onBlur=${() => setHoveredId(null)}
-                      title=${`${m.name}: ${state}`}></button>
-                    ${hoveredId === m.id ? html`<span class="mini-label">${m.name}</span>` : null}
-                  </div>
-                `;
-              })
-          : null
-      }
-    </div>
-  `;
-}
 function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, onHover, edgeTrace, focusNodeIds = [], focusToken }) {
   const svgRef = useRef(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
+  const [selectionPanning, setSelectionPanning] = useState(false);
+
+  const viewportRef = useRef(viewport);
+  const lastCentreToken = useRef(null);
+  useEffect(() => {
+    viewportRef.current = viewport;
+  }, [viewport]);
   const [panState, setPanState] = useState(null);
   const pointersRef = useRef(new Map());
   const gestureRef = useRef(null);
@@ -236,13 +211,37 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
   useEffect(() => {
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
-    setViewport({ x: rect.width / 2 - 900, y: 40, zoom: 1 });
+    const initial = { x: rect.width / 2 - 900, y: 40, zoom: 1 };
+    viewportRef.current = initial;
+    lastCentreToken.current = null;
+    setViewport(initial);
   }, [graph]);
+
+  const selectionId = selection?.id || null;
+  // One viewport decision per selection/focus change: if the selected node
+  // is already fully visible the instrument stays calm (no motion); when it
+  // is offscreen or clipped, the view fits the selection plus its dependency
+  // neighbourhood (focusNodeIds), preserving the neighbourhood framing.
   useEffect(() => {
-    if (!svgRef.current || !focusToken || focusNodeIds.length === 0) return;
-    const targets = focusNodeIds.map((id) => nodesById.get(id)).filter(Boolean);
-    if (targets.length === 0) return;
+    setSelectionPanning(false);
+    if (!selectionId) {
+      lastCentreToken.current = null;
+      return;
+    }
+    if (!svgRef.current || focusToken === lastCentreToken.current) return;
+    const node = nodesById.get(selectionId);
+    if (!node) return;
     const rect = svgRef.current.getBoundingClientRect();
+    const v = viewportRef.current;
+    const left = (node.x - node.width / 2) * v.zoom + v.x;
+    const right = (node.x + node.width / 2) * v.zoom + v.x;
+    const top = (node.y - node.height / 2) * v.zoom + v.y;
+    const bottom = (node.y + node.height / 2) * v.zoom + v.y;
+    const visible = left >= 24 && right <= rect.width - 24 && top >= 24 && bottom <= rect.height - 24;
+    lastCentreToken.current = focusToken;
+    if (visible) return;
+    const targets = focusNodeIds.map((id) => nodesById.get(id)).filter(Boolean);
+    if (targets.length === 0) targets.push(node);
     const minX = Math.min(...targets.map((n) => n.x - n.width / 2));
     const maxX = Math.max(...targets.map((n) => n.x + n.width / 2));
     const minY = Math.min(...targets.map((n) => n.y - n.height / 2));
@@ -250,13 +249,19 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
     const spanX = Math.max(1, maxX - minX);
     const spanY = Math.max(1, maxY - minY);
     const zoom = Math.max(0.4, Math.min(1.4, Math.min((rect.width - 48) / spanX, (rect.height - 96) / spanY)));
-    setViewport({
+    const next = {
       x: rect.width / 2 - ((minX + maxX) / 2) * zoom,
       y: rect.height / 2 - ((minY + maxY) / 2) * zoom,
       zoom,
-    });
-  }, [focusNodeIds, focusToken, nodesById]);
-
+    };
+    viewportRef.current = next;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce) setSelectionPanning(true);
+    setViewport(next);
+    if (reduce) return;
+    const timer = setTimeout(() => setSelectionPanning(false), 320);
+    return () => clearTimeout(timer);
+  }, [selectionId, focusToken, focusNodeIds, nodesById]);
   const ownershipEdges = useMemo(() => {
     if (!graph) return [];
     return graph.edges
@@ -269,6 +274,7 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
       })
       .filter(Boolean);
   }, [graph, nodesById]);
+
 
   const dependencyEdges = useMemo(() => {
     if (!graph) return [];
@@ -378,7 +384,7 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
   };
 
   return html`
-    <section class=${clsx("graph-canvas", panState && "panning")}
+    <section class=${clsx("graph-canvas", panState && "panning", selectionPanning && "selection-panning")}
              onPointerDown=${onPointerDown} onPointerMove=${onPointerMove}
              onPointerUp=${onPointerUp} onPointerCancel=${onPointerUp}
              onWheel=${onWheel} aria-label="Architecture map">
@@ -424,15 +430,16 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
             const isSelected = selection && selection.id === n.id;
             const isHovered = hoveredId === n.id;
             const findingSeverity = nodeSeverity.get(n.id) || null;
+            const dimmed = Boolean(selection) && !isSelected;
             if (n.kind === "system")
               return html`<${SystemNode} key=${n.id} node=${n}
-              selected=${isSelected} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
+              selected=${isSelected} dimmed=${dimmed} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
             if (n.kind === "container")
               return html`<${ContainerNode} key=${n.id} node=${n}
-              selected=${isSelected} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
+              selected=${isSelected} dimmed=${dimmed} findingSeverity=${findingSeverity} onSelect=${(nd) => onSelect(nd.id)}/>`;
             if (n.kind === "divider") return html`<${DividerNode} key=${n.id} node=${n}/>`;
             return html`<${ModuleNode} key=${n.id} node=${n}
-              selected=${isSelected} hovered=${isHovered}
+              selected=${isSelected} hovered=${isHovered} dimmed=${dimmed}
               findingSeverity=${findingSeverity}
               onSelect=${(nd) => onSelect(nd.id)}
               onHover=${onHover}
@@ -453,13 +460,26 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
 
       <${Minimap} graph=${graph} selection=${selection} onSelect=${onSelect}/>
 
-      <div class="graph-legend">
-        <span class="sw synced"></span> synced
-        <span class="sep"></span>
-        <span class="sw planned"></span> planned
-        <span class="sep"></span>
-        <span class="sw orphaned"></span> orphaned
+      <div class="graph-legend" aria-label=${copy("webui.legend-label")}>
+        <div class="legend-item">
+          <span class="legend-sample selection"></span>
+          <span class="legend-text">${copy("webui.legend.selection")}</span>
+        </div>
+        <span class="legend-sep"></span>
+        <div class="legend-item">
+          <span class="legend-sample keel sw synced"></span>
+          <span class="legend-text">${copy("webui.legend.synced")}</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-sample keel sw planned"></span>
+          <span class="legend-text">${copy("webui.legend.planned")}</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-sample keel sw orphaned"></span>
+          <span class="legend-text">${copy("webui.legend.orphaned")}</span>
+        </div>
       </div>
+
     </section>
   `;
 }

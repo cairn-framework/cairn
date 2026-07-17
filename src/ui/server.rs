@@ -109,6 +109,9 @@ impl Server {
             "/assets/graph-canvas.js" => {
                 asset("application/javascript; charset=utf-8", GRAPH_CANVAS_JS)
             }
+            "/assets/canvas-chrome.js" => {
+                asset("application/javascript; charset=utf-8", CANVAS_CHROME_JS)
+            }
             "/assets/decision-detail.js" => {
                 asset("application/javascript; charset=utf-8", DECISION_DETAIL_JS)
             }

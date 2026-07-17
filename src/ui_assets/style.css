@@ -461,6 +461,7 @@ kbd {
 .graph-canvas {
   position: relative;
   overflow: hidden;
+  container-type: inline-size;
   background: var(--stone-1);
   cursor: grab;
   touch-action: none;
@@ -498,6 +499,16 @@ kbd {
   position: absolute;
   inset: 0;
   pointer-events: all;
+}
+
+.graph-canvas.selection-panning .graph-svg > g {
+  transition: transform var(--dur-settle) var(--ease-settle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-canvas.selection-panning .graph-svg > g {
+    transition: none;
+  }
 }
 
 .graph-svg text {
@@ -711,7 +722,7 @@ kbd {
 .graph-legend {
   position: absolute;
   bottom: var(--s-4);
-  right: calc(420px + var(--s-4));
+  right: var(--s-4);
   display: flex;
   align-items: center;
   gap: var(--s-3);
@@ -728,32 +739,79 @@ kbd {
   z-index: 3;
 }
 
-.graph-legend .sw {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+/* The centred minimap (max 320px) and the right-anchored legend share the
+   bottom row; the legend needs roughly 360px, so they collide once the
+   canvas cell is narrower than about 1080px. Key the stacking on the
+   canvas's own width (it varies with the inspector, not the viewport),
+   with a viewport fallback for engines without container queries. */
+@container (max-width: 1080px) {
+  .graph-legend {
+    bottom: calc(var(--s-4) + 44px);
+  }
 }
 
-.graph-legend .sw.synced {
-  background: var(--synced);
+@media (max-width: 900px) {
+  .graph-legend {
+    bottom: calc(var(--s-4) + 44px);
+  }
 }
 
-.graph-legend .sw.ghost {
-  background: var(--ghost);
+.graph-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
 }
 
-.graph-legend .sw.orphaned {
-  background: var(--orphaned);
+.graph-legend .legend-text {
+  white-space: nowrap;
 }
 
-.graph-legend .sw.planned {
-  background: var(--planned);
-}
-
-.graph-legend .sep {
+.graph-legend .legend-sep {
   width: 1px;
   height: 14px;
   background: var(--seam-thin);
+}
+
+/* Sample chips mirror the canvas node encodings so the legend is
+   self-explanatory. The same non-colour channels carry state:
+   solid left keel = synced, dashed left keel = planned (declared, absent),
+   amber keel + a tilted mark = orphaned, solid ring = selection. */
+.graph-legend .legend-sample {
+  width: 22px;
+  height: 14px;
+  border-radius: var(--r-edge);
+  border: 1px solid var(--seam-thin);
+  background: var(--stone-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.graph-legend .legend-sample.keel.synced {
+  border-left: 3px solid var(--synced);
+}
+
+.graph-legend .legend-sample.keel.planned {
+  border-left: 3px dashed var(--planned);
+}
+
+
+.graph-legend .legend-sample.keel.orphaned {
+  border-left: 3px solid var(--prov-1);
+}
+
+.graph-legend .legend-sample.keel.orphaned::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  width: 8px;
+  height: 2px;
+  background: var(--prov-1);
+  transform: rotate(-20deg);
+}
+
+.graph-legend .legend-sample.selection {
+  border: 1.5px solid var(--prov-1);
 }
 
 .graph-minimap {
@@ -791,12 +849,9 @@ kbd {
   background: var(--synced);
 }
 
-.mini-dot.ghost {
-  background: var(--ghost);
-}
 
 .mini-dot.orphaned {
-  background: var(--orphaned);
+  background: var(--prov-1);
 }
 
 .mini-dot.planned {
@@ -880,7 +935,53 @@ kbd {
 }
 
 .canvas-node.dimmed {
-  opacity: 0.35;
+  opacity: 0.5;
+}
+
+/* Selection: unmistakable emphasis. The selected node keeps full
+   opacity (DNA principle 5: focus, never hide) and gets a strong
+   carved stroke plus a solid survey-marker ring drawn in JS
+   (.selection-marker). Non-selected nodes dim to readable only. */
+.canvas-node.selected {
+  opacity: 1;
+}
+
+.canvas-node.selected .module-body,
+.canvas-node.selected .system-body,
+.canvas-node.selected .container-body {
+  stroke: var(--seam-carved);
+}
+
+/* State keel: a 3px left edge on every module card. Solid signal
+   marks synced (declared, healthy); a hollow dashed bar marks
+   planned (declared, absent); amber marks orphaned, which is
+   also carried by the tilted label so the state never rides on colour
+   alone (DNA principle 4). */
+.canvas-node .state-keel {
+  fill: var(--synced);
+}
+
+.canvas-node.state-planned .state-keel {
+  fill: none;
+  stroke: var(--planned);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.canvas-node.state-orphaned .state-keel {
+  fill: var(--prov-1);
+}
+
+
+/* Selection marker is a solid outer ring (survey/benchmark cue),
+   deliberately NOT dashed: dashed/double is the ghost shape channel,
+   so a dashed ring would conflate selection with ghost state. */
+.canvas-node .selection-marker {
+  fill: none;
+  stroke: var(--prov-1);
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+  pointer-events: none;
 }
 
 /* Reconciliation settle: applied once on first render or on state change.
@@ -898,7 +999,7 @@ kbd {
   animation: recon-settle var(--dur-settle) var(--ease-settle) both;
 }
 
-/* Drift breathe: ghost / orphaned nodes pulse subtly */
+/* Drift breathe: error / warning / orphaned nodes pulse subtly */
 @keyframes drift-breathe {
   0%,
   100% {
@@ -2521,9 +2622,6 @@ button.path-row:hover {
     right: 360px;
   }
 
-  .graph-legend {
-    right: calc(360px + var(--s-4));
-  }
 }
 
 @media (max-width: 860px) {

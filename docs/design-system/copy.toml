@@ -308,6 +308,11 @@ findings-open = "Open the findings drawer"
 chain-coach-body = "Each node is the hinge between provenance evidence on the left and authority rules on the right."
 chain-coach-dismiss = "Got it"
 minimap-label = "Map node overview"
+legend-label = "Canvas state key"
+legend.selection = "Selected"
+legend.synced = "Synced"
+legend.planned = "Planned"
+legend.orphaned = "Orphaned"
 
 # -- Webui: report an issue ----------------------------------------------
 [webui.report]

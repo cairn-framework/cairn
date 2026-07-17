@@ -78,6 +78,7 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
         "layout.js",
         "top-bar.js",
         "graph-canvas.js",
+        "canvas-chrome.js",
         "inspector.js",
         "findings-panel.js",
         "decision-detail.js",
