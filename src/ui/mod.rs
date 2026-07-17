@@ -247,8 +247,96 @@ mod tests {
         fs,
         io::Read,
         net::TcpStream,
-        time::{SystemTime, UNIX_EPOCH},
+        time::{Duration, SystemTime, UNIX_EPOCH},
     };
+
+    #[test]
+    fn test_ui_project_load_failure_returns_diagnostic() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("project-load-failure")?;
+        write_project(&root)?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            "System App \"desc\" id \"app\" {\n",
+        )?;
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let response = request(server.address(), "GET", "/api/graph")?;
+
+        server.stop();
+
+        assert!(response.head.contains("500 Internal Server Error"));
+        assert!(
+            response
+                .body
+                .contains("\"code\":\"CAIRN_UI_PROJECT_LOAD_FAILED\"")
+        );
+        assert!(response.body.contains("cairn.blueprint"));
+        assert!(response.body.contains("expected"));
+
+        Ok(())
+    }
+
+    /// Scenario: the boot banner surfaces the server's structured error.
+    /// The frontend runs only in a browser, so this locks the source-level
+    /// contract the same way the phase 7.7 explorer tests do: fetchJson
+    /// must extract `code: message` from a JSON error body and keep the
+    /// generic message for non-JSON bodies.
+    #[test]
+    fn test_ui_fetch_json_surfaces_structured_error_body() {
+        let js = UTILS_JS;
+        assert!(
+            js.contains("`${body.code}: ${body.message}`"),
+            "fetchJson must surface the structured code and message from an error body"
+        );
+        assert!(
+            js.contains("request failed: ${url} (${response.status})"),
+            "fetchJson must keep the generic message as the non-JSON fallback"
+        );
+        assert!(
+            js.contains("typeof body.code === \"string\""),
+            "fetchJson must only trust a well-formed structured error body"
+        );
+    }
+
+    #[test]
+    fn test_ui_project_load_failure_serves_cached_scan() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("project-load-cache")?;
+        write_project(&root)?;
+        let blueprint_path = root.join("cairn.blueprint");
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: blueprint_path.clone(),
+        })?;
+
+        let first = request(server.address(), "GET", "/api/graph")?;
+        assert!(first.head.contains("200 OK"));
+        assert!(first.body.contains("\"nodes\""));
+
+        // The reload decision compares file mtimes; rewrite until the
+        // timestamp provably differs so the failing-reload path is
+        // exercised even on coarse-resolution filesystems.
+        let original_mtime = fs::metadata(&blueprint_path)?.modified()?;
+        loop {
+            fs::write(&blueprint_path, "System App \"desc\" id \"app\" {\n")?;
+            if fs::metadata(&blueprint_path)?.modified()? != original_mtime {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        let second = request(server.address(), "GET", "/api/graph")?;
+
+        server.stop();
+
+        assert!(second.head.contains("200 OK"));
+        assert!(second.body.contains("\"nodes\""));
+
+        Ok(())
+    }
 
     #[test]
     fn test_ui_route_dispatch_and_content_types() -> Result<(), Box<dyn Error>> {
