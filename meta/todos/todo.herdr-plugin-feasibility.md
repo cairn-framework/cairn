@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-17
 ---
 # Herdr Plugin Feasibility
