@@ -1,4 +1,4 @@
-/* cairn:allow-large-module reason: temporary exemption until todo.webui-feature-module-split */
+/* cairn:allow-large-module reason: section-scoped monolith chosen by todo.webui-feature-module-split; sections are the module boundaries and a split would trade one hotspot for import churn */
 /* ==========================================================================
    Cairn webui v2 stylesheet.
 
