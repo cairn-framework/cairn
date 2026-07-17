@@ -417,6 +417,10 @@ kbd {
 .blueprint-trigger .caps {
   color: var(--auth-2);
 }
+/* Full report label shows on desktop; the short variant is phone-only. */
+.report-short {
+  display: none;
+}
 
 .avatar {
   width: 32px;
@@ -1868,11 +1872,6 @@ button.path-row:hover {
 .findings-link:hover {
   color: var(--ink-char);
 }
-.findings-link-count {
-  margin-left: auto;
-  color: var(--drift);
-  font-family: var(--font-mono);
-}
 
 /* Decision detail */
 .decision-detail .ins-eyebrow {
@@ -2797,6 +2796,16 @@ button.path-row:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  /* Phone width: collapse the report chip to its short label so the brand,
+     search, and actions all fit 390px without wrapping or clipping. The full
+     label stays available as the button's title attribute. */
+  .report-full {
+    display: none;
+  }
+
+  .report-short {
+    display: inline;
   }
 
   .avatar {

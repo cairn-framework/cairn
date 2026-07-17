@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: in_progress
+status: done
 created: 2026-07-03
 ---
 

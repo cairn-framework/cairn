@@ -80,8 +80,9 @@ function TopBar({ graph, lint, selection, nodesById, onClear, onOpenCmd, onOpenB
         </button>
       </div>
       <div class="topbar-right">
-        <button class="blueprint-trigger" onClick=${() => openReportIssue(version)} title="Report an issue">
-          <span class="caps">${copy("webui.report.topbar")}</span>
+        <button class="blueprint-trigger" onClick=${() => openReportIssue(version)} title=${copy("webui.report.topbar")}>
+          <span class="caps report-full">${copy("webui.report.topbar")}</span>
+          <span class="caps report-short">${copy("webui.report.topbar_short")}</span>
         </button>
         <button class="blueprint-trigger blueprint-open-trigger" onClick=${onOpenBlueprint} title="View blueprint source">
           <span class="caps">.blueprint</span>
