@@ -2,4 +2,4 @@ blank_issues_enabled: true
 contact_links:
   - name: Feedback (cairn feedback)
     url: https://github.com/cairn-framework/cairn/blob/main/README.md#feedback
-    about: The `cairn feedback "<msg>"` command and the crash/webui report links open a blank issue prefilled for you. This is why blank issues stay enabled.
+    about: Prints a prefilled blank-issue link for freeform feedback. Crash and webui report links use the bug report template instead. Blank issues stay enabled for feedback.

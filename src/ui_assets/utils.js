@@ -112,8 +112,14 @@ function percentEncodeId(id) {
 const ISSUE_BASE = "https://github.com/cairn-framework/cairn/issues/new";
 
 function openReportIssue(version) {
-  const body = encodeURIComponent(`cairn ${version || "unknown"} webui`);
-  window.open(`${ISSUE_BASE}?labels=feedback&title=&body=${body}`, "_blank", "noopener");
+  const safeVersion = version || "unknown";
+  const whatHappened = `cairn ${safeVersion} webui: `;
+  const query = [
+    "template=bug-report.yml",
+    `version=${encodeURIComponent(safeVersion)}`,
+    `what-happened=${encodeURIComponent(whatHappened)}`,
+  ].join("&");
+  window.open(`${ISSUE_BASE}?${query}`, "_blank", "noopener");
 }
 
 async function fetchJson(url, options) {
