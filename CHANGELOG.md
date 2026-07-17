@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.5.0
+
+### One queue vocabulary
+
+- `cairn status --json`, `next --json`, and `remediate --json` all emit one shared work-item projection: {source: finding|todo|bead, title, node, command, rank}. Query and webui `schema_version` bump to 3 (#398).
+- Wire shapes gain machine-checkable definitions under `schemas/` (map, finding, work-item), validated in tests against both freshly built snapshots and the committed map.json; every registry response label must resolve to a schema or a documented allowlist entry (#398).
+
+### Modularity guardrails
+
+- The 500-line file-size gate covers JavaScript and CSS sources wherever the blueprint claims them: claimed directories and files are discovered from cairn.blueprint path declarations (list forms included, malformed declarations fail closed) and walked live, with JS/CSS allow-marker protocols (#395, #396).
+- New CAIRN_MODULE_OVERSIZED scan finding mirrors the shell gate inside cairn itself: node-claimed rs/js/css files over 500 lines surface in scan, lint, and remediate (split_module action), honouring the same markers (#399).
+- The webui monolith is split: app.js (2013 lines) becomes a 305-line composition root plus nine feature modules, all under the gate, served as native ES modules from the single binary with byte-identical wire output (#401).
+
+### Provenance hygiene
+
+- The two comparative research analyses anchor into the decision chain via topic-scoped decisions (dec.locate-result-semantics, dec.finding-coverage-strategy), clearing the standing orphan-research findings (#394).
+
+### Fixes
+
+- File-size gate fixture roots are collision-free under parallel test runs (#397).
 ## v0.4.0
 
 ### Agent navigation
