@@ -2680,8 +2680,17 @@ button.path-row:hover {
   .blueprint-trigger,
   .cmd-trigger,
   .graph-zoom .reset,
+  .coach-mark-dismiss,
   .drawer-handle {
     min-height: 44px;
+  }
+
+  /* The minimap's per-node dots are 4px wide: purely a pointer affordance.
+     On touch layouts they cannot meet the 44px tap minimum without
+     mis-targeting neighbouring nodes, so the minimap steps aside and the
+     canvas itself carries navigation. */
+  .graph-minimap {
+    display: none;
   }
 
   .graph-zoom {
