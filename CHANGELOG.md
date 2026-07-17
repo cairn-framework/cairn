@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.7.0
+
+### Webui trust and resilience
+
+- Project-load failures now reach the map error banner with their structured diagnosis instead of the generic `/api/graph (500)` message. The terminal logs failures, and a failed mid-session reload serves the last successful cached scan rather than taking down every API route (#416).
+- The webui report action and crash hook open the structured bug-report form with useful context. Freeform `cairn feedback` links remain blank issues by design (#418).
+- The private webui wire moves to schema v4: map metadata carries the server-owned time of the successful scan currently being served, so the clean findings drawer can report honest freshness and offer a copyable `cairn scan` next step (#421).
+
+### Calibrated Instrument direction
+
+- Canvas state vocabulary implements `dec.webui-design-direction`: unmistakable selection, calm readable de-emphasis, offscreen neighbourhood framing, and shape-backed state keels (solid synced, hollow dashed planned, amber tilted orphaned). The legend explains the encodings, and the canvas chrome is split into sub-500-line modules (#419).
+- Dead ends become guidance: clean findings show freshness plus a next command, and palette results expose accurate Enter hints with combobox/listbox semantics (#421).
+- Project counts have one canonical home in the topbar; the inspector keeps only map-health and node-scoped detail. Phone-width report copy is shorter without losing its accessible name or 44px target (#422).
+- The deterministic webui harness is back at `ux_defect_score=0`: touch layouts hide the pointer-sized minimap and give the coach-mark dismiss action a full tap target (#420).
+
 ## v0.6.0
 
 ### Live operational surface
@@ -162,7 +177,7 @@ This release contains breaking CLI changes: old subcommand names were folded int
 - Prebuilt release binaries for macOS (arm64, x86_64) and Linux (x86_64, arm64) via a one-line shell installer; `cairn`, `cairn-mcp`, and `cairn-lsp` all ship in each release tarball.
 - Removed the Graphite (`gt`) workflow integration (no longer used): deleted `docs/agent/graphite.md`, dropped the CLAUDE.md Graphite section, and replaced the `gt` commands in the dev-workflow and `cairn-loop` PR steps with plain git + `gh`. PRs now go through standard GitHub against the `main` trunk.
 
-## v0.7
+## Legacy spec milestone v0.7 (pre-package release)
 
 - Renamed the authored architecture file from `.dsl` to `.blueprint`, with `cairn.blueprint` as the canonical default.
 - Renamed user-facing ontology terminology to map terminology across docs, CLI-facing prose, specs, and Rust API surfaces.
