@@ -310,15 +310,6 @@ function nodeSeverityById(lint) {
   return map;
 }
 
-// Extracts the code-family prefix used for category filter chips.
-// For alphanumeric codes (e.g. "CT001"): returns the letter prefix ("CT").
-// For underscore codes (e.g. "CAIRN_SOURCE_UNVERIFIED"): returns the first segment ("CAIRN").
-function findingFamily(code) {
-  const match = code.match(/^([A-Z]+)\d/);
-  if (match) return match[1];
-  return code.split("_")[0];
-}
-
 export {
   preactReady,
   h,
@@ -360,5 +351,4 @@ export {
   displayState,
   severityPill,
   nodeSeverityById,
-  findingFamily,
 };

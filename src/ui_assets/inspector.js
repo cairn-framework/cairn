@@ -2,7 +2,7 @@
  * (blueprint card, prose-nudge banner, artefact sections) plus the
  * map-overview empty state shown when nothing is selected.
  */
-import { balanceFromCount, CopyButton, clsx, copy, copyFinding, displayState, fillPercent, highlightBlueprint, html, pickNudgeFinding, severityPill, substituteCopy, truncate, useMemo, useState } from "./utils.js";
+import { balanceFromCount, CopyButton, clsx, copy, copyFinding, displayState, Fragment, fillPercent, highlightBlueprint, html, pickNudgeFinding, severityPill, substituteCopy, truncate, useMemo, useState } from "./utils.js";
 
 // ==========================================================================
 // Inspector building blocks
@@ -143,6 +143,7 @@ function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onVie
   const authCount = (contracts?.length || 0) + (decisions?.length || 0);
   const prov = balanceFromCount(provCount);
   const auth = balanceFromCount(authCount);
+  const artefactCount = (contracts?.length || 0) + (decisions?.length || 0) + (todos?.length || 0) + (beads?.length || 0) + (research?.length || 0) + (sources?.length || 0) + (depends?.length || 0) + (dependents?.length || 0) + (symbols?.length || 0);
 
   const sortedDecisions = (decisions || []).slice().sort((a, b) => {
     const rank = (s) => (s === "proposed" ? 0 : s === "accepted" ? 1 : 2);
@@ -238,66 +239,64 @@ function ModuleInspector({ node, detail, lint, onSelect, onSelectDecision, onVie
         </div>
       </div>
 
-      <${Section} label="Contracts" count=${contracts?.length || 0}>
-        ${(contracts || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-contracts.body")}</div>` : (contracts || []).map((c) => html`<${ArtefactCard} key=${c.path} artefact=${c}/>`)}
-      <//>
-
-      <${Section} label="Decisions" count=${decisions?.length || 0} defaultOpen=${sortedDecisions.length > 0}>
-        ${
-          sortedDecisions.length === 0
-            ? html`<div class="row-empty">${copy("empty-states.node-no-decisions.body")}</div>`
-            : sortedDecisions.map(
-                (d) => html`
-              <button class=${clsx("artefact", "decision", d.status ?? d.frontmatter?.status ?? "accepted")}
-                key=${d.path} onClick=${() => onSelectDecision(d)}>
-                <div class="artefact-head">
-                  <span class="artefact-id">decision</span>
-                  <span class=${clsx("artefact-status", d.status ?? d.frontmatter?.status ?? "accepted")}>
-                    ${d.status ?? d.frontmatter?.status ?? "accepted"}
-                  </span>
-                </div>
-                <div class="artefact-title">${d.title || d.path}</div>
-                <div class="artefact-meta">${d.path}</div>
-              </button>
-            `,
-              )
-        }
-      <//>
-
-      <${Section} label="Todos" count=${todos?.length || 0}>
-        ${(todos || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-todos.body")}</div>` : (todos || []).map((t) => html`<${ArtefactCard} key=${t.path} artefact=${t}/>`)}
-      <//>
-
-      <${Section} label="Beads" count=${beads?.length || 0}>
-        ${(beads || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-beads.body")}</div>` : (beads || []).map((b) => html`<${BeadCard} key=${b.id} bead=${b}/>`)}
-      <//>
-
-      <${Section} label="Research" count=${research?.length || 0}>
-        ${(research || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-research.body")}</div>` : (research || []).map((r) => html`<${ArtefactCard} key=${r.path} artefact=${r}/>`)}
-      <//>
-
-      <${Section} label="Sources" count=${sources?.length || 0}>
-        ${(sources || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-sources.body")}</div>` : (sources || []).map((s) => html`<${ArtefactCard} key=${s.path} artefact=${s}/>`)}
-      <//>
-
-      <${Section} label="Depends on" count=${depends?.length || 0}>
-        ${(depends || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-outbound.body")}</div>` : (depends || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
-      <//>
-
-      <${Section} label="Dependents" count=${dependents?.length || 0}>
-        ${(dependents || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-inbound.body")}</div>` : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
-      <//>
-
-      <${Section} label="Symbols" count=${(symbols || []).length}>
-        ${(symbols || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-symbols.body")}</div>` : (symbols || []).map((s) => html`<div class="artefact-meta" key=${s.name + s.file}>${s.name} &middot; ${s.kind} &middot; ${s.file}:${s.line}</div>`)}
-      <//>
+      ${
+        artefactCount === 0
+          ? html`<div class="row-empty">${copy("empty-states.node-no-artefacts.body")}</div>`
+          : html`<${Fragment}>
+            <${Section} key=${`${node.id}:contracts`} label="Contracts" count=${contracts?.length || 0}>
+              ${(contracts || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-contracts.body")}</div>` : (contracts || []).map((c) => html`<${ArtefactCard} key=${c.path} artefact=${c}/>`)}
+            <//>
+            <${Section} key=${`${node.id}:decisions`} label="Decisions" count=${decisions?.length || 0} defaultOpen=${sortedDecisions.length > 0}>
+              ${
+                sortedDecisions.length === 0
+                  ? html`<div class="row-empty">${copy("empty-states.node-no-decisions.body")}</div>`
+                  : sortedDecisions.map(
+                      (d) => html`
+                    <button class=${clsx("artefact", "decision", d.status ?? d.frontmatter?.status ?? "accepted")}
+                      key=${d.path} onClick=${() => onSelectDecision(d)}>
+                      <div class="artefact-head">
+                        <span class="artefact-id">decision</span>
+                        <span class=${clsx("artefact-status", d.status ?? d.frontmatter?.status ?? "accepted")}>
+                          ${d.status ?? d.frontmatter?.status ?? "accepted"}
+                        </span>
+                      </div>
+                      <div class="artefact-title">${d.title || d.path}</div>
+                      <div class="artefact-meta">${d.path}</div>
+                    </button>
+                  `,
+                    )
+              }
+            <//>
+            <${Section} key=${`${node.id}:todos`} label="Todos" count=${todos?.length || 0}>
+              ${(todos || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-todos.body")}</div>` : (todos || []).map((t) => html`<${ArtefactCard} key=${t.path} artefact=${t}/>`)}
+            <//>
+            <${Section} key=${`${node.id}:beads`} label="Beads" count=${beads?.length || 0}>
+              ${(beads || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-beads.body")}</div>` : (beads || []).map((b) => html`<${BeadCard} key=${b.id} bead=${b}/>`)}
+            <//>
+            <${Section} key=${`${node.id}:research`} label="Research" count=${research?.length || 0}>
+              ${(research || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-research.body")}</div>` : (research || []).map((r) => html`<${ArtefactCard} key=${r.path} artefact=${r}/>`)}
+            <//>
+            <${Section} key=${`${node.id}:sources`} label="Sources" count=${sources?.length || 0}>
+              ${(sources || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-sources.body")}</div>` : (sources || []).map((s) => html`<${ArtefactCard} key=${s.path} artefact=${s}/>`)}
+            <//>
+            <${Section} key=${`${node.id}:depends`} label="Depends on" count=${depends?.length || 0}>
+              ${(depends || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-outbound.body")}</div>` : (depends || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
+            <//>
+            <${Section} key=${`${node.id}:dependents`} label="Dependents" count=${dependents?.length || 0}>
+              ${(dependents || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-inbound.body")}</div>` : (dependents || []).map((d) => html`<${DependencyRow} key=${d.id} entry=${d} onSelect=${onSelect}/>`)}
+            <//>
+            <${Section} key=${`${node.id}:symbols`} label="Symbols" count=${(symbols || []).length}>
+              ${(symbols || []).length === 0 ? html`<div class="row-empty">${copy("empty-states.node-no-symbols.body")}</div>` : (symbols || []).map((s) => html`<div class="artefact-meta" key=${s.name + s.file}>${s.name} &middot; ${s.kind} &middot; ${s.file}:${s.line}</div>`)}
+            <//>
+          <//>`
+      }
       `
       }
     </section>
   `;
 }
 
-function EmptyInspector({ graph, lint, onSelect, onShowFindings }) {
+function EmptyInspector({ graph, lint, onShowFindings, onOpenCmd }) {
   const nodes = graph ? graph.nodes : [];
   const modules = nodes.filter((n) => n.kind === "module");
   const total = modules.length;
@@ -312,6 +311,11 @@ function EmptyInspector({ graph, lint, onSelect, onShowFindings }) {
         ${graph ? `${graph.nodes.length} nodes · ${graph.edges.length} edges · ${lint?.findings?.length ?? 0} findings` : ""}
       </div>
       ${graph?.nodes[0]?.description ? html`<p class="ins-desc">${graph.nodes[0].description}</p>` : null}
+
+      <button class="overview-action" onClick=${onOpenCmd}>
+        <span>${copy("webui.overview-action")}</span>
+        <span class="overview-action-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
+      </button>
 
       <div class="stat-grid">
         <div class="stat-cell">
@@ -330,32 +334,16 @@ function EmptyInspector({ graph, lint, onSelect, onShowFindings }) {
 
       ${
         lint?.findings && lint.findings.length > 0
-          ? html`<div>
-            <div class="caps" style="margin-bottom:var(--s-2)">Recent findings</div>
-            <div class="recent-list">
-              ${lint.findings.slice(0, 5).map(
-                (f) => html`
-                <button class=${clsx("recent-row", `sev-${f.severity}`)} key=${f.code + (f.node || "") + (f.path || "")}
-                  onClick=${() => f.node && onSelect(f.node)}>
-                  <span class="r-id">${f.code}</span>
-                  <span class="recent-title">${f.message}</span>
-                  <span class=${clsx("pill", severityPill(f.severity))}>
-                    <span class="dot"></span>${f.severity}
-                  </span>
-                </button>
-              `,
-              )}
-            </div>
-            <button class="btn-text" style="margin-top:var(--s-2)" onClick=${onShowFindings}>View all findings →</button>
-          </div>`
+          ? html`<button class="findings-link" onClick=${onShowFindings}>
+            <span class="caps">${copy("webui.findings-label")}</span>
+            <span>${copy("webui.findings-open")}</span>
+            <span class="findings-link-count">${lint.findings.length}</span>
+          </button>`
           : html`<div class="row-empty">${copy("empty-states.map-clean.body")}</div>`
       }
 
-      <div class="hint">
-        <kbd>⌘</kbd><kbd>K</kbd> query the map. Click any stone to consult it.
-      </div>
     </section>
   `;
 }
 
-export { ModuleInspector, EmptyInspector };
+export { EmptyInspector, ModuleInspector };

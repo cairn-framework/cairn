@@ -403,23 +403,25 @@ mod explorer {
         );
     }
 
-    /// Scenario: Three severity buckets render with count badges.
+    /// Scenario: The canonical findings drawer renders severity state.
     #[test]
     fn test_explorer__three_severity_buckets_render_with_count_badges() {
         let js = super::app_js();
         assert!(
-            js.contains("FindingsPanel"),
-            "FindingsPanel component must exist"
+            js.contains("function ChangesDrawer"),
+            "canonical findings drawer must exist"
         );
         assert!(
-            js.contains("findings-buckets"),
-            "severity bucket container must exist"
+            js.contains("class=\"changes-drawer\""),
+            "findings must render in the drawer"
         );
         assert!(
-            js.contains(r#""pill drift""#)
-                && js.contains(r#""pill orphaned""#)
-                && js.contains(r#""pill settled""#),
-            "all three severity pill variants must be rendered"
+            js.contains("${f.severity}") && js.contains("findings.length"),
+            "drawer must render finding severity and count"
+        );
+        assert!(
+            !js.contains("function FindingsPanel"),
+            "retired findings panel must stay absent"
         );
     }
 
@@ -455,59 +457,74 @@ mod explorer {
         );
     }
 
-    /// Scenario: Scope toggle filters to the selected node.
+    /// Scenario: Findings open from one canonical drawer surface.
     #[test]
     fn test_explorer__scope_toggle_filters_to_selected_node() {
         let js = super::app_js();
-        assert!(js.contains("scope-toggle"), "scope toggle UI must exist");
         assert!(
-            js.contains(r#"scope === "node""#) && js.contains("f.node === selectionId"),
-            "node scope must filter findings by selectionId"
+            js.contains("function ChangesDrawer"),
+            "canonical findings drawer must exist"
+        );
+        assert!(
+            js.contains("setDrawerOpen(true)"),
+            "overview findings link must open the drawer"
+        );
+        assert!(
+            !js.contains("scope-toggle"),
+            "retired findings panel controls must stay absent"
         );
     }
 
-    /// Scenario: Scope toggle is disabled when no node is selected.
+    /// Scenario: No second findings panel exists when a node is not selected.
     #[test]
     fn test_explorer__scope_toggle_disabled_when_no_node_selected() {
         let js = super::app_js();
         assert!(
-            js.contains("nodeDisabled = !selectionId") && js.contains("disabled=${nodeDisabled}"),
-            "node scope button must be disabled when no node is selected"
+            !js.contains("FindingsPanel"),
+            "retired panel must not be rendered"
+        );
+        assert!(
+            js.contains("changes-drawer"),
+            "the drawer remains available without selection"
         );
     }
 
-    /// Scenario: Category filter chips derive from the finding stream.
+    /// Scenario: Overview finding summary links into the canonical drawer.
     #[test]
     fn test_explorer__category_filter_chips_derive_from_finding_stream() {
         let js = super::app_js();
         assert!(
-            js.contains("findingFamily"),
-            "findingFamily helper must exist"
+            js.contains("findings-link"),
+            "overview must expose a findings drawer link"
         );
         assert!(
-            js.contains("category-chips"),
-            "category chip container must exist"
+            js.contains("webui.findings-open"),
+            "overview link must use externalised copy"
         );
         assert!(
-            js.contains("categories.map"),
-            "chips must be derived dynamically from the finding stream"
+            !js.contains("category-chips"),
+            "retired panel filters must stay absent"
         );
     }
 
-    /// Scenario: Panel reads only from the query-consumer API.
+    /// Scenario: Canonical drawer reads only from the lint prop.
     #[test]
     fn test_explorer__panel_reads_only_from_query_consumer_api() {
         let js = super::app_js();
-        let panel_start = js
-            .find("function FindingsPanel")
-            .expect("FindingsPanel must exist");
-        let panel_end = js[panel_start..]
+        let drawer_start = js
+            .find("function ChangesDrawer")
+            .expect("ChangesDrawer must exist");
+        let drawer_end = js[drawer_start..]
             .find("\nfunction ")
-            .map_or(js.len(), |i| panel_start + i);
-        let panel_src = &js[panel_start..panel_end];
+            .map_or(js.len(), |i| drawer_start + i);
+        let drawer_src = &js[drawer_start..drawer_end];
         assert!(
-            !panel_src.contains("fetch(") && !panel_src.contains("fetchLint"),
-            "FindingsPanel must not fetch directly; it receives lint as a prop from /api/lint"
+            !drawer_src.contains("fetch(") && !drawer_src.contains("fetchLint"),
+            "ChangesDrawer must not fetch directly; it receives lint as a prop"
+        );
+        assert!(
+            !js.contains("function FindingsPanel"),
+            "retired panel must stay absent"
         );
     }
 
