@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: Phase 1 kernel integration tests share temp_root for every fixture, write_phase_2_fixture across artefact/status/context/todo scenarios, and write_change across status and hook-conflict scenarios; these helpers bind lexer-to-gate coverage into one end-to-end acceptance surface.
 //! Phase 1 kernel integration tests.
 
 use std::{
@@ -2181,9 +2182,9 @@ fn module_size_gate_emits_finding_for_oversized_module() -> Result<(), Box<dyn s
             f.code == "CAIRN_MODULE_OVERSIZED"
                 && f.node.as_deref() == Some("app.lib")
                 && f.path.as_deref() == Some("src/big.rs")
-                && f.severity == cairn::map::FindingSeverity::Info
+                && f.severity == cairn::map::FindingSeverity::Warning
         }),
-        "unmarked module over the 500-line limit must produce CAIRN_MODULE_OVERSIZED Info: {:?}",
+        "unmarked module over the 500-line limit must produce CAIRN_MODULE_OVERSIZED Warning: {:?}",
         result.graph.findings
     );
     Ok(())
@@ -2289,8 +2290,7 @@ fn module_size_gate_vendor_rust_still_emits_finding() -> Result<(), Box<dyn std:
 }
 
 #[test]
-fn module_size_gate_strict_does_not_block_on_info_finding() -> Result<(), Box<dyn std::error::Error>>
-{
+fn module_size_gate_strict_blocks_on_warning_finding() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("module-size-gate-strict")?;
     fs::create_dir_all(root.join("src"))?;
     let mut content = "// filler line\n".repeat(501);
@@ -2308,8 +2308,8 @@ fn module_size_gate_strict_does_not_block_on_info_finding() -> Result<(), Box<dy
 
     let stdout = String::from_utf8(output.stdout)?;
     assert!(
-        output.status.success(),
-        "cairn scan --strict must exit 0 on an Info-severity CAIRN_MODULE_OVERSIZED finding: {stdout}"
+        !output.status.success(),
+        "cairn scan --strict must exit non-zero on a Warning-severity CAIRN_MODULE_OVERSIZED finding: {stdout}"
     );
     assert!(
         stdout.contains("CAIRN_MODULE_OVERSIZED"),

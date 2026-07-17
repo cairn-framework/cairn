@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: Phase 10 distribution tests cover one packaging contract across plugin manifests, workspace extension-point loading, release metadata, and binary artifact checks; the shared package-layout assertions must remain together to catch drift between those outputs.
 //! Phase 10 Distribution acceptance-criterion tests.
 //!
 //! Tests covering plugin packaging, reconciler extension points, and release

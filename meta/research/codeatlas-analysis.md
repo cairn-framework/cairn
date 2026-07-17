@@ -106,7 +106,7 @@ Follow-up: bundled into `todo.agent-guidance-task-skills`.
 
 Cairn already measures text-output token efficiency (char-level
 measurement in `dec.context-edges`, non-growth tests in
-`output_token_efficiency.rs`, depth rollup in context rendering). The
+`output_token_efficiency_status_brief.rs`, depth rollup in context rendering). The
 uncovered surfaces are the JSON escape hatches: `cairn context --json`
 (deliberately unbounded), `cairn get --symbols --json`,
 `cairn neighbourhood --json`, and the map snapshot on a large brownfield

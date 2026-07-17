@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: Phase 7.6 provenance tests exercise one reader/schema contract across trace-sidecar versioning, stage-record round trips, suggested-edge queue validation, islands queries, and neighbourhood edge listings; each section depends on the same provenance field and version invariants.
 //! Phase 7.6 AI Provenance Foundation acceptance-criterion tests.
 //!
 //! Tests covering the cairn library schema and reader contracts for the
