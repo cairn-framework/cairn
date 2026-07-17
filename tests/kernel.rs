@@ -2160,3 +2160,160 @@ fn test_coverage_gate_no_test_coverage_tag_suppresses_finding()
     );
     Ok(())
 }
+
+// ── module-size gate integration tests ──────────────────────────────────────
+
+#[test]
+fn module_size_gate_emits_finding_for_oversized_module() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("module-size-gate-finding")?;
+    fs::create_dir_all(root.join("src"))?;
+    // 501 lines, no allow-list marker.
+    fs::write(root.join("src/big.rs"), "// filler line\n".repeat(501))?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    assert!(
+        result.graph.findings.iter().any(|f| {
+            f.code == "CAIRN_MODULE_OVERSIZED"
+                && f.node.as_deref() == Some("app.lib")
+                && f.path.as_deref() == Some("src/big.rs")
+                && f.severity == cairn::map::FindingSeverity::Info
+        }),
+        "unmarked module over the 500-line limit must produce CAIRN_MODULE_OVERSIZED Info: {:?}",
+        result.graph.findings
+    );
+    Ok(())
+}
+
+#[test]
+fn module_size_gate_allow_marker_suppresses_finding() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("module-size-gate-marker")?;
+    fs::create_dir_all(root.join("src"))?;
+    let mut content =
+        "// cairn:allow-large-module reason: fixture allow-marker suppression\n".to_owned();
+    content.push_str(&"// filler line\n".repeat(510));
+    fs::write(root.join("src/big.rs"), content)?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    let has_finding = result
+        .graph
+        .findings
+        .iter()
+        .any(|f| f.code == "CAIRN_MODULE_OVERSIZED");
+    assert!(
+        !has_finding,
+        "allow-marked oversized module must not be flagged: {:?}",
+        result.graph.findings
+    );
+    Ok(())
+}
+
+#[test]
+fn module_size_gate_vendor_path_skipped() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("module-size-gate-vendor")?;
+    fs::create_dir_all(root.join("src/vendor"))?;
+    // 501 lines, no marker, but under a vendor/ path segment claimed by the
+    // same node (real reconciler discovery, not a hand-built claims map).
+    fs::write(
+        root.join("src/vendor/big.js"),
+        "// filler line\n".repeat(501),
+    )?;
+    fs::write(
+        root.join("cairn.config.yaml"),
+        "targets:\n  - node: app.lib\n    path: ./src\n    language: assets\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    let node = result
+        .graph
+        .nodes
+        .get("app.lib")
+        .expect("app.lib must exist in the graph");
+    assert!(
+        node.files.iter().any(|f| f == "src/vendor/big.js"),
+        "sanity: node.lib must actually claim the vendor-pathed file: {:?}",
+        node.files
+    );
+    let has_finding = result
+        .graph
+        .findings
+        .iter()
+        .any(|f| f.code == "CAIRN_MODULE_OVERSIZED");
+    assert!(
+        !has_finding,
+        "vendor-pathed oversized file must be skipped: {:?}",
+        result.graph.findings
+    );
+    Ok(())
+}
+
+#[test]
+fn module_size_gate_vendor_rust_still_emits_finding() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("module-size-gate-vendor-rust")?;
+    fs::create_dir_all(root.join("src/vendor"))?;
+    // Rust remains checked under vendor/, matching the shell gate's unscoped
+    // $root/src -name '*.rs' loop.
+    fs::write(
+        root.join("src/vendor/big.rs"),
+        "// filler line\n".repeat(501),
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" @no-test-coverage @no-contract {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let result = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+
+    assert!(
+        result.graph.findings.iter().any(|f| {
+            f.code == "CAIRN_MODULE_OVERSIZED" && f.path.as_deref() == Some("src/vendor/big.rs")
+        }),
+        "vendor-pathed Rust file must still emit CAIRN_MODULE_OVERSIZED: {:?}",
+        result.graph.findings
+    );
+    Ok(())
+}
+
+#[test]
+fn module_size_gate_strict_does_not_block_on_info_finding() -> Result<(), Box<dyn std::error::Error>>
+{
+    let root = temp_root("module-size-gate-strict")?;
+    fs::create_dir_all(root.join("src"))?;
+    let mut content = "// filler line\n".repeat(501);
+    content.push_str("#[cfg(test)]\nmod tests {\n    #[test] fn t() {}\n}\n");
+    fs::write(root.join("src/big.rs"), content)?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"desc\" id \"app\" {\n    Module Lib \"lib\" id \"app.lib\" @no-contract {\n        path \"./src\"\n    }\n}\n",
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["scan", "--strict"])
+        .output()?;
+
+    let stdout = String::from_utf8(output.stdout)?;
+    assert!(
+        output.status.success(),
+        "cairn scan --strict must exit 0 on an Info-severity CAIRN_MODULE_OVERSIZED finding: {stdout}"
+    );
+    assert!(
+        stdout.contains("CAIRN_MODULE_OVERSIZED"),
+        "output must still name the finding: {stdout}"
+    );
+    Ok(())
+}

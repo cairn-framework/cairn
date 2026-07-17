@@ -76,6 +76,7 @@ All codes follow the pattern **`CXNNN`**:
 - CK028 -- Rust tree-sitter grammar failed to load (CAIRN_RECONCILE_RUST_LANGUAGE) -- pre-registry provenance unknown -- audited 2026-07-16
 - CK029 -- TypeScript tree-sitter grammar failed to load (CAIRN_RECONCILE_TYPESCRIPT_LANGUAGE) -- pre-registry provenance unknown -- audited 2026-07-16
 - CK030 -- workspace member's root or blueprint failed to load (CAIRN_WORKSPACE_MEMBER_MISSING) -- pre-registry provenance unknown -- audited 2026-07-16
+- CK031 -- claimed source/asset file exceeds the 500-line module-size guideline with no allow-list marker (CAIRN_MODULE_OVERSIZED) -- todo.modularity-scan-finding
 
 ## CA -- Artefacts
 

@@ -113,9 +113,11 @@ pub(crate) fn remediate_actions_raw(
     let mut has_research_issues = false;
     let mut has_order_issues = false;
     let mut has_gitignored_paths = false;
+    let mut has_oversized_modules = false;
     let mut summarise_nodes: Vec<String> = Vec::new();
     let mut decision_nodes: Vec<String> = Vec::new();
     let mut gitignored_nodes: Vec<String> = Vec::new();
+    let mut oversized_nodes: Vec<String> = Vec::new();
     for finding in &lint_response.findings {
         match finding.code.as_str() {
             "CAIRN_RECONCILE_ORPHANED_FILE" => has_orphans = true,
@@ -184,6 +186,14 @@ pub(crate) fn remediate_actions_raw(
             | "CAIRN_RECONCILE_LANGUAGE_UNKNOWN"
             | "CAIRN_RECONCILE_EMPTY_TARGET" => {
                 has_orphans = true;
+            }
+            "CAIRN_MODULE_OVERSIZED" => {
+                has_oversized_modules = true;
+                if let Some(node) = &finding.node
+                    && !oversized_nodes.contains(node)
+                {
+                    oversized_nodes.push(node.clone());
+                }
             }
             _ => {}
         }
@@ -333,6 +343,15 @@ pub(crate) fn remediate_actions_raw(
             "command": "cairn order",
             "description": "An ordering cycle was detected in the blueprint (dependency edges, or containment contradicting a dependency edge). Review and fix the conflicting edges.",
             "nodes": [],
+        }));
+    }
+    if has_oversized_modules {
+        actions.push(json!({
+            "priority": 4,
+            "action": "split_module",
+            "command": "cairn lint",
+            "description": "One or more claimed files exceed the 500-line module-size guideline with no allow-list marker. Split the module, or add a `cairn:allow-large-module reason: ...` marker as its first non-blank line.",
+            "nodes": oversized_nodes,
         }));
     }
     if actions.is_empty() {
