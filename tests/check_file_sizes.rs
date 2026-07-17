@@ -268,8 +268,15 @@ fn write_lines(
 }
 
 fn temp_root() -> Result<TempRoot, Box<dyn std::error::Error>> {
+    // Nanosecond clocks can collide when tests start in parallel threads, so
+    // a process-wide counter keeps every fixture root unique.
+    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let ordinal = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
-    let root = std::env::temp_dir().join(format!("cairn-file-sizes-{suffix}"));
+    let root = std::env::temp_dir().join(format!(
+        "cairn-file-sizes-{}-{suffix}-{ordinal}",
+        std::process::id()
+    ));
     fs::create_dir_all(&root)?;
     Ok(TempRoot(root))
 }
