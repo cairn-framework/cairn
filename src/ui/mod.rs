@@ -29,6 +29,7 @@ const UTILS_JS: &str = include_str!("../ui_assets/utils.js");
 const LAYOUT_JS: &str = include_str!("../ui_assets/layout.js");
 const TOP_BAR_JS: &str = include_str!("../ui_assets/top-bar.js");
 const GRAPH_CANVAS_JS: &str = include_str!("../ui_assets/graph-canvas.js");
+const CANVAS_CHROME_JS: &str = include_str!("../ui_assets/canvas-chrome.js");
 const DECISION_DETAIL_JS: &str = include_str!("../ui_assets/decision-detail.js");
 const COMMAND_PALETTE_JS: &str = include_str!("../ui_assets/command-palette.js");
 const BLUEPRINT_MODAL_JS: &str = include_str!("../ui_assets/blueprint-modal.js");

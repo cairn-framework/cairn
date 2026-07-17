@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: blocked
+status: in_progress
 created: 2026-07-03
 ---
 
@@ -44,3 +44,7 @@ vocabulary as motif), informed by `res.design-studio-greenfield` and
 This todo stays open (blocked) as the home for bet D tracking only: bet D
 (design-quality scorer) remains deferred and harness gated. Bets B and C
 shipped; bet A is resolved by the decision above.
+
+## Bet A implementation (2026-07-17)
+
+Bet A (graph canvas state legibility) implementation has started under `dec.webui-design-direction` (gh:#305): canvas selection emphasis, pan-to-selection, the module state keel, and an explained legend are being landed in dedicated worktrees. This todo stays `in_progress` as the home for bet D (design-quality scorer) tracking only.
