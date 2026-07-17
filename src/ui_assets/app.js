@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: temporary exemption until todo.webui-feature-module-split
 /* Cairn webui v2. Preact + htm, vendored runtime.
  *
  * All colors, spacing, radii, motion, and type come from docs/design-system/tokens.css.

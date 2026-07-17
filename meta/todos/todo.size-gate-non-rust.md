@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-15
 related: [todo.architecture-modularity-audit, todo.modularity-scan-finding, todo.ui-assets-blueprint-path]
 ---
@@ -44,3 +44,7 @@ are invisible, so the webui flagships grew to 2013 (`app.js`) and 2729
 Highest-ROI self-guardrail from the audit: low effort, would have caught the
 flagship drift automatically. Prefer landing this before or with the webui
 split so the exemption window is short.
+
+## Resolution
+
+Implemented 2026-07-17. `scripts/check-file-sizes.sh` now checks Rust, JavaScript, and CSS sources at 500 lines, excluding `src/ui_assets/vendor/`, with language-appropriate allow markers. The `app.js` exemption is temporary until `todo.webui-feature-module-split` removes it; that todo reviews the `style.css` exemption, which may legitimately remain for its section-scoped monolith. All file walks preserve whitespace-bearing paths and sort deterministically; the existing pre-archive invocation remains unchanged; Makefile and pre-commit have no additional invocation. Pinned Biome 2.4.4, full pre-archive gates, and strict scan passed.
