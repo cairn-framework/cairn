@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.6.0
+
+### Live operational surface
+
+- New `scripts/herdr-cairn-dashboard.py`: a dependency-free herdr pane process rendering cairn ground truth (findings by severity, backlog, next recommended step). Every snapshot re-derives `cairn lint --json` and `cairn status --json`, writes a verifiable sidecar with a refresh-marker handshake, and optionally renders an orchestrator-claims overlay under an explicit label. Documented in `docs/herdr-dashboard.md` (#407).
+- Research artefact `res.herdr-plugin-feasibility` probes herdr's real extension surface (pane processes, report-metadata/report-agent, watch versus poll versus MCP-wrapper event push) and records the recommended increment path (#405).
+
+### Wire contract hardening
+
+- The query API's outer response envelope gains a machine-checkable schema (`schemas/envelope.schema.json`), and `StatusResponse`/`RemediateResponse` move from ad-hoc JSON literals to typed serde structs with committed schemas and validation tests; the registry's unschema'd allowlist shrinks accordingly (#409).
+
+### Modularity enforcement
+
+- `CAIRN_MODULE_OVERSIZED` is promoted from Info to Warning: unmarked node-claimed source files over 500 lines now fail `cairn scan --strict`. The repository's seven oversized test suites were baselined first (six file-specific allow markers, one Part A/Part B split) (#408).
+
+### Webui
+
+- Phone-width graph navigation: two-row 390px topbar, pointer-event pan, pinch zoom with finger anchoring, enlarged node hit targets, and narrow-width edge-label decluttering with traced-edge reveal (#410).
+- Progressive disclosure: inspector artefact sections collapse by default (Decisions open when present) and zero-artefact nodes show one calm summary line; findings unify into the drawer as the single canonical surface; the chain banner becomes a dismissible first-session coach-mark; selecting a node frames its dependency neighbourhood; minimap dots gain labels and button semantics (#411).
+
 ## v0.5.0
 
 ### One queue vocabulary
