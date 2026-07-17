@@ -181,3 +181,16 @@ cairn onboard --json             # Suggest classifications for orphans
 - **Unstable**: Human-mode text output (not for machine parsing)
 
 Version the integration by checking `cairn --version`. Breaking changes to the JSON contract will bump the minor version.
+
+## Shape authority
+
+The committed JSON Schemas under `schemas/` are the authority for externally
+consumed wire shapes. `schemas/map.schema.json` defines the deterministic
+`map.json` snapshot, `schemas/finding.schema.json` defines the Finding shape
+shared by map/lint/watch payloads, and `schemas/work-item.schema.json` defines
+the `{source,title,node,command,rank}` projection shared by status, next, and
+remediate JSON. The schema drift and serialisation tests validate these files
+against the Rust types and dogfood output. Registry response-schema labels
+which do not yet have a dedicated full-envelope schema remain in the explicit
+burn-down allowlist tested against `TOOL_REGISTRY`; new labels cannot bypass
+that check.

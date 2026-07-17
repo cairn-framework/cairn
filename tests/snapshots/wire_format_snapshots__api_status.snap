@@ -5,13 +5,11 @@ expression: value
 {
   "active_changes": [],
   "next_recommended": {
-    "action": "add_decision",
     "command": "cairn change new <change-id>  // affected: app.core",
-    "description": "Blueprint changes require a recorded decision. Create a change directory with a decision artefact.",
-    "nodes": [
-      "app.core"
-    ],
-    "priority": 3
+    "node": "app.core",
+    "rank": 3,
+    "source": "finding",
+    "title": "Blueprint changes require a recorded decision. Create a change directory with a decision artefact."
   },
   "open_todos": [
     {
@@ -25,5 +23,5 @@ expression: value
   "recent_log_entries": [
     "- note: bootstrap log entry"
   ],
-  "schema_version": 2
+  "schema_version": 3
 }

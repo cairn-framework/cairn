@@ -210,12 +210,17 @@ fn render_status_json_includes_next_recommended_for_native_todo() {
         satisfies: None,
         body: "# Wire the thing".to_owned(),
     }]);
-    let rendered = render_status(&parsed(true), &scan, std::path::Path::new("."));
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(
+        dir.path().join("cairn.blueprint"),
+        "System App \"App\" id \"app\" {}\n",
+    )
+    .unwrap();
+    let rendered = render_status(&parsed(true), &scan, dir.path());
     let value: serde_json::Value = serde_json::from_str(&rendered).unwrap();
-    assert_eq!(
-        value["next_recommended"],
-        "Wire the thing (native todo, node: app)"
-    );
+    assert_eq!(value["next_recommended"]["source"], "todo");
+    assert_eq!(value["next_recommended"]["title"], "Wire the thing");
+    assert_eq!(value["next_recommended"]["node"], "app");
 }
 
 #[test]

@@ -1,0 +1,349 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MapSnapshot",
+  "description": "Committed machine-readable map snapshot. Deterministic: `BTreeMap` ordering, no timestamps.",
+  "type": "object",
+  "required": [
+    "edges",
+    "findings",
+    "interface_hash",
+    "nodes",
+    "schema_version"
+  ],
+  "properties": {
+    "edges": {
+      "description": "All dependency edges.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SnapshotEdge"
+      }
+    },
+    "findings": {
+      "description": "All findings from the scan.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Finding"
+      }
+    },
+    "interface_hash": {
+      "description": "Aggregate interface hash for this scan.",
+      "type": "string"
+    },
+    "nodes": {
+      "description": "Nodes in `BTreeMap` id order.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SnapshotNode"
+      }
+    },
+    "schema_version": {
+      "description": "Wire schema version, starts at 1.",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    }
+  },
+  "definitions": {
+    "Finding": {
+      "description": "Finding with stable code.",
+      "type": "object",
+      "required": [
+        "code",
+        "message",
+        "node",
+        "path",
+        "severity"
+      ],
+      "properties": {
+        "code": {
+          "description": "Stable finding code.",
+          "type": "string"
+        },
+        "message": {
+          "description": "Human-readable message.",
+          "type": "string"
+        },
+        "node": {
+          "description": "Optional node ID.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Optional file path.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "description": "Severity.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/FindingSeverity"
+            }
+          ]
+        },
+        "target": {
+          "description": "Optional target node ID or contract role.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "FindingSeverity": {
+      "description": "Integrity or reconciliation finding severity.",
+      "oneOf": [
+        {
+          "description": "Blocks successful lint/map validation.",
+          "type": "string",
+          "enum": [
+            "error"
+          ]
+        },
+        {
+          "description": "Advisory finding.",
+          "type": "string",
+          "enum": [
+            "warning"
+          ]
+        },
+        {
+          "description": "Informational nudge that does not block hooks or gates.",
+          "type": "string",
+          "enum": [
+            "info"
+          ]
+        }
+      ]
+    },
+    "SnapshotEdge": {
+      "description": "One dependency edge.",
+      "type": "object",
+      "required": [
+        "description",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "description": {
+          "description": "Edge description.",
+          "type": "string"
+        },
+        "from": {
+          "description": "Source node ID.",
+          "type": "string"
+        },
+        "to": {
+          "description": "Target node ID.",
+          "type": "string"
+        }
+      }
+    },
+    "SnapshotNode": {
+      "description": "One node's snapshot record.",
+      "type": "object",
+      "required": [
+        "contracts",
+        "files",
+        "id",
+        "kind",
+        "name",
+        "paths",
+        "state",
+        "symbols"
+      ],
+      "properties": {
+        "contracts": {
+          "description": "Contract pointers.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "files": {
+          "description": "Claimed files.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "description": "Stable node ID.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Lowercase node kind (`system`, `container`, `module`, `actor`).",
+          "type": "string"
+        },
+        "name": {
+          "description": "Human-readable name.",
+          "type": "string"
+        },
+        "paths": {
+          "description": "Declared paths.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "state": {
+          "description": "Lowercase reconciliation state (`synced`, `ghost`, `orphaned`).",
+          "type": "string"
+        },
+        "symbols": {
+          "description": "Extracted public symbols for this node.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SymbolRecord"
+          }
+        }
+      }
+    },
+    "SymbolKind": {
+      "description": "Language-agnostic symbol kind.",
+      "oneOf": [
+        {
+          "description": "Function or method.",
+          "type": "string",
+          "enum": [
+            "function"
+          ]
+        },
+        {
+          "description": "Struct.",
+          "type": "string",
+          "enum": [
+            "struct"
+          ]
+        },
+        {
+          "description": "Class.",
+          "type": "string",
+          "enum": [
+            "class"
+          ]
+        },
+        {
+          "description": "Enum.",
+          "type": "string",
+          "enum": [
+            "enum"
+          ]
+        },
+        {
+          "description": "Trait.",
+          "type": "string",
+          "enum": [
+            "trait"
+          ]
+        },
+        {
+          "description": "Interface.",
+          "type": "string",
+          "enum": [
+            "interface"
+          ]
+        },
+        {
+          "description": "Type alias.",
+          "type": "string",
+          "enum": [
+            "type"
+          ]
+        },
+        {
+          "description": "Constant.",
+          "type": "string",
+          "enum": [
+            "const"
+          ]
+        },
+        {
+          "description": "Static.",
+          "type": "string",
+          "enum": [
+            "static"
+          ]
+        },
+        {
+          "description": "Module.",
+          "type": "string",
+          "enum": [
+            "module"
+          ]
+        },
+        {
+          "description": "Union.",
+          "type": "string",
+          "enum": [
+            "union"
+          ]
+        },
+        {
+          "description": "Variable.",
+          "type": "string",
+          "enum": [
+            "variable"
+          ]
+        },
+        {
+          "description": "Any kind not covered above.",
+          "type": "string",
+          "enum": [
+            "other"
+          ]
+        }
+      ]
+    },
+    "SymbolRecord": {
+      "description": "One extracted public symbol with its source location.",
+      "type": "object",
+      "required": [
+        "end_line",
+        "file",
+        "kind",
+        "line",
+        "name",
+        "signature"
+      ],
+      "properties": {
+        "end_line": {
+          "description": "1-based end line.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "file": {
+          "description": "Repo-relative file path.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Symbol kind.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/SymbolKind"
+            }
+          ]
+        },
+        "line": {
+          "description": "1-based start line.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "name": {
+          "description": "Identifier name.",
+          "type": "string"
+        },
+        "signature": {
+          "description": "Normalised signature (same string that feeds the interface fingerprint).",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

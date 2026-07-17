@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WorkItem",
+  "description": "Stable presentation shape shared by next-action JSON surfaces.",
+  "type": "object",
+  "required": [
+    "command",
+    "node",
+    "rank",
+    "source",
+    "title"
+  ],
+  "properties": {
+    "command": {
+      "description": "Suggested command, when available.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "node": {
+      "description": "Related graph node, when available.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rank": {
+      "description": "Cross-source queue rank; lower ranks are more urgent.",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "source": {
+      "description": "Provenance category.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/WorkItemSource"
+        }
+      ]
+    },
+    "title": {
+      "description": "Human-readable title.",
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "WorkItemSource": {
+      "description": "The source category of a projected work item.",
+      "oneOf": [
+        {
+          "description": "An ephemeral finding remediation action.",
+          "type": "string",
+          "enum": [
+            "finding"
+          ]
+        },
+        {
+          "description": "A durable native todo artefact.",
+          "type": "string",
+          "enum": [
+            "todo"
+          ]
+        },
+        {
+          "description": "A read-only beads backlog item.",
+          "type": "string",
+          "enum": [
+            "bead"
+          ]
+        }
+      ]
+    }
+  }
+}

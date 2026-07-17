@@ -1,8 +1,14 @@
+// cairn:allow-large-module reason: JsonSchema helper and graph wire types remain cohesive
 //! In-memory map graph structures.
 
 use std::{collections::BTreeMap, error::Error, fmt};
 
 use crate::blueprint::{NodeKind, Span};
+use schemars::{r#gen::SchemaGenerator, schema::Schema};
+
+fn nullable_string_schema(generator: &mut SchemaGenerator) -> Schema {
+    generator.subschema_for::<Option<String>>()
+}
 
 /// Runtime state assigned during reconciliation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -17,7 +23,9 @@ pub enum NodeState {
 }
 
 /// Integrity or reconciliation finding severity.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum FindingSeverity {
     /// Blocks successful lint/map validation.
@@ -50,7 +58,9 @@ impl FindingSeverity {
 }
 
 /// Finding with stable code.
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 pub struct Finding {
     /// Stable finding code.
     pub code: String,
@@ -59,11 +69,13 @@ pub struct Finding {
     /// Human-readable message.
     pub message: String,
     /// Optional node ID.
+    #[schemars(required, schema_with = "nullable_string_schema")]
     pub node: Option<String>,
     /// Optional target node ID or contract role.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target: Option<String>,
     /// Optional file path.
+    #[schemars(required, schema_with = "nullable_string_schema")]
     pub path: Option<String>,
     /// Decision id this finding is deferred by, if any (set at the emission site).
     /// Skipped in `--json` so the wire format is unchanged.

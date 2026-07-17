@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: open
+status: in_progress
 created: 2026-07-16
 ---
 
@@ -39,3 +39,23 @@ change proposal (touches the external contract).
 ## Review note (2026-07-16)
 
 Adversarial backlog review verified the json!() saturation (~40 ad-hoc literals across src/query_api; only MapSnapshot is a proper serde struct) but REFUTED the keystone claim: next-recommended-unification step 1, change-read-surface, symbol-locate-query, and bundle-real-gates do not require this landing first. Disposition: defer (L effort, preventive hygiene); pursue after the converged S/M wins, not as a prerequisite.
+
+## Resolution
+
+2026-07-17: Component schemas for `MapSnapshot`, `Finding`, and the shared
+`WorkItem` projection landed, with schema validation/drift tests, the
+`TOOL_REGISTRY` response-label allowlist gate, integration-contract docs, and
+version-3 wire snapshots. The JSON-envelope increment remains open: registered
+`StatusResponse`, `RemediateResponse`, and other response envelopes remain on
+the explicit unschema'd allowlist. This todo stays `in_progress` until
+full-envelope schemas land and the allowlist is burned down.
+
+## Status
+
+2026-07-17: Component schemas for `MapSnapshot`, `Finding`, and the shared
+`WorkItem` projection landed, along with validation/drift tests and the
+`TOOL_REGISTRY` response-label allowlist gate. The JSON envelope increment
+remains open: the registered `StatusResponse`, `RemediateResponse`, and
+other response envelopes still use the explicit unschema'd allowlist rather
+than committed full-envelope schemas. Continue with envelope schema files
+and burn down the allowlist before marking this todo done.

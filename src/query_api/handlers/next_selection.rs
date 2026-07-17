@@ -4,7 +4,8 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
-use super::remediate::{health_json, remediate_json};
+use super::remediate::{health_json, remediate_actions_raw};
+use super::work_item::WorkItem;
 
 /// The next unit of work to recommend, per `dec.native-todos-first`:
 /// outstanding remediation findings take priority (returned as the top
@@ -66,11 +67,9 @@ pub(crate) fn select_next<'a>(
         .and_then(Value::as_bool)
         .unwrap_or(false);
     if !clean {
-        let action = remediate_json(root, changes_dir, scan_result)
-            .get("actions")
-            .and_then(Value::as_array)
-            .and_then(|actions| actions.first())
-            .cloned();
+        let action = remediate_actions_raw(root, changes_dir, scan_result)
+            .into_iter()
+            .next();
         return rank_next(false, action, None, None);
     }
     let todo = open_native_todos(scan_result).into_iter().next();
@@ -97,6 +96,34 @@ pub(crate) fn open_native_todos(scan_result: &scanner::ScanResult) -> Vec<&Todo>
         .collect();
     todos.sort_by(|a, b| a.created.cmp(&b.created).then_with(|| a.path.cmp(&b.path)));
     todos
+}
+
+/// Extracts a concise title from a markdown artefact body.
+pub(crate) fn decision_summary(body: &str) -> String {
+    let line = body
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .unwrap_or("");
+    let cleaned = line.trim_start_matches('#').trim();
+    if cleaned.chars().count() > 100 {
+        let truncated: String = cleaned.chars().take(97).collect();
+        format!("{truncated}...")
+    } else {
+        cleaned.to_owned()
+    }
+}
+
+/// Projects a resolved selection into the shared wire shape.
+pub(crate) fn work_item_for_selection(selection: &NextSelection<'_>) -> Option<WorkItem> {
+    match selection {
+        NextSelection::Dirty(action) => action
+            .as_ref()
+            .and_then(super::work_item::from_finding_action),
+        NextSelection::Clean(CleanItem::NativeTodo(todo)) => Some(WorkItem::from_todo(todo)),
+        NextSelection::Clean(CleanItem::Bead(bead)) => Some(WorkItem::from_bead(bead)),
+        NextSelection::Clean(CleanItem::None) => None,
+    }
 }
 
 #[cfg(test)]

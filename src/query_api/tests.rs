@@ -374,7 +374,8 @@ fn test_execute_status_includes_next_recommended() {
         .data
         .get("next_recommended")
         .expect("status json must include next_recommended");
-    assert_eq!(nr.get("id").and_then(Value::as_str), Some("cairn-aaa"));
+    assert_eq!(nr.get("source").and_then(Value::as_str), Some("bead"));
+    assert_eq!(nr.get("title").and_then(Value::as_str), Some("Do thing"));
     let _ = std::fs::remove_dir_all(&tmp);
 }
 

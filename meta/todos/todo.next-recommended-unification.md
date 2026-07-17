@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: in_progress
+status: done
 created: 2026-07-16
 ---
 
@@ -41,3 +41,13 @@ with a schema.
 Step 2 remains pending a change proposal. It would introduce a shared work-item projection across status, next, and remediate JSON and is explicitly out of scope for this unit.
 
 Review follow-up (2026-07-16): the `next_recommended` field now admits remediation-action and native-todo shapes where schema v1 only admitted the ready-bead/null contract, so per `dec.query-json-schema-version` `query_api::SCHEMA_VERSION` is bumped 1 -> 2. Verified `src/ui/server.rs` `spine_data` strips the query stamp and re-stamps `/api/status` with the independent `ui::SCHEMA_VERSION` constant, and that endpoint serves this same `status_json` payload, so per `dec.webui-json-schema-version` `ui::SCHEMA_VERSION` is bumped 1 -> 2 as well. Every `wire_format_snapshots__*.snap` fixture and the two literal `"schema_version":1` test assertions in `src/ui/mod.rs` were regenerated/updated to `2` accordingly; the snapshot diff is version-only for every endpoint except `api_status`, whose `next_recommended` content diff was already reviewed above.
+
+## Resolution
+
+2026-07-17: Step 2 landed in `work-item-projection`. `WorkItem` now
+projects finding actions, native todos, and beads to the shared
+`{source,title,node,command,rank}` shape across query `status`, CLI
+`status --json`, `next --json`, and `remediate --json`; human renderers
+remain unchanged. Findings remain ephemeral and todos durable. Query and
+webui schema stamps moved 2 -> 3, and wire snapshots were deliberately
+regenerated for the projection/version changes.
