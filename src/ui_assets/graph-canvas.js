@@ -2,9 +2,9 @@
  * nodes with ownership and dependency edges. Local viewport/pan state only.
  */
 
+import { ChainCoachMark, Minimap } from "./canvas-chrome.js";
 import { edgeMidpoint, ownershipPath } from "./layout.js";
 import { balanceFromCount, clsx, copy, displayState, html, nodeSeverityById, truncate, useEffect, useMemo, useRef, useState } from "./utils.js";
-import { ChainCoachMark, Minimap } from "./canvas-chrome.js";
 
 function SystemNode({ node, selected, onSelect, dimmed, findingSeverity }) {
   const d = node.data;
@@ -14,11 +14,7 @@ function SystemNode({ node, selected, onSelect, dimmed, findingSeverity }) {
        transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
        onClick=${() => onSelect(node)} data-kind="system">
       <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
-      ${
-        selected
-          ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="9"/>`
-          : null
-      }
+      ${selected ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="9"/>` : null}
       <rect class="system-body" width=${node.width} height=${node.height} rx="6"
             fill="var(--stone-3)"
             stroke=${strokeColor}
@@ -43,11 +39,7 @@ function ContainerNode({ node, selected, onSelect, dimmed, findingSeverity }) {
        transform=${`translate(${node.x - node.width / 2}, ${node.y - node.height / 2})`}
        onClick=${() => onSelect(node)} data-kind="container">
       <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
-      ${
-        selected
-          ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="9"/>`
-          : null
-      }
+      ${selected ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="9"/>` : null}
       <rect class="container-body" width=${node.width} height=${node.height} rx="6"
             fill="var(--stone-3)"
             stroke=${strokeColor}
@@ -69,25 +61,8 @@ function ModuleNode({ node, selected, hovered, dimmed, findingSeverity, onSelect
   const state = d.state || "synced";
   const stateKind = displayState(state);
   const breath = findingSeverity === "error" || findingSeverity === "warning" || stateKind === "orphaned";
-  const statusColor =
-    stateKind === "planned"
-      ? "var(--planned)"
-      : stateKind === "orphaned"
-        ? "var(--prov-1)"
-        : "var(--synced)";
-  const strokeColor = selected
-    ? "var(--seam-carved)"
-    : findingSeverity === "error"
-      ? "var(--drift)"
-      : findingSeverity === "warning"
-        ? "var(--orphaned)"
-        : findingSeverity === "info"
-          ? "var(--settled)"
-          : stateKind === "planned"
-            ? "var(--planned)"
-            : stateKind === "orphaned"
-              ? "var(--prov-1)"
-              : "var(--seam-thin)";
+  const statusColor = stateKind === "planned" ? "var(--planned)" : stateKind === "orphaned" ? "var(--prov-1)" : "var(--synced)";
+  const strokeColor = selected ? "var(--seam-carved)" : findingSeverity === "error" ? "var(--drift)" : findingSeverity === "warning" ? "var(--orphaned)" : findingSeverity === "info" ? "var(--settled)" : stateKind === "planned" ? "var(--planned)" : stateKind === "orphaned" ? "var(--prov-1)" : "var(--seam-thin)";
   const stateWash = stateKind === "planned" ? "var(--planned-wash)" : "var(--prov-wash)";
   const stateLabel = stateKind === "synced" ? null : stateKind;
 
@@ -103,11 +78,7 @@ function ModuleNode({ node, selected, hovered, dimmed, findingSeverity, onSelect
        onMouseLeave=${() => onHover(null)}
        data-kind="module">
       <rect x="0" y=${(node.height - 110) / 2} width=${node.width} height="110" fill="transparent" pointer-events="all"/>
-      ${
-        selected
-          ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="8"/>`
-          : null
-      }
+      ${selected ? html`<rect class="selection-marker" x="-5" y="-5" width=${node.width + 10} height=${node.height + 10} rx="8"/>` : null}
       <rect x="2" y="3" width=${node.width} height=${node.height} rx="6" fill="var(--stone-3)"/>
       <rect class="module-body" width=${node.width} height=${node.height} rx="6"
             fill=${hovered ? "var(--stone-4)" : "var(--stone-3)"}
@@ -274,7 +245,6 @@ function GraphCanvas({ graph, layoutData, selection, hoveredId, lint, onSelect, 
       })
       .filter(Boolean);
   }, [graph, nodesById]);
-
 
   const dependencyEdges = useMemo(() => {
     if (!graph) return [];

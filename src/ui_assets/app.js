@@ -50,6 +50,7 @@ function App() {
     setError(null);
     setGraph(null);
     setLint(null);
+    setMeta(null);
     Promise.all([fetchGraph(), fetchLint()])
       .then(([g, l]) => {
         if (cancelled) return;
@@ -59,6 +60,13 @@ function App() {
         }
         setGraph(g);
         setLint(l);
+        // Fetch metadata only after the map is resolved so its
+        // last_reconciled timestamp describes the scan just rendered.
+        return fetchMeta().catch(() => null);
+      })
+      .then((m) => {
+        if (cancelled) return;
+        if (m) setMeta(m);
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -67,20 +75,6 @@ function App() {
       cancelled = true;
     };
   }, [bootTick]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchMeta()
-      .then((m) => {
-        if (!cancelled) setMeta(m);
-      })
-      .catch(() => {
-        // Report-issue links fall back to an "unknown" version; not worth surfacing an error for.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     try {
@@ -284,6 +278,7 @@ function App() {
         open=${drawerOpen}
         onToggle=${() => setDrawerOpen((o) => !o)}
         lint=${lint}
+        meta=${meta}
         onSelect=${(id) => setSelectionId(id)}
       />
       <${CommandPalette}

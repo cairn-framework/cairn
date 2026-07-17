@@ -114,11 +114,7 @@ const ISSUE_BASE = "https://github.com/cairn-framework/cairn/issues/new";
 function openReportIssue(version) {
   const safeVersion = version || "unknown";
   const whatHappened = `cairn ${safeVersion} webui: `;
-  const query = [
-    "template=bug-report.yml",
-    `version=${encodeURIComponent(safeVersion)}`,
-    `what-happened=${encodeURIComponent(whatHappened)}`,
-  ].join("&");
+  const query = ["template=bug-report.yml", `version=${encodeURIComponent(safeVersion)}`, `what-happened=${encodeURIComponent(whatHappened)}`].join("&");
   window.open(`${ISSUE_BASE}?${query}`, "_blank", "noopener");
 }
 

@@ -2434,6 +2434,35 @@ button.path-row:hover {
   max-height: 50vh;
   overflow-y: auto;
 }
+.cmd-palette-hint {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--seam-thin);
+  background: var(--stone-1);
+}
+.cmd-palette-hint .hint-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+}
+.drawer-empty .empty-state-cta {
+  color: var(--ink-aged);
+}
+
+.cmd-palette-hint kbd {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-aged);
+  background: var(--stone-3);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  padding: 1px 6px;
+}
 
 .result-group {
   padding: var(--s-3) var(--s-5) var(--s-1);

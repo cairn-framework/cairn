@@ -3748,8 +3748,8 @@
           "kind": "const",
           "signature": "pub const ISSUE_BASE",
           "file": "src/report.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "package_name",
@@ -3796,8 +3796,8 @@
           "kind": "function",
           "signature": "pub fn install_panic_hook()",
           "file": "src/report.rs",
-          "line": 54,
-          "end_line": 81
+          "line": 55,
+          "end_line": 82
         },
         {
           "name": "install_sigint_handler",
@@ -3820,8 +3820,8 @@
           "kind": "function",
           "signature": "pub fn issue_url(title: &str, body: &str) -> String",
           "file": "src/report.rs",
-          "line": 20,
-          "end_line": 26
+          "line": 21,
+          "end_line": 27
         },
         {
           "name": "lookup",
@@ -4044,8 +4044,8 @@
           "kind": "const",
           "signature": "pub const ISSUE_BASE",
           "file": "src/report.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "package_name",
@@ -4092,8 +4092,8 @@
           "kind": "function",
           "signature": "pub fn install_panic_hook()",
           "file": "src/report.rs",
-          "line": 54,
-          "end_line": 81
+          "line": 55,
+          "end_line": 82
         },
         {
           "name": "install_sigint_handler",
@@ -4116,8 +4116,8 @@
           "kind": "function",
           "signature": "pub fn issue_url(title: &str, body: &str) -> String",
           "file": "src/report.rs",
-          "line": 20,
-          "end_line": 26
+          "line": 21,
+          "end_line": 27
         },
         {
           "name": "lookup",
@@ -4340,8 +4340,8 @@
           "kind": "const",
           "signature": "pub const ISSUE_BASE",
           "file": "src/report.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "package_name",
@@ -4388,8 +4388,8 @@
           "kind": "function",
           "signature": "pub fn install_panic_hook()",
           "file": "src/report.rs",
-          "line": 54,
-          "end_line": 81
+          "line": 55,
+          "end_line": 82
         },
         {
           "name": "install_sigint_handler",
@@ -4412,8 +4412,8 @@
           "kind": "function",
           "signature": "pub fn issue_url(title: &str, body: &str) -> String",
           "file": "src/report.rs",
-          "line": 20,
-          "end_line": 26
+          "line": 21,
+          "end_line": 27
         },
         {
           "name": "lookup",
@@ -4636,8 +4636,8 @@
           "kind": "const",
           "signature": "pub const ISSUE_BASE",
           "file": "src/report.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "package_name",
@@ -4684,8 +4684,8 @@
           "kind": "function",
           "signature": "pub fn install_panic_hook()",
           "file": "src/report.rs",
-          "line": 54,
-          "end_line": 81
+          "line": 55,
+          "end_line": 82
         },
         {
           "name": "install_sigint_handler",
@@ -4708,8 +4708,8 @@
           "kind": "function",
           "signature": "pub fn issue_url(title: &str, body: &str) -> String",
           "file": "src/report.rs",
-          "line": 20,
-          "end_line": 26
+          "line": 21,
+          "end_line": 27
         },
         {
           "name": "lookup",
@@ -4932,8 +4932,8 @@
           "kind": "const",
           "signature": "pub const ISSUE_BASE",
           "file": "src/report.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "package_name",
@@ -4980,8 +4980,8 @@
           "kind": "function",
           "signature": "pub fn install_panic_hook()",
           "file": "src/report.rs",
-          "line": 54,
-          "end_line": 81
+          "line": 55,
+          "end_line": 82
         },
         {
           "name": "install_sigint_handler",
@@ -5004,8 +5004,8 @@
           "kind": "function",
           "signature": "pub fn issue_url(title: &str, body: &str) -> String",
           "file": "src/report.rs",
-          "line": 20,
-          "end_line": 26
+          "line": 21,
+          "end_line": 27
         },
         {
           "name": "lookup",
@@ -5228,8 +5228,8 @@
           "kind": "const",
           "signature": "pub const ISSUE_BASE",
           "file": "src/report.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "package_name",
@@ -5276,8 +5276,8 @@
           "kind": "function",
           "signature": "pub fn install_panic_hook()",
           "file": "src/report.rs",
-          "line": 54,
-          "end_line": 81
+          "line": 55,
+          "end_line": 82
         },
         {
           "name": "install_sigint_handler",
@@ -5300,8 +5300,8 @@
           "kind": "function",
           "signature": "pub fn issue_url(title: &str, body: &str) -> String",
           "file": "src/report.rs",
-          "line": 20,
-          "end_line": 26
+          "line": 21,
+          "end_line": 27
         },
         {
           "name": "lookup",
@@ -5524,8 +5524,8 @@
           "kind": "const",
           "signature": "pub const ISSUE_BASE",
           "file": "src/report.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "package_name",
@@ -5572,8 +5572,8 @@
           "kind": "function",
           "signature": "pub fn install_panic_hook()",
           "file": "src/report.rs",
-          "line": 54,
-          "end_line": 81
+          "line": 55,
+          "end_line": 82
         },
         {
           "name": "install_sigint_handler",
@@ -5596,8 +5596,8 @@
           "kind": "function",
           "signature": "pub fn issue_url(title: &str, body: &str) -> String",
           "file": "src/report.rs",
-          "line": 20,
-          "end_line": 26
+          "line": 21,
+          "end_line": 27
         },
         {
           "name": "lookup",
@@ -6571,6 +6571,7 @@
       "files": [
         "src/ui/mod.rs",
         "src/ui/server.rs",
+        "src/ui/server/meta.rs",
         "src/ui/wire.rs",
         "src/ui_assets/app.js",
         "src/ui_assets/blueprint-modal.js",
@@ -6598,72 +6599,72 @@
           "kind": "function",
           "signature": "pub const fn address(&self) -> SocketAddr",
           "file": "src/ui/mod.rs",
-          "line": 187,
-          "end_line": 189
+          "line": 188,
+          "end_line": 190
         },
         {
           "name": "UiError",
           "kind": "enum",
           "signature": "pub enum UiError",
           "file": "src/ui/mod.rs",
-          "line": 133,
-          "end_line": 147
+          "line": 134,
+          "end_line": 148
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/ui/mod.rs",
-          "line": 110,
-          "end_line": 128
+          "line": 111,
+          "end_line": 129
         },
         {
           "name": "serve_current_thread",
           "kind": "function",
           "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 206,
-          "end_line": 219
+          "line": 207,
+          "end_line": 220
         },
         {
           "name": "start_background",
           "kind": "function",
           "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 226,
-          "end_line": 239
+          "line": 227,
+          "end_line": 240
         },
         {
           "name": "stop",
           "kind": "function",
           "signature": "pub fn stop(mut self)",
           "file": "src/ui/mod.rs",
-          "line": 192,
-          "end_line": 198
+          "line": 193,
+          "end_line": 199
         },
         {
           "name": "url",
           "kind": "function",
           "signature": "pub fn url(&self) -> String",
           "file": "src/ui/mod.rs",
-          "line": 181,
-          "end_line": 183
+          "line": 182,
+          "end_line": 184
         },
         {
           "name": "ServerHandle",
           "kind": "struct",
           "signature": "pub struct ServerHandle",
           "file": "src/ui/mod.rs",
-          "line": 172,
-          "end_line": 176
+          "line": 173,
+          "end_line": 177
         },
         {
           "name": "UiOptions",
           "kind": "struct",
           "signature": "pub struct UiOptions",
           "file": "src/ui/mod.rs",
-          "line": 85,
-          "end_line": 92
+          "line": 86,
+          "end_line": 93
         }
       ]
     },

@@ -46,6 +46,7 @@ function CommandPalette({ open, graph, onClose, onSelect, version }) {
   const actions = reportActionMatches ? [{ __action: "report-issue", label: actionLabel }] : [];
   const shown = [...actions, ...nodeMatches].slice(0, 20);
   const shownNodes = nodeMatches.slice(0, Math.max(0, 20 - actions.length));
+  const activeResultId = shown.length > 0 ? `palette-result-${activeIdx}` : undefined;
 
   const onInputKey = (e) => {
     if (e.isComposing || e.keyCode === 229) return;
@@ -74,6 +75,10 @@ function CommandPalette({ open, graph, onClose, onSelect, version }) {
         <div class="cmd-palette-head">
           <span class="cmd-label">Query</span>
           <input ref=${inputRef} value=${q}
+            role="combobox"
+            aria-expanded=${q !== ""}
+            aria-controls="palette-results"
+            aria-activedescendant=${activeResultId}
             onInput=${(e) => {
               setQ(e.target.value);
               setActiveIdx(0);
@@ -92,7 +97,7 @@ function CommandPalette({ open, graph, onClose, onSelect, version }) {
                 <span class="kw">synced</span><span class="rest">parts that match the plan</span>
               </div>
             </div>`
-            : html`<div class="cmd-palette-results">
+            : html`<div class="cmd-palette-results" id="palette-results" role="listbox">
               ${
                 shown.length === 0
                   ? html`<div class="row-empty" style="padding:var(--s-5)">${copy("empty-states.search-no-matches.body")}</div>`
@@ -104,7 +109,8 @@ function CommandPalette({ open, graph, onClose, onSelect, version }) {
                           <div class="caps result-group">Actions</div>
                           ${actions.map(
                             (a, i) => html`
-                            <button class=${clsx("result-row", i === activeIdx && "active")} key="action-report-issue"
+                            <button id=${`palette-result-${i}`} role="option" aria-selected=${i === activeIdx}
+                              class=${clsx("result-row", i === activeIdx && "active")} key="action-report-issue"
                               onClick=${() => {
                                 openReportIssue(version);
                                 onClose();
@@ -124,7 +130,8 @@ function CommandPalette({ open, graph, onClose, onSelect, version }) {
                           <div class="caps result-group">Nodes</div>
                           ${shownNodes.map(
                             (n, i) => html`
-                            <button class=${clsx("result-row", actions.length + i === activeIdx && "active")} key=${n.id}
+                            <button id=${`palette-result-${actions.length + i}`} role="option" aria-selected=${actions.length + i === activeIdx}
+                              class=${clsx("result-row", actions.length + i === activeIdx && "active")} key=${n.id}
                               onClick=${() => {
                                 onSelect(n.id);
                                 onClose();
@@ -140,6 +147,14 @@ function CommandPalette({ open, graph, onClose, onSelect, version }) {
                   <//>`
               }
             </div>`
+        }
+        ${
+          q !== "" && shown.length > 0
+            ? html`<div class="cmd-palette-hint">
+                <span class="hint-row"><kbd>Enter</kbd> ${copy("webui.palette-hints.enter")}</span>
+                ${shown[activeIdx]?.__action === "report-issue" ? html`<span class="hint-row"><kbd>Enter</kbd> ${copy("webui.palette-hints.report")}</span>` : null}
+              </div>`
+            : null
         }
       </div>
     </div>
