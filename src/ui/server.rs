@@ -6,6 +6,8 @@ use super::wire::{error_json, percent_decode};
 use super::*;
 use std::{cell::RefCell, time::SystemTime};
 
+mod meta;
+
 pub(super) struct Server {
     pub(super) options: UiOptions,
     root: PathBuf,
@@ -14,6 +16,8 @@ pub(super) struct Server {
     cached_scan: RefCell<Option<scanner::ScanResult>>,
     cached_mtime: RefCell<Option<SystemTime>>,
     cached_watched_mtime: RefCell<Option<SystemTime>>,
+    // Time of the cached scan; retained across a cached-scan fallback.
+    cached_scan_time: RefCell<Option<SystemTime>>,
     changes_dir: PathBuf,
 }
 
@@ -40,6 +44,7 @@ impl Server {
             cached_scan: RefCell::new(None),
             cached_mtime: RefCell::new(None),
             cached_watched_mtime: RefCell::new(None),
+            cached_scan_time: RefCell::new(None),
             changes_dir: root.join("meta/changes"),
         })
     }
@@ -151,7 +156,7 @@ impl Server {
             }
         };
         if path == "/api/meta" {
-            return self.spine(&project, "ui_meta", None, std::collections::BTreeSet::new());
+            return self.meta(&project);
         }
         if path == "/api/status" {
             return self.spine(&project, "status", None, std::collections::BTreeSet::new());
@@ -182,8 +187,7 @@ impl Server {
             );
         }
         if path == "/api/blueprint" {
-            // Legacy behaviour: a blueprint read failure is a 404, not a 200
-            // with an error field.
+            // Legacy: a blueprint read failure is a 404, not a 200 error field.
             return match self.spine_data(
                 &project,
                 "blueprint",
@@ -344,6 +348,7 @@ impl Server {
                 *self.cached_mtime.borrow_mut() = current_mtime;
                 *self.cached_watched_mtime.borrow_mut() = current_watched_mtime;
                 *self.cached_scan.borrow_mut() = Some(scan.clone());
+                *self.cached_scan_time.borrow_mut() = Some(SystemTime::now());
                 Ok(scan)
             }
             Err(source) => {

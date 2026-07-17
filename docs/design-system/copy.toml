@@ -82,6 +82,8 @@ cta = "cairn get <node> --symbols"
 heading = "Map clean"
 body = "All nodes reconciled. No drift detected."
 cta = "cairn scan"
+reconciled = "Last reconciled {last_reconciled}."
+reconciled-pending = "Reconciliation time unavailable."
 
 [empty-states.no-filter-matches]
 heading = "No matches"
@@ -313,6 +315,11 @@ legend.selection = "Selected"
 legend.synced = "Synced"
 legend.planned = "Planned"
 legend.orphaned = "Orphaned"
+
+# -- Webui: command palette hints -------------------------------------------
+[webui.palette-hints]
+enter = "Open the highlighted result."
+report = "Open the issue reporter from the report row."
 
 # -- Webui: report an issue ----------------------------------------------
 [webui.report]

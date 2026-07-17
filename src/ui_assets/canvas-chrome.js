@@ -17,8 +17,7 @@ function ChainCoachMark() {
     setOpen(false);
     try {
       localStorage.setItem("cairn:v2:chain-coach", "dismissed");
-    } catch (_err) {
-    }
+    } catch (_err) {}
   };
   return html`
     <div class="chain-banner coach-mark" role="note">

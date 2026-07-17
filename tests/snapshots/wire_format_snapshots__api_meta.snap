@@ -263,6 +263,7 @@ expression: value
       "safety": "ReadOnly"
     }
   ],
-  "schema_version": 3,
+  "last_reconciled": "[timestamp]",
+  "schema_version": 4,
   "version": "[version]"
 }

@@ -76,10 +76,13 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
             .get("schema_version")
             .and_then(Value::as_u64)
             .unwrap_or_else(|| panic!("{snapshot_name} response missing numeric schema_version"));
-        assert_eq!(version, 3, "{snapshot_name} schema_version drifted");
+        assert_eq!(version, 4, "{snapshot_name} schema_version drifted");
 
         if *snapshot_name == "api_meta" {
-            assert_json_snapshot!(*snapshot_name, value, { ".version" => "[version]" });
+            assert_json_snapshot!(*snapshot_name, value, {
+                ".version" => "[version]",
+                ".last_reconciled" => "[timestamp]",
+            });
         } else {
             assert_json_snapshot!(*snapshot_name, value);
         }
