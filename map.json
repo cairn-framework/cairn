@@ -6468,8 +6468,17 @@
         "src/ui/server.rs",
         "src/ui/wire.rs",
         "src/ui_assets/app.js",
+        "src/ui_assets/blueprint-modal.js",
+        "src/ui_assets/command-palette.js",
+        "src/ui_assets/decision-detail.js",
+        "src/ui_assets/findings-panel.js",
+        "src/ui_assets/graph-canvas.js",
         "src/ui_assets/index.html",
+        "src/ui_assets/inspector.js",
+        "src/ui_assets/layout.js",
         "src/ui_assets/style.css",
+        "src/ui_assets/top-bar.js",
+        "src/ui_assets/utils.js",
         "src/ui_assets/vendor/htm.min.js",
         "src/ui_assets/vendor/preact-hooks.min.js",
         "src/ui_assets/vendor/preact.min.js"
@@ -6483,72 +6492,72 @@
           "kind": "function",
           "signature": "pub const fn address(&self) -> SocketAddr",
           "file": "src/ui/mod.rs",
-          "line": 178,
-          "end_line": 180
+          "line": 187,
+          "end_line": 189
         },
         {
           "name": "UiError",
           "kind": "enum",
           "signature": "pub enum UiError",
           "file": "src/ui/mod.rs",
-          "line": 124,
-          "end_line": 138
+          "line": 133,
+          "end_line": 147
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/ui/mod.rs",
-          "line": 101,
-          "end_line": 119
+          "line": 110,
+          "end_line": 128
         },
         {
           "name": "serve_current_thread",
           "kind": "function",
           "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 197,
-          "end_line": 210
+          "line": 206,
+          "end_line": 219
         },
         {
           "name": "start_background",
           "kind": "function",
           "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 217,
-          "end_line": 230
+          "line": 226,
+          "end_line": 239
         },
         {
           "name": "stop",
           "kind": "function",
           "signature": "pub fn stop(mut self)",
           "file": "src/ui/mod.rs",
-          "line": 183,
-          "end_line": 189
+          "line": 192,
+          "end_line": 198
         },
         {
           "name": "url",
           "kind": "function",
           "signature": "pub fn url(&self) -> String",
           "file": "src/ui/mod.rs",
-          "line": 172,
-          "end_line": 174
+          "line": 181,
+          "end_line": 183
         },
         {
           "name": "ServerHandle",
           "kind": "struct",
           "signature": "pub struct ServerHandle",
           "file": "src/ui/mod.rs",
-          "line": 163,
-          "end_line": 167
+          "line": 172,
+          "end_line": 176
         },
         {
           "name": "UiOptions",
           "kind": "struct",
           "signature": "pub struct UiOptions",
           "file": "src/ui/mod.rs",
-          "line": 76,
-          "end_line": 83
+          "line": 85,
+          "end_line": 92
         }
       ]
     },
@@ -6891,7 +6900,7 @@
     {
       "code": "CAIRN_MODULE_OVERSIZED",
       "severity": "info",
-      "message": "module `cairn.tests` claims `tests/phase_7_7_ux_foundation.rs` at 851 lines, over the 500-line guideline with no allow-list marker",
+      "message": "module `cairn.tests` claims `tests/phase_7_7_ux_foundation.rs` at 868 lines, over the 500-line guideline with no allow-list marker",
       "node": "cairn.tests",
       "path": "tests/phase_7_7_ux_foundation.rs"
     },

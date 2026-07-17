@@ -103,6 +103,25 @@ impl Server {
             "/" | "/index.html" => html(INDEX_HTML),
             "/assets/style.css" => asset("text/css; charset=utf-8", STYLE_CSS.as_str()),
             "/assets/app.js" => asset("application/javascript; charset=utf-8", APP_JS),
+            "/assets/utils.js" => asset("application/javascript; charset=utf-8", UTILS_JS),
+            "/assets/layout.js" => asset("application/javascript; charset=utf-8", LAYOUT_JS),
+            "/assets/top-bar.js" => asset("application/javascript; charset=utf-8", TOP_BAR_JS),
+            "/assets/graph-canvas.js" => {
+                asset("application/javascript; charset=utf-8", GRAPH_CANVAS_JS)
+            }
+            "/assets/decision-detail.js" => {
+                asset("application/javascript; charset=utf-8", DECISION_DETAIL_JS)
+            }
+            "/assets/command-palette.js" => {
+                asset("application/javascript; charset=utf-8", COMMAND_PALETTE_JS)
+            }
+            "/assets/blueprint-modal.js" => {
+                asset("application/javascript; charset=utf-8", BLUEPRINT_MODAL_JS)
+            }
+            "/assets/inspector.js" => asset("application/javascript; charset=utf-8", INSPECTOR_JS),
+            "/assets/findings-panel.js" => {
+                asset("application/javascript; charset=utf-8", FINDINGS_PANEL_JS)
+            }
             "/assets/copy.json" => asset("application/json; charset=utf-8", COPY_JSON.as_str()),
             "/vendor/preact.min.js" => {
                 asset("application/javascript; charset=utf-8", VENDOR_PREACT_JS)

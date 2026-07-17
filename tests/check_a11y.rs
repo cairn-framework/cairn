@@ -79,6 +79,15 @@ fn test_real_surfaces_are_a11y_conformant() {
         "src/ui_assets/index.html",
         "docs/landing/index.html",
         "src/ui_assets/app.js",
+        "src/ui_assets/utils.js",
+        "src/ui_assets/layout.js",
+        "src/ui_assets/top-bar.js",
+        "src/ui_assets/graph-canvas.js",
+        "src/ui_assets/inspector.js",
+        "src/ui_assets/findings-panel.js",
+        "src/ui_assets/decision-detail.js",
+        "src/ui_assets/command-palette.js",
+        "src/ui_assets/blueprint-modal.js",
     ] {
         let out = run_script(Path::new(target));
         assert!(

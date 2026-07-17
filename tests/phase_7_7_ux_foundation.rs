@@ -2,6 +2,7 @@
 // `__` collides with the rustc non_snake_case lint despite being
 // syntactically valid snake_case identifiers.
 #![allow(non_snake_case)]
+
 //! Phase 7.7 UX Foundation acceptance-criterion tests.
 //!
 //! Mixed state: scenarios already satisfied by reforge cycle 1
@@ -19,6 +20,22 @@
 //! `graph-explorer`, `reconciliation`). Phase 7.7 removes
 //! `#[cairn_planned]` and replaces stub bodies with real assertions
 //! group-by-group as code lands.
+
+fn app_js() -> String {
+    concat!(
+        include_str!("../src/ui_assets/utils.js"),
+        include_str!("../src/ui_assets/layout.js"),
+        include_str!("../src/ui_assets/top-bar.js"),
+        include_str!("../src/ui_assets/graph-canvas.js"),
+        include_str!("../src/ui_assets/inspector.js"),
+        include_str!("../src/ui_assets/findings-panel.js"),
+        include_str!("../src/ui_assets/decision-detail.js"),
+        include_str!("../src/ui_assets/command-palette.js"),
+        include_str!("../src/ui_assets/blueprint-modal.js"),
+        include_str!("../src/ui_assets/app.js"),
+    )
+    .to_owned()
+}
 
 mod cli {
 
@@ -362,7 +379,7 @@ mod explorer {
     #[test]
 
     fn test_explorer__ten_inline_empty_state_strings_replaced() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         let count = js.matches(r#"copy("empty-states."#).count();
         assert!(
             count >= 10,
@@ -373,10 +390,10 @@ mod explorer {
     /// Scenario: Missing copy keys surface a console warning.
     #[test]
     fn test_explorer__missing_copy_keys_surface_console_warning() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         let copy_start = js.find("function copy(key)").expect("copy() must exist");
         let copy_end = js[copy_start..]
-            .find("\n  function ")
+            .find("\nfunction ")
             .map_or(js.len(), |i| copy_start + i);
         let copy_fn = &js[copy_start..copy_end];
         assert!(
@@ -388,7 +405,7 @@ mod explorer {
     /// Scenario: Three severity buckets render with count badges.
     #[test]
     fn test_explorer__three_severity_buckets_render_with_count_badges() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("FindingsPanel"),
             "FindingsPanel component must exist"
@@ -409,7 +426,7 @@ mod explorer {
     /// kept distinct from the finding/severity axis (error now routes via --drift).
     #[test]
     fn test_explorer__ghost_renders_as_planned_display_state() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         // The display-state helper maps the ghost wire state to "planned".
         assert!(
             js.contains("function displayState"),
@@ -440,7 +457,7 @@ mod explorer {
     /// Scenario: Scope toggle filters to the selected node.
     #[test]
     fn test_explorer__scope_toggle_filters_to_selected_node() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(js.contains("scope-toggle"), "scope toggle UI must exist");
         assert!(
             js.contains(r#"scope === "node""#) && js.contains("f.node === selectionId"),
@@ -451,7 +468,7 @@ mod explorer {
     /// Scenario: Scope toggle is disabled when no node is selected.
     #[test]
     fn test_explorer__scope_toggle_disabled_when_no_node_selected() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("nodeDisabled = !selectionId") && js.contains("disabled=${nodeDisabled}"),
             "node scope button must be disabled when no node is selected"
@@ -461,7 +478,7 @@ mod explorer {
     /// Scenario: Category filter chips derive from the finding stream.
     #[test]
     fn test_explorer__category_filter_chips_derive_from_finding_stream() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("findingFamily"),
             "findingFamily helper must exist"
@@ -479,12 +496,12 @@ mod explorer {
     /// Scenario: Panel reads only from the query-consumer API.
     #[test]
     fn test_explorer__panel_reads_only_from_query_consumer_api() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         let panel_start = js
             .find("function FindingsPanel")
             .expect("FindingsPanel must exist");
         let panel_end = js[panel_start..]
-            .find("\n  function ")
+            .find("\nfunction ")
             .map_or(js.len(), |i| panel_start + i);
         let panel_src = &js[panel_start..panel_end];
         assert!(
@@ -496,7 +513,7 @@ mod explorer {
     /// Scenario: Banner renders the highest-severity finding's nudge.
     #[test]
     fn test_explorer__banner_renders_highest_severity_finding_nudge() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("ProseNudgeBanner"),
             "ProseNudgeBanner component must exist"
@@ -514,7 +531,7 @@ mod explorer {
     /// Scenario: Tie-break by lowest-numbered code.
     #[test]
     fn test_explorer__banner_tie_break_by_lowest_numbered_code() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("f.code < best.code"),
             "tie-break must prefer lowest-numbered (lexicographic) code"
@@ -524,7 +541,7 @@ mod explorer {
     /// Scenario: Banner CTA is a copy-pasteable CLI snippet.
     #[test]
     fn test_explorer__banner_cta_is_copy_pasteable_cli_snippet() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("prose-nudge-cta"),
             "banner must render a CTA element"
@@ -538,7 +555,7 @@ mod explorer {
     /// Scenario: Banner is hidden when the node has no findings.
     #[test]
     fn test_explorer__banner_hidden_when_node_has_no_findings() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("if (!nudge) return null"),
             "banner must return null when no finding matches the node"
@@ -548,7 +565,7 @@ mod explorer {
     /// Scenario: Node with CE001 + CT001 renders CE001 nudge with substituted node name.
     #[test]
     fn test_explorer__banner_substitutes_node_name_in_nudge_body() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("substituteCopy") && js.contains("{ node: f.node || \"\""),
             "ProseNudgeBanner must substitute {{node}} placeholder from finding node"
@@ -565,7 +582,7 @@ mod explorer {
     /// Scenario: Copy button is wired to the CTA snippet.
     #[test]
     fn test_explorer__banner_cta_has_copy_button() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("CopyButton"),
             "ProseNudgeBanner must include a CopyButton component"
@@ -584,7 +601,7 @@ mod explorer {
     /// Scenario: Prose-nudge substitutes {target} placeholder from finding target.
     #[test]
     fn test_explorer__banner_substitutes_target_placeholder() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains("target: f.target || \"\""),
             "ProseNudgeBanner vars must include target from finding"
@@ -594,7 +611,7 @@ mod explorer {
     /// Scenario: Structural error indicator (integrity overlay).
     #[test]
     fn test_explorer__structural_error_indicator() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
             js.contains("nodeSeverityById"),
@@ -611,7 +628,7 @@ mod explorer {
     /// Scenario: Interface contradiction indicator (integrity overlay).
     #[test]
     fn test_explorer__interface_contradiction_indicator() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
             js.contains("findingSeverity"),
@@ -627,7 +644,7 @@ mod explorer {
     /// Scenario: Rationale tension indicator (integrity overlay).
     #[test]
     fn test_explorer__rationale_tension_indicator() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
             js.contains("var(--settled)"),
@@ -644,7 +661,7 @@ mod explorer {
     /// Scenario: Info-severity findings appear in the overlay.
     #[test]
     fn test_explorer__info_severity_findings_appear_in_overlay() {
-        let js = include_str!("../src/ui_assets/app.js");
+        let js = super::app_js();
         assert!(
             js.contains(r#"findingSeverity === "info""#),
             "overlay must render info-severity indicators in node components"

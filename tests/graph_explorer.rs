@@ -73,6 +73,20 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
 
     let html = get(server.address(), "/")?;
     let js = get(server.address(), "/assets/app.js")?;
+    let module_assets = [
+        "utils.js",
+        "layout.js",
+        "top-bar.js",
+        "graph-canvas.js",
+        "inspector.js",
+        "findings-panel.js",
+        "decision-detail.js",
+        "command-palette.js",
+        "blueprint-modal.js",
+    ]
+    .iter()
+    .map(|name| get(server.address(), &format!("/assets/{name}")))
+    .collect::<Result<Vec<_>, _>>()?;
     let copy_json = get(server.address(), "/assets/copy.json")?;
     let preact = get(server.address(), "/vendor/preact.min.js")?;
     let htm = get(server.address(), "/vendor/htm.min.js")?;
@@ -85,10 +99,16 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     assert!(html.contains("/vendor/preact.min.js"));
     assert!(html.contains("/assets/app.js"));
 
-    // App entry points: component factory + live-data fetch helpers.
+    // App entry points: component factory + live-data fetch helpers, wired
+    // via ES module imports from the composition root and its owning
+    // feature module (renderPath now lives in inspector.js).
     assert!(js.contains("ModuleInspector"));
     assert!(js.contains("fetchGraph"));
-    assert!(js.contains("renderPath"));
+    assert!(
+        module_assets
+            .iter()
+            .any(|asset| asset.contains("renderPath"))
+    );
 
     // Copy data served as valid JSON with expected structure.
     let parsed: serde_json::Value =

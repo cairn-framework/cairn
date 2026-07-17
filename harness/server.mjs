@@ -76,8 +76,10 @@ export function startReplayServer({ root, fixturesDir, port = 0 }) {
         return res.end("style build failed");
       }
     }
-    if (path === "/assets/app.js") {
-      return sendFile(res, join(assetsDir, "app.js"), "application/javascript; charset=utf-8");
+    const jsAsset = path.match(/^\/assets\/([a-z0-9-]+\.js)$/);
+    if (jsAsset) {
+      const assetName = jsAsset[1];
+      return sendFile(res, join(assetsDir, assetName), "application/javascript; charset=utf-8");
     }
     if (path.startsWith("/vendor/")) {
       const fp = safeJoin(assetsDir, path);

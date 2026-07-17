@@ -4,6 +4,22 @@
 
 use std::fs;
 
+fn app_js() -> String {
+    concat!(
+        include_str!("../src/ui_assets/utils.js"),
+        include_str!("../src/ui_assets/layout.js"),
+        include_str!("../src/ui_assets/top-bar.js"),
+        include_str!("../src/ui_assets/graph-canvas.js"),
+        include_str!("../src/ui_assets/inspector.js"),
+        include_str!("../src/ui_assets/findings-panel.js"),
+        include_str!("../src/ui_assets/decision-detail.js"),
+        include_str!("../src/ui_assets/command-palette.js"),
+        include_str!("../src/ui_assets/blueprint-modal.js"),
+        include_str!("../src/ui_assets/app.js"),
+    )
+    .to_owned()
+}
+
 fn css_content() -> String {
     fs::read_to_string(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -35,8 +51,7 @@ fn test_css_has_minimum_tap_target_size() {
 
 #[test]
 fn test_inspector_has_close_affordance_on_mobile() {
-    let app =
-        fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/ui_assets/app.js")).unwrap();
+    let app = app_js();
     // The ModuleInspector must expose an onClose prop so the parent can clear selection.
     let has_close_prop = app.contains("onClose") && app.contains("ModuleInspector");
     // And the rendered inspector must contain a close button that calls it.
@@ -72,8 +87,7 @@ fn test_findings_panel_readable_on_narrow_screens() {
 #[test]
 fn test_search_controls_sticky_or_accessible() {
     let css = css_content();
-    let app =
-        fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/ui_assets/app.js")).unwrap();
+    let app = app_js();
     let has_sticky = css.contains("position: sticky") || css.contains("position:sticky");
     let has_search = app.contains("search") && app.contains("input");
     assert!(
