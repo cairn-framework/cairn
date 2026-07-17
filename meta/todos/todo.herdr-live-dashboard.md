@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: blocked
 created: 2026-07-17
 ---
 # Herdr Live Dashboard
