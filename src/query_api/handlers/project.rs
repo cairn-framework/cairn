@@ -6,6 +6,60 @@ use super::super::*;
 use super::graph::count_findings;
 use super::next_selection::{select_next, work_item_for_selection};
 
+fn nullable_string_schema(
+    generator: &mut schemars::r#gen::SchemaGenerator,
+) -> schemars::schema::Schema {
+    generator.subschema_for::<Option<String>>()
+}
+fn nullable_work_item_schema(
+    generator: &mut schemars::r#gen::SchemaGenerator,
+) -> schemars::schema::Schema {
+    generator.subschema_for::<Option<WorkItem>>()
+}
+
+/// One active change in a status response.
+#[derive(Clone, Debug, serde::Serialize, schemars::JsonSchema)]
+pub struct StatusActiveChange {
+    /// Stable change identifier.
+    pub id: String,
+    /// Human-readable change title.
+    pub title: String,
+    /// Short operation summary.
+    pub summary: String,
+}
+
+/// One open todo in a status response.
+#[derive(Clone, Debug, serde::Serialize, schemars::JsonSchema)]
+pub struct StatusTodo {
+    /// Todo source path.
+    pub path: String,
+    /// Referenced node identifier.
+    pub node: String,
+    /// Todo lifecycle status.
+    pub status: String,
+    /// Creation date.
+    pub created: String,
+    /// Optional satisfied contract clause.
+    #[schemars(required, schema_with = "nullable_string_schema")]
+    pub satisfies: Option<String>,
+}
+
+/// Wire shape of the `status` query response.
+#[derive(Clone, Debug, serde::Serialize, schemars::JsonSchema)]
+pub struct StatusResponse {
+    /// Active change summaries.
+    pub active_changes: Vec<StatusActiveChange>,
+    /// Open todo artefacts.
+    pub open_todos: Vec<StatusTodo>,
+    /// Most recent log lines.
+    pub recent_log_entries: Vec<String>,
+    /// Recommended next work item, when one exists.
+    #[schemars(required, schema_with = "nullable_work_item_schema")]
+    pub next_recommended: Option<WorkItem>,
+    /// Wire schema version stamped on every query-API response.
+    pub schema_version: u32,
+}
+
 pub(crate) fn status_json(
     root: &Path,
     changes_dir: &Path,
@@ -16,7 +70,13 @@ pub(crate) fn status_json(
         .todos
         .iter()
         .filter(|todo| todo.status == TodoStatus::Open || todo.status == TodoStatus::InProgress)
-        .map(todo_json)
+        .map(|todo| StatusTodo {
+            path: todo.path.clone(),
+            node: todo.node.clone(),
+            status: todo_status(todo.status).to_owned(),
+            created: todo.created.clone(),
+            satisfies: todo.satisfies.clone(),
+        })
         .collect::<Vec<_>>();
     let log_entries: Vec<String> = fs::read_to_string(root.join(".cairn/log.md"))
         .map(|content| {
@@ -28,27 +88,24 @@ pub(crate) fn status_json(
                 .collect()
         })
         .unwrap_or_default();
-    let next_recommended = work_item_for_selection(&select_next(root, changes_dir, scan_result))
-        .map_or(Value::Null, |item| {
-            serde_json::to_value(item).expect("WorkItem serialises")
-        });
+    let next_recommended = work_item_for_selection(&select_next(root, changes_dir, scan_result));
     let active_changes = crate::changes::discover(root, changes_dir)
         .unwrap_or_default()
         .iter()
-        .map(|change| {
-            json!({
-                "id": change.id,
-                "title": change.title,
-                "summary": crate::changes::operation_summary(change),
-            })
+        .map(|change| StatusActiveChange {
+            id: change.id.clone(),
+            title: change.title.clone(),
+            summary: crate::changes::operation_summary(change),
         })
         .collect::<Vec<_>>();
-    json!({
-        "active_changes": active_changes,
-        "open_todos": open,
-        "recent_log_entries": log_entries,
-        "next_recommended": next_recommended,
-    })
+    let response = StatusResponse {
+        active_changes,
+        open_todos: open,
+        recent_log_entries: log_entries,
+        next_recommended,
+        schema_version: super::super::SCHEMA_VERSION,
+    };
+    serde_json::to_value(response).expect("StatusResponse serialises")
 }
 
 pub(crate) fn context_json(

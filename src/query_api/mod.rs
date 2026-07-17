@@ -39,7 +39,9 @@ pub(crate) use handlers::{
     CleanItem, NextSelection, decision_summary, from_finding_action, health_json,
     open_native_todos, remediate_actions_raw, remediate_json, select_next, work_item_for_selection,
 };
-pub use handlers::{WorkItem, WorkItemSource};
+pub use handlers::{
+    RemediateResponse, StatusActiveChange, StatusResponse, StatusTodo, WorkItem, WorkItemSource,
+};
 use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
     bundle_json, context_json, contract_json, decisions_response_json, dependency_json,
@@ -152,6 +154,51 @@ pub struct QueryResponse {
     pub data: Value,
     /// Relevant findings.
     pub findings: Vec<Finding>,
+}
+/// Wire finding projection emitted inside the query envelope.
+#[derive(Clone, Debug, schemars::JsonSchema)]
+pub struct EnvelopeFinding {
+    /// Stable finding code.
+    pub code: String,
+    /// Severity label.
+    pub severity: String,
+    /// Human-readable message.
+    pub message: String,
+    /// Optional node identifier, always present on the wire.
+    #[schemars(required, schema_with = "nullable_string_schema")]
+    pub node: Option<String>,
+    /// Optional file path, always present on the wire.
+    #[schemars(required, schema_with = "nullable_string_schema")]
+    pub path: Option<String>,
+}
+
+/// Versioned, heterogeneous query data carried by the outer envelope.
+#[derive(Clone, Debug, serde::Serialize, schemars::JsonSchema)]
+pub struct VersionedDataSchema {
+    /// Wire schema version.
+    pub schema_version: u32,
+    /// Tool-specific payload properties.
+    #[serde(flatten)]
+    pub extra: BTreeMap<String, Value>,
+}
+
+/// Schema projection for the successful MCP query response envelope.
+#[derive(Clone, Debug, schemars::JsonSchema)]
+pub struct ResponseEnvelopeSchema {
+    /// Project context from configuration.
+    pub project_context: String,
+    /// Relevant configured rules.
+    pub rules: BTreeMap<String, String>,
+    /// Versioned tool-specific data.
+    pub data: VersionedDataSchema,
+    /// Relevant findings.
+    pub findings: Vec<EnvelopeFinding>,
+}
+
+fn nullable_string_schema(
+    generator: &mut schemars::r#gen::SchemaGenerator,
+) -> schemars::schema::Schema {
+    generator.subschema_for::<Option<String>>()
 }
 
 /// Stable query error.

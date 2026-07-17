@@ -189,8 +189,13 @@ consumed wire shapes. `schemas/map.schema.json` defines the deterministic
 `map.json` snapshot, `schemas/finding.schema.json` defines the Finding shape
 shared by map/lint/watch payloads, and `schemas/work-item.schema.json` defines
 the `{source,title,node,command,rank}` projection shared by status, next, and
-remediate JSON. The schema drift and serialisation tests validate these files
-against the Rust types and dogfood output. Registry response-schema labels
-which do not yet have a dedicated full-envelope schema remain in the explicit
-burn-down allowlist tested against `TOOL_REGISTRY`; new labels cannot bypass
-that check.
+remediate JSON. `schemas/envelope.schema.json` defines the MCP
+`{project_context,rules,data,findings}` envelope, requiring
+`data.schema_version` while leaving tool-specific data properties open.
+`schemas/StatusResponse.schema.json` and
+`schemas/RemediateResponse.schema.json` define the post-dispatch status and
+remediation payloads, including their stamped schema versions. The schema
+drift and serialisation tests validate these files against the Rust types and
+dogfood output. Registry response-schema labels which do not yet have a
+dedicated full-envelope schema remain in the explicit burn-down allowlist
+tested against `TOOL_REGISTRY`; new labels cannot bypass that check.

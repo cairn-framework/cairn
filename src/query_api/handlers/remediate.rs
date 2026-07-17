@@ -371,6 +371,22 @@ pub(crate) fn remediate_actions_raw(
     actions
 }
 
+/// Wire shape of the `remediate` response: remediation actions projected to
+/// the shared work-item shape, plus the count.
+///
+/// `schema_version` is last so appending it here lines up with the byte
+/// order `execute`/`execute_with_scan` already produce by stamping it onto
+/// the JSON object after the handler returns; see `query_api::SCHEMA_VERSION`.
+#[derive(Clone, Debug, serde::Serialize, schemars::JsonSchema)]
+pub struct RemediateResponse {
+    /// Ordered remediation actions, one per addressable finding.
+    pub actions: Vec<WorkItem>,
+    /// Number of actions in `actions`.
+    pub total_actions: usize,
+    /// Wire schema version stamped on every query-API response.
+    pub schema_version: u32,
+}
+
 /// Returns remediation actions projected to the shared work-item wire shape.
 pub(crate) fn remediate_json(
     root: &Path,
@@ -378,10 +394,14 @@ pub(crate) fn remediate_json(
     scan_result: &scanner::ScanResult,
 ) -> Value {
     let actions = remediate_actions_raw(root, changes_dir, scan_result);
-    let projected: Vec<Value> = actions
+    let projected: Vec<WorkItem> = actions
         .iter()
         .filter_map(super::work_item::from_finding_action)
-        .map(|item| serde_json::to_value(item).expect("WorkItem serialises"))
         .collect();
-    json!({ "actions": projected, "total_actions": projected.len() })
+    let response = RemediateResponse {
+        total_actions: projected.len(),
+        actions: projected,
+        schema_version: super::super::SCHEMA_VERSION,
+    };
+    serde_json::to_value(response).expect("RemediateResponse serialises")
 }

@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "EnvelopeFinding": {
+      "description": "Wire finding projection emitted inside the query envelope.",
+      "properties": {
+        "code": {
+          "description": "Stable finding code.",
+          "type": "string"
+        },
+        "message": {
+          "description": "Human-readable message.",
+          "type": "string"
+        },
+        "node": {
+          "description": "Optional node identifier, always present on the wire.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Optional file path, always present on the wire.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "description": "Severity label.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "node",
+        "path",
+        "severity"
+      ],
+      "type": "object"
+    },
+    "VersionedDataSchema": {
+      "additionalProperties": true,
+      "description": "Versioned, heterogeneous query data carried by the outer envelope.",
+      "properties": {
+        "schema_version": {
+          "description": "Wire schema version.",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version"
+      ],
+      "type": "object"
+    }
+  },
+  "description": "Schema projection for the successful MCP query response envelope.",
+  "properties": {
+    "data": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/VersionedDataSchema"
+        }
+      ],
+      "description": "Versioned tool-specific data."
+    },
+    "findings": {
+      "description": "Relevant findings.",
+      "items": {
+        "$ref": "#/definitions/EnvelopeFinding"
+      },
+      "type": "array"
+    },
+    "project_context": {
+      "description": "Project context from configuration.",
+      "type": "string"
+    },
+    "rules": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Relevant configured rules.",
+      "type": "object"
+    }
+  },
+  "required": [
+    "data",
+    "findings",
+    "project_context",
+    "rules"
+  ],
+  "title": "ResponseEnvelopeSchema",
+  "type": "object"
+}

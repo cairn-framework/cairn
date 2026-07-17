@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "WorkItem": {
+      "description": "Stable presentation shape shared by next-action JSON surfaces.",
+      "properties": {
+        "command": {
+          "description": "Suggested command, when available.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "node": {
+          "description": "Related graph node, when available.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rank": {
+          "description": "Cross-source queue rank; lower ranks are more urgent.",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "source": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/WorkItemSource"
+            }
+          ],
+          "description": "Provenance category."
+        },
+        "title": {
+          "description": "Human-readable title.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command",
+        "node",
+        "rank",
+        "source",
+        "title"
+      ],
+      "type": "object"
+    },
+    "WorkItemSource": {
+      "description": "The source category of a projected work item.",
+      "oneOf": [
+        {
+          "description": "An ephemeral finding remediation action.",
+          "enum": [
+            "finding"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "A durable native todo artefact.",
+          "enum": [
+            "todo"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "A read-only beads backlog item.",
+          "enum": [
+            "bead"
+          ],
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "description": "Wire shape of the `remediate` response: remediation actions projected to the shared work-item shape, plus the count.\n\n`schema_version` is last so appending it here lines up with the byte order `execute`/`execute_with_scan` already produce by stamping it onto the JSON object after the handler returns; see `query_api::SCHEMA_VERSION`.",
+  "properties": {
+    "actions": {
+      "description": "Ordered remediation actions, one per addressable finding.",
+      "items": {
+        "$ref": "#/definitions/WorkItem"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "description": "Wire schema version stamped on every query-API response.",
+      "format": "uint32",
+      "minimum": 0.0,
+      "type": "integer"
+    },
+    "total_actions": {
+      "description": "Number of actions in `actions`.",
+      "format": "uint",
+      "minimum": 0.0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "actions",
+    "schema_version",
+    "total_actions"
+  ],
+  "title": "RemediateResponse",
+  "type": "object"
+}
