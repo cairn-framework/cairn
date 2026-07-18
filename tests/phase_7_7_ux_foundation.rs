@@ -361,7 +361,7 @@ mod explorer {
 
         assert!(
             js.contains(r#"class="channel-empty""#)
-                && js.contains(r#"copy(`webui.empty.${active}`)"#),
+                && js.contains(r"copy(`webui.empty.${active}`)"),
             "empty-state component must render via copy() keys"
         );
     }
@@ -429,7 +429,7 @@ mod explorer {
             "finding rows must show severity and bucket count"
         );
         assert!(
-            js.contains("class=\"channel-bar\"") && js.contains(r#"copy(`webui.channel.${name}`)"#),
+            js.contains("class=\"channel-bar\"") && js.contains(r"copy(`webui.channel.${name}`)"),
             "bucket labels must be copy-driven"
         );
         assert!(

@@ -436,7 +436,7 @@ function App() {
 
   return html`
     <main class="instrument-shell" aria-label=${copy("webui.app")} data-compact=${compact}>
-      <${StatusBezel} graphNodes=${nodes} status=${status} />
+      <${StatusBezel} graphNodes=${nodes} edges=${edges} status=${status} />
       <${QueryRail}
         query=${query}
         parsed=${parsedQuery}

@@ -11,7 +11,7 @@
 
 .instrument-shell {
   display: grid;
-  grid-template-rows: var(--s-10) var(--s-6) 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   min-height: var(--ui-shell-min-height);
   width: min(100%, var(--ui-shell-max-width));
   margin: 0 auto;
@@ -190,6 +190,12 @@
   box-shadow: var(--lift-1);
   transition: border-color var(--dur-quick) var(--ease-settle),
     transform var(--dur-quick) var(--ease-settle);
+}
+
+.node-module .node-id,
+.node-module .node-name,
+.node-module .node-meta {
+  flex-shrink: 0;
 }
 
 .node-module:focus-visible {
@@ -450,11 +456,13 @@
 }
 
 .channel-bar {
-  min-height: var(--s-11);
+  height: var(--ui-channel-height);
+  min-height: var(--ui-channel-height);
   border-top: var(--line-1) solid var(--seam-faint);
   background: var(--stone-2);
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .channel-bar .channel-tabs {
@@ -509,12 +517,16 @@
 
 .state-legend {
   border-top: var(--line-1) solid var(--seam-faint);
-  padding: var(--s-3);
+  padding: var(--s-2) var(--s-4);
   background: var(--stone-1);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
 }
 
 .state-legend .legend-title {
-  margin: 0 0 var(--s-2);
+  margin: 0;
   font-family: var(--font-sans);
   text-transform: uppercase;
   letter-spacing: var(--track-micro);
@@ -523,8 +535,9 @@
 }
 
 .state-legend .legend-grid {
-  display: grid;
-  gap: var(--s-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
 }
 
 .state-legend .legend-item {

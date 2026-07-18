@@ -152,8 +152,7 @@ body {
   font-size: var(--t-micro);
 }
 
-.evidence-rail,
-.channel-bar {
+.evidence-rail {
   min-height: 0;
   overflow: hidden;
 }
@@ -204,7 +203,7 @@ body {
 }
 
 .channel-bar {
-  height: var(--s-20);
+  height: var(--ui-channel-height);
 }
 
 .channel-body {
@@ -300,7 +299,7 @@ body {
   }
 
   .channel-bar {
-    height: 108px;
+    height: var(--ui-channel-height);
   }
 
   .state-legend {

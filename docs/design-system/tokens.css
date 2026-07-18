@@ -64,6 +64,7 @@
   --ui-shell-max-width: 1280px;
   --ui-shell-min-height: 100dvh;
   --ui-shell-min-height-mobile: 100svh;
+  --ui-channel-height: 116px;
   --ui-workspace-main-fr: 2fr;
   --ui-workspace-sidebar-fr: 1fr;
   --ui-workspace-sidebar-min: 360px;

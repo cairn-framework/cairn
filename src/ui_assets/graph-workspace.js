@@ -2,7 +2,7 @@ import { NodeModule } from "./node-module.js";
 import { clsx, copy, html, parseState, useMemo } from "./utils.js";
 
 const CELL_WIDTH_DESKTOP = 118;
-const CELL_HEIGHT_DESKTOP = 96;
+const CELL_HEIGHT_DESKTOP = 104;
 const CELL_WIDTH_COMPACT = 72;
 const CELL_HEIGHT_COMPACT = 62;
 const H_GAP = 10;
