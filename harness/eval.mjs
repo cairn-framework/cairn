@@ -46,7 +46,6 @@ const WEIGHTS = {
   palette: 1,
   blank: 50,
   landmark: 40,
-  action: 40,
 };
 
 const SCENARIOS = [
