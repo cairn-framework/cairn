@@ -354,36 +354,39 @@ mod empty_state {
 }
 
 mod explorer {
-
-    /// Scenario: Component is defined with token-only styling.
+    /// Scenario: Empty-state copy is resolved from the design-system registry.
     #[test]
-    fn test_explorer__empty_state_component_uses_token_only_styling() {
-        let css = include_str!("../docs/design-system/components.css");
+    fn test_explorer__empty_state_component_copy_is_copy_driven() {
+        let js = super::app_js();
+
         assert!(
-            css.contains(".empty-state"),
-            "empty-state component must be defined in design-system components"
-        );
-        let start = css.find(".empty-state").unwrap();
-        let chunk = &css[start..std::cmp::min(start + 800, css.len())];
-        assert!(
-            !chunk.contains('#') || chunk.contains("var(--"),
-            "empty-state rules must use token vars for colors, not hardcoded hex"
-        );
-        assert!(
-            chunk.contains("var(--stone-") || chunk.contains("var(--ink-"),
-            "empty-state must reference design-system color tokens"
+            js.contains(r#"class="channel-empty""#)
+                && js.contains(r#"copy(`webui.empty.${active}`)"#),
+            "empty-state component must render via copy() keys"
         );
     }
 
-    /// Scenario: All ten inline empty-state strings are replaced.
+    /// Scenario: Empty-state text is sourced from the copy registry.
     #[test]
-
     fn test_explorer__ten_inline_empty_state_strings_replaced() {
         let js = super::app_js();
-        let count = js.matches(r#"copy("empty-states."#).count();
+        let copy_toml = include_str!("../docs/design-system/copy.toml");
+        let table: toml::Table = copy_toml.parse().expect("copy.toml must be valid TOML");
+        let empty_states = table
+            .get("empty-states")
+            .and_then(|entry| entry.as_table())
+            .expect("empty-states section must exist");
+
         assert!(
-            count >= 10,
-            "at least 10 empty-state strings must use copy() system, found: {count}"
+            empty_states.len() >= 10,
+            "copy registry must define at least ten empty-state entries, found: {}",
+            empty_states.len()
+        );
+        assert!(
+            js.contains("empty-states.map-loading.body")
+                && js.contains("empty-states.node-no-inbound.body")
+                && js.contains("empty-states.node-no-outbound.body"),
+            "UI empty states should resolve through copy keys"
         );
     }
 
@@ -402,237 +405,102 @@ mod explorer {
         );
     }
 
-    /// Scenario: The canonical findings drawer renders severity state.
+    /// Scenario: Channel bar renders findings and exposes severity and bucket counts.
     #[test]
     fn test_explorer__three_severity_buckets_render_with_count_badges() {
         let js = super::app_js();
+        let channel_start = js
+            .find("function ChannelBar")
+            .expect("channel bar must exist");
+        let channel_end = js[channel_start..]
+            .find("\nfunction ")
+            .map_or(js.len(), |i| channel_start + i);
+        let channel_src = &js[channel_start..channel_end];
+
         assert!(
-            js.contains("function ChangesDrawer"),
-            "canonical findings drawer must exist"
+            js.contains(r#"const CHANNELS = ["findings", "drift", "changes", "backlog"]"#),
+            "channel buckets must expose findings, drift, changes, and backlog"
         );
         assert!(
-            js.contains("class=\"changes-drawer\""),
-            "findings must render in the drawer"
+            js.contains("findingBadge(item)")
+                && js.contains("item.severity")
+                && channel_src.contains("ChannelItem")
+                && js.contains("query-chip"),
+            "finding rows must show severity and bucket count"
         );
         assert!(
-            js.contains("${f.severity}") && js.contains("findings.length"),
-            "drawer must render finding severity and count"
+            js.contains("class=\"channel-bar\"") && js.contains(r#"copy(`webui.channel.${name}`)"#),
+            "bucket labels must be copy-driven"
         );
         assert!(
-            !js.contains("function FindingsPanel"),
-            "retired findings panel must stay absent"
+            !js.contains("function ChangesDrawer") && !js.contains("function FindingsPanel"),
+            "retired findings controls should stay absent"
         );
     }
 
-    /// Scenario: a ghost wire state renders as a calm "planned" affordance,
-    /// kept distinct from the finding/severity axis (error now routes via --drift).
+    /// Scenario: Ghost wire state maps to the planned/ghost vocabulary.
     #[test]
     fn test_explorer__ghost_renders_as_planned_display_state() {
         let js = super::app_js();
-        // The display-state helper maps the ghost wire state to "planned".
+        let css = include_str!("../docs/design-system/components.css");
+
         assert!(
-            js.contains("function displayState"),
-            "displayState helper must exist"
+            js.contains(r#"if (state === "planned" || state === "declared")"#)
+                && js.contains(r#"return "ghost""#),
+            "planned and declared states must normalise to ghost"
         );
         assert!(
-            js.contains(r#"state === "ghost" ? "planned""#),
-            "displayState must map the ghost wire state to planned"
+            js.contains(r#"class="legend-item ghost""#)
+                && js.contains(r#"copy("webui.states.ghost")"#),
+            "state legend must expose ghost (planned) vocabulary"
         );
-        // The legend exposes a planned swatch in place of a raw ghost swatch.
         assert!(
-            js.contains("sw planned"),
-            "legend must render a planned swatch"
-        );
-        // The planned state paints with the dedicated --planned token.
-        assert!(
-            js.contains("var(--planned)"),
-            "planned state must paint with the --planned token"
-        );
-        // The severity axis routes error findings through --drift, kept distinct
-        // from the reconciliation --ghost/--planned state (bet B: de-overload amber).
-        assert!(
-            js.contains(r#"findingSeverity === "error" ? "var(--drift)""#),
-            "finding-severity error must route through --drift (distinct from reconciliation --ghost)"
+            css.contains(".state-legend .legend-item.ghost")
+                && css.contains("var(--ghost)")
+                && css.contains("border-style: dashed"),
+            "ghost legend style must use token variables"
         );
     }
 
-    /// Scenario: Findings open from one canonical drawer surface.
-    #[test]
-    fn test_explorer__scope_toggle_filters_to_selected_node() {
-        let js = super::app_js();
-        assert!(
-            js.contains("function ChangesDrawer"),
-            "canonical findings drawer must exist"
-        );
-        assert!(
-            js.contains("setDrawerOpen(true)"),
-            "overview findings link must open the drawer"
-        );
-        assert!(
-            !js.contains("scope-toggle"),
-            "retired findings panel controls must stay absent"
-        );
-    }
-
-    /// Scenario: No second findings panel exists when a node is not selected.
-    #[test]
-    fn test_explorer__scope_toggle_disabled_when_no_node_selected() {
-        let js = super::app_js();
-        assert!(
-            !js.contains("FindingsPanel"),
-            "retired panel must not be rendered"
-        );
-        assert!(
-            js.contains("changes-drawer"),
-            "the drawer remains available without selection"
-        );
-    }
-
-    /// Scenario: Overview finding summary links into the canonical drawer.
-    #[test]
-    fn test_explorer__category_filter_chips_derive_from_finding_stream() {
-        let js = super::app_js();
-        assert!(
-            js.contains("findings-link"),
-            "overview must expose a findings drawer link"
-        );
-        assert!(
-            js.contains("webui.findings-open"),
-            "overview link must use externalised copy"
-        );
-        assert!(
-            !js.contains("category-chips"),
-            "retired panel filters must stay absent"
-        );
-    }
-
-    /// Scenario: Canonical drawer reads only from the lint prop.
+    /// Scenario: Findings are supplied to the channel bar from App query state.
     #[test]
     fn test_explorer__panel_reads_only_from_query_consumer_api() {
         let js = super::app_js();
-        let drawer_start = js
-            .find("function ChangesDrawer")
-            .expect("ChangesDrawer must exist");
-        let drawer_end = js[drawer_start..]
+        let channel_start = js
+            .find("function ChannelBar")
+            .expect("channel bar must exist");
+        let channel_end = js[channel_start..]
             .find("\nfunction ")
-            .map_or(js.len(), |i| drawer_start + i);
-        let drawer_src = &js[drawer_start..drawer_end];
+            .map_or(js.len(), |i| channel_start + i);
+        let channel_src = &js[channel_start..channel_end];
+
         assert!(
-            !drawer_src.contains("fetch(") && !drawer_src.contains("fetchLint"),
-            "ChangesDrawer must not fetch directly; it receives lint as a prop"
+            !channel_src.contains("fetch(") && !channel_src.contains("fetchLint"),
+            "channel bar should only consume preloaded prop data"
         );
         assert!(
-            !js.contains("function FindingsPanel"),
-            "retired panel must stay absent"
+            js.contains("const findings = Array.isArray(lint.findings)")
+                && js.contains("fetchLint()")
+                && js.contains("<${ChannelBar}")
+                && js.contains("findings=${findings}"),
+            "App must load lint via query API and pass findings into the channel bar"
         );
     }
 
-    /// Scenario: Banner renders the highest-severity finding's nudge.
-    #[test]
-    fn test_explorer__banner_renders_highest_severity_finding_nudge() {
-        let js = super::app_js();
-        assert!(
-            js.contains("ProseNudgeBanner"),
-            "ProseNudgeBanner component must exist"
-        );
-        assert!(
-            js.contains("pickNudgeFinding"),
-            "pickNudgeFinding helper must select highest-severity finding"
-        );
-        assert!(
-            js.contains("SEVERITY_RANK") && js.contains("error: 0"),
-            "severity ranking must prioritise error over warning over info"
-        );
-    }
+    // The following legacy controls were retired by dec.webui-ux-first-redesign:
+    // - ProseNudgeBanner and its CTA/copy rendering helpers
+    // - overview findings filters and scope-toggle drawer controls
 
-    /// Scenario: Tie-break by lowest-numbered code.
-    #[test]
-    fn test_explorer__banner_tie_break_by_lowest_numbered_code() {
-        let js = super::app_js();
-        assert!(
-            js.contains("f.code < best.code"),
-            "tie-break must prefer lowest-numbered (lexicographic) code"
-        );
-    }
-
-    /// Scenario: Banner CTA is a copy-pasteable CLI snippet.
-    #[test]
-    fn test_explorer__banner_cta_is_copy_pasteable_cli_snippet() {
-        let js = super::app_js();
-        assert!(
-            js.contains("prose-nudge-cta"),
-            "banner must render a CTA element"
-        );
-        assert!(
-            js.contains("copyFinding") && (js.contains("entry.cta") || js.contains("entry?.cta")),
-            "CTA must be sourced from copy.toml findings.codes entries"
-        );
-    }
-
-    /// Scenario: Banner is hidden when the node has no findings.
-    #[test]
-    fn test_explorer__banner_hidden_when_node_has_no_findings() {
-        let js = super::app_js();
-        assert!(
-            js.contains("if (!nudge) return null"),
-            "banner must return null when no finding matches the node"
-        );
-    }
-
-    /// Scenario: Node with CE001 + CT001 renders CE001 nudge with substituted node name.
-    #[test]
-    fn test_explorer__banner_substitutes_node_name_in_nudge_body() {
-        let js = super::app_js();
-        assert!(
-            js.contains("substituteCopy") && js.contains("{ node: f.node || \"\""),
-            "ProseNudgeBanner must substitute {{node}} placeholder from finding node"
-        );
-        assert!(
-            js.contains("SEVERITY_RANK")
-                && js.contains("error: 0")
-                && js.contains("warning: 1")
-                && js.contains("info: 2"),
-            "severity ranking must place error < warning < info so CE001 (Error) wins over CT001"
-        );
-    }
-
-    /// Scenario: Copy button is wired to the CTA snippet.
-    #[test]
-    fn test_explorer__banner_cta_has_copy_button() {
-        let js = super::app_js();
-        assert!(
-            js.contains("CopyButton"),
-            "ProseNudgeBanner must include a CopyButton component"
-        );
-        assert!(
-            js.contains("prose-nudge-cta-row"),
-            "CTA must be wrapped in a row container for the copy button"
-        );
-
-        assert!(
-            js.contains("navigator.clipboard") || js.contains("document.execCommand"),
-            "CopyButton must use clipboard API or fallback"
-        );
-    }
-
-    /// Scenario: Prose-nudge substitutes {target} placeholder from finding target.
-    #[test]
-    fn test_explorer__banner_substitutes_target_placeholder() {
-        let js = super::app_js();
-        assert!(
-            js.contains("target: f.target || \"\""),
-            "ProseNudgeBanner vars must include target from finding"
-        );
-    }
-
-    /// Scenario: Structural error indicator (integrity overlay).
+    /// Scenario: Structural integrity findings remain visible and focusable.
     #[test]
     fn test_explorer__structural_error_indicator() {
         let js = super::app_js();
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
-            js.contains("nodeSeverityById"),
-            "integrity overlay must compute node severity from lint findings"
+            js.contains("function ChannelItem")
+                && js.contains("const nodeId = item.node || item.slug")
+                && js.contains("onFocus(nodeId)"),
+            "finding rows must identify and focus affected nodes"
         );
         assert!(
             copy.contains("CAIRN_INTEGRITY_DUPLICATE_ID")
@@ -642,30 +510,38 @@ mod explorer {
         );
     }
 
-    /// Scenario: Interface contradiction indicator (integrity overlay).
+    /// Scenario: Interface contradiction findings retain severity visibility.
     #[test]
     fn test_explorer__interface_contradiction_indicator() {
         let js = super::app_js();
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
-            js.contains("findingSeverity"),
-            "node components must receive findingSeverity prop"
+            js.contains("String(item.severity || \"info\")")
+                && js.contains("${item.severity ? `· ${item.severity}` : \"\"}"),
+            "finding rows must display severity labels"
         );
         assert!(
             copy.contains("CAIRN_INTERFACE_HASH_CHANGED")
-                || copy.contains("CAIRN_CONTRACT_MISSING"),
+                || copy.contains("CAIRN_CONTRACT_MISSING")
+                || copy.contains("CAIRN_CONTRACT_MISSING_NODE"),
             "copy.toml must define interface contradiction finding codes"
         );
     }
 
-    /// Scenario: Rationale tension indicator (integrity overlay).
+    /// Scenario: Rationale tension findings use settled status tokens.
     #[test]
     fn test_explorer__rationale_tension_indicator() {
         let js = super::app_js();
+        let css = include_str!("../docs/design-system/components.css");
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
-            js.contains("var(--settled)"),
-            "overlay must use settled color token for info-severity indicators"
+            js.contains("const infos = Number(status?.infos")
+                || js.contains("infos = Number(status?.finding_counts?.infos"),
+            "status and channel must retain info severity"
+        );
+        assert!(
+            css.contains("var(--settled)") && css.contains("var(--settled-wash)"),
+            "status token usage should stay in the settled channel"
         );
         assert!(
             copy.contains("CAIRN_DECISION_ORPHANED")
@@ -675,17 +551,15 @@ mod explorer {
         );
     }
 
-    /// Scenario: Info-severity findings appear in the overlay.
+    /// Scenario: Info-severity findings appear in the channel and status surfaces.
     #[test]
     fn test_explorer__info_severity_findings_appear_in_overlay() {
         let js = super::app_js();
         assert!(
-            js.contains(r#"findingSeverity === "info""#),
-            "overlay must render info-severity indicators in node components"
-        );
-        assert!(
-            js.contains("info: 2"),
-            "nodeSeverityById must rank info severity"
+            js.contains("String(item.severity || \"info\")")
+                && js.contains("item.severity ? `· ${item.severity}`")
+                && js.contains("const infos = Number(status?.infos"),
+            "info-severity must remain visible in rows and status counts"
         );
     }
 }

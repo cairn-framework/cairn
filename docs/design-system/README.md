@@ -97,10 +97,11 @@ Stage 2 validation confirmed no missing token references in combined `src/ui_ass
 
 Stage 4 (eval-loop verification) adjustments:
 
-- `--ci-chalk-faint` raised from `#6f6b60` to `#a29d90` in the dark theme so faint ink meets the 4.5:1 contrast floor on every chassis surface it appears against.
+- `--ci-chalk-faint` raised from `#6f6b60` to `#a29d90` at the root scope (the light theme keeps its own override) so faint ink meets the 4.5:1 contrast floor on every chassis surface it appears against.
 - Added `--tap-min: 44px`, the minimum touch-target size; `components.css` applies it to interactive controls (query input, chips, actions, rail and channel tabs) at viewports of 900px and below.
 - `.query-chip`, `.query-action`, `.edge-row`, `.edge-dir`, and `.edge-target` are component classes in their own right (previously scoped under `.query-rail` and `.node-depth-plate`); modules may render them in any region and they carry explicit surface, ink, and border treatment so no browser default leaks through.
 - `.blueprint-plate pre` wraps long source lines (`pre-wrap`) instead of widening the frame.
+- `.channel-bar .channel-empty` styles the channel empty state with faint ink.
 
 ## NEXT_SESSION.md disposition
 

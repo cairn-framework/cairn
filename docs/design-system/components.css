@@ -493,6 +493,12 @@
   gap: var(--s-2);
 }
 
+.channel-bar .channel-empty {
+  margin: 0;
+  color: var(--ink-faded);
+  font-size: var(--t-small);
+}
+
 .channel-bar .channel-item {
   border: var(--line-1) solid var(--seam-faint);
   border-radius: var(--r-stone);

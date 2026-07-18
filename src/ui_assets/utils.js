@@ -49,7 +49,16 @@ async function fetchJson(url) {
     if (response.status === 404) {
       return null;
     }
-    throw new Error(`request failed: ${url} (${response.status})`);
+    let detail = `request failed: ${url} (${response.status})`;
+    try {
+      const body = await response.json();
+      if (body && typeof body.code === "string" && typeof body.message === "string") {
+        detail = `${body.code}: ${body.message}`;
+      }
+    } catch {
+      // Non-JSON body: keep the generic message.
+    }
+    throw new Error(detail);
   }
   return response.status === 204 ? null : response.json();
 }
