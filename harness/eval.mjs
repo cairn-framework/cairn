@@ -55,74 +55,83 @@ const SCENARIOS = [
   { name: "tablet-portrait", width: 834, height: 1112, mobile: true, checkTap: true },
   { name: "mobile-portrait", width: 390, height: 844, mobile: true, checkTap: true },
   { name: "command-palette", width: 1440, height: 900, mobile: false, action: "openPalette" },
-  { name: "blueprint-modal", width: 1440, height: 900, mobile: false, action: "openBlueprint" },
+  { name: "blueprint-mode", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openBlueprint" },
   // Functional-state coverage: paths the clean self-scan never produces. The
   // "demo" server serves harness/fixtures-demo (findings + ghost/orphaned).
-  { name: "decision-detail", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openDecision" },
+  { name: "decision-lineage", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openDecision" },
   { name: "findings-populated", width: 1440, height: 900, mobile: false, server: "demo", action: "openFindings", requireFindings: true },
-  { name: "node-finding", width: 1440, height: 900, mobile: false, server: "demo", select: "cairn.root", requireNudge: true },
-  // "cairn.sse" is a fixture-only node id: it lives in the frozen
-  // fixtures-demo capture as a ghost and was deleted from the live
-  // blueprint on 2026-07-07 (dec.simplify-cut-sse). Do not "fix" it to a
-  // live node; a fixture refresh must keep a ghost-state subject.
+  { name: "node-finding", width: 1440, height: 900, mobile: false, server: "demo", action: "openFinding", requireFindings: true },
+  // "cairn.sse" is a fixture-only ghost node id used to keep the ghost-state
+  // scenario meaningful after a live graph refresh.
   { name: "ghost-node", width: 1440, height: 900, mobile: false, server: "demo", select: "cairn.sse" },
 ];
 
 const READY_EXPR =
-  "(function(){try{return !!(document.querySelector('.inspector')&&document.querySelector('.graph-svg')&&document.querySelectorAll('.graph-minimap .mini-dot').length>0);}catch(e){return false;}})()";
+  "(function(){try{return !!(document.querySelector('.instrument-shell')&&document.querySelector('.graph-svg')&&document.querySelectorAll('.node-module').length>0);}catch(e){return false;}})()";
 
 const KILL_ANIM_EXPR =
   "(function(){var s=document.createElement('style');s.textContent='*,*::before,*::after{transition:none!important;animation:none!important;animation-duration:0s!important;animation-delay:0s!important;}';document.head.appendChild(s);return true;})()";
 
 const ACTIONS = {
   selectNode: {
-    fire: "(function(){var d=document.querySelector('.graph-minimap .mini-dot');if(d){d.click();return true;}return false;})()",
-    settled: "(function(){return !!document.querySelector('.inspector .blueprint-card');})()",
+    fire: "(function(){var d=document.querySelector('.node-module');if(d){d.click();return true;}return false;})()",
+    settled: "(function(){return !!document.querySelector('.evidence-rail .node-depth-plate .node-id');})()",
   },
   openFindings: {
-    fire: "(function(){var h=document.querySelector('.changes-drawer .drawer-handle');if(h){h.click();return true;}return false;})()",
-    settled: "(function(){return !!document.querySelector('.changes-drawer .drawer-body, .changes-drawer .drawer-empty');})()",
+    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var target=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'))||tabs[0];if(!target){return false;}target.click();return true;})()",
+    settled: "(function(){return !!document.querySelector('.channel-bar .channel-body')&&!!(document.querySelector('.channel-item')||document.querySelector('.channel-empty'));})()",
   },
   openPalette: {
-    fire: "(function(){var t=document.querySelector('.cmd-trigger');if(t){t.click();return true;}return false;})()",
-    settled: "(function(){return !!document.querySelector('.cmd-palette');})()",
+    fire: "(function(){var input=document.querySelector('.query-input');if(!input){return false;}input.focus();input.value='kernel';input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Enter',code:'Enter',keyCode:13,which:13}));return true;})()",
+    settled: "(function(){var input=document.querySelector('.query-input');return !!input&&input.value==='kernel'&&!!document.querySelector('.node-module.matched');})()",
+  },
+  openFinding: {
+    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var target=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'))||tabs[0];if(!target){return false;}target.click();var first=[...document.querySelectorAll('.channel-item .query-action')][0];if(!first){return false;}first.click();return true;})()",
+    settled: "(function(){return !!document.querySelector('.evidence-rail .node-depth-plate .node-id');})()",
   },
   openBlueprint: {
-    fire: "(function(){var t=document.querySelector('.blueprint-open-trigger');if(t){t.click();return true;}return false;})()",
-    settled: "(function(){return !!document.querySelector('.blueprint-modal pre');})()",
+    fire: "(function(){var rail=document.querySelector('.evidence-rail');if(!rail){return false;}var t=[...rail.querySelectorAll('.rail-tab')].find((n)=>String(n.textContent||'').toLowerCase().includes('blueprint'));if(!t){return false;}t.click();return true;})()",
+    settled: "(function(){return !!document.querySelector('.evidence-rail .blueprint-plate');})()",
   },
   openDecision: {
-    fire: "(function(){var d=document.querySelector('.inspector .artefact.decision');if(d){d.click();return true;}return false;})()",
-    settled: "(function(){return !!document.querySelector('.inspector.decision-detail');})()",
+    fire: "(function(){var rail=document.querySelector('.evidence-rail');if(!rail){return false;}var t=[...rail.querySelectorAll('.rail-tab')].find((n)=>String(n.textContent||'').toLowerCase().includes('lineage'));if(!t){return false;}t.click();var chip=[...rail.querySelectorAll('.evidence-rail .lineage-stage:nth-of-type(2) .query-chip')][0];if(!chip){return false;}chip.click();return true;})()",
+    settled: "(function(){return !!document.querySelector('.evidence-rail .lineage-plate')&&!!document.querySelector('.evidence-rail .query-action');})()",
   },
 };
 
 function missingLandmarks(scenario, lm) {
   const miss = [];
+  if (!lm.shell) miss.push("shell");
+  if (!lm.graphCanvas) miss.push("graphCanvas");
   if (!lm.graphSvg) miss.push("graphSvg");
-  if (!(lm.miniDots > 0)) miss.push("miniDots");
-  if (!lm.inspector) miss.push("inspector");
-  if (scenario.action === "selectNode") {
-    if (lm.emptyInspector) miss.push("inspectorStillEmpty");
-    if (!lm.blueprintCard) miss.push("blueprintCard");
-  } else if (scenario.action === "openDecision") {
-    if (!lm.decisionDetail) miss.push("decisionDetail");
-  } else if (scenario.action === "openFindings") {
-    if (!lm.drawerOpen) miss.push("drawerOpen");
-    if (scenario.requireFindings && !(lm.changeCards > 0)) miss.push("findingCards");
-  } else if (scenario.action === "openPalette") {
-    if (!lm.cmdPalette) miss.push("cmdPalette");
-  } else if (scenario.action === "openBlueprint") {
-    if (!lm.blueprintModal) miss.push("blueprintModal");
-  } else if (scenario.select) {
-    if (lm.emptyInspector) miss.push("inspectorStillEmpty");
-    if (!lm.insTitle) miss.push("insTitle");
-    if (scenario.requireNudge && !lm.proseNudge) miss.push("proseNudge");
-  } else if (!lm.statGrid) {
-    miss.push("statGrid");
+  if (!lm.queryRail) miss.push("queryRail");
+  if (!lm.nodeModules) miss.push("nodeModules");
+  if (scenario.action === "selectNode" || scenario.select) {
+    if (!lm.selectedNode) miss.push("selectedNode");
+  }
+  if (scenario.action === "selectNode" || scenario.action === "openFinding" || scenario.action === "openFindings") {
+    if (!lm.depthPlate) miss.push("depthPlate");
+  }
+  if (scenario.action === "openFindings") {
+    if (!lm.channelBar) miss.push("channelBar");
+    if (scenario.requireFindings && !(lm.channelItems > 0)) miss.push("channelItems");
+  }
+  if (scenario.action === "openPalette") {
+    if (!lm.queryRail) miss.push("queryRail");
+    if (!lm.queryInput) miss.push("queryInput");
+    if (!lm.queryInputValue) miss.push("queryInputValue");
+  }
+  if (scenario.action === "openBlueprint") {
+    if (!lm.evidenceRail) miss.push("evidenceRail");
+    if (!lm.blueprintPlate) miss.push("blueprintPlate");
+  }
+  if (scenario.action === "openDecision") {
+    if (!lm.evidenceRail) miss.push("evidenceRail");
+    if (!lm.lineagePlate) miss.push("lineagePlate");
   }
   return miss;
 }
+
 
 async function main() {
   mkdirSync(SHOTS, { recursive: true });
@@ -208,7 +217,7 @@ async function main() {
           `(function(){localStorage.setItem('cairn:v2:selection',${JSON.stringify(scenario.select)});location.reload();return true;})()`,
         );
         ready = await waitUntil(READY_EXPR, 10000);
-        await waitUntil("(function(){return !!document.querySelector('.inspector .blueprint-card');})()", 6000);
+        await waitUntil("(function(){return !!document.querySelector('.node-module.selected');})()", 6000);
       }
 
       if (ready) {

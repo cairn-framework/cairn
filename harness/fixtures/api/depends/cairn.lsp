@@ -1,1 +1,1 @@
-{"schema_version":1,"node":"cairn.lsp","nodes":[]}
+{"schema_version":4,"node":"cairn.lsp","nodes":[]}

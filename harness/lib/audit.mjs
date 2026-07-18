@@ -244,19 +244,23 @@ export function auditPage(opts) {
   }
 
   const landmarks = {
-    inspector: !!document.querySelector(".inspector"),
-    emptyInspector: !!document.querySelector(".empty-inspector"),
+    shell: !!document.querySelector(".instrument-shell"),
+    statusBezel: !!document.querySelector(".status-bezel"),
+    queryRail: !!document.querySelector(".query-rail"),
+    queryInput: !!document.querySelector(".query-input"),
+    queryInputValue: (document.querySelector(".query-input")?.value || "").trim(),
+    graphCanvas: !!document.querySelector(".graph-canvas"),
     graphSvg: !!document.querySelector(".graph-svg"),
-    miniDots: document.querySelectorAll(".graph-minimap .mini-dot").length,
-    statGrid: !!document.querySelector(".stat-grid"),
-    insTitle: !!document.querySelector(".ins-title"),
-    blueprintCard: !!document.querySelector(".blueprint-card"),
-    drawerOpen: !!document.querySelector(".changes-drawer .drawer-body, .changes-drawer .drawer-empty"),
-    cmdPalette: !!document.querySelector(".cmd-palette"),
-    blueprintModal: !!document.querySelector(".blueprint-modal"),
-    decisionDetail: !!document.querySelector(".decision-detail"),
-    changeCards: document.querySelectorAll(".changes-drawer .change-card").length,
-    proseNudge: !!document.querySelector(".prose-nudge"),
+    nodeModules: document.querySelectorAll(".node-module").length,
+    selectedNode: document.querySelectorAll(".node-module.selected").length,
+    evidenceRail: !!document.querySelector(".evidence-rail"),
+    depthPlate: !!document.querySelector(".node-depth-plate"),
+    blueprintPlate: !!document.querySelector(".blueprint-plate"),
+    lineagePlate: !!document.querySelector(".lineage-plate"),
+    lineageDecisions: document.querySelectorAll(".lineage-stage:nth-of-type(2) .query-chip").length,
+    channelBar: !!document.querySelector(".channel-bar"),
+    activeFindings: !!document.querySelector('.channel-tab.active'),
+    channelItems: document.querySelectorAll(".channel-item").length,
   };
 
   return {
