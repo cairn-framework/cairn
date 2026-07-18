@@ -77,11 +77,18 @@ outcome: components with cohesive responsibilities, explicit data and
 event interfaces, and independently testable rendering, styled by
 reusable design-system primitives. The component design chooses the
 boundaries; do not force one module per UI region or mirror the
-existing 9-module split. Preserve the
-landed behaviour: selection emphasis, pan-to-selection, state keels,
-legend, guidance empty states, topbar stat dedupe, command palette,
-findings drawer, blueprint modal, mobile navigation. Responsive narrow
-behaviour keeps a sensible single-column stack.
+existing 9-module split.
+
+Preserve capabilities, not today's controls. The redesign must keep
+every job the current webui serves: select a node and navigate its
+edges, bring the selection into view, read node state at a glance
+(the adopted state vocabulary stays as design language), search and
+query the graph, review findings, inspect the blueprint source,
+follow active changes, and use the UI on narrow screens. The UX phase
+may replace or discard any of today's specific patterns (command
+palette, drawer, modal, legend placement, topbar arrangement) when
+its job analysis supports a better interaction; no landed control is
+sacred.
 
 Do not foreclose the future two-way exploration (webui feedback/notes
 flowing to the harness via the `cairn feedback` / `.cairn/feedback.md`
@@ -118,9 +125,10 @@ hero (`webui.mp4`, poster and og:image `webui-graph.png`),
 - Implementation is component-based: cohesive responsibilities,
   explicit data/event interfaces, independently testable rendering,
   reusable design-system primitives; boundaries chosen by the design.
-- All existing webui interactions keep working: selection,
-  pan-to-selection, palette, findings drawer, blueprint modal, kind
-  toggles, mobile stack.
+- Every current capability survives in some form: node selection and
+  edge navigation, selection brought into view, at-a-glance state,
+  graph search/query, findings review, blueprint inspection, change
+  visibility, narrow-screen use. The specific controls may differ.
 - Visual harness gates pass; adversarial interaction gate clean.
 - Nothing in the implementation forecloses a later two-way feedback
   seam.
