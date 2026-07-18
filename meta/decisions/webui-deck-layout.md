@@ -8,7 +8,7 @@ informed_by: [res.design-studio-greenfield, res.webui-review-audit]
 refines: [dec.webui-design-direction]
 ---
 
-# Webui adopts the design-studio deck layout for the graph canvas
+# Webui adopts the design-studio deck layout and its codified design system
 
 ## Context
 
@@ -33,30 +33,41 @@ against both mocks (2026-07-18) confirm the density gap is roughly 5x.
 ## Decision
 
 Owner direction (2026-07-18): the mocks' layout and UX architecture is
-adopted, not just their language. The webui graph canvas moves from
-the single-column card list to the shared deck layout: bounded desktop
-workspace, containment as labelled horizontal bands, compact chips in
-2D flow, edges at rest, findings docked under the well, inspector as
-the right column, single-column stack below the tablet breakpoint.
+adopted, not just their language, and the design-studio loop produces
+and implements the canonical design system. The webui graph canvas
+moves from the single-column card list to the shared deck layout:
+bounded desktop workspace, containment as labelled horizontal bands,
+compact chips in 2D flow, edges at rest, findings docked under the
+well, inspector as the right column, single-column stack below the
+tablet breakpoint.
 
 This refines `dec.webui-design-direction`, it does not replace it:
 
 - The Calibrated Instrument aesthetic ruling stands; Strata Survey's
   state vocabulary stays adopted as motif.
-- "Refine, do not redesign" is narrowed: it governed identity (tokens,
-  type, components), which is kept; it no longer shields the canvas
-  layout, which both tracks scored as the weakest zone.
-- The token and component gates (`dec.webui-design-token-gate`) govern
-  the implementation unchanged; the greenfield `tokens.css` remains
-  reference material, not a token replacement.
+- "Refine, do not redesign" is narrowed to the product's identity
+  (name, voice, the instrument framing). It no longer shields the
+  canvas layout or the depth of the design system, both of which the
+  tracks scored as the deficit.
+- The greenfield codified output (`design-dna.md`, `tokens.css`, the
+  skill) is promoted from reference material to seed corpus: the
+  design-studio loop reconciles it with the current
+  `docs/design-system/` into one canonical system. The token and
+  component gates (`dec.webui-design-token-gate`) govern the result
+  unchanged; consumers (webui, landing, live reference) follow the
+  reconciled set.
 
-Execution is specified in `todo.webui-instrument-layout`.
+Execution is specified in `todo.webui-deck-redesign`.
 
 ## Consequences
 
-- `todo.webui-instrument-layout` is the implementation home; its
+- `todo.webui-deck-redesign` is the implementation home; its
   amending-decision contingency is resolved by this decision.
 - Any future canvas work targets the deck layout, not the card column.
+- The redesign staleness it creates in public assets (README webui gif
+  and screenshots, landing hero video/poster and og:image, harness
+  baselines, the `docs/design-system/NEXT_SESSION.md` handoff) is
+  tracked in `todo.ui-asset-refresh`, downstream of the redesign.
 
 revisit_triggers:
   - the deck layout fails the visual harness or design-quality scorer
