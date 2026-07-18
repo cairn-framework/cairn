@@ -1,302 +1,499 @@
-/* Cairn webui v2. Preact + htm, vendored runtime.
+/* Cairn webui v2 app shell.
  *
- * All colors, spacing, radii, motion, and type come from docs/design-system/tokens.css.
- * Do not hardcode hex or rem values here. All user-visible prose uses plain English
- * punctuation (no em-dashes). Paths and slugs are in IBM Plex Mono; titles are in
- * Source Serif 4; UI labels are in IBM Plex Sans.
- *
- * Data flow:
- *   boot          -> GET /api/graph, GET /api/lint
- *   select node   -> GET /api/node/:id plus six artefact kinds plus depends/dependents
- *   view source   -> GET /api/blueprint
- *
- * Feature modules own their local UI state; this composition root wires
- * shared boot data (graph, lint) and selection state across them.
+ * Composition root: bootstrap data fetch + state wiring between modules.
  */
 
-import { BlueprintModal } from "./blueprint-modal.js";
-import { CommandPalette } from "./command-palette.js";
-import { DecisionDetail } from "./decision-detail.js";
-import { ChangesDrawer } from "./findings-panel.js";
-import { GraphCanvas } from "./graph-canvas.js";
-import { EmptyInspector, ModuleInspector } from "./inspector.js";
-import { buildLayout } from "./layout.js";
-import { TopBar } from "./top-bar.js";
-import { copy, Fragment, fetchBlueprint, fetchDependents, fetchDepends, fetchGraph, fetchLint, fetchMeta, fetchNodeArtefacts, fetchNodeBeads, fetchNodeSymbols, h, html, loadCopy, preactReady, render, useCallback, useEffect, useMemo, useState } from "./utils.js";
+import { ChannelBar } from "./channel-bar.js";
+import { EvidenceRail, StateLegend } from "./evidence-rail.js";
+import { GraphWorkSpace } from "./graph-workspace.js";
+import { QueryRail } from "./query-rail.js";
+import { mapEdgeRows, matchesQuery, parseQuery } from "./search.js";
+import { StatusBezel } from "./status-bezel.js";
+import { copy, fetchBlueprint, fetchDependents, fetchDepends, fetchGraph, fetchLint, fetchNodeArtefacts, fetchStatus, html, loadCopy, preactReady, render, useCallback, useEffect, useMemo, useState } from "./utils.js";
 
-// ==========================================================================
-// App root
-// ==========================================================================
+const DEFAULT_CHANNEL = "findings";
+const STORAGE_KEY = "cairn:ui:selection";
+const STORAGE_KEY_LEGACY = "cairn:v2:selection";
+
+function readSelectionSeed(nodes) {
+  const candidates = [STORAGE_KEY, STORAGE_KEY_LEGACY];
+
+  try {
+    for (const key of candidates) {
+      const saved = window.localStorage?.getItem?.(key);
+      if (saved && nodes.some((node) => node.id === saved)) {
+        return saved;
+      }
+    }
+  } catch {
+    // best effort only
+  }
+
+  return nodes[0]?.id || "";
+}
+
+function remapNeighbours(nodesById, raw) {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  return raw
+    .map((item) => {
+      const id = String(item?.id || item || "");
+      if (!id) {
+        return null;
+      }
+      const node = nodesById.get(id);
+      return node ? { id, name: node.name, state: node.state } : { id };
+    })
+    .filter(Boolean);
+}
 
 function App() {
-  const [graph, setGraph] = useState(null);
-  const [lint, setLint] = useState(null);
-  const [meta, setMeta] = useState(null);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [compact, setCompact] = useState(window.innerWidth <= 990);
 
-  const [selectionId, setSelectionId] = useState(null);
-  const [selectedDecision, setSelectedDecision] = useState(null);
-  const [detail, setDetail] = useState({});
-  const [hoveredId, setHoveredId] = useState(null);
-  const [cmdOpen, setCmdOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [blueprintOpen, setBlueprintOpen] = useState(false);
-  const [blueprint, setBlueprint] = useState(null);
-  const [blueprintFocus, setBlueprintFocus] = useState(null);
-  const [bootTick, setBootTick] = useState(0);
+  const [graph, setGraph] = useState({ nodes: [], edges: [] });
+  const [status, setStatus] = useState({});
+  const [lint, setLint] = useState({});
+  const [blueprint, setBlueprint] = useState({ path: "", source: "" });
+
+  const [query, setQuery] = useState("");
+  const [kindFilter, setKindFilter] = useState("all");
+  const [stateFilter, setStateFilter] = useState("all");
+  const [selectionId, setSelectionId] = useState("");
+  const [selectionIndex, setSelectionIndex] = useState(0);
+  const [evidenceMode, setEvidenceMode] = useState("depth");
+  const [channel, setChannel] = useState(DEFAULT_CHANNEL);
+
+  const [artefactsByNode, setArtefactsByNode] = useState({});
+  const [depends, setDepends] = useState({ in: [], out: [] });
+  const [selectedLineageItem, setSelectedLineageItem] = useState(null);
+
+  const onResize = useCallback(() => {
+    setCompact(window.innerWidth <= 990);
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    setError(null);
-    setGraph(null);
-    setLint(null);
-    setMeta(null);
-    Promise.all([fetchGraph(), fetchLint()])
-      .then(([g, l]) => {
-        if (cancelled) return;
-        if (!g || !Array.isArray(g.nodes) || !Array.isArray(g.edges)) {
-          setError(copy("empty-states.map-failed.body"));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [onResize]);
+
+  useEffect(() => {
+    if (!preactReady) {
+      setError(copy("webui.runtime-not-ready"));
+      setLoading(false);
+      return;
+    }
+
+    let active = true;
+
+    async function bootstrap() {
+      try {
+        await loadCopy();
+
+        const [graphPayload, statusPayload, lintPayload, blueprintPayload] = await Promise.all([fetchGraph(), fetchStatus(), fetchLint(), fetchBlueprint()]);
+
+        if (!active) {
           return;
         }
-        setGraph(g);
-        setLint(l);
-        // Fetch metadata only after the map is resolved so its
-        // last_reconciled timestamp describes the scan just rendered.
-        return fetchMeta().catch(() => null);
-      })
-      .then((m) => {
-        if (cancelled) return;
-        if (m) setMeta(m);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message);
-      });
+
+        setGraph({
+          nodes: Array.isArray(graphPayload?.nodes) ? graphPayload.nodes : [],
+          edges: Array.isArray(graphPayload?.edges) ? graphPayload.edges : [],
+        });
+        setStatus(statusPayload || {});
+        setLint(lintPayload || {});
+        setBlueprint(blueprintPayload || { path: "", source: "" });
+
+        const seed = readSelectionSeed(Array.isArray(graphPayload?.nodes) ? graphPayload.nodes : []);
+        setSelectionId(seed);
+      } catch (cause) {
+        if (active) {
+          setError(cause?.message || copy("empty-states.map-failed.body"));
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    bootstrap();
+
     return () => {
-      cancelled = true;
+      active = false;
     };
-  }, [bootTick]);
+  }, []);
 
   useEffect(() => {
+    if (!selectionId) {
+      return;
+    }
+
     try {
-      const saved = localStorage.getItem("cairn:v2:selection");
-      if (saved) setSelectionId(saved);
-    } catch (_err) {
-      // storage disabled; ignore
+      window.localStorage?.setItem?.(STORAGE_KEY, selectionId);
+      window.localStorage?.setItem?.(STORAGE_KEY_LEGACY, selectionId);
+    } catch {
+      // best effort
+    }
+  }, [selectionId]);
+
+  const nodes = useMemo(() => graph.nodes || [], [graph.nodes]);
+  const edges = useMemo(() => graph.edges || [], [graph.edges]);
+  const nodesById = useMemo(() => {
+    const map = new Map();
+    for (const node of nodes) {
+      map.set(node.id, node);
+    }
+    return map;
+  }, [nodes]);
+  const parsedQuery = useMemo(() => parseQuery(query), [query]);
+  const visibleNodes = useMemo(
+    () =>
+      nodes.filter((node) =>
+        matchesQuery(node, {
+          ...parsedQuery,
+          kind: kindFilter === "all" ? parsedQuery.kind : kindFilter,
+          state: stateFilter === "all" ? parsedQuery.state : stateFilter,
+        }),
+      ),
+    [nodes, parsedQuery.text, parsedQuery.kind, parsedQuery.state, kindFilter, stateFilter],
+  );
+
+  const visibleIds = useMemo(() => visibleNodes.map((node) => node.id), [visibleNodes]);
+
+  useEffect(() => {
+    if (!visibleIds.length) {
+      setSelectionIndex(-1);
+      setSelectionId("");
+      return;
+    }
+
+    if (selectionId && visibleIds.includes(selectionId)) {
+      setSelectionIndex(visibleIds.indexOf(selectionId));
+      return;
+    }
+
+    setSelectionIndex(0);
+    setSelectionId(visibleIds[0]);
+  }, [selectionId, visibleIds]);
+
+  useEffect(() => {
+    if (!selectionId || selectionIndex < 0 || !visibleIds.length) {
+      return;
+    }
+
+    if (visibleIds[selectionIndex] !== selectionId) {
+      setSelectionId(visibleIds[selectionIndex]);
+    }
+  }, [selectionIndex, visibleIds, selectionId]);
+
+  const selection = nodesById.get(selectionId) || null;
+
+  useEffect(() => {
+    if (!selectionId) {
+      setDepends({ in: [], out: [] });
+      return;
+    }
+
+    const rows = mapEdgeRows(selectionId, edges);
+    setDepends(rows);
+  }, [edges, selectionId]);
+
+  useEffect(() => {
+    if (!selectionId) {
+      return;
+    }
+
+    let active = true;
+
+    async function loadArtefacts() {
+      const [contract, decisions, sources, rationale, dependsRaw, dependentsRaw] = await Promise.all([
+        fetchNodeArtefacts(selectionId, "contract").catch(() => []),
+        fetchNodeArtefacts(selectionId, "decisions").catch(() => []),
+        fetchNodeArtefacts(selectionId, "sources").catch(() => []),
+        fetchNodeArtefacts(selectionId, "rationale").catch(() => []),
+        fetchDepends(selectionId).catch(() => []),
+        fetchDependents(selectionId).catch(() => []),
+      ]);
+
+      if (!active) {
+        return;
+      }
+
+      const mappedOut = remapNeighbours(nodesById, dependsRaw);
+      const mappedIn = remapNeighbours(nodesById, dependentsRaw);
+      const rows = mapEdgeRows(selectionId, edges);
+
+      setDepends({
+        in: mappedIn.length ? mappedIn : rows.in,
+        out: mappedOut.length ? mappedOut : rows.out,
+      });
+
+      setArtefactsByNode((current) => ({
+        ...current,
+        [selectionId]: {
+          contracts: Array.isArray(contract) ? contract : [],
+          decisions: Array.isArray(decisions) ? decisions : [],
+          sources: Array.isArray(sources) ? sources : [],
+          evidence: Array.isArray(rationale) ? rationale : [],
+          symbols: [],
+        },
+      }));
+    }
+
+    loadArtefacts().catch(() => {
+      if (!active) {
+        return;
+      }
+      setArtefactsByNode((current) => ({
+        ...current,
+        [selectionId]: {
+          contracts: [],
+          decisions: [],
+          sources: [],
+          evidence: [],
+          symbols: [],
+        },
+      }));
+      setDepends(mapEdgeRows(selectionId, edges));
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [selectionId, edges, nodesById]);
+
+  const findings = Array.isArray(lint.findings) ? lint.findings : [];
+  const drift = findings.filter((item) => item.severity === "error" || item.severity === "warning");
+  const changes = Array.isArray(lint.changes) ? lint.changes : [];
+  const backlog = Array.isArray(lint.todos) && lint.todos.length ? lint.todos : Array.isArray(lint.backlog) ? lint.backlog : [];
+
+  const selectionArtefacts = useMemo(() => artefactsByNode[selectionId] || {}, [artefactsByNode, selectionId]);
+
+  const onSelect = useCallback(
+    (nodeId) => {
+      if (!nodeId) {
+        return;
+      }
+      setSelectedLineageItem(null);
+      setEvidenceMode("depth");
+      setSelectionId(nodeId);
+      setSelectionIndex((visibleIds.includes(nodeId) ? visibleIds.indexOf(nodeId) : 0) || 0);
+    },
+    [visibleIds],
+  );
+
+  const onQueryKey = useCallback(
+    (event) => {
+      if (!visibleIds.length) {
+        return;
+      }
+
+      if (event.key === "Enter") {
+        setSelectionId(visibleIds[0]);
+        setSelectionIndex(0);
+        return;
+      }
+
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+        return;
+      }
+
+      event.preventDefault();
+      if (event.key === "ArrowDown") {
+        setSelectionIndex((selectionIndex + 1) % visibleIds.length);
+        return;
+      }
+
+      setSelectionIndex((selectionIndex - 1 + visibleIds.length) % visibleIds.length);
+    },
+    [selectionIndex, visibleIds],
+  );
+
+  const onCanvasKeyNavigate = useCallback(
+    (event, _allNodes, currentSelectionId) => {
+      if (!event.key.startsWith("Arrow") || !visibleIds.length || !currentSelectionId) {
+        return;
+      }
+
+      const columns = compact ? 4 : 6;
+      const index = visibleIds.indexOf(currentSelectionId);
+      if (index < 0) {
+        return;
+      }
+
+      const next = (() => {
+        if (event.key === "ArrowLeft") return Math.max(0, index - 1);
+        if (event.key === "ArrowRight") return Math.min(visibleIds.length - 1, index + 1);
+        if (event.key === "ArrowUp") return Math.max(0, index - columns);
+        return Math.min(visibleIds.length - 1, index + columns);
+      })();
+
+      if (next === index) {
+        return;
+      }
+
+      event.preventDefault();
+      setSelectionIndex(next);
+      setSelectionId(visibleIds[next]);
+    },
+    [compact, visibleIds],
+  );
+
+  const onGlobalKey = useCallback(
+    (event) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      if (query) {
+        setQuery("");
+        setKindFilter("all");
+        setStateFilter("all");
+        return;
+      }
+
+      if (evidenceMode !== "depth") {
+        setEvidenceMode("depth");
+        setSelectedLineageItem(null);
+        return;
+      }
+
+      if (selectionIndex >= 0) {
+        setSelectionIndex(0);
+        setSelectionId(visibleIds[0] || "");
+      }
+    },
+    [query, evidenceMode, selectionIndex, visibleIds],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", onGlobalKey);
+    return () => window.removeEventListener("keydown", onGlobalKey);
+  }, [onGlobalKey]);
+
+  const bringIntoView = useCallback(() => {
+    if (!selectionId) {
+      return;
+    }
+
+    const rowId = `node-${String(selectionId).replace(/[^a-zA-Z0-9_.:-]/g, "-")}`;
+    document.getElementById(rowId)?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+  }, [selectionId]);
+
+  const onLineageSelect = useCallback(
+    (artefact) => {
+      if (!artefact) {
+        setSelectedLineageItem(null);
+        return;
+      }
+
+      const sourceId = artefact.id || artefact.node || artefact.slug;
+      if (sourceId && nodesById.has(sourceId)) {
+        setSelectionId(sourceId);
+        setSelectedLineageItem(null);
+        setEvidenceMode("depth");
+        return;
+      }
+
+      setSelectedLineageItem(artefact);
+      setEvidenceMode("lineage");
+    },
+    [nodesById],
+  );
+
+  const onMode = useCallback((mode) => {
+    setEvidenceMode(mode);
+    if (mode !== "lineage") {
+      setSelectedLineageItem(null);
     }
   }, []);
 
   useEffect(() => {
-    try {
-      if (selectionId) localStorage.setItem("cairn:v2:selection", selectionId);
-      else localStorage.removeItem("cairn:v2:selection");
-    } catch (_err) {
-      // ignore
+    if (!selectionId) {
+      return;
+    }
+    const row = document.getElementById(`node-${String(selectionId).replace(/[^a-zA-Z0-9_.:-]/g, "-")}`);
+    if (row) {
+      row.scrollIntoView({ block: "center", inline: "center" });
     }
   }, [selectionId]);
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCmdOpen((o) => !o);
-      }
-      if (e.key === "Escape" && !cmdOpen && !blueprintOpen) {
-        if (selectedDecision) setSelectedDecision(null);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [cmdOpen, blueprintOpen, selectedDecision]);
+  if (loading) {
+    return html`<main class="instrument-shell"><p class="plate-meta">${copy("empty-states.map-loading.body")}</p></main>`;
+  }
 
-  const nodesById = useMemo(() => {
-    const map = new Map();
-    if (graph) for (const n of graph.nodes) map.set(n.id, n);
-    return map;
-  }, [graph]);
-
-  const artefactCountsById = useMemo(() => {
-    const map = new Map();
-    if (detail && selectionId) {
-      map.set(selectionId, {
-        provenance: (detail.sources?.length || 0) + (detail.research?.length || 0),
-        authority: (detail.contracts?.length || 0) + (detail.decisions?.length || 0),
-        decisions: detail.decisions?.length || 0,
-        contracts: detail.contracts?.length || 0,
-      });
-    }
-    return map;
-  }, [detail, selectionId]);
-
-  const layoutData = useMemo(() => buildLayout(graph, artefactCountsById), [graph, artefactCountsById]);
-
-  const focusNodeIds = useMemo(() => {
-    if (!selectionId || !graph) return [];
-    const ids = new Set([selectionId]);
-    for (const edge of graph.edges) {
-      if (edge.kind !== "dependency") continue;
-      if (edge.from === selectionId) ids.add(edge.to);
-      if (edge.to === selectionId) ids.add(edge.from);
-    }
-    return [...ids];
-  }, [graph, selectionId]);
-
-  useEffect(() => {
-    if (!selectionId || !graph) {
-      setDetail({});
-      return undefined;
-    }
-    const node = nodesById.get(selectionId);
-    if (!node) {
-      setDetail({});
-      return undefined;
-    }
-    let cancelled = false;
-    setDetail({ loading: true });
-    Promise.all([
-      fetchNodeArtefacts(selectionId, "contract"),
-      fetchNodeArtefacts(selectionId, "decisions"),
-      fetchNodeArtefacts(selectionId, "todos"),
-      fetchNodeBeads(selectionId).catch(() => []),
-      fetchNodeArtefacts(selectionId, "research"),
-      fetchNodeArtefacts(selectionId, "sources"),
-      fetchDepends(selectionId).catch(() => []),
-      fetchDependents(selectionId).catch(() => []),
-      fetchNodeSymbols(selectionId).catch(() => []),
-    ])
-      .then(([contracts, decisions, todos, beads, research, sources, depends, dependents, symbols]) => {
-        if (cancelled) return;
-        // The deps spine op returns bare node-ID strings; hydrate them from
-        // the loaded graph. Object entries (legacy shape) pass through.
-        const hydrateDep = (entry) => {
-          if (typeof entry !== "string") return entry;
-          const record = nodesById.get(entry);
-          return record ? { id: record.id, name: record.name, state: record.state } : { id: entry, name: entry, state: "synced" };
-        };
-        setDetail({
-          contracts,
-          decisions,
-          todos,
-          beads,
-          research,
-          sources,
-          depends: depends.map(hydrateDep),
-          dependents: dependents.map(hydrateDep),
-          symbols,
-        });
-      })
-      .catch(() => {
-        if (!cancelled) setDetail({ failed: true });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectionId, nodesById, graph]);
-
-  const openBlueprint = useCallback(() => {
-    setBlueprintFocus(selectionId);
-    setBlueprintOpen(true);
-    if (!blueprint) {
-      fetchBlueprint()
-        .then((bp) => setBlueprint(bp))
-        .catch(() => setBlueprint({ source: null, path: null }));
-    }
-  }, [selectionId, blueprint]);
-
-  const selectedNode = selectionId ? nodesById.get(selectionId) : null;
-
-  const inspector = selectedDecision
-    ? html`<${DecisionDetail}
-        decision=${selectedDecision}
-        node=${selectedNode}
-        onBack=${() => setSelectedDecision(null)}
-        onSelect=${(id) => {
-          setSelectedDecision(null);
-          setSelectionId(id);
-        }}
-      />`
-    : selectedNode
-      ? html`<${ModuleInspector}
-          node=${selectedNode}
-          detail=${detail}
-          lint=${lint}
-          onSelect=${(id) => setSelectionId(id)}
-          onSelectDecision=${(d) => setSelectedDecision(d)}
-          onViewBlueprint=${openBlueprint}
-          onClose=${() => setSelectionId(null)}
-        />`
-      : html`<${EmptyInspector}
-          graph=${graph}
-          lint=${lint}
-          onShowFindings=${() => setDrawerOpen(true)}
-          onOpenCmd=${() => setCmdOpen(true)}
-        />`;
+  if (error) {
+    return html`
+      <main class="instrument-shell">
+        <p class="plate-meta">${copy("webui.load-error")} ${error}</p>
+      </main>
+    `;
+  }
 
   return html`
-    <${Fragment}>
-      <${TopBar}
-        graph=${graph}
-        lint=${lint}
-        selection=${selectionId ? { id: selectionId } : null}
-        nodesById=${nodesById}
-        onClear=${(id) => setSelectionId(id || null)}
-        onOpenCmd=${() => setCmdOpen(true)}
-        onOpenBlueprint=${openBlueprint}
-        version=${meta?.version}
+    <main class="instrument-shell" aria-label=${copy("webui.app")} data-compact=${compact}>
+      <${StatusBezel} graphNodes=${nodes} status=${status} />
+      <${QueryRail}
+        query=${query}
+        parsed=${parsedQuery}
+        visibleCount=${visibleIds.length}
+        kindFilter=${kindFilter}
+        stateFilter=${stateFilter}
+        onQuery=${setQuery}
+        onQueryKey=${onQueryKey}
+        onKindFilter=${setKindFilter}
+        onStateFilter=${setStateFilter}
+        onBringIntoView=${bringIntoView}
+        onClear=${() => {
+          setQuery("");
+          setKindFilter("all");
+          setStateFilter("all");
+        }}
       />
-      <div class="main">
-        ${
-          error
-            ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
-              <div class="empty-state">
-                <h2 class="empty-state-heading">${copy("empty-states.map-failed.heading")}</h2>
-                <p class="empty-state-body">${error}</p>
-                <button class="btn secondary" onClick=${() => setBootTick((t) => t + 1)}>${copy("empty-states.map-failed.cta")}</button>
-              </div>
-            </section>`
-            : !graph
-              ? html`<section class="graph-canvas canvas-state" aria-label="Architecture map">
-                <div class="row-empty">${copy("empty-states.map-loading.body")}</div>
-              </section>`
-              : html`<${GraphCanvas}
-                graph=${graph}
-                layoutData=${layoutData}
-                selection=${selectionId ? { id: selectionId } : null}
-                hoveredId=${hoveredId}
-                lint=${lint}
-                onSelect=${(id) => setSelectionId(id)}
-                onHover=${setHoveredId}
-                focusNodeIds=${focusNodeIds}
-                focusToken=${`${selectionId}:${focusNodeIds.join(",")}`}
-                edgeTrace=${hoveredId}
-              />`
-        }
-        <aside class="inspector-wrap" aria-live="polite">
-          ${inspector}
-        </aside>
+      <div class="instrument-workspace">
+        <${GraphWorkSpace}
+          nodes=${visibleNodes}
+          edges=${edges}
+          compact=${compact}
+          selectionId=${selectionId}
+          matches=${visibleIds}
+          onSelect=${onSelect}
+          onCanvasKeyNavigate=${onCanvasKeyNavigate}
+        />
+        <${EvidenceRail}
+          mode=${evidenceMode}
+          onMode=${onMode}
+          selection=${selection}
+          inRows=${depends.in}
+          outRows=${depends.out}
+          onNeighbourSelect=${onSelect}
+          artefacts=${selectionArtefacts}
+          blueprint=${blueprint.source}
+          blueprintPath=${blueprint.path}
+          onLineageOpen=${onLineageSelect}
+          selectedLineageItem=${selectedLineageItem}
+          onLineageBack=${() => setSelectedLineageItem(null)}
+        />
       </div>
-      <${ChangesDrawer}
-        open=${drawerOpen}
-        onToggle=${() => setDrawerOpen((o) => !o)}
-        lint=${lint}
-        meta=${meta}
-        onSelect=${(id) => setSelectionId(id)}
+      <${StateLegend} />
+      <${ChannelBar}
+        active=${channel}
+        findings=${findings}
+        drift=${drift}
+        changes=${changes}
+        backlog=${backlog}
+        onChannel=${setChannel}
+        onItem=${onSelect}
       />
-      <${CommandPalette}
-        open=${cmdOpen}
-        graph=${graph}
-        onClose=${() => setCmdOpen(false)}
-        onSelect=${(id) => setSelectionId(id)}
-        version=${meta?.version}
-      />
-      <${BlueprintModal}
-        open=${blueprintOpen}
-        blueprint=${blueprint}
-        focusModuleId=${blueprintFocus}
-        onClose=${() => setBlueprintOpen(false)}
-      />
-    <//>
+    </main>
   `;
 }
 
 const root = document.getElementById("root");
-if (root && preactReady) loadCopy().then(() => render(h(App, {}), root));
+if (root && preactReady) {
+  render(html`<${App} />`, root);
+}

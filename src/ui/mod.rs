@@ -26,16 +26,13 @@ use server::{Server, open_browser};
 const INDEX_HTML: &str = include_str!("../ui_assets/index.html");
 const APP_JS: &str = include_str!("../ui_assets/app.js");
 const UTILS_JS: &str = include_str!("../ui_assets/utils.js");
-const LAYOUT_JS: &str = include_str!("../ui_assets/layout.js");
-const TOP_BAR_JS: &str = include_str!("../ui_assets/top-bar.js");
-const GRAPH_CANVAS_JS: &str = include_str!("../ui_assets/graph-canvas.js");
-const CANVAS_CHROME_JS: &str = include_str!("../ui_assets/canvas-chrome.js");
-const DECISION_DETAIL_JS: &str = include_str!("../ui_assets/decision-detail.js");
-const COMMAND_PALETTE_JS: &str = include_str!("../ui_assets/command-palette.js");
-const BLUEPRINT_MODAL_JS: &str = include_str!("../ui_assets/blueprint-modal.js");
-const INSPECTOR_JS: &str = include_str!("../ui_assets/inspector.js");
-const FINDINGS_PANEL_JS: &str = include_str!("../ui_assets/findings-panel.js");
-
+const SEARCH_JS: &str = include_str!("../ui_assets/search.js");
+const STATUS_BEZEL_JS: &str = include_str!("../ui_assets/status-bezel.js");
+const QUERY_RAIL_JS: &str = include_str!("../ui_assets/query-rail.js");
+const GRAPH_WORKSPACE_JS: &str = include_str!("../ui_assets/graph-workspace.js");
+const EVIDENCE_RAIL_JS: &str = include_str!("../ui_assets/evidence-rail.js");
+const NODE_MODULE_JS: &str = include_str!("../ui_assets/node-module.js");
+const CHANNEL_BAR_JS: &str = include_str!("../ui_assets/channel-bar.js");
 /// Canonical design-system tokens; single source of truth.
 const DESIGN_TOKENS_CSS: &str = include_str!("../../docs/design-system/tokens.css");
 /// Canonical design-system component primitives.

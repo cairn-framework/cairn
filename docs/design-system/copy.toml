@@ -302,31 +302,107 @@ none-ready = "No ready work: every open bead is blocked by a dependency. Run `bd
 not-ready = "Warning: this bead is not in the ready set (closed, or blocked by an open dependency). It may already be done or not yet actionable; check `bd ready` before working it."
 not-ready-todo = "Warning: this todo is not open (in progress, done, or blocked). Check its status in meta/todos/ before working it."
 
-# -- Webui: overview, findings, coach-mark, minimap ------------------------
+# -- Webui: overview, findings, legend ------------------------------------
 [webui]
+app = "Cairn graph explorer"
 overview-action = "Query the map, or click any stone to inspect it."
-findings-label = "Findings"
-findings-open = "Open the findings drawer"
-chain-coach-body = "Each node is the hinge between provenance evidence on the left and authority rules on the right."
-chain-coach-dismiss = "Got it"
-minimap-label = "Map node overview"
+query-rail = "Query rail"
+node-id = "Node ID"
+project = "Project"
+nodes = "Nodes"
+count-nodes = "Nodes"
+findings-count = "Findings"
+interface-hash = "Interface hash"
+status-clean = "No issues"
+status-synced = "Synced"
+status-drift = "Drift"
+none = "None"
+runtime-not-ready = "Runtime not ready"
+load-error = "Failed to load map:"
+graph = "Graph"
+query-matches = "Matches"
+query-hint = "Type to filter"
+query-placeholder = "Filter nodes, IDs, or kinds"
+bring-into-view = "Bring into view"
+clear = "Clear"
+state-label = "State"
+kind-label = "Type"
+channel-label = "Channel"
+overview = "Overview"
+select-a-node = "Select a node"
+depth = "Depth"
+path-count = "Path count"
+paths-count = "Paths"
+lineage = "Lineage"
+path-empty = "No paths"
+paths = "Paths"
+finding = "Finding"
+filters-active = "Filters:"
+in = "In"
+out = "Out"
+contracts = "Contracts"
+files-count = "Files"
+symbols = "Symbols"
+evidence = "Evidence"
+artefact = "Artefact"
+artefact-no-body = "No body for this artefact."
+authority = "Authority"
+authority-empty = "No authority records found."
+blueprint-title = "Blueprint"
+blueprint-path-unknown = "Blueprint source unknown"
+no-name = "No name"
+no-description = "No description"
+no-path = "No path"
+owns = "Owns"
+focus-node = "Show node"
+lineage-rationale = "Rationale"
+lineage-decisions = "Decisions"
+lineage-authority = "Authority chain"
+lineage-empty = "No lineage found."
+decision = "Decision"
+decision-empty = "No decisions"
 legend-label = "Canvas state key"
-legend.selection = "Selected"
-legend.synced = "Synced"
-legend.planned = "Planned"
-legend.orphaned = "Orphaned"
+metrics = "Map metrics"
 
-# -- Webui: command palette hints -------------------------------------------
-[webui.palette-hints]
-enter = "Open the highlighted result."
-report = "Open the issue reporter from the report row."
+[webui.evidence-modes]
+depth = "Depth"
+lineage = "Lineage"
+blueprint = "Blueprint"
 
-# -- Webui: report an issue ----------------------------------------------
-[webui.report]
-topbar = "Report an issue"
-topbar_short = "Report"
-palette = "Report an issue"
+[webui.state-description]
+synced = "Sourced and aligned"
+ghost = "Declared but not yet reconciled"
+orphaned = "No files matched"
+drift = "Needs attention"
 
+[webui.states]
+all = "All"
+synced = "Synced"
+ghost = "Planned"
+orphaned = "Orphaned"
+drift = "Drift"
+
+[webui.kind]
+all = "All"
+system = "System"
+container = "Container"
+module = "Module"
+actor = "Actor"
+
+[webui.channel]
+findings = "Findings"
+drift = "Drift"
+changes = "Changes"
+backlog = "Backlog"
+
+[webui.empty]
+findings = "No findings"
+drift = "No drift warnings"
+changes = "No active changes"
+backlog = "No backlog items"
+
+
+# -- Webui: removed legacy keys -------------------------------------------
 
 
 # -- Per-command help -----------------------------------------------------

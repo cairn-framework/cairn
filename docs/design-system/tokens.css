@@ -149,6 +149,7 @@
 
   --font-serif: "Source Serif 4", "Times New Roman", serif;
   --font-sans: var(--ci-font-ui);
+  --font-ui: var(--ci-font-ui);
   --font-mono: var(--ci-font-mono);
   --t-micro: var(--ci-size-micro);
   --t-small: var(--ci-size-meta);

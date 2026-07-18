@@ -109,26 +109,24 @@ impl Server {
             "/assets/style.css" => asset("text/css; charset=utf-8", STYLE_CSS.as_str()),
             "/assets/app.js" => asset("application/javascript; charset=utf-8", APP_JS),
             "/assets/utils.js" => asset("application/javascript; charset=utf-8", UTILS_JS),
-            "/assets/layout.js" => asset("application/javascript; charset=utf-8", LAYOUT_JS),
-            "/assets/top-bar.js" => asset("application/javascript; charset=utf-8", TOP_BAR_JS),
-            "/assets/graph-canvas.js" => {
-                asset("application/javascript; charset=utf-8", GRAPH_CANVAS_JS)
+            "/assets/search.js" => asset("application/javascript; charset=utf-8", SEARCH_JS),
+            "/assets/status-bezel.js" => {
+                asset("application/javascript; charset=utf-8", STATUS_BEZEL_JS)
             }
-            "/assets/canvas-chrome.js" => {
-                asset("application/javascript; charset=utf-8", CANVAS_CHROME_JS)
+            "/assets/query-rail.js" => {
+                asset("application/javascript; charset=utf-8", QUERY_RAIL_JS)
             }
-            "/assets/decision-detail.js" => {
-                asset("application/javascript; charset=utf-8", DECISION_DETAIL_JS)
+            "/assets/graph-workspace.js" => {
+                asset("application/javascript; charset=utf-8", GRAPH_WORKSPACE_JS)
             }
-            "/assets/command-palette.js" => {
-                asset("application/javascript; charset=utf-8", COMMAND_PALETTE_JS)
+            "/assets/evidence-rail.js" => {
+                asset("application/javascript; charset=utf-8", EVIDENCE_RAIL_JS)
             }
-            "/assets/blueprint-modal.js" => {
-                asset("application/javascript; charset=utf-8", BLUEPRINT_MODAL_JS)
+            "/assets/channel-bar.js" => {
+                asset("application/javascript; charset=utf-8", CHANNEL_BAR_JS)
             }
-            "/assets/inspector.js" => asset("application/javascript; charset=utf-8", INSPECTOR_JS),
-            "/assets/findings-panel.js" => {
-                asset("application/javascript; charset=utf-8", FINDINGS_PANEL_JS)
+            "/assets/node-module.js" => {
+                asset("application/javascript; charset=utf-8", NODE_MODULE_JS)
             }
             "/assets/copy.json" => asset("application/json; charset=utf-8", COPY_JSON.as_str()),
             "/vendor/preact.min.js" => {
