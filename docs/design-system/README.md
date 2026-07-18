@@ -109,7 +109,6 @@ Layout overhaul (2026-07) adjustments:
 
 - Added `--ui-query-search-max-width: 608px`: the cap on the query rail's search input so it stays readable while the segmented filter groups share the row.
 - `--ui-shell-max-width` widened to `min(100%, 1720px)` and `--ui-channel-height` raised to `200px` so the shell fills wide viewports and channel bar items stay readable.
-- Added `--ui-stage-min-height-mobile: 55svh`: the minimum graph-stage height at mobile widths so the map keeps a usable viewport while the page scrolls naturally.
 
 ## Component class inventory
 

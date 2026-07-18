@@ -64,7 +64,6 @@
   --ui-shell-max-width: min(100%, 1720px);
   --ui-shell-min-height: 100dvh;
   --ui-shell-min-height-mobile: 100svh;
-  --ui-stage-min-height-mobile: 55svh;
   --ui-channel-height: 200px;
   --ui-channel-collapsed-height: var(--s-9);
   --ui-query-search-max-width: 608px;

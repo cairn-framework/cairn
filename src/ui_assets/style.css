@@ -336,12 +336,8 @@ marker path {
   }
 
   .instrument-shell {
-    max-height: none;
+    max-height: var(--ui-shell-min-height-mobile);
     min-height: var(--ui-shell-min-height-mobile);
-  }
-
-  .graph-canvas .graph-stage {
-    min-height: var(--ui-stage-min-height-mobile);
   }
 
   .query-rail {
