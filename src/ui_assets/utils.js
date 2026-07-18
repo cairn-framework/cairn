@@ -7,7 +7,7 @@ if (!preactReady) {
 }
 
 const { h, render } = preactReady ? window.preact : {};
-const { useCallback, useEffect, useMemo, useRef, useState } = preactReady ? window.preactHooks : {};
+const { useCallback, useEffect, useMemo, useState } = preactReady ? window.preactHooks : {};
 const html = preactReady ? window.htm.bind(h) : undefined;
 
 let copyData = {};
@@ -33,14 +33,6 @@ function parseKind(raw) {
 
 function cleanId(value) {
   return encodeURIComponent(String(value || ""));
-}
-
-function truncate(value, max = 120) {
-  const text = String(value || "");
-  if (text.length <= max) {
-    return text;
-  }
-  return `${text.slice(0, Math.max(0, max - 1))}\u2026`;
 }
 
 async function fetchJson(url) {
@@ -165,17 +157,73 @@ async function fetchBlueprint() {
   return (await fetchJson("/api/blueprint")) || {};
 }
 
+function normaliseArtefactEntries(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item) => {
+      if (item && typeof item === "object") {
+        return item;
+      }
+      if (item === undefined || item === null) {
+        return null;
+      }
+      return { id: String(item) };
+    })
+    .filter(Boolean);
+}
+
+function fetchContractArtefact(response) {
+  if (!response || typeof response !== "object") {
+    return [];
+  }
+
+  const contracts = normaliseArtefactEntries(response.contracts);
+  if (contracts.length) {
+    return contracts;
+  }
+
+  const rawContract = typeof response.contract === "string" ? response.contract : "";
+  if (!rawContract) {
+    return [];
+  }
+
+  const heading = rawContract.split("\n")[0].trim();
+  return [{ id: "contract", path: response.path || heading || "contract", title: "Contract", body: rawContract }];
+}
+
+function dedupeByText(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = `${item?.id || ""}|${item?.path || ""}|${item?.title || ""}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 async function fetchNodeArtefacts(nodeId, kind) {
   const response = await fetchJson(`/api/node/${cleanId(nodeId)}/${kind}`);
   if (!response || typeof response !== "object") {
     return [];
   }
 
-  if (Array.isArray(response.artefacts)) {
-    return response.artefacts;
+  if (kind === "contract") {
+    return fetchContractArtefact(response);
   }
 
-  return [];
+  if (kind === "rationale") {
+    const decisions = normaliseArtefactEntries(response.decisions);
+    const research = normaliseArtefactEntries(response.research);
+    const sources = normaliseArtefactEntries(response.sources);
+    return dedupeByText([...decisions, ...research, ...sources]);
+  }
+
+  return normaliseArtefactEntries(response[kind]);
 }
 
 async function fetchNodeSymbols(nodeId) {
@@ -194,6 +242,33 @@ async function fetchDepends(nodeId) {
   return response.nodes;
 }
 
+/**
+ * Fetch every evidence surface for one node in parallel. Individual request
+ * failures degrade to empty lists so one bad endpoint cannot blank the rail.
+ */
+async function fetchNodeEvidence(nodeId) {
+  const [contracts, decisions, sources, rationale, symbols, depends, dependents] = await Promise.all([
+    fetchNodeArtefacts(nodeId, "contract").catch(() => []),
+    fetchNodeArtefacts(nodeId, "decisions").catch(() => []),
+    fetchNodeArtefacts(nodeId, "sources").catch(() => []),
+    fetchNodeArtefacts(nodeId, "rationale").catch(() => []),
+    fetchNodeSymbols(nodeId).catch(() => []),
+    fetchDepends(nodeId).catch(() => []),
+    fetchDependents(nodeId).catch(() => []),
+  ]);
+
+  const list = (value) => (Array.isArray(value) ? value : []);
+  return {
+    contracts: list(contracts),
+    decisions: list(decisions),
+    sources: list(sources),
+    rationale: list(rationale),
+    symbols: list(symbols),
+    depends: list(depends),
+    dependents: list(dependents),
+  };
+}
+
 async function fetchDependents(nodeId) {
   const response = await fetchJson(`/api/dependents/${cleanId(nodeId)}`);
   if (!response || !Array.isArray(response.nodes)) {
@@ -202,15 +277,41 @@ async function fetchDependents(nodeId) {
   return response.nodes;
 }
 
-function displayState(node) {
-  return parseState(node);
+const SELECTION_STORAGE_KEYS = ["cairn:ui:selection", "cairn:v2:selection"];
+
+/** Restore a persisted selection if it names a real node, else the first node. */
+function readSelectionSeed(nodes) {
+  try {
+    for (const key of SELECTION_STORAGE_KEYS) {
+      const saved = window.localStorage?.getItem?.(key);
+      if (saved && nodes.some((node) => node.id === saved)) {
+        return saved;
+      }
+    }
+  } catch {
+    // Best effort only.
+  }
+
+  return nodes[0]?.id || "";
 }
 
-function countSeverity(items, target) {
-  if (!Array.isArray(items)) {
-    return 0;
+/** Enrich raw neighbour references with name and state from the graph. */
+function remapNeighbours(nodesById, raw) {
+  if (!Array.isArray(raw)) {
+    return [];
   }
-  return items.filter((item) => String(item.severity || "") === target).length;
+
+  return raw
+    .map((item) => {
+      const id = String(item?.id || item || "");
+      if (!id) {
+        return null;
+      }
+
+      const node = nodesById.get(id);
+      return node ? { id, name: node.name, state: node.state } : { id };
+    })
+    .filter(Boolean);
 }
 
 export {
@@ -221,17 +322,14 @@ export {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   copy,
   clsx,
-  truncate,
   escapeHtml,
   normaliseNode,
   normaliseGraph,
   parseKind,
   parseState,
-  displayState,
   highlightBlueprint,
   loadCopy,
   fetchGraph,
@@ -240,7 +338,9 @@ export {
   fetchBlueprint,
   fetchNodeArtefacts,
   fetchNodeSymbols,
+  fetchNodeEvidence,
   fetchDepends,
   fetchDependents,
-  countSeverity,
+  readSelectionSeed,
+  remapNeighbours,
 };

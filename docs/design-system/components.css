@@ -256,8 +256,7 @@
   transform: rotate(var(--ui-orphan-tilt));
 }
 
-.node-module.drift,
-.node-module.drifting {
+.node-module.drift {
   border-left-color: var(--drift);
   border-color: color-mix(in oklab, var(--drift) 40%, var(--seam-faint));
   animation: driftPulse var(--dur-breathe) ease-in-out infinite;
@@ -651,4 +650,30 @@
   .status-bezel .status-cell {
     min-width: 0;
   }
+}
+
+/* Evidence rail content never widens the frame: long artefact ids and
+   source excerpts wrap inside the rail's bounded well. */
+.evidence-rail .rail-body .query-chip,
+.evidence-rail .rail-body .query-action {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .evidence-rail .rail-body .query-chip,
+  .evidence-rail .rail-body .query-action {
+    min-width: var(--tap-min);
+  }
+}
+
+.evidence-rail .rail-body code,
+.evidence-rail .rail-body pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
 }

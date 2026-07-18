@@ -23,21 +23,7 @@ body {
 }
 
 .instrument-shell {
-  margin: 0 auto;
-  width: min(100%, var(--ui-shell-max-width));
-  min-height: var(--ui-shell-min-height);
   max-height: var(--ui-shell-min-height);
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.instrument-workspace {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.instrument-workspace > * {
-  min-height: 0;
 }
 
 .status-bezel,
@@ -110,8 +96,7 @@ body {
 }
 
 .node-shell .node-module.compact .node-meta,
-.node-shell .node-module.compact .node-counts,
-.node-shell .node-module.compact .node-paths {
+.node-shell .node-module.compact .node-counts {
   font-size: var(--t-micro);
 }
 
@@ -156,6 +141,9 @@ body {
   min-height: 0;
   overflow: hidden;
 }
+.evidence-rail .rail-body {
+  overflow: auto;
+}
 
 .rail-body,
 .channel-body,
@@ -169,7 +157,6 @@ body {
 .channel-item,
 .plate-meta,
 .node-module .node-meta,
-.node-module .node-paths,
 .node-module .node-count {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -180,6 +167,13 @@ body {
 .lineage-plate,
 .blueprint-plate {
   max-width: 100%;
+}
+code.blueprint-plate {
+  display: block;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: auto;
 }
 
 .channel-item .plate-meta,
@@ -221,10 +215,6 @@ body {
   text-align: left;
 }
 
-.node-module.matched {
-  border-color: color-mix(in oklab, var(--auth-2) 85%, var(--seam-faint));
-}
-
 .node-module.focused {
   box-shadow:
     var(--lift-1),
@@ -246,10 +236,6 @@ body {
   font-size: var(--t-small);
 }
 
-.graph-canvas .graph-head {
-  font-size: var(--t-title);
-}
-
 .evidence-rail .edge-group {
   gap: var(--s-1);
 }
@@ -260,11 +246,6 @@ body {
 
 .node-module.compact .node-counts {
   margin-top: auto;
-}
-
-.query-rail .query-action,
-.query-rail .query-chip {
-  white-space: nowrap;
 }
 
 @media (max-width: 990px) {
@@ -308,9 +289,5 @@ body {
 
   .node-shell .node-module {
     min-width: 0;
-  }
-
-  .node-shell .node-module.compact .node-paths {
-    display: none;
   }
 }

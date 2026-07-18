@@ -1,69 +1,32 @@
-/* Cairn webui v2 app shell.
- *
- * Composition root: bootstrap data fetch + state wiring between modules.
- */
+/* Cairn webui app shell: bootstrap data fetch + state wiring between modules. */
 
 import { ChannelBar } from "./channel-bar.js";
 import { EvidenceRail, StateLegend } from "./evidence-rail.js";
-import { GraphWorkSpace } from "./graph-workspace.js";
+import { GraphWorkspace } from "./graph-workspace.js";
 import { QueryRail } from "./query-rail.js";
-import { mapEdgeRows, matchesQuery, parseQuery } from "./search.js";
+import { gridNavigate, mapEdgeRows, matchesQuery, parseQuery } from "./search.js";
 import { StatusBezel } from "./status-bezel.js";
-import { copy, fetchBlueprint, fetchDependents, fetchDepends, fetchGraph, fetchLint, fetchNodeArtefacts, fetchStatus, html, loadCopy, preactReady, render, useCallback, useEffect, useMemo, useState } from "./utils.js";
+import { copy, fetchBlueprint, fetchGraph, fetchLint, fetchNodeEvidence, fetchStatus, html, loadCopy, preactReady, readSelectionSeed, remapNeighbours, render, useCallback, useEffect, useMemo, useState } from "./utils.js";
 
 const DEFAULT_CHANNEL = "findings";
-const STORAGE_KEY = "cairn:ui:selection";
-const STORAGE_KEY_LEGACY = "cairn:v2:selection";
-
-function readSelectionSeed(nodes) {
-  const candidates = [STORAGE_KEY, STORAGE_KEY_LEGACY];
-
-  try {
-    for (const key of candidates) {
-      const saved = window.localStorage?.getItem?.(key);
-      if (saved && nodes.some((node) => node.id === saved)) {
-        return saved;
-      }
-    }
-  } catch {
-    // best effort only
-  }
-
-  return nodes[0]?.id || "";
-}
-
-function remapNeighbours(nodesById, raw) {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-
-  return raw
-    .map((item) => {
-      const id = String(item?.id || item || "");
-      if (!id) {
-        return null;
-      }
-      const node = nodesById.get(id);
-      return node ? { id, name: node.name, state: node.state } : { id };
-    })
-    .filter(Boolean);
-}
 
 function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [compact, setCompact] = useState(window.innerWidth <= 990);
+  const [bootstrapNonce, setBootstrapNonce] = useState(0);
 
   const [graph, setGraph] = useState({ nodes: [], edges: [] });
   const [status, setStatus] = useState({});
   const [lint, setLint] = useState({});
   const [blueprint, setBlueprint] = useState({ path: "", source: "" });
+  const [notices, setNotices] = useState([]);
 
   const [query, setQuery] = useState("");
   const [kindFilter, setKindFilter] = useState("all");
   const [stateFilter, setStateFilter] = useState("all");
   const [selectionId, setSelectionId] = useState("");
-  const [selectionIndex, setSelectionIndex] = useState(0);
+  const [selectionIndex, setSelectionIndex] = useState(-1);
   const [evidenceMode, setEvidenceMode] = useState("depth");
   const [channel, setChannel] = useState(DEFAULT_CHANNEL);
 
@@ -90,29 +53,59 @@ function App() {
     let active = true;
 
     async function bootstrap() {
+      setError("");
+      setLoading(true);
+      setNotices([]);
+
       try {
         await loadCopy();
 
-        const [graphPayload, statusPayload, lintPayload, blueprintPayload] = await Promise.all([fetchGraph(), fetchStatus(), fetchLint(), fetchBlueprint()]);
+        const graphPayload = await fetchGraph();
+        if (!active) {
+          return;
+        }
+
+        const optional = await Promise.allSettled([fetchStatus(), fetchLint(), fetchBlueprint()]);
+
+        const statusPayload = optional[0].status === "fulfilled" ? optional[0].value || {} : {};
+        const lintPayload = optional[1].status === "fulfilled" ? optional[1].value || {} : {};
+        const blueprintPayload = optional[2].status === "fulfilled" ? optional[2].value || { path: "", source: "" } : { path: "", source: "" };
+
+        const nextNotices = [];
+        if (optional[0].status === "rejected") {
+          nextNotices.push(copy("webui.bootstrap-status-failed"));
+        }
+        if (optional[1].status === "rejected") {
+          nextNotices.push(copy("webui.bootstrap-lint-failed"));
+        }
+        if (optional[2].status === "rejected") {
+          nextNotices.push(copy("webui.bootstrap-blueprint-failed"));
+        }
+
+        const nodes = Array.isArray(graphPayload?.nodes) ? graphPayload.nodes : [];
+        const edges = Array.isArray(graphPayload?.edges) ? graphPayload.edges : [];
 
         if (!active) {
           return;
         }
 
-        setGraph({
-          nodes: Array.isArray(graphPayload?.nodes) ? graphPayload.nodes : [],
-          edges: Array.isArray(graphPayload?.edges) ? graphPayload.edges : [],
-        });
-        setStatus(statusPayload || {});
-        setLint(lintPayload || {});
-        setBlueprint(blueprintPayload || { path: "", source: "" });
+        setGraph({ nodes, edges });
+        setStatus(statusPayload);
+        setLint(lintPayload);
+        setBlueprint(blueprintPayload);
+        setNotices(nextNotices);
 
-        const seed = readSelectionSeed(Array.isArray(graphPayload?.nodes) ? graphPayload.nodes : []);
+        const seed = readSelectionSeed(nodes);
         setSelectionId(seed);
+        setSelectionIndex(seed ? 0 : -1);
       } catch (cause) {
-        if (active) {
-          setError(cause?.message || copy("empty-states.map-failed.body"));
+        if (!active) {
+          return;
         }
+
+        setError(cause?.message || copy("empty-states.map-failed.body"));
+        setGraph({ nodes: [], edges: [] });
+        setNotices([]);
       } finally {
         if (active) {
           setLoading(false);
@@ -125,7 +118,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [bootstrapNonce]);
 
   useEffect(() => {
     if (!selectionId) {
@@ -142,6 +135,8 @@ function App() {
 
   const nodes = useMemo(() => graph.nodes || [], [graph.nodes]);
   const edges = useMemo(() => graph.edges || [], [graph.edges]);
+  const dependencyCount = useMemo(() => edges.filter((edge) => String(edge?.kind || "").toLowerCase() === "dependency").length, [edges]);
+
   const nodesById = useMemo(() => {
     const map = new Map();
     for (const node of nodes) {
@@ -149,6 +144,7 @@ function App() {
     }
     return map;
   }, [nodes]);
+
   const parsedQuery = useMemo(() => parseQuery(query), [query]);
   const visibleNodes = useMemo(
     () =>
@@ -161,34 +157,34 @@ function App() {
       ),
     [nodes, parsedQuery.text, parsedQuery.kind, parsedQuery.state, kindFilter, stateFilter],
   );
-
   const visibleIds = useMemo(() => visibleNodes.map((node) => node.id), [visibleNodes]);
 
   useEffect(() => {
     if (!visibleIds.length) {
+      if (selectionId) {
+        setSelectionId("");
+      }
       setSelectionIndex(-1);
-      setSelectionId("");
       return;
     }
 
-    if (selectionId && visibleIds.includes(selectionId)) {
-      setSelectionIndex(visibleIds.indexOf(selectionId));
+    if (!selectionId) {
+      setSelectionId(visibleIds[0]);
+      setSelectionIndex(0);
+      return;
+    }
+
+    if (visibleIds.includes(selectionId)) {
+      const nextIndex = visibleIds.indexOf(selectionId);
+      if (selectionIndex !== nextIndex) {
+        setSelectionIndex(nextIndex);
+      }
       return;
     }
 
     setSelectionIndex(0);
     setSelectionId(visibleIds[0]);
-  }, [selectionId, visibleIds]);
-
-  useEffect(() => {
-    if (!selectionId || selectionIndex < 0 || !visibleIds.length) {
-      return;
-    }
-
-    if (visibleIds[selectionIndex] !== selectionId) {
-      setSelectionId(visibleIds[selectionIndex]);
-    }
-  }, [selectionIndex, visibleIds, selectionId]);
+  }, [selectionId, selectionIndex, visibleIds]);
 
   const selection = nodesById.get(selectionId) || null;
 
@@ -210,21 +206,14 @@ function App() {
     let active = true;
 
     async function loadArtefacts() {
-      const [contract, decisions, sources, rationale, dependsRaw, dependentsRaw] = await Promise.all([
-        fetchNodeArtefacts(selectionId, "contract").catch(() => []),
-        fetchNodeArtefacts(selectionId, "decisions").catch(() => []),
-        fetchNodeArtefacts(selectionId, "sources").catch(() => []),
-        fetchNodeArtefacts(selectionId, "rationale").catch(() => []),
-        fetchDepends(selectionId).catch(() => []),
-        fetchDependents(selectionId).catch(() => []),
-      ]);
-
+      const evidence = await fetchNodeEvidence(selectionId);
       if (!active) {
         return;
       }
 
-      const mappedOut = remapNeighbours(nodesById, dependsRaw);
-      const mappedIn = remapNeighbours(nodesById, dependentsRaw);
+      const selectedNode = nodesById.get(selectionId);
+      const mappedOut = remapNeighbours(nodesById, evidence.depends);
+      const mappedIn = remapNeighbours(nodesById, evidence.dependents);
       const rows = mapEdgeRows(selectionId, edges);
 
       setDepends({
@@ -235,11 +224,11 @@ function App() {
       setArtefactsByNode((current) => ({
         ...current,
         [selectionId]: {
-          contracts: Array.isArray(contract) ? contract : [],
-          decisions: Array.isArray(decisions) ? decisions : [],
-          sources: Array.isArray(sources) ? sources : [],
-          evidence: Array.isArray(rationale) ? rationale : [],
-          symbols: [],
+          contracts: evidence.contracts,
+          decisions: evidence.decisions,
+          sources: evidence.sources,
+          evidence: evidence.rationale,
+          symbols: evidence.symbols.length ? evidence.symbols : selectedNode?.symbols || [],
         },
       }));
     }
@@ -248,6 +237,8 @@ function App() {
       if (!active) {
         return;
       }
+
+      const fallback = nodesById.get(selectionId);
       setArtefactsByNode((current) => ({
         ...current,
         [selectionId]: {
@@ -255,7 +246,7 @@ function App() {
           decisions: [],
           sources: [],
           evidence: [],
-          symbols: [],
+          symbols: Array.isArray(fallback?.symbols) ? fallback.symbols : [],
         },
       }));
       setDepends(mapEdgeRows(selectionId, edges));
@@ -267,23 +258,31 @@ function App() {
   }, [selectionId, edges, nodesById]);
 
   const findings = Array.isArray(lint.findings) ? lint.findings : [];
-  const drift = findings.filter((item) => item.severity === "error" || item.severity === "warning");
-  const changes = Array.isArray(lint.changes) ? lint.changes : [];
-  const backlog = Array.isArray(lint.todos) && lint.todos.length ? lint.todos : Array.isArray(lint.backlog) ? lint.backlog : [];
+  const drift = findings.filter((item) => item?.severity === "error" || item?.severity === "warning");
+  const changes = Array.isArray(status.active_changes) ? status.active_changes : [];
+  const backlog = Array.isArray(status.open_todos) ? status.open_todos : [];
 
   const selectionArtefacts = useMemo(() => artefactsByNode[selectionId] || {}, [artefactsByNode, selectionId]);
 
   const onSelect = useCallback(
-    (nodeId) => {
+    (nodeId, options = {}) => {
       if (!nodeId) {
         return;
       }
+
+      const { clearFilters = false } = options;
+      if (clearFilters && (query || kindFilter !== "all" || stateFilter !== "all")) {
+        setQuery("");
+        setKindFilter("all");
+        setStateFilter("all");
+      }
+
       setSelectedLineageItem(null);
       setEvidenceMode("depth");
       setSelectionId(nodeId);
-      setSelectionIndex((visibleIds.includes(nodeId) ? visibleIds.indexOf(nodeId) : 0) || 0);
+      setSelectionIndex(visibleIds.includes(nodeId) ? visibleIds.indexOf(nodeId) : 0);
     },
-    [visibleIds],
+    [query, kindFilter, stateFilter, visibleIds],
   );
 
   const onQueryKey = useCallback(
@@ -303,36 +302,25 @@ function App() {
       }
 
       event.preventDefault();
-      if (event.key === "ArrowDown") {
-        setSelectionIndex((selectionIndex + 1) % visibleIds.length);
-        return;
-      }
 
-      setSelectionIndex((selectionIndex - 1 + visibleIds.length) % visibleIds.length);
+      const nextIndex = event.key === "ArrowDown" ? (selectionIndex + 1) % visibleIds.length : (selectionIndex - 1 + visibleIds.length) % visibleIds.length;
+
+      setSelectionIndex(nextIndex);
+      setSelectionId(visibleIds[nextIndex]);
     },
     [selectionIndex, visibleIds],
   );
 
   const onCanvasKeyNavigate = useCallback(
-    (event, _allNodes, currentSelectionId) => {
+    (event, currentSelectionId) => {
       if (!event.key.startsWith("Arrow") || !visibleIds.length || !currentSelectionId) {
         return;
       }
 
       const columns = compact ? 4 : 6;
       const index = visibleIds.indexOf(currentSelectionId);
-      if (index < 0) {
-        return;
-      }
-
-      const next = (() => {
-        if (event.key === "ArrowLeft") return Math.max(0, index - 1);
-        if (event.key === "ArrowRight") return Math.min(visibleIds.length - 1, index + 1);
-        if (event.key === "ArrowUp") return Math.max(0, index - columns);
-        return Math.min(visibleIds.length - 1, index + columns);
-      })();
-
-      if (next === index) {
+      const next = gridNavigate(index, event.key, columns, visibleIds.length);
+      if (next === index || next < 0) {
         return;
       }
 
@@ -349,10 +337,12 @@ function App() {
         return;
       }
 
-      if (query) {
+      if (query || kindFilter !== "all" || stateFilter !== "all") {
         setQuery("");
         setKindFilter("all");
         setStateFilter("all");
+        setSelectedLineageItem(null);
+        setEvidenceMode("depth");
         return;
       }
 
@@ -367,7 +357,7 @@ function App() {
         setSelectionId(visibleIds[0] || "");
       }
     },
-    [query, evidenceMode, selectionIndex, visibleIds],
+    [query, kindFilter, stateFilter, evidenceMode, selectionIndex, visibleIds],
   );
 
   useEffect(() => {
@@ -391,9 +381,9 @@ function App() {
         return;
       }
 
-      const sourceId = artefact.id || artefact.node || artefact.slug;
+      const sourceId = artefact.node || artefact.id || artefact.slug;
       if (sourceId && nodesById.has(sourceId)) {
-        setSelectionId(sourceId);
+        onSelect(sourceId, { clearFilters: true });
         setSelectedLineageItem(null);
         setEvidenceMode("depth");
         return;
@@ -402,7 +392,7 @@ function App() {
       setSelectedLineageItem(artefact);
       setEvidenceMode("lineage");
     },
-    [nodesById],
+    [nodesById, onSelect],
   );
 
   const onMode = useCallback((mode) => {
@@ -430,13 +420,24 @@ function App() {
     return html`
       <main class="instrument-shell">
         <p class="plate-meta">${copy("webui.load-error")} ${error}</p>
+        <button class="query-action" type="button" onClick=${() => setBootstrapNonce((value) => value + 1)}>
+          ${copy("webui.retry")}
+        </button>
       </main>
     `;
   }
 
   return html`
     <main class="instrument-shell" aria-label=${copy("webui.app")} data-compact=${compact}>
-      <${StatusBezel} graphNodes=${nodes} edges=${edges} status=${status} />
+      <${StatusBezel} nodeCount=${nodes.length} dependencyCount=${dependencyCount} findings=${findings} />
+      ${
+        notices.length
+          ? html`
+            <section class="bootstrap-notices" role="status" aria-live="polite">
+              ${notices.map((notice) => html`<p class="plate-meta">${notice}</p>`)}
+            </section>`
+          : null
+      }
       <${QueryRail}
         query=${query}
         parsed=${parsedQuery}
@@ -455,12 +456,11 @@ function App() {
         }}
       />
       <div class="instrument-workspace">
-        <${GraphWorkSpace}
+        <${GraphWorkspace}
           nodes=${visibleNodes}
           edges=${edges}
           compact=${compact}
           selectionId=${selectionId}
-          matches=${visibleIds}
           onSelect=${onSelect}
           onCanvasKeyNavigate=${onCanvasKeyNavigate}
         />
@@ -470,13 +470,12 @@ function App() {
           selection=${selection}
           inRows=${depends.in}
           outRows=${depends.out}
-          onNeighbourSelect=${onSelect}
+          onNeighbourSelect=${(nodeId) => onSelect(nodeId, { clearFilters: true })}
           artefacts=${selectionArtefacts}
           blueprint=${blueprint.source}
           blueprintPath=${blueprint.path}
           onLineageOpen=${onLineageSelect}
           selectedLineageItem=${selectedLineageItem}
-          onLineageBack=${() => setSelectedLineageItem(null)}
         />
       </div>
       <${StateLegend} />
@@ -487,7 +486,7 @@ function App() {
         changes=${changes}
         backlog=${backlog}
         onChannel=${setChannel}
-        onItem=${onSelect}
+        onItem=${(nodeId) => onSelect(nodeId, { clearFilters: true })}
       />
     </main>
   `;

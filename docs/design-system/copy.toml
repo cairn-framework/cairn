@@ -312,9 +312,7 @@ project = "Project"
 nodes = "Nodes"
 dependencies = "Dependencies"
 findings-count = "Findings"
-interface-hash = "Interface hash"
 status-clean = "No issues"
-status-synced = "Synced"
 status-drift = "Drift"
 none = "None"
 runtime-not-ready = "Runtime not ready"
@@ -352,7 +350,6 @@ blueprint-title = "Blueprint"
 blueprint-path-unknown = "Blueprint source unknown"
 no-name = "No name"
 no-description = "No description"
-no-path = "No path"
 owns = "Owns"
 focus-node = "Show node"
 lineage-rationale = "Rationale"
@@ -363,6 +360,13 @@ decision = "Decision"
 decision-empty = "No decisions"
 legend-label = "Canvas state key"
 metrics = "Map metrics"
+findings-errors = "errors"
+findings-warnings = "warnings"
+findings-infos = "infos"
+bootstrap-status-failed = "Status panel failed to load."
+bootstrap-lint-failed = "Lint summary failed to load."
+bootstrap-blueprint-failed = "Blueprint failed to load."
+retry = "Retry"
 
 [webui.evidence-modes]
 depth = "Depth"
@@ -382,6 +386,11 @@ ghost = "Planned"
 orphaned = "Orphaned"
 drift = "Drift"
 
+
+
+
+# -- Kind filters -----------------------------------------------------------
+
 [webui.kind]
 all = "All"
 system = "System"
@@ -400,9 +409,6 @@ findings = "No findings"
 drift = "No drift warnings"
 changes = "No active changes"
 backlog = "No backlog items"
-
-
-# -- Webui: removed legacy keys -------------------------------------------
 
 
 # -- Per-command help -----------------------------------------------------

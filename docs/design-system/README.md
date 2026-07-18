@@ -102,17 +102,8 @@ Stage 4 (eval-loop verification) adjustments:
 - `.query-chip`, `.query-action`, `.edge-row`, `.edge-dir`, and `.edge-target` are component classes in their own right (previously scoped under `.query-rail` and `.node-depth-plate`); modules may render them in any region and they carry explicit surface, ink, and border treatment so no browser default leaks through.
 - `.blueprint-plate pre` wraps long source lines (`pre-wrap`) instead of widening the frame.
 - `.channel-bar .channel-empty` styles the channel empty state with faint ink.
-
-## NEXT_SESSION.md disposition
-
-`docs/design-system/NEXT_SESSION.md` is retired in this stage.
-
-Open items folded and intentionally out of scope:
-
-- Full JS-driven webui pass against real `cairn ui` data.
-- Landing hero screenshot iteration and `Read the spec` CTA follow-up.
-
-Those items are out of scope for Stage 2 design-system and token work.
+- Added `--ui-channel-height: 116px`: the fixed height of the bottom channel bar. The shell grid gives the workspace the remaining fraction, the state legend renders as a slim single-row strip, and the channel body scrolls internally so the page frame never grows.
+- Evidence-rail body content (artefact chips, source excerpts, `code`/`pre`) wraps inside the rail's bounded well instead of widening the frame; on tap surfaces those chips keep the `--tap-min` minimum.
 
 ## Component class inventory
 

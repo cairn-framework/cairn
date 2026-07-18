@@ -1,4 +1,4 @@
-import { clsx, copy, escapeHtml, highlightBlueprint, html } from "./utils.js";
+import { clsx, copy, highlightBlueprint, html } from "./utils.js";
 
 function NodeDepthPlate({ node, inRows, outRows, onEdgeSelect }) {
   const paths = Array.isArray(node?.paths) ? node.paths : [];
@@ -55,7 +55,7 @@ function NodeDepthPlate({ node, inRows, outRows, onEdgeSelect }) {
           ? html`
             <section class="edge-group">
               <h4>${copy("webui.contracts")}</h4>
-              ${contracts.map((item) => html`<p class="plate-meta">${escapeHtml(item.id || item.path || item.title || copy("webui.artefact"))}</p>`)}
+              ${contracts.map((item) => html`<p class="plate-meta">${item.id || item.path || item.title || copy("webui.artefact")}</p>`)}
             </section>
           `
           : null
@@ -82,7 +82,7 @@ function EvidenceItemPreview({ artefact, onBack }) {
       </button>
       <p class="lineage-title">${title}</p>
       <p class="lineage-meta">${[status, date].filter(Boolean).join(" · ")}</p>
-      <pre><code class="blueprint-plate">${escapeHtml(snippet)}</code></pre>
+      <pre><code class="blueprint-plate">${snippet}</code></pre>
       ${artefact.path ? html`<p class="plate-meta">${artefact.path}</p>` : null}
     </section>
   `;
@@ -91,7 +91,7 @@ function EvidenceItemPreview({ artefact, onBack }) {
 function LineagePlate({ artefacts = {}, onOpen, selectedItem }) {
   const evidence = Array.isArray(artefacts.evidence) ? artefacts.evidence : [];
   const decisions = Array.isArray(artefacts.decisions) ? artefacts.decisions : [];
-  const authority = Array.isArray(artefacts.authority) ? artefacts.authority : [];
+  const authority = Array.isArray(artefacts.sources) ? artefacts.sources : [];
   const selected = selectedItem && typeof selectedItem === "object" ? selectedItem : null;
 
   return html`
@@ -136,7 +136,7 @@ function LineagePlate({ artefacts = {}, onOpen, selectedItem }) {
             : html`<p class="plate-meta">${copy("webui.authority-empty")}</p>`
         }
       </section>
-      ${selected ? html`<${EvidenceItemPreview} artefact=${selected} onBack=${onOpen.bind(null, null)} />` : null}
+      ${selected ? html`<${EvidenceItemPreview} artefact=${selected} onBack=${() => onOpen(null)} />` : null}
     </article>
   `;
 }
@@ -153,14 +153,13 @@ function EvidenceModeTabs({ mode, onMode }) {
             onClick=${() => onMode(name)}
           >
             ${copy(`webui.evidence-modes.${name}`)}
-          </button>
-        `,
+          </button>`,
       )}
     </div>
   `;
 }
 
-function EvidenceRail({ mode, onMode, selection, inRows, outRows, onNeighbourSelect, artefacts, blueprint, blueprintPath, onLineageOpen, selectedLineageItem, onLineageBack }) {
+function EvidenceRail({ mode, onMode, selection, inRows, outRows, onNeighbourSelect, artefacts, blueprint, blueprintPath, onLineageOpen, selectedLineageItem }) {
   const emptySelection = !selection;
   const depthNode = emptySelection
     ? null
@@ -169,6 +168,7 @@ function EvidenceRail({ mode, onMode, selection, inRows, outRows, onNeighbourSel
         contracts: artefacts?.contracts || selection.contracts || [],
         symbols: artefacts?.symbols || selection.symbols || [],
       };
+  const closeLineageItem = () => onLineageOpen(null);
 
   return html`
     <aside class="evidence-rail" aria-label=${copy("webui.evidence")} role="complementary">
@@ -203,7 +203,7 @@ function EvidenceRail({ mode, onMode, selection, inRows, outRows, onNeighbourSel
                     artefacts=${artefacts}
                     onOpen=${onLineageOpen}
                     selectedItem=${selectedLineageItem}
-                    onBack=${onLineageBack}
+                    onBack=${closeLineageItem}
                   />`
         }
       </div>

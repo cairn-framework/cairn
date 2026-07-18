@@ -535,9 +535,8 @@ mod explorer {
         let css = include_str!("../docs/design-system/components.css");
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
-            js.contains("const infos = Number(status?.infos")
-                || js.contains("infos = Number(status?.finding_counts?.infos"),
-            "status and channel must retain info severity"
+            js.contains("if (severity === \"info\")") && js.contains("counts.infos"),
+            "status and channel must retain info severity derived from lint findings"
         );
         assert!(
             css.contains("var(--settled)") && css.contains("var(--settled-wash)"),
@@ -558,7 +557,7 @@ mod explorer {
         assert!(
             js.contains("String(item.severity || \"info\")")
                 && js.contains("item.severity ? `· ${item.severity}`")
-                && js.contains("const infos = Number(status?.infos"),
+                && js.contains("counts.infos"),
             "info-severity must remain visible in rows and status counts"
         );
     }

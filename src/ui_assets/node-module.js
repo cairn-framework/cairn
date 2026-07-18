@@ -4,21 +4,24 @@ import { clsx, copy, html, parseState } from "./utils.js";
  * Data:
  *  - node: normalised graph node
  *  - isSelected: whether node is current selection
- *  - isMatch: whether query matched
  *  - isNeighbour: whether connected to current selection
  *
  * Events:
  *  - onSelect(nodeId)
  */
-function NodeModule({ node, isSelected, isMatch, isNeighbour, onSelect, compact }) {
+function NodeModule({ node, isSelected, isNeighbour, onSelect, compact, optionId }) {
   const state = parseState(node.state);
   const shortId = String(node.id || "").slice(0, 42);
   const shortName = String(node.name || copy("webui.no-name")).slice(0, compact ? 30 : 60);
 
   return html`
     <button
+      id=${optionId}
       type="button"
-      class=${clsx("node-module", state, compact ? "compact" : "", isSelected && "selected", isMatch && "matched", isNeighbour && "focused")}
+      role="option"
+      aria-selected=${Boolean(isSelected)}
+      tabIndex=${isSelected ? 0 : -1}
+      class=${clsx("node-module", state, compact ? "compact" : "", isSelected && "selected", isNeighbour && "focused")}
       onClick=${() => onSelect(node.id)}
       onKeyDown=${(event) => {
         if (event.key === "Enter" || event.key === " ") {

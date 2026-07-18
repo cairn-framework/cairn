@@ -1,4 +1,4 @@
-import { clsx, copy, escapeHtml, html } from "./utils.js";
+import { clsx, copy, html } from "./utils.js";
 
 const CHANNELS = ["findings", "drift", "changes", "backlog"];
 
@@ -6,7 +6,8 @@ function itemText(item) {
   if (!item) {
     return "";
   }
-  return escapeHtml(item.message || item.text || item.description || item.title || item.id || "");
+
+  return item.message || item.text || item.description || item.title || item.path || item.node || item.id || "";
 }
 
 function findingBadge(item) {

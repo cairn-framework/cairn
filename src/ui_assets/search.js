@@ -1,7 +1,5 @@
 /* Query parsing and edge helper utilities for the web UI. */
 
-const TEXT_FIELDS = ["id", "name", "description", "state"];
-
 function parseQuery(raw) {
   const source = String(raw || "")
     .trim()
@@ -86,17 +84,32 @@ function mapEdgeRows(nodeId, edges) {
   return {
     in: (deps.in || []).map((id) => ({ id })),
     out: (deps.out || []).map((id) => ({ id })),
-    incoming: (deps.in || []).map((id) => ({ id })),
-    outgoing: (deps.out || []).map((id) => ({ id })),
   };
 }
 
-function nodeFieldValue(node, key) {
-  return String(node?.[key] || "");
+/**
+ * Row-major grid arrow navigation. Returns the destination index, or the
+ * current index when the move would cross a row boundary or leave the grid.
+ */
+function gridNavigate(index, key, columns, total) {
+  if (index < 0) {
+    return -1;
+  }
+
+  const row = Math.floor(index / columns);
+  const column = index % columns;
+  switch (key) {
+    case "ArrowLeft":
+      return column === 0 ? index : index - 1;
+    case "ArrowRight":
+      return column === columns - 1 || index + 1 >= total ? index : index + 1;
+    case "ArrowUp":
+      return row === 0 ? index : index - columns;
+    case "ArrowDown":
+      return index + columns >= total ? index : index + columns;
+    default:
+      return index;
+  }
 }
 
-function compareNodeIdentity(a, b) {
-  return nodeFieldValue(a, "id").localeCompare(nodeFieldValue(b, "id"));
-}
-
-export { parseQuery, matchesQuery, dependencyLists, mapEdgeRows, TEXT_FIELDS, compareNodeIdentity };
+export { parseQuery, matchesQuery, mapEdgeRows, gridNavigate };
