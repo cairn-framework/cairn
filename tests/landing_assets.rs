@@ -9,7 +9,7 @@
 
 use std::path::{Path, PathBuf};
 
-const LANDING: &str = "docs/landing/index.html";
+const LANDING: &str = "docs/index.html";
 
 /// GitHub Pages serves `docs/` at this origin (see the page's `og:url` and
 /// `.github/workflows/pages.yml`). Social-card images must ride the same origin

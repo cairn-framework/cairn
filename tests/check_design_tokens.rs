@@ -124,10 +124,10 @@ fn test_check_design_tokens_script_behaviour() -> Result<(), Box<dyn std::error:
 }
 
 /// The real landing page must stay design-token conformant: zero hardcoded hex
-/// or rem in `docs/landing/index.html`, which the default gate now covers.
+/// or rem in `docs/index.html`, which the default gate now covers.
 #[test]
 fn test_landing_page_is_token_conformant() {
-    let landing = Path::new("docs/landing/index.html");
+    let landing = Path::new("docs/index.html");
     let out = run_script(landing);
     assert!(
         out.status.success(),

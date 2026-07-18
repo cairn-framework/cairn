@@ -1,18 +1,1289 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Cairn</title>
-    <meta http-equiv="refresh" content="0; url=./landing/">
-    <link rel="canonical" href="./landing/">
-    <meta name="robots" content="noindex">
-    <style>
-      body { font-family: system-ui, sans-serif; margin: 2rem; color: #222; }
-      a { color: #0b5fff; }
-    </style>
-  </head>
-  <body>
-    <h1>Cairn</h1>
-    <p>Redirecting to the landing page. If nothing happens, <a href="./landing/">open the landing page</a>.</p>
-  </body>
+<html lang="en" data-theme="dark" data-anim="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cairn: the architecture memory your agent writes itself.</title>
+<meta name="description" content="Your coding agent writes the blueprint as you build. Cairn keeps that map true against the real code and hands it to every future session. Drift stops merges. Your architecture stays honest.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cairn: the architecture memory your agent writes itself.">
+<meta property="og:description" content="Your agent writes the blueprint as you build. Cairn reconciles it against the code you shipped and hands your agents a map they can trust.">
+<meta property="og:image" content="https://cairn-framework.github.io/cairn/assets/screenshots/webui-graph.png">
+<meta property="og:url" content="https://cairn-framework.github.io/cairn/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cairn: your agent writes the map as you talk. Cairn keeps it true.">
+<meta name="twitter:description" content="Your agent writes the blueprint as you build. Cairn reconciles it against the code you shipped and hands your agents a map they can trust.">
+<meta name="twitter:image" content="https://cairn-framework.github.io/cairn/assets/screenshots/webui-graph.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./design-system/tokens.css">
+<style>
+/* ===================================================================
+   CAIRN landing page. Colour tokens are sourced from the linked
+   design-system stylesheet (../design-system/tokens.css). Only the
+   page-specific type, spacing, radius, and motion tokens live here.
+   Geological. Warm stone. Quiet.
+   =================================================================== */
+
+:root {
+  /* Type */
+  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-sans:  "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Type scale */
+  --t-micro:   11px;
+  --t-small:   12px;
+  --t-body:    15px;
+  --t-lede:    17px;
+  --t-title:   22px;
+  --t-h3:      28px;
+  --t-h2:      40px;
+  --t-h1:      64px;
+
+  /* Spacing */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+  --s-9: 96px; --s-10: 128px;
+
+  /* Radii */
+  --r-edge: 2px;
+  --r-stone: 6px;
+  --r-round: 10px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --fast: 180ms;
+  --med:  320ms;
+  --slow: 560ms;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--stone-1);
+  color: var(--ink-char);
+  font-family: var(--font-serif);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Paper grain, very faint. Feels like a page. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.015) 1px, transparent 0);
+  background-size: 3px 3px;
+  z-index: 1;
+}
+[data-theme="light"] body::before {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.025) 1px, transparent 0);
+}
+
+a { color: var(--auth-1); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color var(--fast) var(--ease); }
+a:hover { border-bottom-color: var(--auth-2); }
+
+/* Accessibility: visible focus on interactive elements. */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--prov-1);
+  outline-offset: 3px;
+  border-radius: var(--r-edge);
+}
+
+code, .mono { font-family: var(--font-mono); font-size: 0.92em; }
+
+/* Layout */
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--s-7);
+  position: relative;
+  z-index: 2;
+}
+
+/* Nav */
+
+nav.site {
+  padding: var(--s-5) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  letter-spacing: 0.03em;
+}
+nav.site .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  color: var(--ink-char);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+nav.site .brand svg { display: block; }
+nav.site .links {
+  margin-left: auto;
+  display: flex;
+  gap: var(--s-6);
+}
+nav.site .links a {
+  color: var(--ink-aged);
+  text-transform: lowercase;
+  border: 0;
+  transition: color var(--fast) var(--ease);
+}
+nav.site .links a:hover { color: var(--ink-char); }
+nav.site .version {
+  color: var(--ink-mist);
+  border: 1px solid var(--seam-thin);
+  padding: 2px var(--s-2);
+  border-radius: var(--r-edge);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.05em;
+}
+nav.site .cta {
+  color: var(--ink-char);
+  border: 1px solid var(--seam-clear);
+  padding: 4px var(--s-3);
+  border-radius: var(--r-edge);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+nav.site .cta:hover { background: var(--stone-3); color: var(--ink-char); }
+
+/* Hero */
+
+.hero {
+  padding: var(--s-9) 0 var(--s-10);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: var(--s-9);
+  align-items: center;
+}
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; gap: var(--s-7); padding: var(--s-7) 0 var(--s-8); }
+}
+
+.hero .eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-5);
+}
+.hero h1 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(42px, 6.5vw, var(--t-h1));
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--s-6);
+  color: var(--ink-char);
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.hero h1 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--prov-1);
+}
+.hero h1 strong {
+  font-weight: 500;
+  font-style: normal;
+  color: var(--auth-1);
+}
+.hero .lede {
+  font-size: var(--t-lede);
+  line-height: 1.55;
+  color: var(--ink-aged);
+  max-width: 48ch;
+  margin: 0 0 var(--s-6);
+  text-wrap: pretty;
+}
+.hero .lede strong { color: var(--ink-char); font-weight: 500; }
+.hero .ctas {
+  display: flex;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+  flex-wrap: wrap;
+}
+.btn {
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  padding: var(--s-3) var(--s-5);
+  border-radius: var(--r-stone);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--fast) var(--ease);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  letter-spacing: 0.005em;
+}
+.btn.primary {
+  background: var(--ink-char);
+  color: var(--stone-1);
+  border-color: var(--ink-char);
+}
+.btn.primary:hover {
+  background: var(--hinge-1);
+  border-color: var(--hinge-1);
+  transform: translateY(-1px);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--ink-aged);
+  border-color: var(--seam-clear);
+}
+.btn.ghost:hover {
+  color: var(--ink-char);
+  border-color: var(--ink-faded);
+  background: var(--stone-3);
+}
+
+/* Hero visual: the running webui, anchored in a stone frame. */
+
+.hero-visual {
+  position: relative;
+  width: 100%;
+  margin-left: auto;
+}
+.hero-visual .product-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-stone);
+  border: 1px solid var(--seam-clear);
+  background: var(--stone-2);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 245, 220, 0.04) inset;
+}
+[data-theme="light"] .hero-visual .product-shot {
+  box-shadow: 0 18px 50px rgba(42, 36, 24, 0.18), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+.hero-visual figcaption {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mist);
+  margin-top: var(--s-3);
+  text-align: right;
+}
+
+/* Section primitives */
+
+section {
+  padding: var(--s-10) 0;
+  border-top: 1px solid var(--seam-faint);
+  position: relative;
+}
+section.tight { padding: var(--s-8) 0; }
+
+.kicker {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.kicker::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--ink-mist);
+}
+
+h2.section {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(30px, 4.2vw, var(--t-h2));
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--s-5);
+  max-width: 24ch;
+  color: var(--ink-char);
+  text-wrap: balance;
+}
+h2.section em { color: var(--prov-1); font-style: italic; }
+h2.section strong { color: var(--auth-1); font-weight: 400; }
+
+.section-lede {
+  font-size: var(--t-lede);
+  color: var(--ink-aged);
+  max-width: 64ch;
+  line-height: 1.6;
+  margin: 0;
+  text-wrap: pretty;
+}
+.section-lede em { color: var(--prov-1); font-style: italic; }
+.section-lede strong { color: var(--auth-1); font-weight: 400; }
+
+/* What Cairn Is */
+
+.what {
+  max-width: 64ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.what p {
+  font-size: var(--t-lede);
+  line-height: 1.65;
+  color: var(--ink-aged);
+  margin: 0 0 var(--s-5);
+  max-width: 64ch;
+  text-wrap: pretty;
+}
+.what p:last-child { margin-bottom: 0; }
+.what p strong { color: var(--ink-char); font-weight: 500; }
+.what .three-nouns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  margin-top: var(--s-6);
+}
+.noun {
+  padding: 4px var(--s-3);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  color: var(--ink-aged);
+  background: var(--stone-2);
+}
+.noun.prov { color: var(--prov-1); border-color: var(--prov-3); background: var(--prov-wash); }
+.noun.auth { color: var(--auth-1); border-color: var(--auth-3); background: var(--auth-wash); }
+.noun.hinge { color: var(--hinge-1); border-color: var(--seam-clear); background: var(--hinge-wash); }
+.arr { color: var(--ink-mist); font-family: var(--font-serif); font-size: 14px; }
+
+/* Two-chain diagram */
+
+.two-chain {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--s-8);
+  margin-top: var(--s-7);
+  align-items: start;
+}
+@media (max-width: 900px) { .two-chain { grid-template-columns: 1fr; } }
+
+.chain-prose .chain-head {
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin: var(--s-6) 0 var(--s-2);
+}
+.chain-prose .chain-head.prov { color: var(--prov-1); }
+.chain-prose .chain-head.auth { color: var(--auth-1); }
+.chain-prose .chain-head.hinge { color: var(--hinge-1); }
+.chain-prose .chain-head:first-child { margin-top: 0; }
+.chain-prose p {
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--ink-aged);
+  margin: 0 0 var(--s-4);
+  text-wrap: pretty;
+  max-width: 54ch;
+}
+.chain-prose p em { color: var(--prov-1); font-style: italic; }
+.chain-viz {
+  aspect-ratio: 1 / 0.82;
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  position: relative;
+  overflow: hidden;
+  padding: var(--s-6);
+}
+.chain-viz svg { width: 100%; height: 100%; display: block; }
+
+/* Blueprint to map panel */
+
+.bp-map {
+  margin-top: var(--s-7);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-7);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  overflow: hidden;
+  background: var(--stone-2);
+}
+@media (max-width: 900px) { .bp-map { grid-template-columns: 1fr; } }
+
+.bp-map .panel {
+  padding: var(--s-6);
+  position: relative;
+}
+.bp-map .panel + .panel {
+  border-left: 1px solid var(--seam-faint);
+}
+@media (max-width: 900px) {
+  .bp-map .panel + .panel { border-left: 0; border-top: 1px solid var(--seam-faint); }
+}
+.bp-map .panel-label {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.bp-map .panel-label .fname {
+  color: var(--ink-aged);
+  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+}
+.bp-map pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-aged);
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  padding: 0;
+}
+.bp-map .tok-kw { color: var(--auth-1); }
+.bp-map .tok-id { color: var(--ink-char); }
+.bp-map .tok-str { color: var(--prov-1); }
+.bp-map .tok-cmt { color: var(--ink-mist); font-style: italic; }
+.bp-map .tok-at { color: var(--hinge-2); }
+
+/* Map side */
+.map-stack { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-3); }
+.map-row {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3) var(--s-3);
+  background: var(--stone-3);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-edge);
+}
+.map-row .glyph {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.map-row.system .glyph { background: var(--hinge-1); color: var(--stone-0); }
+.map-row.container .glyph { background: var(--auth-2); color: var(--stone-0); border-radius: 3px; }
+.map-row.module .glyph {
+  background: var(--stone-5); color: var(--ink-aged);
+  border: 1px solid var(--seam-clear); border-radius: 2px;
+}
+.map-row.indent-1 { margin-left: var(--s-5); }
+.map-row.indent-2 { margin-left: var(--s-7); }
+.map-row .name { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-char); }
+.map-row .meta { font-family: var(--font-sans); font-size: var(--t-micro); color: var(--ink-faded); letter-spacing: 0.05em; }
+.map-row .status {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: var(--r-edge);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.status.synced { background: var(--auth-wash); color: var(--auth-1); }
+.status.ghost { background: var(--stone-2); color: var(--ink-faded); border: 1px dashed var(--seam-clear); }
+.status.drift { background: var(--drift-wash); color: var(--drift); }
+
+/* Finding classes */
+
+.findings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+  margin-top: var(--s-7);
+}
+@media (max-width: 900px) { .findings { grid-template-columns: 1fr; } }
+
+.finding {
+  padding: var(--s-6);
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  position: relative;
+  overflow: hidden;
+}
+.finding::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.finding.structural::before { background: var(--block); }
+.finding.contradiction::before { background: var(--drift); }
+.finding.tension::before { background: var(--prov-2); }
+.finding .severity {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: var(--s-3);
+}
+.finding.structural .severity { color: var(--block); }
+.finding.contradiction .severity { color: var(--drift); }
+.finding.tension .severity { color: var(--prov-2); }
+.finding h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--t-title);
+  margin: 0 0 var(--s-3);
+  color: var(--ink-char);
+  letter-spacing: -0.01em;
+}
+.finding p {
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--ink-aged);
+  margin: 0 0 var(--s-4);
+  text-wrap: pretty;
+}
+.finding .block-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  padding: 3px var(--s-3);
+  border: 1px solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  display: inline-block;
+}
+.finding.structural .block-label { color: var(--block); border-color: rgba(184, 76, 56, 0.4); }
+.finding.contradiction .block-label { color: var(--drift); border-color: rgba(212, 120, 84, 0.4); }
+.finding.tension .block-label { color: var(--prov-2); border-color: var(--prov-3); }
+
+/* Non-code domains */
+
+.domains {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+@media (max-width: 900px) { .domains { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .domains { grid-template-columns: 1fr; } }
+.domain {
+  padding: var(--s-5);
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  color: inherit;
+  position: relative;
+}
+.domain.first { border-color: var(--auth-3); background: linear-gradient(180deg, var(--auth-wash), var(--stone-2)); }
+.domain.upcoming { opacity: 0.72; }
+.domain .dkicker {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: var(--s-3);
+}
+.domain.first .dkicker { color: var(--auth-1); }
+.domain h4 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--t-lede);
+  margin: 0 0 var(--s-2);
+  color: var(--ink-char);
+}
+.domain p {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--ink-faded);
+  margin: 0;
+}
+
+/* Install */
+
+.install-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-5);
+  margin-top: var(--s-7);
+}
+@media (max-width: 760px) { .install-grid { grid-template-columns: 1fr; } }
+
+.code-card {
+  background: var(--stone-2);
+  border: 1px solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  overflow: hidden;
+}
+.code-card .card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--seam-faint);
+  background: var(--stone-3);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  color: var(--ink-faded);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.code-card .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink-mist);
+}
+.code-card pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  margin: 0;
+  padding: var(--s-5);
+  color: var(--ink-aged);
+  white-space: pre;
+  overflow-x: auto;
+}
+.code-card .prompt { color: var(--ink-mist); user-select: none; }
+.code-card .cmd { color: var(--ink-char); }
+.code-card .flag { color: var(--auth-1); }
+.code-card .arg { color: var(--prov-1); }
+.code-card .comment { color: var(--ink-mist); font-style: italic; }
+
+/* Footer */
+
+footer.site {
+  border-top: 1px solid var(--seam-faint);
+  padding: var(--s-7) 0 var(--s-8);
+  margin-top: var(--s-8);
+}
+footer.site .inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+footer.site .brand {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--ink-aged);
+  font-size: var(--t-body);
+}
+footer.site .sig {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-mist);
+  letter-spacing: 0.08em;
+}
+footer.site .fnav {
+  display: flex;
+  gap: var(--s-5);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+}
+footer.site .fnav a { color: var(--ink-aged); border: 0; }
+footer.site .fnav a:hover { color: var(--ink-char); }
+
+/* Tweaks panel */
+
+.tweaks {
+  position: fixed;
+  right: var(--s-5);
+  bottom: var(--s-5);
+  z-index: 100;
+  width: 280px;
+  background: var(--stone-3);
+  border: 1px solid var(--seam-clear);
+  border-radius: var(--r-round);
+  padding: var(--s-4);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.03) inset;
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--ink-aged);
+  display: none;
+}
+.tweaks.on { display: block; }
+.tweaks h5 {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  font-weight: 500;
+}
+.tweaks .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--seam-faint);
+}
+.tweaks .row:first-of-type { border-top: 0; }
+.tweaks label { color: var(--ink-aged); }
+.tweaks .seg {
+  display: flex;
+  border: 1px solid var(--seam-clear);
+  border-radius: var(--r-edge);
+  overflow: hidden;
+}
+.tweaks .seg button {
+  background: transparent;
+  border: 0;
+  color: var(--ink-faded);
+  padding: 4px var(--s-3);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.tweaks .seg button.on {
+  background: var(--stone-5);
+  color: var(--ink-char);
+}
+.tweaks .seg button + button { border-left: 1px solid var(--seam-faint); }
+
+/* Animations */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes drawLine {
+  from { stroke-dashoffset: 400; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pulseNode {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+@keyframes softPulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+@keyframes emberPulse {
+  0%, 100% { opacity: 0.65; }
+  50%      { opacity: 1; }
+}
+@keyframes emberHalo {
+  0%, 100% { opacity: 0.18; transform: scale(0.92); }
+  50%      { opacity: 0.55; transform: scale(1.08); }
+}
+
+/* Hero visual is now a product screenshot; no SVG draw animations. */
+
+/* Reveal on scroll */
+.reveal { opacity: 0; transform: translateY(10px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* Hero variant crossfade */
+.hero-text [data-variant] { display: none; }
+.hero-text [data-variant].on { display: block; animation: fadeInUp 0.5s var(--ease) both; }
+
+/* Reduced-motion override: disable every motion effect and pre-reveal. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal { opacity: 1 !important; transform: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="site">
+    <div class="brand">
+      <!-- Cairn mark: four stacked stones -->
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+        <ellipse cx="11" cy="17.5" rx="8" ry="2.2" fill="currentColor" opacity="0.85"/>
+        <ellipse cx="11" cy="12" rx="6.2" ry="2" fill="currentColor" opacity="0.7"/>
+        <ellipse cx="11" cy="7" rx="4.4" ry="1.8" fill="currentColor" opacity="0.55"/>
+        <ellipse cx="11" cy="3" rx="2.6" ry="1.3" fill="currentColor" opacity="0.4"/>
+      </svg>
+      Cairn
+    </div>
+    <div class="links">
+      <a href="#what">what</a>
+      <a href="#chains">model</a>
+      <a href="#blueprint">blueprint</a>
+      <a href="#install">install</a>
+      <a href="https://github.com/cairn-framework/cairn" target="_blank" rel="noopener">github</a>
+      <a class="cta" href="https://github.com/cairn-framework/cairn/blob/main/docs/spec.md" target="_blank" rel="noopener">Read the spec</a>
+    </div>
+    <span class="version">a map of what you built</span>
+  </nav>
+
+  <!-- ================ HERO ================ -->
+  <section class="hero" style="border-top:0; padding-top:var(--s-8)">
+    <div class="hero-text">
+      <div class="eyebrow">The architecture memory your agent writes itself</div>
+
+      <div data-variant="v1" class="on">
+        <h1>Your agent forgets everything it built last session.<br>Give it the <strong>map</strong>.</h1>
+        <p class="lede">Claude Code. Cursor. Codex. They re-read your whole repo every time and still guess wrong. They forget last week's decisions and quietly break them. Your agent writes the blueprint as you talk. Cairn keeps that map true against the code you shipped, so the next session starts already knowing your system.</p>
+      </div>
+
+      <div data-variant="v2">
+        <h1>Your agent writes the map. Cairn keeps it true.</h1>
+      <p class="lede">As you build, your coding agent authors the blueprint, the contracts, and the decisions. Cairn reconciles that map against the real code, blocks the merge when the two disagree, and hands the map back to your agent on the next prompt. A declaration that disagrees with the code shows up as a finding, the same as wrong code: the map can be proven wrong, and that is exactly why you can trust it.</p>
+      </div>
+
+      <div data-variant="v3">
+        <h1>Two chains, joined at every choice your agent makes.</h1>
+        <p class="lede">One chain is why you chose it. The other is what must stay true. They meet at a decision, and the decision is where your system tells the truth. Your agent records both as it works, and Cairn keeps them visible long after the Slack thread is gone.</p>
+      </div>
+
+      <div class="ctas">
+        <a class="btn primary" href="https://github.com/cairn-framework/cairn/blob/main/docs/spec.md" target="_blank" rel="noopener">Read the spec →</a>
+        <a class="btn ghost" href="https://github.com/cairn-framework/cairn" target="_blank" rel="noopener">github.com/cairn-framework/cairn</a>
+      </div>
+    </div>
+
+    <!-- Hero visual: the running webui, reconciled map for the Cairn repo itself -->
+    <figure class="hero-visual">
+      <video class="product-shot"
+             src="./assets/demo/webui.mp4"
+             poster="./assets/screenshots/webui-graph.png"
+             autoplay loop muted playsinline
+             width="1440" height="900">
+      </video>
+      <figcaption>cairn ui · reconciled map, live</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================ WHAT CAIRN IS ================ -->
+  <section id="what">
+    <div class="kicker">What it is</div>
+    <h2 class="section">For developers who build with <em>coding agents</em>.</h2>
+
+    <div class="what" style="margin-top:var(--s-7)">
+      <p>Your coding agent already knows the shape of your system by the time you have talked it through. It can write that shape down as a <strong>blueprint</strong>: a short file that names your systems, your parts, the promises each part makes, and the choices behind them. Not notes that go stale. A file your tools can read.</p>
+      <p>Cairn checks that blueprint against what is really there: the code on disk today, the promises in <code>contracts/</code>, and the choices your agent captured as you went. What you get back is a <strong>map</strong>. It shows what exists, what you planned, what has drifted, and exactly where the two stopped matching.</p>
+      <p>When your agent needs to change <code>auth.session</code>, it stops reading <code>src/auth</code> from scratch. It asks the map: what does this part promise, which choices limit it, and what sits next to it. It gets a clear answer and ships code that fits.</p>
+
+      <div class="three-nouns">
+        <span class="noun prov">blueprint</span>
+        <span class="arr">→</span>
+        <span class="noun auth">reconcile</span>
+        <span class="arr">→</span>
+        <span class="noun hinge">map</span>
+        <span class="arr">+</span>
+        <span class="noun">findings</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ TWO-CHAIN MODEL ================ -->
+  <section id="chains">
+    <div class="kicker">The two-chain model</div>
+    <h2 class="section">Every system has a chain of <em>why you chose it</em> and a chain of <strong>what must stay true</strong>. Cairn keeps the two honest with each other.</h2>
+    <p class="section-lede">This is the backbone. One chain runs up from your sources and research: the proof that earned the choice. The other runs down through blueprint, contract, and code: the rules no one gets to break in secret. They meet the moment you commit. That moment is a decision, and it is the one place your system has to tell the truth about itself.</p>
+
+    <div class="two-chain">
+      <div class="chain-viz">
+        <svg viewBox="0 0 640 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <defs>
+            <pattern id="grid-dot-2" width="24" height="24" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="0.7" opacity="0.55" style="fill:var(--seam-faint)"/>
+            </pattern>
+          </defs>
+          <rect width="640" height="520" fill="url(#grid-dot-2)"/>
+
+          <!-- Rail labels at top -->
+          <text x="80" y="44" font-family="IBM Plex Mono" font-weight="500" letter-spacing="0.2em" style="fill:var(--prov-1);font-size:var(--t-body)">PROVENANCE</text>
+          <text x="560" y="44" text-anchor="end" font-family="IBM Plex Mono" font-weight="500" letter-spacing="0.2em" style="fill:var(--auth-1);font-size:var(--t-body)">AUTHORITY</text>
+          <text x="80" y="62" font-family="Source Serif 4" font-style="italic" style="fill:var(--ink-faded);font-size:var(--t-small)">chain of why</text>
+          <text x="560" y="62" text-anchor="end" font-family="Source Serif 4" font-style="italic" style="fill:var(--ink-faded);font-size:var(--t-small)">chain of what</text>
+
+          <!-- Provenance spine (left) -->
+          <g font-family="IBM Plex Mono" style="font-size:var(--t-body);fill:var(--hinge-1)">
+            <circle cx="90" cy="120" r="7" style="fill:var(--prov-1)"/>
+            <text x="110" y="125">source</text>
+            <line x1="90" y1="128" x2="90" y2="182" stroke-width="1.2" style="stroke:var(--prov-3)"/>
+            <circle cx="90" cy="190" r="7" style="fill:var(--prov-1)"/>
+            <text x="110" y="195">research</text>
+            <line x1="90" y1="198" x2="90" y2="252" stroke-width="1.2" style="stroke:var(--prov-3)"/>
+            <circle cx="90" cy="260" r="7" style="fill:var(--prov-1)"/>
+            <text x="110" y="265">synthesis</text>
+          </g>
+
+          <!-- Authority spine (right) -->
+          <g font-family="IBM Plex Mono" style="font-size:var(--t-body);fill:var(--hinge-1)">
+            <circle cx="550" cy="120" r="7" style="fill:var(--auth-1)"/>
+            <text x="530" y="125" text-anchor="end">blueprint</text>
+            <line x1="550" y1="128" x2="550" y2="182" stroke-width="1.2" style="stroke:var(--auth-3)"/>
+            <circle cx="550" cy="190" r="7" style="fill:var(--auth-1)"/>
+            <text x="530" y="195" text-anchor="end">contract</text>
+            <line x1="550" y1="198" x2="550" y2="252" stroke-width="1.2" style="stroke:var(--auth-3)"/>
+            <circle cx="550" cy="260" r="7" style="fill:var(--auth-1)"/>
+            <text x="530" y="265" text-anchor="end">code</text>
+          </g>
+
+          <!-- Arcs from prov spine to hinge -->
+          <path d="M 97 260 Q 180 260, 280 260" fill="none" stroke-width="1.6" opacity="0.85" style="stroke:var(--prov-2)"/>
+          <path d="M 97 190 Q 200 220, 275 250" fill="none" stroke-width="1.1" opacity="0.5" style="stroke:var(--prov-2)"/>
+
+          <!-- Arcs from hinge to auth spine -->
+          <path d="M 360 260 Q 460 260, 543 260" fill="none" stroke-width="1.6" opacity="0.85" style="stroke:var(--auth-2)"/>
+          <path d="M 360 260 Q 460 220, 543 190" fill="none" stroke-width="1.1" opacity="0.5" style="stroke:var(--auth-2)"/>
+
+          <!-- Hinge (center) -->
+          <g transform="translate(320, 260)">
+            <text text-anchor="middle" y="-72" font-family="Source Serif 4" font-style="italic" style="fill:var(--ink-faded);font-size:var(--t-lede)">the hinge</text>
+            <circle r="52" stroke-width="1.5" style="fill:var(--stone-3);stroke:var(--hinge-1)"/>
+            <circle r="36" style="fill:var(--ink-char)"/>
+            <text text-anchor="middle" y="5" font-family="IBM Plex Mono" font-weight="600" letter-spacing="0.04em" style="fill:var(--stone-1);font-size:var(--t-body)">DECISION</text>
+          </g>
+
+          <!-- Bottom: downstream outcomes -->
+          <g font-family="IBM Plex Mono" style="font-size:var(--t-small);fill:var(--ink-aged)">
+            <line x1="90" y1="320" x2="90" y2="388" stroke-width="1.2" style="stroke:var(--seam-thin)"/>
+            <circle cx="90" cy="395" r="5" style="fill:var(--prov-3)"/>
+            <text x="110" y="400">todo · review</text>
+
+            <line x1="550" y1="320" x2="550" y2="388" stroke-width="1.2" style="stroke:var(--seam-thin)"/>
+            <circle cx="550" cy="395" r="5" style="fill:var(--auth-3)"/>
+            <text x="530" y="400" text-anchor="end">tests · runtime</text>
+          </g>
+
+          <!-- Caption -->
+          <text x="320" y="480" text-anchor="middle" font-family="Source Serif 4" font-style="italic" style="fill:var(--hinge-2);font-size:var(--t-lede)">two chains · one honest system</text>
+        </svg>
+      </div>
+
+      <div class="chain-prose">
+        <div class="chain-head prov">Why you chose it</div>
+        <p>Sources are the raw proof. Research is how you made sense of it. Neither one decides anything by itself. They pile up until a decision reads them and says <em>this is what we are going with</em>. When future-you asks <em>why is it like this</em>, this chain is the answer that lasts.</p>
+
+        <div class="chain-head hinge">The join: the decision you make</div>
+        <p>A decision reads the why and writes the what. It is the one place where thinking turns into a rule. Every rule in Cairn, every contract, every blueprint part, traces back to a decision. Every decision traces back to the proof that earned it. Nothing in your plan is allowed to just appear from nowhere.</p>
+
+        <div class="chain-head auth">What must stay true</div>
+        <p>The blueprint says how the system is shaped. Contracts spell out how the parts connect. The code has to match. Cairn checks all three and tells you exactly where they disagree: as a <em>structural error</em>, an <em>interface contradiction</em>, or a <em>rationale tension</em>. This chain is the part that watches your back.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ BLUEPRINT TO MAP ================ -->
+  <section id="blueprint">
+    <div class="kicker">Blueprint → Map</div>
+    <h2 class="section">Your agent drafts the map from your code. It grows as you build.</h2>
+    <p class="section-lede">The <code>cairn.blueprint</code> file is short and easy to read. Your agent drafts a first pass with <code>cairn init --from-code</code>, straight from your existing code, then reviews and applies the draft, and keeps it current as you build. Cairn gives back <code>map.md</code>: every declared part marked <code>synced</code> or <code>ghost</code>, plus findings for orphaned files and every mismatch, right where your team and your agents can read them.</p>
+
+    <div class="bp-map">
+      <div class="panel">
+        <div class="panel-label">Authored · <span class="fname">cairn.blueprint</span></div>
+<pre><span class="tok-cmt"># auth platform. declared structure.</span>
+<span class="tok-kw">system</span> <span class="tok-id">auth</span> <span class="tok-str">"Authentication &amp; session"</span> {
+  <span class="tok-kw">owner</span> platform-team
+
+  <span class="tok-kw">container</span> <span class="tok-id">api</span> <span class="tok-str">"Edge gateway"</span> {
+    <span class="tok-kw">module</span> <span class="tok-id">session</span> {
+      <span class="tok-kw">path</span>     src/session/
+      <span class="tok-kw">contract</span> contracts/session.md
+      <span class="tok-at">@decides</span> dec.session-lifecycle
+    }
+
+    <span class="tok-kw">module</span> <span class="tok-id">tokens</span> {
+      <span class="tok-kw">path</span>     src/tokens/
+      <span class="tok-kw">contract</span> contracts/tokens.md
+      <span class="tok-at">@depends</span> session
+    }
+  }
+}</pre>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">Reconciled · <span class="fname">map.md</span></div>
+        <div class="map-stack">
+          <div class="map-row system">
+            <span class="glyph">S</span>
+            <span class="name">auth</span>
+            <span class="status synced">synced</span>
+          </div>
+          <div class="map-row container indent-1">
+            <span class="glyph">C</span>
+            <span class="name">auth.api</span>
+            <span class="status synced">synced</span>
+          </div>
+          <div class="map-row module indent-2">
+            <span class="glyph">m</span>
+            <span class="name">auth.api.session</span>
+            <span class="status synced">synced</span>
+          </div>
+          <div class="map-row module indent-2">
+            <span class="glyph">m</span>
+            <span class="name">auth.api.tokens</span>
+            <span class="status drift">contradiction</span>
+          </div>
+          <div class="map-row module indent-2" style="opacity:0.65">
+            <span class="glyph">m</span>
+            <span class="name">auth.api.rate_limit</span>
+            <span class="status ghost">ghost</span>
+          </div>
+        </div>
+        <div style="margin-top:var(--s-5); padding-top:var(--s-4); border-top:1px dashed var(--seam-thin); font-family:var(--font-mono); font-size:var(--t-small); color:var(--ink-faded); line-height:1.7">
+          <div>3 synced · 1 contradiction · 1 ghost</div>
+          <div>2 findings · <span style="color:var(--drift)">1 contradiction</span> · <span style="color:var(--prov-2)">1 tension</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ FINDING CLASSES ================ -->
+  <section id="findings">
+    <div class="kicker">Findings · the system watching your back</div>
+    <h2 class="section">A <em>contradiction</em> stops the merge. A <em>tension</em> taps you on the shoulder.</h2>
+    <p class="section-lede">Three kinds of wrong, kept apart on purpose. Cairn is not a linter that nags. It tells you when the code and the plan have started to disagree, and which kind of disagreement it is. Calling everything a "warning" is how a good plan quietly rots.</p>
+
+    <div class="findings">
+      <div class="finding structural">
+        <div class="severity">Blocking</div>
+        <h3>Structural error</h3>
+        <p>A part in the blueprint has nothing to match it on disk. A contract points at a part ID that does not exist. The map is broken, and nothing built on it can be trusted until you fix it. The scan stops here.</p>
+        <span class="block-label">halts the scan</span>
+      </div>
+
+      <div class="finding contradiction">
+        <div class="severity">Blocking</div>
+        <h3>Interface contradiction</h3>
+        <p>The contract says one thing. The code does another. The <code>interface hash</code> changed and nobody updated the contract. This is drift caught in the act. It is the block you want before your AI helper ships the version that breaks everything above it.</p>
+        <span class="block-label">halts the merge</span>
+      </div>
+
+      <div class="finding tension">
+        <div class="severity">Advisory</div>
+        <h3>Rationale tension</h3>
+        <p>Two choices are fighting each other. Or the proof behind a choice no longer holds. The code still builds, but the story has drifted. Cairn flags this for review instead of blocking, so you can sort it the next time you are in that part anyway.</p>
+        <span class="block-label">flags for review</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ BEYOND CODE / DOMAINS ================ -->
+  <section id="domains">
+    <div class="kicker">Beyond code</div>
+    <h2 class="section">Code is the first layer. Your research, your team, and your parts list come next.</h2>
+    <p class="section-lede">A <em>reconciler</em> is a plug-in. It answers one question: for a part in the blueprint, what is really there? Code is the reconciler that ships today. The core does not care which one you use. Anywhere "what we said" has to stay honest with "what is," the same machine works.</p>
+
+    <div class="domains">
+      <div class="domain first shipping">
+        <div class="dkicker">layer · code · shipping</div>
+        <h4>Source code</h4>
+        <p>Part paths, interface hashes, contract files. Check the repo against what the blueprint said it would be, before your AI helper ships something it should not.</p>
+      </div>
+      <div class="domain upcoming">
+        <div class="dkicker">layer · research · coming</div>
+        <h4>Research projects</h4>
+        <p>Experiments, ideas, and methods as typed records. Check the claims in the paper draft against the proof that is supposed to back them up.</p>
+      </div>
+      <div class="domain upcoming">
+        <div class="dkicker">layer · team · coming</div>
+        <h4>Team design</h4>
+        <p>Teams, charters, and who owns what. Check the org chart you drew against who is really responsible this quarter.</p>
+      </div>
+      <div class="domain upcoming">
+        <div class="dkicker">layer · product · coming</div>
+        <h4>Parts lists</h4>
+        <p>Parts, suppliers, and safety sign-offs. Check the parts list against the real audit, and catch the gap before the inspector does.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ INSTALL ================ -->
+  <section id="install">
+    <div class="kicker">Get started</div>
+    <h2 class="section">You can be scanning your repo in under a minute.</h2>
+    <p class="section-lede">One tool. One file, written by your agent. One command to scan. Your first <code>map.md</code> lands on disk the first time you run it, and your agents read it on the next prompt. Built for developers who ship with coding agents and hate re-explaining the system every session.</p>
+    <p class="section-lede">Fastest path: paste this into your coding agent and it does the whole setup with you: <code>Read https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/agent-setup.md and follow it to set up Cairn in this repo.</code></p>
+    <p class="section-lede">Hate it? Delete <code>cairn.blueprint</code>, <code>cairn.config.yaml</code>, <code>.cairn/</code>, and the generated map files, and take the pasted section back out of your agent instructions. Your repo is exactly what it was. Cairn runs locally, and your project data stays on your machine.</p>
+
+    <div class="install-grid">
+      <div class="code-card">
+        <div class="card-head"><span class="dot"></span> install</div>
+<pre><span class="prompt">$</span> <span class="cmd">curl</span> <span class="flag">--proto</span> <span class="arg">'=https'</span> <span class="flag">--tlsv1.2</span> <span class="flag">-LsSf</span> <span class="arg">https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh</span> <span class="comment">| sh</span>
+<span class="prompt">$</span> <span class="cmd">cairn init</span>                 <span class="comment"># scaffolds cairn.blueprint</span>
+<span class="prompt">$</span> <span class="cmd">cairn scan</span>                 <span class="comment"># reconcile, emit map.md</span>
+<span class="comment"># building from source? cargo install --git https://github.com/cairn-framework/cairn.git</span></pre>
+      </div>
+
+      <div class="code-card">
+        <div class="card-head"><span class="dot"></span> a session</div>
+<pre><span class="prompt">$</span> <span class="cmd">cairn get</span> <span class="arg">auth.api.session</span> <span class="flag">--json</span>
+<span class="prompt">$</span> <span class="cmd">cairn neighbourhood</span> <span class="arg">auth.api.session</span>
+<span class="prompt">$</span> <span class="cmd">cairn contract</span> <span class="arg">auth.api.tokens</span>
+<span class="prompt">$</span> <span class="cmd">cairn deps</span> <span class="arg">auth.api.tokens</span> <span class="flag">--transitive</span>
+<span class="prompt">$</span> <span class="cmd">cairn lint</span> <span class="flag">--json</span>              <span class="comment"># all findings</span>
+<span class="prompt">$</span> <span class="cmd">cairn hook all</span>                 <span class="comment"># the drift gate: wire into pre-commit or CI</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="inner">
+      <div class="brand">Cairn. One stone stacked against forgetting what you built and why.</div>
+      <div class="fnav">
+        <a href="https://github.com/cairn-framework/cairn/blob/main/docs/spec.md" target="_blank" rel="noopener">spec</a>
+        <a href="https://github.com/cairn-framework/cairn" target="_blank" rel="noopener">github</a>
+        <a href="./design-system/">design system</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ================ TWEAKS PANEL ================ -->
+<div class="tweaks" id="tweaks" aria-hidden="true">
+  <h5>Tweaks</h5>
+  <div class="row">
+    <label>Theme</label>
+    <div class="seg" data-group="theme">
+      <button data-val="dark" class="on">dark</button>
+      <button data-val="light">light</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>Hero variant</label>
+    <div class="seg" data-group="hero">
+      <button data-val="v1" class="on">blueprint→map</button>
+      <button data-val="v2">agents</button>
+      <button data-val="v3">chains</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>Animation</label>
+    <div class="seg" data-group="anim">
+      <button data-val="on" class="on">on</button>
+      <button data-val="off">off</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Default tweak values, persisted via edit mode.
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "dark",
+  "hero": "v1",
+  "anim": "on"
+}/*EDITMODE-END*/;
+
+const state = { ...TWEAK_DEFAULTS };
+
+function applyState() {
+  document.documentElement.setAttribute("data-theme", state.theme);
+  document.documentElement.setAttribute("data-anim", state.anim);
+  // Hero variant swap
+  document.querySelectorAll('.hero-text [data-variant]').forEach(el => {
+    el.classList.toggle('on', el.dataset.variant === state.hero);
+  });
+  // Tweaks UI
+  document.querySelectorAll('.tweaks .seg').forEach(seg => {
+    const key = seg.dataset.group;
+    seg.querySelectorAll('button').forEach(btn => {
+      btn.classList.toggle('on', btn.dataset.val === state[key]);
+    });
+  });
+}
+
+function setKey(key, val) {
+  state[key] = val;
+  applyState();
+  try {
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: val } }, '*');
+  } catch (e) { /* standalone page: no parent */ }
+}
+
+document.querySelectorAll('.tweaks .seg button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.closest('.seg').dataset.group;
+    setKey(group, btn.dataset.val);
+  });
+});
+
+// Edit-mode protocol
+window.addEventListener('message', (e) => {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === '__activate_edit_mode') {
+    const t = document.getElementById('tweaks');
+    t.classList.add('on');
+    t.setAttribute('aria-hidden', 'false');
+  } else if (e.data.type === '__deactivate_edit_mode') {
+    const t = document.getElementById('tweaks');
+    t.classList.remove('on');
+    t.setAttribute('aria-hidden', 'true');
+  }
+});
+try {
+  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+} catch (e) {}
+
+// Reveal on scroll, guarded for reduced-motion preference.
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const revealTargets = document.querySelectorAll('section, .finding, .domain, .code-card');
+
+if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+  revealTargets.forEach(el => el.classList.add('in'));
+} else {
+  revealTargets.forEach(el => el.classList.add('reveal'));
+  const io = new IntersectionObserver((entries) => {
+    for (const ent of entries) {
+      if (ent.isIntersecting) {
+        ent.target.classList.add('in');
+        io.unobserve(ent.target);
+      }
+    }
+  }, { threshold: 0.12 });
+  revealTargets.forEach(el => io.observe(el));
+}
+
+applyState();
+</script>
+
+  <style>
+    .kofi-fixed {
+      position: fixed; left: var(--s-5); bottom: var(--s-5); z-index: 9999;
+      display: inline-flex; align-items: center; gap: var(--s-2);
+      font-family: var(--font-sans); font-weight: 600; font-size: var(--t-body);
+      text-decoration: none; padding: var(--s-3) var(--s-4);
+      background: var(--drift); color: var(--paper-0); border-radius: var(--r-stone);
+      border: 1px solid var(--block); box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .kofi-fixed:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,0.45); }
+    @media (max-width: 520px) { .kofi-fixed { font-size: var(--t-small); padding: var(--s-2) var(--s-3); left: var(--s-3); bottom: var(--s-3); } }
+  </style>
+  <a class="kofi-fixed" href="https://ko-fi.com/george_builds" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+</body>
 </html>

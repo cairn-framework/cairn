@@ -20,7 +20,7 @@ Two skill files are worth loading for any coding work in this repo, whether thro
 | `archive/openspec/specs/<area>/spec.md` | Consolidated per-area specs, distinct from the per-phase acceptance criteria above. |
 | `docs/spec.md` | Canonical Cairn spec. |
 | `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work. |
-| `docs/landing/` | Marketing landing page (GitHub Pages target); pulls from the design system like any UI surface. |
+| `docs/` | Marketing landing page (GitHub Pages target); pulls from the design system like any UI surface. |
 | `cairn.blueprint` | Root blueprint: cairn describing itself (dogfood). The graph's source of truth. |
 | `test/fixtures/cairn-bootstrap/` | Bootstrap fixture for tests; may lag behind the root blueprint, only smoke-parsed. |
 
