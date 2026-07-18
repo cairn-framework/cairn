@@ -25,15 +25,14 @@
 fn app_js() -> String {
     concat!(
         include_str!("../src/ui_assets/utils.js"),
-        include_str!("../src/ui_assets/layout.js"),
-        include_str!("../src/ui_assets/top-bar.js"),
-        include_str!("../src/ui_assets/graph-canvas.js"),
-        include_str!("../src/ui_assets/inspector.js"),
-        include_str!("../src/ui_assets/findings-panel.js"),
-        include_str!("../src/ui_assets/decision-detail.js"),
-        include_str!("../src/ui_assets/command-palette.js"),
-        include_str!("../src/ui_assets/blueprint-modal.js"),
         include_str!("../src/ui_assets/app.js"),
+        include_str!("../src/ui_assets/search.js"),
+        include_str!("../src/ui_assets/status-bezel.js"),
+        include_str!("../src/ui_assets/query-rail.js"),
+        include_str!("../src/ui_assets/graph-workspace.js"),
+        include_str!("../src/ui_assets/evidence-rail.js"),
+        include_str!("../src/ui_assets/channel-bar.js"),
+        include_str!("../src/ui_assets/node-module.js"),
     )
     .to_owned()
 }
