@@ -29,11 +29,9 @@ architecture (banded containment, compact chips, edges at rest, docked
 findings strip, right readout); they differ only in skin. Strata
 Survey (`harness-output/mocks/strata-survey.html`) remains a scored
 reference too: its graph canvas took the best state-clarity score
-(9/10). This extends the scope of `dec.webui-design-direction` (its
-"reference material, not wholesale replacement" line applied to
-tokens; the layout was never explicitly declined). If the executor
-judges the scope shift big enough, pair this with a short amending
-decision.
+(9/10). Authority: `dec.webui-deck-layout` (2026-07-18) ratifies the
+layout adoption, refining `dec.webui-design-direction` (whose "refine,
+do not redesign" line governed identity, not the canvas layout).
 
 ## Task
 
@@ -80,4 +78,5 @@ components go through `components.css` with the live reference updated.
   biome); visual harness gates pass.
 - No regression on the landed guidance/dedupe/mobile-nav work.
 
+dec:dec.webui-deck-layout
 dec:dec.webui-design-direction
