@@ -1,9 +1,10 @@
-import { clsx, copy, highlightBlueprint, html } from "./utils.js";
+import { clsx, copy, highlightBlueprint, html, useEffect, useMemo, useState } from "./utils.js";
 
 function NodeDepthPlate({ node, inRows, outRows, onEdgeSelect }) {
   const paths = Array.isArray(node?.paths) ? node.paths : [];
   const symbols = Array.isArray(node?.symbols) ? node.symbols : [];
   const contracts = Array.isArray(node?.contracts) ? node.contracts : [];
+  const hasDetails = paths.length > 0 || symbols.length > 0;
 
   return html`
     <article class="node-depth-plate">
@@ -15,23 +16,28 @@ function NodeDepthPlate({ node, inRows, outRows, onEdgeSelect }) {
         <dd>${copy(`webui.states.${node?.state || "synced"}`)}</dd>
         <dt>${copy("webui.kind-label")}</dt>
         <dd>${node?.kind || copy("webui.kind.module")}</dd>
-        <dt>${copy("webui.path-count")}</dt>
-        <dd>${String(paths.length)}</dd>
-        <dt>${copy("webui.paths")}</dt>
-        <dd>${paths.length ? paths.join(", ") : copy("webui.path-empty")}</dd>
-        <dt>${copy("webui.symbols")}</dt>
-        <dd>${String(symbols.length)}</dd>
+        ${
+          paths.length
+            ? html`
+              <dt>${copy("webui.path-count")}</dt>
+              <dd>${String(paths.length)}</dd>
+              <dt>${copy("webui.paths")}</dt>
+              <dd>${paths.join(", ")}</dd>
+            `
+            : null
+        }
+        ${symbols.length ? html`<dt>${copy("webui.symbols")}</dt><dd>${String(symbols.length)}</dd>` : null}
       </dl>
+      ${hasDetails ? null : html`<p class="plate-meta">${copy("webui.node-details-empty")}</p>`}
       <section class="edge-group">
         <h4>${copy("webui.in")}</h4>
         ${
           inRows.length
             ? inRows.map(
                 (row) => html`
-                <button class="edge-row" type="button" onClick=${() => onEdgeSelect(row.id)}>
-                  <span class="edge-dir">${copy("webui.in")}</span>
-                  <span class="edge-target">${row.id}${row.name ? ` · ${row.name}` : ""}</span>
-                </button>`,
+                  <button class="edge-row" type="button" onClick=${() => onEdgeSelect(row.id)}>
+                    <span class="edge-target">${row.id}${row.name ? ` · ${row.name}` : ""}</span>
+                  </button>`,
               )
             : html`<p class="plate-meta">${copy("empty-states.node-no-inbound.body")}</p>`
         }
@@ -42,10 +48,9 @@ function NodeDepthPlate({ node, inRows, outRows, onEdgeSelect }) {
           outRows.length
             ? outRows.map(
                 (row) => html`
-                <button class="edge-row" type="button" onClick=${() => onEdgeSelect(row.id)}>
-                  <span class="edge-dir">${copy("webui.out")}</span>
-                  <span class="edge-target">${row.id}${row.name ? ` · ${row.name}` : ""}</span>
-                </button>`,
+                  <button class="edge-row" type="button" onClick=${() => onEdgeSelect(row.id)}>
+                    <span class="edge-target">${row.id}${row.name ? ` · ${row.name}` : ""}</span>
+                  </button>`,
               )
             : html`<p class="plate-meta">${copy("empty-states.node-no-outbound.body")}</p>`
         }
@@ -76,15 +81,44 @@ function EvidenceItemPreview({ artefact, onBack }) {
   const snippet = body.length > 800 ? `${body.slice(0, 800)}…` : body;
 
   return html`
-    <section class="lineage-plate">
+    <section class="lineage-item-preview">
       <button class="query-action" type="button" onClick=${onBack}>
         ${copy("webui.overview")}
       </button>
       <p class="lineage-title">${title}</p>
       <p class="lineage-meta">${[status, date].filter(Boolean).join(" · ")}</p>
-      <pre><code class="blueprint-plate">${snippet}</code></pre>
+      <pre><code>${snippet}</code></pre>
       ${artefact.path ? html`<p class="plate-meta">${artefact.path}</p>` : null}
     </section>
+  `;
+}
+
+const lineKindLabels = {
+  "lineage-rationale": {
+    short: "R",
+    label: "lineage-rationale",
+  },
+  "lineage-decisions": {
+    short: "D",
+    label: "lineage-decisions",
+  },
+  authority: {
+    short: "A",
+    label: "authority",
+  },
+};
+
+function LineageRow({ item, kindLabel, onOpen }) {
+  const title = item?.title || item?.id || item?.path || copy("webui.artefact");
+  const kind = lineKindLabels[kindLabel] || lineKindLabels["lineage-rationale"];
+
+  return html`
+    <button class="lineage-row" type="button" onClick=${() => onOpen(item)}>
+      <span class="lineage-row-kind" title=${copy(`webui.${kind.label}`)}>
+        ${kind.short}
+      </span>
+      <span class="lineage-row-title" title=${title}>${title}</span>
+    </button>
   `;
 }
 
@@ -95,46 +129,19 @@ function LineagePlate({ artefacts = {}, onOpen, selectedItem }) {
   const selected = selectedItem && typeof selectedItem === "object" ? selectedItem : null;
 
   return html`
-    <article class="lineage-plate">
+    <article class=${clsx("lineage-plate", selected ? "lineage-preview-mode" : "")}>
       <h3 class="plate-title">${copy("webui.lineage")}</h3>
       <section class="lineage-stage">
         <p class="lineage-kind">${copy("webui.lineage-rationale")}</p>
-        ${
-          evidence.length
-            ? evidence.map(
-                (item) => html`
-                <button class="query-chip" type="button" onClick=${() => onOpen(item)}>
-                  ${item.title || item.id || copy("webui.artefact")}
-                </button>`,
-              )
-            : html`<p class="plate-meta">${copy("webui.lineage-empty")}</p>`
-        }
+        ${evidence.length ? evidence.map((item) => html`<${LineageRow} item=${item} kindLabel="lineage-rationale" onOpen=${onOpen} />`) : html`<p class="plate-meta">${copy("webui.lineage-empty")}</p>`}
       </section>
       <section class="lineage-stage">
         <p class="lineage-kind">${copy("webui.lineage-decisions")}</p>
-        ${
-          decisions.length
-            ? decisions.map(
-                (item) => html`
-                <button class="query-chip" type="button" onClick=${() => onOpen(item)}>
-                  ${item.title || item.id || copy("webui.decision")}
-                </button>`,
-              )
-            : html`<p class="plate-meta">${copy("webui.decision-empty")}</p>`
-        }
+        ${decisions.length ? decisions.map((item) => html`<${LineageRow} item=${item} kindLabel="lineage-decisions" onOpen=${onOpen} />`) : html`<p class="plate-meta">${copy("webui.decision-empty")}</p>`}
       </section>
       <section class="lineage-stage">
         <p class="lineage-kind">${copy("webui.lineage-authority")}</p>
-        ${
-          authority.length
-            ? authority.map(
-                (item) => html`
-                <button class="query-chip" type="button" onClick=${() => onOpen(item)}>
-                  ${item.title || item.path || item.id || copy("webui.authority")}
-                </button>`,
-              )
-            : html`<p class="plate-meta">${copy("webui.authority-empty")}</p>`
-        }
+        ${authority.length ? authority.map((item) => html`<${LineageRow} item=${item} kindLabel="authority" onOpen=${onOpen} />`) : html`<p class="plate-meta">${copy("webui.authority-empty")}</p>`}
       </section>
       ${selected ? html`<${EvidenceItemPreview} artefact=${selected} onBack=${() => onOpen(null)} />` : null}
     </article>
@@ -211,12 +218,94 @@ function EvidenceRail({ mode, onMode, selection, inRows, outRows, onNeighbourSel
   `;
 }
 
+function escapePattern(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function blueprintBlock(sourceText, selectionId) {
+  const source = String(sourceText || "");
+  if (!source) {
+    return { text: source, scoped: false };
+  }
+  const focus = String(selectionId || "");
+  if (!focus) {
+    return { text: source, scoped: false };
+  }
+
+  const lines = source.split("\n");
+  const declarationFor = (id) => new RegExp(`^\\s*(?:System|Container|Module|Actor|Decision|Findings|Change)\\b[^\\n]*\\bid\\s+"${escapePattern(id)}"`);
+  const fullPattern = declarationFor(focus);
+  let start = lines.findIndex((line) => fullPattern.test(line));
+  const tail = focus.split(".").pop();
+  if (start < 0 && tail && tail !== focus) {
+    const tailPattern = declarationFor(tail);
+    start = lines.findIndex((line) => tailPattern.test(line));
+  }
+  if (start < 0) {
+    return { text: source, scoped: false };
+  }
+
+  const startLine = lines[start] || "";
+  const singleLineDecl = (startLine.match(/{/g) || []).length > 0 && (startLine.match(/}/g) || []).length > 0;
+  let depth = 0;
+  let end = start;
+  for (; end < lines.length; end += 1) {
+    const line = lines[end];
+    depth += (line.match(/{/g) || []).length;
+    depth -= (line.match(/}/g) || []).length;
+    if ((end > start && depth <= 0) || (end === start && singleLineDecl && depth <= 0)) {
+      break;
+    }
+  }
+
+  return {
+    text: lines.slice(start, Math.min(end + 1, lines.length)).join("\n"),
+    scoped: true,
+  };
+}
+
 function BlueprintPlate({ sourcePath, sourceText, selectionId }) {
+  const [expanded, setExpanded] = useState(false);
+  const scoped = useMemo(() => blueprintBlock(sourceText, selectionId), [sourceText, selectionId]);
+  const visibleSource = expanded ? String(sourceText || "") : scoped.text;
+  const preId = useMemo(() => {
+    const safe = String(selectionId || "all").replace(/[^A-Za-z0-9_-]/g, "_");
+    return `blueprint-${safe}`;
+  }, [selectionId]);
+  const headerTitle = scoped.scoped && selectionId ? `${copy("webui.blueprint-title")} · ${selectionId}` : copy("webui.blueprint-title");
+  const scopeLabel = scoped.scoped ? `${copy("webui.blueprint-scoped-to")} ${selectionId}` : copy("webui.blueprint-scope-unavailable");
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [selectionId, sourceText]);
+
+  useEffect(() => {
+    if (!expanded) {
+      return undefined;
+    }
+    const pre = document.getElementById(preId);
+    if (!pre) {
+      return undefined;
+    }
+    const hit = pre.querySelector(".blueprint-hit");
+    if (!hit) {
+      return undefined;
+    }
+    const frame = requestAnimationFrame(() => {
+      hit.scrollIntoView({ block: "center" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [expanded, preId, selectionId, sourceText]);
+
   return html`
     <article class="blueprint-plate">
-      <h3 class="plate-title">${copy("webui.blueprint-title")}</h3>
+      <h3 class="plate-title">${headerTitle}</h3>
       <p class="plate-meta">${sourcePath || copy("webui.blueprint-path-unknown")}</p>
-      <pre><code dangerouslySetInnerHTML=${{ __html: highlightBlueprint(sourceText || "", selectionId) }}></code></pre>
+      <p class="plate-meta">${scopeLabel}</p>
+      <button class="query-action" type="button" onClick=${() => setExpanded((value) => !value)}>
+        ${copy(expanded ? "webui.blueprint-collapse" : "webui.blueprint-expand")}
+      </button>
+      <pre id=${preId}><code dangerouslySetInnerHTML=${{ __html: highlightBlueprint(visibleSource, selectionId) }}></code></pre>
     </article>
   `;
 }

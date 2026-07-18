@@ -82,7 +82,7 @@ grep -c '#[0-9a-fA-F]\{6\}' docs/design-system/components.css
 
 The token surface now merges current webui and landing usage with the greenfield seed corpus.
 
-- Preserved every token name currently referenced by `src/ui_assets/style.css` and `docs/landing/index.html`.
+- Preserved every token name currently referenced by `src/ui_assets/style.css` and `docs/index.html`.
 - Added component scope tokens for the redesigned regions:
   - `--line-1` and `--line-2`
   - `--ui-shell-max-width`, `--ui-shell-min-height`, `--ui-shell-min-height-mobile`
@@ -93,7 +93,7 @@ The token surface now merges current webui and landing usage with the greenfield
 - Renames introduced: none.
 - Removed only the temporary `--ui-shell-breakpoint` in favour of explicit mobile shell height.
 
-Stage 2 validation confirmed no missing token references in combined `src/ui_assets/style.css`, `docs/landing/index.html`, and `docs/design-system/components.css`.
+Stage 2 validation confirmed no missing token references in combined `src/ui_assets/style.css`, `docs/index.html`, and `docs/design-system/components.css`.
 
 Stage 4 (eval-loop verification) adjustments:
 
@@ -104,6 +104,12 @@ Stage 4 (eval-loop verification) adjustments:
 - `.channel-bar .channel-empty` styles the channel empty state with faint ink.
 - Added `--ui-channel-height: 116px`: the fixed height of the bottom channel bar. The shell grid gives the workspace the remaining fraction, the state legend renders as a slim single-row strip, and the channel body scrolls internally so the page frame never grows.
 - Evidence-rail body content (artefact chips, source excerpts, `code`/`pre`) wraps inside the rail's bounded well instead of widening the frame; on tap surfaces those chips keep the `--tap-min` minimum.
+
+Layout overhaul (2026-07) adjustments:
+
+- Added `--ui-query-search-max-width: 608px`: the cap on the query rail's search input so it stays readable while the segmented filter groups share the row.
+- `--ui-shell-max-width` widened to `min(100%, 1720px)` and `--ui-channel-height` raised to `200px` so the shell fills wide viewports and channel bar items stay readable.
+- Added `--ui-stage-min-height-mobile: 55svh`: the minimum graph-stage height at mobile widths so the map keeps a usable viewport while the page scrolls naturally.
 
 ## Component class inventory
 
@@ -215,3 +221,25 @@ Pre-rename names from earlier spec revisions (see the phase 2.6 rename proposal 
 - `/docs/spec.md` for the canonical spec (provenance and authority chains, reconciler interface, artefact types)
 - `/AGENTS.md` for the terminology section and repo-level conventions
 - `/openspec/changes/phase-2.6-terminology-rename/` for the rename rationale and the rules this design system follows
+
+## Motion section update
+
+`components.css` now ends with a dedicated restrained motion section.
+It animates these selectors:
+
+- `.node-module` and `.node-shell`
+- `.dependency-link path`
+- `.evidence-rail .rail-body > *`
+- `.channel-bar .channel-body`
+- `.query-chip`, `.query-action`, `.rail-tab`, `.channel-tab`
+
+The following tokens were added in `tokens.css`:
+
+- `--motion-fast`
+- `--motion-edge`
+- `--motion-panel`
+- `--motion-subtle`
+- `--motion-ease`
+
+Reduced-motion mode has explicit zero-motion overrides.
+Default mode uses calm, restrained transitions with no scale jumps.

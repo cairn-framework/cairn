@@ -33,12 +33,98 @@ body {
   min-width: 0;
 }
 
+.graph-canvas {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.graph-canvas .graph-head {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-serif);
+  font-size: var(--t-title);
+  color: var(--ink-char);
+}
+
+.graph-canvas .graph-head .graph-title {
+  color: var(--ink-char);
+  font-size: var(--t-title);
+  font-family: var(--font-serif);
+}
+
+.graph-canvas .graph-head .graph-label,
+.graph-canvas .graph-head .graph-separator {
+  color: var(--ink-aged);
+  font-size: var(--t-small);
+  font-family: var(--font-ui);
+}
+
+.graph-canvas .graph-separator {
+  margin: 0 var(--s-1);
+}
+
 .graph-canvas .graph-stage {
   position: relative;
   overflow: auto;
   width: 100%;
   min-height: 0;
-  background: transparent;
+  display: block;
+  box-sizing: border-box;
+}
+
+.graph-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 1;
+}
+
+.dependency-link {
+  color: color-mix(in oklab, var(--synced) 45%, var(--seam-faint));
+}
+
+.dependency-link path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.15;
+  opacity: 0.55;
+}
+
+.dependency-link.is-out {
+  color: color-mix(in oklab, var(--auth-2) 82%, var(--seam-faint));
+}
+
+.dependency-link.is-out path {
+  opacity: 0.95;
+  stroke-width: 2.05;
+}
+
+.dependency-link.is-in {
+  color: color-mix(in oklab, var(--prov-2) 78%, var(--seam-faint));
+}
+
+.dependency-link.is-in path {
+  opacity: 0.95;
+  stroke-width: 1.85;
+}
+
+.dependency-link.is-dimmed {
+  color: color-mix(in oklab, var(--seam-faint) 35%, var(--ink-mist));
+}
+
+.dependency-link.is-dimmed path {
+  opacity: 0.3;
+}
+
+marker path {
+  fill: currentColor;
+}
+
+.graph-content {
+  position: relative;
+  overflow: visible;
 }
 
 .graph-stage.is-empty {
@@ -48,132 +134,113 @@ body {
   min-height: var(--s-20);
 }
 
-.graph-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.dependency-link line {
-  stroke: var(--seam-faint);
-  stroke-width: 1;
-}
-
-.dependency-link text {
-  fill: var(--ink-aged);
-  font-size: var(--t-micro);
-  font-family: var(--font-mono);
-}
-
 .node-shell {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
 }
 
 .node-shell.focused {
-  z-index: 2;
+  z-index: 3;
+}
+
+.node-shell.dimmed {
+  opacity: 0.55;
+}
+
+.node-shell.focused.dimmed {
+  opacity: 1;
 }
 
 .node-shell.ghost {
   border-left-width: var(--s-4);
 }
 
-.node-shell .node-module {
-  width: 100%;
-  height: 100%;
-  padding: var(--s-2);
-  gap: var(--s-1);
+.ownership-group {
+  position: absolute;
+  border: var(--line-1) solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--seam-clear) 45%, transparent);
+  pointer-events: none;
+  z-index: 1;
+  padding: 0 var(--s-2) var(--s-2);
 }
 
-.node-shell .node-module.compact {
-  padding: var(--s-2);
-  min-height: 0;
-  display: flex;
-  gap: 2px;
-}
-
-.node-shell .node-module.compact .node-meta,
-.node-shell .node-module.compact .node-counts {
+.ownership-group-label {
+  position: absolute;
+  top: var(--s-2);
+  left: var(--s-2);
+  display: inline-block;
+  margin: 0;
+  padding: 0 var(--s-1);
+  border: var(--line-1) solid var(--seam-clear);
+  border-radius: var(--r-edge);
+  background: var(--stone-2);
+  color: var(--ink-aged);
   font-size: var(--t-micro);
+  font-family: var(--font-mono);
 }
 
 .node-shell .node-module .node-id,
-.node-shell .node-module .node-name {
+.node-shell .node-module .node-name,
+.node-shell .node-module .node-description {
   margin: 0;
 }
 
-.ownership-bracket {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 var(--s-1);
-  border-radius: var(--r-full);
-  border: var(--line-1) solid var(--seam-faint);
-  background: var(--seam-clear);
-  color: var(--ink-char);
-  font-size: var(--t-micro);
-  font-weight: 600;
-}
-
-.ownership-marker {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  z-index: 3;
-  padding: 0 var(--s-2);
-  border-radius: var(--r-edge);
-  color: var(--ink-char);
-  background: var(--ghost-wash);
-  border: var(--line-1) solid var(--orphaned);
-  font-size: var(--t-micro);
-}
-
-.evidence-rail {
+.node-shell .node-module {
+  width: 100%;
+  height: 100%;
   min-height: 0;
+  box-sizing: border-box;
+  padding: var(--s-2);
+  gap: var(--s-1);
   overflow: hidden;
-}
-.evidence-rail .rail-body {
-  overflow: auto;
-}
-
-.rail-body,
-.channel-body,
-.node-depth-plate,
-.lineage-plate,
-.blueprint-plate {
-  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.node-counts,
-.channel-item,
-.plate-meta,
-.node-module .node-meta,
-.node-module .node-count {
+.node-shell .node-module .node-description {
+  color: var(--ink-aged);
+  font-size: var(--t-small);
+  font-family: var(--font-ui);
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-height: 1.25;
+  max-height: calc(1.25em * 1);
+}
+
+.node-shell .node-module .node-meta,
+.node-shell .node-module .node-id {
+  font-size: var(--t-micro);
+}
+
+.node-shell .node-module .node-name {
+  font-size: var(--t-small);
+}
+.node-shell .node-module .node-description {
+  min-width: 0;
 }
 
 .blueprint-plate pre,
-.lineage-plate,
-.blueprint-plate {
+.lineage-plate pre,
+.blueprint-plate,
+.lineage-plate {
   max-width: 100%;
 }
-code.blueprint-plate {
+
+.blueprint-plate pre,
+.lineage-plate pre {
   display: block;
   max-width: 100%;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   overflow: auto;
+  height: 100%;
+  min-height: 0;
 }
 
 .channel-item .plate-meta,
@@ -196,19 +263,23 @@ code.blueprint-plate {
   min-height: 0;
 }
 
+.instrument-shell {
+  position: relative;
+}
+
+.plate-meta {
+  margin: 0;
+  color: var(--ink-aged);
+  font-size: var(--t-small);
+}
+
 .channel-bar {
-  height: var(--ui-channel-height);
+  min-height: var(--ui-channel-height);
+  height: auto;
 }
 
 .channel-body {
   overflow: auto;
-}
-
-.query-rail,
-.channel-bar,
-.state-legend,
-.status-bezel {
-  scroll-behavior: smooth;
 }
 
 .node-module {
@@ -222,7 +293,16 @@ code.blueprint-plate {
 }
 
 .node-module.selected {
-  border-color: var(--settled);
+  border-color: color-mix(in oklab, var(--settled) 70%, var(--synced) 30%);
+  background: color-mix(in oklab, var(--synced-wash) 75%, var(--stone-3));
+  box-shadow:
+    var(--lift-1),
+    0 0 0 2px color-mix(in oklab, var(--settled) 58%, transparent),
+    0 0 0 4px color-mix(in oklab, var(--synced) 28%, transparent);
+}
+
+.node-shell.selected {
+  z-index: 4;
 }
 
 .state-legend .legend-item.orphaned .legend-key,
@@ -232,7 +312,7 @@ code.blueprint-plate {
 
 .plate-meta {
   margin: 0;
-  color: var(--ink-faded);
+  color: var(--ink-aged);
   font-size: var(--t-small);
 }
 
@@ -244,18 +324,24 @@ code.blueprint-plate {
   margin-top: var(--s-3);
 }
 
-.node-module.compact .node-counts {
-  margin-top: auto;
+.instrument-workspace[data-evidence-state="collapsed"] {
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
 }
-
+.instrument-workspace[data-evidence-state="collapsed"] .evidence-rail {
+  max-width: 280px;
+}
 @media (max-width: 990px) {
   :root {
     --ui-workspace-sidebar-min: 0px;
   }
 
   .instrument-shell {
-    max-height: var(--ui-shell-min-height-mobile);
+    max-height: none;
     min-height: var(--ui-shell-min-height-mobile);
+  }
+
+  .graph-canvas .graph-stage {
+    min-height: var(--ui-stage-min-height-mobile);
   }
 
   .query-rail {
@@ -270,7 +356,8 @@ code.blueprint-plate {
     flex-basis: 100%;
   }
 
-  .instrument-workspace {
+  .instrument-workspace,
+  .instrument-workspace[data-evidence-state="collapsed"] {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(0, 1fr) auto;
   }
@@ -310,4 +397,17 @@ code.blueprint-plate {
   border: var(--line-1) solid var(--seam-clear);
   border-radius: var(--r-stone);
   box-shadow: var(--lift-1);
+}
+.evidence-rail {
+  height: 100%;
+}
+
+.evidence-rail .rail-body {
+  min-height: 0;
+  height: 100%;
+}
+
+.lineage-plate .lineage-item-preview {
+  min-height: 0;
+  height: 100%;
 }

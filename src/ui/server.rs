@@ -104,39 +104,30 @@ impl Server {
     }
 
     fn route(&self, path: &str) -> Response {
+        /// Serve an embedded JavaScript module.
+        fn js(body: &'static str) -> Response {
+            asset("application/javascript; charset=utf-8", body)
+        }
+
         match path {
             "/" | "/index.html" => html(INDEX_HTML),
             "/assets/style.css" => asset("text/css; charset=utf-8", STYLE_CSS.as_str()),
-            "/assets/app.js" => asset("application/javascript; charset=utf-8", APP_JS),
-            "/assets/utils.js" => asset("application/javascript; charset=utf-8", UTILS_JS),
-            "/assets/search.js" => asset("application/javascript; charset=utf-8", SEARCH_JS),
-            "/assets/status-bezel.js" => {
-                asset("application/javascript; charset=utf-8", STATUS_BEZEL_JS)
-            }
-            "/assets/query-rail.js" => {
-                asset("application/javascript; charset=utf-8", QUERY_RAIL_JS)
-            }
-            "/assets/graph-workspace.js" => {
-                asset("application/javascript; charset=utf-8", GRAPH_WORKSPACE_JS)
-            }
-            "/assets/evidence-rail.js" => {
-                asset("application/javascript; charset=utf-8", EVIDENCE_RAIL_JS)
-            }
-            "/assets/channel-bar.js" => {
-                asset("application/javascript; charset=utf-8", CHANNEL_BAR_JS)
-            }
-            "/assets/node-module.js" => {
-                asset("application/javascript; charset=utf-8", NODE_MODULE_JS)
-            }
+            "/assets/app.js" => js(APP_JS),
+            "/assets/utils.js" => js(UTILS_JS),
+            "/assets/search.js" => js(SEARCH_JS),
+            "/assets/canvas-nav.js" => js(CANVAS_NAV_JS),
+            "/assets/app-data.js" => js(APP_DATA_JS),
+            "/assets/graph-layout.js" => js(GRAPH_LAYOUT_JS),
+            "/assets/status-bezel.js" => js(STATUS_BEZEL_JS),
+            "/assets/query-rail.js" => js(QUERY_RAIL_JS),
+            "/assets/graph-workspace.js" => js(GRAPH_WORKSPACE_JS),
+            "/assets/evidence-rail.js" => js(EVIDENCE_RAIL_JS),
+            "/assets/channel-bar.js" => js(CHANNEL_BAR_JS),
+            "/assets/node-module.js" => js(NODE_MODULE_JS),
             "/assets/copy.json" => asset("application/json; charset=utf-8", COPY_JSON.as_str()),
-            "/vendor/preact.min.js" => {
-                asset("application/javascript; charset=utf-8", VENDOR_PREACT_JS)
-            }
-            "/vendor/preact-hooks.min.js" => asset(
-                "application/javascript; charset=utf-8",
-                VENDOR_PREACT_HOOKS_JS,
-            ),
-            "/vendor/htm.min.js" => asset("application/javascript; charset=utf-8", VENDOR_HTM_JS),
+            "/vendor/preact.min.js" => js(VENDOR_PREACT_JS),
+            "/vendor/preact-hooks.min.js" => js(VENDOR_PREACT_HOOKS_JS),
+            "/vendor/htm.min.js" => js(VENDOR_HTM_JS),
             _ if path.starts_with("/api/") => self.api(path),
             _ => text(404, "not found"),
         }

@@ -61,14 +61,16 @@
   /* Component tokens for spacing, motion and layout primitives. */
   --line-1: 1px;
   --line-2: 2px;
-  --ui-shell-max-width: 1280px;
+  --ui-shell-max-width: min(100%, 1720px);
   --ui-shell-min-height: 100dvh;
   --ui-shell-min-height-mobile: 100svh;
-  --ui-channel-height: 116px;
+  --ui-stage-min-height-mobile: 55svh;
+  --ui-channel-height: 200px;
+  --ui-channel-collapsed-height: var(--s-9);
+  --ui-query-search-max-width: 608px;
   --ui-workspace-main-fr: 2fr;
   --ui-workspace-sidebar-fr: 1fr;
   --ui-workspace-sidebar-min: 360px;
-  --ui-node-min-width: 236px;
   --ui-outline-width: var(--line-2);
   --ui-outline-offset: var(--line-2);
   --ui-orphan-tilt: -0.4deg;
@@ -136,18 +138,17 @@
   --block: color-mix(in oklab, var(--drift) 80%, var(--ink-ghost));
   --settled: var(--ci-signal);
   --settled-wash: rgba(95, 179, 154, 0.12);
-
   --synced: var(--ci-signal);
   --synced-wash: rgba(95, 179, 154, 0.12);
 
+  --error: var(--drift);
+  --warning: var(--ci-amber);
+  --info: var(--ink-aged);
+
   --ghost: var(--ink-mist);
   --ghost-wash: rgba(80, 75, 66, 0.2);
-
   --orphaned: var(--drift);
   --orphan-wash: var(--drift-wash);
-  --planned: var(--ci-signal-deep);
-  --planned-wash: rgba(95, 179, 154, 0.08);
-
   --font-serif: "Source Serif 4", "Times New Roman", serif;
   --font-sans: var(--ci-font-ui);
   --font-ui: var(--ci-font-ui);
@@ -327,5 +328,26 @@
     --fast: 0.001ms;
     --med: 0.001ms;
     --slow: 0.001ms;
+  }
+}
+/* Motion tokens used by the animation and interaction layer.
+   Keep these in a single section so reduced motion can disable effects cleanly. */
+:root,
+[data-theme="light"] {
+  --motion-fast: 140ms;
+  --motion-edge: 180ms;
+  --motion-panel: 160ms;
+  --motion-subtle: 120ms;
+  --motion-ease: var(--ci-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  [data-theme="light"] {
+    --motion-fast: 0ms;
+    --motion-edge: 0ms;
+    --motion-panel: 0ms;
+    --motion-subtle: 0ms;
+    --motion-ease: linear;
   }
 }

@@ -25,10 +25,13 @@
 fn app_js() -> String {
     concat!(
         include_str!("../src/ui_assets/utils.js"),
+        include_str!("../src/ui_assets/app-data.js"),
         include_str!("../src/ui_assets/app.js"),
+        include_str!("../src/ui_assets/canvas-nav.js"),
         include_str!("../src/ui_assets/search.js"),
         include_str!("../src/ui_assets/status-bezel.js"),
         include_str!("../src/ui_assets/query-rail.js"),
+        include_str!("../src/ui_assets/graph-layout.js"),
         include_str!("../src/ui_assets/graph-workspace.js"),
         include_str!("../src/ui_assets/evidence-rail.js"),
         include_str!("../src/ui_assets/channel-bar.js"),
@@ -422,14 +425,15 @@ mod explorer {
             "channel buckets must expose findings, drift, changes, and backlog"
         );
         assert!(
-            js.contains("findingBadge(item)")
-                && js.contains("item.severity")
+            js.contains("severityLabel(item)")
+                && js.contains("normalizeSeverity(item)")
+                && js.contains("item?.severity")
                 && channel_src.contains("ChannelItem")
                 && js.contains("query-chip"),
             "finding rows must show severity and bucket count"
         );
         assert!(
-            js.contains("class=\"channel-bar\"") && js.contains(r"copy(`webui.channel.${name}`)"),
+            js.contains(r#"clsx("channel-bar""#) && js.contains(r"copy(`webui.channel.${name}`)"),
             "bucket labels must be copy-driven"
         );
         assert!(
@@ -498,7 +502,7 @@ mod explorer {
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
             js.contains("function ChannelItem")
-                && js.contains("const nodeId = item.node || item.slug")
+                && js.contains("const nodeId = item?.node")
                 && js.contains("onFocus(nodeId)"),
             "finding rows must identify and focus affected nodes"
         );
@@ -516,8 +520,9 @@ mod explorer {
         let js = super::app_js();
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
-            js.contains("String(item.severity || \"info\")")
-                && js.contains("${item.severity ? `· ${item.severity}` : \"\"}"),
+            js.contains("String(item?.severity || \"info\")")
+                && js.contains("channel-severity")
+                && js.contains("severityLabel(item)"),
             "finding rows must display severity labels"
         );
         assert!(
@@ -535,7 +540,7 @@ mod explorer {
         let css = include_str!("../docs/design-system/components.css");
         let copy = include_str!("../docs/design-system/copy.toml");
         assert!(
-            js.contains("if (severity === \"info\")") && js.contains("counts.infos"),
+            js.contains("if (normalizedSeverity === \"info\")") && js.contains("counts.infos"),
             "status and channel must retain info severity derived from lint findings"
         );
         assert!(
@@ -555,8 +560,8 @@ mod explorer {
     fn test_explorer__info_severity_findings_appear_in_overlay() {
         let js = super::app_js();
         assert!(
-            js.contains("String(item.severity || \"info\")")
-                && js.contains("item.severity ? `· ${item.severity}`")
+            js.contains("String(item?.severity || \"info\")")
+                && js.contains("severityLabel(item)")
                 && js.contains("counts.infos"),
             "info-severity must remain visible in rows and status counts"
         );

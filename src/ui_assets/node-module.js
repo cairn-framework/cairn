@@ -1,4 +1,4 @@
-import { clsx, copy, html, parseState } from "./utils.js";
+import { clsx, html, parseState } from "./utils.js";
 
 /**
  * Data:
@@ -11,9 +11,12 @@ import { clsx, copy, html, parseState } from "./utils.js";
  */
 function NodeModule({ node, isSelected, isNeighbour, onSelect, compact, optionId }) {
   const state = parseState(node.state);
-  const shortId = String(node.id || "").slice(0, 42);
-  const shortName = String(node.name || copy("webui.no-name")).slice(0, compact ? 30 : 60);
-
+  const fullId = String(node.id || "");
+  const shortId = fullId.split(".").pop();
+  const nodeName = String(node.name || "").trim();
+  const description = String(node.description || "").trim();
+  const shouldShowName = nodeName && nodeName !== fullId && nodeName !== shortId;
+  const hasDescription = Boolean(description);
   return html`
     <button
       id=${optionId}
@@ -22,6 +25,7 @@ function NodeModule({ node, isSelected, isNeighbour, onSelect, compact, optionId
       aria-selected=${Boolean(isSelected)}
       tabIndex=${isSelected ? 0 : -1}
       class=${clsx("node-module", state, compact ? "compact" : "", isSelected && "selected", isNeighbour && "focused")}
+      data-node-id=${fullId}
       onClick=${() => onSelect(node.id)}
       onKeyDown=${(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -29,26 +33,28 @@ function NodeModule({ node, isSelected, isNeighbour, onSelect, compact, optionId
           onSelect(node.id);
         }
       }}
-      title=${node.id}
-      aria-label=${`${shortName} ${shortId}`}
+      title=${fullId}
+      aria-label=${fullId}
     >
       <p class="node-id">${shortId}</p>
-      <h3 class="node-name">${shortName || copy("webui.no-name")}</h3>
-      <p class="node-meta">${copy("webui.state-label")}: ${copy(`webui.states.${state}`)}</p>
+      ${
+        shouldShowName
+          ? html`
+            <h3 class="node-name">${nodeName}</h3>
+          `
+          : null
+      }
       ${
         compact
           ? null
-          : html`
-              <p class="node-meta">${node.description || copy("webui.no-description")}</p>
-            `
+          : hasDescription
+            ? html`
+                <p class="node-description">${description}</p>
+              `
+            : null
       }
-      <div class="node-counts">
-        <span class="node-count">${copy("webui.paths-count")}: ${String((node.paths || []).length)}</span>
-        <span class="node-count">${copy("webui.files-count")}: ${String((node.files || []).length)}</span>
-      </div>
       <span class="state-dot" aria-hidden="true"></span>
     </button>
   `;
 }
-
 export { NodeModule };

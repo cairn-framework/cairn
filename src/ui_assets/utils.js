@@ -11,6 +11,7 @@ const { useCallback, useEffect, useMemo, useState } = preactReady ? window.preac
 const html = preactReady ? window.htm.bind(h) : undefined;
 
 let copyData = {};
+let copyLoaded = false;
 
 function normaliseText(raw) {
   return String(raw || "")
@@ -62,6 +63,7 @@ async function loadCopy() {
     console.warn("cairn: failed to load copy.json", error);
     copyData = {};
   }
+  copyLoaded = true;
 }
 
 function copy(key) {
@@ -70,8 +72,11 @@ function copy(key) {
   for (const part of parts) {
     value = value?.[part];
     if (value === undefined) {
-      console.warn("cairn: missing copy key:", key);
-      return key;
+      if (copyLoaded) {
+        console.warn("cairn: missing copy key:", key);
+        return key;
+      }
+      return "";
     }
     if (value === null) {
       return key;
@@ -94,13 +99,24 @@ function escapeHtml(value) {
 }
 
 function highlightBlueprint(source, focusNodeId) {
-  const focus = String(focusNodeId || "");
+  const focus = String(focusNodeId || "").trim();
+  if (!focus) {
+    return String(source || "")
+      .split("\n")
+      .map((line) => {
+        const escaped = escapeHtml(line);
+        return escaped.replace(/(System|Container|Module|Actor|Decision|Findings|Change)/g, '<span class="blueprint-keyword">$1</span>');
+      })
+      .join("\n");
+  }
+
+  const focusIds = Array.from(new Set([focus, ...focus.split(".").filter(Boolean).slice(-1)])).filter(Boolean);
   return String(source || "")
     .split("\n")
     .map((line) => {
       const escaped = escapeHtml(line);
       let next = escaped.replace(/(System|Container|Module|Actor|Decision|Findings|Change)/g, '<span class="blueprint-keyword">$1</span>');
-      if (focus && line.includes(`"${focus}"`)) {
+      if (focusIds.some((id) => line.includes(`"${id}"`))) {
         next = `<span class="blueprint-hit">${next}</span>`;
       }
       return next;
@@ -226,14 +242,6 @@ async function fetchNodeArtefacts(nodeId, kind) {
   return normaliseArtefactEntries(response[kind]);
 }
 
-async function fetchNodeSymbols(nodeId) {
-  const response = await fetchJson(`/api/node/${cleanId(nodeId)}/symbols`);
-  if (!response || !Array.isArray(response.symbols)) {
-    return [];
-  }
-  return response.symbols;
-}
-
 async function fetchDepends(nodeId) {
   const response = await fetchJson(`/api/depends/${cleanId(nodeId)}`);
   if (!response || !Array.isArray(response.nodes)) {
@@ -247,12 +255,11 @@ async function fetchDepends(nodeId) {
  * failures degrade to empty lists so one bad endpoint cannot blank the rail.
  */
 async function fetchNodeEvidence(nodeId) {
-  const [contracts, decisions, sources, rationale, symbols, depends, dependents] = await Promise.all([
+  const [contracts, decisions, sources, rationale, depends, dependents] = await Promise.all([
     fetchNodeArtefacts(nodeId, "contract").catch(() => []),
     fetchNodeArtefacts(nodeId, "decisions").catch(() => []),
     fetchNodeArtefacts(nodeId, "sources").catch(() => []),
     fetchNodeArtefacts(nodeId, "rationale").catch(() => []),
-    fetchNodeSymbols(nodeId).catch(() => []),
     fetchDepends(nodeId).catch(() => []),
     fetchDependents(nodeId).catch(() => []),
   ]);
@@ -263,7 +270,7 @@ async function fetchNodeEvidence(nodeId) {
     decisions: list(decisions),
     sources: list(sources),
     rationale: list(rationale),
-    symbols: list(symbols),
+    symbols: [],
     depends: list(depends),
     dependents: list(dependents),
   };
@@ -279,7 +286,7 @@ async function fetchDependents(nodeId) {
 
 const SELECTION_STORAGE_KEYS = ["cairn:ui:selection", "cairn:v2:selection"];
 
-/** Restore a persisted selection if it names a real node, else the first node. */
+/** Restore a persisted selection if it names a real node; empty when none saved. */
 function readSelectionSeed(nodes) {
   try {
     for (const key of SELECTION_STORAGE_KEYS) {
@@ -292,7 +299,7 @@ function readSelectionSeed(nodes) {
     // Best effort only.
   }
 
-  return nodes[0]?.id || "";
+  return "";
 }
 
 /** Persist the current selection for the next visit (best effort). */
@@ -348,7 +355,6 @@ export {
   fetchLint,
   fetchBlueprint,
   fetchNodeArtefacts,
-  fetchNodeSymbols,
   fetchNodeEvidence,
   fetchDepends,
   fetchDependents,
