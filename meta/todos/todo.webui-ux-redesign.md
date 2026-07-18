@@ -72,9 +72,12 @@ skill under `harness-output/design-system/skill/`):
 
 ### 3. Implement as modular components
 
-Rebuild `src/ui_assets/` to the UX brief, component-based: each UI
-region a self-contained ES module (continuing the existing 9-module
-split) styled by its design-system component classes. Preserve the
+Rebuild `src/ui_assets/` to the UX brief, component-based as an
+outcome: components with cohesive responsibilities, explicit data and
+event interfaces, and independently testable rendering, styled by
+reusable design-system primitives. The component design chooses the
+boundaries; do not force one module per UI region or mirror the
+existing 9-module split. Preserve the
 landed behaviour: selection emphasis, pan-to-selection, state keels,
 legend, guidance empty states, topbar stat dedupe, command palette,
 findings drawer, blueprint modal, mobile navigation. Responsive narrow
@@ -112,8 +115,9 @@ hero (`webui.mp4`, poster and og:image `webui-graph.png`),
   scroll internally, verified by headless screenshot.
 - The full dogfood graph (25 nodes) is legible in one 1440x900
   viewport without canvas scrolling.
-- Implementation is component-based: each UI region a self-contained
-  module using design-system component classes.
+- Implementation is component-based: cohesive responsibilities,
+  explicit data/event interfaces, independently testable rendering,
+  reusable design-system primitives; boundaries chosen by the design.
 - All existing webui interactions keep working: selection,
   pan-to-selection, palette, findings drawer, blueprint modal, kind
   toggles, mobile stack.

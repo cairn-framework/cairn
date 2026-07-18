@@ -60,9 +60,12 @@ Bindings and non-bindings, stated exactly:
   (`dec.webui-design-token-gate`) govern the result unchanged;
   consumers (webui, landing, live reference) follow the reconciled
   set.
-- The implementation is component-based and modular: each UI region a
-  self-contained module with its component classes in the design
-  system, continuing the existing ES-module split.
+- The implementation is component-based and modular as an outcome, not
+  a mapping rule: components have cohesive responsibilities, explicit
+  data and event interfaces, and independently testable rendering,
+  built on reusable design-system primitives. The component design
+  chooses the boundaries; it is not required to mirror the existing
+  ES-module split.
 - Two-way interaction (a person leaving feedback or notes in the webui
   for the harness or agents to pick up, e.g. landing in the
   `cairn feedback` / `.cairn/feedback.md` seam) is an explicit future
