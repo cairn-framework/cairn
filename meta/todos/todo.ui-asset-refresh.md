@@ -1,14 +1,22 @@
 ---
 node: cairn.ui
-status: blocked
+status: in_progress
 created: 2026-07-18
 ---
 
 # UI Asset Refresh
 
 Refresh every public asset that bakes in the webui's appearance, after
-`todo.webui-ux-redesign` lands. Blocked on that todo; doing this
-first would capture the old design twice.
+`todo.webui-ux-redesign` lands (landed 2026-07-18).
+
+Progress 2026-07-18: screenshots (`webui-graph.png`, `design-system.png`,
+`landing-full.png`, `landing-hero.png`) recaptured from the redesigned
+surfaces at the same paths (og:image URL stable); harness selectors and
+scenarios migrated with fixtures recaptured (25-node graph), CI
+ux_defect_score gate green; README prose updated to instrument
+vocabulary. Remaining: `docs/assets/demo/webui.mp4` and `webui.gif` are
+manual screen recordings and must be re-recorded by the owner against
+the redesigned webui (no .tape source).
 
 ## Problem
 
