@@ -132,6 +132,9 @@ function App() {
     [nodes, parsedQuery.text, parsedQuery.kind, parsedQuery.state, kindFilter, stateFilter],
   );
   const visibleIds = useMemo(() => visibleNodes.map((node) => node.id), [visibleNodes]);
+  // Containers and the system node render as frames/title, not cards; the
+  // match count reflects selectable cards so it always equals the canvas.
+  const visibleCardCount = useMemo(() => visibleNodes.filter((node) => !["system", "container"].includes(String(node.kind || "").toLowerCase())).length, [visibleNodes]);
 
   useEffect(() => {
     if (!visibleIds.length) {
@@ -382,7 +385,7 @@ function App() {
       <${QueryRail}
         query=${query}
         parsed=${parsedQuery}
-        visibleCount=${visibleIds.length}
+        visibleCount=${visibleCardCount}
         kindFilter=${kindFilter}
         stateFilter=${stateFilter}
         onQuery=${setQuery}
@@ -427,6 +430,7 @@ function App() {
         backlog=${backlog}
         onChannel=${setChannel}
         onItem=${(nodeId) => onSelect(nodeId, { clearFilters: true })}
+        defaultCollapsed=${compact}
       />
     </main>
   `;

@@ -850,6 +850,33 @@ marker path {
   align-items: center;
 }
 
+/* Narrow viewports: tabs wrap into a grid instead of scrolling offscreen. */
+@media (max-width: 640px) {
+  .channel-bar .channel-tab-scroll {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-x: visible;
+    padding: var(--s-2) 0;
+  }
+
+  .channel-bar.is-collapsed {
+    min-height: 0;
+    max-height: none;
+  }
+
+  .instrument-shell:has(.channel-bar.is-collapsed) {
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  }
+
+  .channel-bar .channel-tab {
+    justify-content: space-between;
+  }
+
+  .channel-bar.is-collapsed .channel-tabs {
+    align-items: start;
+  }
+}
+
 .channel-bar .channel-tab {
   background: var(--stone-2);
   min-height: var(--s-7);
@@ -1133,6 +1160,8 @@ marker path {
 
   .query-chip,
   .query-action,
+  .query-rail .query-segment,
+  .channel-bar .channel-toggle,
   .evidence-rail .rail-tab,
   .channel-bar .channel-tab {
     min-height: var(--tap-min);

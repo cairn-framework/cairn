@@ -123,8 +123,8 @@ function sortChannelItems(items, kind) {
     .map(({ item }) => item);
 }
 
-function ChannelBar({ active, findings, drift, changes, backlog, onChannel, onItem }) {
-  const [collapsed, setCollapsed] = useState(false);
+function ChannelBar({ active, findings, drift, changes, backlog, onChannel, onItem, defaultCollapsed = false }) {
+  const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const buckets = {
     findings: findings || [],
     drift: drift || [],
