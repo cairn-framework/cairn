@@ -1,12 +1,12 @@
-/* Cairn webui app shell: bootstrap data fetch + state wiring between modules. */
-
+import { loadBootstrapData, loadNodeArtefacts } from "./app-data.js";
+import { pickCanvasTarget } from "./canvas-nav.js";
 import { ChannelBar } from "./channel-bar.js";
 import { EvidenceRail, StateLegend } from "./evidence-rail.js";
 import { GraphWorkspace } from "./graph-workspace.js";
 import { QueryRail } from "./query-rail.js";
-import { gridNavigate, mapEdgeRows, matchesQuery, parseQuery } from "./search.js";
+import { mapEdgeRows, matchesQuery, parseQuery } from "./search.js";
 import { StatusBezel } from "./status-bezel.js";
-import { copy, fetchBlueprint, fetchGraph, fetchLint, fetchNodeEvidence, fetchStatus, html, loadCopy, preactReady, readSelectionSeed, remapNeighbours, render, useCallback, useEffect, useMemo, useState, writeSelectionSeed } from "./utils.js";
+import { copy, html, preactReady, readSelectionSeed, render, useCallback, useEffect, useMemo, useState, writeSelectionSeed } from "./utils.js";
 
 const DEFAULT_CHANNEL = "findings";
 
@@ -58,44 +58,23 @@ function App() {
       setNotices([]);
 
       try {
-        await loadCopy();
+        const bootstrap = await loadBootstrapData(() => active);
+        if (bootstrap.cancelled) {
+          return;
+        }
 
-        const graphPayload = await fetchGraph();
+        const { graph, status, lint, blueprint, notices: nextNotices } = bootstrap;
         if (!active) {
           return;
         }
 
-        const optional = await Promise.allSettled([fetchStatus(), fetchLint(), fetchBlueprint()]);
-
-        const statusPayload = optional[0].status === "fulfilled" ? optional[0].value || {} : {};
-        const lintPayload = optional[1].status === "fulfilled" ? optional[1].value || {} : {};
-        const blueprintPayload = optional[2].status === "fulfilled" ? optional[2].value || { path: "", source: "" } : { path: "", source: "" };
-
-        const nextNotices = [];
-        if (optional[0].status === "rejected") {
-          nextNotices.push(copy("webui.bootstrap-status-failed"));
-        }
-        if (optional[1].status === "rejected") {
-          nextNotices.push(copy("webui.bootstrap-lint-failed"));
-        }
-        if (optional[2].status === "rejected") {
-          nextNotices.push(copy("webui.bootstrap-blueprint-failed"));
-        }
-
-        const nodes = Array.isArray(graphPayload?.nodes) ? graphPayload.nodes : [];
-        const edges = Array.isArray(graphPayload?.edges) ? graphPayload.edges : [];
-
-        if (!active) {
-          return;
-        }
-
-        setGraph({ nodes, edges });
-        setStatus(statusPayload);
-        setLint(lintPayload);
-        setBlueprint(blueprintPayload);
+        setGraph(graph);
+        setStatus(status);
+        setLint(lint);
+        setBlueprint(blueprint);
         setNotices(nextNotices);
 
-        const seed = readSelectionSeed(nodes);
+        const seed = readSelectionSeed(graph.nodes);
         setSelectionId(seed);
         setSelectionIndex(seed ? 0 : -1);
       } catch (cause) {
@@ -121,12 +100,12 @@ function App() {
   }, [bootstrapNonce]);
 
   useEffect(() => {
-    if (!selectionId) {
+    if (loading) {
       return;
     }
 
-    writeSelectionSeed(selectionId);
-  }, [selectionId]);
+    writeSelectionSeed(selectionId || "");
+  }, [loading, selectionId]);
 
   const nodes = useMemo(() => graph.nodes || [], [graph.nodes]);
   const edges = useMemo(() => graph.edges || [], [graph.edges]);
@@ -164,8 +143,7 @@ function App() {
     }
 
     if (!selectionId) {
-      setSelectionId(visibleIds[0]);
-      setSelectionIndex(0);
+      setSelectionIndex(-1);
       return;
     }
 
@@ -177,8 +155,8 @@ function App() {
       return;
     }
 
-    setSelectionIndex(0);
-    setSelectionId(visibleIds[0]);
+    setSelectionIndex(-1);
+    setSelectionId("");
   }, [selectionId, selectionIndex, visibleIds]);
 
   const selection = nodesById.get(selectionId) || null;
@@ -201,30 +179,15 @@ function App() {
     let active = true;
 
     async function loadArtefacts() {
-      const evidence = await fetchNodeEvidence(selectionId);
+      const { depends: nextDepends, artefacts } = await loadNodeArtefacts(selectionId, nodesById, edges);
       if (!active) {
         return;
       }
 
-      const selectedNode = nodesById.get(selectionId);
-      const mappedOut = remapNeighbours(nodesById, evidence.depends);
-      const mappedIn = remapNeighbours(nodesById, evidence.dependents);
-      const rows = mapEdgeRows(selectionId, edges);
-
-      setDepends({
-        in: mappedIn.length ? mappedIn : rows.in,
-        out: mappedOut.length ? mappedOut : rows.out,
-      });
-
+      setDepends(nextDepends);
       setArtefactsByNode((current) => ({
         ...current,
-        [selectionId]: {
-          contracts: evidence.contracts,
-          decisions: evidence.decisions,
-          sources: evidence.sources,
-          evidence: evidence.rationale,
-          symbols: evidence.symbols.length ? evidence.symbols : selectedNode?.symbols || [],
-        },
+        [selectionId]: artefacts,
       }));
     }
 
@@ -308,24 +271,16 @@ function App() {
 
   const onCanvasKeyNavigate = useCallback(
     (event, currentSelectionId) => {
-      if (!event.key.startsWith("Arrow") || !visibleIds.length || !currentSelectionId) {
-        return;
-      }
-
-      const columns = compact ? 4 : 6;
-      const index = visibleIds.indexOf(currentSelectionId);
-      const next = gridNavigate(index, event.key, columns, visibleIds.length);
-      if (next === index || next < 0) {
+      const nextId = pickCanvasTarget(event, event.currentTarget, visibleIds, currentSelectionId);
+      if (!nextId) {
         return;
       }
 
       event.preventDefault();
-      setSelectionIndex(next);
-      setSelectionId(visibleIds[next]);
+      onSelect(nextId, { clearFilters: false });
     },
-    [compact, visibleIds],
+    [visibleIds, onSelect],
   );
-
   const onGlobalKey = useCallback(
     (event) => {
       if (event.key !== "Escape") {
@@ -347,27 +302,18 @@ function App() {
         return;
       }
 
-      if (selectionIndex >= 0) {
-        setSelectionIndex(0);
-        setSelectionId(visibleIds[0] || "");
+      if (selectionIndex >= 0 || selectionId) {
+        setSelectionIndex(-1);
+        setSelectionId("");
       }
     },
-    [query, kindFilter, stateFilter, evidenceMode, selectionIndex, visibleIds],
+    [query, kindFilter, stateFilter, evidenceMode, selectionIndex, selectionId, visibleIds],
   );
 
   useEffect(() => {
     window.addEventListener("keydown", onGlobalKey);
     return () => window.removeEventListener("keydown", onGlobalKey);
   }, [onGlobalKey]);
-
-  const bringIntoView = useCallback(() => {
-    if (!selectionId) {
-      return;
-    }
-
-    const rowId = `node-${String(selectionId).replace(/[^a-zA-Z0-9_.:-]/g, "-")}`;
-    document.getElementById(rowId)?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-  }, [selectionId]);
 
   const onLineageSelect = useCallback(
     (artefact) => {
@@ -424,7 +370,7 @@ function App() {
 
   return html`
     <main class="instrument-shell" aria-label=${copy("webui.app")} data-compact=${compact}>
-      <${StatusBezel} nodeCount=${nodes.length} dependencyCount=${dependencyCount} findings=${findings} />
+      <${StatusBezel} nodeCount=${nodes.length} dependencyCount=${dependencyCount} findings=${findings} blueprintPath=${blueprint.path} />
       ${
         notices.length
           ? html`
@@ -443,14 +389,13 @@ function App() {
         onQueryKey=${onQueryKey}
         onKindFilter=${setKindFilter}
         onStateFilter=${setStateFilter}
-        onBringIntoView=${bringIntoView}
         onClear=${() => {
           setQuery("");
           setKindFilter("all");
           setStateFilter("all");
         }}
       />
-      <div class="instrument-workspace">
+      <div class="instrument-workspace" data-evidence-state=${selectionId ? "expanded" : "collapsed"}>
         <${GraphWorkspace}
           nodes=${visibleNodes}
           edges=${edges}

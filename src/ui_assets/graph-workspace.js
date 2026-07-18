@@ -1,230 +1,156 @@
+import { buildAdjacency, buildEdgeLines, buildLayout, clamp, nodeIsNeighbour, normaliseKind } from "./graph-layout.js";
 import { NodeModule } from "./node-module.js";
-import { clsx, copy, html, parseState, useMemo } from "./utils.js";
-
-const CELL_WIDTH_DESKTOP = 118;
-const CELL_HEIGHT_DESKTOP = 104;
-const CELL_WIDTH_COMPACT = 72;
-const CELL_HEIGHT_COMPACT = 62;
-const H_GAP = 10;
-const V_GAP = 10;
-const PADDING = 10;
-
-function buildNeighbourMap(nodes, edges) {
-  const ids = new Set((nodes || []).map((node) => String(node.id)));
-  const byNode = new Map();
-  const ownership = new Map();
-  const normaliseKind = (value) => String(value || "").toLowerCase();
-
-  for (const edge of edges || []) {
-    const kind = normaliseKind(edge.kind);
-    const from = String(edge.from || "");
-    const to = String(edge.to || "");
-    if (!from || !to || !ids.has(from) || !ids.has(to)) {
-      continue;
-    }
-
-    if (kind === "dependency") {
-      const source = byNode.get(from) || { incoming: [], outgoing: [] };
-      const target = byNode.get(to) || { incoming: [], outgoing: [] };
-
-      source.outgoing.push(to);
-      target.incoming.push(from);
-      byNode.set(from, source);
-      byNode.set(to, target);
-    }
-
-    if (kind === "ownership") {
-      const owners = ownership.get(to) || [];
-      if (!owners.includes(from)) {
-        owners.push(from);
-      }
-      ownership.set(to, owners);
-    }
-  }
-
-  const normalise = new Map();
-  for (const [id, value] of byNode.entries()) {
-    normalise.set(id, {
-      incoming: [...new Set(value.incoming)].filter((item) => ids.has(item)),
-      outgoing: [...new Set(value.outgoing)].filter((item) => ids.has(item)),
-    });
-  }
-
-  return { adjacency: normalise, ownership };
-}
-
-function buildLayout(nodes, compact) {
-  const columns = compact ? 4 : 6;
-  const rows = Math.ceil(nodes.length / columns) || 1;
-  const cellWidth = compact ? CELL_WIDTH_COMPACT : CELL_WIDTH_DESKTOP;
-  const cellHeight = compact ? CELL_HEIGHT_COMPACT : CELL_HEIGHT_DESKTOP;
-
-  const positions = new Map(
-    nodes.map((node, index) => {
-      const row = Math.floor(index / columns);
-      const column = index % columns;
-      const id = String(node.id);
-      const x = PADDING + column * (cellWidth + H_GAP);
-      const y = PADDING + row * (cellHeight + V_GAP);
-      return [
-        id,
-        {
-          id,
-          x,
-          y,
-          width: cellWidth,
-          height: cellHeight,
-          cx: x + cellWidth / 2,
-          cy: y + cellHeight / 2,
-        },
-      ];
-    }),
-  );
-
-  return {
-    positions,
-    width: columns * (cellWidth + H_GAP) + PADDING * 2 - H_GAP,
-    height: rows * (cellHeight + V_GAP) + PADDING * 2 - V_GAP,
-    columns,
-  };
-}
-
-function buildEdgeLines(edges, layout) {
-  const edgesToRender = Array.isArray(edges) ? edges : [];
-
-  const dependencyLinks = edgesToRender
-    .map((edge) => {
-      const from = String(edge.from || "");
-      const to = String(edge.to || "");
-      if (!from || !to || from === to || String(edge.kind || "dependency").toLowerCase() !== "dependency") {
-        return null;
-      }
-
-      const source = layout.positions.get(from);
-      const target = layout.positions.get(to);
-      if (!source || !target) {
-        return null;
-      }
-
-      return {
-        ...edge,
-        from,
-        to,
-        fromX: source.cx,
-        fromY: source.cy,
-        toX: target.cx,
-        toY: target.cy,
-      };
-    })
-    .filter(Boolean);
-
-  return {
-    dependencyLinks,
-    width: layout.width,
-    height: layout.height,
-  };
-}
-
-function nodeIsNeighbour(adjacency, selected, nodeId) {
-  if (!selected) {
-    return false;
-  }
-
-  if (nodeId === selected) {
-    return true;
-  }
-
-  const links = adjacency.get(selected) || { incoming: [], outgoing: [] };
-  return links.incoming.includes(nodeId) || links.outgoing.includes(nodeId);
-}
+import { clsx, copy, html, useEffect, useMemo, useState } from "./utils.js";
 
 function GraphWorkspace({ nodes, edges, selectionId, onSelect, onCanvasKeyNavigate, compact }) {
-  const map = useMemo(() => buildNeighbourMap(nodes, edges), [nodes, edges]);
+  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const stageWidth = stageSize.width;
   const selected = String(selectionId || "");
+  const layout = useMemo(() => buildLayout(nodes, edges, compact, stageWidth), [nodes, edges, compact, stageWidth]);
+  const adjacency = useMemo(() => buildAdjacency(layout), [layout]);
+  const dependencyLinks = useMemo(() => buildEdgeLines(edges, layout, compact), [edges, layout, compact]);
+  const activeSelection = adjacency.has(selected) ? selected : "";
+  const stageClass = layout.modules.length ? "has-layout" : "is-empty";
+  const activeNodeId = activeSelection ? `node-${activeSelection.replace(/[^a-zA-Z0-9_.:-]/g, "-")}` : "";
+  const system = (nodes || []).find((node) => normaliseKind(node.kind) === "system" || String(node.id) === "cairn");
+  const graphTitle = system ? String(system.name || system.id || copy("webui.project-name")) : copy("webui.project-name");
+  const architectureLabel = copy("webui.architecture-map");
+  const graphSeparator = copy("webui.graph-separator");
 
-  const layout = useMemo(() => buildLayout(nodes, compact), [nodes, compact]);
-  const { dependencyLinks } = useMemo(() => buildEdgeLines(edges, layout), [edges, layout]);
-  const stageClass = nodes.length ? "has-layout" : "is-empty";
-  const activeNodeId = selected ? `node-${selected.replace(/[^a-zA-Z0-9_.:-]/g, "-")}` : "";
+  useEffect(() => {
+    const stage = document.querySelector("[data-graph-workspace='true']");
+    if (!stage) {
+      return;
+    }
+
+    const update = () => {
+      const nextWidth = Math.max(0, stage.clientWidth);
+      const nextHeight = Math.max(0, stage.clientHeight);
+      setStageSize((current) => (current.width === nextWidth && current.height === nextHeight ? current : { width: nextWidth, height: nextHeight }));
+    };
+
+    update();
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => update());
+    observer.observe(stage);
+    return () => {
+      observer.disconnect();
+    };
+  }, [compact]);
 
   return html`
     <section class="graph-canvas" aria-label=${copy("webui.graph")} role="region">
-      <h2 class="graph-head">${copy("webui.graph")}</h2>
+      <h2 class="graph-head">
+        <span class="graph-title">${graphTitle}</span>
+        <span class="graph-separator" aria-hidden="true">${graphSeparator}</span>
+        <span class="graph-label">${architectureLabel}</span>
+      </h2>
       <div
         class=${`graph-stage ${stageClass}`}
-        data-columns=${layout.columns}
+        data-compact=${compact}
+        data-graph-workspace=${true}
         role="listbox"
         aria-activedescendant=${activeNodeId}
         tabIndex=${0}
         onKeyDown=${(event) => onCanvasKeyNavigate(event, selected)}
       >
-        <div class="graph-content" style=${{ position: "relative", width: `${layout.width}px`, height: `${layout.height}px` }}>
-          <svg class="graph-svg" aria-hidden="true" viewBox=${`0 0 ${layout.width} ${layout.height}`}>
-            ${dependencyLinks.map(
-              (edge) => html`
-              <g class="dependency-link" data-from=${edge.from} data-to=${edge.to}>
-                <line x1=${edge.fromX} y1=${edge.fromY} x2=${edge.toX} y2=${edge.toY} />
-                <text x=${(edge.fromX + edge.toX) / 2} y=${(edge.fromY + edge.toY) / 2 - 2} text-anchor="middle">
-                  D
-                </text>
-              </g>`,
-            )}
-          </svg>
-          ${nodes.map((node) => {
-            const position = layout.positions.get(String(node.id));
-            const owners = map.ownership.get(node.id) || [];
-            const isNeighbour = nodeIsNeighbour(map.adjacency, selected, node.id);
-            const ownershipCount = owners.length;
-
-            if (!position) {
-              return null;
-            }
-
-            const nodeId = `node-${String(node.id).replace(/[^a-zA-Z0-9_.:-]/g, "-")}`;
-
-            return html`
-              <div
-                class=${clsx("node-shell", isNeighbour ? "focused" : "", node.state === "ghost" ? "ghost" : "")}
-                style=${{
-                  left: `${position.x}px`,
-                  top: `${position.y}px`,
-                  width: `${position.width}px`,
-                  height: `${position.height}px`,
-                  position: "absolute",
-                }}
-              >
-                ${
-                  ownershipCount
-                    ? html`
-                      <span class="ownership-bracket" aria-hidden="true" title=${`${copy("webui.owns")} ${ownershipCount}`}>
-                        ${ownershipCount}
-                      </span>
-                    `
-                    : null
-                }
-                ${
-                  parseState(node.state) === "orphaned"
-                    ? html`
-                      <span class="ownership-marker" aria-hidden="true">
-                        ${copy("webui.states.orphaned")}
-                      </span>
-                    `
-                    : null
-                }
-                <${NodeModule}
-                  node=${node}
-                  compact=${compact}
-                  isSelected=${node.id === selected}
-                  isNeighbour=${isNeighbour}
-                  onSelect=${onSelect}
-                  optionId=${nodeId}
-                  ariaSelected=${node.id === selected}
-                  isOption=${true}
-                />
+        ${(() => {
+          const fitScale = compact ? 1 : !stageSize.width || !stageSize.height || !layout.width || !layout.height ? 1 : clamp(Math.min(stageSize.width / layout.width, stageSize.height / layout.height), 1, 1.5);
+          const graphFitStyle = compact ? { width: "100%", height: `${layout.height}px`, margin: 0 } : { width: `${layout.width * fitScale}px`, height: `${layout.height * fitScale}px`, margin: "auto" };
+          const graphContentStyle = compact
+            ? { position: "relative", width: "100%", height: `${layout.height}px`, transform: "none", transformOrigin: "0 0" }
+            : {
+                position: "relative",
+                width: `${layout.width}px`,
+                height: `${layout.height}px`,
+                transform: `scale(${fitScale})`,
+                transformOrigin: "0 0",
+              };
+          return html`
+            <div class="graph-fit" style=${graphFitStyle}>
+              <div class="graph-content" style=${graphContentStyle}>
+                <svg class="graph-svg" aria-hidden="true" viewBox=${`0 0 ${layout.width} ${layout.height}`}>
+                  <defs>
+                    <marker id="dependency-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                      <path d="M 0 0 L 6 3 L 0 6 z" />
+                    </marker>
+                  </defs>
+                  ${dependencyLinks.map((edge) => {
+                    const direction = edge.from === activeSelection ? "out" : edge.to === activeSelection ? "in" : "";
+                    const isSelectedEdge = !activeSelection ? false : edge.from === activeSelection || edge.to === activeSelection;
+                    return html`
+                      <g
+                        class=${clsx("dependency-link", direction && `is-${direction}`, activeSelection && !isSelectedEdge && "is-dimmed")}
+                        data-from=${edge.from}
+                        data-to=${edge.to}
+                      >
+                        <path d=${edge.path} marker-end="url(#dependency-arrow)" />
+                      </g>
+                    `;
+                  })}
+                </svg>
+                ${layout.groups.map(
+                  (group) => html`
+                    <div
+                      class="ownership-group"
+                      aria-label=${group.label}
+                      style=${{
+                        left: `${group.x}px`,
+                        top: `${group.y}px`,
+                        width: `${group.width}px`,
+                        height: `${group.height}px`,
+                      }}
+                    >
+                      <span class="ownership-group-label">${group.label}</span>
+                    </div>
+                  `,
+                )}
+                ${layout.modules.map((node) => {
+                  const id = String(node.id);
+                  const position = layout.positions.get(id);
+                  if (!position) {
+                    return null;
+                  }
+                  const isNeighbour = nodeIsNeighbour(adjacency, activeSelection, id);
+                  const isSelected = id === activeSelection;
+                  const dimmed = Boolean(activeSelection) && !isNeighbour;
+                  const nodeId = `node-${id.replace(/[^a-zA-Z0-9_.:-]/g, "-")}`;
+                  return html`
+                    <div
+                      class=${clsx("node-shell", isNeighbour && "focused", dimmed && "dimmed", isSelected && "selected", node.state === "ghost" && "ghost")}
+                      style=${{
+                        left: `${position.x}px`,
+                        top: `${position.y}px`,
+                        width: `${position.width}px`,
+                        height: `${position.height}px`,
+                        position: "absolute",
+                      }}
+                      data-layer=${position.layer}
+                      data-row=${position.row}
+                      data-column=${position.localColumn}
+                      data-x=${position.x}
+                      data-y=${position.y}
+                    >
+                      <${NodeModule}
+                        node=${node}
+                        compact=${compact}
+                        isSelected=${isSelected}
+                        isNeighbour=${isNeighbour}
+                        onSelect=${onSelect}
+                        optionId=${nodeId}
+                        ariaSelected=${isSelected}
+                        isOption=${true}
+                      />
+                    </div>
+                  `;
+                })}
               </div>
-            `;
-          })}
-        </div>
+            </div>
+          `;
+        })()}
       </div>
     </section>
   `;

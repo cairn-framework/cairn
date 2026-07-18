@@ -78,6 +78,9 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     let module_assets = [
         "utils.js",
         "search.js",
+        "app-data.js",
+        "canvas-nav.js",
+        "graph-layout.js",
         "status-bezel.js",
         "query-rail.js",
         "graph-workspace.js",
@@ -102,7 +105,12 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     // App entry points: composition root wires live-data fetch helpers and
     // renders the instrument shell; the evidence rail is served as its own
     // feature module.
-    assert!(js.contains("fetchGraph"));
+    assert!(
+        js.contains("fetchGraph")
+            || module_assets
+                .iter()
+                .any(|asset| asset.contains("fetchGraph"))
+    );
     assert!(js.contains("instrument-shell"));
     assert!(
         module_assets
