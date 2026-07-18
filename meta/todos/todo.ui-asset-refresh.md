@@ -7,7 +7,7 @@ created: 2026-07-18
 # UI Asset Refresh
 
 Refresh every public asset that bakes in the webui's appearance, after
-`todo.webui-deck-redesign` lands. Blocked on that todo; doing this
+`todo.webui-ux-redesign` lands. Blocked on that todo; doing this
 first would capture the old design twice.
 
 ## Problem
@@ -42,8 +42,8 @@ no longer exists, on surfaces that are the project's first impression
 
 - No public surface (README, landing, og/twitter meta, Pages site)
   shows the pre-redesign webui or design system.
-- Landing hero video and poster show the deck layout; og:image
+- Landing hero video and poster show the redesigned webui; og:image
   refreshed at the same URL path so existing unfurls update.
 - Visual harness green against the new baselines.
 
-dec:dec.webui-deck-layout
+dec:dec.webui-ux-first-redesign
