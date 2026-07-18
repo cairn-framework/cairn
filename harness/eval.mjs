@@ -75,12 +75,17 @@ const KILL_ANIM_EXPR =
 
 const ACTIONS = {
   selectNode: {
-    fire: "(function(){var d=document.querySelector('.node-module');if(d){d.click();return true;}return false;})()",
-    settled: "(function(){return !!document.querySelector('.evidence-rail .node-depth-plate .node-id');})()",
+    // Click a node that is NOT currently selected and demand the selection
+    // actually moves to it, so a pre-selected default cannot satisfy the check.
+    fire: "(function(){var mods=[...document.querySelectorAll('.node-module')];var target=mods.find(function(n){return !n.classList.contains('selected');})||mods[0];if(!target){return false;}window.__evalSelectTarget=target.getAttribute('title')||'';target.click();return !!window.__evalSelectTarget;})()",
+    settled: "(function(){var expected=String(window.__evalSelectTarget||'');var selected=document.querySelector('.node-module.selected');return !!expected&&!!selected&&selected.getAttribute('title')===expected&&!!document.querySelector('.evidence-rail .node-depth-plate .node-id');})()",
   },
   openFindings: {
-    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var target=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'))||tabs[0];if(!target){return false;}target.click();return true;})()",
-    settled: "(function(){return !!document.querySelector('.channel-bar .channel-body')&&!!(document.querySelector('.channel-item')||document.querySelector('.channel-empty'));})()",
+    // Findings is the default channel, so prove the switching machinery: hop
+    // to another channel first, then back, and demand the findings tab ends
+    // active with a rendered body.
+    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var findings=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'));var other=tabs.find((n)=>n!==findings);if(!findings||!other){return false;}other.click();findings.click();return true;})()",
+    settled: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var findings=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'));return !!findings&&findings.classList.contains('active')&&!!document.querySelector('.channel-bar .channel-body')&&!!(document.querySelector('.channel-item')||document.querySelector('.channel-empty'));})()",
   },
   openPalette: {
     fire: "(function(){var input=document.querySelector('.query-input');if(!input){return false;}input.focus();input.value='kernel';input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Enter',code:'Enter',keyCode:13,which:13}));return true;})()",

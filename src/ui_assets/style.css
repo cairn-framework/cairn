@@ -291,3 +291,23 @@ code.blueprint-plate {
     min-width: 0;
   }
 }
+
+/* Bootstrap notices overlay the workspace instead of consuming a shell grid
+   row, so partial-load warnings never displace the bounded layout. */
+.instrument-shell {
+  position: relative;
+}
+
+.bootstrap-notices {
+  position: absolute;
+  top: var(--s-10);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  max-width: min(90%, 640px);
+  padding: var(--s-2) var(--s-4);
+  background: var(--stone-2);
+  border: var(--line-1) solid var(--seam-clear);
+  border-radius: var(--r-stone);
+  box-shadow: var(--lift-1);
+}

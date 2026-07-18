@@ -295,6 +295,17 @@ function readSelectionSeed(nodes) {
   return nodes[0]?.id || "";
 }
 
+/** Persist the current selection for the next visit (best effort). */
+function writeSelectionSeed(selectionId) {
+  try {
+    for (const key of SELECTION_STORAGE_KEYS) {
+      window.localStorage?.setItem?.(key, selectionId);
+    }
+  } catch {
+    // Best effort only.
+  }
+}
+
 /** Enrich raw neighbour references with name and state from the graph. */
 function remapNeighbours(nodesById, raw) {
   if (!Array.isArray(raw)) {
@@ -342,5 +353,6 @@ export {
   fetchDepends,
   fetchDependents,
   readSelectionSeed,
+  writeSelectionSeed,
   remapNeighbours,
 };

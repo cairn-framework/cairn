@@ -6,7 +6,7 @@ import { GraphWorkspace } from "./graph-workspace.js";
 import { QueryRail } from "./query-rail.js";
 import { gridNavigate, mapEdgeRows, matchesQuery, parseQuery } from "./search.js";
 import { StatusBezel } from "./status-bezel.js";
-import { copy, fetchBlueprint, fetchGraph, fetchLint, fetchNodeEvidence, fetchStatus, html, loadCopy, preactReady, readSelectionSeed, remapNeighbours, render, useCallback, useEffect, useMemo, useState } from "./utils.js";
+import { copy, fetchBlueprint, fetchGraph, fetchLint, fetchNodeEvidence, fetchStatus, html, loadCopy, preactReady, readSelectionSeed, remapNeighbours, render, useCallback, useEffect, useMemo, useState, writeSelectionSeed } from "./utils.js";
 
 const DEFAULT_CHANNEL = "findings";
 
@@ -125,12 +125,7 @@ function App() {
       return;
     }
 
-    try {
-      window.localStorage?.setItem?.(STORAGE_KEY, selectionId);
-      window.localStorage?.setItem?.(STORAGE_KEY_LEGACY, selectionId);
-    } catch {
-      // best effort
-    }
+    writeSelectionSeed(selectionId);
   }, [selectionId]);
 
   const nodes = useMemo(() => graph.nodes || [], [graph.nodes]);
