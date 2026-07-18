@@ -116,8 +116,8 @@
   background: var(--stone-4);
 }
 
-.query-rail .query-chip,
-.query-rail .query-action {
+.query-chip,
+.query-action {
   padding: 0 var(--s-2);
   border-radius: var(--r-edge);
   border: var(--line-1) solid var(--seam-faint);
@@ -134,8 +134,8 @@
     border-color var(--dur-quick) var(--ease-settle);
 }
 
-.query-rail .query-chip.active,
-.query-rail .query-action {
+.query-chip.active,
+.query-action {
   color: var(--ink-char);
   border-color: var(--seam-clear);
 }
@@ -176,6 +176,7 @@
 }
 
 .node-module {
+  color: var(--ink-char);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -297,6 +298,7 @@
 }
 
 .evidence-rail .rail-tab {
+  background: var(--stone-2);
   display: inline-flex;
   align-items: center;
   height: var(--s-6);
@@ -368,21 +370,27 @@
   gap: var(--s-2);
 }
 
-.node-depth-plate .edge-row {
+.edge-row {
   display: grid;
   grid-template-columns: var(--s-7) minmax(0, 1fr);
   gap: var(--s-2);
+  background: var(--stone-3);
+  color: var(--ink-char);
+  border: var(--line-1) solid var(--seam-faint);
+  border-radius: var(--r-edge);
+  padding: var(--s-1) var(--s-2);
+  text-align: left;
 }
 
-.node-depth-plate .edge-dir {
+.edge-dir {
   margin: 0;
   font-size: var(--t-micro);
   text-transform: uppercase;
   letter-spacing: var(--track-lamp);
-  color: var(--ink-mist);
+  color: var(--ink-faded);
 }
 
-.node-depth-plate .edge-target {
+.edge-target {
   margin: 0;
   font-size: var(--t-small);
   color: var(--ink-char);
@@ -419,7 +427,16 @@
   color: var(--ink-aged);
   font-size: var(--t-small);
 }
+.blueprint-plate,
+.lineage-plate,
+.node-depth-plate {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .blueprint-plate pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   margin: 0;
   border: var(--line-1) solid var(--seam-thin);
   border-radius: var(--r-stone);
@@ -449,6 +466,7 @@
   align-items: center;
 }
 .channel-bar .channel-tab {
+  background: var(--stone-2);
   height: var(--s-5);
   display: inline-flex;
   align-items: center;
@@ -584,5 +602,34 @@
 
   50% {
     opacity: 0.72;
+  }
+}
+
+/* Tap surfaces: interactive controls meet the minimum touch target on
+   narrow and tablet viewports without inflating the desktop instrument. */
+@media (max-width: 900px) {
+  .query-rail .query-input {
+    height: var(--tap-min);
+  }
+
+  .query-chip,
+  .query-action,
+  .evidence-rail .rail-tab,
+  .channel-bar .channel-tab {
+    min-height: var(--tap-min);
+    min-width: var(--tap-min);
+  }
+}
+
+/* Narrow bezel: the status grid wraps instead of forcing the frame wider. */
+@media (max-width: 640px) {
+  .status-bezel .status-grid {
+    flex-wrap: wrap;
+    white-space: normal;
+    min-width: 0;
+  }
+
+  .status-bezel .status-cell {
+    min-width: 0;
   }
 }

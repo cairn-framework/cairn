@@ -18,7 +18,7 @@
   /* Seed ink. */
   --ci-chalk: #e8e4da;
   --ci-chalk-dim: #a49f92;
-  --ci-chalk-faint: #6f6b60;
+  --ci-chalk-faint: #a29d90;
 
   /* Seed signal. */
   --ci-signal: #5fb39a;
@@ -187,6 +187,9 @@
   --s-10: var(--ci-s10);
   --s-11: var(--ci-s11);
   --s-12: var(--ci-s12);
+
+  /* Minimum touch-target size for interactive controls on tap surfaces. */
+  --tap-min: 44px;
 
   --grid-dot: rgba(232, 228, 218, 0.07);
   --grid-major: rgba(232, 228, 218, 0.11);
