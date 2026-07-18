@@ -109,6 +109,7 @@ Layout overhaul (2026-07) adjustments:
 
 - Added `--ui-query-search-max-width: 608px`: the cap on the query rail's search input so it stays readable while the segmented filter groups share the row.
 - `--ui-shell-max-width` widened to `min(100%, 1720px)` and `--ui-channel-height` raised to `200px` so the shell fills wide viewports and channel bar items stay readable.
+- Added `--ci-ember: #d98a70` and pointed `--error` at it so error and warning severities read as distinct colours (ember vs amber) while staying in the warm drift family; contrast-checked at 4.5:1+ on all chassis surfaces.
 
 ## Component class inventory
 
