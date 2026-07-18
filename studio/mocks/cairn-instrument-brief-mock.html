@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cairn Graph Explorer - Stage 1 Mock</title>
+    <link rel="stylesheet" href="./tokens.css" />
+    <style>
+      :root {
+        --ci-border: var(--ci-hairline);
+        --ci-surface: var(--ci-step-deck);
+        --ci-bezel: var(--ci-step-bezel);
+        --ci-well: var(--ci-step-well);
+        --ci-text: var(--ci-chalk);
+        --ci-text-dim: var(--ci-chalk-dim);
+        --ci-text-faint: var(--ci-chalk-faint);
+        --ci-keel-width: var(--ci-keel);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--ci-font-ui);
+        font-size: var(--ci-size-body);
+        line-height: 1.45;
+        color: var(--ci-text);
+        background: var(--ci-bezel);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        height: 100vh;
+      }
+
+      button {
+        font: inherit;
+        border: 1px solid transparent;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      .micro {
+        text-transform: uppercase;
+        letter-spacing: var(--ci-track-micro);
+        font-size: var(--ci-size-micro);
+        color: var(--ci-text-faint);
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        min-width: 0;
+        height: 100vh;
+      }
+
+      .bezel {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 0 var(--ci-s4);
+        background: var(--ci-bezel);
+        border-bottom: 1px solid var(--ci-border);
+        flex-wrap: wrap;
+      }
+
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        letter-spacing: 0.02em;
+      }
+
+      .mark svg {
+        display: block;
+      }
+
+      .counters {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .counter {
+        border-left: 1px solid var(--ci-border);
+        padding-left: 14px;
+        min-width: 84px;
+      }
+
+      .counter b {
+        display: block;
+        font-size: var(--ci-size-counter);
+        font-weight: 500;
+        line-height: 1.05;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .counter span {
+        display: block;
+        color: var(--ci-text-faint);
+      }
+
+      .hash {
+        max-width: 220px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .annunciator {
+        margin-left: auto;
+        font-size: 10px;
+        border: 1px solid var(--ci-signal-deep);
+        color: var(--ci-signal);
+        background: color-mix(in srgb, var(--ci-signal) 10%, transparent);
+        border-radius: 2px;
+        padding: 5px 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .annunciator::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--ci-signal);
+        content: "";
+      }
+
+      .annunciator.drift {
+        border-color: var(--ci-amber);
+        color: var(--ci-amber);
+        background: color-mix(in srgb, var(--ci-amber) 10%, transparent);
+      }
+
+      .rail {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 var(--ci-s4);
+        border-bottom: 1px solid var(--ci-border);
+        background: var(--ci-bezel);
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--ci-border);
+        background: var(--ci-well);
+        padding: 4px 9px;
+        flex: 1 1 320px;
+        max-width: 380px;
+      }
+
+      .search input {
+        border: 0;
+        background: transparent;
+        outline: none;
+        color: var(--ci-text);
+        flex: 1;
+        font: inherit;
+      }
+
+      .search input::placeholder {
+        color: var(--ci-text-faint);
+      }
+
+      .search:focus-within {
+        border-color: var(--ci-signal-deep);
+      }
+
+      .search .kbd {
+        font-family: var(--ci-font-mono);
+        border: 1px solid var(--ci-border);
+        font-size: 9px;
+        color: var(--ci-text-faint);
+        border-radius: 3px;
+        padding: 0 5px;
+      }
+
+      .toggles,
+      .channel-tabs {
+        display: flex;
+        border: 1px solid var(--ci-border);
+        border-radius: 3px;
+        overflow: hidden;
+        flex: 0 0 auto;
+      }
+
+      .toggle,
+      .chan {
+        border: 0;
+        padding: 6px 10px;
+        color: var(--ci-text-dim);
+        background: var(--ci-bezel);
+      }
+
+      .toggle[aria-pressed="true"],
+      .chan[aria-pressed="true"] {
+        background: var(--ci-well);
+        color: var(--ci-text);
+      }
+
+      .workbench {
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .workbench > .panel {
+        display: flex;
+        min-height: 0;
+        min-width: 0;
+      }
+
+      .graph-window {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--ci-well);
+      }
+
+      .graph-caption {
+        border-bottom: 1px solid var(--ci-border);
+        padding: 6px var(--ci-s4);
+        color: var(--ci-text-dim);
+      }
+
+      .graph-caption span {
+        color: var(--ci-text);
+      }
+
+      .graph-well {
+        flex: 1;
+        min-height: 180px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .graph-well svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .legend {
+        position: absolute;
+        right: var(--ci-s3);
+        bottom: var(--ci-s3);
+        display: flex;
+        gap: 12px;
+        border: 1px solid var(--ci-border);
+        background: color-mix(in srgb, var(--ci-step-deck) 75%, black 25%);
+        padding: 5px 9px;
+        font-size: 10px;
+        color: var(--ci-text-dim);
+        flex-wrap: wrap;
+        max-width: calc(100% - 20px);
+      }
+
+      .legend .item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .state-key {
+        width: 16px;
+        height: 11px;
+        border: 1px solid var(--ci-border);
+        background: var(--ci-bezel);
+      }
+
+      .state-key.synced {
+        border-left: var(--ci-keel-width) solid var(--ci-signal-deep);
+      }
+
+      .state-key.ghost {
+        border-left: var(--ci-keel-width) double var(--ci-text-faint);
+        border-style: dashed;
+      }
+
+      .state-key.orphaned {
+        border-left: var(--ci-keel-width) solid var(--ci-amber);
+        transform: rotate(-4deg);
+      }
+
+      .evidence {
+        border-left: 1px solid var(--ci-border);
+        background: var(--ci-step-deck);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .evidence-head {
+        padding: 10px var(--ci-s4);
+        border-bottom: 1px solid var(--ci-border);
+      }
+
+      .evidence-head h2 {
+        margin: 4px 0 0;
+        font-size: var(--ci-size-title);
+        font-weight: 500;
+      }
+
+      .evidence-head .id {
+        margin-top: 2px;
+        color: var(--ci-text-dim);
+        font-family: var(--ci-font-mono);
+        font-size: var(--ci-size-micro);
+      }
+
+      .evidence-head .state {
+        margin-top: 7px;
+      }
+
+      .mode-tabs {
+        margin-top: 8px;
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--ci-border);
+        padding-bottom: 8px;
+      }
+
+      .mode-tabs .tab {
+        border: 1px solid var(--ci-border);
+        border-bottom: 0;
+        padding: 4px 8px;
+        color: var(--ci-text-dim);
+        background: var(--ci-well);
+      }
+
+      .mode-tabs .tab[aria-selected="true"] {
+        color: var(--ci-text);
+        background: var(--ci-step-deck);
+      }
+
+      .evidence-body {
+        flex: 1;
+        overflow: auto;
+        padding: var(--ci-s3);
+      }
+
+      .evidence-section {
+        margin-bottom: 12px;
+      }
+
+      .evidence-section h3 {
+        margin: 0 0 6px;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ci-text-dim);
+      }
+
+      .kv {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .kv td {
+        padding: 4px 0;
+        border-bottom: 1px solid var(--ci-border);
+      }
+
+      .kv td:first-child {
+        color: var(--ci-text-dim);
+        width: 43%;
+      }
+
+      .kv td:last-child {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      .kv td.code {
+        font-family: var(--ci-font-mono);
+        font-size: 10px;
+        text-align: left;
+      }
+
+      .edge-row,
+      .artefact {
+        padding: 6px 0;
+        border-bottom: 1px solid var(--ci-border);
+      }
+
+      .edge-row:last-child,
+      .artefact:last-child {
+        border-bottom: 0;
+      }
+
+      .edge-row .dir {
+        color: var(--ci-text-dim);
+      }
+
+      .edge-row .target {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        cursor: pointer;
+      }
+
+      .edge-row .target:hover {
+        color: var(--ci-signal);
+      }
+
+      .artefact-title {
+        font-size: 14px;
+      }
+
+      .artefact-meta {
+        font-family: var(--ci-font-mono);
+        font-size: 10px;
+        color: var(--ci-text-faint);
+      }
+
+      .artefact-body {
+        font-size: 11px;
+        color: var(--ci-text-dim);
+      }
+
+      .source-code {
+        font-size: 11px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--ci-border);
+        padding: 8px;
+        white-space: pre;
+        overflow: auto;
+        max-height: 260px;
+      }
+
+      .muted {
+        color: var(--ci-text-faint);
+      }
+
+      .channel {
+        display: flex;
+        flex-direction: column;
+        background: var(--ci-step-bezel);
+        border-top: 1px solid var(--ci-border);
+        height: 126px;
+        flex: 0 0 auto;
+      }
+
+      .channel-head {
+        padding: 6px var(--ci-s4);
+        border-bottom: 1px solid var(--ci-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .channel-body {
+        display: flex;
+        flex-direction: column;
+        padding: 0 var(--ci-s4);
+        gap: 8px;
+        overflow: auto;
+      }
+
+      .channel-body .row {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        border-bottom: 1px solid var(--ci-border);
+        padding: 7px 0;
+        font-size: 11px;
+      }
+
+      .channel-body .row:last-child {
+        border-bottom: 0;
+      }
+
+      .chan-pill {
+        border: 1px solid var(--ci-text-dim);
+        border-radius: 2px;
+        font-size: 9px;
+        padding: 1px 6px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ci-text-dim);
+      }
+
+      .code {
+        font-family: var(--ci-font-mono);
+        font-size: 10px;
+        color: var(--ci-text-dim);
+      }
+
+      .link {
+        color: var(--ci-signal);
+        cursor: pointer;
+      }
+
+      .node {
+        cursor: pointer;
+      }
+
+      .node rect.body {
+        fill: var(--ci-step-deck);
+        stroke: var(--ci-border);
+        stroke-width: 1;
+      }
+
+      .node rect.keel {
+        fill: var(--ci-signal-deep);
+      }
+
+      .node.ghost rect.body {
+        stroke: var(--ci-text-faint);
+        stroke-dasharray: 4 4;
+      }
+
+      .node.ghost rect.keel {
+        fill: none;
+        stroke: var(--ci-text-faint);
+        stroke-width: 1;
+      }
+
+      .node.drift rect.body {
+        stroke: var(--ci-amber);
+      }
+
+      .node.drift rect.keel {
+        fill: var(--ci-amber);
+      }
+
+      .node.orphaned rect.body {
+        transform: rotate(-1.2deg);
+        transform-origin: center;
+      }
+
+      .node text {
+        fill: var(--ci-text);
+        font-family: var(--ci-font-ui);
+        font-size: var(--ci-size-node);
+      }
+
+      .node text.meta {
+        fill: var(--ci-text-faint);
+        font-size: var(--ci-size-micro);
+      }
+
+      .node.selected rect.body {
+        stroke: var(--ci-signal);
+        stroke-width: 1.5;
+      }
+
+      .node.selected rect.keel {
+        stroke: var(--ci-signal);
+        stroke-width: 1;
+      }
+
+      .node.hit rect.body {
+        stroke: var(--ci-signal);
+        stroke-width: 1.5;
+      }
+
+      .node.hidden {
+        opacity: 0;
+      }
+
+      .node.dim {
+        opacity: var(--ci-dim-opacity);
+      }
+
+      .edge {
+        stroke: var(--ci-text-faint);
+        stroke-opacity: 0.4;
+        stroke-width: 1;
+        fill: none;
+      }
+
+      .edge.hit {
+        stroke: var(--ci-signal);
+        stroke-opacity: 1;
+        stroke-width: 1.5;
+      }
+
+      .edge.dim {
+        opacity: 0.12;
+      }
+
+      .arrow {
+        fill: var(--ci-text-faint);
+      }
+
+      .arrow.hit {
+        fill: var(--ci-signal);
+      }
+
+      .bracket {
+        stroke: var(--ci-text-faint);
+        stroke-width: 1;
+        fill: none;
+        opacity: 0.45;
+      }
+
+      .bracket-label {
+        fill: var(--ci-text-dim);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+      }
+
+      .empty {
+        color: var(--ci-text-faint);
+        font-size: 11px;
+        font-style: italic;
+      }
+
+      .selected-focus {
+        margin-top: 6px;
+        font-size: 9px;
+        color: var(--ci-text-dim);
+      }
+
+      @media (max-width: 900px) {
+        .bezel {
+          padding: 0 var(--ci-s3);
+          height: 52px;
+        }
+
+        .mark {
+          font-size: 16px;
+        }
+
+        .hash {
+          display: none;
+        }
+
+        .workbench {
+          grid-template-columns: 1fr;
+          grid-template-rows: minmax(0, 1fr) minmax(250px, 1.2fr);
+        }
+
+        .channel {
+          height: 116px;
+        }
+
+        .evidence {
+          order: 2;
+          border-left: none;
+          border-top: 1px solid var(--ci-border);
+          max-height: 290px;
+        }
+
+        .rail {
+          height: 40px;
+          padding: 0 var(--ci-s3);
+          gap: 8px;
+        }
+
+        .search {
+          max-width: none;
+        }
+
+        .toggles .toggle {
+          font-size: 9px;
+          padding: 4px 7px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .mark span {
+          display: none;
+        }
+
+        .rail .channel-tabs,
+        .kbd {
+          display: none;
+        }
+
+        .graph-caption {
+          padding: 4px var(--ci-s3);
+        }
+
+        .counter {
+          min-width: 72px;
+        }
+
+        .bezel {
+          height: 48px;
+        }
+
+        .rail {
+          height: 36px;
+          gap: 8px;
+        }
+
+        .search {
+          max-width: 160px;
+          flex: 1 1 160px;
+          min-width: 0;
+        }
+
+        .toggles {
+          min-width: 0;
+          overflow: hidden;
+        }
+
+        .toggles .toggle {
+          font-size: 9px;
+          padding: 4px 6px;
+        }
+
+        .channel {
+          height: 108px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <header class="bezel" id="bezel">
+        <div class="mark" aria-label="Application identity">
+          <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
+            <rect x="3" y="0" width="9" height="3.4" rx="1" fill="var(--ci-signal)" />
+            <rect x="1.5" y="5" width="12" height="3.4" rx="1" fill="var(--ci-text-dim)" />
+            <rect x="0.5" y="10" width="14" height="3.4" rx="1" fill="var(--ci-text-faint)" />
+          </svg>
+          <span>Cairn</span>
+          <span class="micro" style="font-size: 10px;">Architecture graph explorer</span>
+        </div>
+
+        <div class="counters" role="list" aria-label="Status counters">
+          <div class="counter" role="listitem"><b id="cNodes"></b><span>nodes</span></div>
+          <div class="counter" role="listitem"><b id="cEdges"></b><span>edges</span></div>
+          <div class="counter" role="listitem"><b id="cFindings"></b><span>findings</span></div>
+          <div class="counter" role="listitem"><b id="cErrors"></b><span>errors</span></div>
+          <div class="counter hash" role="listitem"><b id="cHash"></b><span>interface hash</span></div>
+        </div>
+
+        <div class="annunciator" id="annunciator">Synced</div>
+      </header>
+
+      <div class="rail">
+        <span class="micro">Graph</span>
+        <label class="search" aria-label="Node query">
+          <svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true">
+            <circle cx="5" cy="5" r="3.4" fill="none" stroke="var(--ci-text-faint)" />
+            <path d="M8 8l2.2 2.2" stroke="var(--ci-text-faint)" />
+          </svg>
+          <input id="query" type="search" placeholder="Find a node" />
+          <span class="kbd">/</span>
+        </label>
+
+        <div class="toggles" role="group" aria-label="Kind filters">
+          <button class="toggle" id="k-system" aria-pressed="true" data-kind="system">System</button>
+          <button class="toggle" id="k-container" aria-pressed="true" data-kind="container">Container</button>
+          <button class="toggle" id="k-module" aria-pressed="true" data-kind="module">Module</button>
+        </div>
+
+        <div class="channel-tabs" role="group" aria-label="Node modes" style="margin-left: auto;">
+          <button class="chan" id="bring" style="padding: 6px 8px;" aria-pressed="true">Bring in view</button>
+          <button class="chan" id="clear" style="padding: 6px 8px;" aria-pressed="true">Clear</button>
+        </div>
+      </div>
+
+      <div class="workbench">
+        <section class="panel graph-window" aria-label="Graph workspace">
+          <div class="graph-caption">
+            <span class="micro">Graph</span>
+            <span id="graphSummary">Loading graph…</span>
+          </div>
+          <div class="graph-well" id="graphWell">
+            <svg id="canvas" class="graph-svg" role="img" aria-label="Dependency graph"></svg>
+            <div class="legend">
+              <span class="item"><span class="state-key synced"></span>Synced</span>
+              <span class="item"><span class="state-key ghost"></span>Ghost</span>
+              <span class="item"><span class="state-key orphaned"></span>Orphaned</span>
+              <span class="item"><span class="state-key drift"></span>Drift</span>
+            </div>
+          </div>
+          <div class="channel" role="region" aria-label="Bottom channel">
+            <div class="channel-head">
+              <span class="micro">Signal channel</span>
+              <div class="channel-tabs" role="group" aria-label="Signal tabs">
+                <button class="chan" data-channel="findings" aria-pressed="true">Findings</button>
+                <button class="chan" data-channel="drift" aria-pressed="false">Drift</button>
+                <button class="chan" data-channel="changes" aria-pressed="false">Changes</button>
+                <button class="chan" data-channel="backlog" aria-pressed="false">Backlog</button>
+              </div>
+            </div>
+            <div class="channel-body" id="channelBody"></div>
+          </div>
+        </section>
+
+        <aside class="panel evidence">
+          <div class="evidence-head">
+            <span class="micro">Evidence rail</span>
+            <h2 id="nodeName"></h2>
+            <div class="id"><span id="nodeId"></span></div>
+            <div class="state micro" id="nodeState"></div>
+            <div class="selected-focus" id="selectedFocus"></div>
+            <div class="state micro" id="selectionCounter"></div>
+
+            <div class="mode-tabs" role="tablist" aria-label="Evidence mode">
+              <button class="tab" id="mode-depth" role="tab" aria-selected="true" data-mode="depth">Depth</button>
+              <button class="tab" role="tab" aria-selected="false" data-mode="lineage">Lineage</button>
+              <button class="tab" role="tab" aria-selected="false" data-mode="blueprint">Blueprint</button>
+            </div>
+          </div>
+          <div class="evidence-body" id="evidenceBody"></div>
+        </aside>
+      </div>
+    </div>
+
+    <script src="./data.js"></script>
+    <script>
+      const D = window.CAIRN_STUDIO_DATA;
+      const nodes = D.nodes;
+      const edges = D.edges;
+      const byId = Object.fromEntries(nodes.map((n) => [n.id, n]));
+      const root = document.getElementById('app');
+      const canvas = document.getElementById('canvas');
+      const graphWell = document.getElementById('graphWell');
+      const channelBody = document.getElementById('channelBody');
+      const evidenceBody = document.getElementById('evidenceBody');
+
+      const queryInput = document.getElementById('query');
+      const bringBtn = document.getElementById('bring');
+      const clearBtn = document.getElementById('clear');
+      const chanButtons = [...document.querySelectorAll('[data-channel]')];
+      const modeTabs = [...document.querySelectorAll('[data-mode]')];
+      const kindButtons = [...document.querySelectorAll('[data-kind]')];
+
+      const cNodes = document.getElementById('cNodes');
+      const cEdges = document.getElementById('cEdges');
+      const cFindings = document.getElementById('cFindings');
+      const cErrors = document.getElementById('cErrors');
+      const cHash = document.getElementById('cHash');
+      const annunciator = document.getElementById('annunciator');
+      const graphSummary = document.getElementById('graphSummary');
+      const nodeName = document.getElementById('nodeName');
+      const nodeId = document.getElementById('nodeId');
+      const nodeState = document.getElementById('nodeState');
+      const selectedFocus = document.getElementById('selectedFocus');
+      const selectionCounter = document.getElementById('selectionCounter');
+
+      const NS = 'http://www.w3.org/2000/svg';
+      const stateTone = {
+        synced: 'Synced',
+        ghost: 'Ghost',
+        orphaned: 'Orphaned',
+      };
+
+      const filters = {
+        kind: {system: true, container: true, module: true},
+      };
+
+      let state = {
+        query: '',
+        selected: D.defaultSelection || 'cairn',
+        selectedMode: 'depth',
+        selectedChannel: 'findings',
+      };
+
+      const nodeEl = {};
+      let nodePos = {};
+      let selectionSet = new Set();
+      let nodesInView = [];
+      let edgeEls = [];
+      let isNarrow = false;
+
+      function shortText(value, max) {
+        if (!value) return '';
+        return value.length > max ? value.slice(0, max - 1) + '…' : value;
+      }
+
+      function fmtStateCount(value) {
+        return String(value == null ? 0 : value);
+      }
+
+      function refreshCounters() {
+        cNodes.textContent = String(D.graph.nodes.length);
+        cEdges.textContent = String(D.graph.edges.length);
+        cFindings.textContent = String(D.lint.findings.length);
+        cErrors.textContent = String(D.status.errors || 0);
+        cHash.textContent = D.status.interface_hash || 'missing';
+        graphSummary.textContent = `${D.graph.nodes.length} nodes and ${D.graph.edges.length} links`; 
+      }
+
+      function stateClass(node) {
+        if (node.state === 'ghost') return 'ghost';
+        if (node.state === 'orphaned') return 'orphaned';
+        if (node.state === 'drift') return 'drift';
+        return 'synced';
+      }
+
+      function visibleMode() {
+        return window.innerWidth <= 900;
+      }
+
+      function matchQuery(node, q) {
+        if (!q) return true;
+        const hay = `${node.id} ${node.name} ${node.kind} ${node.description || ''}`.toLowerCase();
+        if (hay.includes(q)) return true;
+        if (node.state && node.state.toLowerCase() === q) return true;
+        return false;
+      }
+
+      function matchesFilters(node) {
+        if (!filters.kind[node.kind]) return false;
+        if (!matchQuery(node, state.query)) return false;
+        return true;
+      }
+
+      function setMode(mode) {
+        state.selectedMode = mode;
+        modeTabs.forEach((btn) => {
+          const active = btn.dataset.mode === mode;
+          btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        renderEvidence();
+      }
+
+      function setChannel(channel) {
+        state.selectedChannel = channel;
+        chanButtons.forEach((btn) => {
+          const active = btn.dataset.channel === channel;
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        renderChannel();
+      }
+
+      function edgeByNodes() {
+        const out = {};
+        for (const e of edges) {
+          const arr = out[e.from] || (out[e.from] = []);
+          arr.push(e);
+        }
+        return out;
+      }
+
+      const edgesByFrom = edgeByNodes();
+
+      function adjacent(id) {
+        const set = new Set([id]);
+        for (const e of edges) {
+          if (e.from === id) set.add(e.to);
+          if (e.to === id) set.add(e.from);
+        }
+        return set;
+      }
+
+      function nodeShapeWidth(node, maxW) {
+        if (node.kind === 'system') return Math.max(340, Math.min(460, maxW * 0.52));
+        if (node.kind === 'container') return Math.max(150, Math.min(220, isNarrow ? maxW * 0.4 : 170));
+        return Math.min(160, Math.max(96, 44 + node.name.length * 6.0));
+      }
+
+      function nodeShapeHeight() {
+        return isNarrow ? 36 : 38;
+      }
+
+      function layout() {
+        isNarrow = visibleMode();
+        const system = nodes.find((n) => n.kind === 'system');
+        const kernel = nodes.find((n) => n.id === 'cairn.kernel');
+        const containerMembers = kernel
+          ? nodes.filter((n) => n.parent === 'cairn.kernel')
+          : [];
+        const surfaceModules = nodes.filter(
+          (n) => n.kind === 'module' && (n.parent === 'cairn' || !n.parent || n.parent === null)
+        );
+
+        const groups = [];
+        if (system) groups.push([system]);
+        if (kernel) {
+          const cRow = [kernel, ...containerMembers];
+          groups.push(cRow);
+        }
+        if (surfaceModules.length) groups.push(surfaceModules);
+
+        const orphanModules = nodes.filter(
+          (n) => n.kind === 'module' && n.parent && !['cairn', 'cairn.kernel'].includes(n.parent) && n.id !== kernel?.id && !surfaceModules.includes(n)
+        );
+        if (orphanModules.length) {
+          groups.push(orphanModules);
+        }
+
+        const graphWidth = Math.max(260, graphWell.clientWidth - 10);
+        const h = nodeShapeHeight();
+        const gapX = 8;
+        const gapY = isNarrow ? 10 : 14;
+        const marginX = 12;
+        let y = 20;
+        const heightPad = 10;
+
+        for (const rowNodes of groups) {
+          const rowKindLabel = rowNodes[0]?.kind === 'system' ? 'system' : rowNodes.length ? rowNodes[0]?.kind : 'module';
+
+          let x = marginX;
+          let rowMaxY = y;
+          if (rowKindLabel !== 'system') {
+            const labelY = y;
+            const label =
+              rowNodes[0]?.kind === 'container' ?
+              'Kernel container' :
+              'Surface modules';
+            const textX = marginX;
+            const txt = document.createElementNS(NS, 'text');
+            txt.setAttribute('x', String(textX));
+            txt.setAttribute('y', String(labelY));
+            txt.setAttribute('class', 'bracket-label');
+            txt.textContent = label;
+            canvas.appendChild(txt);
+            y += 12;
+          }
+
+          for (const node of rowNodes) {
+            const w = nodeShapeWidth(node, graphWidth);
+            const space = w + gapX;
+            if (x + w + 6 > graphWidth) {
+              y = rowMaxY + h + gapY;
+              x = marginX;
+            }
+            nodePos[node.id] = { x, y, w, h };
+            x += space;
+            rowMaxY = Math.max(rowMaxY, y + h);
+          }
+          y = rowMaxY + 22;
+
+          const first = rowNodes[0];
+          const minX = marginX - 8;
+          const maxX = Math.max(...rowNodes.map((n) => nodePos[n.id].x + nodePos[n.id].w)) + 8;
+          const minY = nodePos[first.id].y - 6;
+          const maxY = rowMaxY + 6;
+          const bracket = document.createElementNS(NS, 'path');
+          bracket.setAttribute('class', 'bracket');
+          bracket.setAttribute('d', `M ${minX} ${minY} L ${minX - 10} ${minY} L ${minX - 10} ${maxY} L ${minX} ${maxY}`);
+          canvas.appendChild(bracket);
+          if (rowKindLabel !== 'system') {
+            const label = document.createElementNS(NS, 'text');
+            label.setAttribute('x', String(minX - 12));
+            label.setAttribute('y', String(minY + 8));
+            label.setAttribute('class', 'bracket-label');
+            label.setAttribute('text-anchor', 'end');
+            label.textContent = rowKindLabel;
+            canvas.appendChild(label);
+          }
+        }
+
+        const maxX = Math.max(...nodes.map((n) => nodePos[n.id].x + nodePos[n.id].w));
+        const maxY = Math.max(...nodes.map((n) => nodePos[n.id].y + nodePos[n.id].h));
+        const canvasW = Math.max(260, Math.round(maxX + 18));
+        const canvasH = Math.max(180, Math.round(maxY + heightPad));
+        canvas.setAttribute('viewBox', `0 0 ${canvasW} ${canvasH}`);
+        canvas.setAttribute('width', String(canvasW));
+        canvas.setAttribute('height', String(canvasH));
+        graphWell.style.height = `${Math.max(210, Math.min(canvasH + 14, graphWell.clientHeight))}px`;
+      }
+
+      function pathForEdge(a, b) {
+        const ah = a.x + a.w / 2;
+        const av = a.y + a.h;
+        const bh = b.x + b.w / 2;
+        const bv = b.y;
+        const mid = (av + bv) / 2;
+        return `M ${ah} ${av} C ${ah} ${mid}, ${bh} ${mid}, ${bh} ${bv}`;
+      }
+
+      function renderGraph() {
+        canvas.innerHTML = '';
+        nodePos = {};
+        edgeEls = [];
+
+        const width = Math.max(1, graphWell.clientWidth);
+        if (width < 420) isNarrow = true;
+        layout();
+
+        for (const edge of edges) {
+          const from = nodePos[edge.from];
+          const to = nodePos[edge.to];
+          if (!from || !to) continue;
+          const p = document.createElementNS(NS, 'path');
+          p.setAttribute('class', 'edge');
+          p.setAttribute('d', pathForEdge(from, to));
+          p.dataset.from = edge.from;
+          p.dataset.to = edge.to;
+
+          const arrow = document.createElementNS(NS, 'polygon');
+          arrow.setAttribute('class', 'arrow');
+          arrow.setAttribute('points', `${to.x + to.w / 2 - 3},${to.y - 3} ${to.x + to.w / 2 + 3},${to.y - 3} ${to.x + to.w / 2},${to.y + 3}`);
+
+          canvas.appendChild(p);
+          canvas.appendChild(arrow);
+          edgeEls.push({line: p, arrow, from: edge.from, to: edge.to});
+        }
+
+        for (const node of nodes) {
+          const p = nodePos[node.id];
+          const g = document.createElementNS(NS, 'g');
+          g.classList.add('node');
+          g.setAttribute('role', 'button');
+          g.setAttribute('tabindex', '0');
+          g.dataset.id = node.id;
+          g.setAttribute('aria-label', node.name);
+          g.addEventListener('click', () => selectNode(node.id));
+          g.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              selectNode(node.id);
+            }
+          });
+
+          const body = document.createElementNS(NS, 'rect');
+          body.setAttribute('class', 'body');
+          body.setAttribute('x', String(p.x));
+          body.setAttribute('y', String(p.y));
+          body.setAttribute('width', String(p.w));
+          body.setAttribute('height', String(p.h));
+          body.setAttribute('rx', '3');
+          g.appendChild(body);
+
+          const keel = document.createElementNS(NS, 'rect');
+          keel.setAttribute('class', 'keel');
+          keel.setAttribute('x', String(p.x));
+          keel.setAttribute('y', String(p.y));
+          keel.setAttribute('width', String(Math.max(2, isNarrow ? 2.4 : 3)));
+          keel.setAttribute('height', String(p.h));
+          g.appendChild(keel);
+
+          const name = document.createElementNS(NS, 'text');
+          name.setAttribute('x', String(p.x + 8));
+          name.setAttribute('y', String(p.y + 15));
+          name.setAttribute('class', 'name');
+          name.setAttribute('font-size', isNarrow ? '10.5' : '11.5');
+          name.textContent = shortText(node.name, isNarrow ? 16 : 24);
+          g.appendChild(name);
+
+          const meta = document.createElementNS(NS, 'text');
+          meta.setAttribute('x', String(p.x + 8));
+          meta.setAttribute('y', String(p.y + 26));
+          meta.setAttribute('class', 'meta');
+          meta.textContent = `${node.kind} · ${node.files ? `${node.files.length || node.files} files` : `${node.files || 0} files`} · ${node.children ? node.children.length : 0} members`;
+          meta.setAttribute('font-size', isNarrow ? '8.5' : '9');
+          g.appendChild(meta);
+
+          const stateName = node.state || 'synced';
+          g.classList.add(stateClass({state: stateName}));
+          g.dataset.state = stateName;
+          g.dataset.kind = node.kind;
+
+          nodeEl[node.id] = g;
+          canvas.appendChild(g);
+        }
+
+        applyFiltersAndSelection();
+      }
+
+      function applyFiltersAndSelection() {
+        const q = state.query;
+        const visibleIds = new Set();
+        const visibleNodes = [];
+
+        nodes.forEach((node) => {
+          const keep = matchesFilters(node);
+          const g = nodeEl[node.id];
+          if (!g) return;
+
+          if (keep) {
+            g.style.opacity = '';
+            g.classList.remove('hidden');
+            visibleIds.add(node.id);
+            visibleNodes.push(node);
+          } else {
+            g.style.opacity = '0';
+            g.classList.add('hidden');
+            g.classList.remove('dim');
+          }
+        });
+
+        nodesInView = visibleNodes;
+        graphSummary.textContent = `${visibleNodes.length} of ${nodes.length} nodes visible · ${edges.length} links`;
+
+        const selectedNode = byId[state.selected];
+        const related = selectedNode ? adjacent(state.selected) : new Set();
+
+        Object.entries(nodeEl).forEach(([id, g]) => {
+          if (g.classList.contains('hidden')) {
+            return;
+          }
+          g.classList.toggle('selected', id === state.selected);
+          g.classList.toggle('dim', selectedNode ? !related.has(id) : false);
+        });
+
+        edgeEls.forEach((entry) => {
+          const active = state.selected && (entry.from === state.selected || entry.to === state.selected);
+          entry.line.classList.toggle('hit', active);
+          entry.line.classList.toggle('dim', selectedNode && !active);
+          entry.arrow.classList.toggle('hit', active);
+          entry.arrow.classList.toggle('dim', selectedNode && !active);
+          entry.arrow.classList.toggle('dim', selectedNode && !active);
+        });
+
+        if (!selectedNode || !nodePos[state.selected]) {
+          return;
+        }
+
+        if (isNarrow) {
+          graphWell.scrollTop = Math.max(0, selectedNode ? nodePos[state.selected].y - graphWell.clientHeight * 0.25 : 0);
+        }
+      }
+
+      function renderEvidence() {
+        const node = byId[state.selected];
+        if (!node) return;
+
+        nodeName.textContent = node.name;
+        nodeId.textContent = node.id;
+        nodeState.textContent = stateTone[node.state || 'synced'];
+        selectedFocus.textContent = `${node.kind} · parent ${node.parent || 'none'} · state ${node.state || 'synced'}`;
+        const related = adjacent(state.selected);
+        selectionCounter.textContent = `${related.size} linked nodes in this view`;
+
+        evidenceBody.textContent = '';
+
+        if (state.selectedMode === 'depth') {
+          const facts = [
+            ['Kind', node.kind],
+            ['Files', `${node.files ? node.files.length : 0}`],
+            ['Children', `${node.children ? node.children.length : 0}`],
+            ['Paths', `${node.paths ? node.paths.length : 0}`],
+            ['Contracts', `${(node.contracts || []).length}`],
+            ['Tags', (node.tags || []).join(', ') || 'none'],
+            ['State', node.state || 'synced'],
+          ];
+
+          const section = document.createElement('section');
+          section.className = 'evidence-section';
+          const h3 = document.createElement('h3');
+          h3.textContent = 'Depth';
+          section.appendChild(h3);
+          const table = document.createElement('table');
+          table.className = 'kv';
+          for (const [k, v] of facts) {
+            const row = table.insertRow();
+            const kCell = row.insertCell();
+            kCell.textContent = k;
+            const vCell = row.insertCell();
+            vCell.className = 'code';
+            vCell.textContent = v;
+          }
+          section.appendChild(table);
+          evidenceBody.appendChild(section);
+
+          const edgesSection = document.createElement('section');
+          edgesSection.className = 'evidence-section';
+          const eHead = document.createElement('h3');
+          eHead.textContent = 'In and out';
+          edgesSection.appendChild(eHead);
+
+          const ins = edges.filter((edge) => edge.to === state.selected);
+          const outs = edges.filter((edge) => edge.from === state.selected);
+          if (!ins.length && !outs.length) {
+            const p = document.createElement('div');
+            p.className = 'muted';
+            p.textContent = 'No dependency links for this node in the fixture.';
+            edgesSection.appendChild(p);
+          }
+
+          const edgeList = (rows, dir) => {
+            for (const row of rows) {
+              const item = document.createElement('div');
+              item.className = 'edge-row';
+              const label = document.createElement('div');
+              label.className = 'dir';
+              label.textContent = dir;
+              const targetId = dir === 'IN' ? row.from : row.to;
+              const target = document.createElement('span');
+              target.className = 'target';
+              target.textContent = byId[targetId]?.name || targetId;
+              target.addEventListener('click', () => {
+                selectNode(targetId);
+              });
+              const why = document.createElement('span');
+              why.className = 'link';
+              why.textContent = ` ${row.kind}: ${row.description || row.kind}`;
+              item.appendChild(label);
+              item.appendChild(target);
+              item.appendChild(why);
+              edgesSection.appendChild(item);
+            }
+          };
+
+          edgeList(ins, 'IN');
+          edgeList(outs, 'OUT');
+          evidenceBody.appendChild(edgesSection);
+
+          const line1 = document.createElement('section');
+          line1.className = 'evidence-section';
+          const h31 = document.createElement('h3');
+          h31.textContent = 'Path and source';
+          line1.appendChild(h31);
+          const source = document.createElement('div');
+          source.className = 'muted';
+          if ((node.paths || []).length) {
+            source.innerHTML = `<div>Primary path: <span class="code">${node.paths[0]}</span></div>`;
+          } else {
+            source.textContent = 'No path path claims in fixture payload for this node.';
+          }
+          line1.appendChild(source);
+          evidenceBody.appendChild(line1);
+          return;
+        }
+
+        if (state.selectedMode === 'lineage') {
+          const section = document.createElement('section');
+          section.className = 'evidence-section';
+          const h3 = document.createElement('h3');
+          h3.textContent = 'Two chain lineage';
+          section.appendChild(h3);
+
+          const payload = D.nodePayload[state.selected] || {};
+          const records =
+            payload.endpoints?.decisions?.artefacts ||
+            [];
+          if (!records.length) {
+            const e = document.createElement('div');
+            e.className = 'muted';
+            e.textContent = 'No decision records were attached to this node in the frozen fixture.';
+            section.appendChild(e);
+          } else {
+            for (const d of records) {
+              const card = document.createElement('div');
+              card.className = 'artefact';
+              const title = document.createElement('div');
+              title.className = 'artefact-title';
+              title.textContent = d.title || d.path || d.type || 'Decision';
+              const meta = document.createElement('div');
+              meta.className = 'artefact-meta';
+              const id = d.frontmatter?.id || 'unknown';
+              const date = d.frontmatter?.date || 'unknown';
+              meta.textContent = `${id} · ${d.frontmatter?.status || 'unknown'} · ${date}`;
+              const body = document.createElement('div');
+              body.className = 'artefact-body';
+              body.textContent = (d.body || '').slice(0, 260);
+              card.appendChild(title);
+              card.appendChild(meta);
+              card.appendChild(body);
+              section.appendChild(card);
+            }
+          }
+          evidenceBody.appendChild(section);
+          return;
+        }
+
+        const bp = document.createElement('section');
+        bp.className = 'evidence-section';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Blueprint and source text';
+        bp.appendChild(h3);
+        const src = document.createElement('pre');
+        src.className = 'source-code';
+        const raw = (D.blueprint && D.blueprint.source) || '';
+        src.textContent = raw ? raw.split('\n').slice(0, 18).join('\n') : 'Blueprint source unavailable in fixture.';
+        bp.appendChild(src);
+        evidenceBody.appendChild(bp);
+      }
+
+      function renderChannel() {
+        channelBody.textContent = '';
+        if (state.selectedChannel === 'findings') {
+          if ((D.lint.findings || []).length === 0) {
+            const row = document.createElement('div');
+            row.className = 'muted';
+            row.textContent = 'No findings in frozen fixture data.';
+            channelBody.appendChild(row);
+          } else {
+            for (const finding of D.lint.findings) {
+              const row = document.createElement('div');
+              row.className = 'row';
+              const tag = document.createElement('span');
+              tag.className = 'chan-pill';
+              tag.textContent = finding.severity || 'info';
+              const code = document.createElement('span');
+              code.className = 'code';
+              code.textContent = finding.code || 'N/A';
+              const text = document.createElement('span');
+              text.textContent = finding.title || 'No finding title';
+              row.appendChild(tag);
+              row.appendChild(code);
+              row.appendChild(text);
+              channelBody.appendChild(row);
+            }
+          }
+          return;
+        }
+
+        if (state.selectedChannel === 'drift') {
+          const row = document.createElement('div');
+          row.className = 'muted';
+          row.textContent = 'No drift items in frozen fixture status.';
+          channelBody.appendChild(row);
+          return;
+        }
+
+        if (state.selectedChannel === 'changes' || state.selectedChannel === 'backlog') {
+          const row = document.createElement('div');
+          row.className = 'muted';
+          row.textContent = 'No active changes or backlog records are included in this frozen snapshot.';
+          channelBody.appendChild(row);
+          return;
+        }
+      }
+
+      function selectNode(id) {
+        state.selected = id;
+        applyFiltersAndSelection();
+        renderEvidence();
+        scrollNodeIntoView(id);
+      }
+
+      function scrollNodeIntoView(id) {
+        const node = nodePos[id];
+        if (!node) return;
+        const cx = node.x + node.w / 2;
+        const cy = node.y + node.h / 2;
+        const rect = graphWell.getBoundingClientRect();
+        const scaleX = canvas.clientWidth / Number(canvas.getAttribute('width'));
+        const scaleY = canvas.clientHeight / Number(canvas.getAttribute('height'));
+        graphWell.scrollLeft = Math.max(0, Math.min(graphWell.scrollWidth, cx * scaleX - rect.width / 2));
+        graphWell.scrollTop = Math.max(0, Math.min(graphWell.scrollHeight, cy * scaleY - rect.height / 2));
+      }
+
+      function onQuery() {
+        const q = queryInput.value.trim().toLowerCase();
+        state.query = q;
+        applyFiltersAndSelection();
+      }
+
+      function applyKind(kind, value) {
+        filters.kind[kind] = value;
+        applyFiltersAndSelection();
+      }
+
+      kindButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const kind = btn.dataset.kind;
+          const pressed = btn.getAttribute('aria-pressed') === 'true';
+          const next = !pressed;
+          btn.setAttribute('aria-pressed', String(next));
+          applyKind(kind, next);
+        });
+      });
+
+      modeTabs.forEach((btn) => {
+        btn.addEventListener('click', () => setMode(btn.dataset.mode));
+      });
+
+      chanButtons.forEach((btn) => {
+        btn.addEventListener('click', () => setChannel(btn.dataset.channel));
+      });
+
+      bringBtn.addEventListener('click', () => {
+        scrollNodeIntoView(state.selected);
+      });
+
+      clearBtn.addEventListener('click', () => {
+        queryInput.value = '';
+        state.query = '';
+        applyFiltersAndSelection();
+      });
+
+      queryInput.addEventListener('input', () => {
+        state.query = queryInput.value.trim().toLowerCase();
+        applyFiltersAndSelection();
+      });
+
+      queryInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const match = nodes.find((n) =>
+            !nodeEl[n.id].classList.contains('hidden') && !nodeEl[n.id].classList.contains('dim') && matchesFilters(n)
+          );
+          if (match) selectNode(match.id);
+        }
+        if (e.key === 'Escape') {
+          queryInput.value = '';
+          state.query = '';
+          applyFiltersAndSelection();
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement !== queryInput) {
+          e.preventDefault();
+          queryInput.focus();
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        renderGraph();
+        applyFiltersAndSelection();
+        setMode(state.selectedMode);
+      });
+
+      refreshCounters();
+      renderGraph();
+      renderEvidence();
+      renderChannel();
+      selectNode(state.selected);
+      if (D.status.findings) {
+        annunciator.textContent = D.status.findings > 0 ? 'Warning' : 'Synced';
+        annunciator.classList.toggle('drift', D.status.findings > 0);
+      }
+
+      if (location.hash === '#node=cairn') {
+        selectNode('cairn');
+      }
+    </script>
+  </body>
+</html>

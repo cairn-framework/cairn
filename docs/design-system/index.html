@@ -126,7 +126,8 @@
       <li><a href="#drawer">19. Changes drawer</a></li>
       <li><a href="#logo">20. Logo mark</a></li>
       <li><a href="#empty-state">21. Empty state</a></li>
-      <li><a href="#glossary">22. Glossary</a></li>
+      <li><a href="#components">22. Component classes</a></li>
+      <li><a href="#glossary">23. Glossary</a></li>
     </ol>
   </aside>
 
@@ -860,6 +861,163 @@ module saas.api.auth {
           </div>
         </div>
         <div class="demo-label">Without CTA<span class="code">.empty-state<br>.empty-state-heading<br>.empty-state-body</span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <section class="block" id="components">
+      <div class="section-kicker">22 . Component classes</div>
+      <h2 class="section-title">Component library</h2>
+      <p class="section-lede">Canonical region classes for the webui redesign, with one token style source.</p>
+
+      <div class="section-note">
+        <h3 class="sub-title">Class inventory</h3>
+        <p>Instrument shell, status bezel, query rail, graph canvas, node module, evidence rail, node depth plate, lineage plate, blueprint plate, channel bar, and state legend.</p>
+        <ul>
+          <li><code>.instrument-shell</code></li>
+          <li><code>.status-bezel</code></li>
+          <li><code>.query-rail</code></li>
+          <li><code>.graph-canvas</code></li>
+          <li><code>.node-module</code> and <code>.synced</code> / <code>.ghost</code> / <code>.orphaned</code> / <code>.drift</code> variants</li>
+          <li><code>.evidence-rail</code></li>
+          <li><code>.node-depth-plate</code></li>
+          <li><code>.lineage-plate</code></li>
+          <li><code>.blueprint-plate</code></li>
+          <li><code>.channel-bar</code></li>
+          <li><code>.state-legend</code></li>
+        </ul>
+      </div>
+
+      <div class="demo-stage">
+        <div class="instrument-shell" style="height: calc(var(--s-12) * 10); width: 100%; max-width: none;">
+          <div class="status-bezel">
+            <div class="status-kicker">Cairn Graph Explorer</div>
+            <div class="status-grid">
+              <div class="status-cell">nodes <strong>24</strong></div>
+              <div class="status-cell">edges <strong>27</strong></div>
+              <div class="status-cell">findings <strong>2</strong></div>
+              <div class="status-annunciator synced">Synced</div>
+            </div>
+          </div>
+
+          <div class="query-rail">
+            <input class="query-input" value="blueprint id::cairn.ui" />
+            <span class="query-chip active">state: synced</span>
+            <span class="query-action">Focus</span>
+          </div>
+
+          <div class="instrument-workspace">
+            <section class="graph-canvas">
+              <h2 class="graph-head">Map</h2>
+              <div class="graph-stage">
+                <article class="node-module synced">
+                  <span class="state-dot"></span>
+                  <p class="node-id">cairn.ui</p>
+                  <h3 class="node-name">Web UI surface</h3>
+                  <p class="node-meta">2 files, 1 contract, 4 artefacts</p>
+                  <p class="node-count">IN 2</p>
+                </article>
+
+                <article class="node-module ghost">
+                  <span class="state-dot"></span>
+                  <p class="node-id">cairn.shells</p>
+                  <h3 class="node-name">Shell container</h3>
+                  <p class="node-meta">Planned in roadmap, no concrete module yet</p>
+                  <p class="node-count">IN 1</p>
+                </article>
+
+                <article class="node-module orphaned">
+                  <span class="state-dot"></span>
+                  <p class="node-id">cairn.runtime</p>
+                  <h3 class="node-name">Runtime bridge</h3>
+                  <p class="node-meta">Observed in code, missing declaration</p>
+                  <p class="node-count">OUT 4</p>
+                </article>
+
+                <article class="node-module drift">
+                  <span class="state-dot"></span>
+                  <p class="node-id">cairn.reports</p>
+                  <h3 class="node-name">Report generator</h3>
+                  <p class="node-meta">Drifted interface hash</p>
+                  <p class="node-count">IN 1</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="evidence-rail">
+              <div class="rail-head">
+                <h2 class="rail-title">Node facts</h2>
+                <div class="rail-tabbar">
+                  <span class="rail-tab active">Depth</span>
+                  <span class="rail-tab">Lineage</span>
+                  <span class="rail-tab">Blueprint</span>
+                </div>
+              </div>
+              <div class="rail-body">
+                <div class="node-depth-plate">
+                  <h3 class="plate-title">Node depth</h3>
+                  <dl class="plate-kv">
+                    <dt>id</dt><dd>cairn.ui</dd>
+                    <dt>state</dt><dd>synced</dd>
+                    <dt>path</dt><dd>src/ui_assets</dd>
+                    <dt>files</dt><dd>28</dd>
+                  </dl>
+                  <div class="edge-group">
+                    <div class="edge-row"><div class="edge-dir">in</div><p class="edge-target">cairn.kernel</p></div>
+                    <div class="edge-row"><div class="edge-dir">out</div><p class="edge-target">cairn.cli</p></div>
+                  </div>
+                </div>
+
+                <div class="lineage-plate">
+                  <h3 class="plate-title">Lineage</h3>
+                  <div class="lineage-stage">
+                    <div class="lineage-kind">Evidence</div>
+                    <div class="lineage-title">map fixture</div>
+                  </div>
+                  <div class="lineage-stage">
+                    <div class="lineage-kind">Hinge</div>
+                    <div class="lineage-title">dec.webui-design-direction</div>
+                    <div class="lineage-meta">2026-06-23</div>
+                  </div>
+                  <div class="lineage-stage">
+                    <div class="lineage-kind">Authority</div>
+                    <div class="lineage-title">dec.webui-design-token-gate</div>
+                  </div>
+                </div>
+
+                <div class="blueprint-plate">
+                  <h3 class="plate-title">Blueprint</h3>
+                  <pre>name: cairn.ui
+status: synced
+state: stable</pre>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="channel-bar">
+            <div class="channel-tabs">
+              <span class="channel-tab active">Findings</span>
+              <span class="channel-tab">Drift</span>
+              <span class="channel-tab">Changes</span>
+              <span class="channel-tab">Backlog</span>
+            </div>
+            <div class="channel-body">
+              <div class="channel-item">Findings channel is scrollable and stays visible.</div>
+              <div class="channel-item">No selection is lost while reviewing channel entries.</div>
+            </div>
+          </div>
+
+          <div class="state-legend">
+            <div class="legend-title">State legend</div>
+            <div class="legend-grid">
+              <div class="legend-item synced"><span class="legend-key"></span><span class="legend-label"><strong>Synced</strong> calm and reconciled</span></div>
+              <div class="legend-item ghost"><span class="legend-key"></span><span class="legend-label"><strong>Ghost</strong> declared but absent</span></div>
+              <div class="legend-item orphaned"><span class="legend-key"></span><span class="legend-label"><strong>Orphaned</strong> observed but undeclared</span></div>
+              <div class="legend-item drift"><span class="legend-key"></span><span class="legend-label"><strong>Drift</strong> requires attention</span></div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
