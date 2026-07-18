@@ -26,6 +26,7 @@
 
   /* Drift family. */
   --ci-amber: #d99a2b;
+  --ci-ember: #d98a70;
 
   /* Structure and texture. */
   --ci-hairline: #3a382f;
@@ -140,7 +141,7 @@
   --synced: var(--ci-signal);
   --synced-wash: rgba(95, 179, 154, 0.12);
 
-  --error: var(--drift);
+  --error: var(--ci-ember);
   --warning: var(--ci-amber);
   --info: var(--ink-aged);
 
