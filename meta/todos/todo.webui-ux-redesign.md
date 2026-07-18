@@ -64,8 +64,12 @@ skill under `harness-output/design-system/skill/`):
 - `README.md` and the live reference updated in the same commit as
   every token/component change, per the design-system contract.
 - Gates keep passing throughout (`scripts/check-design-tokens.sh`,
-  biome); the landing page and other token consumers stay conformant
-  with the reconciled set.
+  biome); extend the token-gate script to cover the rebuilt
+  `components.css`, per the extension mechanism
+  `dec.webui-design-token-gate` prescribes (today it checks only
+  `src/ui_assets/style.css` and `docs/landing/index.html`); the
+  landing page and other token consumers stay conformant with the
+  reconciled set.
 - Resolve the stale `docs/design-system/NEXT_SESSION.md` handoff: fold
   its still-valid items into the UX brief or discard them explicitly,
   then retire the file.
@@ -90,10 +94,11 @@ palette, drawer, modal, legend placement, topbar arrangement) when
 its job analysis supports a better interaction; no landed control is
 sacred.
 
-Do not foreclose the future two-way exploration (webui feedback/notes
-flowing to the harness via the `cairn feedback` / `.cairn/feedback.md`
-seam): keep rendering and data access seams clean enough that a write
-path could be added later. Building that path is out of scope.
+Non-binding future note (`dec.webui-ux-first-redesign`): a two-way
+exploration (webui feedback/notes flowing to the harness via the
+`cairn feedback` / `.cairn/feedback.md` seam) may be taken up later.
+Building it, or designing for it, is out of scope here and carries no
+acceptance criterion.
 
 ### 4. Verify with the eval loop
 
@@ -107,7 +112,7 @@ console errors, no page-frame overflow at 390px and 683px.
 Public assets bake in the webui's look and go stale after this lands:
 README (`webui.gif`, `design-system.png`, `landing-full.png`), landing
 hero (`webui.mp4`, poster and og:image `webui-graph.png`),
-`docs/assets/screenshots/`, visual harness baselines. Tracked in
+`docs/assets/screenshots/`, visual harness scenarios. Tracked in
 `todo.ui-asset-refresh`, which this todo unblocks.
 
 ## Acceptance
@@ -130,8 +135,6 @@ hero (`webui.mp4`, poster and og:image `webui-graph.png`),
   graph search/query, findings review, blueprint inspection, change
   visibility, narrow-screen use. The specific controls may differ.
 - Visual harness gates pass; adversarial interaction gate clean.
-- Nothing in the implementation forecloses a later two-way feedback
-  seam.
 
 dec:dec.webui-ux-first-redesign
 dec:dec.webui-design-direction

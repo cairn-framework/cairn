@@ -13,7 +13,7 @@ first would capture the old design twice.
 ## Problem
 
 The webui's look is embedded in assets across the README, the landing
-page, and the harness. After the deck redesign they all show a UI that
+page, and the harness. After the UX redesign they all show a UI that
 no longer exists, on surfaces that are the project's first impression
 (the og:image is what every link unfurl shows).
 
@@ -32,8 +32,10 @@ no longer exists, on surfaces that are the project's first impression
   recordings with no `.tape` source; re-record manually against the
   redesigned webui. Terminal demos (`tour`, `drift`, `install`,
   `brownfield`) are unaffected.
-- Visual harness (`harness/`): re-baseline whatever `eval.mjs` gates
-  against the old rendering.
+- Visual harness (`harness/`): `eval.mjs` captures fresh screenshots
+  and computes DOM/pixel defect metrics (no stored baselines); update
+  its selectors and scenarios to the redesigned DOM so the CI
+  `ux_defect_score=0` gate measures the new UI honestly.
 - Landing page styling: verify it still reads coherently against the
   reconciled token set (the redesign todo keeps it conformant; this
   pass judges coherence, not just gate passage).
@@ -44,6 +46,7 @@ no longer exists, on surfaces that are the project's first impression
   shows the pre-redesign webui or design system.
 - Landing hero video and poster show the redesigned webui; og:image
   refreshed at the same URL path so existing unfurls update.
-- Visual harness green against the new baselines.
+- Visual harness selectors/scenarios updated; CI ux_defect_score gate
+  green against the redesigned webui.
 
 dec:dec.webui-ux-first-redesign

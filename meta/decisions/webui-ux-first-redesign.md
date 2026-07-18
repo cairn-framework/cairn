@@ -56,10 +56,16 @@ Bindings and non-bindings, stated exactly:
 - The greenfield codified output (`design-dna.md`, `tokens.css`, the
   skill) is promoted from reference material to seed corpus: the loop
   reconciles it with the current `docs/design-system/` into one
-  canonical system. The token and component gates
-  (`dec.webui-design-token-gate`) govern the result unchanged;
-  consumers (webui, landing, live reference) follow the reconciled
-  set.
+  canonical system. Token conformance is enforced by the existing
+  token gate (`dec.webui-design-token-gate`,
+  `scripts/check-design-tokens.sh`), which today covers
+  `src/ui_assets/style.css` and `docs/landing/index.html`. The
+  redesign extends that script to the rebuilt
+  `docs/design-system/components.css`, using the extension mechanism
+  that gate's own consequences prescribe (parameterised targets, no
+  new mechanism), so the system's components cannot drift from the
+  tokens. Consumers (webui, landing, live reference) follow the
+  reconciled set.
 - The implementation is component-based and modular as an outcome, not
   a mapping rule: components have cohesive responsibilities, explicit
   data and event interfaces, and independently testable rendering,
@@ -69,9 +75,9 @@ Bindings and non-bindings, stated exactly:
 - Two-way interaction (a person leaving feedback or notes in the webui
   for the harness or agents to pick up, e.g. landing in the
   `cairn feedback` / `.cairn/feedback.md` seam) is an explicit future
-  exploration, not an obligation of this implementation. The webui
-  stays read-only; the redesign must merely avoid architectural
-  choices that would foreclose a write seam later.
+  exploration, not an obligation of this implementation: the webui
+  stays read-only, no acceptance criterion attaches to the idea, and
+  taking it up later is a named revisit trigger of this decision.
 
 Execution is specified in `todo.webui-ux-redesign`.
 
@@ -79,8 +85,9 @@ Execution is specified in `todo.webui-ux-redesign`.
 
 - `todo.webui-ux-redesign` is the implementation home.
 - The redesign staleness it creates in public assets (README webui gif
-  and screenshots, landing hero video/poster and og:image, harness
-  baselines, the `docs/design-system/NEXT_SESSION.md` handoff) is
+  and screenshots, landing hero video/poster and og:image, visual
+  harness selectors/scenarios, the `docs/design-system/NEXT_SESSION.md`
+  handoff) is
   tracked in `todo.ui-asset-refresh`, downstream of the redesign.
 
 revisit_triggers:
