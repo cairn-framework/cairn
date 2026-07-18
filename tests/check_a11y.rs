@@ -77,7 +77,7 @@ fn test_check_a11y_script_behaviour() -> Result<(), Box<dyn std::error::Error>> 
 fn test_real_surfaces_are_a11y_conformant() {
     for target in [
         "src/ui_assets/index.html",
-        "docs/landing/index.html",
+        "docs/index.html",
         "src/ui_assets/app.js",
         "src/ui_assets/utils.js",
         "src/ui_assets/search.js",

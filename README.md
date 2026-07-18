@@ -26,9 +26,9 @@ Cairn is built for you if any of this sounds familiar:
 - Your agent forgets decisions and rebreaks things you settled weeks ago.
 - Work across sessions or agents drifts from the plan, and you find out too late.
 
-Cairn fixes that. You talk to your agent about what to build. Your agent writes the map as you talk: the blueprint, the contracts, the decisions. Cairn checks that map against the real code, so the plan and the shipped code always match. A declaration that disagrees with the code shows up as a finding, the same as wrong code; the map can be proven wrong, and that is exactly why you can trust it. Every future session picks up the same map and starts already knowing your system.
+Cairn fixes that. You talk to your agent about what to build. Your agent writes the map as you talk: the blueprint, the contracts, the decisions. Cairn checks that map against the real code, so the plan and the shipped code always match. A declaration that disagrees with the code shows up as a finding, the same as wrong code. Because the map can be proven wrong, you can actually trust what it says. Every future session picks up the same map and starts already knowing your system.
 
-You do almost nothing. Your agent drafts the first map in one command, and keeps it in sync as part of the work you already asked for. The map and all of its notes are plain text in your repo, plus a blueprint file and a small config file. Delete `.cairn/`, `cairn.blueprint`, `cairn.config.yaml`, and the generated map files, and you are out clean. No lock-in, no remote server, no telemetry.
+You do almost nothing. Your agent drafts the first map in one command, and keeps it in sync as part of the work you already asked for. The map and all of its notes are plain text in your repo, plus a blueprint file and a small config file. Cairn is local-first, so your project data stays on your machine. If you ever want out, delete `.cairn/`, `cairn.blueprint`, `cairn.config.yaml`, and the generated map files, and your repo is back to how it was.
 
 Think of it like a floor plan for a house. A floor plan shows which walls hold the house up, so you do not knock down the wrong one. Cairn shows which parts of your code hold everything else up, so your agent does not break them by accident.
 
@@ -54,8 +54,8 @@ Cairn is not mainly for people who want to hand-draw architecture diagrams or au
 
 Three things change the day your agent starts writing the map.
 
-- **Leaner context.** Agents query the map (`cairn context`, `cairn get`, `cairn bundle`) instead of re-reading the source tree. They get structured JSON, not prose guesses.
-- **Drift blocked at commit.** `cairn hook all` blocks commits that fight the declared structure or contracts. The mistake stops at the boundary, not in review.
+- **Leaner context.** Agents query the map (`cairn context`, `cairn get`, `cairn bundle`) instead of re-reading the source tree, and get structured JSON they can act on.
+- **Drift blocked at commit.** `cairn hook all` blocks commits that fight the declared structure or contracts, so the mistake stops at the boundary before anyone has to review it.
 - **Memory across sessions.** Decisions and the reasons behind them live next to the code in git. A fresh session inherits them instead of re-deriving them.
 
 ## Quickstart
@@ -91,32 +91,7 @@ See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install me
 
 **The Clean Exit Guarantee.** Try Cairn on a branch. If you hate it, delete `cairn.blueprint`, `cairn.config.yaml`, `.cairn/`, and the generated map files, and take the pasted section back out of your agent instructions. Your repo is exactly what it was.
 
-**The Nothing-Leaves-Your-Machine Guarantee.** No remote server, no cloud, no telemetry. Ever.
-
-## See it
-
-<table>
-  <tr>
-    <td width="33%" valign="top">
-      <a href="docs/landing/index.html"><img src="docs/assets/screenshots/landing-full.png" alt="Cairn landing page"></a>
-      <p><strong>Landing page</strong><br>
-      <code>docs/landing/index.html</code><br>
-      Live at <a href="https://cairn-framework.github.io/cairn/">cairn-framework.github.io/cairn</a>.</p>
-    </td>
-    <td width="33%" valign="top">
-      <a href="docs/design-system/README.md"><img src="docs/assets/screenshots/design-system.png" alt="Cairn design system showcase"></a>
-      <p><strong>Design system</strong><br>
-      <code>docs/design-system/</code><br>
-      Tokens, fonts, components, and a live reference page every Cairn surface grounds on.</p>
-    </td>
-    <td width="33%" valign="top">
-    <img src="docs/assets/demo/webui.gif" alt="Cairn Graph Explorer instrument workspace: graph, query rail, evidence rail, node details">
-      <p><strong>Graph Explorer</strong><br>
-      <code>cairn ui</code><br>
-      Local browser UI for walking the reconciled map. Runs against the current scan.</p>
-    </td>
-  </tr>
-</table>
+**Local-first.** Cairn runs on your machine and your project data stays there.
 
 ## The deep dive
 
@@ -124,9 +99,9 @@ If you want the mechanics, the rest of this page explains how Cairn works, what 
 
 ## Why Cairn
 
-Other tools do half the job. Knowledge graphs *describe* your code but never stop a bad change. Coding agents *change* your code but have no sense of the plan. Static analysis checks spelling and style, not whether a change fits.
+Other tools do half the job. Knowledge graphs describe your code but cannot stop a bad change. Coding agents change your code without any sense of the plan, and static analysis checks style rather than whether a change fits.
 
-Cairn is the missing piece in the middle. Your agent writes the plan in a `cairn.blueprint` file as part of the work you already asked it to do. Cairn checks that plan against the code you actually shipped, blocks commits that break it, and gives every agent a map drawn from the real code, not a guess.
+Cairn sits in the middle. Your agent writes the plan in a `cairn.blueprint` file as part of the work you already asked it to do. Cairn checks that plan against the code you actually shipped, blocks commits that break it, and gives every agent a map drawn from the real code.
 
 | Gap | What exists today | What Cairn adds |
 |---|---|---|
@@ -272,7 +247,7 @@ Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry
 
 Something confusing or broken? Run `cairn feedback "<what you expected, what happened instead>"`. It saves your note to `.cairn/feedback.md` and prints a link you can open to file it upstream. If `cairn` crashes, it prints the same kind of link on its own.
 
-Nothing is ever sent for you. No telemetry, no background network calls. Every report is a link you choose to open in your own browser.
+Every report is a link that opens in your own browser, and nothing gets sent unless you choose to send it.
 If Cairn saves you time, the Ko-fi link in the header is how to say thanks.
 
 ## Development
@@ -327,7 +302,7 @@ All UI work grounds on `docs/design-system/`: tokens, fonts, components, and a s
 
 ## Landing page
 
-The marketing landing lives at `docs/landing/index.html`. It is static HTML consuming the design system. Deployment is wired through the GitHub Actions Pages workflow at `.github/workflows/pages.yml`; the site is live at `https://cairn-framework.github.io/cairn/` and redeploys on every push to `main`.
+The marketing landing lives at `docs/index.html`. It is static HTML consuming the design system. Deployment is wired through the GitHub Actions Pages workflow at `.github/workflows/pages.yml`; the site is live at `https://cairn-framework.github.io/cairn/` and redeploys on every push to `main`.
 
 ## Reference
 
@@ -341,3 +316,4 @@ The marketing landing lives at `docs/landing/index.html`. It is static HTML cons
 - `test/fixtures/cairn.blueprint`: example blueprint file
 - `AGENTS.md`: agent-facing conventions for working in this repo
 - `CLAUDE.md`: Claude Code compatibility pointer to the authoritative `AGENTS.md`
+

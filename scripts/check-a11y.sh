@@ -2,7 +2,7 @@
 # Accessibility static-audit gate for the hand-authored web surfaces.
 #
 # The webui shell (src/ui_assets/index.html), the preact app
-# (src/ui_assets/app.js), and the landing page (docs/landing/index.html) are
+# (src/ui_assets/app.js), and the landing page (docs/index.html) are
 # hand-authored markup. A handful of WCAG-aligned accessibility invariants are
 # statically decidable from the source text. biome's recommended rules do not
 # express them (and cannot see markup inside JS template literals), so this gate
@@ -131,7 +131,7 @@ check_target() {
 if [ -n "${CAIRN_A11Y_TARGET:-}" ]; then
     targets=$CAIRN_A11Y_TARGET
 else
-    targets='src/ui_assets/index.html docs/landing/index.html src/ui_assets/app.js src/ui_assets/utils.js src/ui_assets/search.js src/ui_assets/status-bezel.js src/ui_assets/query-rail.js src/ui_assets/graph-workspace.js src/ui_assets/evidence-rail.js src/ui_assets/node-module.js src/ui_assets/channel-bar.js'
+    targets='src/ui_assets/index.html docs/index.html src/ui_assets/app.js src/ui_assets/utils.js src/ui_assets/search.js src/ui_assets/status-bezel.js src/ui_assets/query-rail.js src/ui_assets/graph-workspace.js src/ui_assets/evidence-rail.js src/ui_assets/node-module.js src/ui_assets/channel-bar.js'
 fi
 
 failed=0

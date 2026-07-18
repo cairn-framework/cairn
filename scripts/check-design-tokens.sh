@@ -3,7 +3,7 @@
 #
 # Both the webui stylesheet (`src/ui_assets/style.css`), the design-system
 # component library (`docs/design-system/components.css`) and the landing page
-# (`docs/landing/index.html`) ride on the design-system tokens.
+# (`docs/index.html`) ride on the design-system tokens.
 # and AGENTS.md all carry this rule; biome's recommended rules cannot express it.
 # deterministically.
 #
@@ -89,7 +89,7 @@ check_target() {
 if [ -n "${CAIRN_DESIGN_TOKENS_TARGET:-}" ]; then
     targets=$CAIRN_DESIGN_TOKENS_TARGET
 else
-    targets='src/ui_assets/style.css docs/design-system/components.css docs/landing/index.html'
+    targets='src/ui_assets/style.css docs/design-system/components.css docs/index.html'
 fi
 
 failed=0
