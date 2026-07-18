@@ -1,1 +1,1 @@
-{"schema_version":1,"findings":[]}
+{"schema_version":4,"findings":[{"code":"CAIRN_RESEARCH_ORPHAN","message":"research `res.herdr-plugin-feasibility` is not linked from any decision","node":null,"path":"././meta/research/herdr-plugin-feasibility.md","severity":"info"},{"code":"CAIRN_SPEC_RULE_UNIMPLEMENTED","message":"spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)","node":null,"path":"docs/registries/spec-rules.md","severity":"info"}]}

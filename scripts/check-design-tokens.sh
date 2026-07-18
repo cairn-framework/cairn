@@ -1,19 +1,16 @@
 #!/bin/sh
 # Design-token conformance gate for the hand-authored web surfaces.
 #
-# Both the webui stylesheet (src/ui_assets/style.css) and the landing page
-# (docs/landing/index.html) ride on the design-system tokens
-# (docs/design-system/tokens.css) and must source every colour and rem-based
-# size from a `var(--token)`, never a hardcoded literal. The stylesheet header,
-# the landing's <style> header and AGENTS.md all carry this rule;
-# biome's recommended rules cannot express it, so this gate enforces it
+# Both the webui stylesheet (`src/ui_assets/style.css`), the design-system
+# component library (`docs/design-system/components.css`) and the landing page
+# (`docs/landing/index.html`) ride on the design-system tokens.
+# and AGENTS.md all carry this rule; biome's recommended rules cannot express it.
 # deterministically.
 #
 # Fails (exit 1) when any target contains a hardcoded hex colour or a hardcoded
 # rem value; passes (exit 0) otherwise. HTML and CSS comments are stripped first
 # so hex/rem mentioned in prose does not trip the gate.
 #
-# By default both surfaces are checked. Override with a single explicit target
 # via CAIRN_DESIGN_TOKENS_TARGET (used by tests/check_design_tokens.rs).
 set -eu
 
@@ -92,7 +89,7 @@ check_target() {
 if [ -n "${CAIRN_DESIGN_TOKENS_TARGET:-}" ]; then
     targets=$CAIRN_DESIGN_TOKENS_TARGET
 else
-    targets='src/ui_assets/style.css docs/landing/index.html'
+    targets='src/ui_assets/style.css docs/design-system/components.css docs/landing/index.html'
 fi
 
 failed=0

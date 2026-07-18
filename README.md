@@ -110,7 +110,7 @@ See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install me
       Tokens, fonts, components, and a live reference page every Cairn surface grounds on.</p>
     </td>
     <td width="33%" valign="top">
-      <img src="docs/assets/demo/webui.gif" alt="Cairn Graph Explorer webui: graph, node inspector, command palette with Report an issue, blueprint modal">
+    <img src="docs/assets/demo/webui.gif" alt="Cairn Graph Explorer instrument workspace: graph, query rail, evidence rail, node details">
       <p><strong>Graph Explorer</strong><br>
       <code>cairn ui</code><br>
       Local browser UI for walking the reconciled map. Runs against the current scan.</p>
@@ -168,7 +168,7 @@ The map is more than shape. Every node carries real, file-backed content, all sa
 
 Because all of it is markdown in the repo, it gets git history, diff, blame, and branching for free, and it travels with the code instead of rotting in a separate tool. `cairn todos <id>` lists a node's open work; `cairn status` gathers open work, active changes, and recent activity across the whole map.
 
-Task trackers stay optional. If your team already runs one such as beads, Cairn shows its node-linked items as a read-only view in the inspector, without treating it as a second source of truth. The task content lives in Cairn; an outside tracker is just another place to show it.
+Task trackers stay optional. If your team already runs one such as beads, Cairn shows its node-linked items as a read-only view in the detail rail, without treating it as a second source of truth. The task content lives in Cairn; an outside tracker is just another place to show it.
 
 ## The Kubernetes analogy
 

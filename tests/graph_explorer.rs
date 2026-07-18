@@ -77,15 +77,13 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
     let js = get(server.address(), "/assets/app.js")?;
     let module_assets = [
         "utils.js",
-        "layout.js",
-        "top-bar.js",
-        "graph-canvas.js",
-        "canvas-chrome.js",
-        "inspector.js",
-        "findings-panel.js",
-        "decision-detail.js",
-        "command-palette.js",
-        "blueprint-modal.js",
+        "search.js",
+        "status-bezel.js",
+        "query-rail.js",
+        "graph-workspace.js",
+        "evidence-rail.js",
+        "node-module.js",
+        "channel-bar.js",
     ]
     .iter()
     .map(|name| get(server.address(), &format!("/assets/{name}")))
@@ -96,21 +94,20 @@ fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn st
 
     server.stop();
 
-    // Shell markers from the v2 app frame.
+    // Shell markers from the instrument-workspace app frame.
     assert!(html.contains("id=\"root\""));
-    assert!(html.contains("class=\"app\""));
     assert!(html.contains("/vendor/preact.min.js"));
     assert!(html.contains("/assets/app.js"));
 
-    // App entry points: component factory + live-data fetch helpers, wired
-    // via ES module imports from the composition root and its owning
-    // feature module (renderPath now lives in inspector.js).
-    assert!(js.contains("ModuleInspector"));
+    // App entry points: composition root wires live-data fetch helpers and
+    // renders the instrument shell; the evidence rail is served as its own
+    // feature module.
     assert!(js.contains("fetchGraph"));
+    assert!(js.contains("instrument-shell"));
     assert!(
         module_assets
             .iter()
-            .any(|asset| asset.contains("renderPath"))
+            .any(|asset| asset.contains("evidence-rail") || asset.contains("EvidenceRail"))
     );
 
     // Copy data served as valid JSON with expected structure.

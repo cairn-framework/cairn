@@ -78,33 +78,78 @@ grep -c '#[0-9a-fA-F]\{6\}' docs/design-system/components.css
 
 `index.html` may contain hex strings as swatch content (human-readable labels like `#141310` shown next to the chip), never as applied styles. All applied colors in the showcase go through tokens.
 
+## Token reconciliation summary (Stage 2)
+
+The token surface now merges current webui and landing usage with the greenfield seed corpus.
+
+- Preserved every token name currently referenced by `src/ui_assets/style.css` and `docs/landing/index.html`.
+- Added component scope tokens for the redesigned regions:
+  - `--line-1` and `--line-2`
+  - `--ui-shell-max-width`, `--ui-shell-min-height`, `--ui-shell-min-height-mobile`
+  - `--ui-workspace-main-fr`, `--ui-workspace-sidebar-fr`, `--ui-workspace-sidebar-min`
+  - `--ui-node-min-width`, `--ui-outline-width`, `--ui-outline-offset`, `--ui-orphan-tilt`
+- Kept compatibility aliases and legacy aliases for shell and typography usage.
+- No required token names used by those consumers were removed.
+- Renames introduced: none.
+- Removed only the temporary `--ui-shell-breakpoint` in favour of explicit mobile shell height.
+
+Stage 2 validation confirmed no missing token references in combined `src/ui_assets/style.css`, `docs/landing/index.html`, and `docs/design-system/components.css`.
+
+Stage 4 (eval-loop verification) adjustments:
+
+- `--ci-chalk-faint` raised from `#6f6b60` to `#a29d90` at the root scope (the light theme keeps its own override) so faint ink meets the 4.5:1 contrast floor on every chassis surface it appears against.
+- Added `--tap-min: 44px`, the minimum touch-target size; `components.css` applies it to interactive controls (query input, chips, actions, rail and channel tabs) at viewports of 900px and below.
+- `.query-chip`, `.query-action`, `.edge-row`, `.edge-dir`, and `.edge-target` are component classes in their own right (previously scoped under `.query-rail` and `.node-depth-plate`); modules may render them in any region and they carry explicit surface, ink, and border treatment so no browser default leaks through.
+- `.blueprint-plate pre` wraps long source lines (`pre-wrap`) instead of widening the frame.
+- `.channel-bar .channel-empty` styles the channel empty state with faint ink.
+- Added `--ui-channel-height: 116px`: the fixed height of the bottom channel bar. The shell grid gives the workspace the remaining fraction, the state legend renders as a slim single-row strip, and the channel body scrolls internally so the page frame never grows.
+- Evidence-rail body content (artefact chips, source excerpts, `code`/`pre`) wraps inside the rail's bounded well instead of widening the frame; on tap surfaces those chips keep the `--tap-min` minimum.
+
+## Component class inventory
+
+Canonical webui classes in this stage:
+
+- `.instrument-shell`
+- `.status-bezel`
+- `.query-rail`
+- `.graph-canvas`
+- `.node-module` with `.synced`, `.ghost`, `.orphaned`, `.drift`
+- `.evidence-rail`
+- `.node-depth-plate`
+- `.lineage-plate`
+- `.blueprint-plate`
+- `.channel-bar`
+- `.state-legend`
+
 ## Token naming conventions
 
 | Prefix        | Meaning                                                             |
 |---------------|---------------------------------------------------------------------|
 | `--stone-*`   | Layered surfaces (0 bedrock, 5 peak)                                |
 | `--paper-*`   | Inverted paper tones for callouts                                   |
-| `--seam-*`    | Solid strata lines between stones                                   |
-| `--stroke-*`  | Alpha strokes that sit on any surface                               |
+| `--seam-*`    | Solid strata lines between stones                                    |
+| `--stroke-*`  | Alpha strokes that sit on any surface                                |
 | `--ink-*`     | Text colors (char, aged, faded, mist, ghost)                        |
-| `--prov-*`    | Provenance chain accent (evidence in)                               |
-| `--auth-*`    | Authority chain accent (rules out)                                  |
-| `--hinge-*`   | The decision hinge where chains meet                                |
-| `--drift`     | Advisory tension signal                                             |
-| `--block`     | Blocking contradiction signal                                       |
+| `--prov-*`    | Provenance chain accent (evidence in)                                |
+| `--auth-*`    | Authority chain accent (rules out)                                   |
+| `--hinge-*`   | The decision hinge where chains meet                                 |
+| `--drift`     | Advisory tension signal                                              |
+| `--block`     | Blocking contradiction signal                                        |
 | `--settled`   | Reconciled signal                                                   |
-| `--synced`    | Reconciliation state: declaration matches source reality            |
-| `--ghost`     | Reconciliation state: declared path or target is absent             |
-| `--planned`   | Reconciliation state: declared in blueprint, path not yet built     |
-| `--orphaned`  | Reconciliation state: source exists but no node owns it             |
-| `--t-*`       | Type scale (micro, small, body, lede, title, h3, h2, h1, display)   |
-| `--s-*`       | Spacing scale (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 / 128)      |
+| `--synced`    | Reconciliation state: declaration matches source reality              |
+| `--ghost`     | Reconciliation state: declared path or target is absent               |
+| `--planned`   | Reconciliation state: declared in blueprint, path not yet built       |
+| `--orphaned`  | Reconciliation state: source exists but no node owns it               |
+| `--line-*`    | Primitive border widths for shell, rail, and node accents              |
+| `--ui-*`      | Component layout and state tokens for webui regions                   |
+| `--t-*`       | Type scale (micro, small, body, lede, title, h3, h2, h1, display)    |
+| `--s-*`       | Spacing scale (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 / 128)     |
 | `--r-*`       | Radius scale (2 / 6 / 10 / 14 / 9999)                               |
-| `--lift-*`    | Drop shadows (resting, lifted, floating)                            |
+| `--lift-*`    | Drop shadows (resting, lifted, floating)                             |
 | `--inset-*`   | Inner highlights and wells                                          |
-| `--dur-*`     | Motion durations (tick, quick, settle, reveal, breathe, build)      |
-| `--ease-*`    | Motion easings (settle, stack, lift, paper)                         |
-| `--font-*`    | Font families (serif, sans, mono)                                   |
+| `--dur-*`     | Motion durations (tick, quick, settle, reveal, breathe, build)       |
+| `--ease-*`    | Motion easings (settle, stack, lift, paper)                          |
+| `--font-*`    | Font families (serif, sans, mono)                                    |
 
 Numeric aliases (`--ink-1` through `--ink-4`, `--fast`, `--med`, `--slow`) remain for legacy shell code. New code should prefer the named tokens.
 
@@ -117,7 +162,7 @@ Numeric aliases (`--ink-1` through `--ink-4`, `--fast`, `--med`, `--slow`) remai
 | New component or variant                         | `components.css`                   |
 | Showing a new component in the reference         | `index.html`                       |
 | User-facing CLI or UI strings                    | `copy.toml` (verbal authority)     |
-| Documentation, consumer instructions, conventions | `README.md` (this file)           |
+| Documentation, consumer instructions, conventions | `README.md` (this file)            |
 
 Breaking changes to token names require a coordinated sweep. The safer pattern: add the new name as an alias, migrate consumers, remove the old name later.
 
