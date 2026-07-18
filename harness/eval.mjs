@@ -81,11 +81,11 @@ const ACTIONS = {
     settled: "(function(){var expected=String(window.__evalSelectTarget||'');var selected=document.querySelector('.node-module.selected');return !!expected&&!!selected&&selected.getAttribute('title')===expected&&!!document.querySelector('.evidence-rail .node-depth-plate .node-id');})()",
   },
   openFindings: {
-    // Findings is the default channel, so prove the switching machinery: hop
-    // to another channel first, then back, and demand the findings tab ends
-    // active with a rendered body.
-    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var findings=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'));var other=tabs.find((n)=>n!==findings);if(!findings||!other){return false;}other.click();findings.click();return true;})()",
-    settled: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var findings=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'));return !!findings&&findings.classList.contains('active')&&!!document.querySelector('.channel-bar .channel-body')&&!!(document.querySelector('.channel-item')||document.querySelector('.channel-empty'));})()",
+    // Findings is the default channel, so prove the switching machinery in two
+    // observed phases: switch away and require the other tab to become active,
+    // then switch back and require findings active with a rendered body.
+    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var findings=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'));var other=tabs.find((n)=>n!==findings);if(!findings||!other){return false;}window.__evalFindingsPhase=1;other.click();return true;})()",
+    settled: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var findings=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('findings'));var other=tabs.find((n)=>n!==findings);if(!findings||!other){return false;}var phase=Number(window.__evalFindingsPhase||0);if(phase===1){if(!other.classList.contains('active')){return false;}window.__evalFindingsPhase=2;findings.click();return false;}if(phase===2){return findings.classList.contains('active')&&!!document.querySelector('.channel-bar .channel-body')&&!!(document.querySelector('.channel-item')||document.querySelector('.channel-empty'));}return false;})()",
   },
   openPalette: {
     fire: "(function(){var input=document.querySelector('.query-input');if(!input){return false;}input.focus();input.value='kernel';input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Enter',code:'Enter',keyCode:13,which:13}));return true;})()",
