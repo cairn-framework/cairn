@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/cairn-framework/cairn/actions/workflows/ci.yml"><img src="https://github.com/cairn-framework/cairn/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-  <a href="https://github.com/cairn-framework/cairn/releases/latest"><img src="https://img.shields.io/github/v/release/cairn-framework/cairn" alt="Latest release"></a>
+  <a href="https://github.com/cairn-framework/cairn/releases/latest"><img src="https://badgen.net/github/release/cairn-framework/cairn?color=green" alt="Latest release"></a>
   <a href="https://github.com/cairn-framework/cairn/blob/main/LICENSE-MIT"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue" alt="License"></a>
   <a href="https://ko-fi.com/george_builds"><img src="https://img.shields.io/badge/Ko--fi-Support-ff5e5b?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
 </p>
@@ -108,6 +108,16 @@ Cairn sits in the middle. Your agent writes the plan in a `cairn.blueprint` file
 | **Knowledge graphs** | Describe structure. No enforcement. | Declares structure *and* gates against drift from it. |
 | **Coding agents** | Act on code. No architectural memory. | Persistent map agents query instead of re-scanning. |
 | **Static analysis** | Checks syntax and style. | Checks architectural intent: dependencies, contracts, decisions. |
+
+## See the map
+
+`cairn ui` opens the graph explorer in your browser. This is Cairn mapping itself: every module, its state, and the dependencies between them in one bounded view.
+
+<a href="https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/assets/screenshots/webui-graph.png"><img src="https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/assets/screenshots/webui-graph.png" alt="Cairn graph explorer showing the layered architecture map"></a>
+
+Click any node and the map lights up its dependencies while the evidence rail shows the node's facts, decision lineage, and its slice of the blueprint.
+
+<a href="https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/assets/screenshots/webui-node-focus.png"><img src="https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/assets/screenshots/webui-node-focus.png" alt="A selected node with highlighted dependency edges and the evidence rail open"></a>
 
 ## How it works
 

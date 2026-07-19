@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.8.0
+
+### Graph explorer relayout
+
+- The map is now a dependency-layered architecture layout: entry surfaces on the left, foundations on the right, isolated modules in a band below, and the kernel container drawn as a labelled frame. Dependency edges are curved, directional, and arrowheaded; selecting a node highlights its in and out edges and calmly dims non-neighbours. Nothing is auto-selected on first visit (#428).
+- Node cards drop the state text, path chips, and ownership badges in favour of the leaf id, a two-line description, and the existing state dot and keel. The whole 25-node dogfood graph fits the workspace without scrolling at 1440x900, and keyboard arrows navigate spatially (#428).
+
+### Evidence rail
+
+- The blueprint tab scopes to the selected node's declaration block with an expand-to-full toggle and a full-height pane, replacing a fixed 52px scroll trap that held the entire blueprint. The facts grid tightens, lineage renders one row per artefact in sentence case, and the rail collapses to a hint when nothing is selected (#428).
+
+### Chrome and channels
+
+- The shell fills wide viewports, the query rail becomes one search input plus labelled Type and State segmented groups, and the status bezel keeps a single severity-coded annunciator. The bottom channel rebuilds as compact severity-sorted rows with colour-coded badges, a collapse toggle, and readable findings, backlog, and changes items (#428).
+- Errors gain a distinct ember accent (`--ci-ember`) so error and warning severities read as different colours at a glance, contrast-checked on every chassis surface (#429).
+- A restrained motion layer animates cards, edges, tabs, and panel entries, entirely disabled under `prefers-reduced-motion` (#428).
+
+### Site and docs
+
+- GitHub Pages serves the landing page from the `docs/` root directly, dropping the redirect stub. The README gains fresh graph-explorer screenshots, a reliable release badge, and a plain-language copy pass alongside the landing page (#428).
+
 ## v0.7.0
 
 ### Webui trust and resilience
