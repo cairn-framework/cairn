@@ -8,6 +8,7 @@
 <p align="center">
   <a href="https://github.com/cairn-framework/cairn/actions/workflows/ci.yml"><img src="https://github.com/cairn-framework/cairn/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
   <a href="https://github.com/cairn-framework/cairn/releases/latest"><img src="https://badgen.net/github/release/cairn-framework/cairn?color=green" alt="Latest release"></a>
+  <a href="https://github.com/cairn-framework/cairn/releases"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fcairn-framework%2Fcairn%2Fbadges%2Fdownloads.json" alt="Total downloads" title="Combined crates.io crate downloads plus GitHub release downloads"></a>
   <a href="https://github.com/cairn-framework/cairn/blob/main/LICENSE-MIT"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue" alt="License"></a>
   <a href="https://ko-fi.com/george_builds"><img src="https://img.shields.io/badge/Ko--fi-Support-ff5e5b?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
 </p>
@@ -251,7 +252,7 @@ No. Only hard findings block a commit: broken structure, a contradicted interfac
 
 ## Status
 
-Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped. Cairn is not yet on crates.io and the CLI surface may still move, but every artefact it writes is plain text in your repo (markdown plus a JSON snapshot), so a format change cannot strand your data: you can read or drop it with no special tool. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
+Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped. Cairn is published to crates.io (`cairn-framework`) and the CLI surface may still move, but every artefact it writes is plain text in your repo (markdown plus a JSON snapshot), so a format change cannot strand your data: you can read or drop it with no special tool. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
 
 ## Feedback
 
