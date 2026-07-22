@@ -53,12 +53,13 @@ jobs:
             | python3 -c "import sys,json; print(json.load(sys.stdin)['crate']['downloads'])")
 
           # Sum download_count across every asset of every release. --paginate
-          # --slurp collects all pages into one array-of-pages; the recursive
-          # filter sums download_count at any nesting depth, so it stays
-          # correct as release count grows past one page. Authenticated to
-          # avoid the unauthenticated rate limit.
+          # --slurp collects all pages into one array-of-pages, then the
+          # standalone jq filter sums download_count at any nesting depth, so
+          # it stays correct as release count grows past one page. gh rejects
+          # --slurp combined with its own --jq, hence the pipe to jq.
+          # Authenticated to avoid the unauthenticated rate limit.
           releases=$(gh api --paginate --slurp "repos/${REPO}/releases" \
-            --jq '[.. | .download_count? // empty] | add // 0')
+            | jq '[.. | .download_count? // empty] | add // 0')
 
           total=$(( crates + releases ))
           echo "crates.io=${crates} github-releases=${releases} total=${total}"
