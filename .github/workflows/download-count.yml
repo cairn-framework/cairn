@@ -1,0 +1,93 @@
+name: Update download-count badge
+
+# Computes a single combined download total (crates.io crate downloads plus
+# GitHub release asset downloads) and publishes it as a shields.io endpoint
+# JSON on the orphan `badges` branch. The README badge reads that file, so
+# there is one "downloads" number covering both install channels. Uses the
+# built-in GITHUB_TOKEN (no extra secrets) and never touches main history.
+
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/download-count.yml"]
+  schedule:
+    - cron: "0 6 * * *"
+  # `on: release` never fires here: release.yml cuts releases with the
+  # built-in GITHUB_TOKEN, and GitHub suppresses further workflow runs from
+  # token-generated events. Key off the Release workflow finishing instead.
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: download-badge
+  cancel-in-progress: true
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    # For a workflow_run trigger, only refresh after a successful, push-driven
+    # (tag) Release run; other event kinds still run unconditionally.
+    if: >-
+      ${{ github.event_name != 'workflow_run' ||
+          (github.event.workflow_run.conclusion == 'success' &&
+           github.event.workflow_run.event == 'push') }}
+    steps:
+      - name: Compute combined download total
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # crates.io 403s a generic User-Agent per its data-access policy;
+          # a descriptive one is required (see cargo-publish.yml).
+          UA="cairn-framework download-badge CI (https://github.com/cairn-framework/cairn)"
+
+          crates=$(curl -sf -A "$UA" \
+            "https://crates.io/api/v1/crates/cairn-framework" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['crate']['downloads'])")
+
+          # Sum download_count across every asset of every release. --paginate
+          # --slurp collects all pages into one array-of-pages; the recursive
+          # filter sums download_count at any nesting depth, so it stays
+          # correct as release count grows past one page. Authenticated to
+          # avoid the unauthenticated rate limit.
+          releases=$(gh api --paginate --slurp "repos/${REPO}/releases" \
+            --jq '[.. | .download_count? // empty] | add // 0')
+
+          total=$(( crates + releases ))
+          echo "crates.io=${crates} github-releases=${releases} total=${total}"
+
+          mkdir -p out
+          python3 - "$total" > out/downloads.json <<'PY'
+          import json, sys
+          total = int(sys.argv[1])
+          print(json.dumps({
+              "schemaVersion": 1,
+              "label": "downloads",
+              "message": f"{total:,}",
+              "color": "green",
+          }))
+          PY
+          cat out/downloads.json
+
+      - name: Publish to badges branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd out
+          git init -q -b badges
+          git add downloads.json
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "chore(badges): update combined download count"
+          git push -f -q \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git" \
+            badges
