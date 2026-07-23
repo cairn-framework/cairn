@@ -55,7 +55,7 @@ persuasive, especially when it includes an honest failure case. Copy the
 transparency, fix the method gaps: multiple trials per condition, a
 described harness, variance reporting. The existing autoresearch webui
 eval harness measures UI rendering quality, not agent navigation; it does
-not cover this. Follow-up: `todo.agent-effectiveness-benchmarks`.
+not cover this. Follow-up: `todo.agent-guidance-baseline`.
 
 ### 3. Anti-lesson: do not compress map.json keys (avoid)
 
@@ -86,9 +86,10 @@ material is the thin "Graph navigation patterns" section in cairn-dev.
 CodeAtlas ships five task-shaped playbooks (bug investigation,
 refactoring, architecture discovery, repository exploration, feature
 implementation) each mapping a dev activity onto exact query recipes.
-Expand cairn's patterns section into full task-shaped skills. Consistent
-with `dec.agent-pack-packaging` treating skills as a distribution
-surface. Follow-up: `todo.agent-guidance-task-skills`.
+Provide task-shaped references as private, non-discoverable JIT references
+behind the compact `cairn-dev` router, not public competing skills. Consistent
+with `dec.agent-pack-packaging` treating skills as a distribution surface.
+Follow-up: `todo.agent-guidance-router-playbooks`.
 
 ### 6. Map-reading guardrail (adopt, small)
 
@@ -100,7 +101,7 @@ for git-diff review, never agent context; use `cairn get`,
 `cairn neighbourhood`, `cairn files`, and the depth-capped
 `cairn context` instead; treat `cairn context --json` as a tooling
 escape hatch, not orientation. No new summary mode is needed.
-Follow-up: bundled into `todo.agent-guidance-task-skills`.
+Follow-up: bundled into `todo.agent-guidance-router-playbooks`.
 
 ### 7. Token budgets for JSON query surfaces (adapt, medium)
 
@@ -123,7 +124,7 @@ substring-based suggestions to `CAIRN_QUERY_NODE_NOT_FOUND`. Remaining
 gaps: typo-class misses get no suggestions (matching is
 substring-containment only; an edit-distance fallback would cover them),
 and agent_guide.md documents no recovery ladder for a failed lookup.
-Follow-up: bundled into `todo.agent-guidance-task-skills` (guide part
+Follow-up: bundled into `todo.agent-guidance-router-playbooks` (guide part
 only; edit-distance fallback is optional polish).
 
 ### 9. Init-time ignore scaffolding (adapt, small)
@@ -143,7 +144,9 @@ SymbolRecord carries line AND end_line (strictly better than CodeAtlas's
 fixed -20/+80 window), but end_line is only exposed in `--json`; the text
 render omits it, and cairn-explore tells agents to "read the source files
 directly" with no span discipline. Guidance change plus a small render
-addition. Follow-up: bundled into `todo.agent-guidance-task-skills`.
+addition was proposed; the accepted form in
+`todo.agent-guidance-router-playbooks` is guidance-only (agents read the JSON
+`end_line`), with no human renderer change.
 
 ## Refuted (do not re-propose)
 
@@ -154,4 +157,4 @@ addition. Follow-up: bundled into `todo.agent-guidance-task-skills`.
 - **Multi-harness skill installation.** Already validated and ratified
   (`dec.agent-pack-packaging`, 2026-07-13, informed by
   `res.agent-pack-packaging-survey`); open work is execution of
-  `todo.agent-pack-implementation`, not re-validation.
+  the pack children of `todo.agent-guidance-program`, not re-validation.

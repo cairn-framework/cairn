@@ -26,8 +26,8 @@ command surface; drift worsened after simplify-architecture (#223-#231).
 ## Task
 Regenerate the cairn-dev command table from `cairn --help`, complete
 finding-codes.md (CT001, CAIRN_SOURCE_UNVERIFIED; CC002 definition-or-removal
-is owned by todo.cairn-apply-parallel-mode), and document the schema_version
-JSON contract and exit-code semantics. Scope: the cairn-dev skill and its
-references only; cairn-apply/cairn-propose wording belongs to
-todo.cairn-apply-parallel-mode (gh:#245). Urgent: this drift misleads every
+is owned by todo.agent-guidance-apply-proof-authority), and document the
+schema_version JSON contract and exit-code semantics. Scope: the cairn-dev
+skill and its references only; cairn-apply/cairn-propose wording belongs to
+todo.agent-guidance-apply-proof-authority (gh:#245). Urgent: this drift misleads every
 agent session.

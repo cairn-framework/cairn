@@ -43,6 +43,6 @@ install-channel cases are covered without contacting the real network in
 tests. A smoke scenario proves the explicit update surface from check through
 the selected update action.
 
-This is separate from `todo.agent-pack-implementation`, whose `pack update`
+This is separate from the pack lifecycle in `todo.agent-guidance-program`, whose `pack update`
 refreshes Cairn's installed agent guidance and skills rather than the Cairn
 binary itself.

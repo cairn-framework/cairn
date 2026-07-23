@@ -63,7 +63,7 @@ Mark each `VERIFY` before recording the final verdict.
   cargo-pins, mint todo.accept-language-aware-gates with `gh:#234`.
 - #245 cairn-apply skill assumes one sequential agent and Rust gates; add parallel
   mode and language-aware gates. Feeds #102. `Proposed: still-valid` (skill change
-  independent of core). Mint todo.cairn-apply-parallel-mode with `gh:#245`.
+  independent of core). Tracked by todo.agent-guidance-apply-proof-authority (`gh:#245`).
 
 ### Findings and exit-code coherence
 - #233 CT001 fires for any node with multiple public_api path targets whose exports
@@ -155,6 +155,6 @@ todos; closures are deferred to todo.feedback-issue-closures (gh:#247).
 | #242 no project-wide todo listing; wrong created date | still-valid | Partial: todo.todo-listing (gh:#242); date bug fixed on main (`src/cli/commands/todo.rs:48`). |
 | #243 skill and finding-codes docs drift | still-valid | Urgent: todo.cairn-dev-docs-sync (gh:#243) |
 | #244 per-command --help falls back to global | still-valid | todo.per-command-help (gh:#244) |
-| #245 cairn-apply sequential Rust-only | still-valid | todo.cairn-apply-parallel-mode (gh:#245) |
+| #245 cairn-apply sequential Rust-only | still-valid | todo.agent-guidance-apply-proof-authority (gh:#245) |
 | #246 feedback structured fields, title truncation | still-valid | todo.feedback-structured-fields (gh:#246) |
 | #247 tracking umbrella | still-valid | todo.feedback-issue-closures (gh:#247) owns the closure sweep for #232 to #247; close the umbrella last. |

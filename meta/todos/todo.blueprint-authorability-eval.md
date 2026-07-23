@@ -6,44 +6,49 @@ created: 2026-07-16
 
 # Blueprint Authorability Eval
 
-Cairn's blueprint syntax, blueprint.delta format, and artefact
-frontmatter are increasingly agent-authored (init --from-code, the draft
-family, gap, change authoring), with zero measurement of whether models
-produce them validly. A2UI's equivalent measurement (production validator
-as scorer) drove its v0.9 prompt-first schema rewrite; cairn has no
-instrument for such format decisions.
+## Scope correction
 
-Build a small on-demand harness (for example scripts/authorability-eval/
-or a harness/ sibling), declared in cairn.blueprint so scan stays clean:
+This todo is authoring-only. The overlapping navigation family moved to
+`todo.agent-guidance-baseline`, which owns the shared agent-evaluation harness
+and Cairn-versus-search conditions.
 
-- Authoring family: 5 to 10 task prompts ("add a module claiming these
-  files", "author a blueprint.delta for this refactor", "write a decision
-  covering nodes X,Y") run against a temp copy of
-  test/fixtures/cairn-bootstrap; apply the model output and score with
-  the production tooling: `cairn scan --strict` and `lint --json`.
-  Primary metric: convergence cost (iterations and tokens to a clean
-  scan under the deterministic repair loop). Secondary: first-shot
-  validity, per-format failure hotspots (nested block syntax vs delta
-  section markers).
-- Navigation family: task prompts with ground truth extracted
-  deterministically from map.json ("which node owns file X", "what
-  decisions affect Y"), scoring steps and tokens for an agent using
-  cairn commands against a grep-only baseline.
+## Problem
 
-Reuse the summariser's LocalCommandBackend pattern for model invocation
-and the METRIC-line convention from the existing webui harness. No CI
-scheduling, issue filing, or dataset encryption until the harness runs
-unattended; those are downstream apparatus, not the instrument.
+Cairn's blueprint syntax, blueprint.delta format, and artefact frontmatter are
+increasingly agent-authored, with no measurement of whether models produce
+them validly. This todo measures authoring convergence through production
+validators rather than building a second navigation harness.
 
-Owner direction (2026-07-16): the benchmark runs can be driven through
-the oh-my-pi harness's autoresearch command/extension rather than a
-bespoke runner; scope this todo's harness work to the task prompts,
-fixtures, and deterministic scoring, and let oh-my-pi own orchestration.
+## Authoring family
 
-Motivation: `res.a2ui-analysis` finding 9. Overlap: the navigation family
-is the same idea as `todo.agent-effectiveness-benchmarks` on the
-codeatlas branch (res.codeatlas-analysis finding 2); one harness should
-serve both, do not build two. Sequenced after
-`todo.example-corpus-scan-assertions` so the fixture substrate is
-trustworthy. Needs a change proposal (new declared module or scripts
-entry).
+Create five to ten prompts such as:
+
+- add a module claiming named files;
+- author a blueprint.delta for a refactor;
+- write a decision covering named nodes.
+
+Run them against a temporary copy of `test/fixtures/cairn-bootstrap`, apply the
+model output, and score with `cairn scan --strict` and `cairn lint --json`.
+Primary metric: iterations and tokens to a clean scan under the deterministic
+repair loop. Secondary metrics: first-shot validity and per-format failure
+hotspots.
+
+Reuse the agent-guidance evaluation runner or the summariser's
+`LocalCommandBackend` pattern rather than building another orchestrator. The
+oh-my-pi harness owns model execution. Cairn owns prompts, fixtures, production
+validation, and deterministic scoring.
+
+## Acceptance
+
+- The authoring corpus and scorer run unattended on demand.
+- The production parser, scanner, and lint surfaces grade outputs.
+- Results identify whether failures belong to syntax, generated guidance, or
+  missing repair affordances.
+- No CI scheduling, issue filing, or dataset apparatus is added before the
+  instrument proves useful.
+
+## Depends on
+
+`todo.example-corpus-scan-assertions`, so the fixture substrate is trustworthy.
+This needs a change proposal because it adds a declared harness or scripts
+surface.
