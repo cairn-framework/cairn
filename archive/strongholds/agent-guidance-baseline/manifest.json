@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "study": "agent-guidance-baseline",
+  "date": "2026-07-23",
+  "cairn_revision": "24a328f",
+  "runner": "omp/17.0.8",
+  "arms": ["target", "cairn", "pack"],
+  "repositories": {
+    "BurntSushi/ripgrep": "4649aa9700619f94cf9c66876e9549d83420e16c",
+    "pallets/flask": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1"
+  },
+  "cohorts": {
+    "primary_itt_authorization_failures": 36,
+    "secondary_engaged_valid_runs": 48,
+    "valid_trials_per_task_arm": 4
+  },
+  "archive": "evidence.tar.gz",
+  "archive_bytes": 6589509,
+  "archive_sha256": "f3f64c3614a2f851320053b7f143cefac96e0ae52f4ff043405555b8da19951f",
+  "included": [
+    "development and order manifests",
+    "development confirmation commitment, not confirmation contents",
+    "runner source and protocol amendment",
+    "campaign metadata, record.json, and raw stdout/stderr",
+    "blinded packets, dual grades, adjudications, and aggregate analyses"
+  ],
+  "excluded": [
+    "sealed confirmation prompts and ground truth",
+    "runner authentication databases",
+    "copied repository working trees and session databases"
+  ]
+}
