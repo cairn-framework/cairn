@@ -19,7 +19,10 @@ harness-neutral source plus a deterministic packager emitting per-harness
 formats, generic-by-default with a repo-bindings seam) and the eight-point
 contract below, refined by the cross-ecosystem survey
 (res.agent-pack-packaging-survey), are ratified as written. No code exists yet;
-implementation is tracked by todo.agent-pack-implementation.
+implementation is tracked by todo.agent-guidance-program and its children
+(todo.agent-pack-canonical-foundation, todo.agent-pack-claude-bootstrap,
+todo.agent-pack-omp-adapter, todo.agent-pack-omp-publication), which replaced
+the original single implementation todo.
 
 ## Decision (the contract)
 
@@ -81,5 +84,6 @@ already holds the manifest shape at `.agents/.skill-lock.json`.
 
 This decision fixes the policy contract only. Exact directory names, manifest
 schema, renderer design, and command wiring are implementation scope for the
-change directory scaffolded when `todo.agent-pack-implementation` unblocks,
-per the normal propose/apply process.
+change directories scaffolded by todo.agent-pack-canonical-foundation and the
+pack lifecycle children of todo.agent-guidance-program, per the normal
+propose/apply process.

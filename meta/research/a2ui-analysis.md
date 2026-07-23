@@ -201,9 +201,9 @@ family, navigation evals: task prompts with ground truth extracted
 deterministically from map.json ("which node owns file X", "what
 decisions affect Y"), scoring steps and tokens for an agent using cairn
 commands against a grep-only baseline. That family overlaps
-`res.codeatlas-analysis` finding 2 and `todo.agent-effectiveness-benchmarks`
-(codeatlas branch), which propose A/B navigation benchmarks with pinned
-SHAs; one harness should serve both families rather than two harnesses.
+`res.codeatlas-analysis` finding 2 and `todo.agent-guidance-baseline`, which
+propose A/B navigation benchmarks with pinned SHAs; one shared runner serves
+both families rather than two harnesses.
 Follow-up: `todo.blueprint-authorability-eval`.
 
 ## Refuted (recorded so they are not re-proposed)
@@ -278,7 +278,7 @@ load-bearing point is cairn never makes them), spec:252 (init ignore
 confirmation), spec:817-824 (brownfield "human refines"). Minor:
 remediate.rs:224 "must be fixed manually" means "by editing, no command
 exists". Fix is mechanical alignment with spec section 2's own actuator
-framing. Follow-up: `todo.spec-agent-role`.
+framing. Follow-up: `todo.spec-authority-retirement`.
 
 ### Findings as tasks: unify the projection, not the artefact
 
@@ -327,7 +327,7 @@ discipline: every normative rule the spec adds lands as a spec-rules
 registry row with an enforcing finding code, per the CK004 machinery, so
 the enforced surface keeps migrating out of prose. Not proposed: freezing
 or splitting the spec (refuted above) or demoting it for humans.
-Follow-up: `todo.spec-agent-role`.
+Follow-up: `todo.spec-authority-retirement`.
 
 ## Overlap declarations
 
@@ -338,9 +338,8 @@ Follow-up: `todo.spec-agent-role`.
   independently.
 - `todo.remediate-copy-centralisation`: adjacent to finding 1; the hook
   footer should use the copy registry from day one.
-- `res.codeatlas-analysis` and `todo.agent-effectiveness-benchmarks`
-  (branch claude/codeatlas-architecture-analysis-fhxqhf): the navigation
-  eval family in finding 9 is the same idea; one harness should serve
-  both. Declared here to prevent parallel harnesses.
+- `res.codeatlas-analysis` and `todo.agent-guidance-baseline`: the navigation
+  eval family in finding 9 is the same idea; one shared runner serves both.
+  Declared here to prevent parallel harnesses.
 - `todo.status-active-changes-bug` (done): distinct from the
   next_recommended gap in the findings-as-tasks section.
