@@ -2,6 +2,7 @@
 id: res.agent-experiment-linklint
 nodes:
   - cairn.kernel.cli
+  - cairn.kernel.query
 date: 2026-06-10
 method: primary
 ---
@@ -66,3 +67,80 @@ and the ghost-to-synced transition was explicitly used as a to-do list
   as the main source of potential confusion, not the task repo itself.
 - The blueprint in arm A was hand-authored to match the spec; a sloppier
   blueprint would presumably help less.
+
+## Three-arm navigation baseline (2026-07-23)
+
+### Question and method
+
+This follow-up isolated three treatments: target-repository navigation, the
+same environment with Cairn's current query surface available, and the Cairn
+environment with the canonical `cairn-dev` guidance pack. The frozen
+development corpus contained one locate task and one impact-map task from each
+of ripgrep and Flask. Every run used `openai-codex/gpt-5.6-sol`, medium
+thinking, a 180-second limit, and only `read`, `grep`, `glob`, and `bash`.
+Responses were graded blind by two independent graders against frozen
+per-task facts and three two-point components. The paired arm order and rubrics
+are recorded in `manifests/{pilot-order,final-order,development}.json` inside
+the evidence archive. After three trials, the frozen rule
+$n=\max(3,\lceil((1.96+0.84)s_d/1)^2\rceil)$ used each comparison's paired
+quality-score SD. The larger requirement added one complete paired trial per
+task, yielding 48 valid engaged runs. A one-point difference on the six-point
+quality scale was the smallest effect of interest.
+
+The first 36 assigned runs all failed before a model turn because the isolated
+runner omitted OMP authentication state. Those runs remain the primary
+intention-to-treat cohort. A recorded protocol amendment changed only
+authentication-state isolation. The later 48 runs are a secondary engaged-run
+analysis, not a replacement primary cohort.
+
+The compact public evidence is in
+`archive/strongholds/agent-guidance-baseline/`. Its manifest records the pinned
+Cairn, runner, ripgrep, and Flask revisions and the SHA-256 digest of the
+evidence archive. Sealed confirmation prompts and ground truth remain
+unopened and are not in the repository.
+
+### Results
+
+The primary cohort establishes a harness failure, not a treatment effect:
+36/36 runs produced no candidate outcome. In the engaged cohort, all 48 runs
+completed. Two responses contained material contradictions.
+
+Mean quality was 4.94 for target-only navigation (SD 0.77), 5.13 for the Cairn
+surface arm (SD 0.89), and 5.19 for the pack arm (SD 0.83). The paired
+Cairn-minus-target improvement was 0.19 points. The paired pack-minus-Cairn
+improvement was 0.06 points. Their paired-difference SDs were 0.75 and 0.68
+respectively. Neither difference reached the preregistered one-point threshold.
+Task-balanced recalled-fact means were 4.19, 4.38, and 4.56 respectively.
+
+The first programme claim is not supported by this experiment. Merely making
+the query surface available did not meaningfully beat target-only navigation,
+and the Cairn arm invoked Cairn in 0/16 runs. Its small observed quality
+difference is therefore descriptive variation rather than evidence of query
+benefit.
+
+The second claim separates adoption from outcome. The pack arm retrieved the
+guidance in 16/16 runs and invoked Cairn in 16/16 runs, so the pack reliably
+caused use of Cairn's capabilities. It did not produce a meaningful measured
+quality gain over the Cairn arm. Pack runs also averaged more tool calls
+(16.31 versus 13.31), input tokens (47,034 versus 37,229), and elapsed time
+(109.1 versus 103.1 seconds).
+
+The earliest failed handoff was runner availability in the primary cohort.
+Within valid runs, the Cairn surface arm then failed at invocation.
+Required-fact omissions remained. One Cairn-arm response and one pack-arm
+response contained a material contradiction. No evidence supports changing
+public queries or runtime authority from this sample.
+
+### Reversible follow-up hypotheses
+
+1. A single explicit first-turn instruction to inspect `cairn context` may
+   convert surface availability into actual invocation without requiring a
+   router.
+2. A shorter task-shaped reference that names only the relevant Cairn command
+   may retain the pack's 16/16 activation while reducing its extra calls and
+   tokens.
+3. A follow-up comparison should treat invocation as a manipulation check and
+   grade query contribution separately from final-answer quality.
+
+These are experiment candidates only. They grant no implementation,
+recommendation, or authority status.
