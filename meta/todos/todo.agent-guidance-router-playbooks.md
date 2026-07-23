@@ -46,6 +46,18 @@ on the unit it is given.
   advertised-metadata ceiling derived from the baseline.
 - Store general task playbooks as non-discoverable JIT references, not public
   competing skills and not embedded in the router.
+- Retire the generic `.claude/skills/karpathy-guidelines` skill, itself an
+  example of a public competing skill: absorb its small additive coding
+  discipline (state assumptions and present materially-different interpretations;
+  transform a task into a verifiable success criterion, writing the failing test
+  first for a bug; the "would a senior engineer call this overcomplicated"
+  simplicity check) into the router or a private JIT reference, then remove the
+  skill and its `AGENTS.md` pointer. If the retirement is ratified, record it in
+  a new decision that relates `dec.init-emits-agent-skills`; do not rewrite that
+  accepted record, whose statement that karpathy was unbundled stays historically
+  true. Do not import the ask-when-uncertain default
+  wholesale (keep it compatible with default-to-action), and do not touch the
+  unrelated Karpathy LLM-Wiki prior art (`src.karpathy-llm-wiki`).
 - Add focused references for bug investigation, refactoring, architecture
   discovery, and feature implementation. Each maps the task to exact Cairn
   query sequences and names when source/LSP inspection is still required.
@@ -80,6 +92,10 @@ on the unit it is given.
   its scope, implement, recovery, and landing procedures are all available.
 - The loop mode loads and validates the selected unit's todo body before Scope
   and fails closed when it is unavailable.
+- The `karpathy-guidelines` skill and its `AGENTS.md` pointer are gone with no
+  broken reference; its additive framing is absorbed into the router or a JIT
+  reference; `dec.init-emits-agent-skills` is left intact as historical
+  provenance, with any retirement rationale in a new related decision.
 - Router and JIT token costs fit the preregistered ceiling.
 - No accepted decision or target-repository instruction is duplicated as a
   competing authority.
