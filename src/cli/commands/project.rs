@@ -21,9 +21,9 @@ const AGENT_GUIDE: &str = include_str!("../agent_guide.md");
 
 /// Curated cairn dev-loop agent skills bundled into the binary and emitted by
 /// `cairn init` so an agent landing in a fresh repo has an on-ramp to the loop.
-/// Single source of truth is cairn's own `.claude/skills/` tree, compiled in
-/// via `include_str!`, so the emitted pack never drifts from the skills cairn
-/// develops itself with.
+/// Canonical bytes live under `tools/agent-pack/content/`; the dev-only renderer
+/// writes these `.claude` destinations, which remain the `include_str!` inputs
+/// so compiled output is byte-identical to the checked-in harness assets.
 const SKILL_FILES: &[(&str, &str)] = &[
     (
         ".claude/skills/cairn-dev/SKILL.md",

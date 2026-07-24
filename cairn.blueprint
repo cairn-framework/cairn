@@ -79,6 +79,7 @@ System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" 
 
         Module CLI "Primary user surface and output formatting" id "cairn.kernel.cli" {
             path "./src/cli"
+            path "./tools/agent-pack"
             contract "./meta/contracts/kernel.cli.md"
         }
     }
