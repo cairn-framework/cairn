@@ -2,7 +2,7 @@
 id: dec.unified-cairn-dev-entry
 nodes:
   - cairn.kernel.cli
-status: proposed
+status: accepted
 date: 2026-07-23
 informed_by:
   - res.harness-engineering
@@ -21,13 +21,11 @@ related:
 
 ## Status
 
-This decision is proposed only. No loop authority moves while this decision
-remains proposed, and no loop authority moves merely because an owner later
-sets `status: accepted`. Standalone `/cairn-loop` remains the sole normative
-loop authority under accepted `dec.loop-command-harness-model` until a later
-implementation unit lands the migration. This decision keeps formal
-`refines: [dec.loop-command-harness-model]` and does not supersede that
-decision or mark it superseded.
+Owner accepted this decision on 2026-07-23. Acceptance sanctions the later
+scoped `todo.agent-guidance-router-playbooks` migration, but does not itself
+move loop authority: standalone `/cairn-loop` remains the sole normative
+authority until that cutover lands. The relation remains
+`refines: [dec.loop-command-harness-model]`, not `supersedes`.
 
 ## Context
 
@@ -249,9 +247,10 @@ claims.
 
 ## Consequences
 
-- Downstream units such as `todo.agent-guidance-router-playbooks` remain
-  blocked on owner acceptance of this decision; they implement the migration
-  the decision will sanction, and must not author a second competing authority.
+- Owner acceptance has cleared this decision prerequisite for
+  `todo.agent-guidance-router-playbooks`; that unit may implement the sanctioned
+  migration once its other prerequisites are met, and must not author a second
+  competing authority.
 - After acceptance and before that later cutover lands, standalone
   `/cairn-loop` remains the sole normative loop authority.
 - Interactive node-not-found ladders that use suffix aliases or filesystem
