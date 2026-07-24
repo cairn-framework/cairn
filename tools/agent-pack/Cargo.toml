@@ -1,0 +1,13 @@
+[package]
+name = "cairn-agent-pack"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+tempfile = "3"

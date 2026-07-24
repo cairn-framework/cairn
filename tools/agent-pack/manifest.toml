@@ -1,0 +1,123 @@
+schema_version = 1
+bundle_version = "1.0.0"
+
+[[canonical]]
+entry = "cairn-dev"
+mode = "default"
+source = "content/skills/cairn-dev/SKILL.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-blueprint-syntax"
+mode = "default"
+source = "content/skills/cairn-dev/references/blueprint-syntax.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-finding-codes"
+mode = "default"
+source = "content/skills/cairn-dev/references/finding-codes.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-artefact-schemas"
+mode = "default"
+source = "content/skills/cairn-dev/references/artefact-schemas.md"
+
+[[canonical]]
+entry = "cairn-explore"
+mode = "default"
+source = "content/skills/cairn-explore/SKILL.md"
+
+[[canonical]]
+entry = "cairn-propose"
+mode = "default"
+source = "content/skills/cairn-propose/SKILL.md"
+
+[[canonical]]
+entry = "cairn-apply"
+mode = "default"
+source = "content/skills/cairn-apply/SKILL.md"
+
+[[canonical]]
+entry = "cairn-archive"
+mode = "default"
+source = "content/skills/cairn-archive/SKILL.md"
+
+[[canonical]]
+entry = "cairn-loop"
+mode = "default"
+source = "content/commands/cairn-loop.md"
+
+[[canonical]]
+entry = "cairn-loop-recovery"
+mode = "default"
+source = "content/skills/cairn-loop-recovery/SKILL.md"
+
+[[canonical]]
+entry = "cairn-loop-landing"
+mode = "default"
+source = "content/skills/cairn-loop-landing/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev"
+mode = "default"
+destination = ".claude/skills/cairn-dev/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-blueprint-syntax"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/blueprint-syntax.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-finding-codes"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/finding-codes.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-artefact-schemas"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/artefact-schemas.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-explore"
+mode = "default"
+destination = ".claude/skills/cairn-explore/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-propose"
+mode = "default"
+destination = ".claude/skills/cairn-propose/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-apply"
+mode = "default"
+destination = ".claude/skills/cairn-apply/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-archive"
+mode = "default"
+destination = ".claude/skills/cairn-archive/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-loop"
+mode = "default"
+destination = ".claude/commands/cairn-loop.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-loop-recovery"
+mode = "default"
+destination = ".claude/skills/cairn-loop-recovery/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-loop-landing"
+mode = "default"
+destination = ".claude/skills/cairn-loop-landing/SKILL.md"

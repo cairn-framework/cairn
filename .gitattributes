@@ -1,1 +1,12 @@
 map.json merge=cairn-map
+.claude/skills/cairn-dev/SKILL.md linguist-generated=true
+.claude/skills/cairn-dev/references/blueprint-syntax.md linguist-generated=true
+.claude/skills/cairn-dev/references/finding-codes.md linguist-generated=true
+.claude/skills/cairn-dev/references/artefact-schemas.md linguist-generated=true
+.claude/skills/cairn-explore/SKILL.md linguist-generated=true
+.claude/skills/cairn-propose/SKILL.md linguist-generated=true
+.claude/skills/cairn-apply/SKILL.md linguist-generated=true
+.claude/skills/cairn-archive/SKILL.md linguist-generated=true
+.claude/commands/cairn-loop.md linguist-generated=true
+.claude/skills/cairn-loop-recovery/SKILL.md linguist-generated=true
+.claude/skills/cairn-loop-landing/SKILL.md linguist-generated=true

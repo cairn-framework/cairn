@@ -2,3 +2,6 @@ targets:
   - node: cairn.ui
     path: ./src/ui_assets
     language: assets
+  - node: cairn.kernel.cli
+    path: ./tools/agent-pack
+    language: assets

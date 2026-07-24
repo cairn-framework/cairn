@@ -1317,7 +1317,8 @@
       "name": "CLI",
       "state": "synced",
       "paths": [
-        "./src/cli"
+        "./src/cli",
+        "./tools/agent-pack"
       ],
       "files": [
         "src/cli/accept/gates.rs",
@@ -1361,7 +1362,30 @@
         "src/cli/render/node.rs",
         "src/cli/render/project.rs",
         "src/cli/render/project/tests.rs",
-        "src/cli/render/remediate.rs"
+        "src/cli/render/remediate.rs",
+        "tools/agent-pack/Cargo.toml",
+        "tools/agent-pack/content/commands/cairn-loop.md",
+        "tools/agent-pack/content/skills/cairn-apply/SKILL.md",
+        "tools/agent-pack/content/skills/cairn-archive/SKILL.md",
+        "tools/agent-pack/content/skills/cairn-dev/SKILL.md",
+        "tools/agent-pack/content/skills/cairn-dev/references/artefact-schemas.md",
+        "tools/agent-pack/content/skills/cairn-dev/references/blueprint-syntax.md",
+        "tools/agent-pack/content/skills/cairn-dev/references/finding-codes.md",
+        "tools/agent-pack/content/skills/cairn-explore/SKILL.md",
+        "tools/agent-pack/content/skills/cairn-loop-landing/SKILL.md",
+        "tools/agent-pack/content/skills/cairn-loop-recovery/SKILL.md",
+        "tools/agent-pack/content/skills/cairn-propose/SKILL.md",
+        "tools/agent-pack/manifest.toml",
+        "tools/agent-pack/src/containment.rs",
+        "tools/agent-pack/src/lib.rs",
+        "tools/agent-pack/src/main.rs",
+        "tools/agent-pack/src/manifest.rs",
+        "tools/agent-pack/src/manifest_error.rs",
+        "tools/agent-pack/src/plan.rs",
+        "tools/agent-pack/src/plan_error.rs",
+        "tools/agent-pack/tests/containment_tests.rs",
+        "tools/agent-pack/tests/determinism_drift_tests.rs",
+        "tools/agent-pack/tests/validation_error_tests.rs"
       ],
       "contracts": [
         "./meta/contracts/kernel.cli.md"
@@ -1390,6 +1414,14 @@
           "file": "src/cli/accept/gates.rs",
           "line": 28,
           "end_line": 33
+        },
+        {
+          "name": "ContainmentError",
+          "kind": "enum",
+          "signature": "pub enum ContainmentError",
+          "file": "tools/agent-pack/src/containment.rs",
+          "line": 12,
+          "end_line": 49
         },
         {
           "name": "all_command_names",
@@ -1464,12 +1496,52 @@
           "end_line": 62
         },
         {
+          "name": "run_check",
+          "kind": "function",
+          "signature": "pub fn run_check(manifest_path: &Path, repo_root: &Path) -> Result<(), Box<dyn std::error::Error>>",
+          "file": "tools/agent-pack/src/lib.rs",
+          "line": 35,
+          "end_line": 52
+        },
+        {
+          "name": "run_write",
+          "kind": "function",
+          "signature": "pub fn run_write(manifest_path: &Path, repo_root: &Path) -> Result<(), Box<dyn std::error::Error>>",
+          "file": "tools/agent-pack/src/lib.rs",
+          "line": 63,
+          "end_line": 71
+        },
+        {
           "name": "select_language_battery",
           "kind": "function",
           "signature": "pub fn select_language_battery(recipe: GateRecipe) -> BatterySelection",
           "file": "src/cli/accept/gates.rs",
           "line": 42,
           "end_line": 100
+        },
+        {
+          "name": "validate_lexical_containment",
+          "kind": "function",
+          "signature": "pub fn validate_lexical_containment(path: &Path) -> Result<(), ContainmentError>",
+          "file": "tools/agent-pack/src/containment.rs",
+          "line": 104,
+          "end_line": 137
+        },
+        {
+          "name": "validate_resolved_containment",
+          "kind": "function",
+          "signature": "pub fn validate_resolved_containment( root: &Path, rel_path: &Path, ) -> Result<PathBuf, ContainmentError>",
+          "file": "tools/agent-pack/src/containment.rs",
+          "line": 202,
+          "end_line": 221
+        },
+        {
+          "name": "validate_resolved_path",
+          "kind": "function",
+          "signature": "pub fn validate_resolved_path(root: &Path, candidate: &Path) -> Result<PathBuf, ContainmentError>",
+          "file": "tools/agent-pack/src/containment.rs",
+          "line": 148,
+          "end_line": 179
         },
         {
           "name": "export",
