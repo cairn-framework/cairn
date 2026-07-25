@@ -143,8 +143,9 @@ adapter-native invocation, but it is only transport: the sole normative
 procedure is `cairn-dev` loop mode
 (`.claude/skills/cairn-dev/references/loop-mode.md`) plus exactly the required
 asset closure it declares (`cairn-loop-scope`, `cairn-loop-implement`,
-`cairn-loop-recovery`, `cairn-loop-landing`). One unit per session, fail-closed
-recovery, single squash commit (`dec.loop-command-harness-model` clause 8, as
+`cairn-loop-recovery`, `cairn-loop-reconcile`, `cairn-loop-landing`). One unit
+per session, fail-closed recovery, single squash commit
+(`dec.loop-command-harness-model` clause 8, as
 relocated by `dec.unified-cairn-dev-entry`). Loop mode runs only on explicit
 selection; the `cairn-dev` router never enters it from broad matching. A short
 descriptive overview lives in `docs/agent/cairn-dev-workflow.md` and is never

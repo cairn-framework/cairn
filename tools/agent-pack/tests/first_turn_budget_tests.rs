@@ -42,6 +42,14 @@ fn repo_root() -> PathBuf {
     pack_dir().join("../..")
 }
 
+/// Byte length of a pack asset. The budget is a byte count, so the `u64` the
+/// filesystem reports is converted rather than cast: a size that does not fit
+/// `usize` is a broken checkout, not a budget breach.
+fn file_len(path: &Path) -> usize {
+    usize::try_from(std::fs::metadata(path).unwrap().len())
+        .unwrap_or_else(|_| panic!("{} is larger than this platform's usize", path.display()))
+}
+
 fn frontmatter_field(body: &str, field: &str) -> Option<String> {
     let mut lines = body.lines();
     if lines.next()? != "---" {
@@ -76,12 +84,8 @@ fn first_turn_and_advertised_metadata_fit_the_baseline_ceiling() {
          which is implausibly low: the frontmatter parser is broken, not the pack"
     );
 
-    let router = std::fs::metadata(pack.join("content/skills/cairn-dev/SKILL.md"))
-        .unwrap()
-        .len() as usize;
-    let guide = std::fs::metadata(repo_root().join("src/cli/agent_guide.md"))
-        .unwrap()
-        .len() as usize;
+    let router = file_len(&pack.join("content/skills/cairn-dev/SKILL.md"));
+    let guide = file_len(&repo_root().join("src/cli/agent_guide.md"));
 
     let total = metadata + router + guide;
     assert!(
@@ -104,7 +108,7 @@ fn no_routed_reference_grows_into_a_manual() {
         if path.file_name().and_then(|n| n.to_str()) == Some("loop-mode.md") {
             continue;
         }
-        let size = std::fs::metadata(&path).unwrap().len() as usize;
+        let size = file_len(&path);
         assert!(
             size <= JIT_REFERENCE_BUDGET_BYTES,
             "{} is {size} bytes, over the {JIT_REFERENCE_BUDGET_BYTES} per-reference \

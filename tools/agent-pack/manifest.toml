@@ -101,6 +101,11 @@ entry = "cairn-loop-implement"
 mode = "default"
 source = "content/skills/cairn-loop-implement/SKILL.md"
 
+[[canonical]]
+entry = "cairn-loop-reconcile"
+mode = "default"
+source = "content/skills/cairn-loop-reconcile/SKILL.md"
+
 [[adapters]]
 harness = "claude"
 entry = "cairn-dev"
@@ -220,3 +225,9 @@ harness = "claude"
 entry = "cairn-loop-implement"
 mode = "default"
 destination = ".claude/skills/cairn-loop-implement/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-loop-reconcile"
+mode = "default"
+destination = ".claude/skills/cairn-loop-reconcile/SKILL.md"

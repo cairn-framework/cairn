@@ -17,9 +17,9 @@ jobs:
       - name: fmt
         run: cargo fmt --check
       - name: clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - name: test
-        run: cargo test --locked
+        run: cargo test --locked --workspace
       - name: doc
         run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
       # Quality gates run locally via prek pre-push hook.
@@ -34,9 +34,9 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: check
-        run: cargo check --all-targets --all-features
+        run: cargo check --workspace --all-targets --all-features
       - name: clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
   hooks:
     runs-on: ubuntu-latest

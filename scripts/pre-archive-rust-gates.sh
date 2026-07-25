@@ -8,10 +8,10 @@ echo "pre-archive: running cargo fmt --check"
 cargo fmt --check
 
 echo "pre-archive: running strict cargo clippy"
-RUSTFLAGS="-D warnings" cargo clippy --all-targets --all-features
+RUSTFLAGS="-D warnings" cargo clippy --workspace --all-targets --all-features
 
 echo "pre-archive: running cargo test"
-cargo test
+cargo test --workspace
 
 echo "pre-archive: checking Rust file sizes"
 scripts/check-file-sizes.sh
