@@ -115,7 +115,7 @@ Any UI change (the webui at `src/ui_assets/`, any landing or marketing page, any
 - No `#[allow(...)]` without a `// Reason:` comment.
 - Never bypass hooks: `git commit --no-verify`, `git push --no-verify`, and the `SKIP=hookid` env var are forbidden. If a hook fails, fix the underlying issue.
 - Archived phases under `archive/openspec/changes-archive/` are historical record; do not rewrite them.
-- No em-dashes in any prose in this repository (docs, decisions, code comments, commit messages included); the pre-commit hook enforces this across all `*.md` files (`archive/`, `docs/research/`, and `graphify-out/` excepted). Replace with a period, colon, comma, or parenthesis.
+- No em-dashes in any prose in this repository (docs, decisions, code comments, commit messages included); the pre-commit hook enforces this across all `*.md` files (`archive/` and `docs/research/` excepted). Replace with a period, colon, comma, or parenthesis.
 
 See `docs/agent/principles.md` for the positive-form counterpart to these guardrails: typed artefacts encode obligations, authoring is template-driven and tag-extensible, and AI assists authoring but never substitutes for the reconciler's deterministic enforcement.
 

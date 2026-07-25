@@ -4,6 +4,7 @@ nodes:
   - cairn.root
 status: accepted
 date: 2026-05-13
+revisited: 2026-07-25
 revisit_triggers:
   - "Gas City ceases active development or changes its extension model in a way that breaks pack-based integration"
   - "A CAIRN-specific scheduling primitive emerges that cannot be expressed as a Gas City formula"
@@ -32,6 +33,19 @@ CAIRN does not own an orchestrator. Four consequences follow:
 3. **Cairness as scoped is retired.** The standalone cairness project is superseded. The graph-walking scheduler (~400 LOC), the one novel piece with no Gas City analogue, survives as a Gas City formula in `adapters/gascity/`.
 4. **cflx is retired.** CAIRN's own `accept`/`archive` primitives run under any external orchestrator (or none). The cflx workflow runner is no longer maintained.
 
+**Revisited 2026-07-25.** The core ruling stands and is unchanged: CAIRN does
+not own an orchestrator. Point 2's reference adapter was never adopted. GH #100
+(`adapters/gascity` reference pack) was closed on exactly that ground during the
+legacy issue sweep (`todo.github-issues-cleanup`, done 2026-07-12), and no Gas
+City integration ever shipped or was exercised. The `adapters/gascity/`
+directory is therefore retired and removed from the tree; point 2 now reads as
+intent only (future runners may get an adapter directory when one is actually
+adopted), and point 3's scheduler survival claim lapses with it. Point 1's
+integration contract lives on as `docs/integration-contract.md`. Points 1 and 4
+are otherwise unaffected. This is a consequence retirement, not a supersession:
+every artefact citing `dec.no-orchestrator` for the no-orchestrator ruling
+continues to cite it correctly.
+
 ## Rationale
 
 Building a CAIRN-owned orchestrator would duplicate approximately 70% of Gas City's mature surface while losing community, audit, and federation benefits. The unique CAIRN value (typed artefacts, two-chain topology, drift gate, blueprint reconciliation) has zero analogue in Gas City.
@@ -46,8 +60,8 @@ These compose. They do not compete.
 
 ## Consequences
 
-1. The graph-walking scheduler from cairness (#7) survives as a Gas City formula in `adapters/gascity/`.
+1. The graph-walking scheduler from cairness (#7) was to survive as a Gas City formula. Lapsed with the adapter retirement above; it was never built.
 2. CAIRN stays focused on architecture-truth.
 3. Spec section 4 requires amendment to reflect that workflow lives in external skills and optional formulas, not as a CAIRN non-goal.
-4. Three operational paths emerge: CAIRN queries drive Gas City formulas; Beads-mediated typed beads become work items; SSE reactive events on graph state changes.
-5. Contribution path is `gastownhall/gascity-packs` as `packs/cairn-governance/`.
+4. Three operational paths were foreseen: CAIRN queries drive Gas City formulas; Beads-mediated typed beads become work items; SSE reactive events on graph state changes. Only the Beads path survives, and in narrowed form: beads are a read-only derived view, not a Todo source (`dec.beads-task-layer`), and native Todo artefacts are the front door (`dec.native-todos-first`). The Gas City formula path lapsed with the adapter retirement above, and the SSE path was cut by `dec.simplify-cut-sse`.
+5. Contribution path was `gastownhall/gascity-packs` as `packs/cairn-governance/`. Lapsed with the adapter retirement above; nothing was ever contributed.

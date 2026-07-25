@@ -33,14 +33,6 @@ src/ui_assets/assets/
 .codex/
 .opencode/
 
-# Sauron strongholds: transient recon notes for in-flight work.
-# Promote anything worth keeping into docs/strongholds/ before merging.
-.sauron/
-
-# Graphify outputs: derived from corpus, regenerated on demand.
-graphify-out/
-
-
 # Python bytecode caches
 __pycache__/
 *.pyc

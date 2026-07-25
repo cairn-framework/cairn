@@ -22,8 +22,12 @@ set -euo pipefail
 # (per scenario, with the exact offending colour/element signatures) in
 # harness/out/report.json so the optimisation loop knows what to fix.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+# Location-based, not `git rev-parse`: this script's depth below the repo root is
+# fixed, so deriving from its own path is deterministic. `git rev-parse` would
+# resolve the CALLER's repository, which is wrong when invoked by absolute path
+# from inside a different repo, worktree, or submodule.
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$repo_root"
 
 command -v node >/dev/null 2>&1 || { echo "autoresearch: node not found on PATH" >&2; exit 1; }
 

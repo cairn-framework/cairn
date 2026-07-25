@@ -17,7 +17,7 @@ repos:
         language: pygrep
         types: [text]
         files: \.md$
-        exclude: ^(archive/|docs/research/|graphify-out/)
+        exclude: ^(archive/|docs/research/)
 
       - id: cargo-clippy
         name: cargo clippy (warnings as errors)
