@@ -63,5 +63,5 @@ These compose. They do not compete.
 1. The graph-walking scheduler from cairness (#7) was to survive as a Gas City formula. Lapsed with the adapter retirement above; it was never built.
 2. CAIRN stays focused on architecture-truth.
 3. Spec section 4 requires amendment to reflect that workflow lives in external skills and optional formulas, not as a CAIRN non-goal.
-4. Three operational paths emerge: CAIRN queries drive Gas City formulas; Beads-mediated typed beads become work items; SSE reactive events on graph state changes.
+4. Three operational paths were foreseen: CAIRN queries drive Gas City formulas; Beads-mediated typed beads become work items; SSE reactive events on graph state changes. Only the Beads path survives, and in narrowed form: beads are a read-only derived view, not a Todo source (`dec.beads-task-layer`), and native Todo artefacts are the front door (`dec.native-todos-first`). The Gas City formula path lapsed with the adapter retirement above, and the SSE path was cut by `dec.simplify-cut-sse`.
 5. Contribution path was `gastownhall/gascity-packs` as `packs/cairn-governance/`. Lapsed with the adapter retirement above; nothing was ever contributed.

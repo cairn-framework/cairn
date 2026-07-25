@@ -22,8 +22,8 @@ set -euo pipefail
 # (per scenario, with the exact offending colour/element signatures) in
 # harness/out/report.json so the optimisation loop knows what to fix.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$repo_root"
 
 command -v node >/dev/null 2>&1 || { echo "autoresearch: node not found on PATH" >&2; exit 1; }
 

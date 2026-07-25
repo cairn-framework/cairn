@@ -7035,13 +7035,6 @@
   ],
   "findings": [
     {
-      "code": "CAIRN_RESEARCH_ORPHAN",
-      "severity": "info",
-      "message": "research `res.herdr-plugin-feasibility` is not linked from any decision",
-      "node": null,
-      "path": "././meta/research/herdr-plugin-feasibility.md"
-    },
-    {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
