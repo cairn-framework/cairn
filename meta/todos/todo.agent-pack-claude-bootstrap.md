@@ -1,10 +1,20 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: blocked
 created: 2026-07-22
 ---
 
 # Agent Pack Claude Bootstrap
+
+blocked on sub-todos: todo.pack-install-lifecycle, todo.pack-init-delegation,
+todo.pack-campaign-resolver. The Scope below is one small reviewable PR only
+when split; each child owns a disjoint slice of it and the last child to land
+flips this parent to `done`. Nothing was dropped in the split: the install verb,
+ownership manifest, hash rules, drift semantics, legacy adoption and containment
+went to `todo.pack-install-lifecycle`; `init --wire` delegation and the
+first-run gap went to `todo.pack-init-delegation`; the Claude-native rendering,
+resolver, atomic manifest publication and campaign snapshot went to
+`todo.pack-campaign-resolver`.
 
 ## Priority
 

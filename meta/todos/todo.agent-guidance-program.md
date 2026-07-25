@@ -140,11 +140,17 @@ Wave 2 (done, 2026-07-25):
 
 Wave 3 (open as of 2026-07-25; dependencies satisfied by wave 2):
 
-- todo.agent-pack-claude-bootstrap (after foundation and router)
-- todo.agent-guidance-campaign-reconciliation (done, PR pending at authoring
-  time). Added `cairn-loop-reconcile` to the loop-mode required asset closure
-  under `dec.loop-reconcile-step`, so the step below is enforced procedure
+- todo.agent-pack-claude-bootstrap (after foundation and router). Split under
+  the sizing rule into three children, which are the units the selector picks:
+  todo.pack-install-lifecycle (open), todo.pack-init-delegation (blocked on the
+  installer), todo.pack-campaign-resolver (blocked on both). The parent is
+  blocked and flips to `done` when the last child lands.
+- todo.agent-guidance-campaign-reconciliation (done, PR #461). Added
+  `cairn-loop-reconcile` to the loop-mode required asset closure under
+  `dec.loop-reconcile-step`, so end-of-unit reconciliation is enforced procedure
   inside the landing unit's commit rather than a maintainer habit between units.
+  It also widened the Rust gates to `--workspace`, which had been leaving every
+  `tools/agent-pack` test unrun.
 - todo.spec-authority-retirement (after router)
 
 Wave 4 (dependencies satisfied by wave 3):
