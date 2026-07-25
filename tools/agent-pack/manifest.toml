@@ -56,6 +56,51 @@ entry = "cairn-loop-landing"
 mode = "default"
 source = "content/skills/cairn-loop-landing/SKILL.md"
 
+[[canonical]]
+entry = "cairn-dev-reference-command-reference"
+mode = "default"
+source = "content/skills/cairn-dev/references/command-reference.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-graph-navigation"
+mode = "default"
+source = "content/skills/cairn-dev/references/graph-navigation.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-task-bug-investigation"
+mode = "default"
+source = "content/skills/cairn-dev/references/task-bug-investigation.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-task-refactoring"
+mode = "default"
+source = "content/skills/cairn-dev/references/task-refactoring.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-task-architecture-discovery"
+mode = "default"
+source = "content/skills/cairn-dev/references/task-architecture-discovery.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-task-feature-implementation"
+mode = "default"
+source = "content/skills/cairn-dev/references/task-feature-implementation.md"
+
+[[canonical]]
+entry = "cairn-dev-reference-loop-mode"
+mode = "default"
+source = "content/skills/cairn-dev/references/loop-mode.md"
+
+[[canonical]]
+entry = "cairn-loop-scope"
+mode = "default"
+source = "content/skills/cairn-loop-scope/SKILL.md"
+
+[[canonical]]
+entry = "cairn-loop-implement"
+mode = "default"
+source = "content/skills/cairn-loop-implement/SKILL.md"
+
 [[adapters]]
 harness = "claude"
 entry = "cairn-dev"
@@ -121,3 +166,57 @@ harness = "claude"
 entry = "cairn-loop-landing"
 mode = "default"
 destination = ".claude/skills/cairn-loop-landing/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-command-reference"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/command-reference.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-graph-navigation"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/graph-navigation.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-task-bug-investigation"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/task-bug-investigation.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-task-refactoring"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/task-refactoring.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-task-architecture-discovery"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/task-architecture-discovery.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-task-feature-implementation"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/task-feature-implementation.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-dev-reference-loop-mode"
+mode = "default"
+destination = ".claude/skills/cairn-dev/references/loop-mode.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-loop-scope"
+mode = "default"
+destination = ".claude/skills/cairn-loop-scope/SKILL.md"
+
+[[adapters]]
+harness = "claude"
+entry = "cairn-loop-implement"
+mode = "default"
+destination = ".claude/skills/cairn-loop-implement/SKILL.md"

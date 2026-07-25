@@ -8,7 +8,7 @@ Two chains meet at a hinge: the **provenance chain** (evidence flowing in: Sourc
 
 Your change directory (`meta/changes/<change-id>/`) contains everything you need: `proposal.md` (why), `design.md` (how), `tasks.md` (what), and `specs/` (acceptance criteria). Work from these files. The quality gates in `scripts/pre-archive-rust-gates.sh` gives you the build/lint requirements.
 
-Two skill files are worth loading for any coding work in this repo, whether through a Skill tool or by reading them directly: `.claude/skills/karpathy-guidelines/SKILL.md` (think before coding, simplicity first, surgical changes, goal-driven execution) for any coding work, and `.claude/skills/cairn-dev/SKILL.md` (full cairn CLI surface, blueprint syntax, artefact schemas, development loop) for architecture navigation or artefact authoring.
+Start at `.claude/skills/cairn-dev/SKILL.md`. It is a short router: it names the target-authority precedence, the first orientation query, and the gate, then points at the one reference your task needs (bug investigation, refactoring, architecture discovery, feature implementation, blueprint syntax, finding codes, artefact schemas, the command reference, graph navigation, or loop mode). Load the reference the router sends you to, not all of them.
 
 ## Where things live
 
@@ -138,9 +138,14 @@ todos <node>` or `cairn status`.
 
 ## Developing cairn itself: the dev loop
 
-To develop cairn itself, run the Cairn Dev Loop via `/cairn-loop`
-(`.claude/commands/cairn-loop.md` plus the skills it loads). That command
-(plus the skills it loads) is the sole normative orchestrator: one unit per
-session, fail-closed recovery, single squash commit (`dec.loop-command-harness-model`).
-A short descriptive overview lives in `docs/agent/cairn-dev-workflow.md` and
-is never normative; where the two disagree, the command wins.
+To develop cairn itself, run the Cairn Dev Loop. `/cairn-loop` is the
+adapter-native invocation, but it is only transport: the sole normative
+procedure is `cairn-dev` loop mode
+(`.claude/skills/cairn-dev/references/loop-mode.md`) plus exactly the required
+asset closure it declares (`cairn-loop-scope`, `cairn-loop-implement`,
+`cairn-loop-recovery`, `cairn-loop-landing`). One unit per session, fail-closed
+recovery, single squash commit (`dec.loop-command-harness-model` clause 8, as
+relocated by `dec.unified-cairn-dev-entry`). Loop mode runs only on explicit
+selection; the `cairn-dev` router never enters it from broad matching. A short
+descriptive overview lives in `docs/agent/cairn-dev-workflow.md` and is never
+normative; where the two disagree, loop mode wins.
