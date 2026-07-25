@@ -223,6 +223,22 @@ err-write = "failed to write {file}: {detail}"
 err-temp-collision = "too many temp file collisions"
 err-from-code-conflict = "usage: cairn init --wire (not supported with --from-code)"
 
+# -- Agent pack -----------------------------------------------------------
+
+[pack]
+usage = "usage: cairn pack <install|update|status|uninstall> [--harness <name>] [--loop]"
+installed = "Installed the cairn agent pack ({harness}, bundle {bundle}, cli {cli})."
+updated = "Updated the cairn agent pack ({harness}, bundle {bundle}, cli {cli})."
+removed = "Retired {count} pack files."
+status-header = "Agent pack installed ({harness}, bundle {bundle}, cli {cli})."
+drift = "This cairn ships bundle {bundle} (cli {cli}). Run `cairn pack update` to refresh."
+not-installed = "No cairn agent pack is installed here (no {file})."
+legacy-detected = "Found {count} bundled pack files with no manifest. Run `cairn pack install` to adopt them."
+modified-note = "Modified since cairn wrote them, left untouched:"
+err-unknown-harness = "unknown harness `{harness}`; supported: {supported}"
+err-write = "failed to write {file}: {detail}"
+err-manifest-parse = "{file} is not a readable pack manifest: {detail}"
+
 # -- Feedback -------------------------------------------------------------
 
 [feedback]
@@ -451,6 +467,8 @@ grep = "  --grep <query>                 Search decision body text"
 language = "  --language <lang>              Target language for docstring"
 edited = "  --edited                       Accept the edited draft text"
 pre-push = "  --pre-push                     Target the pre-push hook (install/status/uninstall)"
+harness = "  --harness <name>               Target harness adapter (default: claude)"
+loop = "  --loop                         Include loop mode and its required asset closure"
 question = "  --question <text>              The unresolved question to log"
 area = "  --area <area>                  Area of cairn the friction relates to"
 severity = "  --severity <level>             How disruptive it was (e.g. low, medium, high)"
@@ -757,6 +775,30 @@ description = "Show whether a Cairn git hook is installed"
 [help.commands.hook-uninstall]
 usage = "cairn hook uninstall [--pre-push] [options]"
 description = "Remove a Cairn git hook"
+
+[help.commands.pack]
+usage = "cairn pack <install|update|status|uninstall> [options]"
+description = "Install, update, inspect, or remove the agent pack"
+args = """  install    Write the pack and record what cairn owns
+  update     Refresh pristine files, backfill missing ones
+  status     Report installed versions and per-file state
+  uninstall  Retire the files cairn owns and still matches"""
+
+[help.commands.pack-install]
+usage = "cairn pack install [--harness <name>] [--loop] [options]"
+description = "Install the agent pack and record an ownership manifest"
+
+[help.commands.pack-update]
+usage = "cairn pack update [--harness <name>] [--loop] [options]"
+description = "Refresh pristine pack files and backfill missing ones"
+
+[help.commands.pack-status]
+usage = "cairn pack status [--harness <name>] [--loop] [options]"
+description = "Report installed pack versions and per-file state"
+
+[help.commands.pack-uninstall]
+usage = "cairn pack uninstall [options]"
+description = "Retire pack files cairn owns and that are still pristine"
 
 # -- Symbol locate -------------------------------------------------------
 [locate]

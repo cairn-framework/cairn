@@ -26,7 +26,7 @@ This project uses cairn to keep its architecture map in sync with code. Read\n\
 
 /// Write `content` to a collision-safe temp file in `dir`, then atomically
 /// rename it to `target`. Cleans up the temp file on any failure.
-fn atomic_write(dir: &Path, target: &Path, content: &str) -> Result<(), String> {
+pub(crate) fn atomic_write(dir: &Path, target: &Path, content: &str) -> Result<(), String> {
     use std::io::Write;
     let pid = std::process::id();
     let mut tmp_path = dir.join(format!(".cairn-wire-{pid}"));
@@ -78,7 +78,7 @@ fn atomic_write(dir: &Path, target: &Path, content: &str) -> Result<(), String> 
 
 /// Walk from root toward `file`, returning an error if any component is a
 /// symlink that could redirect a write outside the project root. Read-only.
-fn check_symlink_containment(root: &Path, file: &Path) -> CliResult {
+pub(crate) fn check_symlink_containment(root: &Path, file: &Path) -> CliResult {
     let relative = file.strip_prefix(root).unwrap_or(file);
     let mut current = root.to_path_buf();
     for component in relative.components() {

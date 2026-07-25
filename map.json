@@ -1333,6 +1333,9 @@
         "src/cli/commands/import.rs",
         "src/cli/commands/mod.rs",
         "src/cli/commands/onboard.rs",
+        "src/cli/commands/pack.rs",
+        "src/cli/commands/pack_assets.rs",
+        "src/cli/commands/pack_manifest.rs",
         "src/cli/commands/project.rs",
         "src/cli/commands/todo.rs",
         "src/cli/commands/watch.rs",
@@ -1442,8 +1445,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 859,
-          "end_line": 877
+          "line": 866,
+          "end_line": 884
         },
         {
           "name": "blank_command_failure_detail",
@@ -1491,7 +1494,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 82,
-          "end_line": 313
+          "end_line": 316
         },
         {
           "name": "run",
@@ -1626,8 +1629,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 854,
-          "end_line": 854
+          "line": 861,
+          "end_line": 861
         },
         {
           "name": "blueprint_root",
@@ -1642,8 +1645,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 885,
-          "end_line": 893
+          "line": 892,
+          "end_line": 900
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -6620,6 +6623,7 @@
         "tests/mcp.rs",
         "tests/output_token_efficiency_findings.rs",
         "tests/output_token_efficiency_status_brief.rs",
+        "tests/pack_lifecycle.rs",
         "tests/phase_10_distribution.rs",
         "tests/phase_7_6_ai_provenance.rs",
         "tests/phase_7_7_ux_foundation.rs",
