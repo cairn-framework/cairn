@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: blocked
 created: 2026-07-22
 ---
 
@@ -82,3 +82,11 @@ pack was tuned against.
   terminal comparison. `todo.agent-pack-omp-publication` stays unresolved until a
   round returns `retain` (which opens it) or `remove` (which drops it via the
   umbrella's superseding-decision path).
+
+## Blocked
+
+This iteration cannot execute the development arms because the authenticated
+worker epoch and replay fixtures are unavailable here. See
+`res.agent-guidance-treatment-evaluation-blocker`; a future owner must restore
+that environment and execute this prescribed development evaluation before any
+sealed confirmation verdict.
