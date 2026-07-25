@@ -27,14 +27,17 @@ but not yet designed enough to implement against.
 | D-02 | Agent cross-model review subtype schema | 8.4 (design note) | open | Phase 2 | Severity taxonomy, aggregation of multiple reviews on same node, reviewer identifier format. |
 | D-03 | Edge validation against reality-layer dependencies | 10 (scanner step 5) | resolved | Phase 5 | Tree-sitter-backed Rust observations compare `use` paths and `mod` declarations against declared edges. Divergence surfaces as rationale tension. |
 | D-04 | Docstring drift detection | 10 (scanner step 6) | resolved | Phase 5 | Scanner checks exact Cairn fact lines in Rust module docstrings against map facts. Divergence surfaces as rationale tension. |
-| D-05 | `cairn docstring <node>` command | 12 | resolved | Phase 5 | Emits graph-grounded templates for Rust, Python, TypeScript, and Go. Structural facts are generated; human or agent completes prose. |
-| D-06 | `cairn init --from-code` (brownfield extraction) | 12, 15 | open | Phase 9 | Generates initial blueprint and contracts from existing codebase. Reconciler extracts candidates, summariser names/describes, human refines. |
+| D-05 | `cairn docstring <node>` command | 12 | resolved | Phase 5 | Emits graph-grounded templates for Rust, Python, TypeScript, and Go. Structural facts are generated; the operator completes the prose. |
+| D-06 | `cairn init --from-code` (brownfield extraction) | 12, 15 | open | Phase 9 | Generates initial blueprint and contracts from existing codebase. Reconciler extracts candidates, summariser names/describes, operator refines. |
 | D-07 | `cairn refine` (brownfield delta) | 12, 15 | open | Phase 9 | Re-runs brownfield extraction proposing delta against existing blueprint rather than fresh draft. Merge semantics unspecified. |
-| D-08 | Brownfield extraction approach (full section) | 15 | open | Phase 9 | Entire section at Declared level. Approach decided (LLM generates, human refines) but detailed schema and prompt strategy deferred. |
+| D-08 | Brownfield extraction approach (full section) | 15 | open | Phase 9 | Entire section at Declared level. Approach decided (LLM generates, operator refines) but detailed schema and prompt strategy deferred. |
 
-## Open questions (unresolved)
+## Open questions
 
-Items from section 16 that remain open design questions, no resolution yet committed.
+Status tracker for the numbered questions in spec section 16. A row is `open`
+until a decision closes it, and the Notes cell names that decision when one has.
+Questions raised against a node are gap decisions under `meta/decisions/`
+instead (`dec.spec-authority-retirement`).
 
 | ID | Item | Source (v0.6 section) | Status | Resolving Phase | Notes |
 |----|------|-----------------------|--------|-----------------|-------|

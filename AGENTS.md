@@ -18,7 +18,7 @@ Start at `.claude/skills/cairn-dev/SKILL.md`. It is a short router: it names the
 | `docs/registries/` | `declared-items.md`, `error-codes.md`. Check when adding new public items or error codes to avoid collisions. |
 | `archive/openspec/changes-archive/<other-phase>/specs/` | Other phases' acceptance criteria. Check only if your design.md references them. |
 | `archive/openspec/specs/<area>/spec.md` | Consolidated per-area specs, distinct from the per-phase acceptance criteria above. |
-| `docs/spec.md` | Canonical Cairn spec. |
+| `docs/spec.md` | Narrative model and history. Fallback for what the graph cannot answer; never bulk-loaded for routine work (`dec.spec-authority-retirement`). |
 | `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work. |
 | `docs/` | Marketing landing page (GitHub Pages target); pulls from the design system like any UI surface. |
 | `cairn.blueprint` | Root blueprint: cairn describing itself (dogfood). The graph's source of truth. |
@@ -28,6 +28,7 @@ Start at `.claude/skills/cairn-dev/SKILL.md`. It is a short router: it names the
 
 - **Conventions**: `docs/conventions.md` covers cross-cutting rules (error codes, naming, module limits). Check when making structural or naming decisions.
 - **Registries**: `docs/registries/` covers declared items and error codes across all phases. Check when adding new public items or error codes to avoid collisions.
+- **Where new content goes**: `docs/conventions.md` section 11 routes rules, plans, design, rationale, and procedure to their owning layer. Check before adding prose anywhere.
 - **Specs from other phases**: `archive/openspec/changes-archive/<other-phase>/specs/` is only relevant if your design.md references another phase's requirements.
 
 When implementing a feature phase, check `docs/conventions.md` for the test-first pre-phase convention. If a paired `phase-<N>.0-tests` change exists, remove the matching `#[cairn_planned(phase = <N>)]` attribute as the feature lands rather than rewriting those tests from scratch. The attribute is structured (proc-macro), not a comment; do not parse the `#[ignore]` reason string.
@@ -127,8 +128,8 @@ When asked for a `/debate`, or a sign-off question merits one, structure the res
 
 ## Task tracking: native Todo artefacts are the front door
 
-This repo's own development uses cairn's native Todo artefact (`docs/spec.md`
-§8.2, "Todo (authority)"), the same mechanism a fresh `cairn init` user gets
+This repo's own development uses cairn's native Todo artefact (spec section 8.2,
+"Todo (authority)"), the same mechanism a fresh `cairn init` user gets
 (`dec.native-todos-first`). Add work with `cairn todo new <slug> --node <id>`,
 which scaffolds `meta/todos/todo.<slug>.md`; there is no separate claim/close
 verb, status changes (`open`, `in_progress`, `done`, `blocked`) go through the
