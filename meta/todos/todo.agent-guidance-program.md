@@ -122,30 +122,34 @@ one open loop PR; parallel-worktree execution of independent children needs a
 separately ratified runner that preserves that contract and is out of scope
 here.
 
-Wave 1 (no dependencies, ready now):
+Wave 1 (done, 2026-07-24):
 
-- todo.agent-guidance-provenance (P0; source, research, proposed refining
-  decision)
-- todo.agent-guidance-baseline (P0)
-- todo.agent-pack-canonical-foundation (P0)
-- todo.agent-context-bundle (P0; inventory and sample rule only, completable
-  now)
+- todo.agent-guidance-provenance (done; produced `dec.unified-cairn-dev-entry`,
+  accepted by the owner 2026-07-23)
+- todo.agent-guidance-baseline (done; `res.agent-experiment-linklint` plus the
+  `archive/strongholds/agent-guidance-baseline/` evidence bundle)
+- todo.agent-pack-canonical-foundation (done; `tools/agent-pack`)
+- todo.agent-context-bundle (done; inventory, fixed sample rule, candidate list)
 
-Wave 2 (children eligible when their own dependencies below are done):
+Wave 2 (done, 2026-07-25):
 
-- todo.agent-guidance-router-playbooks (after baseline, foundation, and owner
-  acceptance of the refining decision). Ratification is a distinct manual gate,
-  not a unit reconciliation: provenance being done means the decision is
-  proposed, not accepted. The owner (or a maintainer) records acceptance and in
-  the same action runs `cairn todo set agent-guidance-router-playbooks open`
-  once baseline and foundation have landed, so a late ratification cannot
-  deadlock the loop; until then the loop may report exhaustion for this
-  programme, which is expected.
-- todo.agent-guidance-apply-proof-authority (after baseline and foundation)
-- todo.agent-context-bundle-evaluation (after the baseline corpus is
-  preregistered and the context-bundle inventory)
+- todo.agent-context-bundle-evaluation (done, PR #456). Recommends composing
+  existing verbs and NOT building `context_projection_v1`. Raised two
+  out-of-programme todos: `todo.node-symbol-coverage` (the measured binding
+  constraint, which no programme child consumes and which needs its own decision
+  before it changes `get --symbols`) and
+  `todo.brownfield-init-invalid-node-id`. Neither is a prerequisite for any
+  child, so neither joins a wave.
+- todo.agent-guidance-apply-proof-authority (done, PR #459)
+- todo.agent-guidance-router-playbooks (done, PR #460). Landed the migration
+  `dec.unified-cairn-dev-entry` sanctioned: `cairn-dev` loop mode is now the
+  canonical loop authority and `/cairn-loop` is adapter transport. Also completed
+  `dec.loop-command-harness-model` point 2 (the `cairn-loop-scope` and
+  `cairn-loop-implement` procedure skills and the ordered required-asset
+  closure), and retired `karpathy-guidelines` under
+  `dec.retire-karpathy-guidelines-skill`.
 
-Wave 3 (dependencies satisfied by wave 2):
+Wave 3 (open as of 2026-07-25; dependencies satisfied by wave 2):
 
 - todo.agent-pack-claude-bootstrap (after foundation and router)
 - todo.agent-guidance-campaign-reconciliation (after router)

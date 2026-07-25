@@ -513,3 +513,10 @@ nominally leads it is neither alone nor useful.
   size.
 - The amendment above is post-hoc. A future round should freeze the runner
   itself, not only the manifest, in a commit that precedes execution.
+- The token classifier tracks character offsets by summing
+  `enc.decode([token])` lengths. A token that splits a multi-byte UTF-8
+  character would decode to a replacement character and desynchronise those
+  offsets from the atom positions. It does not happen here: all 268 captured
+  streams are ASCII, and re-decoding every one gives a character-count delta of
+  exactly zero, so the published classification is unaffected. A corpus with
+  non-ASCII output would need the offsets taken from byte positions instead.
