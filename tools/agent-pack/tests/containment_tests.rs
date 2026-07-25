@@ -1,9 +1,12 @@
 //! Filesystem containment behavior for agent-pack paths.
 
 use cairn_agent_pack::{
-    ContainmentError, run_check, validate_lexical_containment, validate_resolved_containment,
+    ContainmentError, validate_lexical_containment, validate_resolved_containment,
     validate_resolved_path,
 };
+// Both `run_check` callers below are symlink tests, which only build on unix.
+#[cfg(unix)]
+use cairn_agent_pack::run_check;
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
