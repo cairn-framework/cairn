@@ -76,7 +76,7 @@ Prefer to drive it yourself?
 
 ```sh
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cairn-framework/cairn/releases/latest/download/cairn-installer.sh | sh
-cairn init                                                          # scaffold blueprint + config + agent guide
+cairn init --wire                                                   # scaffold, install the agent pack, and wire its pointer
 cairn scan                                                          # reconcile against code
 ```
 
@@ -84,7 +84,7 @@ cairn scan                                                          # reconcile 
   <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
 </p>
 
-Already have a codebase? Run `cairn init --from-code --apply` to draft the map from your source tree and land it in one step (drop `--apply` to review the proposal first and land it with `cairn change apply brownfield-init`). Then paste `.cairn/AGENTS.md` into your agent's instructions, and your agent keeps the map in sync from there.
+Already have a codebase? Run `cairn init --from-code --apply --wire` to draft the map from your source tree, land it, install the agent pack, and wire its pointer in one step. Drop `--apply --wire` to review the proposal first, land it with `cairn change apply brownfield-init`, then run `cairn init --wire`.
 
 Once the draft is applied, `cairn scan` writes the map and lists every place the map and the code disagree: files on disk that no module claims (orphans), modules planned but not yet built (ghosts), and mismatches between the two. `cairn onboard` groups the leftover files and suggests where they fit. The gate only catches intent you have actually declared: contracts and decisions. Spell those out and the gate arms itself.
 
@@ -137,7 +137,7 @@ Cairn is a closed loop: your agent declares the architecture you want, it measur
 ## Built for your coding agent
 
 Cairn puts your coding agent at the centre. The agent is the main reader and writer of the map, both ways:
-- **Plan in.** `cairn init` writes `.cairn/AGENTS.md`, a ready-made section for your project's `CLAUDE.md` or `AGENTS.md`. It teaches agents the orientation commands (`cairn context`, `cairn get`, `cairn neighbourhood`), the rule to keep the plan in sync, and the pre-commit gate.
+- **Plan in.** `cairn init --wire` writes `.cairn/AGENTS.md`, installs the owned agent pack, and appends a pointer to your project's `CLAUDE.md` or `AGENTS.md`. The guide teaches agents the orientation commands (`cairn context`, `cairn get`, `cairn neighbourhood`), the rule to keep the plan in sync, and the pre-commit gate.
 - **Clean answers out.** Commands take `--json` and return a versioned, command-specific JSON shape (each carries a `schema_version`), so agents read structure instead of prose. `cairn-mcp` serves the same query API as MCP tools (see [docs/mcp.md](docs/mcp.md) and [docs/claude-code.md](docs/claude-code.md)).
 - **Problems back to us.** When Cairn itself trips up on your project (a confusing message, a wrong finding, a missing feature), `cairn feedback "<what happened>"` saves it to `.cairn/feedback.md` and prints a ready-to-file issue link for [this repo's tracker](https://github.com/cairn-framework/cairn/issues). The agent guide tells agents to do this instead of quietly working around the problem, so every project that uses Cairn helps improve it.
 

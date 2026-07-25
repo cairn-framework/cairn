@@ -19,12 +19,6 @@ pub(crate) fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
 /// Agent-facing guide written by `cairn init`, appended to a project's CLAUDE.md or AGENTS.md.
 const AGENT_GUIDE: &str = include_str!("../agent_guide.md");
 
-/// Curated cairn agent-pack assets bundled into the binary and emitted by
-/// `cairn init` so an agent landing in a fresh repo has an on-ramp. The table
-/// itself lives with the pack lifecycle in `pack_assets`, so `init` and
-/// `cairn pack install` can never emit different bytes.
-use super::pack_assets::BASE_ASSETS;
-
 pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
     let already_initialized = root.join("cairn.blueprint").exists();
     let writes = [
@@ -42,8 +36,7 @@ pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
         (".cairn/AGENTS.md", AGENT_GUIDE),
     ];
     let mut backfilled: Vec<&str> = Vec::new();
-    let assets = BASE_ASSETS.iter().map(|asset| (asset.path, asset.content));
-    for (path, content) in writes.iter().copied().chain(assets) {
+    for (path, content) in writes {
         let full = root.join(path);
         if let Some(parent) = full.parent()
             && let Err(error) = fs::create_dir_all(parent)
@@ -101,47 +94,33 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_init_project_emits_cairn_skills_and_loop_guide() {
+    fn test_init_project_emits_the_core_scaffold_and_agent_guide() {
         let dir = tempfile::tempdir().unwrap();
         let result = init_project(dir.path(), false);
         assert_eq!(result.code, 0, "init should succeed: {}", result.stderr);
 
-        // Every bundled cairn-* skill lands in the fresh repo.
-        for asset in BASE_ASSETS {
+        // The scaffold owns project files. Pack bytes are installed by the
+        // lifecycle engine at the CLI boundary, after this succeeds.
+        for path in [
+            "cairn.blueprint",
+            "cairn.config.yaml",
+            "meta/contracts/.gitkeep",
+            "meta/todos/.gitkeep",
+            ".cairn/state/.gitkeep",
+            ".cairn/AGENTS.md",
+        ] {
             assert!(
-                dir.path().join(asset.path).exists(),
-                "init must emit skill file {}",
-                asset.path
+                dir.path().join(path).exists(),
+                "init must emit scaffold file {path}"
             );
         }
 
-        // Content is actually copied, not stubbed.
-        let dev_skill =
-            std::fs::read_to_string(dir.path().join(".claude/skills/cairn-dev/SKILL.md")).unwrap();
-        assert!(
-            dev_skill.contains("name: cairn-dev"),
-            "emitted cairn-dev skill must carry its frontmatter"
-        );
-
-        // The explore skill must teach provenance queries, not just structure,
-        // so a regenerated template cannot silently drop the rationale path.
-        let explore_skill =
-            std::fs::read_to_string(dir.path().join(".claude/skills/cairn-explore/SKILL.md"))
-                .unwrap();
-        assert!(
-            explore_skill.contains("cairn rationale"),
-            "emitted cairn-explore skill must teach the provenance query path"
-        );
-
-        // The agent guide points the agent at the loop skills.
         let guide = std::fs::read_to_string(dir.path().join(".cairn/AGENTS.md")).unwrap();
         assert!(
             guide.contains(".claude/skills/cairn-dev"),
-            "agent guide must reference the dev loop skills"
+            "agent guide must reference the installed router"
         );
 
-        // Scaffolded config must not use the unimplemented reconcilers: key so a
-        // fresh `cairn init` does not immediately emit CAIRN_CONFIG_UNKNOWN_KEY.
         let config = std::fs::read_to_string(dir.path().join("cairn.config.yaml")).unwrap();
         assert!(
             !config.contains("reconcilers"),

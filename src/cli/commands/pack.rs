@@ -27,11 +27,18 @@ pub(crate) fn run_pack_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
     };
     let with_loop = parsed.command_args.iter().any(|a| a == "--loop");
     match subcommand(&parsed.command_args) {
-        Some("install" | "update") => run_apply(root, harness, with_loop, parsed),
+        Some("install" | "update") => run_apply(root, harness, with_loop, parsed.json),
         Some("status") => run_status(root, with_loop, parsed),
         Some("uninstall") => run_uninstall(root, parsed),
         _ => err(2, copy::lookup("pack.usage")),
     }
+}
+
+/// Install the default base pack through the same ownership engine as
+/// `cairn pack install`. Used by `cairn init` so bootstrap and maintenance can
+/// never disagree about bytes or ownership.
+pub(crate) fn install_default_pack(root: &Path, json: bool) -> CliResult {
+    run_apply(root, SUPPORTED_HARNESSES[0], false, json)
 }
 
 /// First bare token after `pack`, so `pack --harness claude install` and
@@ -83,7 +90,7 @@ struct ApplyReport {
 
 /// Install or update. Both verbs run the same engine: the difference is only
 /// whether a ledger already existed, which the report states.
-fn run_apply(root: &Path, harness: &str, with_loop: bool, parsed: &ParsedArgs) -> CliResult {
+fn run_apply(root: &Path, harness: &str, with_loop: bool, json: bool) -> CliResult {
     let existing = match read_manifest(root) {
         Ok(manifest) => manifest,
         Err(result) => return result,
@@ -157,7 +164,7 @@ fn run_apply(root: &Path, harness: &str, with_loop: bool, parsed: &ParsedArgs) -
         return result;
     }
 
-    if parsed.json {
+    if json {
         return ok(apply_json(harness, &report));
     }
     ok(render_apply_human(

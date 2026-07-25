@@ -1421,8 +1421,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 73,
-          "end_line": 75
+          "line": 74,
+          "end_line": 76
         },
         {
           "name": "BatterySelection",
@@ -1445,8 +1445,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 866,
-          "end_line": 884
+          "line": 998,
+          "end_line": 1016
         },
         {
           "name": "blank_command_failure_detail",
@@ -1493,8 +1493,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 82,
-          "end_line": 316
+          "line": 207,
+          "end_line": 448
         },
         {
           "name": "run",
@@ -1597,8 +1597,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 62,
-          "end_line": 69
+          "line": 63,
+          "end_line": 70
         },
         {
           "name": "EdgeEntry",
@@ -1621,16 +1621,16 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 60,
+          "end_line": 60
         },
         {
           "name": "RETIRED_TOP_LEVEL",
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 861,
-          "end_line": 861
+          "line": 993,
+          "end_line": 993
         },
         {
           "name": "blueprint_root",
@@ -1645,8 +1645,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 892,
-          "end_line": 900
+          "line": 1024,
+          "end_line": 1032
         },
         {
           "name": "current_timestamp_rfc3339",

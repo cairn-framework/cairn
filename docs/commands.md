@@ -120,8 +120,8 @@ operators are not supported. Prefer simple commands without spaces in args.
 
 | Command | Description |
 |---------|-------------|
-| `cairn init` | Scaffold a new cairn project |
-| `cairn init --from-code` | Discover modules from existing code |
+| `cairn init [--wire [path]]` | Scaffold a new cairn project, install the owned agent pack, and optionally append its orientation pointer |
+| `cairn init --from-code [--apply [--wire [path]]]` | Discover modules from existing code; wiring requires `--apply` |
 | `cairn refine` | Re-run brownfield discovery and write a timestamped change |
 | `cairn onboard` | Suggest blueprint entries for orphaned files |
 

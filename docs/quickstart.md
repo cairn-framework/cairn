@@ -89,12 +89,12 @@ The steps below assume you have an existing project you want to describe with Ca
 Navigate to your project root and run:
 
 ```sh
-cairn init
+cairn init --wire
 ```
 
-This creates a starter `cairn.blueprint`, a `cairn.config.yaml`, and `.cairn/AGENTS.md`, an agent-facing guide you can append to your project's `CLAUDE.md` or `AGENTS.md` so coding agents use the map (and report Cairn friction with `cairn feedback`). Open the blueprint in your editor.
+This creates a starter `cairn.blueprint`, `cairn.config.yaml`, and `.cairn/AGENTS.md`. It also installs the owned agent pack and appends a pointer to your project's `CLAUDE.md` or `AGENTS.md`, so coding agents use the map and report Cairn friction with `cairn feedback`. Open the blueprint in your editor.
 
-If the project already has a large codebase, `cairn init --from-code` discovers modules from the source tree and writes a reviewable proposal instead. Add `--apply` to land the discovered map in one step: `cairn init --from-code --apply`.
+If the project already has a large codebase, `cairn init --from-code` discovers modules from the source tree and writes a reviewable proposal instead. Add `--apply --wire` to land the discovered map, install the pack, and wire the agent pointer in one step: `cairn init --from-code --apply --wire`.
 
 ### 2. Declare your modules
 
