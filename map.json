@@ -1385,6 +1385,7 @@
         "tools/agent-pack/src/plan_error.rs",
         "tools/agent-pack/tests/containment_tests.rs",
         "tools/agent-pack/tests/determinism_drift_tests.rs",
+        "tools/agent-pack/tests/host_language_neutrality_tests.rs",
         "tools/agent-pack/tests/validation_error_tests.rs"
       ],
       "contracts": [
