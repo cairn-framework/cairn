@@ -43,8 +43,12 @@ fn repo_root() -> PathBuf {
 }
 
 fn frontmatter_field(body: &str, field: &str) -> Option<String> {
-    body.lines()
-        .take_while(|line| !line.starts_with("---") || line.len() != 3)
+    let mut lines = body.lines();
+    if lines.next()? != "---" {
+        return None;
+    }
+    lines
+        .take_while(|line| *line != "---")
         .find_map(|line| line.strip_prefix(&format!("{field}: ")))
         .map(str::to_owned)
 }
@@ -64,6 +68,13 @@ fn first_turn_and_advertised_metadata_fit_the_baseline_ceiling() {
             metadata += frontmatter_field(&body, field).map_or(0, |value| value.len());
         }
     }
+    // A frontmatter parser that silently returns None for every file would zero
+    // this term and quietly stop enforcing half the budget. Pin it.
+    assert!(
+        metadata > 1_000,
+        "advertised metadata measured {metadata} bytes across the pack's skills, \
+         which is implausibly low: the frontmatter parser is broken, not the pack"
+    );
 
     let router = std::fs::metadata(pack.join("content/skills/cairn-dev/SKILL.md"))
         .unwrap()

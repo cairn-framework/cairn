@@ -31,8 +31,9 @@ git checkout --detach origin/main && git checkout -b loop/<tail>
 ```
 
 If the derived name already exists but was NOT adopted by the verdict and NOT
-created this session, a preflight row was missed. Do not improvise: return
-`LOOP HALTED` and say which name collided.
+created this session, you missed a preflight row. Do not improvise and do not
+halt here: return to loop mode's preflight table, which owns that state and can
+adopt or quarantine the branch. Say which name collided.
 
 ## 2. Make the smallest change that satisfies the criterion
 
@@ -55,8 +56,8 @@ The graph must still describe the code when you are done:
   node's paths or declare a new Module.
 - Every new cross-module call gets a blueprint edge. Check for a cycle first:
   `$CAIRN deps <target> --transitive`.
-- User-facing strings go where the repository centralises them, not hardcoded in
-  source.
+- User-facing strings go to the copy location named by loop mode's Repo bindings.
+  Never hardcode them in source, and never guess the path: read the binding.
 
 ## 4. Test the behaviour
 
