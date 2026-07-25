@@ -464,3 +464,40 @@ NOT yet gated (author-side POLICY only; the scanner is silent):
 
 Codification. This section is the normative home of the rules above; it DOCUMENTS the shipped checks rather than proposing them. The `agent_guide.md` delivered by `cairn init` SHOULD carry only a short orienting note pointing here, not a restatement of the layout. To make the policy-tier rules mechanical, the following NET-NEW gates are recommended (tracked as open questions): `CAIRN_ARTEFACT_DUPLICATE_ID` (across the dec/res/src union), an id-prefix-conformance check, and an 'unwired artefact under a meta/ pointer root' check. The phrase 'mechanically verifiable' MUST NOT be applied to any rule until its gate exists; until then describe it as detected (advisory) or as policy.
 
+
+## 11. Where content belongs
+
+This section is normative. It routes new content to the layer that consumes and
+enforces it, so that no layer accumulates material another layer already owns.
+Operator below means whoever acts on the project through cairn, human or agent.
+
+Reads are graph-first. Routine work queries the graph (`cairn context`, `cairn
+get`, `cairn neighbourhood`, `cairn rationale`) and loads the one artefact,
+registry, or just-in-time reference the task needs. `docs/spec.md` is fallback
+narrative: the conceptual model, the two-chain topology, and the history of how
+the design arrived where it is. Routine work MUST NOT bulk-load it. Needing to
+read the spec for a routine task is a signal that the graph, a contract, a
+registry, or a reference is incomplete; fix that rather than routing readers
+back to the spec.
+
+Writes go to the home that owns the content type:
+
+| Content | Home |
+|---|---|
+| A rule the scanner enforces or should enforce | `docs/registries/spec-rules.md`, with its code in `docs/registries/error-codes.md` |
+| Structure that is planned but not built | a ghost node in `cairn.blueprint` |
+| Work to be done | a todo (`cairn todo new`) or a change under `meta/changes/` |
+| An unresolved question | a gap decision under `meta/decisions/` (`cairn gap <node> --question`). The spec's own numbered questions predate that primitive; their status stays in `docs/registries/declared-items.md` |
+| The design of one subsystem | that node's contract under `meta/contracts/` |
+| Why something is shaped the way it is | a decision under `meta/decisions/` |
+| How to carry out a procedure | a skill at `tools/agent-pack/content/skills/<skill>/SKILL.md`, or a just-in-time reference under that skill's `references/`, wired in `tools/agent-pack/manifest.toml`. The rendered `.claude/` copies are generated output and MUST NOT be edited (`dec.agent-pack-packaging`) |
+| A repository-wide rule for contributors | this file |
+
+`docs/spec.md` gains no new workflow, plan, rule, or normative subsystem design.
+A spec section MAY be collapsed to a pointer once its graph primitive is
+authoritative, one section at a time, and the pointer MUST name a real,
+queryable owner. Narrative history and the two-chain explanation stay in the
+spec and are not collapsed. The blueprint grammar (spec section 7) and the
+artefact schemas (spec section 8) stay in the spec until a decision ratifies a
+canonical home for each; they are the two sections with no existing owner
+elsewhere (`dec.spec-authority-retirement`).

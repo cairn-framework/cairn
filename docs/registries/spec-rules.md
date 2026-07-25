@@ -1,7 +1,10 @@
 # Cairn Spec-Rule Registry
 
 This file tracks every Designed integrity, freshness, and rationale-tension rule
-from `docs/spec.md` against the code that enforces it. It is the machine-readable
+against the code that enforces it. It is the home for new rules as well as for
+the ones the spec already states (`dec.spec-authority-retirement`): the Rule
+cell is authoritative, and the Spec cell carries an anchor only where the rule
+originated in `docs/spec.md`. It is the machine-readable
 half of the ghost-rule mechanism: `cairn scan` reads this table and emits
 `CAIRN_SPEC_RULE_UNIMPLEMENTED` (registry code CK004) when a rule's enforcer is
 missing. This turns a Designed-but-unimplemented rule from prose that silently
@@ -13,7 +16,7 @@ passes scan into tracked cairn state, the way the spec mandates (spec.md:24). Se
 | Column | Meaning |
 |--------|---------|
 | Rule | One-line description of the spec rule. |
-| Spec | `spec:<line>` anchor into `docs/spec.md`. |
+| Spec | `spec:<line>` anchor into `docs/spec.md` where the rule originated there; `-` for a rule this registry owns outright. |
 | Code | The `CAIRN_*` finding the rule's enforcer emits, in backticks. Empty (`-`) means no enforcer is named yet. |
 | Status | `enforced`, `pending`, or `declared` (see below). |
 | Deferred-by | Optional fifth cell on `pending` rows: the decision artefact deferring the rule's build (e.g. `dec.<slug>`). Empty (`-`) or absent means no deferral is recorded. The finding message names it inline. |

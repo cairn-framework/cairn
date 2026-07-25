@@ -154,7 +154,14 @@ Wave 3 (open as of 2026-07-25; dependencies satisfied by wave 2):
   inside the landing unit's commit rather than a maintainer habit between units.
   It also widened the Rust gates to `--workspace`, which had been leaving every
   `tools/agent-pack` test unrun.
-- todo.spec-authority-retirement (after router)
+- todo.spec-authority-retirement (done). Ratified `dec.spec-authority-retirement`:
+  reads are graph-first and `docs/spec.md` is fallback narrative. The write-side
+  routing table landed in `docs/conventions.md` section 11 rather than the spec,
+  the spec's actuator wording now says operator where the operation is
+  agent-capable, and its open-questions section names gap decisions as the home
+  for new questions while keeping the four older ones, which belong to no single
+  node, in place. Blueprint grammar and artefact schemas stay in the spec, on
+  record as blocked on a canonical-home decision.
 
 Wave 4 (open as of 2026-07-25; dependencies satisfied by wave 3):
 
