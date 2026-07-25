@@ -24,10 +24,15 @@ one symbol for a module whose `defs.rs` alone declares 104 structs, and
 filter, so the pinned flask fixture returned 688 symbols across sixteen files.
 
 The consequence is measured, not hypothetical. In
-`res.loop-efficiency-observations` (2026-07-25 entry) every candidate context
-composition scored 0.000 recall on both ripgrep tasks and 1.000 on both flask
-tasks. The composition was not the variable; the symbols were never in the
-graph to retrieve.
+`res.loop-efficiency-observations` (2026-07-25 entry) the two symbol-bearing
+compositions, primitive and topology-first, scored 0.000 recall on both ripgrep
+tasks and 1.000 on both flask tasks. The composition was not the variable; the
+symbols were never in the graph to retrieve. The other two candidates,
+bundle-centred and `context_projection_v1`, scored 0.200 on ripgrep IMP and
+0.000 on ripgrep LOC, reaching 0.500 and 0.286 on the flask strata. Their single
+ripgrep hit comes from `bundle.dependencies[]`, which carries dependency symbols
+that `get --symbols` never returns, so that exception is itself evidence of the
+coverage gap rather than a counter-example to it.
 
 ## Scope
 

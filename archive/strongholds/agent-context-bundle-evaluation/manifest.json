@@ -35,10 +35,11 @@
     "vocabulary_sha256": "589f1d60a63a143e6ca89b9b3d3b0ab7a27d976d37dbf343d6e3217dc4f3281d"
   },
   "manifest_freeze": {
-    "frozen_at_utc": "2026-07-25T16:36:35Z",
+    "frozen_at_utc": "2026-07-25T17:03:10Z",
     "manifest_sha256": "33701b4b560d669abf7efecaec193e73ba6ccee3963e64cef5cdc83d35397a4e",
     "candidate_output_opened": false
   },
+  "protocol_amendment": "protocol-amendment.json (post-hoc execution and scoring corrections; manifest, fact set, and support rule unchanged)",
   "evaluation_manifest_sha256": "33701b4b560d669abf7efecaec193e73ba6ccee3963e64cef5cdc83d35397a4e",
   "candidates": [
     "bundle-centred",
@@ -46,21 +47,22 @@
     "topology-first",
     "context-projection-v1"
   ],
-  "invocations": 476,
+  "invocations": 268,
+  "paired_drift_comparisons": 134,
   "archive": "evidence.tar.gz",
-  "archive_bytes": 368666,
-  "archive_sha256": "45c10f4ac0f35445576f17a11bc877a454212473db3bbacdf61bf28174120cb5",
+  "archive_bytes": 465801,
+  "archive_sha256": "d55b676665206a9891e9684277daed2cc5669e4b43643241d55fc87c01d53a09",
   "included": [
     "evaluation runner source",
     "frozen development evaluation manifest and freeze receipt",
+    "protocol amendment recording the post-hoc execution and scoring corrections",
     "per-invocation run records with argv, timings, exit state, and byte counts",
-    "raw stdout and stderr captures for every main-binary invocation",
-    "drift-check.json: per-pair digests proving the pinned-binary captures are byte-identical",
+    "raw stdout and stderr captures for every invocation of both binaries",
+    "drift-check.json: per-pair digests for the 134 paired invocations",
     "per-invocation, per-task, per-stratum, and per-candidate results"
   ],
   "excluded": [
     "sealed confirmation prompts and ground truth",
-    "target repository working trees (reproducible from the pinned SHAs)",
-    "pinned-binary raw captures (byte-identical to main; digests retained in drift-check.json)"
+    "target repository working trees (reproducible from the pinned SHAs)"
   ]
 }
