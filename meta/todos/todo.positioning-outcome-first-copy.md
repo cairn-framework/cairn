@@ -24,3 +24,17 @@ Land AFTER `todo.terminology-plain-language`: the outcome-first hero copy should
 use the ratified plain wording, not re-introduce jargon this pass is removing.
 Both edit README and docs/landing/index.html, so coordinate to avoid edit
 collisions; distinct axes (positioning versus vocabulary), do not merge.
+
+## Explainer reference (added 2026-07-25)
+
+Owner observation (2026-07-25): the 2026-04 infographic, now preserved at
+`studio/reference/infographic.html`, is a better explainer than the current
+landing page. Its advantage is structural, not cosmetic: it walks the reader
+through the map one layer at a time with a live detail panel, so the mechanism
+lands as a guided tour rather than a wall of claims.
+
+That is directly usable here. The "how it really works" walkthrough this todo
+calls for already has a working precedent: reuse its progressive layer-stepping
+shape instead of designing a new one. Sequencing is unchanged (land after
+`todo.terminology-plain-language`), and the infographic's pre-rename vocabulary
+must not be copied forward.
