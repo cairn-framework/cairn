@@ -9,10 +9,10 @@ metadata:
   generatedBy: "1.0"
 ---
 
-Propose a new change - create the change and generate all artifacts in one step.
+Propose a new change: create it and write its artifacts in one step.
 
-I'll create a change with artifacts:
-- proposal.md (what & why)
+I'll create a change with:
+- proposal.md (the outcome, how it will be proven, and what is excluded)
 - design.md (how)
 - tasks.md (implementation steps)
 
@@ -20,48 +20,73 @@ When ready to implement, ask me to apply the change (the `cairn-apply` skill).
 
 ---
 
-**Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
+**Input**: a change name (kebab-case) or a description of what to build.
 
 **Steps**
 
-1. **If no clear input provided, ask what they want to build**
+1. **If the request is unclear, ask what they want to build**
 
-   Ask the user:
    > "What change do you want to work on? Describe what you want to build or fix."
 
-   From their description, derive a kebab-case name (e.g., "add user authentication" -> `add-user-auth`).
+   Derive a kebab-case name from the description ("add user authentication" ->
+   `add-user-auth`).
 
-   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
+   Do NOT proceed without understanding the intended outcome.
 
 2. **Create the change directory**
    ```bash
    cairn change new "<name>"
    ```
-   This creates a scaffolded change at `meta/changes/<name>/` with proposal.md, design.md, and tasks.md.
+   This scaffolds `meta/changes/<name>/` with proposal.md, design.md, tasks.md.
 
-3. **Read the scaffolded files**
+3. **Read the scaffolded files** to pick up the structure.
 
-   Read the generated proposal.md, design.md, and tasks.md to understand the structure.
+4. **Name the outcome and how it will be proven**
 
-4. **Create artifacts in sequence**
+   Before writing the design, settle four things and put them in proposal.md.
+   Everything downstream depends on them:
 
-   a. **proposal.md**: Fill in the motivation, scope, and out-of-scope sections based on the user's description.
-   b. **design.md**: Fill in the approach and delta operations (ADDED, MODIFIED, REMOVED, RENAMED) based on the user's description.
-   c. **tasks.md**: Convert the design into actionable tasks with checkboxes.
+   - **Outcome.** What is observably true after this change that is not true now?
+     Write it as a state of the world, not a list of edits. "Operators can retry a
+     failed import from the run detail page", not "add a retry button".
+   - **Acceptance boundary.** The nearest place that outcome becomes observable.
+     For a library it may be a public function's return value; for a CLI, the
+     command's output and exit code; for a UI, the rendered surface; for an
+     operational change, the running instance. Name it concretely.
+   - **Evidence.** What will be run or shown at that boundary to prove the
+     outcome, and what result counts as proof. "`cairn scan` exits 0 with no
+     ORPHANED findings on the fixture", not "tests pass". If the outcome is a bug
+     fix, the evidence starts with a reproduction that currently fails.
+   - **Exclusions.** What this change deliberately does not do, especially the
+     adjacent work a reader would otherwise assume is included. Exclusions are
+     what stop the change from growing during implementation.
 
-5. **Show final status**
+   Prefer the smallest boundary that actually settles the claim. A boundary you
+   cannot reach in this environment is worse than a narrower one you can: if the
+   real boundary is out of reach, say so in the proposal and name what would be
+   needed, rather than silently substituting a unit test for it.
 
-   Summarize:
-   - Change name and location (`meta/changes/<name>/`)
-   - List of artifacts created with brief descriptions
-   - What's ready: "All artifacts created! Ready for implementation."
-   - Prompt: "All artifacts created. Ask me to apply the change to start working on the tasks."
+5. **Write the remaining artifacts**
 
-**Artifact Creation Guidelines**
+   a. **design.md**: the approach and the delta operations (ADDED, MODIFIED,
+      REMOVED, RENAMED).
+   b. **tasks.md**: the design turned into actionable checkboxes. The last task
+      should be producing the evidence named in step 4.
 
-- Follow the scaffolded structure from `cairn change new`
-- Use plain English without em-dashes (replace with periods, colons, commas, or parentheses)
-- The audience is a staff engineer reading the change in 6 months
-- Keep each artifact concise and focused
-- If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
-- If a change with that name already exists, ask if user wants to continue it or create a new one
+6. **Show final status**
+
+   Summarise the change name and location, the artifacts created, the outcome and
+   its acceptance boundary, and prompt: "Ask me to apply the change to start
+   working on the tasks."
+
+**Artifact guidelines**
+
+- Follow the scaffolded structure from `cairn change new`.
+- Plain English, no em-dashes (use periods, colons, commas, or parentheses).
+- The audience is a staff engineer reading the change in six months.
+- Keep each artifact concise and focused.
+- Do not restate an accepted decision as if this proposal were deciding it. Cite
+  it (`cairn rationale <node>` lists what already binds the node) and move on.
+- If context is critically unclear, ask. Otherwise make a reasonable decision and
+  record it, to keep momentum.
+- If a change with that name exists, ask whether to continue it or start a new one.

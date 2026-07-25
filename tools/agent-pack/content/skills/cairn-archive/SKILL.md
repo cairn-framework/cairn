@@ -17,7 +17,8 @@ I'll help you archive a change that has been fully implemented and accepted.
 
 - All tasks in tasks.md are marked complete
 - `cairn change accept <change-id>` has passed
-- Quality gates pass: `cargo build`, `cargo clippy`, `cargo fmt --check`, `cargo test`
+- The project's own quality gates pass (the repository's instructions, its
+  `gates:` config, or its ordinary build and test commands for its language)
 
 **Steps**
 
@@ -37,11 +38,9 @@ I'll help you archive a change that has been fully implemented and accepted.
 
 3. **Run final verification**
 
-   Ensure the project is in a clean state:
-   ```bash
-   cargo test
-   cargo fmt --check
-   ```
+   Re-run the project's own gates so the archive lands on a clean tree. Use the
+   same commands the repository documents for itself; do not substitute another
+   language's battery.
 
 4. **Archive the change**
 
