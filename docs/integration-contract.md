@@ -122,6 +122,10 @@ Error responses from the MCP/query path:
 | `hook uninstall` | Remove only a Cairn-owned hook | Exit 0 = removed or absent |
 | `change accept [<change>]` | Full verification battery | JSON: `data.gate_outcome` = passed/failed/blocked |
 | `check [<node>]` | Non-blocking inspection | Always reports, never blocks |
+| `pack install` | Install the agent pack, recording an ownership manifest | Exit 0 = installed or already current |
+| `pack update` | Refresh pristine pack files, backfill missing ones | Exit 0 = reported; modified files are never overwritten |
+| `pack status` | Report installed pack versions and per-file state | Exit 0 = reported; drift is information, not failure |
+| `pack uninstall` | Retire owned, pristine pack files | Exit 0 = removed or absent |
 
 ## Hook kinds
 

@@ -66,6 +66,8 @@ const FLAGS_CHANGES: &[&str] = &["json", "file", "changes-dir", "help"];
 const FLAGS_DRAFT_ACCEPT: &[&str] = &["edited", "json", "file", "changes-dir", "help"];
 /// Hook lifecycle: pre-push + json + file (root from `--file` parent).
 const FLAGS_HOOK_LIFECYCLE: &[&str] = &["pre-push", "json", "file", "help"];
+/// Pack lifecycle: harness selector plus the opt-in loop asset closure.
+const FLAGS_PACK: &[&str] = &["harness", "loop", "json", "file", "help"];
 
 /// Every recognised top-level and compound spelling, including retired aliases.
 /// Coverage of top-level names is enforced by `every_recognised_command_has_help`.
@@ -154,6 +156,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     ),
     spec("next", "next", FLAGS_BASIC),
     spec("onboard", "onboard", FLAGS_BASIC),
+    spec("pack", "pack", FLAGS_PACK),
     spec("order", "order", FLAGS_BASIC),
     spec("rationale", "rationale", FLAGS_BASIC),
     spec("refine", "refine", FLAGS_FILE_HELP),
@@ -198,6 +201,11 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("hook install", "hook-install", FLAGS_HOOK_LIFECYCLE),
     spec("hook status", "hook-status", FLAGS_HOOK_LIFECYCLE),
     spec("hook uninstall", "hook-uninstall", FLAGS_HOOK_LIFECYCLE),
+    // --- pack lifecycle -----------------------------------------------------
+    spec("pack install", "pack-install", FLAGS_PACK),
+    spec("pack update", "pack-update", FLAGS_PACK),
+    spec("pack status", "pack-status", FLAGS_PACK),
+    spec("pack uninstall", "pack-uninstall", FLAGS_PACK),
     // --- retired top-level aliases -----------------------------------------
     // preferred/description come from copy.toml under help.commands.<copy_key>
     spec("accept", "accept", FLAGS_JSON_ONLY),
@@ -272,11 +280,13 @@ fn command_tokens(args: &[String]) -> Vec<&str> {
             | "--force"
             | "--once"
             | "--no-open"
-            | "--pre-push" => {}
+            | "--pre-push"
+            | "--loop" => {}
             // Value-taking flags: consume the following token when present.
             "--file" | "--changes-dir" | "--depth" | "--scope" | "--port" | "--status"
             | "--language" | "--direction" | "--interval" | "--format" | "--output" | "--node"
-            | "--grep" | "--question" | "--informed-by" | "--wire" | "--area" | "--severity" => {
+            | "--grep" | "--question" | "--informed-by" | "--wire" | "--area" | "--severity"
+            | "--harness" => {
                 let _ = iter.next();
             }
             s if s.starts_with('-') => {}

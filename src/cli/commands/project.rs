@@ -19,69 +19,11 @@ pub(crate) fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
 /// Agent-facing guide written by `cairn init`, appended to a project's CLAUDE.md or AGENTS.md.
 const AGENT_GUIDE: &str = include_str!("../agent_guide.md");
 
-/// Curated cairn dev-loop agent skills bundled into the binary and emitted by
-/// `cairn init` so an agent landing in a fresh repo has an on-ramp to the loop.
-/// Canonical bytes live under `tools/agent-pack/content/`; the dev-only renderer
-/// writes these `.claude` destinations, which remain the `include_str!` inputs
-/// so compiled output is byte-identical to the checked-in harness assets.
-const SKILL_FILES: &[(&str, &str)] = &[
-    (
-        ".claude/skills/cairn-dev/SKILL.md",
-        include_str!("../../../.claude/skills/cairn-dev/SKILL.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/blueprint-syntax.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/blueprint-syntax.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/finding-codes.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/finding-codes.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/artefact-schemas.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/artefact-schemas.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/command-reference.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/command-reference.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/graph-navigation.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/graph-navigation.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/task-bug-investigation.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/task-bug-investigation.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/task-refactoring.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/task-refactoring.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/task-architecture-discovery.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/task-architecture-discovery.md"),
-    ),
-    (
-        ".claude/skills/cairn-dev/references/task-feature-implementation.md",
-        include_str!("../../../.claude/skills/cairn-dev/references/task-feature-implementation.md"),
-    ),
-    (
-        ".claude/skills/cairn-explore/SKILL.md",
-        include_str!("../../../.claude/skills/cairn-explore/SKILL.md"),
-    ),
-    (
-        ".claude/skills/cairn-propose/SKILL.md",
-        include_str!("../../../.claude/skills/cairn-propose/SKILL.md"),
-    ),
-    (
-        ".claude/skills/cairn-apply/SKILL.md",
-        include_str!("../../../.claude/skills/cairn-apply/SKILL.md"),
-    ),
-    (
-        ".claude/skills/cairn-archive/SKILL.md",
-        include_str!("../../../.claude/skills/cairn-archive/SKILL.md"),
-    ),
-];
+/// Curated cairn agent-pack assets bundled into the binary and emitted by
+/// `cairn init` so an agent landing in a fresh repo has an on-ramp. The table
+/// itself lives with the pack lifecycle in `pack_assets`, so `init` and
+/// `cairn pack install` can never emit different bytes.
+use super::pack_assets::BASE_ASSETS;
 
 pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
     let already_initialized = root.join("cairn.blueprint").exists();
@@ -100,7 +42,8 @@ pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
         (".cairn/AGENTS.md", AGENT_GUIDE),
     ];
     let mut backfilled: Vec<&str> = Vec::new();
-    for &(path, content) in writes.iter().chain(SKILL_FILES) {
+    let assets = BASE_ASSETS.iter().map(|asset| (asset.path, asset.content));
+    for (path, content) in writes.iter().copied().chain(assets) {
         let full = root.join(path);
         if let Some(parent) = full.parent()
             && let Err(error) = fs::create_dir_all(parent)
@@ -164,10 +107,11 @@ mod tests {
         assert_eq!(result.code, 0, "init should succeed: {}", result.stderr);
 
         // Every bundled cairn-* skill lands in the fresh repo.
-        for (path, _content) in SKILL_FILES {
+        for asset in BASE_ASSETS {
             assert!(
-                dir.path().join(path).exists(),
-                "init must emit skill file {path}"
+                dir.path().join(asset.path).exists(),
+                "init must emit skill file {}",
+                asset.path
             );
         }
 

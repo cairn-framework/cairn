@@ -41,7 +41,7 @@ use commands::{
     init_project, legacy_blueprint_warning, preflight_wire_check, run_archive_command,
     run_change_new, run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
     run_hook_command, run_hook_lifecycle_command, run_import_openspec, run_onboard_command,
-    run_shared_json_command, run_todo_command, run_ui_command, run_watch_command,
+    run_pack_command, run_shared_json_command, run_todo_command, run_ui_command, run_watch_command,
     run_workspace_command, wire_agent_guide,
 };
 use format::{
@@ -248,6 +248,9 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "todo" {
         return run_todo_command(&parsed, project_root);
+    }
+    if parsed.command == "pack" {
+        return run_pack_command(&parsed, project_root);
     }
     if parsed.command == "workspace" {
         return run_workspace_command(&parsed, project_root);
@@ -835,6 +838,10 @@ const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
     CliOnlyCommand {
         name: "onboard",
         description: "Suggest blueprint entries for orphaned files",
+    },
+    CliOnlyCommand {
+        name: "pack",
+        description: "Install, update, inspect, or remove the agent pack",
     },
     CliOnlyCommand {
         name: "todo",

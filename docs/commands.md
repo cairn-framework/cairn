@@ -141,6 +141,15 @@ operators are not supported. Prefer simple commands without spaces in args.
 | `cairn hook status` | Report whether a Cairn hook is installed |
 | `cairn hook uninstall` | Remove a Cairn-managed hook |
 
+### Agent pack
+
+| Command | Description |
+|---------|-------------|
+| `cairn pack install` | Install the agent pack and record an ownership manifest |
+| `cairn pack update` | Refresh pristine pack files and backfill missing ones |
+| `cairn pack status` | Report installed pack versions and per-file state |
+| `cairn pack uninstall` | Retire pack files cairn owns and that are still pristine |
+
 ### Summariser and drafts (JSON-only)
 
 These commands require the `--json` flag and are grouped under one `draft` command.
