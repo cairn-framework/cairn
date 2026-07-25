@@ -47,7 +47,7 @@ mod cli {
     fn test_lint__whole_map_inspection_without_arguments() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
             "lint".to_owned(),
         ]);
         assert_eq!(result.code, 0, "lint always exits zero (non-blocking)");
@@ -62,7 +62,7 @@ mod cli {
     fn test_lint__node_scoped_inspection_with_node_flag() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
             "lint".to_owned(),
             "--node".to_owned(),
             "cairn.kernel.parser".to_owned(),
@@ -146,7 +146,7 @@ mod cli {
     fn test_context__summary_includes_info_severity_count() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
             "context".to_owned(),
         ]);
         assert_eq!(result.code, 0);
@@ -229,7 +229,7 @@ mod cli {
     fn test_scan__strict_exits_non_zero_on_warning_findings() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
             "scan".to_owned(),
             "--strict".to_owned(),
         ]);
@@ -246,7 +246,7 @@ mod cli {
     fn test_scan__non_strict_exits_zero_on_warning_only_findings() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
             "scan".to_owned(),
         ]);
         assert_eq!(

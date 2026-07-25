@@ -324,7 +324,7 @@ The marketing landing lives at `docs/index.html`. It is static HTML consuming th
 - `docs/commands.md`: CLI command reference
 - `docs/mcp.md` and `docs/claude-code.md`: agent and MCP integration
 - `docs/design-system/README.md`: design system consumption patterns
-- `test/fixtures/cairn.blueprint`: example blueprint file
+- `tests/fixtures/cairn.blueprint`: example blueprint file
 - `AGENTS.md`: agent-facing conventions for working in this repo
 - `CLAUDE.md`: Claude Code compatibility pointer to the authoritative `AGENTS.md`
 

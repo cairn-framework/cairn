@@ -325,7 +325,7 @@ mod cli {
     fn test_islands_returns_component_breakdown() {
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
             "islands".to_owned(),
         ]);
         assert_eq!(result.code, 0, "islands exits zero");
@@ -371,7 +371,7 @@ mod cli {
             }
             args.extend([
                 "--file".to_owned(),
-                "test/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+                "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
                 "neighbourhood".to_owned(),
                 "cairn.kernel.parser".to_owned(),
             ]);

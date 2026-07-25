@@ -22,7 +22,7 @@ Two skill files are worth loading for any coding work in this repo, whether thro
 | `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work. |
 | `docs/` | Marketing landing page (GitHub Pages target); pulls from the design system like any UI surface. |
 | `cairn.blueprint` | Root blueprint: cairn describing itself (dogfood). The graph's source of truth. |
-| `test/fixtures/cairn-bootstrap/` | Bootstrap fixture for tests; may lag behind the root blueprint, only smoke-parsed. |
+| `tests/fixtures/cairn-bootstrap/` | Bootstrap fixture for tests; may lag behind the root blueprint, only smoke-parsed. |
 
 ## Check if relevant, don't read by default
 

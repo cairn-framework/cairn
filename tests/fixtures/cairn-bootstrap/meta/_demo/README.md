@@ -12,7 +12,7 @@ Neither demonstrator is a real artefact. They exist purely so the canonical self
 The default `cairn.blueprint` excludes `_demo/` so the regular scan path stays clean. Activate the demonstrators with the demo variant blueprint:
 
 ```sh
-cd test/fixtures/cairn-bootstrap
+cd tests/fixtures/cairn-bootstrap
 cairn --file cairn-with-demo.blueprint scan
 cairn --file cairn-with-demo.blueprint hook all
 ```
