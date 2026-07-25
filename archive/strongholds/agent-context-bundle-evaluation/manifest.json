@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "study": "agent-context-bundle-evaluation",
+  "date": "2026-07-25",
+  "derived_from": {
+    "corpus": "archive/strongholds/agent-guidance-baseline/evidence.tar.gz",
+    "corpus_manifest": "manifests/development.json",
+    "corpus_sha256": "8471f07ec28b4903ec4452779544acf1f91eb5ca363ea3505852fde62e75ddd1"
+  },
+  "split": "development",
+  "sealed_confirmation_split": "unopened; no confirmation prompt, ground truth, metadata, or candidate run was computed",
+  "repositories": {
+    "BurntSushi/ripgrep": "4649aa9700619f94cf9c66876e9549d83420e16c",
+    "pallets/flask": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1"
+  },
+  "binaries": {
+    "primary": "cairn main @4390e23",
+    "drift_check": "cairn @24a328f (baseline-pinned)"
+  },
+  "fixtures": {
+    "BurntSushi/ripgrep": {
+      "tree_sha256": "89a5796fdad4e8dfa99fddd5a708d838a576099e1dccfd48a403816a969d33b7",
+      "entries": 249
+    },
+    "pallets/flask": {
+      "tree_sha256": "afcdd056142a80e62315266fbf16d763e823e7f7571733bde564e0f5b3585a00",
+      "entries": 262
+    }
+  },
+  "tokenizer": {
+    "encoding": "o200k_base",
+    "implementation": "tiktoken",
+    "package_version": "0.13.0",
+    "vocabulary_revision": "200019",
+    "vocabulary_sha256": "589f1d60a63a143e6ca89b9b3d3b0ab7a27d976d37dbf343d6e3217dc4f3281d"
+  },
+  "manifest_freeze": {
+    "frozen_at_utc": "2026-07-25T16:36:35Z",
+    "manifest_sha256": "33701b4b560d669abf7efecaec193e73ba6ccee3963e64cef5cdc83d35397a4e",
+    "candidate_output_opened": false
+  },
+  "evaluation_manifest_sha256": "33701b4b560d669abf7efecaec193e73ba6ccee3963e64cef5cdc83d35397a4e",
+  "candidates": [
+    "bundle-centred",
+    "primitive",
+    "topology-first",
+    "context-projection-v1"
+  ],
+  "invocations": 476,
+  "archive": "evidence.tar.gz",
+  "archive_bytes": 368666,
+  "archive_sha256": "45c10f4ac0f35445576f17a11bc877a454212473db3bbacdf61bf28174120cb5",
+  "included": [
+    "evaluation runner source",
+    "frozen development evaluation manifest and freeze receipt",
+    "per-invocation run records with argv, timings, exit state, and byte counts",
+    "raw stdout and stderr captures for every main-binary invocation",
+    "drift-check.json: per-pair digests proving the pinned-binary captures are byte-identical",
+    "per-invocation, per-task, per-stratum, and per-candidate results"
+  ],
+  "excluded": [
+    "sealed confirmation prompts and ground truth",
+    "target repository working trees (reproducible from the pinned SHAs)",
+    "pinned-binary raw captures (byte-identical to main; digests retained in drift-check.json)"
+  ]
+}

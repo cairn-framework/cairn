@@ -354,3 +354,137 @@ implementation deliver it.
 `todo.agent-context-bundle-evaluation` owns every measurement, threshold,
 recommendation, and query-implementation follow-up. It waits for the baseline
 corpus and uses the fixed rules above without opening confirmation data early.
+
+### 2026-07-25 (agent context bundle evaluation)
+
+Question: measured against the baseline development corpus, does any candidate
+composition of existing verbs retrieve the required facts well enough that a
+new context projection is not worth building?
+
+Method: the runner, frozen manifest, raw captures, and results are in
+`archive/strongholds/agent-context-bundle-evaluation/`. Fixtures are
+BurntSushi/ripgrep `4649aa97` and pallets/flask `7fff56f5`, both scaffolded with
+`cairn init --from-code`. The four development tasks and their ground-truth
+facts come only from `manifests/development.json` in the baseline stronghold
+(`8471f07e`). Each `(split, repository_id, task_class)` stratum holds exactly
+one task, so the fixed sample rule selects all four. 476 invocations were run.
+The sealed confirmation split was not opened: no confirmation prompt, ground
+truth, metadata, or candidate run was computed.
+
+#### Protocol refinements declared before candidate output was opened
+
+The inventory protocol requires each fact to carry evidence files and requires
+supporting stdout spans to be annotated with fact IDs, but does not say how
+support is recognised in a captured stream. Three rules were fixed and frozen
+with the manifest (`33701b4b`, freeze receipt records
+`candidate_output_opened: false`) before any candidate ran:
+
+1. File atoms are the repo-relative paths named verbatim in a fact. A fact
+   naming none inherits from the nearest preceding fact that does. A path that
+   is a trailing segment-suffix of a longer path in the same fact (`main.rs`
+   inside `crates/core/main.rs`) is the same evidence file named twice.
+2. Symbol atoms are the identifier segments of qualified references whose first
+   segment is a file path or an uppercase-initial identifier. Bare unqualified
+   identifiers are not atoms, so a generic segment such as `update` or `run` is
+   only ever admitted paired with its owning qualifier (`TypeList`, `main.rs`).
+   This stops a projection earning support by coincidence.
+3. A fact is fully supported when every file atom and every symbol atom occurs
+   in the accumulated stdout as a verbatim byte substring.
+
+No recall or precision threshold was preregistered by the inventory unit. The
+decision rule used here is dominance, and it was chosen before scoring: prefer
+an existing composition unless a new surface beats it on recall without losing
+precision. The result below is threshold-independent because the hypothesised
+projection is dominated on both axes in every stratum, not close to a boundary.
+
+#### Results
+
+Per-stratum recall is the primary figure. The corpus-wide average is reported
+only alongside the substrate asymmetry that produces it.
+
+| Candidate | ripgrep IMP | ripgrep LOC | flask IMP | flask LOC |
+|---|---|---|---|---|
+| bundle-centred | 0.200 | 0.000 | 0.500 | 0.286 |
+| primitive | 0.000 | 0.000 | 1.000 | 1.000 |
+| topology-first | 0.000 | 0.000 | 1.000 | 1.000 |
+| `context_projection_v1` | 0.200 | 0.000 | 0.500 | 0.286 |
+
+Per-repository micro averages, with stdout tokens accumulated in invocation
+order (o200k_base, tiktoken 0.13.0):
+
+| Candidate | flask recall | flask tokens | ripgrep recall | ripgrep tokens |
+|---|---|---|---|---|
+| bundle-centred | 5/13 (0.385) | 36,021 | 1/9 (0.111) | 2,221 |
+| primitive | 13/13 (1.000) | 234,175 | 0/9 (0.000) | 1,333 |
+| topology-first | 13/13 (1.000) | 236,817 | 0/9 (0.000) | 2,311 |
+| `context_projection_v1` | 5/13 (0.385) | 29,710 | 1/9 (0.111) | 1,062 |
+
+Transport-neutral token precision is low everywhere (0.0014 to 0.0452) and runs
+inverse to recall: the ripgrep strata score highest because their outputs are
+nearly empty, not because they inform. Duplication is negligible (0.000 to
+0.003), so no candidate wastes tokens re-supporting a satisfied fact.
+
+Every measurement was run twice, against `cairn` on main and against the
+baseline-pinned `24a328f` binary. Recall, precision, token counts, and byte
+counts are identical, so the verb surface has not drifted and the
+recommendation binds to today's binary as well as the pinned one.
+
+#### The ripgrep arm measures a substrate gap, not a composition
+
+No candidate retrieves ripgrep facts, and the cause is upstream of composition.
+`rust_is_exportable` (`src/reconcile/code.rs:63-69`) admits a Rust item only
+when it carries a `visibility_modifier`, so a binary crate exposes almost
+nothing: `cairn get crates.core.flags --symbols` returns one symbol for a module
+whose `defs.rs` alone declares 104 structs, and `cairn locate TypeList` returns
+an empty array. Python has no equivalent filter, so flask yields 688 symbols
+across sixteen files. The ripgrep arm therefore says nothing about which verbs
+to compose; it says the symbols were never in the graph to retrieve. Read the
+corpus-wide averages (0.591 for primitive and topology-first, 0.273 for
+bundle-centred and the projection) with that in mind.
+
+bundle-centred's single ripgrep hit is instructive: `bundle.dependencies[]`
+carries dependency symbols that `get --symbols` never returns, so bundle-centred
+and primitive have genuinely complementary coverage. Scoring a union of the two
+was not preregistered and was not run.
+
+#### Recommendation
+
+Compose existing verbs. Do not build `context_projection_v1`.
+
+1. Use the primitive composition (`get --symbols`, `deps` both directions,
+   `rationale`, `todos --status open`) where a session needs node context. It
+   reaches full recall on every stratum whose symbols exist in the graph, at the
+   best token precision among the full-recall candidates.
+2. topology-first buys no recall over primitive and costs about 1 percent more
+   tokens and four more invocations per task. Prefer primitive.
+3. `context_projection_v1` is dominated: strictly lower recall than primitive in
+   both flask strata and never higher in any stratum, at lower token precision.
+   Its fixed schema draws node identity from `get` without `--symbols`, so it
+   discards the payload that decides recall. A single-call projection is cheaper
+   per task (one emitted document rather than 21 invocations) but buys that
+   saving by dropping the evidence. No new public query surface is justified by
+   this evidence, so no decision artefact is escalated here.
+4. The binding constraint is symbol coverage, not projection shape. That is
+   tracked separately as `todo.node-symbol-coverage`, which must be delivered and
+   verified before any guidance consumes it, and which changes `get --symbols`
+   semantics and therefore requires its own decision.
+
+#### Limitations
+
+- The flask fixture is not a clean `cairn init --from-code` product. That command
+  emits node ids containing underscores that its own `CAIRN_INTEGRITY_INVALID_ID`
+  check rejects, so applying the discovered blueprint fails. The fixture applies a
+  recorded mechanical repair (underscore to hyphen in ids, plus `ignore` entries
+  for the files the reconciler reported orphaned) and still carries a
+  `CAIRN_ORDER_CYCLE` error from the discovered import edges. No candidate step
+  calls `cairn order`, and node-scoped queries return full content, but the two
+  arms are not scaffolded by an identical path. The defect is tracked as
+  `todo.brownfield-init-invalid-node-id`.
+- The ripgrep fixture reproduces the baseline cairn-arm asset set exactly (the
+  same 37 generated assets over the same 213-entry source projection). Its tree
+  digest still differs from the baseline's because the brownfield archive
+  directory is date-stamped.
+- Four development tasks over two repositories is a small corpus. Recall
+  separations here are large (0.000 against 1.000 within flask), but precision
+  differences of a few tenths of a percent are not interpretable at this sample
+  size.
