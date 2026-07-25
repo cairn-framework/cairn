@@ -163,12 +163,22 @@ Wave 3 (open as of 2026-07-25; dependencies satisfied by wave 2):
   node, in place. Blueprint grammar and artefact schemas stay in the spec, on
   record as blocked on a canonical-home decision.
 
-Wave 4 (open as of 2026-07-25; dependencies satisfied by wave 3):
+Wave 4 (in progress as of 2026-07-26; dependencies satisfied by wave 3):
 
-- todo.agent-guidance-treatment-evaluation (open; baseline, apply-proof,
-  router, and the Claude bootstrap are all done)
+- todo.agent-guidance-treatment-evaluation (blocked again, PR #470). The unit
+  reached the loop and found its prerequisite evidence absent: the sealed
+  confirmation prompts and ground truth were kept outside the repository by
+  design (`archive/strongholds/agent-guidance-baseline/manifest.json` lists them
+  and the runner authentication databases under `excluded`), so no session can
+  produce the terminal verdict from this checkout. It landed the evidence
+  boundary instead, as `res.agent-guidance-treatment-evaluation-blocker` and the
+  proposed `dec.agent-guidance-treatment-evaluation-blocked`, and set itself
+  `blocked`. Unblocking it is an owner action, not a loop unit: supply a
+  runnable authenticated worker epoch plus the sealed materials, then set it
+  `open`. Accepting that decision is a separate owner action.
 - todo.agent-pack-omp-adapter (open; implement and validate, after the Claude
-  bootstrap and router)
+  bootstrap and router). Independent of the treatment blocker: this unit
+  completes at a validated, unpublished adapter.
 
 Wave 5 (after OMP adapter completion and the treatment retain verdict):
 
