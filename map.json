@@ -1381,6 +1381,7 @@
         "tools/agent-pack/content/skills/cairn-explore/SKILL.md",
         "tools/agent-pack/content/skills/cairn-loop-implement/SKILL.md",
         "tools/agent-pack/content/skills/cairn-loop-landing/SKILL.md",
+        "tools/agent-pack/content/skills/cairn-loop-reconcile/SKILL.md",
         "tools/agent-pack/content/skills/cairn-loop-recovery/SKILL.md",
         "tools/agent-pack/content/skills/cairn-loop-scope/SKILL.md",
         "tools/agent-pack/content/skills/cairn-propose/SKILL.md",
@@ -1396,6 +1397,7 @@
         "tools/agent-pack/tests/determinism_drift_tests.rs",
         "tools/agent-pack/tests/first_turn_budget_tests.rs",
         "tools/agent-pack/tests/host_language_neutrality_tests.rs",
+        "tools/agent-pack/tests/reconcile_step_tests.rs",
         "tools/agent-pack/tests/router_route_tests.rs",
         "tools/agent-pack/tests/validation_error_tests.rs"
       ],

@@ -121,7 +121,7 @@ destination = "output.txt"
     );
 }
 
-const EXPECTED_CANONICAL: [(&str, &str, &str); 20] = [
+const EXPECTED_CANONICAL: [(&str, &str, &str); 21] = [
     (
         "cairn-apply",
         "default",
@@ -205,6 +205,11 @@ const EXPECTED_CANONICAL: [(&str, &str, &str); 20] = [
         "content/skills/cairn-loop-recovery/SKILL.md",
     ),
     (
+        "cairn-loop-reconcile",
+        "default",
+        "content/skills/cairn-loop-reconcile/SKILL.md",
+    ),
+    (
         "cairn-loop-scope",
         "default",
         "content/skills/cairn-loop-scope/SKILL.md",
@@ -216,7 +221,7 @@ const EXPECTED_CANONICAL: [(&str, &str, &str); 20] = [
     ),
 ];
 
-const EXPECTED_CLAUDE: [(&str, &str, &str); 20] = [
+const EXPECTED_CLAUDE: [(&str, &str, &str); 21] = [
     (
         "cairn-apply",
         "default",
@@ -298,6 +303,11 @@ const EXPECTED_CLAUDE: [(&str, &str, &str); 20] = [
         "cairn-loop-recovery",
         "default",
         ".claude/skills/cairn-loop-recovery/SKILL.md",
+    ),
+    (
+        "cairn-loop-reconcile",
+        "default",
+        ".claude/skills/cairn-loop-reconcile/SKILL.md",
     ),
     (
         "cairn-loop-scope",

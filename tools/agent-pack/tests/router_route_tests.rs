@@ -154,11 +154,12 @@ fn the_loop_required_asset_closure_is_complete_and_shipped() {
     }
 
     // The closure is the contract both adapters and campaign locks read, so the
-    // four procedures loop mode delegates to must all be in it.
+    // five procedures loop mode delegates to must all be in it.
     for procedure in [
         "skills/cairn-loop-scope/SKILL.md",
         "skills/cairn-loop-implement/SKILL.md",
         "skills/cairn-loop-recovery/SKILL.md",
+        "skills/cairn-loop-reconcile/SKILL.md",
         "skills/cairn-loop-landing/SKILL.md",
     ] {
         assert!(
@@ -176,7 +177,7 @@ fn the_loop_required_asset_closure_is_complete_and_shipped() {
 
 #[test]
 fn each_loop_procedure_declares_its_typed_exits() {
-    let expected: [(&str, &[&str]); 4] = [
+    let expected: [(&str, &[&str]); 5] = [
         (
             "skills/cairn-loop-scope/SKILL.md",
             &["SCOPED", "REROUTED", "LOOP HALTED"],
@@ -188,6 +189,10 @@ fn each_loop_procedure_declares_its_typed_exits() {
         (
             "skills/cairn-loop-recovery/SKILL.md",
             &["RECOVERED", "LOOP HALTED"],
+        ),
+        (
+            "skills/cairn-loop-reconcile/SKILL.md",
+            &["RECONCILED", "LOOP HALTED"],
         ),
         (
             "skills/cairn-loop-landing/SKILL.md",

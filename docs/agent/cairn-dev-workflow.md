@@ -7,8 +7,9 @@ How to iterate on cairn, using cairn. A short descriptive overview only.
 The sole normative procedure is `cairn-dev` loop mode
 (`.claude/skills/cairn-dev/references/loop-mode.md`) plus exactly the required
 asset closure it declares (`cairn-loop-scope`, `cairn-loop-implement`,
-`cairn-loop-recovery`, `cairn-loop-landing`). The `/cairn-loop` command is
-adapter-native transport that resolves there and carries no procedure of its own.
+`cairn-loop-recovery`, `cairn-loop-reconcile`, `cairn-loop-landing`). The
+`/cairn-loop` command is adapter-native transport that resolves there and
+carries no procedure of its own.
 This document is descriptive, never normative. Where this overview and loop mode
 disagree, loop mode wins. See `dec.loop-command-harness-model` and
 `dec.unified-cairn-dev-entry`.
@@ -30,7 +31,7 @@ At a glance:
 | Propose | What am I building, and what counts as done? | `cairn-propose` skill, or a decision artefact |
 | Implement + test | Make the change, keep the map honest | edit code + `cairn.blueprint`, `cargo test` |
 | Verify | Did I introduce drift or break the build? | language gates, `cairn scan`, `cairn hook all` |
-| Record | Why did this change happen? | decision artefact |
+| Reconcile | What did this unit's evidence change in the remaining plan? | `cairn-loop-reconcile` skill |
 | Land + merge | Is the change reviewable and on main? | `cairn-loop-landing` skill |
 
 Each iteration ends with exactly one of `ITERATION COMPLETE`,
@@ -58,6 +59,7 @@ describes new work. See the command for the full precedence table.
 | Scope a unit | `.claude/skills/cairn-loop-scope/SKILL.md` |
 | Implement and test a unit | `.claude/skills/cairn-loop-implement/SKILL.md` |
 | State recovery (dirty tree, open PR, interrupted cleanup, quarantine) | `.claude/skills/cairn-loop-recovery/SKILL.md` |
+| Reconcile the remaining plan after proof | `.claude/skills/cairn-loop-reconcile/SKILL.md` |
 | Land (commit, PR, two-lens review) and fail-closed merge | `.claude/skills/cairn-loop-landing/SKILL.md` |
 | Entry router for any cairn session | `.claude/skills/cairn-dev/SKILL.md` |
 | Substantial change scaffolding | `.claude/skills/cairn-propose/SKILL.md` |

@@ -70,19 +70,10 @@ Two primitives, different jobs:
   repeats. Each iteration materialises that child into a change, lands one
   squash commit, reconciles the remaining plan, and ends with one terminal
   token. The harness owns repetition.
-  Because `/cairn-loop` selects the slug but scopes only via `neighbourhood`,
-  `rationale`, and `deps` (rendering todos as status and path, not body), the
-  MISSION must instruct the session to read the selected todo's body
-  (`meta/todos/todo.<slug>.md`) before Scope, so its Scope, Depends on, and
-  Acceptance bind, and to fail closed if that body is unavailable. This applies
-  to every child, including the reconciliation unit itself;
-  `todo.agent-guidance-router-playbooks` (which owns the loop-mode changes) folds
-  this body-load into the `cairn-dev` loop mode as an enforced pre-Scope step.
-  Until that unit actually lands, every unit relies on the MISSION-supplied
-  body-load, a followed instruction under supervised operation rather than
-  enforced command behaviour; this includes the Wave 2 units that sort before
-  `router-playbooks` (context-bundle-evaluation, apply-proof-authority). After it
-  lands, the enforced step takes over.
+  Loop mode loads the selected unit's body (`meta/todos/todo.<slug>.md`) before
+  Scope and fails closed if it is missing, unreadable, or anchored to a
+  different node, so its Scope, Depends on, and Acceptance bind without the
+  MISSION having to ask (landed by `todo.agent-guidance-router-playbooks`).
 - Use `workflowz` WITHIN a unit for parallel COVERAGE. `workflowz` is an OMP
   magic keyword that builds a one-shot deterministic multi-subagent `task`
   workflow for research, adversarial review, or migration fan-out. It does not
@@ -104,10 +95,8 @@ A child is `blocked` until its own dependencies are done. `cairn next` has no
 programme filter, so the operator or wrapper (not the loop) chooses which
 eligible child to hand in, reading `cairn status` and this umbrella. Blocked
 status keeps not-yet-eligible children out of selection. A child is set `open`
-once all of its dependencies are done: until
-`todo.agent-guidance-campaign-reconciliation` lands, by the maintainer in the
-End-of-unit reconciliation step below; after it lands, by the loop's
-`reconcile-plan` inside the landing unit's commit.
+once all of its dependencies are done, by the loop's `cairn-loop-reconcile`
+step inside the landing unit's commit (`dec.loop-reconcile-step`).
 
 ## Waves
 
@@ -152,7 +141,10 @@ Wave 2 (done, 2026-07-25):
 Wave 3 (open as of 2026-07-25; dependencies satisfied by wave 2):
 
 - todo.agent-pack-claude-bootstrap (after foundation and router)
-- todo.agent-guidance-campaign-reconciliation (after router)
+- todo.agent-guidance-campaign-reconciliation (done, PR pending at authoring
+  time). Added `cairn-loop-reconcile` to the loop-mode required asset closure
+  under `dec.loop-reconcile-step`, so the step below is enforced procedure
+  inside the landing unit's commit rather than a maintainer habit between units.
 - todo.spec-authority-retirement (after router)
 
 Wave 4 (dependencies satisfied by wave 3):
@@ -185,21 +177,20 @@ todo.example-corpus-scan-assertions.
 
 ## End-of-unit reconciliation
 
-Cairn has no native dependency edge between todos, and the normative
-`/cairn-loop` command does not read a selected unit's todo body: it selects the
-slug and scopes via `neighbourhood`, `rationale`, and `deps`
-(`.claude/commands/cairn-loop.md:34-38,151-153`). Cross-todo reconciliation
-therefore cannot run inside a child session today. Until
-`todo.agent-guidance-campaign-reconciliation` lands, it is a manual maintainer
-step, run by the same operator or wrapper that selects the next child, after a
-unit's PR merges and before the next selection:
+Cairn has no native dependency edge between todos, so this obligation is
+procedural rather than typed. Since `dec.loop-reconcile-step`, it runs INSIDE
+the landing unit: `cairn-dev` loop mode loads the selected unit's body before
+Scope, and loads `cairn-loop-reconcile` after Verify and before Land. Its edits
+are staged into that unit's single commit, so the next fresh session reads the
+reconciled plan from main with no external memory and no intervening maintainer
+commit.
 
-1. Read what the landed unit changed (its PR and any decision or research it
-   recorded).
-2. With `cairn todo set`, set each dependant `open` once every entry in its
-   `Depends on` list is done. If the landed unit created or revealed a new
-   prerequisite (a Scope-reroute prerequisite todo, or a query-implementation
-   todo from `todo.agent-context-bundle-evaluation`), add it to an appropriate
+What the landing unit owes this umbrella, per that recipe:
+
+1. Record what the unit's evidence showed (Research artefact), and a Decision
+   when a rule changed.
+2. Set each dependant `open` once every entry in its `Depends on` list is done.
+   If the unit created or revealed a new prerequisite, add it to an appropriate
    Waves tier so the selector can reach it, add it to the dependant's `Depends
    on` list, and set that dependant `blocked` until it is delivered.
    For a child gated on a treatment verdict (publication), do not use the generic
@@ -209,18 +200,13 @@ unit's PR merges and before the next selection:
    round spawn the successor and leave it `blocked`; on an accepted `remove`
    decision, drop it.
 3. Correct downstream todo or spec bodies the evidence invalidated (`cairn todo
-   set` changes only status).
+   set` changes only status), including this Waves list.
 4. If every other child is now `done` or accepted-removed, close the umbrella:
    `cairn todo set agent-guidance-program done`.
 
-These are tracker and plan edits, not a loop unit, so they land as one small
-tracking-only maintainer commit on main (permitted by `cairn-pr-landing`) before
-the next child is selected; never fold them into the next unit's PR, which would
-select that unit from stale status and Waves. They do not count against the
-loop's one-unit-one-commit rule and never leave the loop worktree dirty.
-
-`todo.agent-guidance-campaign-reconciliation` turns this maintainer step into an
-enforced `reconcile-plan` recipe inside the `cairn-dev` loop mode; that work
-includes teaching the loop to load the selected unit's reconcile recipe before
-its terminal token, which today's loop does not do. The obligation is identical;
-only its enforcement changes from manual to loaded procedure.
+What stays with the operator is selection, which is scheduling and belongs
+outside Cairn (`dec.no-orchestrator`): read `cairn status` and these Waves, pick
+the eligible child with the lowest wave number then lowest slug, and hand that
+exact slug to a fresh loop session. A maintainer may still land a small
+tracking-only commit on main to correct something no landing unit could see, but
+it is no longer the mechanism that keeps the plan current.

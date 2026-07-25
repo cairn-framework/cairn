@@ -33,6 +33,7 @@ skills/cairn-dev/references/loop-mode.md
 skills/cairn-loop-scope/SKILL.md
 skills/cairn-loop-implement/SKILL.md
 skills/cairn-loop-recovery/SKILL.md
+skills/cairn-loop-reconcile/SKILL.md
 skills/cairn-loop-landing/SKILL.md
 ```
 
@@ -41,10 +42,12 @@ skills/cairn-loop-landing/SKILL.md
 | `cairn-loop-scope` | Scope | `SCOPED`, `REROUTED`, `LOOP HALTED` |
 | `cairn-loop-implement` | Implement and test | `IMPLEMENTED`, `LOOP HALTED` |
 | `cairn-loop-recovery` | Any preflight recovery row | `RECOVERED`, `LOOP HALTED` |
+| `cairn-loop-reconcile` | Reconcile the plan | `RECONCILED`, `LOOP HALTED` |
 | `cairn-loop-landing` | Land and Cleanup | `ITERATION COMPLETE`, `LOOP HALTED` |
 
 `REROUTED` means Scope found a prerequisite that must land first; the tracker
-edits it produced ARE this iteration, so go straight to Land.
+edits it produced ARE this iteration and are already the reconciled plan, so go
+straight to Land without a second reconcile pass.
 
 ## Input: MISSION
 
@@ -210,10 +213,20 @@ change satisfying the criterion, blueprint upkeep, and the test rule. On
 Run the bound language gates. Always `$CAIRN scan` (zero findings) and
 `$CAIRN hook all` (exit 0). Fix the cause of any failure. Never bypass hooks.
 
-## Record
+## Reconcile the plan
 
-If structure changed or a non-obvious tradeoff was made, write a decision artefact
-in `meta/decisions/`.
+Load `cairn-loop-reconcile`. It owns the record-and-amend step: the Research
+artefact for what this unit's evidence showed, the Decision when a rule changed,
+the corrections to downstream todo bodies and change specs the evidence
+invalidated, and the `$CAIRN todo set` moves that block or open dependants. It
+leaves its edits in the worktree for Land to stage inside the same commit, so
+the next fresh session reads the reconciled plan from main with no external
+memory. It never selects work, never repeats, and never emits a terminal token.
+On `RECONCILED`, continue.
+
+This step runs on every iteration that reaches it, including one that changed no
+rule: "nothing needed reconciling, because ..." is a result, and skipping the
+step is not the same as reaching it and finding nothing.
 
 ## Land and Cleanup
 
