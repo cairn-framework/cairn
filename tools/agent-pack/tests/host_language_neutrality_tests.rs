@@ -34,31 +34,50 @@ fn canonical(relative: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join(relative)
 }
 
-/// A line is prescriptive if it tells the reader to run something: a fenced
-/// command line, a shell prompt, or a bullet listing commands to execute.
+/// A line is prescriptive if it presents a command to run: inside a fenced
+/// block, after a shell prompt, or in an inline code span. The inline-span case
+/// matters most: the defect this guard exists to prevent was
+/// `- Quality gates pass: ` followed by four cargo commands in inline spans, in
+/// a bullet, outside any fence.
+///
 /// Prose that *describes* what the binary does ("falls back to a built-in cargo
-/// battery") is not an instruction and is allowed.
+/// battery") carries no backticks and is allowed, because it is a statement
+/// about Cairn rather than an instruction to the host.
 fn prescriptive_lines(body: &str) -> Vec<(usize, String)> {
     let mut in_fence = false;
     let mut hits = Vec::new();
     for (index, raw) in body.lines().enumerate() {
         let line = raw.trim();
-        if line.starts_with("```") {
+        if line.starts_with("```") || line.starts_with("~~~") {
             in_fence = !in_fence;
             continue;
         }
-        let is_command_position = in_fence || line.starts_with("$ ");
-        if !is_command_position {
-            continue;
-        }
+        // An indented block inside a list is continuation text, not a code
+        // block, so indentation alone is not treated as command position;
+        // inline spans below catch the commands that matter there.
+        let command_position = in_fence || line.starts_with("$ ");
+        let candidate = if command_position {
+            line.to_owned()
+        } else {
+            inline_code_spans(raw).join(" ")
+        };
         if LANGUAGE_SPECIFIC_COMMANDS
             .iter()
-            .any(|command| line.contains(command))
+            .any(|command| candidate.contains(command))
         {
             hits.push((index + 1, raw.to_owned()));
         }
     }
     hits
+}
+
+/// Returns the contents of every `backtick` span on a line.
+fn inline_code_spans(line: &str) -> Vec<String> {
+    line.split('`')
+        .skip(1)
+        .step_by(2)
+        .map(str::to_owned)
+        .collect()
 }
 
 #[test]
@@ -98,9 +117,12 @@ fn apply_skill_routes_the_host_to_its_own_gates_and_to_accept() {
 #[test]
 fn apply_skill_explains_cc002_rather_than_dangling_the_code() {
     let body = std::fs::read_to_string(canonical("content/skills/cairn-apply/SKILL.md")).unwrap();
-    let Some(position) = body.find("CC002") else {
-        return; // the code may be dropped entirely; only a dangling mention is a defect
-    };
+    // The unit resolved CC002 by explaining it rather than by dropping the
+    // mention, so both halves are pinned. A future change that legitimately
+    // drops the code should retire this test deliberately, not silently pass it.
+    let position = body
+        .find("CC002")
+        .expect("cairn-apply must explain CC002, the accept-time gate it sends the reader into");
     let explanation = &body[position..];
     for expected in ["suggested-edges.json", "triage_state", "pending"] {
         assert!(
