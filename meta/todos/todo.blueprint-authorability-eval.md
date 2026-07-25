@@ -27,7 +27,7 @@ Create five to ten prompts such as:
 - author a blueprint.delta for a refactor;
 - write a decision covering named nodes.
 
-Run them against a temporary copy of `test/fixtures/cairn-bootstrap`, apply the
+Run them against a temporary copy of `tests/fixtures/cairn-bootstrap`, apply the
 model output, and score with `cairn scan --strict` and `cairn lint --json`.
 Primary metric: iterations and tokens to a clean scan under the deterministic
 repair loop. Secondary metrics: first-shot validity and per-format failure

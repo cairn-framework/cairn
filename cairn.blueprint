@@ -1,6 +1,6 @@
 # Cairn — the framework described as a Cairn project.
 #
-# Promoted from test/fixtures/cairn-bootstrap/ and updated to match
+# Promoted from tests/fixtures/cairn-bootstrap/ and updated to match
 # the real source tree as of 2026-05-11.
 
 System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" @framework {
