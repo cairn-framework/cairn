@@ -4,11 +4,14 @@ How to iterate on cairn, using cairn. A short descriptive overview only.
 
 ## Authority
 
-The sole normative orchestrator is the `/cairn-loop` command
-(`.claude/commands/cairn-loop.md`) plus the skills it loads
-(`cairn-loop-recovery`, `cairn-loop-landing`). This document is descriptive,
-never normative. Where this overview and the command disagree, the command
-wins. See `dec.loop-command-harness-model`.
+The sole normative procedure is `cairn-dev` loop mode
+(`.claude/skills/cairn-dev/references/loop-mode.md`) plus exactly the required
+asset closure it declares (`cairn-loop-scope`, `cairn-loop-implement`,
+`cairn-loop-recovery`, `cairn-loop-landing`). The `/cairn-loop` command is
+adapter-native transport that resolves there and carries no procedure of its own.
+This document is descriptive, never normative. Where this overview and loop mode
+disagree, loop mode wins. See `dec.loop-command-harness-model` and
+`dec.unified-cairn-dev-entry`.
 
 ## What the loop is
 
@@ -51,9 +54,12 @@ describes new work. See the command for the full precedence table.
 
 | Procedure | Home |
 |---|---|
+| One full iteration (the normative procedure) | `.claude/skills/cairn-dev/references/loop-mode.md` |
+| Scope a unit | `.claude/skills/cairn-loop-scope/SKILL.md` |
+| Implement and test a unit | `.claude/skills/cairn-loop-implement/SKILL.md` |
 | State recovery (dirty tree, open PR, interrupted cleanup, quarantine) | `.claude/skills/cairn-loop-recovery/SKILL.md` |
 | Land (commit, PR, two-lens review) and fail-closed merge | `.claude/skills/cairn-loop-landing/SKILL.md` |
-| CLI surface, blueprint syntax, artefact schemas | `.claude/skills/cairn-dev/SKILL.md` |
+| Entry router for any cairn session | `.claude/skills/cairn-dev/SKILL.md` |
 | Substantial change scaffolding | `.claude/skills/cairn-propose/SKILL.md` |
 | Apply a change | `.claude/skills/cairn-apply/SKILL.md` |
 

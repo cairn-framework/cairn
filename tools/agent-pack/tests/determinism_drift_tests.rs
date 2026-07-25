@@ -121,7 +121,7 @@ destination = "output.txt"
     );
 }
 
-const EXPECTED_CANONICAL: [(&str, &str, &str); 11] = [
+const EXPECTED_CANONICAL: [(&str, &str, &str); 20] = [
     (
         "cairn-apply",
         "default",
@@ -144,9 +144,44 @@ const EXPECTED_CANONICAL: [(&str, &str, &str); 11] = [
         "content/skills/cairn-dev/references/blueprint-syntax.md",
     ),
     (
+        "cairn-dev-reference-command-reference",
+        "default",
+        "content/skills/cairn-dev/references/command-reference.md",
+    ),
+    (
         "cairn-dev-reference-finding-codes",
         "default",
         "content/skills/cairn-dev/references/finding-codes.md",
+    ),
+    (
+        "cairn-dev-reference-graph-navigation",
+        "default",
+        "content/skills/cairn-dev/references/graph-navigation.md",
+    ),
+    (
+        "cairn-dev-reference-loop-mode",
+        "default",
+        "content/skills/cairn-dev/references/loop-mode.md",
+    ),
+    (
+        "cairn-dev-reference-task-architecture-discovery",
+        "default",
+        "content/skills/cairn-dev/references/task-architecture-discovery.md",
+    ),
+    (
+        "cairn-dev-reference-task-bug-investigation",
+        "default",
+        "content/skills/cairn-dev/references/task-bug-investigation.md",
+    ),
+    (
+        "cairn-dev-reference-task-feature-implementation",
+        "default",
+        "content/skills/cairn-dev/references/task-feature-implementation.md",
+    ),
+    (
+        "cairn-dev-reference-task-refactoring",
+        "default",
+        "content/skills/cairn-dev/references/task-refactoring.md",
     ),
     (
         "cairn-explore",
@@ -154,6 +189,11 @@ const EXPECTED_CANONICAL: [(&str, &str, &str); 11] = [
         "content/skills/cairn-explore/SKILL.md",
     ),
     ("cairn-loop", "default", "content/commands/cairn-loop.md"),
+    (
+        "cairn-loop-implement",
+        "default",
+        "content/skills/cairn-loop-implement/SKILL.md",
+    ),
     (
         "cairn-loop-landing",
         "default",
@@ -165,13 +205,18 @@ const EXPECTED_CANONICAL: [(&str, &str, &str); 11] = [
         "content/skills/cairn-loop-recovery/SKILL.md",
     ),
     (
+        "cairn-loop-scope",
+        "default",
+        "content/skills/cairn-loop-scope/SKILL.md",
+    ),
+    (
         "cairn-propose",
         "default",
         "content/skills/cairn-propose/SKILL.md",
     ),
 ];
 
-const EXPECTED_CLAUDE: [(&str, &str, &str); 11] = [
+const EXPECTED_CLAUDE: [(&str, &str, &str); 20] = [
     (
         "cairn-apply",
         "default",
@@ -194,9 +239,44 @@ const EXPECTED_CLAUDE: [(&str, &str, &str); 11] = [
         ".claude/skills/cairn-dev/references/blueprint-syntax.md",
     ),
     (
+        "cairn-dev-reference-command-reference",
+        "default",
+        ".claude/skills/cairn-dev/references/command-reference.md",
+    ),
+    (
         "cairn-dev-reference-finding-codes",
         "default",
         ".claude/skills/cairn-dev/references/finding-codes.md",
+    ),
+    (
+        "cairn-dev-reference-graph-navigation",
+        "default",
+        ".claude/skills/cairn-dev/references/graph-navigation.md",
+    ),
+    (
+        "cairn-dev-reference-loop-mode",
+        "default",
+        ".claude/skills/cairn-dev/references/loop-mode.md",
+    ),
+    (
+        "cairn-dev-reference-task-architecture-discovery",
+        "default",
+        ".claude/skills/cairn-dev/references/task-architecture-discovery.md",
+    ),
+    (
+        "cairn-dev-reference-task-bug-investigation",
+        "default",
+        ".claude/skills/cairn-dev/references/task-bug-investigation.md",
+    ),
+    (
+        "cairn-dev-reference-task-feature-implementation",
+        "default",
+        ".claude/skills/cairn-dev/references/task-feature-implementation.md",
+    ),
+    (
+        "cairn-dev-reference-task-refactoring",
+        "default",
+        ".claude/skills/cairn-dev/references/task-refactoring.md",
     ),
     (
         "cairn-explore",
@@ -204,6 +284,11 @@ const EXPECTED_CLAUDE: [(&str, &str, &str); 11] = [
         ".claude/skills/cairn-explore/SKILL.md",
     ),
     ("cairn-loop", "default", ".claude/commands/cairn-loop.md"),
+    (
+        "cairn-loop-implement",
+        "default",
+        ".claude/skills/cairn-loop-implement/SKILL.md",
+    ),
     (
         "cairn-loop-landing",
         "default",
@@ -213,6 +298,11 @@ const EXPECTED_CLAUDE: [(&str, &str, &str); 11] = [
         "cairn-loop-recovery",
         "default",
         ".claude/skills/cairn-loop-recovery/SKILL.md",
+    ),
+    (
+        "cairn-loop-scope",
+        "default",
+        ".claude/skills/cairn-loop-scope/SKILL.md",
     ),
     (
         "cairn-propose",

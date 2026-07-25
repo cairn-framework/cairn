@@ -42,6 +42,30 @@ const SKILL_FILES: &[(&str, &str)] = &[
         include_str!("../../../.claude/skills/cairn-dev/references/artefact-schemas.md"),
     ),
     (
+        ".claude/skills/cairn-dev/references/command-reference.md",
+        include_str!("../../../.claude/skills/cairn-dev/references/command-reference.md"),
+    ),
+    (
+        ".claude/skills/cairn-dev/references/graph-navigation.md",
+        include_str!("../../../.claude/skills/cairn-dev/references/graph-navigation.md"),
+    ),
+    (
+        ".claude/skills/cairn-dev/references/task-bug-investigation.md",
+        include_str!("../../../.claude/skills/cairn-dev/references/task-bug-investigation.md"),
+    ),
+    (
+        ".claude/skills/cairn-dev/references/task-refactoring.md",
+        include_str!("../../../.claude/skills/cairn-dev/references/task-refactoring.md"),
+    ),
+    (
+        ".claude/skills/cairn-dev/references/task-architecture-discovery.md",
+        include_str!("../../../.claude/skills/cairn-dev/references/task-architecture-discovery.md"),
+    ),
+    (
+        ".claude/skills/cairn-dev/references/task-feature-implementation.md",
+        include_str!("../../../.claude/skills/cairn-dev/references/task-feature-implementation.md"),
+    ),
+    (
         ".claude/skills/cairn-explore/SKILL.md",
         include_str!("../../../.claude/skills/cairn-explore/SKILL.md"),
     ),
