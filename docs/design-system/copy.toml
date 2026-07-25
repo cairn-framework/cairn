@@ -228,7 +228,7 @@ err-from-code-conflict = "usage: cairn init --from-code --apply --wire [path]"
 # -- Agent pack -----------------------------------------------------------
 
 [pack]
-usage = "usage: cairn pack <install|update|status|uninstall> [--harness <name>] [--loop]"
+usage = "usage: cairn pack <install|update|status|uninstall|resolve|campaign> [--harness <name>] [--loop]"
 installed = "Installed the cairn agent pack ({harness}, bundle {bundle}, cli {cli})."
 updated = "Updated the cairn agent pack ({harness}, bundle {bundle}, cli {cli})."
 removed = "Retired {count} pack files."
@@ -240,6 +240,25 @@ modified-note = "Modified since cairn wrote them, left untouched:"
 err-unknown-harness = "unknown harness `{harness}`; supported: {supported}"
 err-write = "failed to write {file}: {detail}"
 err-manifest-parse = "{file} is not a readable pack manifest: {detail}"
+campaign-usage = "usage: cairn pack campaign <start|verify|end> [--loop]"
+campaign-started = "Campaign pinned to the {entry} entry and its {count} closure assets."
+campaign-verified = "Campaign bytes match: {entry} entry, {count} closure assets."
+campaign-ended = "Campaign snapshot removed. Pack drift is information again."
+campaign-none = "No campaign is active here."
+campaign-active = "A campaign is already active. Run `cairn pack campaign end` before pinning another."
+campaign-halt = "HALT: the installed pack no longer matches this campaign."
+campaign-unreadable = "The campaign snapshot is unreadable. Run `cairn pack campaign end` to release it."
+campaign-changed = "{file} changed since the campaign was pinned."
+campaign-absent = "{file} is pinned by the campaign but no longer resolves."
+campaign-added = "{file} entered the closure after the campaign was pinned."
+campaign-metadata = "The pack metadata changed since the campaign was pinned."
+campaign-cli = "The cairn binary changed since the campaign was pinned."
+resolve-header = "Resolved the {entry} entry ({harness}, bundle {bundle}, cli {cli})."
+resolve-concurrent = "the pack changed while resolving; nothing was pinned"
+resolve-unreadable = "cannot read {file}; the pack cannot be resolved"
+resolve-unowned = "{file} is not owned by the pack manifest"
+resolve-drifted = "{file} differs from the bytes the packager wrote"
+resolve-no-closure = "loop mode does not declare a usable required asset closure"
 
 # -- Feedback -------------------------------------------------------------
 
@@ -779,12 +798,14 @@ usage = "cairn hook uninstall [--pre-push] [options]"
 description = "Remove a Cairn git hook"
 
 [help.commands.pack]
-usage = "cairn pack <install|update|status|uninstall> [options]"
-description = "Install, update, inspect, or remove the agent pack"
+usage = "cairn pack <install|update|status|uninstall|resolve|campaign> [options]"
+description = "Install, update, inspect, resolve, or remove the agent pack"
 args = """  install    Write the pack and record what cairn owns
   update     Refresh pristine files, backfill missing ones
   status     Report installed versions and per-file state
-  uninstall  Retire the files cairn owns and still matches"""
+  uninstall  Retire the files cairn owns and still matches
+  resolve    Resolve an entry to its prompt and closure bytes
+  campaign   Pin, verify, or release those bytes for a campaign"""
 
 [help.commands.pack-install]
 usage = "cairn pack install [--harness <name>] [--loop] [options]"
@@ -801,6 +822,17 @@ description = "Report installed pack versions and per-file state"
 [help.commands.pack-uninstall]
 usage = "cairn pack uninstall [options]"
 description = "Retire pack files cairn owns and that are still pristine"
+
+[help.commands.pack-resolve]
+usage = "cairn pack resolve [--loop] [options]"
+description = "Resolve an entry to its prompt bytes and required asset closure"
+
+[help.commands.pack-campaign]
+usage = "cairn pack campaign <start|verify|end> [--loop] [options]"
+description = "Pin resolved pack bytes for a campaign, verify them, or release them"
+args = """  start   Pin the resolved entry and its closure
+  verify  Halt unless the live pack matches the pinned bytes
+  end     Remove the campaign snapshot"""
 
 # -- Symbol locate -------------------------------------------------------
 [locate]

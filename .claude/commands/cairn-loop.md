@@ -14,13 +14,24 @@ mode, at `.claude/skills/cairn-dev/references/loop-mode.md`
 
 Do this:
 
-1. Load `.claude/skills/cairn-dev/references/loop-mode.md`. If it cannot be
-   loaded, touch nothing, report that, and output `LOOP HALTED` as the final line.
-2. Bind MISSION to any text in this message beyond the command itself, and hand it
+1. Run `cairn pack campaign verify`.
+   - Exit 0: a campaign is pinned. It reports a `pinned:` directory holding
+     immutable copies of loop mode and its whole closure. Load every asset from
+     that directory, mirroring the pack path underneath it, and read no other
+     copy for the rest of this session.
+   - Non-zero, including `HALT`: the pack moved under the campaign. Touch
+     nothing, report the output, and output `LOOP HALTED` as the final line.
+   - `No campaign is active here`: nothing is pinned. Load assets from the
+     installed pack at their ordinary paths.
+2. Load loop mode: `references/loop-mode.md` under the pinned directory when one
+   is active, otherwise `.claude/skills/cairn-dev/references/loop-mode.md`. If it
+   cannot be loaded, touch nothing, report that, and output `LOOP HALTED` as the
+   final line.
+3. Bind MISSION to any text in this message beyond the command itself, and hand it
    to loop mode as its MISSION input.
-3. Follow loop mode verbatim, including its required asset closure and its
-   fail-closed rows.
-4. Pass its terminal token through unchanged as your final line, alone and
+4. Follow loop mode verbatim, including its required asset closure and its
+   fail-closed rows, resolving every asset through the same source as step 2.
+5. Pass its terminal token through unchanged as your final line, alone and
    verbatim. Append nothing after it.
 
 Invoking this command IS the explicit selection that loop mode requires. Nothing

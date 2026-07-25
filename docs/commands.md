@@ -149,6 +149,8 @@ operators are not supported. Prefer simple commands without spaces in args.
 | `cairn pack update` | Refresh pristine pack files and backfill missing ones |
 | `cairn pack status` | Report installed pack versions and per-file state |
 | `cairn pack uninstall` | Retire pack files cairn owns and that are still pristine |
+| `cairn pack resolve` | Resolve an entry to its prompt bytes and required asset closure |
+| `cairn pack campaign` | Pin resolved pack bytes for a campaign, verify them, or release them |
 
 ### Summariser and drafts (JSON-only)
 
