@@ -78,8 +78,9 @@ Look at the repository you are in.
    (The verb is `apply`; it means "apply this change and file it". The `archive`
    form is a supported alias.)
 
-   (When your user asks to skip the review and just get a first map,
-   `cairn init --from-code --apply` does steps 1 and 3 in one command.)
+   (When your user asks to skip the review and bootstrap the agent in one step,
+   `cairn init --from-code --apply --wire` does steps 1 and 3, installs the
+   owned pack, and appends its orientation pointer.)
 
 4. Produce the first map:
 
@@ -97,11 +98,12 @@ Look at the repository you are in.
 1. From the repo root, run:
 
    ```sh
-   cairn init
+   cairn init --wire
    ```
 
    This creates a starter `cairn.blueprint`, `cairn.config.yaml`, and
-   `.cairn/AGENTS.md`.
+   `.cairn/AGENTS.md`. It installs the owned agent pack and appends a pointer to
+   the project's agent instructions.
 
 2. Ask your user what they are building, then draft the blueprint from that
    conversation: systems, containers, modules, the promises between them, and
@@ -114,11 +116,11 @@ Look at the repository you are in.
 
 ## Step 4: Wire yourself in
 
-`cairn init` wrote `.cairn/AGENTS.md`, a guide telling coding agents how to
-use the map in this repo. Append its contents (or a one-line pointer to it)
-to the project's agent instructions file (`AGENTS.md`, `CLAUDE.md`, or
-equivalent), so every future session starts oriented. Confirm with your user
-where those instructions live.
+If you followed the review-first existing-code path, run `cairn init --wire`
+after applying the proposal. It installs the owned pack through the same
+lifecycle engine as `cairn pack install` and appends a pointer to
+`.cairn/AGENTS.md` in `AGENTS.md` or `CLAUDE.md`. The operation is idempotent.
+If Step 3 already used `--wire`, nothing more is needed.
 
 ## Step 5: Wire the gate
 

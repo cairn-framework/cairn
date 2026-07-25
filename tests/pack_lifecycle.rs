@@ -116,24 +116,37 @@ fn a_user_edit_survives_update_and_uninstall() {
 }
 
 #[test]
-fn a_pack_installed_by_init_is_adopted_rather_than_clobbered() {
-    let root = temp_root("legacy");
-    // `cairn init` emits the same bytes with no ledger: the most common real
-    // starting state, and the one a naive installer would overwrite.
+fn init_delegates_pack_ownership_and_a_later_install_is_idempotent() {
+    let root = temp_root("init-owned");
     let init = cairn::cli::run(&[
         "--file".to_owned(),
         root.join("cairn.blueprint").to_string_lossy().to_string(),
         "init".to_owned(),
     ]);
     assert_eq!(init.code, 0, "init must succeed: {}", init.stderr);
-    assert!(root.join(ROUTER).exists(), "init must emit the router");
+    assert!(root.join(ROUTER).exists(), "init must install the router");
+    let before = manifest_json(&root);
 
-    let status = pack(&root, &["status", "--json"]);
-    let before: serde_json::Value = serde_json::from_str(&status.stdout).unwrap();
-    assert_eq!(
-        before["data"]["installed"], false,
-        "an init-emitted pack has no ledger yet"
+    let install = pack(&root, &["install", "--json"]);
+    assert_eq!(install.code, 0);
+    let report: serde_json::Value = serde_json::from_str(&install.stdout).unwrap();
+    assert!(
+        report["data"]["written"].as_array().unwrap().is_empty(),
+        "the lifecycle must not rewrite its own init installation"
     );
+    assert_eq!(
+        manifest_json(&root),
+        before,
+        "idempotent install must preserve the ownership ledger"
+    );
+}
+
+#[test]
+fn a_matching_legacy_install_is_adopted_without_rewriting_it() {
+    let root = temp_root("legacy");
+    assert_eq!(pack(&root, &["install"]).code, 0);
+    let router_before = fs::read_to_string(root.join(ROUTER)).unwrap();
+    fs::remove_file(root.join(MANIFEST)).unwrap();
 
     let install = pack(&root, &["install"]);
     assert_eq!(install.code, 0);
@@ -144,19 +157,12 @@ fn a_pack_installed_by_init_is_adopted_rather_than_clobbered() {
             .unwrap()
             .iter()
             .any(|file| file["path"] == ROUTER),
-        "adoption must record the existing file rather than skip it"
+        "adoption must record the existing file"
     );
-
-    let after: serde_json::Value =
-        serde_json::from_str(&pack(&root, &["status", "--json"]).stdout).unwrap();
-    assert_eq!(after["data"]["installed"], true);
-    assert!(
-        after["data"]["missing"].as_array().unwrap().is_empty(),
-        "nothing should be missing straight after adoption"
-    );
-    assert!(
-        after["data"]["modified"].as_array().unwrap().is_empty(),
-        "adopted files are pristine, not modified"
+    assert_eq!(
+        fs::read_to_string(root.join(ROUTER)).unwrap(),
+        router_before,
+        "adoption must not rewrite matching legacy bytes"
     );
 }
 

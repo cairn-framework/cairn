@@ -38,8 +38,9 @@ pub(crate) use crate::copy;
 pub(crate) use format::render_finding_lines;
 
 use commands::{
-    init_project, legacy_blueprint_warning, preflight_wire_check, run_archive_command,
-    run_change_new, run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
+    atomic_write, init_project, install_default_pack, legacy_blueprint_warning,
+    preflight_wire_check, run_archive_command, run_archive_command_with_path, run_change_new,
+    run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
     run_hook_command, run_hook_lifecycle_command, run_import_openspec, run_onboard_command,
     run_pack_command, run_shared_json_command, run_todo_command, run_ui_command, run_watch_command,
     run_workspace_command, wire_agent_guide,
@@ -72,6 +73,130 @@ pub struct CliResult {
 #[must_use]
 pub const fn registry() -> &'static [CommandMetadata] {
     crate::query_api::registry()
+}
+
+const BROWNFIELD_APPLIED_MARKER: &str = ".cairn/state/brownfield-init-applied";
+
+/// Install the owned base pack, then append the optional orientation pointer.
+/// Both operations run only after project scaffolding or brownfield apply has
+/// succeeded.
+fn bootstrap_agent(root: &Path, wire_file: Option<&str>, wire: bool) -> CliResult {
+    let pack = install_default_pack(root, false);
+    if pack.code != 0 {
+        return pack;
+    }
+    if !wire {
+        return pack;
+    }
+    let wired = wire_agent_guide(root, wire_file);
+    if wired.code != 0 {
+        return wired;
+    }
+    ok(format!("{}\n{}", pack.stdout.trim_end(), wired.stdout))
+}
+
+fn finish_brownfield_apply(
+    mut result: CliResult,
+    archive_path: Option<&Path>,
+    root: &Path,
+    change_id: &str,
+    wire_file: Option<&str>,
+    wire: bool,
+    json: bool,
+) -> CliResult {
+    if result.code != 0 {
+        result.stderr = format!(
+            "brownfield init discovery succeeded, but applying change `{change_id}` failed\n{}",
+            result.stderr
+        );
+        return result;
+    }
+    let scaffold = init_project(root, wire);
+    if scaffold.code != 0 {
+        return scaffold;
+    }
+    let Some(archive_path) = archive_path else {
+        return err(
+            1,
+            &copy::lookup("init.err-completion-marker")
+                .replace("{detail}", "the archive command returned no destination"),
+        );
+    };
+    if let Err(marker_error) = record_brownfield_apply(root, archive_path) {
+        return marker_error;
+    }
+    let bootstrap = bootstrap_agent(root, wire_file, wire);
+    if bootstrap.code != 0 {
+        return bootstrap;
+    }
+    if json {
+        return result;
+    }
+    result.stdout = format!(
+        "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n{}\n{}",
+        result.stdout.trim_end(),
+        bootstrap.stdout
+    );
+    result
+}
+
+/// Publish success only after archive/apply has returned success. A retry may
+/// bootstrap from this marker even if the first pack install or wire failed.
+fn record_brownfield_apply(root: &Path, archive_path: &Path) -> Result<(), CliResult> {
+    let Some(name) = archive_path.file_name().and_then(|name| name.to_str()) else {
+        return Err(err(
+            1,
+            &copy::lookup("init.err-completion-marker")
+                .replace("{detail}", "the archived change name is invalid"),
+        ));
+    };
+    let parent = root.join(".cairn/state");
+    let marker = root.join(BROWNFIELD_APPLIED_MARKER);
+    atomic_write(&parent, &marker, name).map_err(|detail| {
+        err(
+            1,
+            &copy::lookup("init.err-completion-marker").replace("{detail}", &detail),
+        )
+    })
+}
+
+fn completed_brownfield_archive(root: &Path) -> Option<PathBuf> {
+    if root.join("meta/changes/brownfield-init").exists() {
+        return None;
+    }
+    let marker = fs::read_to_string(root.join(BROWNFIELD_APPLIED_MARKER)).ok()?;
+    let name = marker.trim();
+    if !name.ends_with("-brownfield-init") || Path::new(name).components().count() != 1 {
+        return None;
+    }
+    let archive_path = root.join("meta/changes/archive").join(name);
+    archive_path.is_dir().then_some(archive_path)
+}
+
+fn resume_brownfield_bootstrap(
+    root: &Path,
+    archive_path: &Path,
+    wire_file: Option<&str>,
+    wire: bool,
+    json: bool,
+) -> CliResult {
+    let scaffold = init_project(root, wire);
+    if scaffold.code != 0 {
+        return scaffold;
+    }
+    let bootstrap = bootstrap_agent(root, wire_file, wire);
+    if bootstrap.code != 0 {
+        return bootstrap;
+    }
+    let summary = copy::lookup("init.brownfield-already-applied");
+    if json {
+        return ok(format!(
+            "{{\"command\":\"archive\",\"status\":\"ok\",\"data\":{{\"archive_path\":\"{}\",\"summary\":\"{}\"}}}}\n",
+            esc(&archive_path.to_string_lossy()),
+            esc(summary)
+        ));
+    }
+    ok(format!("{summary}\n{}", bootstrap.stdout))
 }
 
 /// Executes CLI arguments.
@@ -113,11 +238,8 @@ pub fn run(args: &[String]) -> CliResult {
         if apply && !from_code {
             return err(2, "usage: cairn init --from-code --apply");
         }
-        // `--wire` appends a cairn orientation reference to the project's agent
-        // instructions file. It is only valid on the standard scaffold path:
-        // `--from-code` returns before wiring would run, so reject the combo
-        // rather than silently ignoring the flag.
-        if wire && from_code {
+        // Discovery without application has no project scaffold to wire.
+        if wire && from_code && !apply {
             return err(2, copy::lookup("init.wire.err-from-code-conflict"));
         }
         // Extract an optional explicit target file: `--wire CLAUDE.md`.
@@ -140,8 +262,21 @@ pub fn run(args: &[String]) -> CliResult {
                 return preflight;
             }
         }
+        let force = parsed.command_args.iter().any(|a| a == "--force");
+        if from_code
+            && apply
+            && !force
+            && let Some(archive_path) = completed_brownfield_archive(project_root)
+        {
+            return resume_brownfield_bootstrap(
+                project_root,
+                &archive_path,
+                wire_file,
+                wire,
+                parsed.json,
+            );
+        }
         if from_code {
-            let force = parsed.command_args.iter().any(|a| a == "--force");
             return match crate::brownfield::init::run_init_from_code(project_root, force) {
                 Ok(change_id) => {
                     if apply {
@@ -157,20 +292,20 @@ pub fn run(args: &[String]) -> CliResult {
                             std::path::PathBuf::from("meta/changes"),
                             &change_id,
                         );
-                        let mut result =
-                            run_archive_command(&archive_parsed, project_root, legacy_warning);
-                        if result.code != 0 {
-                            result.stderr = format!(
-                                "brownfield init discovery succeeded, but applying change `{change_id}` failed\n{}",
-                                result.stderr
-                            );
-                        } else if !parsed.json {
-                            result.stdout = format!(
-                                "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n{}",
-                                result.stdout
-                            );
-                        }
-                        result
+                        let (archive_result, archive_path) = run_archive_command_with_path(
+                            &archive_parsed,
+                            project_root,
+                            legacy_warning,
+                        );
+                        finish_brownfield_apply(
+                            archive_result,
+                            archive_path.as_deref(),
+                            project_root,
+                            &change_id,
+                            wire_file,
+                            wire,
+                            parsed.json,
+                        )
                     } else {
                         ok(format!(
                             "brownfield init complete; change written to meta/changes/{change_id}/\n"
@@ -184,18 +319,15 @@ pub fn run(args: &[String]) -> CliResult {
         if result.code != 0 {
             return result;
         }
-        if wire {
-            let wire_result = wire_agent_guide(project_root, wire_file);
-            if wire_result.code != 0 {
-                return wire_result;
-            }
-            return ok(format!(
-                "{}\n{}",
-                result.stdout.trim_end(),
-                wire_result.stdout
-            ));
+        let bootstrap = bootstrap_agent(project_root, wire_file, wire);
+        if bootstrap.code != 0 {
+            return bootstrap;
         }
-        return result;
+        return ok(format!(
+            "{}\n{}",
+            result.stdout.trim_end(),
+            bootstrap.stdout
+        ));
     }
     if parsed.command == "import-openspec" {
         return run_import_openspec(project_root, parsed.json);
@@ -1258,6 +1390,10 @@ mod tests {
         assert!(root.join("cairn.config.yaml").exists());
         let guide = fs::read_to_string(root.join(".cairn/AGENTS.md"))?;
         assert!(guide.contains("cairn feedback"));
+        assert!(
+            root.join(".cairn/state/agent-pack.json").exists(),
+            "init must delegate pack ownership to the lifecycle engine"
+        );
 
         let version = run(&["--version".to_owned()]);
         assert_eq!(version.code, 0);
@@ -1348,19 +1484,163 @@ mod tests {
             agents.contains(".cairn/AGENTS.md"),
             "wired block must reference the agent guide"
         );
+        assert!(
+            root.join(".cairn/state/agent-pack.json").exists(),
+            "init --wire must publish the pack ownership manifest"
+        );
+        assert!(
+            root.join(".claude/skills/cairn-dev/SKILL.md").exists(),
+            "init --wire must install the canonical router"
+        );
         Ok(())
     }
 
     #[test]
-    fn test_cli_init_wire_with_from_code_is_rejected() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_cli_init_wire_with_unapplied_from_code_is_rejected()
+    -> Result<(), Box<dyn std::error::Error>> {
         let root = temp_root("init-wire-from-code")?;
         let result = run_in(&root, &["init", "--from-code", "--wire"]);
         assert_eq!(result.code, 2);
         assert!(
-            result.stderr.contains("not supported with --from-code"),
-            "must reject --wire + --from-code combo: {}",
+            result.stderr.contains("--from-code --apply --wire"),
+            "must require applying discovery before wiring: {}",
             result.stderr
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_wire_bootstraps_after_apply()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-from-code-apply-wire")?;
+        fs::create_dir_all(root.join("src/alpha"))?;
+        for i in 0..3 {
+            fs::write(root.join(format!("src/alpha/f{i}.rs")), "pub fn f() {}\n")?;
+        }
+
+        let unrelated_archive = root.join("meta/changes/archive/9999-12-31-other-brownfield-init");
+        fs::create_dir_all(&unrelated_archive)?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply", "--wire"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        assert!(
+            fs::read_to_string(root.join("cairn.blueprint"))?.contains(r#"id "src.alpha""#),
+            "discovered blueprint must be applied before bootstrap"
+        );
+        assert!(
+            root.join(".cairn/state/agent-pack.json").exists(),
+            "brownfield bootstrap must publish ownership"
+        );
+        assert!(
+            root.join(".claude/skills/cairn-dev/SKILL.md").exists(),
+            "brownfield bootstrap must install the router"
+        );
+        assert!(
+            fs::read_to_string(root.join("AGENTS.md"))?.contains("cairn:agent-guide-begin"),
+            "brownfield bootstrap must wire the orientation pointer"
+        );
+        assert_ne!(
+            fs::read_to_string(root.join(BROWNFIELD_APPLIED_MARKER))?,
+            "9999-12-31-other-brownfield-init",
+            "completion must name the archive returned by this apply"
+        );
+        fs::remove_dir(unrelated_archive)?;
+        let manifest_before = fs::read(root.join(".cairn/state/agent-pack.json"))?;
+        let agents_before = fs::read_to_string(root.join("AGENTS.md"))?;
+        let repeated = run_in(&root, &["init", "--from-code", "--apply", "--wire"]);
+        assert_eq!(repeated.code, 0, "re-run stderr: {}", repeated.stderr);
+        assert_eq!(
+            fs::read(root.join(".cairn/state/agent-pack.json"))?,
+            manifest_before,
+            "re-run must preserve the ownership ledger bytes"
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("AGENTS.md"))?,
+            agents_before,
+            "re-run must not duplicate the wire block"
+        );
+        assert!(
+            !root.join("meta/changes/brownfield-init").exists(),
+            "re-run must not leave a duplicate active change"
+        );
+
+        let repeated_json = run_in(
+            &root,
+            &["--json", "init", "--from-code", "--apply", "--wire"],
+        );
+        assert_eq!(repeated_json.code, 0);
+        let envelope: serde_json::Value = serde_json::from_str(&repeated_json.stdout)?;
+        assert_eq!(envelope["command"], "archive");
+        Ok(())
+    }
+
+    #[test]
+    fn test_failed_brownfield_apply_never_bootstraps_or_wires()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-from-code-failed-apply")?;
+        let failed = CliResult {
+            code: 1,
+            stdout: String::new(),
+            stderr: "conflict".to_owned(),
+        };
+        let result =
+            finish_brownfield_apply(failed, None, &root, "brownfield-init", None, true, false);
+        assert_eq!(result.code, 1);
+        assert!(!root.join(".cairn/state/agent-pack.json").exists());
+        assert!(!root.join(".claude/skills/cairn-dev/SKILL.md").exists());
+        assert!(!root.join("AGENTS.md").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn test_post_archive_failure_never_becomes_a_bootstrap_success()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-from-code-post-archive-failure")?;
+        fs::create_dir_all(root.join("src/alpha"))?;
+        fs::write(root.join("src/alpha/lib.rs"), "pub fn f() {}\n")?;
+        fs::create_dir(root.join("map.json"))?;
+
+        let first = run_in(&root, &["init", "--from-code", "--apply", "--wire"]);
+        assert_ne!(first.code, 0, "the post-apply scan must fail");
+        assert!(
+            fs::read_dir(root.join("meta/changes/archive"))?
+                .next()
+                .is_some(),
+            "the scenario must reach the post-rename failure window"
+        );
+        assert!(!root.join(BROWNFIELD_APPLIED_MARKER).exists());
+        assert!(!root.join(".cairn/state/agent-pack.json").exists());
+        assert!(!root.join("AGENTS.md").exists());
+
+        let retry = run_in(&root, &["init", "--from-code", "--apply", "--wire"]);
+        assert_ne!(
+            retry.code, 0,
+            "an incomplete archive must fail closed rather than bootstrap"
+        );
+        assert!(!root.join(".cairn/state/agent-pack.json").exists());
+        assert!(!root.join("AGENTS.md").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn test_active_brownfield_change_is_not_hidden_by_an_older_completion()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("init-from-code-active-after-archive")?;
+        fs::create_dir_all(root.join("src/alpha"))?;
+        fs::write(root.join("src/alpha/lib.rs"), "pub fn f() {}\n")?;
+        assert_eq!(
+            run_in(&root, &["init", "--from-code", "--apply", "--wire"]).code,
+            0
+        );
+        assert_eq!(run_in(&root, &["init", "--from-code"]).code, 0);
+        assert!(root.join("meta/changes/brownfield-init").exists());
+
+        let retry = run_in(&root, &["init", "--from-code", "--apply", "--wire"]);
+        assert_ne!(
+            retry.code, 0,
+            "a current active change must not be bypassed by an older marker"
+        );
+        assert!(root.join("meta/changes/brownfield-init").exists());
         Ok(())
     }
 
