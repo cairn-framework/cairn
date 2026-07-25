@@ -126,6 +126,8 @@ Error responses from the MCP/query path:
 | `pack update` | Refresh pristine pack files, backfill missing ones | Exit 0 = reported; modified files are never overwritten |
 | `pack status` | Report installed pack versions and per-file state | Exit 0 = reported; drift is information, not failure |
 | `pack uninstall` | Retire owned, pristine pack files | Exit 0 = removed or absent |
+| `pack resolve` | Resolve an entry to its prompt bytes and required asset closure | Exit 0 = resolved; Exit 1 = unreadable, unowned, drifted, or concurrently mutated |
+| `pack campaign` | Pin resolved bytes, verify them, or release them | Exit 0 = pinned, matched, or released; Exit 1 = halt before work |
 
 ## Hook kinds
 

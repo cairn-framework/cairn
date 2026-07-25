@@ -106,6 +106,8 @@ The brownfield flow generates a proposal, not final state. Review the generated
 | Workspace aggregate | `cairn workspace <status\|lint\|frontier>` |
 | Backlog beads | `cairn backlog <node>`, `cairn beads <node>` |
 | Agent pack lifecycle | `cairn pack <install\|update\|status\|uninstall>` (`--harness <name>`, `--loop`) |
+| Resolve pack bytes | `cairn pack resolve` (`--loop`, `--json`) |
+| Campaign lock | `cairn pack campaign <start\|verify\|end>` (`--loop`, `--json`) |
 
 ## JSON contract
 

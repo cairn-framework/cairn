@@ -14,6 +14,8 @@ mod import;
 mod onboard;
 mod pack;
 mod pack_assets;
+mod pack_campaign;
+mod pack_campaign_lock;
 mod pack_manifest;
 mod project;
 mod todo;

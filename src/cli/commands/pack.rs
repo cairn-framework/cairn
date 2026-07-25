@@ -30,8 +30,33 @@ pub(crate) fn run_pack_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
         Some("install" | "update") => run_apply(root, harness, with_loop, parsed.json),
         Some("status") => run_status(root, with_loop, parsed),
         Some("uninstall") => run_uninstall(root, parsed),
+        Some("resolve") => super::pack_campaign::run_resolve(root, with_loop, parsed.json),
+        Some("campaign") => super::pack_campaign_lock::run_campaign(
+            root,
+            campaign_verb(&parsed.command_args),
+            with_loop,
+            parsed.json,
+        ),
         _ => err(2, copy::lookup("pack.usage")),
     }
+}
+
+/// Second bare token after `pack`: the campaign verb.
+fn campaign_verb(args: &[String]) -> Option<&str> {
+    bare_tokens(args).nth(1)
+}
+
+/// Bare tokens after `pack`, with the `--harness` value skipped so it can never
+/// be mistaken for a subcommand or verb.
+fn bare_tokens(args: &[String]) -> impl Iterator<Item = &str> {
+    let mut skip_value = false;
+    args.iter().skip(1).filter_map(move |arg| {
+        if std::mem::take(&mut skip_value) {
+            return None;
+        }
+        skip_value = arg == "--harness";
+        (!arg.starts_with('-')).then_some(arg.as_str())
+    })
 }
 
 /// Install the default base pack through the same ownership engine as
@@ -42,18 +67,9 @@ pub(crate) fn install_default_pack(root: &Path, json: bool) -> CliResult {
 }
 
 /// First bare token after `pack`, so `pack --harness claude install` and
-/// `pack install --harness claude` mean the same thing. `--harness` takes a
-/// value, which must not be mistaken for the subcommand.
+/// `pack install --harness claude` mean the same thing.
 fn subcommand(args: &[String]) -> Option<&str> {
-    let mut rest = args.iter().skip(1);
-    while let Some(arg) = rest.next() {
-        if arg == "--harness" {
-            let _ = rest.next();
-        } else if !arg.starts_with('-') {
-            return Some(arg.as_str());
-        }
-    }
-    None
+    bare_tokens(args).next()
 }
 
 /// Resolve `--harness <name>`, defaulting to the single validated adapter.

@@ -206,6 +206,8 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("pack update", "pack-update", FLAGS_PACK),
     spec("pack status", "pack-status", FLAGS_PACK),
     spec("pack uninstall", "pack-uninstall", FLAGS_PACK),
+    spec("pack resolve", "pack-resolve", FLAGS_PACK),
+    spec("pack campaign", "pack-campaign", FLAGS_PACK),
     // --- retired top-level aliases -----------------------------------------
     // preferred/description come from copy.toml under help.commands.<copy_key>
     spec("accept", "accept", FLAGS_JSON_ONLY),

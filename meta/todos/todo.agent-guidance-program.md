@@ -140,11 +140,14 @@ Wave 2 (done, 2026-07-25):
 
 Wave 3 (open as of 2026-07-25; dependencies satisfied by wave 2):
 
-- todo.agent-pack-claude-bootstrap (after foundation and router). Split under
-  the sizing rule into three children, which are the units the selector picks:
-  todo.pack-install-lifecycle (open), todo.pack-init-delegation (blocked on the
-  installer), todo.pack-campaign-resolver (blocked on both). The parent is
-  blocked and flips to `done` when the last child lands.
+- todo.agent-pack-claude-bootstrap (done). Split under the sizing rule into
+  three children, all landed: todo.pack-install-lifecycle (done, PR #466) added
+  the manifest-owned `cairn pack install|update|status|uninstall` family;
+  todo.pack-init-delegation (done, PR #467) made `cairn init` install through
+  that same engine and extended `--wire` to the brownfield path;
+  todo.pack-campaign-resolver (done, PR pending at authoring time) added
+  `cairn pack resolve` and the `campaign start|verify|end` lock that pins the
+  resolved closure as immutable bytes for a campaign.
 - todo.agent-guidance-campaign-reconciliation (done, PR #461). Added
   `cairn-loop-reconcile` to the loop-mode required asset closure under
   `dec.loop-reconcile-step`, so end-of-unit reconciliation is enforced procedure
@@ -153,11 +156,11 @@ Wave 3 (open as of 2026-07-25; dependencies satisfied by wave 2):
   `tools/agent-pack` test unrun.
 - todo.spec-authority-retirement (after router)
 
-Wave 4 (dependencies satisfied by wave 3):
+Wave 4 (open as of 2026-07-25; dependencies satisfied by wave 3):
 
-- todo.agent-guidance-treatment-evaluation (after baseline, apply-proof,
-  router, and the Claude bootstrap)
-- todo.agent-pack-omp-adapter (implement and validate, after the Claude
+- todo.agent-guidance-treatment-evaluation (open; baseline, apply-proof,
+  router, and the Claude bootstrap are all done)
+- todo.agent-pack-omp-adapter (open; implement and validate, after the Claude
   bootstrap and router)
 
 Wave 5 (after OMP adapter completion and the treatment retain verdict):
