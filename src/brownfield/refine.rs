@@ -3,6 +3,7 @@
 //! Re-runs brownfield discovery and writes results to a timestamped
 //! change directory under `meta/changes/brownfield-refine-{secs}/`.
 
+use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::Path;
 
@@ -28,13 +29,14 @@ const CHANGE_ID_PREFIX: &str = "brownfield-refine";
 ///
 /// Returns `CairnError::ChangeDiscovery` when filesystem operations fail.
 pub fn run_refine(root: &Path) -> Result<Option<String>, CairnError> {
-    let extraction = super::discovery::discover(root)?;
+    let mut extraction = super::discovery::discover(root)?;
     let (renames, removals) = detect_renames_and_removals(root, &extraction);
-    let declared = declared_paths(root);
+    let declared_ids = declared_ids(root);
+    preserve_declared_ids(&declared_ids, &mut extraction);
     let new_candidates: Vec<_> = extraction
         .candidates
         .into_iter()
-        .filter(|c| !declared.contains(c.path.trim_start_matches("./")))
+        .filter(|c| !declared_ids.contains_key(c.path.trim_start_matches("./")))
         .collect();
     if new_candidates.is_empty() && renames.is_empty() && removals.is_empty() {
         return Ok(None);
@@ -59,26 +61,32 @@ pub fn run_refine(root: &Path) -> Result<Option<String>, CairnError> {
 /// Every path declared by any node in the existing blueprint, with any
 /// leading `./` stripped. Empty when no blueprint exists or it fails to
 /// parse (refine then proposes everything, matching `init --from-code`).
-fn declared_paths(root: &Path) -> std::collections::BTreeSet<String> {
-    let blueprint_path = root.join("cairn.blueprint");
-    let Ok(ast) = crate::blueprint::parse_file(&blueprint_path) else {
-        return std::collections::BTreeSet::new();
+fn declared_ids(root: &Path) -> BTreeMap<String, String> {
+    let Ok(ast) = crate::blueprint::parse_file(root.join("cairn.blueprint")) else {
+        return BTreeMap::new();
     };
-    let mut out = std::collections::BTreeSet::new();
-    collect_declared_paths(&ast.nodes, &mut out);
-    out
+    let mut ids = BTreeMap::new();
+    collect_declared_ids(&ast.nodes, &mut ids);
+    ids
 }
 
-/// Recursively gather `./`-stripped node paths into `out`.
-fn collect_declared_paths(
-    nodes: &[crate::blueprint::Node],
-    out: &mut std::collections::BTreeSet<String>,
-) {
+fn preserve_declared_ids(ids: &BTreeMap<String, String>, extraction: &mut Extraction) {
+    let mut used: std::collections::BTreeSet<String> = ids.values().cloned().collect();
+    for candidate in &mut extraction.candidates {
+        if let Some(id) = ids.get(candidate.path.trim_start_matches("./")) {
+            candidate.id.clone_from(id);
+        } else {
+            candidate.id = super::heuristics::unique_node_id(candidate.id.clone(), &mut used);
+        }
+    }
+}
+
+fn collect_declared_ids(nodes: &[crate::blueprint::Node], out: &mut BTreeMap<String, String>) {
     for node in nodes {
         for path in &node.paths {
-            out.insert(path.trim_start_matches("./").to_owned());
+            out.insert(path.trim_start_matches("./").to_owned(), node.id.clone());
         }
-        collect_declared_paths(&node.children, out);
+        collect_declared_ids(&node.children, out);
     }
 }
 
