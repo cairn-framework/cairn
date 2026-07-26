@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: open
+status: done
 created: 2026-07-17
 related: [todo.webui-load-error-surfacing]
 ---
