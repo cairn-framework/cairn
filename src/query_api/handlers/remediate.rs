@@ -231,7 +231,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 1,
             "action": "fix_blueprint",
             "command": "cairn lint",
-            "description": "The blueprint has parse errors or integrity issues that must be fixed manually before other actions can succeed.",
+            "description": crate::copy::lookup("remediate.actions.fix_blueprint"),
             "nodes": [],
         }));
     }
@@ -240,7 +240,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 2,
             "action": "init_from_code",
             "command": "cairn init --from-code",
-            "description": "No blueprint structure exists but source files were found. Generate an initial blueprint from the existing code.",
+            "description": crate::copy::lookup("remediate.actions.init_from_code"),
             "nodes": [],
         }));
     } else if has_orphans || has_ghosts {
@@ -248,7 +248,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 2,
             "action": "refine",
             "command": "cairn refine",
-            "description": "The blueprint has drifted from the code (ghost or orphaned modules). Generate a delta to reconcile the differences.",
+            "description": crate::copy::lookup("remediate.actions.refine"),
             "nodes": [],
         }));
     }
@@ -257,7 +257,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 2,
             "action": "fix_gitignored_path",
             "command": "cairn lint",
-            "description": "One or more declared paths match a .gitignore pattern and will appear as Ghost nodes. Un-ignore the path in .gitignore, or correct the path declaration in the blueprint.",
+            "description": crate::copy::lookup("remediate.actions.fix_gitignored_path"),
             "nodes": gitignored_nodes,
         }));
     }
@@ -270,7 +270,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 3,
             "action": "summarise",
             "command": commands.join("; "),
-            "description": "Interface hashes have changed. Run the summariser on affected nodes to update contracts.",
+            "description": crate::copy::lookup("remediate.actions.summarise"),
             "nodes": summarise_nodes,
         }));
     }
@@ -279,7 +279,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 3,
             "action": "fix_contracts",
             "command": "cairn lint",
-            "description": "Contract artefacts have issues (missing, wrong node, or unknown node). Review and fix contract assignments.",
+            "description": crate::copy::lookup("remediate.actions.fix_contracts"),
             "nodes": [],
         }));
     }
@@ -288,7 +288,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 3,
             "action": "add_decision",
             "command": format!("cairn change new <change-id>  // affected: {}", decision_nodes.join(", ")),
-            "description": "Blueprint changes require a recorded decision. Create a change directory with a decision artefact.",
+            "description": crate::copy::lookup("remediate.actions.add_decision"),
             "nodes": decision_nodes,
         }));
     } else if has_missing_decisions {
@@ -296,7 +296,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 3,
             "action": "add_decision",
             "command": "cairn change new <change-id>",
-            "description": "Blueprint changes require a recorded decision. Create a change directory with a decision artefact.",
+            "description": crate::copy::lookup("remediate.actions.add_decision"),
             "nodes": [],
         }));
     }
@@ -305,7 +305,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 4,
             "action": "fix_decisions",
             "command": "cairn decisions",
-            "description": "Decision artefacts have issues (orphaned, invalid status, or missing nodes). Review and fix decision files.",
+            "description": crate::copy::lookup("remediate.actions.fix_decisions"),
             "nodes": [],
         }));
     }
@@ -314,7 +314,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 4,
             "action": "fix_todos",
             "command": "cairn todos",
-            "description": "Todo artefacts have issues (orphan node or invalid status). Review and fix todo files.",
+            "description": crate::copy::lookup("remediate.actions.fix_todos"),
             "nodes": [],
         }));
     }
@@ -323,7 +323,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 4,
             "action": "fix_sources",
             "command": "cairn sources",
-            "description": "Source artefacts have issues (orphan, unverified, or read failed). Review and fix source files.",
+            "description": crate::copy::lookup("remediate.actions.fix_sources"),
             "nodes": [],
         }));
     }
@@ -332,7 +332,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 4,
             "action": "fix_research",
             "command": "cairn research",
-            "description": "Research artefacts have issues (missing sources or unknown source). Review and fix research files.",
+            "description": crate::copy::lookup("remediate.actions.fix_research"),
             "nodes": [],
         }));
     }
@@ -341,7 +341,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 4,
             "action": "fix_order",
             "command": "cairn order",
-            "description": "An ordering cycle was detected in the blueprint (dependency edges, or containment contradicting a dependency edge). Review and fix the conflicting edges.",
+            "description": crate::copy::lookup("remediate.actions.fix_order"),
             "nodes": [],
         }));
     }
@@ -350,7 +350,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 4,
             "action": "split_module",
             "command": "cairn lint",
-            "description": "One or more claimed files exceed the 500-line module-size guideline with no allow-list marker. Split the module, or add a `cairn:allow-large-module reason: ...` marker as its first non-blank line.",
+            "description": crate::copy::lookup("remediate.actions.split_module"),
             "nodes": oversized_nodes,
         }));
     }
@@ -359,7 +359,7 @@ pub(crate) fn remediate_actions_raw(
             "priority": 0,
             "action": "none",
             "command": "",
-            "description": "No remediation actions are required. The project is in good shape.",
+            "description": crate::copy::lookup("remediate.actions.none"),
             "nodes": [],
         }));
     }
@@ -404,4 +404,81 @@ pub(crate) fn remediate_json(
         schema_version: super::super::SCHEMA_VERSION,
     };
     serde_json::to_value(response).expect("RemediateResponse serialises")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn emitted_remediation_description_uses_copy_entry() {
+        let mut scan_result = scanner::ScanResult {
+            graph: crate::map::Graph {
+                nodes: BTreeMap::new(),
+                names: BTreeMap::new(),
+                outbound: BTreeMap::new(),
+                inbound: BTreeMap::new(),
+                findings: Vec::new(),
+            },
+            artefacts: crate::artefacts::registry::ArtefactSet::default(),
+            contracts: crate::artefacts::contract::ContractSet::default(),
+            interface_hash: String::new(),
+            target_reports: Vec::new(),
+            target_hashes: scanner::state::TargetHashes::default(),
+            blueprint_snapshot: scanner::state::BlueprintSnapshot::default(),
+        };
+        let actions =
+            remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
+        let description = actions
+            .iter()
+            .find(|action| action["action"] == "none")
+            .and_then(|action| action["description"].as_str());
+
+        assert_eq!(
+            description,
+            Some(crate::copy::lookup("remediate.actions.none"))
+        );
+        assert_ne!(description, Some("remediate.actions.none"));
+
+        for action in [
+            "fix_blueprint",
+            "init_from_code",
+            "refine",
+            "fix_gitignored_path",
+            "summarise",
+            "fix_contracts",
+            "add_decision",
+            "fix_decisions",
+            "fix_todos",
+            "fix_sources",
+            "fix_research",
+            "fix_order",
+            "split_module",
+            "none",
+        ] {
+            let key = format!("remediate.actions.{action}");
+            assert_ne!(crate::copy::lookup(&key), key);
+        }
+
+        scan_result.graph.findings.push(crate::map::Finding {
+            code: "CAIRN_ORDER_CYCLE".to_owned(),
+            severity: crate::map::FindingSeverity::Error,
+            message: "cycle".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: None,
+        });
+        let actions =
+            remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
+        let description = actions
+            .iter()
+            .find(|action| action["action"] == "fix_order")
+            .and_then(|action| action["description"].as_str());
+        assert_eq!(
+            description,
+            Some(crate::copy::lookup("remediate.actions.fix_order"))
+        );
+    }
 }
