@@ -35,7 +35,7 @@ orphaned.
 ## Everything else
 
 `cairn init` installed the `cairn-dev` skill at
-`.claude/skills/cairn-dev/SKILL.md`. It is the entry point: a short router that
+`{pack}skills/cairn-dev/SKILL.md`. It is the entry point: a short router that
 loads the one reference your task needs, whether that is navigating the graph,
 investigating a bug, writing a decision, or running a full development iteration.
 Start there rather than reading the references directly.

@@ -1337,7 +1337,9 @@
         "src/cli/commands/pack_assets.rs",
         "src/cli/commands/pack_campaign.rs",
         "src/cli/commands/pack_campaign_lock.rs",
+        "src/cli/commands/pack_harness.rs",
         "src/cli/commands/pack_manifest.rs",
+        "src/cli/commands/pack_report.rs",
         "src/cli/commands/project.rs",
         "src/cli/commands/todo.rs",
         "src/cli/commands/watch.rs",
@@ -1517,18 +1519,18 @@
         {
           "name": "run_check",
           "kind": "function",
-          "signature": "pub fn run_check(manifest_path: &Path, repo_root: &Path) -> Result<(), Box<dyn std::error::Error>>",
+          "signature": "pub fn run_check( manifest_path: &Path, repo_root: &Path, harness: &str, ) -> Result<(), Box<dyn std::error::Error>>",
           "file": "tools/agent-pack/src/lib.rs",
-          "line": 35,
-          "end_line": 52
+          "line": 37,
+          "end_line": 61
         },
         {
           "name": "run_write",
           "kind": "function",
-          "signature": "pub fn run_write(manifest_path: &Path, repo_root: &Path) -> Result<(), Box<dyn std::error::Error>>",
+          "signature": "pub fn run_write( manifest_path: &Path, repo_root: &Path, harness: &str, ) -> Result<(), Box<dyn std::error::Error>>",
           "file": "tools/agent-pack/src/lib.rs",
-          "line": 63,
-          "end_line": 71
+          "line": 74,
+          "end_line": 86
         },
         {
           "name": "select_language_battery",
@@ -6627,6 +6629,7 @@
         "tests/output_token_efficiency_status_brief.rs",
         "tests/pack_campaign.rs",
         "tests/pack_lifecycle.rs",
+        "tests/pack_omp_adapter.rs",
         "tests/phase_10_distribution.rs",
         "tests/phase_7_6_ai_provenance.rs",
         "tests/phase_7_7_ux_foundation.rs",

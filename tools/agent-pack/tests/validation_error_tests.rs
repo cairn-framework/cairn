@@ -7,7 +7,7 @@ fn validation_error(manifest: &str) -> String {
     let temp = TempDir::new().unwrap();
     let manifest_path = temp.path().join("manifest.toml");
     std::fs::write(&manifest_path, manifest).unwrap();
-    run_check(&manifest_path, temp.path())
+    run_check(&manifest_path, temp.path(), "claude")
         .unwrap_err()
         .to_string()
 }
@@ -160,11 +160,16 @@ destination = "omp/dest.txt"
     )
     .unwrap();
 
-    run_write(&manifest_path, temp.path()).unwrap();
+    run_write(&manifest_path, temp.path(), "claude").unwrap();
     assert_eq!(
         std::fs::read(temp.path().join("claude/dest.txt")).unwrap(),
         b"shared bytes"
     );
+    // A render targets one harness, so the OMP destination appears only when
+    // that harness is the one being rendered.
+    assert!(!temp.path().join("omp/dest.txt").exists());
+
+    run_write(&manifest_path, temp.path(), "omp").unwrap();
     assert_eq!(
         std::fs::read(temp.path().join("omp/dest.txt")).unwrap(),
         b"shared bytes"
@@ -246,7 +251,7 @@ source = "missing.txt"
     )
     .unwrap();
 
-    let error = run_check(&manifest_path, temp.path())
+    let error = run_check(&manifest_path, temp.path(), "claude")
         .unwrap_err()
         .to_string();
     assert!(error.contains("row [[canonical]] index 0"));

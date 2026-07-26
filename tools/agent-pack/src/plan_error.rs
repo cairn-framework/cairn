@@ -25,17 +25,28 @@ pub(crate) enum PlanError {
         entry: String,
         mode: String,
     },
+    UnknownHarness {
+        harness: String,
+        known: Vec<String>,
+    },
     DestinationIo {
         index: usize,
         destination: PathBuf,
         details: String,
     },
-    DriftDetected {
-        missing: Vec<PathBuf>,
-        drifted: Vec<PathBuf>,
-        manifest_path: PathBuf,
-        repo_root: PathBuf,
-    },
+    /// Boxed: this is the only variant carrying two path vectors, and an
+    /// unboxed copy makes every `Result` in the crate as wide as a drift report.
+    DriftDetected(Box<DriftReport>),
+}
+
+/// What a drift check found, and enough context to name the repair command.
+#[derive(Debug)]
+pub(crate) struct DriftReport {
+    pub(crate) missing: Vec<PathBuf>,
+    pub(crate) drifted: Vec<PathBuf>,
+    pub(crate) manifest_path: PathBuf,
+    pub(crate) repo_root: PathBuf,
+    pub(crate) harness: String,
 }
 
 impl fmt::Display for PlanError {
@@ -60,6 +71,11 @@ impl fmt::Display for PlanError {
                 f,
                 "entry '{entry}' mode '{mode}' has no canonical source; correct the manifest ownership rows"
             ),
+            Self::UnknownHarness { harness, known } => write!(
+                f,
+                "manifest declares no adapter row for harness '{harness}'; known harnesses: {}",
+                known.join(", ")
+            ),
             Self::DestinationContainment {
                 index,
                 destination,
@@ -78,15 +94,17 @@ impl fmt::Display for PlanError {
                 "row [[adapters]] index {index} destination '{}': I/O failure: {details}. Run '{default_correction}'",
                 destination.display()
             ),
-            Self::DriftDetected {
-                missing,
-                drifted,
-                manifest_path,
-                repo_root,
-            } => {
+            Self::DriftDetected(report) => {
+                let DriftReport {
+                    missing,
+                    drifted,
+                    manifest_path,
+                    repo_root,
+                    harness,
+                } = report.as_ref();
                 writeln!(
                     f,
-                    "render drift detected ({} missing, {} drifted). Run 'cargo run -p cairn-agent-pack -- --write --manifest <MANIFEST> --root <ROOT>' for manifest '{}' and root '{}'",
+                    "render drift detected ({} missing, {} drifted). Run 'cargo run -p cairn-agent-pack -- --write --harness {harness} --manifest <MANIFEST> --root <ROOT>' for manifest '{}' and root '{}'",
                     missing.len(),
                     drifted.len(),
                     manifest_path.display(),

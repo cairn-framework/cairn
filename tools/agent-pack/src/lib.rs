@@ -23,48 +23,63 @@ use plan_error::PlanError;
 use std::fs;
 use std::path::Path;
 
-/// Runs check mode against a pack manifest file and target repository root.
+/// Runs check mode for one harness against a pack manifest file and target
+/// repository root.
 ///
-/// Parses the manifest at `manifest_path`, builds the render plan from canonical source
-/// files relative to the manifest directory, and verifies disk content under `repo_root`.
+/// Parses the manifest at `manifest_path`, builds the render plan for `harness`
+/// from canonical source files relative to the manifest directory, and verifies
+/// disk content under `repo_root`.
 ///
 /// # Errors
 ///
 /// Returns an error if manifest parsing, source loading, or drift verification fails,
 /// or if missing/drifted files are detected.
-pub fn run_check(manifest_path: &Path, repo_root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run_check(
+    manifest_path: &Path,
+    repo_root: &Path,
+    harness: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let content = fs::read_to_string(manifest_path)?;
     let manifest = PackManifest::parse_str(&content)?;
     let base_dir = manifest_directory(manifest_path);
-    let plan = build_render_plan(&manifest, base_dir)?;
+    let plan = build_render_plan(&manifest, base_dir, harness)?;
     let drift = check_drift(&plan, repo_root)?;
 
     if !drift.is_clean() {
-        return Err(Box::new(PlanError::DriftDetected {
-            missing: drift.missing,
-            drifted: drift.drifted,
-            manifest_path: manifest_path.to_path_buf(),
-            repo_root: repo_root.to_path_buf(),
-        }));
+        return Err(Box::new(PlanError::DriftDetected(Box::new(
+            plan_error::DriftReport {
+                missing: drift.missing,
+                drifted: drift.drifted,
+                manifest_path: manifest_path.to_path_buf(),
+                repo_root: repo_root.to_path_buf(),
+                harness: harness.to_owned(),
+            },
+        ))));
     }
 
     Ok(())
 }
 
-/// Runs write mode against a pack manifest file and target repository root.
+/// Runs write mode for one harness against a pack manifest file and target
+/// repository root.
 ///
-/// Parses the manifest at `manifest_path`, builds the render plan from canonical source
-/// files relative to the manifest directory, validates containment for all targets,
-/// and performs atomic raw-byte disk writes under `repo_root`.
+/// Parses the manifest at `manifest_path`, builds the render plan for `harness`
+/// from canonical source files relative to the manifest directory, validates
+/// containment for all targets, and performs atomic raw-byte disk writes under
+/// `repo_root`.
 ///
 /// # Errors
 ///
 /// Returns an error if manifest parsing, source loading, containment check, or disk write fails.
-pub fn run_write(manifest_path: &Path, repo_root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run_write(
+    manifest_path: &Path,
+    repo_root: &Path,
+    harness: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let content = fs::read_to_string(manifest_path)?;
     let manifest = PackManifest::parse_str(&content)?;
     let base_dir = manifest_directory(manifest_path);
-    let plan = build_render_plan(&manifest, base_dir)?;
+    let plan = build_render_plan(&manifest, base_dir, harness)?;
     write_plan(&plan, repo_root)?;
 
     Ok(())

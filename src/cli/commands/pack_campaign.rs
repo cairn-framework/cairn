@@ -9,6 +9,7 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
+use super::pack_assets::harness_root;
 
 use super::pack_manifest::{InstalledManifest, MANIFEST_PATH, digest};
 use std::fs;
@@ -20,12 +21,13 @@ pub(crate) const SNAPSHOT_PATH: &str = ".cairn/state/agent-pack-campaign.json";
 /// verification cannot reach a running campaign.
 pub(crate) const PINNED_ROOT: &str = ".cairn/state/campaign";
 
-/// Entry point of the router, which every mode resolves through.
-const ROUTER: &str = ".claude/skills/cairn-dev/SKILL.md";
+/// Entry point of the router, which every mode resolves through. Pack-root
+/// relative: the installed harness decides the root it hangs under.
+const ROUTER: &str = "skills/cairn-dev/SKILL.md";
 /// Loop mode: the normative procedure, and the declared closure's own head.
-const LOOP_MODE: &str = ".claude/skills/cairn-dev/references/loop-mode.md";
+const LOOP_MODE: &str = "skills/cairn-dev/references/loop-mode.md";
 /// Adapter-native transport for loop mode. Carries no procedure of its own.
-const LOOP_COMMAND: &str = ".claude/commands/cairn-loop.md";
+const LOOP_COMMAND: &str = "commands/cairn-loop.md";
 
 /// One resolved asset: the destination and the bytes actually on disk now.
 #[derive(Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -62,8 +64,13 @@ pub(crate) struct Resolution {
 }
 
 /// Dispatches `cairn pack resolve` and `cairn pack campaign <verb>`.
-pub(crate) fn run_resolve(root: &Path, with_loop: bool, json: bool) -> CliResult {
-    match resolve(root, with_loop) {
+pub(crate) fn run_resolve(
+    root: &Path,
+    requested: Option<&str>,
+    with_loop: bool,
+    json: bool,
+) -> CliResult {
+    match resolve(root, requested, with_loop) {
         Ok(buffered) => {
             if json {
                 return ok(envelope(
@@ -82,7 +89,11 @@ pub(crate) fn run_resolve(root: &Path, with_loop: bool, json: bool) -> CliResult
 /// changed under the resolution and it fails before any work. Everything the
 /// caller may later write comes from these buffers, never from a second read of
 /// the live pack.
-pub(crate) fn resolve(root: &Path, with_loop: bool) -> Result<Buffered, CliResult> {
+pub(crate) fn resolve(
+    root: &Path,
+    requested: Option<&str>,
+    with_loop: bool,
+) -> Result<Buffered, CliResult> {
     let ledger = read_ledger(root)?;
     let generation_before = digest(&ledger);
     let manifest: InstalledManifest = serde_json::from_slice(&ledger).map_err(|error| {
@@ -94,23 +105,52 @@ pub(crate) fn resolve(root: &Path, with_loop: bool) -> Result<Buffered, CliResul
         )
     })?;
 
+    // The ledger read above is the authoritative one, and it is the read whose
+    // generation is checked again below. An explicit selector is validated
+    // against it, not only against whatever the dispatcher happened to see.
+    if let Some(name) = requested
+        && name != manifest.harness
+    {
+        return Err(err(
+            2,
+            &copy::lookup("pack.err-harness-mismatch")
+                .replace("{requested}", name)
+                .replace("{installed}", &manifest.harness)
+                .replace("{file}", MANIFEST_PATH),
+        ));
+    }
+
+    // The ledger records which adapter owns this install, and the adapter is a
+    // pack root: resolve every declared path under it, never under a root the
+    // caller guessed.
+    let Some(pack_root) = harness_root(&manifest.harness) else {
+        return Err(err(
+            1,
+            &copy::lookup("pack.err-unknown-harness")
+                .replace("{harness}", &manifest.harness)
+                .replace("{supported}", "claude, omp"),
+        ));
+    };
+    let rooted = |path: &str| format!("{pack_root}{path}");
+    let loop_mode = rooted(LOOP_MODE);
+
     let prompt = buffer(
         root,
-        if with_loop { LOOP_COMMAND } else { ROUTER },
+        &rooted(if with_loop { LOOP_COMMAND } else { ROUTER }),
         &manifest,
     )?;
     let closure = if with_loop {
         // Validate loop mode itself before trusting the list it declares, and
         // parse that list out of the validated buffer: a drifted asset must not
         // be able to write itself out of its own closure.
-        let head = buffer(root, LOOP_MODE, &manifest)?;
-        let declared = declared_closure(&head.bytes)?;
-        if declared.iter().filter(|path| *path == LOOP_MODE).count() != 1 {
+        let head = buffer(root, &loop_mode, &manifest)?;
+        let declared = declared_closure(&head.bytes, pack_root)?;
+        if declared.iter().filter(|path| **path == loop_mode).count() != 1 {
             return Err(err(1, copy::lookup("pack.resolve-no-closure")));
         }
         let mut closure = Vec::with_capacity(declared.len());
         for path in declared {
-            closure.push(if path == LOOP_MODE {
+            closure.push(if path == loop_mode {
                 head.clone()
             } else {
                 buffer(root, &path, &manifest)?
@@ -246,7 +286,7 @@ fn buffer(root: &Path, path: &str, manifest: &InstalledManifest) -> Result<HeldA
 /// Parse the ordered closure loop mode declares in its fenced `text` block.
 /// Adapters and campaign locks consume that list and no other, so the resolver
 /// reads it from the installed asset rather than carrying a second copy.
-fn declared_closure(loop_mode: &[u8]) -> Result<Vec<String>, CliResult> {
+fn declared_closure(loop_mode: &[u8], pack_root: &str) -> Result<Vec<String>, CliResult> {
     let Ok(body) = std::str::from_utf8(loop_mode) else {
         return Err(err(
             1,
@@ -269,10 +309,10 @@ fn declared_closure(loop_mode: &[u8]) -> Result<Vec<String>, CliResult> {
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty())
-        .map(|line| format!(".claude/{line}"))
+        .map(|line| format!("{pack_root}{line}"))
         .collect();
     // A declared row is a project-relative pack destination and nothing else:
-    // no traversal, no absolute path, no escape from `.claude/`.
+    // no traversal, no absolute path, no escape from the pack root.
     if closure.is_empty()
         || closure.iter().any(|path| {
             Path::new(path)

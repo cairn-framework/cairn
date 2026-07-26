@@ -176,14 +176,22 @@ Wave 4 (in progress as of 2026-07-26; dependencies satisfied by wave 3):
   `blocked`. Unblocking it is an owner action, not a loop unit: supply a
   runnable authenticated worker epoch plus the sealed materials, then set it
   `open`. Accepting that decision is a separate owner action.
-- todo.agent-pack-omp-adapter (open; implement and validate, after the Claude
-  bootstrap and router). Independent of the treatment blocker: this unit
-  completes at a validated, unpublished adapter.
+- todo.agent-pack-omp-adapter (done, 2026-07-26). The OMP adapter is a pack root
+  (`.omp/`, the harness's own project surface), declared in the canonical
+  manifest, and every lifecycle verb now binds to the harness the ownership
+  ledger records. Validated against live OMP 17.1.3: discovery, a routed
+  just-in-time load, the native `cairn-loop` command resolving to loop mode, and
+  a campaign that halts before work on a changed procedure
+  (`res.pack-omp-adapter-validation`, `dec.pack-adapter-roots`). Unpublished, as
+  the unit specifies.
 
 Wave 5 (after OMP adapter completion and the treatment retain verdict):
 
-- todo.agent-pack-omp-publication (publish the OMP adapter only after treatment
-  retains the revised pack)
+- todo.agent-pack-omp-publication (stays blocked). The adapter it publishes is
+  now delivered, but publication is gated on a treatment verdict, and treatment
+  is itself blocked on owner-supplied sealed evidence. It opens only against an
+  accepted `retain` decision, and is dropped on an accepted `remove` decision
+  through the treatment path in End-of-unit reconciliation.
 
 Out of programme: todo.blueprint-authorability-eval keeps its own dependency on
 todo.example-corpus-scan-assertions.

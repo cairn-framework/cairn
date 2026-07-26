@@ -18,8 +18,8 @@ fn adapter_row_order_does_not_change_rendered_bytes() {
     std::fs::create_dir_all(&first_root).unwrap();
     std::fs::create_dir_all(&second_root).unwrap();
 
-    run_write(&first_manifest, &first_root).unwrap();
-    run_write(&second_manifest, &second_root).unwrap();
+    run_write(&first_manifest, &first_root, "claude").unwrap();
+    run_write(&second_manifest, &second_root, "claude").unwrap();
 
     for destination in ["a.out", "b.out"] {
         assert_eq!(
@@ -85,13 +85,17 @@ destination = "output.txt"
     )
     .unwrap();
 
-    let missing = run_check(&manifest_path, temp.path())
+    let missing = run_check(&manifest_path, temp.path(), "claude")
         .unwrap_err()
         .to_string();
     assert!(missing.contains("missing: output.txt"));
     assert!(missing.contains("cargo run -p cairn-agent-pack -- --write"));
+    assert!(
+        missing.contains("--harness claude"),
+        "the repair command must name the harness that drifted: {missing}"
+    );
 
-    run_write(&manifest_path, temp.path()).unwrap();
+    run_write(&manifest_path, temp.path(), "claude").unwrap();
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -102,10 +106,10 @@ destination = "output.txt"
             & 0o777;
         assert_eq!(mode, 0o644);
     }
-    run_check(&manifest_path, temp.path()).unwrap();
+    run_check(&manifest_path, temp.path(), "claude").unwrap();
     std::fs::write(temp.path().join("output.txt"), b"tampered data").unwrap();
 
-    let drifted = run_check(&manifest_path, temp.path())
+    let drifted = run_check(&manifest_path, temp.path(), "claude")
         .unwrap_err()
         .to_string();
     assert!(drifted.contains("drifted: output.txt"));
@@ -114,7 +118,7 @@ destination = "output.txt"
     assert!(drifted.contains(&manifest_path.display().to_string()));
     assert!(drifted.contains(&temp.path().display().to_string()));
 
-    run_write(&manifest_path, temp.path()).unwrap();
+    run_write(&manifest_path, temp.path(), "claude").unwrap();
     assert_eq!(
         std::fs::read(temp.path().join("output.txt")).unwrap(),
         b"canonical data"
@@ -326,7 +330,7 @@ fn checked_in_claude_outputs_match_the_real_manifest() {
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let manifest_path = manifest_dir.join("manifest.toml");
     let repo_root = manifest_dir.join("../..");
-    run_check(&manifest_path, &repo_root).unwrap();
+    run_check(&manifest_path, &repo_root, "claude").unwrap();
 
     let manifest_text = std::fs::read_to_string(&manifest_path).unwrap();
     let manifest: toml::Value = toml::from_str(&manifest_text).unwrap();
@@ -370,4 +374,40 @@ fn checked_in_claude_outputs_match_the_real_manifest() {
         .filter(|path| path.starts_with(".claude/"))
         .collect();
     assert_eq!(generated, expected_destinations);
+}
+
+#[test]
+fn an_unknown_harness_renders_nothing_and_says_so() {
+    let temp = TempDir::new().unwrap();
+    let manifest_path = temp.path().join("manifest.toml");
+    std::fs::write(temp.path().join("source.txt"), b"canonical data").unwrap();
+    std::fs::write(
+        &manifest_path,
+        r#"
+schema_version = 1
+bundle_version = "1.0.0"
+
+[[canonical]]
+entry = "entry-1"
+mode = "default"
+source = "source.txt"
+
+[[adapters]]
+harness = "claude"
+entry = "entry-1"
+mode = "default"
+destination = "dest.txt"
+"#,
+    )
+    .unwrap();
+
+    // An empty plan would let a check pass against nothing and a write produce
+    // no files, so a harness the manifest never declares must fail instead.
+    let error = run_write(&manifest_path, temp.path(), "cursor")
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("cursor"), "{error}");
+    assert!(error.contains("claude"), "{error}");
+    assert!(!temp.path().join("dest.txt").exists());
+    assert!(run_check(&manifest_path, temp.path(), "cursor").is_err());
 }

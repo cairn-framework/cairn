@@ -19,6 +19,7 @@ fn main() -> ExitCode {
     let mut write_mode = false;
     let mut manifest_path = PathBuf::from("tools/agent-pack/manifest.toml");
     let mut repo_root = PathBuf::from(".");
+    let mut harness = String::from("claude");
 
     let mut idx = 1;
     while idx < args.len() {
@@ -40,6 +41,15 @@ fn main() -> ExitCode {
                     repo_root = PathBuf::from(&args[idx]);
                 } else {
                     eprintln!("Error: --root requires a path argument");
+                    return ExitCode::FAILURE;
+                }
+            }
+            "--harness" => {
+                idx += 1;
+                if idx < args.len() && !args[idx].starts_with('-') {
+                    harness.clone_from(&args[idx]);
+                } else {
+                    eprintln!("Error: --harness requires a name argument");
                     return ExitCode::FAILURE;
                 }
             }
@@ -68,7 +78,7 @@ fn main() -> ExitCode {
     }
 
     if check_mode {
-        match run_check(&manifest_path, &repo_root) {
+        match run_check(&manifest_path, &repo_root, &harness) {
             Ok(()) => {
                 println!("Agent pack check succeeded: no drift detected.");
                 ExitCode::SUCCESS
@@ -79,7 +89,7 @@ fn main() -> ExitCode {
             }
         }
     } else {
-        match run_write(&manifest_path, &repo_root) {
+        match run_write(&manifest_path, &repo_root, &harness) {
             Ok(()) => {
                 println!("Agent pack write succeeded.");
                 ExitCode::SUCCESS
@@ -95,11 +105,12 @@ fn main() -> ExitCode {
 fn print_help() {
     println!(
         "cairn-agent-pack CLI\n\n\
-        Usage: cairn-agent-pack [--check | --write] [--manifest PATH] [--root PATH]\n\n\
+        Usage: cairn-agent-pack [--check | --write] [--manifest PATH] [--root PATH] [--harness NAME]\n\n\
         Flags:\n  \
           --check          Validate manifest and check disk for drift\n  \
           --write          Validate manifest and write rendered files atomically\n  \
           --manifest PATH  Path to manifest.toml (default: tools/agent-pack/manifest.toml)\n  \
-          --root PATH      Target repository root directory (default: .)\n"
+          --root PATH      Target repository root directory (default: .)\n  \
+          --harness NAME   Adapter rows to render (default: claude)\n"
     );
 }

@@ -114,7 +114,9 @@ destination = "output.txt"
     )
     .unwrap();
 
-    let error = run_check(&manifest, &root).unwrap_err().to_string();
+    let error = run_check(&manifest, &root, "claude")
+        .unwrap_err()
+        .to_string();
     assert!(error.contains("symlink detected"));
     assert!(error.contains("remove symlinked ancestors"));
 }
@@ -142,7 +144,9 @@ source = "source.txt"
     )
     .unwrap();
 
-    let error = run_check(&manifest, temp.path()).unwrap_err().to_string();
+    let error = run_check(&manifest, temp.path(), "claude")
+        .unwrap_err()
+        .to_string();
     assert!(error.contains("row [[canonical]] index 0"));
     assert!(error.contains("symlink detected"));
     assert!(error.contains("remove symlinked ancestors"));
@@ -182,7 +186,7 @@ destination = "blocked/output.txt"
     )
     .unwrap();
 
-    let error = cairn_agent_pack::run_write(&manifest, temp.path())
+    let error = cairn_agent_pack::run_write(&manifest, temp.path(), "claude")
         .unwrap_err()
         .to_string();
     assert!(error.contains("row [[adapters]] index 0"));

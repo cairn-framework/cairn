@@ -32,7 +32,12 @@ impl DriftResult {
     }
 }
 
-/// Builds a deterministic, BTreeMap-ordered render plan from a validated manifest.
+/// Builds a deterministic, BTreeMap-ordered render plan for one harness.
+///
+/// A manifest holds one adapter row per harness per entry, but a render targets
+/// exactly one harness: this repository renders the Claude adapter, and the
+/// other harnesses' rows are data the shipped CLI consumes rather than files
+/// this repository checks in.
 ///
 /// # Errors
 ///
@@ -40,6 +45,7 @@ impl DriftResult {
 pub(crate) fn build_render_plan(
     manifest: &PackManifest,
     base_dir: &Path,
+    harness: &str,
 ) -> Result<RenderPlan, PlanError> {
     let mut canonical_sources = std::collections::HashMap::new();
     for (index, canonical) in manifest.canonical.iter().enumerate() {
@@ -59,8 +65,35 @@ pub(crate) fn build_render_plan(
         canonical_sources.insert((canonical.entry.clone(), canonical.mode.clone()), content);
     }
 
+    // An unknown harness must not render an empty plan: a check would pass
+    // against nothing and a write would silently produce no files. This runs
+    // after the canonical sources load, so a manifest whose canonical rows are
+    // unsafe still reports that first: those rows are wrong for every harness.
+    if !manifest
+        .adapters
+        .iter()
+        .any(|adapter| adapter.harness == harness)
+    {
+        let mut known: Vec<String> = manifest
+            .adapters
+            .iter()
+            .map(|adapter| adapter.harness.clone())
+            .collect();
+        known.sort_unstable();
+        known.dedup();
+        return Err(PlanError::UnknownHarness {
+            harness: harness.to_owned(),
+            known,
+        });
+    }
+
     let mut plan = BTreeMap::new();
-    for (adapter_index, adapter) in manifest.adapters.iter().enumerate() {
+    for (adapter_index, adapter) in manifest
+        .adapters
+        .iter()
+        .enumerate()
+        .filter(|(_, adapter)| adapter.harness == harness)
+    {
         let content = canonical_sources
             .get(&(adapter.entry.clone(), adapter.mode.clone()))
             .ok_or_else(|| PlanError::MissingCanonical {

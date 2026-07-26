@@ -4,23 +4,61 @@
 //! renderer writes the `.claude` destinations below, which remain the
 //! `include_str!` inputs so what ships is byte-identical to the checked-in
 //! harness assets (`dec.agent-pack-packaging` clause 3).
+//!
+//! A harness changes where those bytes land, never what they say: the bodies
+//! are harness-neutral, so an adapter is a pack root and nothing more. The
+//! roots below mirror the `[[adapters]]` rows in
+//! `tools/agent-pack/manifest.toml`, which stays the declaring authority
+//! (`dec.agent-pack-packaging` clauses 1 and 2); a test holds the two in step.
+
+use std::borrow::Cow;
+
+/// Where the Claude adapter discovers a project pack.
+pub(crate) const CLAUDE_ROOT: &str = ".claude/";
+/// Where OMP's `native` provider discovers a project pack:
+/// `<project>/.omp/skills/<name>/SKILL.md` and `<project>/.omp/commands/*.md`.
+pub(crate) const OMP_ROOT: &str = ".omp/";
+
+/// Harnesses with a validated adapter, and the pack root each discovers.
+/// Unverified rows are contracts, not facts (`dec.agent-pack-packaging`
+/// clause 2), so they are not listed here. This table is the only place a
+/// harness name becomes a path.
+pub(crate) const HARNESS_ROOTS: &[(&str, &str)] = &[("claude", CLAUDE_ROOT), ("omp", OMP_ROOT)];
+
+/// A template for one installable file, before a harness roots its destination.
+struct AssetTemplate {
+    /// Destination the Claude adapter installs to, which is also the
+    /// `include_str!` input path. Another harness swaps the pack root.
+    path: &'static str,
+    /// Bundled content compiled into the binary.
+    content: &'static str,
+}
 
 /// One installable file: its destination relative to the project root, and the
 /// bytes the binary carries for it.
 pub(crate) struct PackAsset {
     /// Destination path relative to the target project root.
-    pub(crate) path: &'static str,
+    pub(crate) path: Cow<'static, str>,
     /// Bundled content compiled into the binary.
     pub(crate) content: &'static str,
 }
 
-const fn asset(path: &'static str, content: &'static str) -> PackAsset {
-    PackAsset { path, content }
+/// The pack root a harness installs into, or `None` for a harness with no
+/// validated adapter.
+pub(crate) fn harness_root(harness: &str) -> Option<&'static str> {
+    HARNESS_ROOTS
+        .iter()
+        .find(|(name, _)| *name == harness)
+        .map(|(_, root)| *root)
+}
+
+const fn asset(path: &'static str, content: &'static str) -> AssetTemplate {
+    AssetTemplate { path, content }
 }
 
 /// The base pack: interactive routing and the lifecycle skills. Installed by
 /// default, and the set `cairn init` emits.
-pub(crate) const BASE_ASSETS: &[PackAsset] = &[
+const BASE_ASSETS: &[AssetTemplate] = &[
     asset(
         ".claude/skills/cairn-dev/SKILL.md",
         include_str!("../../../.claude/skills/cairn-dev/SKILL.md"),
@@ -83,7 +121,7 @@ pub(crate) const BASE_ASSETS: &[PackAsset] = &[
 /// that resolves to it. Opt in only: the shipped `cairn-dev` router reads the
 /// absence of `references/loop-mode.md` as "loop mode is unavailable in this
 /// repository", so installing it by default would make that signal a lie.
-pub(crate) const LOOP_ASSETS: &[PackAsset] = &[
+const LOOP_ASSETS: &[AssetTemplate] = &[
     asset(
         ".claude/skills/cairn-dev/references/loop-mode.md",
         include_str!("../../../.claude/skills/cairn-dev/references/loop-mode.md"),
@@ -114,10 +152,20 @@ pub(crate) const LOOP_ASSETS: &[PackAsset] = &[
     ),
 ];
 
-/// Every asset the pack can install, base first then loop.
-pub(crate) fn all_assets(with_loop: bool) -> Vec<&'static PackAsset> {
+/// Every asset the pack can install under one pack root, base first then loop.
+/// Callers pass a root from [`harness_root`], so an unvalidated harness name
+/// can never reach a destination path.
+pub(crate) fn all_assets(pack_root: &str, with_loop: bool) -> Vec<PackAsset> {
     BASE_ASSETS
         .iter()
         .chain(if with_loop { LOOP_ASSETS } else { &[] })
+        .map(|template| PackAsset {
+            path: if pack_root == CLAUDE_ROOT {
+                Cow::Borrowed(template.path)
+            } else {
+                Cow::Owned(template.path.replacen(CLAUDE_ROOT, pack_root, 1))
+            },
+            content: template.content,
+        })
         .collect()
 }

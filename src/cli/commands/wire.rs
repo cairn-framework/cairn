@@ -10,6 +10,10 @@ use super::super::*;
 /// file, `--wire` is a no-op.
 const WIRE_SENTINEL: &str = "<!-- cairn:agent-guide-begin -->";
 
+/// Closing sentinel, so an existing block can be replaced whole when the
+/// project changes adapter and the old block names a tree that no longer exists.
+const WIRE_END_SENTINEL: &str = "<!-- cairn:agent-guide-end -->";
+
 /// The reference block appended to the project's agent instructions file by
 /// `cairn init --wire`. Points the agent at `.cairn/AGENTS.md` rather than
 /// duplicating its content, so the guide stays in sync when `cairn init`
@@ -21,7 +25,7 @@ const WIRE_BLOCK: &str = "\
 \n\
 This project uses cairn to keep its architecture map in sync with code. Read\n\
 `.cairn/AGENTS.md` for full orientation, then follow\n\
-`.claude/skills/cairn-dev/SKILL.md` for the development loop.\n\
+`{pack}skills/cairn-dev/SKILL.md` for the development loop.\n\
 <!-- cairn:agent-guide-end -->\n";
 
 /// Write `content` to a collision-safe temp file in `dir`, then atomically
@@ -217,17 +221,45 @@ pub(crate) fn wire_agent_guide(root: &Path, target: Option<&str>) -> CliResult {
             );
         }
     };
-    if existing.contains(WIRE_SENTINEL) {
-        return ok(copy::lookup("init.wire.already-wired").to_owned());
-    }
-    let mut content = existing;
+    let block = WIRE_BLOCK.replace("{pack}", super::pack_harness::project_pack_root(root));
+    let mut content = if let Some(start) = existing.find(WIRE_SENTINEL) {
+        // Already wired. Only rewrite when the block names a tree this project
+        // no longer installs, which happens when the adapter changed under it.
+        if existing.contains(block.trim_end()) {
+            return ok(copy::lookup("init.wire.already-wired").to_owned());
+        }
+        // The closing sentinel must belong to THIS block, so search after the
+        // opening one. A block with no closing sentinel was truncated by hand:
+        // rewriting it would swallow whatever follows, so report instead.
+        let Some(end) = existing[start..]
+            .find(WIRE_END_SENTINEL)
+            .map(|offset| start + offset)
+        else {
+            return err(
+                1,
+                &copy::lookup("init.wire.err-truncated-block")
+                    .replace("{file}", &file.display().to_string()),
+            );
+        };
+        let mut rewritten = String::with_capacity(existing.len());
+        rewritten.push_str(&existing[..start]);
+        rewritten.push_str(&existing[end + WIRE_END_SENTINEL.len()..]);
+        let trimmed = rewritten.trim_end().to_owned();
+        if trimmed.is_empty() {
+            String::new()
+        } else {
+            format!("{trimmed}\n")
+        }
+    } else {
+        existing
+    };
     if !content.is_empty() {
         if !content.ends_with('\n') {
             content.push('\n');
         }
         content.push('\n');
     }
-    content.push_str(WIRE_BLOCK);
+    content.push_str(&block);
     if let Some(parent) = file.parent()
         && let Err(e) = fs::create_dir_all(parent)
     {
