@@ -106,6 +106,7 @@ lsp-types = "0.97.0"
 camino = "1.2.3"
 crossbeam-channel = "0.5.15"
 sha2 = "0.10"
+tempfile = "3"
 
 [target.'cfg(unix)'.dependencies]
 # POSIX-only: SIGINT handling in src/signal.rs. Windows gets a no-op stub
@@ -129,4 +130,3 @@ inherits = "release"
 [dev-dependencies]
 jsonschema = "0.18"
 insta = { version = "1", features = ["json", "yaml", "redactions"] }
-tempfile = "3"

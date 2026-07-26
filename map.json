@@ -3248,56 +3248,56 @@
           "kind": "function",
           "signature": "pub fn atomic_write(path: &Path, content: &str) -> io::Result<()>",
           "file": "src/persist.rs",
-          "line": 19,
-          "end_line": 21
+          "line": 23,
+          "end_line": 25
         },
         {
           "name": "atomic_write_bytes",
           "kind": "function",
           "signature": "pub fn atomic_write_bytes(path: &Path, content: &[u8]) -> io::Result<()>",
           "file": "src/persist.rs",
-          "line": 32,
-          "end_line": 45
+          "line": 36,
+          "end_line": 64
         },
         {
           "name": "parse_json",
           "kind": "function",
           "signature": "pub fn parse_json<T: serde::de::DeserializeOwned>(content: &str, path: &Path) -> io::Result<T>",
           "file": "src/persist.rs",
-          "line": 108,
-          "end_line": 115
+          "line": 110,
+          "end_line": 117
         },
         {
           "name": "read_json",
           "kind": "function",
           "signature": "pub fn read_json<T: serde::de::DeserializeOwned>(path: &Path) -> io::Result<T>",
           "file": "src/persist.rs",
-          "line": 94,
-          "end_line": 97
+          "line": 96,
+          "end_line": 99
         },
         {
           "name": "read_toml",
           "kind": "function",
           "signature": "pub fn read_toml<T: serde::de::DeserializeOwned>(path: &Path) -> io::Result<T>",
           "file": "src/persist.rs",
-          "line": 123,
-          "end_line": 131
+          "line": 125,
+          "end_line": 133
         },
         {
           "name": "read_versioned_json",
           "kind": "function",
           "signature": "pub fn read_versioned_json(path: &Path) -> io::Result<Option<(u32, String)>>",
           "file": "src/persist.rs",
-          "line": 147,
-          "end_line": 162
+          "line": 149,
+          "end_line": 164
         },
         {
           "name": "write_json",
           "kind": "function",
           "signature": "pub fn write_json<T: serde::Serialize>(path: &Path, value: &T) -> io::Result<()>",
           "file": "src/persist.rs",
-          "line": 74,
-          "end_line": 86
+          "line": 76,
+          "end_line": 88
         }
       ]
     },
