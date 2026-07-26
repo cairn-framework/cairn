@@ -137,3 +137,76 @@ fn test_blueprint_contract_pointers_resolve() {
         "expected cairn's blueprint to declare at least one contract pointer"
     );
 }
+
+#[test]
+fn cargo_package_list_stays_within_expected_roots() {
+    let manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+    let manifest: toml::Value =
+        toml::from_str(&fs::read_to_string(manifest_path).expect("read Cargo.toml"))
+            .expect("Cargo.toml must parse");
+    let include = manifest["package"]["include"]
+        .as_array()
+        .expect("package.include must be an array");
+    assert!(
+        include.iter().all(|pattern| pattern
+            .as_str()
+            .is_some_and(|pattern| pattern.starts_with('/'))),
+        "every package.include pattern must be anchored at the package root"
+    );
+
+    let output = std::process::Command::new(env!("CARGO"))
+        .args(["package", "--list", "--allow-dirty"])
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("run cargo package --list");
+    assert!(
+        output.status.success(),
+        "cargo package --list failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let expected_roots = [
+        "src/",
+        "schemas/",
+        "docs/design-system/",
+        ".claude/skills/",
+        ".claude/commands/",
+        "Cargo.lock",
+        "Cargo.toml",
+        "Cargo.toml.orig",
+        ".cargo_vcs_info.json",
+        "README.md",
+        "LICENSE-APACHE",
+        "LICENSE-MIT",
+        "CHANGELOG.md",
+    ];
+
+    let packaged_paths = String::from_utf8(output.stdout).expect("package list is UTF-8");
+    for required in [
+        "src/lib.rs",
+        "schemas/finding.schema.json",
+        "docs/design-system/copy.toml",
+        ".claude/skills/cairn-dev/SKILL.md",
+        ".claude/skills/cairn-loop-scope/SKILL.md",
+        ".claude/skills/cairn-loop-implement/SKILL.md",
+        ".claude/skills/cairn-loop-recovery/SKILL.md",
+        ".claude/skills/cairn-loop-reconcile/SKILL.md",
+        ".claude/skills/cairn-loop-landing/SKILL.md",
+        ".claude/commands/cairn-loop.md",
+        "README.md",
+    ] {
+        assert!(
+            packaged_paths.lines().any(|path| path == required),
+            "cargo package omitted required compile-time asset {required}"
+        );
+    }
+    for path in packaged_paths.lines() {
+        assert!(
+            expected_roots.iter().any(|root| {
+                root.ends_with('/') && path.starts_with(root)
+                    || !root.ends_with('/') && path == *root
+            }),
+            "cargo package included unexpected path {path}"
+        );
+    }
+}
