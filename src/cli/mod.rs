@@ -222,6 +222,9 @@ pub fn run(args: &[String]) -> CliResult {
             }
         }
     }
+    if let Err(message) = help::validate_command_flags(args) {
+        return err(2, &message);
+    }
     let parsed = match parse_args(args) {
         Ok(parsed) => parsed,
         Err(result) => return result,

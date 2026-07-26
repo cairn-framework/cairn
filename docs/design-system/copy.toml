@@ -283,6 +283,7 @@ transparency = "No telemetry, no network calls. Every report is a link you open 
 [errors]
 usage = "usage: cairn <command> [--file path] [--json]"
 unknown-command = "unknown command"
+unsupported-flag = "{command} does not support {flag}"
 migrate-dsl = "No blueprint file was found. Rename `cairn.dsl` to `cairn.blueprint`."
 
 [hooks]

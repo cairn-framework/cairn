@@ -199,6 +199,16 @@ fn flag_and_usage_copy_keys_resolve() {
     }
 }
 
+#[test]
+fn parser_uses_help_registry_to_reject_undocumented_flags() {
+    let scan_node = args(&["scan", "--node", "app.api"]);
+    let error = validate_command_flags(&scan_node).expect_err("scan must reject --node");
+    assert!(error.contains("--node"));
+
+    let lint_node = args(&["lint", "--node", "app.api"]);
+    validate_command_flags(&lint_node).expect("lint must accept --node");
+}
+
 fn args(items: &[&str]) -> Vec<String> {
     items.iter().map(|s| (*s).to_owned()).collect()
 }
