@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-14
 related: [dec.todo-write-surface, todo.unified-todo-write-surface]
 ---

@@ -5,6 +5,7 @@ use super::super::*;
 use super::decision::{flag_values, is_kebab_slug, title_from_slug, today_utc, write_new_artefact};
 use crate::artefacts::frontmatter::{SetFieldError, set_field};
 use crate::artefacts::registry::types::TodoStatus;
+use crate::persist;
 use std::fs;
 
 /// Dispatches `cairn todo <subcommand>`.
@@ -105,7 +106,7 @@ fn run_todo_set(root: &Path, slug: &str, status: &str, json: bool) -> CliResult 
             );
         }
     };
-    if let Err(e) = fs::write(&path, &updated) {
+    if let Err(e) = persist::atomic_write(&path, &updated) {
         return err(
             1,
             &copy::lookup("todo.io-write-error")
@@ -228,6 +229,40 @@ mod tests {
                 "only the top-level status value may change, byte-for-byte, for status {status}; nested frontmatter status must be untouched"
             );
         }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_run_todo_set_preserves_permissions_and_leaves_no_temp_file() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let tmp = tempdir().unwrap();
+        let root = tmp.path();
+        let path = sample_todo(root, "sample");
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o440)).unwrap();
+
+        let result = run_todo_set(root, "sample", "done", false);
+
+        assert_eq!(
+            result.code, 0,
+            "status update must succeed: {}",
+            result.stderr
+        );
+        assert!(
+            fs::read_to_string(&path)
+                .unwrap()
+                .contains("status: done\n")
+        );
+        assert_eq!(
+            fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o440
+        );
+        assert!(
+            fs::read_dir(path.parent().unwrap())
+                .unwrap()
+                .all(|entry| entry.unwrap().file_name() == path.file_name().unwrap()),
+            "atomic replacement must not leave a temporary file"
+        );
     }
 
     #[test]

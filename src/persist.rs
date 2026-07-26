@@ -4,7 +4,11 @@
 //! that were previously hand-rolled in the scanner, summariser, changes, and
 //! workspace modules.
 
-use std::{fs, io, path::Path};
+use std::{
+    fs,
+    io::{self, Write},
+    path::Path,
+};
 
 /// Writes `content` to `path` atomically by creating a temporary file in the
 /// same directory and renaming it into place.
@@ -33,32 +37,30 @@ pub fn atomic_write_bytes(path: &Path, content: &[u8]) -> io::Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
-    // pid + nanos + an atomic counter guarantees a unique temp name so
-    // concurrent writers do not race on the same temporary filename.
-    let tmp = unique_temp_path(path);
-    fs::write(&tmp, content).inspect_err(|_| {
-        let _ = fs::remove_file(&tmp);
-    })?;
-    fs::rename(&tmp, path).inspect_err(|_| {
-        let _ = fs::remove_file(&tmp);
-    })
-}
-
-fn unique_temp_path(final_path: &Path) -> std::path::PathBuf {
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
-    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or_default();
-    let pid = std::process::id();
-    let stem = final_path
-        .file_name()
-        .map(std::ffi::OsStr::to_string_lossy)
-        .unwrap_or_default();
-    let parent = final_path.parent().unwrap_or_else(|| Path::new("."));
-    parent.join(format!("{stem}.{pid}.{nanos}.{seq}.tmp"))
+    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    let permissions = fs::metadata(path)
+        .ok()
+        .map(|metadata| metadata.permissions());
+    #[cfg(unix)]
+    let builder = {
+        let mut builder = tempfile::Builder::new();
+        builder.permissions(std::os::unix::fs::PermissionsExt::from_mode(0o666));
+        builder
+    };
+    #[cfg(not(unix))]
+    let builder = tempfile::Builder::new();
+    let mut tmp = builder.tempfile_in(parent)?;
+    tmp.write_all(content)?;
+    #[cfg(not(windows))]
+    if let Some(permissions) = permissions.clone() {
+        tmp.as_file().set_permissions(permissions)?;
+    }
+    tmp.persist(path).map(|_| ()).map_err(|error| error.error)?;
+    #[cfg(windows)]
+    if let Some(permissions) = permissions {
+        fs::set_permissions(path, permissions)?;
+    }
+    Ok(())
 }
 
 /// Serialises `value` as pretty-printed JSON and writes it atomically to `path`.
