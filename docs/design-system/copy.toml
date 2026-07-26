@@ -845,3 +845,20 @@ no-matches = "No public symbol definitions found for `{symbol}`."
 [help.commands.locate]
 usage = "cairn locate <symbol> [options]"
 args = "  <symbol>  Exact name of a public symbol to locate across the project"
+
+# -- Remediation actions --------------------------------------------------
+[remediate.actions]
+fix_blueprint = "The blueprint has parse errors or integrity issues that must be fixed manually before other actions can succeed."
+init_from_code = "No blueprint structure exists but source files were found. Generate an initial blueprint from the existing code."
+refine = "The blueprint has drifted from the code (ghost or orphaned modules). Generate a delta to reconcile the differences."
+fix_gitignored_path = "One or more declared paths match a .gitignore pattern and will appear as Ghost nodes. Un-ignore the path in .gitignore, or correct the path declaration in the blueprint."
+summarise = "Interface hashes have changed. Run the summariser on affected nodes to update contracts."
+fix_contracts = "Contract artefacts have issues (missing, wrong node, or unknown node). Review and fix contract assignments."
+add_decision = "Blueprint changes require a recorded decision. Create a change directory with a decision artefact."
+fix_decisions = "Decision artefacts have issues (orphaned, invalid status, or missing nodes). Review and fix decision files."
+fix_todos = "Todo artefacts have issues (orphan node or invalid status). Review and fix todo files."
+fix_sources = "Source artefacts have issues (orphan, unverified, or read failed). Review and fix source files."
+fix_research = "Research artefacts have issues (missing sources or unknown source). Review and fix research files."
+fix_order = "An ordering cycle was detected in the blueprint (dependency edges, or containment contradicting a dependency edge). Review and fix the conflicting edges."
+split_module = "One or more claimed files exceed the 500-line module-size guideline with no allow-list marker. Split the module, or add a `cairn:allow-large-module reason: ...` marker as its first non-blank line."
+none = "No remediation actions are required. The project is in good shape."
