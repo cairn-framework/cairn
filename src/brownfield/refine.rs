@@ -148,7 +148,7 @@ fn write_refine_change(
 
     for candidate in &extraction.candidates {
         let contract = super::templates::render_stub(candidate, templates);
-        let file_name = format!("{}.md", candidate.id.replace('.', "_"));
+        let file_name = super::contract_file_name(&candidate.id);
         super::write_file(&change_dir.join("contracts").join(file_name), &contract)?;
     }
 

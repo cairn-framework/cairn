@@ -229,6 +229,40 @@ mod init {
             "blueprint must gain the discovered nodes: {blueprint}"
         );
     }
+
+    /// Scenario: the map brownfield produces declares the contracts brownfield
+    /// itself wrote, so a fresh project does not open on a wall of
+    /// `CAIRN_CONTRACT_LEAF_UNCOVERED` warnings for artefacts that exist.
+    #[test]
+    fn test_init__archived_map_declares_contracts_for_every_leaf() {
+        let root = temp_repo("contract-pointer");
+        populate_source_dir(&root, "src/alpha", 3);
+        populate_source_dir(&root, "src/beta", 3);
+
+        let change_id = bf_init::run_init_from_code(&root, false).unwrap();
+        cairn::changes::archive(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &change_id,
+        )
+        .expect("archive must succeed");
+
+        let result =
+            cairn::scanner::scan(&root, &root.join("cairn.blueprint")).expect("scan must succeed");
+        let uncovered: Vec<&str> = result
+            .graph
+            .findings
+            .iter()
+            .filter(|f| f.code == "CAIRN_CONTRACT_LEAF_UNCOVERED")
+            .map(|f| f.message.as_str())
+            .collect();
+        assert!(
+            uncovered.is_empty(),
+            "brownfield output must declare a contract for every leaf: {uncovered:?}"
+        );
+    }
+
     /// Scenario: path-derived ids remain valid and unique when directory names
     /// contain underscores or collide after sanitisation.
     #[test]

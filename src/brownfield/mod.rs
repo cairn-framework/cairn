@@ -51,6 +51,19 @@ pub fn stub_contract(candidate: &DiscoveredCandidate) -> String {
     )
 }
 
+/// Contract artefact filename for a candidate id. The change directory writes
+/// this name and the blueprint delta points at it, so both derive it here.
+fn contract_file_name(id: &str) -> String {
+    format!("{}.md", id.replace('.', "_"))
+}
+
+/// Blueprint `contract` pointer for a candidate id. Targets the path
+/// `parse_artefact_operations` promotes the change's contract file to
+/// (`meta/` joined with the artefact's path relative to the change directory).
+fn contract_pointer(id: &str) -> String {
+    format!("./meta/contracts/{}", contract_file_name(id))
+}
+
 /// Write a brownfield change directory with proposal, blueprint delta,
 /// and stub contracts.
 ///
@@ -87,7 +100,7 @@ pub fn write_change(
 
     for candidate in &extraction.candidates {
         let contract = templates::render_stub(candidate, templates);
-        let file_name = format!("{}.md", candidate.id.replace('.', "_"));
+        let file_name = contract_file_name(&candidate.id);
         write_file(&change_dir.join("contracts").join(file_name), &contract)?;
     }
 
@@ -113,6 +126,7 @@ pub fn blueprint_delta(extraction: &Extraction) -> String {
                 candidate.id,
             );
             let _ = writeln!(out, "    path {path:?}");
+            let _ = writeln!(out, "    contract {:?}", contract_pointer(&candidate.id));
             out.push_str("}\n\n");
         }
     }
@@ -310,6 +324,43 @@ mod tests {
         assert!(
             !delta.contains("## ADDED Edges"),
             "no edges expected: {delta:?}"
+        );
+    }
+
+    #[test]
+    fn test_blueprint_delta_emits_contract_pointer() {
+        let c = candidate("app.payments", "Payments", "payments/");
+        let delta = blueprint_delta(&extraction(vec![c]));
+        assert!(
+            delta.contains(r#"contract "./meta/contracts/app_payments.md""#),
+            "every emitted node must point at the contract write_change writes: {delta:?}"
+        );
+    }
+
+    #[test]
+    fn test_contract_pointer_target_matches_written_contract_file() {
+        // The delta pointer and the change-directory filename are produced by
+        // two different writers; this pins them together.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let root = dir.path();
+        let ext = extraction(vec![candidate("app.payments", "Payments", "payments/")]);
+        write_change(root, "c1", &ext, &[]).expect("write_change must succeed");
+        let delta = std::fs::read_to_string(root.join("meta/changes/c1/blueprint.delta"))
+            .expect("delta must exist");
+        let pointer = delta
+            .lines()
+            .find_map(|line| line.trim().strip_prefix("contract "))
+            .expect("delta must declare a contract pointer");
+        let file_name = pointer
+            .trim_matches('"')
+            .rsplit('/')
+            .next()
+            .expect("basename");
+        assert!(
+            root.join("meta/changes/c1/contracts")
+                .join(file_name)
+                .exists(),
+            "pointer target `{file_name}` must be the file write_change wrote"
         );
     }
 
