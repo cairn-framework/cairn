@@ -163,8 +163,8 @@
           "kind": "function",
           "signature": "pub fn blueprint_delta(extraction: &Extraction) -> String",
           "file": "src/brownfield/mod.rs",
-          "line": 101,
-          "end_line": 135
+          "line": 114,
+          "end_line": 149
         },
         {
           "name": "build_request",
@@ -347,8 +347,8 @@
           "kind": "function",
           "signature": "pub fn write_change( root: &std::path::Path, change_id: &str, extraction: &Extraction, templates: &[templates::ContractTemplate], ) -> Result<(), CairnError>",
           "file": "src/brownfield/mod.rs",
-          "line": 60,
-          "end_line": 97
+          "line": 73,
+          "end_line": 110
         },
         {
           "name": "write_suggested_edges",
