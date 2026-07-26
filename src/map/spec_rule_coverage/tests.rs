@@ -2,6 +2,7 @@
 //! Tests for spec-rule coverage: registry parsing, emission detection, and
 //! finding severity/message rendering (including deferral suffixes).
 use super::*;
+use crate::artefacts::registry::{Decision, DecisionStatus};
 use crate::map::graph::Graph;
 use std::collections::BTreeMap;
 use std::fs;
@@ -24,6 +25,27 @@ fn write(root: &Path, rel: &str, content: &str) {
     let path = root.join(rel);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, content).unwrap();
+}
+
+fn decision(id: &str, status: DecisionStatus) -> Decision {
+    Decision {
+        id: id.to_owned(),
+        path: format!("meta/decisions/{id}.md"),
+        nodes: Vec::new(),
+        status,
+        date: String::new(),
+        revisited: None,
+        revisit_triggers: Vec::new(),
+        informed_by: Vec::new(),
+        supersedes: Vec::new(),
+        refines: Vec::new(),
+        related: Vec::new(),
+        orphaned: false,
+        orphan_reason: None,
+        gap: false,
+        claims: None,
+        body: String::new(),
+    }
 }
 
 fn registry(rows: &str) -> String {
@@ -113,6 +135,39 @@ fn dash_deferred_by_cell_renders_unchanged() {
         g.findings[0].message,
         "spec rule `R` (spec:634) is pending but names no enforcer"
     );
+}
+
+#[test]
+fn dangling_deferred_decision_is_found_but_live_one_is_not() {
+    let (dir, mut g) = run(
+        concat!(
+            "| Dangling | spec:1 | - | pending | dec.missing |\n",
+            "| Enforced dangling | spec:2 | - | enforced | dec.old |\n",
+            "| Live | spec:3 | - | pending | dec.live |\n",
+        ),
+        "src/check.rs",
+        "fn f() {}",
+    );
+    validate_deferred_decision_targets(
+        &mut g,
+        dir.path(),
+        &[
+            decision("dec.live", DecisionStatus::Accepted),
+            decision("dec.old", DecisionStatus::Superseded),
+        ],
+    );
+    let invalid = g
+        .findings
+        .iter()
+        .filter(|finding| finding.code == "CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID")
+        .collect::<Vec<_>>();
+    assert_eq!(invalid.len(), 2);
+    let targets = invalid
+        .iter()
+        .filter_map(|finding| finding.target.as_deref())
+        .collect::<Vec<_>>();
+    assert!(targets.contains(&"spec:1 Dangling"));
+    assert!(targets.contains(&"spec:2 Enforced dangling"));
 }
 
 #[test]

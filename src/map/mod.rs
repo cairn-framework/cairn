@@ -11,3 +11,4 @@ mod test_coverage;
 
 pub use build::build_graph;
 pub use graph::{EdgeRef, Finding, FindingSeverity, Graph, NodeRecord, NodeState};
+pub(crate) use spec_rule_coverage::validate_deferred_decision_targets;

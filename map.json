@@ -2623,7 +2623,7 @@
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
           "line": 444,
-          "end_line": 520
+          "end_line": 521
         },
         {
           "name": "matches",
@@ -2678,8 +2678,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 527,
-          "end_line": 563
+          "line": 528,
+          "end_line": 564
         },
         {
           "name": "select_gate_recipe",
