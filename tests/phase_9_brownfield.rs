@@ -229,6 +229,43 @@ mod init {
             "blueprint must gain the discovered nodes: {blueprint}"
         );
     }
+    /// Scenario: path-derived ids remain valid and unique when directory names
+    /// contain underscores or collide after sanitisation.
+    #[test]
+    fn test_init__round_trip_sanitises_underscore_ids_and_disambiguates_collisions() {
+        let root = temp_repo("sanitised-ids");
+        populate_source_dir(&root, "src/type_check", 3);
+        populate_source_dir(&root, "src/type-check", 3);
+
+        let extraction = discovery::discover(&root).unwrap();
+        let ids: Vec<_> = extraction
+            .candidates
+            .iter()
+            .map(|candidate| candidate.id.as_str())
+            .collect();
+        assert_eq!(ids, ["src.type-check", "src.type-check-2"]);
+
+        let change_id = bf_init::run_init_from_code(&root, false).unwrap();
+        let report = cairn::changes::archive(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &change_id,
+        );
+        assert!(report.is_ok(), "archive must succeed: {report:?}");
+
+        let blueprint = fs::read_to_string(root.join("cairn.blueprint")).unwrap();
+        assert!(
+            blueprint.contains(r#"id "src.type-check""#)
+                && blueprint.contains(r#"id "src.type-check-2""#),
+            "sanitised ids must be valid and unique: {blueprint}"
+        );
+        assert!(
+            blueprint.contains(r#"path "./src/type_check""#)
+                && blueprint.contains(r#"path "./src/type-check""#),
+            "sanitisation must preserve original paths: {blueprint}"
+        );
+    }
 }
 
 mod refine {
@@ -292,6 +329,30 @@ mod refine {
             !delta.contains(r#"id "src.core""#),
             "declared node must not be re-proposed: {delta}"
         );
+    }
+
+    #[test]
+    fn test_refine__preserves_declared_id_when_sanitised_collision_is_added() {
+        let root = temp_repo("refine-collision");
+        populate_source_dir(&root, "src/type_check", 3);
+        std::fs::write(
+            root.join("cairn.blueprint"),
+            r#"Module TypeCheck "TypeCheck" id "src.type-check" {
+    path "./src/type_check"
+}"#,
+        )
+        .unwrap();
+        populate_source_dir(&root, "src/type-check", 3);
+
+        let change_id = bf_refine::run_refine(&root).unwrap().expect("new path");
+        let delta = std::fs::read_to_string(
+            root.join("meta/changes")
+                .join(change_id)
+                .join("blueprint.delta"),
+        )
+        .unwrap();
+        assert!(delta.contains(r#"id "src.type-check-2""#), "delta: {delta}");
+        assert!(!delta.contains(r#"id "src.type-check" "#), "delta: {delta}");
     }
 
     /// Scenario: Refine reports no changes when blueprint and code agree.

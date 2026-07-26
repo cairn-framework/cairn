@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: open
+status: done
 created: 2026-07-25
 ---
 

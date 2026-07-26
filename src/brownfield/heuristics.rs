@@ -113,6 +113,42 @@ pub(crate) fn path_derived_id(directory: &str) -> String {
     trimmed.replace(['/', '\\'], ".")
 }
 
+pub(crate) fn sanitised_path_derived_id(directory: &str) -> String {
+    let trimmed = directory.trim_start_matches("./").trim_start_matches('/');
+    if trimmed.is_empty() || trimmed == "." {
+        return "root".to_owned();
+    }
+    let mut id = String::with_capacity(trimmed.len());
+    for ch in trimmed.chars() {
+        match ch {
+            '/' | '\\' => id.push('.'),
+            ch if ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '.' || ch == '-' => {
+                id.push(ch);
+            }
+            ch if ch.is_ascii_uppercase() => id.push(ch.to_ascii_lowercase()),
+            _ => id.push('-'),
+        }
+    }
+    id
+}
+
+pub(crate) fn unique_node_id(
+    base: String,
+    used: &mut std::collections::BTreeSet<String>,
+) -> String {
+    if used.insert(base.clone()) {
+        return base;
+    }
+    let mut suffix = 2;
+    loop {
+        let candidate = format!("{base}-{suffix}");
+        if used.insert(candidate.clone()) {
+            return candidate;
+        }
+        suffix += 1;
+    }
+}
+
 /// Computes the coupling score for a candidate per design.md:
 /// `(internal_imports + 1) / (external_imports + 1)`.
 ///
@@ -227,6 +263,11 @@ mod tests {
         // A bare-dot id renders as `id "."` in blueprint output which is
         // syntactically ambiguous and useless as a node identifier.
         assert_eq!(path_derived_id("."), "root");
+    }
+
+    #[test]
+    fn sanitised_path_derived_id_normalises_case_and_disallowed_characters() {
+        assert_eq!(sanitised_path_derived_id("src/My Module"), "src.my-module");
     }
 
     #[test]

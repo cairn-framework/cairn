@@ -13,7 +13,7 @@ use std::{
 
 use crate::error::CairnError;
 
-use super::heuristics::path_derived_id;
+use super::heuristics::{sanitised_path_derived_id, unique_node_id};
 use super::import_edges;
 
 /// Supported source file extensions for candidate discovery.
@@ -90,6 +90,7 @@ impl Default for Extraction {
 pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
     let mut candidates = Vec::new();
     let mut dir_counts: BTreeMap<PathBuf, Vec<PathBuf>> = BTreeMap::new();
+    let mut used_ids = std::collections::BTreeSet::new();
     collect_source_files(root, root, &mut dir_counts, 0)?;
 
     for (dir, files) in &dir_counts {
@@ -99,7 +100,7 @@ pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
             if rel_str.is_empty() {
                 continue;
             }
-            let id = node_id_from_path(&rel_str);
+            let id = unique_node_id(node_id_from_path(&rel_str), &mut used_ids);
             let name = name_from_path(&rel_str);
             let confidence = compute_confidence(files.len());
             let mut evidence: Vec<String> = files
@@ -193,7 +194,7 @@ fn is_ignored_dir(path: &Path) -> bool {
 }
 
 fn node_id_from_path(path: &str) -> String {
-    path_derived_id(path)
+    sanitised_path_derived_id(path)
 }
 
 fn name_from_path(path: &str) -> String {
