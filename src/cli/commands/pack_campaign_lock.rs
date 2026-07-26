@@ -8,6 +8,7 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
+use super::pack_assets::harness_root;
 
 use super::pack_campaign::{
     Buffered, HeldAsset, PINNED_ROOT, Resolution, SNAPSHOT_PATH, campaign_json, envelope,
@@ -20,12 +21,13 @@ use std::fs;
 pub(crate) fn run_campaign(
     root: &Path,
     verb: Option<&str>,
+    requested: Option<&str>,
     with_loop: bool,
     json: bool,
 ) -> CliResult {
     match verb {
-        Some("start") => campaign_start(root, with_loop, json),
-        Some("verify") => campaign_verify(root, json),
+        Some("start") => campaign_start(root, requested, with_loop, json),
+        Some("verify") => campaign_verify(root, requested, json),
         Some("end") => campaign_end(root, json),
         _ => err(2, copy::lookup("pack.campaign-usage")),
     }
@@ -40,10 +42,15 @@ fn validate_snapshot(snapshot: &Resolution) -> Result<(), CliResult> {
             .bundle_digest
             .bytes()
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte));
+    // Paths must sit under the pack root of the harness the snapshot itself
+    // names, so a hand-edited snapshot cannot point a campaign at another tree.
+    let Some(pack_root) = harness_root(&snapshot.harness) else {
+        return Err(err(1, copy::lookup("pack.campaign-unreadable")));
+    };
     let paths_ok = std::iter::once(&snapshot.prompt)
         .chain(&snapshot.closure)
         .all(|asset| {
-            asset.path.starts_with(".claude/")
+            asset.path.starts_with(pack_root)
                 && Path::new(&asset.path)
                     .components()
                     .all(|part| matches!(part, std::path::Component::Normal(_)))
@@ -170,8 +177,8 @@ fn verify_pinned(root: &Path, snapshot: &Resolution) -> Result<(), String> {
     Ok(())
 }
 
-fn campaign_start(root: &Path, with_loop: bool, json: bool) -> CliResult {
-    let buffered = match resolve(root, with_loop) {
+fn campaign_start(root: &Path, requested: Option<&str>, with_loop: bool, json: bool) -> CliResult {
+    let buffered = match resolve(root, requested, with_loop) {
         Ok(buffered) => buffered,
         Err(result) => return result,
     };
@@ -215,12 +222,12 @@ fn campaign_start(root: &Path, with_loop: bool, json: bool) -> CliResult {
 
 /// Verify the live pack against the snapshot before a fresh session. Any
 /// difference halts: the campaign's bytes are immutable for its duration.
-fn campaign_verify(root: &Path, json: bool) -> CliResult {
+fn campaign_verify(root: &Path, requested: Option<&str>, json: bool) -> CliResult {
     let snapshot = match read_snapshot(root) {
         Ok(snapshot) => snapshot,
         Err(result) => return result,
     };
-    let live = match resolve(root, snapshot.entry == "loop") {
+    let live = match resolve(root, requested, snapshot.entry == "loop") {
         Ok(buffered) => buffered.resolution,
         Err(mut result) => {
             result.stderr = format!("{}\n{}", copy::lookup("pack.campaign-halt"), result.stderr);

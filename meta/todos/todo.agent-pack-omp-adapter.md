@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-07-22
 ---
 
@@ -51,3 +51,13 @@ procedure closure the adapter maps).
 - The adapter is validated against a live OMP installation but not published;
   publication is handed to `todo.agent-pack-omp-publication`.
 - No unverified adapter row ships as fact.
+
+## Outcome
+
+Delivered and validated against live OMP 17.1.3, unpublished, on 2026-07-26.
+The adapter is a pack root (`.omp/`, the harness's own project surface), the
+canonical manifest declares its rows, and every lifecycle verb now binds to the
+harness the ownership ledger records. Evidence, including the live discovery,
+command, and campaign smokes, is `res.pack-omp-adapter-validation`; the rules it
+settled are `dec.pack-adapter-roots` (proposed, refining
+`dec.agent-pack-packaging`).

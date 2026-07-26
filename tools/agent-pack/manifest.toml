@@ -231,3 +231,135 @@ harness = "claude"
 entry = "cairn-loop-reconcile"
 mode = "default"
 destination = ".claude/skills/cairn-loop-reconcile/SKILL.md"
+
+# -- OMP adapter ----------------------------------------------------------
+# OMP discovers project skills at `<project>/.omp/skills/<name>/SKILL.md` and
+# project commands at `<project>/.omp/commands/*.md` (its `native` provider,
+# priority 100). The bodies are harness-neutral, so an OMP row is the same
+# canonical entry at an OMP-native destination and nothing else.
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev"
+mode = "default"
+destination = ".omp/skills/cairn-dev/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-blueprint-syntax"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/blueprint-syntax.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-finding-codes"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/finding-codes.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-artefact-schemas"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/artefact-schemas.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-explore"
+mode = "default"
+destination = ".omp/skills/cairn-explore/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-propose"
+mode = "default"
+destination = ".omp/skills/cairn-propose/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-apply"
+mode = "default"
+destination = ".omp/skills/cairn-apply/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-archive"
+mode = "default"
+destination = ".omp/skills/cairn-archive/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-loop"
+mode = "default"
+destination = ".omp/commands/cairn-loop.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-loop-recovery"
+mode = "default"
+destination = ".omp/skills/cairn-loop-recovery/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-loop-landing"
+mode = "default"
+destination = ".omp/skills/cairn-loop-landing/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-command-reference"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/command-reference.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-graph-navigation"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/graph-navigation.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-task-bug-investigation"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/task-bug-investigation.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-task-refactoring"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/task-refactoring.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-task-architecture-discovery"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/task-architecture-discovery.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-task-feature-implementation"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/task-feature-implementation.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-dev-reference-loop-mode"
+mode = "default"
+destination = ".omp/skills/cairn-dev/references/loop-mode.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-loop-scope"
+mode = "default"
+destination = ".omp/skills/cairn-loop-scope/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-loop-implement"
+mode = "default"
+destination = ".omp/skills/cairn-loop-implement/SKILL.md"
+
+[[adapters]]
+harness = "omp"
+entry = "cairn-loop-reconcile"
+mode = "default"
+destination = ".omp/skills/cairn-loop-reconcile/SKILL.md"

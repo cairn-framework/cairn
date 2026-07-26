@@ -115,7 +115,7 @@ pub(crate) fn read_manifest(root: &Path) -> Result<Option<InstalledManifest>, Cl
 
 /// Classify one asset against the ledger and the disk.
 pub(crate) fn classify(root: &Path, asset: &PackAsset, owned: Option<&str>) -> Action {
-    let full = root.join(asset.path);
+    let full = root.join(asset.path.as_ref());
     let Ok(disk) = fs::read(&full) else {
         return Action::Backfill;
     };

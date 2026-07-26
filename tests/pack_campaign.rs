@@ -37,6 +37,7 @@ fn pack(root: &Path, tokens: &[&str]) -> cairn::cli::CliResult {
 const SNAPSHOT: &str = ".cairn/state/agent-pack-campaign.json";
 const SCOPE: &str = ".claude/skills/cairn-loop-scope/SKILL.md";
 const ROUTER: &str = ".claude/skills/cairn-dev/SKILL.md";
+const OMP_LOOP_MODE: &str = ".omp/skills/cairn-dev/references/loop-mode.md";
 
 /// The pinned root a campaign reports. It is per-campaign, so a later campaign
 /// can never substitute bytes at a path an earlier session verified.
@@ -328,4 +329,46 @@ fn an_interrupted_claim_halts_but_can_still_be_released() {
         0,
         "a released campaign can start again"
     );
+}
+
+#[test]
+fn an_omp_campaign_pins_the_closure_under_the_omp_pack_root() {
+    let root = temp_root("omp-campaign");
+    assert_eq!(
+        pack(&root, &["install", "--harness", "omp", "--loop"]).code,
+        0
+    );
+
+    let resolution = resolved(&root, &["resolve", "--loop", "--json"]);
+    assert_eq!(resolution["data"]["harness"], "omp");
+    let closure: Vec<&str> = resolution["data"]["closure"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|asset| asset["path"].as_str().unwrap())
+        .collect();
+    assert!(
+        closure.iter().all(|path| path.starts_with(".omp/")),
+        "the declared closure must resolve under the installed pack root: {closure:?}"
+    );
+    assert!(closure.contains(&OMP_LOOP_MODE));
+
+    assert_eq!(pack(&root, &["campaign", "start", "--loop"]).code, 0);
+    assert_eq!(
+        pack(&root, &["campaign", "verify", "--loop"]).code,
+        0,
+        "an untouched OMP pack must verify"
+    );
+
+    fs::write(
+        root.join(OMP_LOOP_MODE),
+        "edited under the running campaign\n",
+    )
+    .unwrap();
+    let halted = pack(&root, &["campaign", "verify", "--loop"]);
+    assert_ne!(
+        halted.code, 0,
+        "a changed procedure must halt an OMP campaign before work"
+    );
+    assert!(halted.stderr.contains("HALT") || halted.stdout.contains("HALT"));
 }

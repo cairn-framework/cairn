@@ -8,32 +8,67 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::pack_assets::{PackAsset, all_assets};
+use super::pack_harness::{
+    Adapter, ledger_matches_adapter, requested_harness, resolve_adapter, select_adapter,
+};
 use super::pack_manifest::{
     Action, BUNDLE_VERSION, InstalledFile, InstalledManifest, MANIFEST_PATH, MIGRATION_NOTES,
     classify, digest, has_loop_assets, migration_notes, read_manifest, write_manifest,
 };
+use super::pack_report::{append_modified, apply_json, envelope, status_json};
 use super::wire::{atomic_write, check_symlink_containment};
 use std::fs;
 
-/// Harnesses with a validated adapter. Unverified rows are contracts, not
-/// facts (`dec.agent-pack-packaging` clause 2), so they are not offered here.
-const SUPPORTED_HARNESSES: &[&str] = &["claude"];
-
 /// Dispatches `cairn pack <subcommand>`.
 pub(crate) fn run_pack_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
-    let harness = match select_harness(&parsed.command_args) {
+    let with_loop = parsed.command_args.iter().any(|a| a == "--loop");
+    let verb = subcommand(&parsed.command_args);
+    let requested = match requested_harness(&parsed.command_args) {
         Ok(name) => name,
         Err(result) => return result,
     };
-    let with_loop = parsed.command_args.iter().any(|a| a == "--loop");
-    match subcommand(&parsed.command_args) {
-        Some("install" | "update") => run_apply(root, harness, with_loop, parsed.json),
-        Some("status") => run_status(root, with_loop, parsed),
-        Some("uninstall") => run_uninstall(root, parsed),
-        Some("resolve") => super::pack_campaign::run_resolve(root, with_loop, parsed.json),
+    // `campaign end` only deletes the snapshot, and it is the documented way out
+    // of an unreadable campaign, so it must not be held hostage by an ownership
+    // ledger this project cannot parse. `start` and `verify` do read the pack,
+    // so they stay behind the ledger and adapter gates below.
+    if verb == Some("campaign") && campaign_verb(&parsed.command_args) == Some("end") {
+        return super::pack_campaign_lock::run_campaign(
+            root,
+            campaign_verb(&parsed.command_args),
+            requested,
+            with_loop,
+            parsed.json,
+        );
+    }
+    let installed = match read_manifest(root) {
+        Ok(manifest) => manifest,
+        Err(result) => return result,
+    };
+    let adapter = match select_adapter(&parsed.command_args, root, installed.as_ref()) {
+        Ok(adapter) => adapter,
+        Err(result) => return result,
+    };
+    if let Some(manifest) = installed.as_ref()
+        && !ledger_matches_adapter(manifest, adapter)
+    {
+        return err(
+            1,
+            &copy::lookup("pack.err-mixed-ledger")
+                .replace("{file}", MANIFEST_PATH)
+                .replace("{harness}", adapter.name),
+        );
+    }
+    match verb {
+        Some("install" | "update") => run_apply(root, installed, adapter, with_loop, parsed.json),
+        Some("status") => run_status(root, installed, adapter, with_loop, parsed),
+        Some("uninstall") => run_uninstall(root, installed, parsed),
+        Some("resolve") => {
+            super::pack_campaign::run_resolve(root, requested, with_loop, parsed.json)
+        }
         Some("campaign") => super::pack_campaign_lock::run_campaign(
             root,
             campaign_verb(&parsed.command_args),
+            requested,
             with_loop,
             parsed.json,
         ),
@@ -63,7 +98,15 @@ fn bare_tokens(args: &[String]) -> impl Iterator<Item = &str> {
 /// `cairn pack install`. Used by `cairn init` so bootstrap and maintenance can
 /// never disagree about bytes or ownership.
 pub(crate) fn install_default_pack(root: &Path, json: bool) -> CliResult {
-    run_apply(root, SUPPORTED_HARNESSES[0], false, json)
+    let installed = match read_manifest(root) {
+        Ok(manifest) => manifest,
+        Err(result) => return result,
+    };
+    let adapter = match resolve_adapter(None, root, installed.as_ref()) {
+        Ok(adapter) => adapter,
+        Err(result) => return result,
+    };
+    run_apply(root, installed, adapter, false, json)
 }
 
 /// First bare token after `pack`, so `pack --harness claude install` and
@@ -72,45 +115,24 @@ fn subcommand(args: &[String]) -> Option<&str> {
     bare_tokens(args).next()
 }
 
-/// Resolve `--harness <name>`, defaulting to the single validated adapter.
-fn select_harness(args: &[String]) -> Result<&'static str, CliResult> {
-    let requested = args
-        .iter()
-        .position(|a| a == "--harness")
-        .and_then(|idx| args.get(idx + 1));
-    match requested {
-        None => Ok(SUPPORTED_HARNESSES[0]),
-        Some(name) => SUPPORTED_HARNESSES
-            .iter()
-            .find(|supported| *supported == name)
-            .copied()
-            .ok_or_else(|| {
-                err(
-                    2,
-                    &copy::lookup("pack.err-unknown-harness")
-                        .replace("{harness}", name)
-                        .replace("{supported}", &SUPPORTED_HARNESSES.join(", ")),
-                )
-            }),
-    }
-}
-
 #[derive(Default)]
-struct ApplyReport {
-    written: Vec<String>,
-    refreshed: Vec<String>,
-    adopted: Vec<String>,
-    modified: Vec<String>,
-    unchanged: Vec<String>,
+pub(super) struct ApplyReport {
+    pub(super) written: Vec<String>,
+    pub(super) refreshed: Vec<String>,
+    pub(super) adopted: Vec<String>,
+    pub(super) modified: Vec<String>,
+    pub(super) unchanged: Vec<String>,
 }
 
 /// Install or update. Both verbs run the same engine: the difference is only
 /// whether a ledger already existed, which the report states.
-fn run_apply(root: &Path, harness: &str, with_loop: bool, json: bool) -> CliResult {
-    let existing = match read_manifest(root) {
-        Ok(manifest) => manifest,
-        Err(result) => return result,
-    };
+fn run_apply(
+    root: &Path,
+    existing: Option<InstalledManifest>,
+    adapter: Adapter,
+    with_loop: bool,
+    json: bool,
+) -> CliResult {
     let owned: std::collections::BTreeMap<&str, &str> =
         existing
             .as_ref()
@@ -125,20 +147,23 @@ fn run_apply(root: &Path, harness: &str, with_loop: bool, json: bool) -> CliResu
     // A ledger that already owns loop assets keeps owning them: an update
     // without `--loop` must still refresh what it is responsible for, or
     // `status` reports outdated files that no verb ever fixes.
-    let assets = all_assets(with_loop || existing.as_ref().is_some_and(has_loop_assets));
+    let assets = all_assets(
+        adapter.pack_root,
+        with_loop || existing.as_ref().is_some_and(has_loop_assets),
+    );
     let mut report = ApplyReport::default();
     let mut ledger = Vec::new();
 
     for asset in &assets {
-        let action = classify(root, asset, owned.get(asset.path).copied());
-        let full = root.join(asset.path);
+        let action = classify(root, asset, owned.get(asset.path.as_ref()).copied());
+        let full = root.join(asset.path.as_ref());
         if action == Action::Modified {
-            report.modified.push(asset.path.to_owned());
+            report.modified.push(asset.path.clone().into_owned());
             // Keep ownership of a file we already owned so a later edit-revert
             // returns it to pristine rather than orphaning it.
-            if let Some(recorded) = owned.get(asset.path) {
+            if let Some(recorded) = owned.get(asset.path.as_ref()) {
                 ledger.push(InstalledFile {
-                    path: asset.path.to_owned(),
+                    path: asset.path.as_ref().to_owned(),
                     sha256: (*recorded).to_owned(),
                 });
             }
@@ -150,21 +175,21 @@ fn run_apply(root: &Path, harness: &str, with_loop: bool, json: bool) -> CliResu
                 // surfacing the failure. Dropping later owned rows here would
                 // orphan exactly the files this recovery path protects.
                 carry_owned(existing.as_ref(), &mut ledger);
-                let _ = write_manifest(root, harness, ledger);
+                let _ = write_manifest(root, adapter.name, ledger);
                 return result;
             }
             if action == Action::Backfill {
-                report.written.push(asset.path.to_owned());
+                report.written.push(asset.path.as_ref().to_owned());
             } else {
-                report.refreshed.push(asset.path.to_owned());
+                report.refreshed.push(asset.path.as_ref().to_owned());
             }
         } else if action == Action::Adopt {
-            report.adopted.push(asset.path.to_owned());
+            report.adopted.push(asset.path.as_ref().to_owned());
         } else {
-            report.unchanged.push(asset.path.to_owned());
+            report.unchanged.push(asset.path.as_ref().to_owned());
         }
         ledger.push(InstalledFile {
-            path: asset.path.to_owned(),
+            path: asset.path.as_ref().to_owned(),
             sha256: digest(asset.content.as_bytes()),
         });
     }
@@ -176,15 +201,15 @@ fn run_apply(root: &Path, harness: &str, with_loop: bool, json: bool) -> CliResu
     });
     let previous = existing.map(|manifest| manifest.bundle_version);
 
-    if let Err(result) = write_manifest(root, harness, ledger) {
+    if let Err(result) = write_manifest(root, adapter.name, ledger) {
         return result;
     }
 
     if json {
-        return ok(apply_json(harness, &report));
+        return ok(apply_json(adapter.name, &report));
     }
     ok(render_apply_human(
-        harness,
+        adapter.name,
         previous.is_some(),
         &report,
         &notes,
@@ -252,7 +277,7 @@ fn write_asset(root: &Path, full: &Path, asset: &PackAsset) -> Result<(), CliRes
         return Err(err(
             1,
             &copy::lookup("pack.err-write")
-                .replace("{file}", asset.path)
+                .replace("{file}", asset.path.as_ref())
                 .replace("{detail}", &error.to_string()),
         ));
     }
@@ -260,7 +285,7 @@ fn write_asset(root: &Path, full: &Path, asset: &PackAsset) -> Result<(), CliRes
         err(
             1,
             &copy::lookup("pack.err-write")
-                .replace("{file}", asset.path)
+                .replace("{file}", asset.path.as_ref())
                 .replace("{detail}", &detail),
         )
     })
@@ -268,11 +293,13 @@ fn write_asset(root: &Path, full: &Path, asset: &PackAsset) -> Result<(), CliRes
 
 /// Report installed versus bundled state. Drift is information, never a
 /// failure exit (`dec.agent-pack-packaging` clause 6).
-fn run_status(root: &Path, with_loop: bool, parsed: &ParsedArgs) -> CliResult {
-    let manifest = match read_manifest(root) {
-        Ok(manifest) => manifest,
-        Err(result) => return result,
-    };
+fn run_status(
+    root: &Path,
+    manifest: Option<InstalledManifest>,
+    adapter: Adapter,
+    with_loop: bool,
+    parsed: &ParsedArgs,
+) -> CliResult {
     let owned: std::collections::BTreeMap<&str, &str> =
         manifest
             .as_ref()
@@ -283,17 +310,21 @@ fn run_status(root: &Path, with_loop: bool, parsed: &ParsedArgs) -> CliResult {
                     .map(|file| (file.path.as_str(), file.sha256.as_str()))
                     .collect()
             });
-    let assets = all_assets(with_loop || manifest.as_ref().is_some_and(has_loop_assets));
+    let assets = all_assets(
+        adapter.pack_root,
+        with_loop || manifest.as_ref().is_some_and(has_loop_assets),
+    );
     let mut missing = Vec::new();
     let mut modified = Vec::new();
     let mut stale = Vec::new();
     let mut pristine = Vec::new();
     for asset in &assets {
-        match classify(root, asset, owned.get(asset.path).copied()) {
-            Action::Backfill => missing.push(asset.path.to_owned()),
-            Action::Modified => modified.push(asset.path.to_owned()),
-            Action::Refresh => stale.push(asset.path.to_owned()),
-            Action::Adopt | Action::Unchanged => pristine.push(asset.path.to_owned()),
+        let path = asset.path.as_ref().to_owned();
+        match classify(root, asset, owned.get(asset.path.as_ref()).copied()) {
+            Action::Backfill => missing.push(path),
+            Action::Modified => modified.push(path),
+            Action::Refresh => stale.push(path),
+            Action::Adopt | Action::Unchanged => pristine.push(path),
         }
     }
     if parsed.json {
@@ -347,21 +378,21 @@ fn run_status(root: &Path, with_loop: bool, parsed: &ParsedArgs) -> CliResult {
 
 /// Retire owned, pristine files. Anything edited stays, and so does anything
 /// the ledger never claimed.
-fn run_uninstall(root: &Path, parsed: &ParsedArgs) -> CliResult {
-    let manifest = match read_manifest(root) {
-        Ok(Some(manifest)) => manifest,
-        Ok(None) => {
-            let message = copy::lookup("pack.not-installed").replace("{file}", MANIFEST_PATH);
-            return if parsed.json {
-                ok(envelope(
-                    "pack uninstall",
-                    &serde_json::json!({"removed": Vec::<String>::new(), "kept": Vec::<String>::new()}),
-                ))
-            } else {
-                ok(format!("{message}\n"))
-            };
-        }
-        Err(result) => return result,
+fn run_uninstall(
+    root: &Path,
+    installed: Option<InstalledManifest>,
+    parsed: &ParsedArgs,
+) -> CliResult {
+    let Some(manifest) = installed else {
+        let message = copy::lookup("pack.not-installed").replace("{file}", MANIFEST_PATH);
+        return if parsed.json {
+            ok(envelope(
+                "pack uninstall",
+                &serde_json::json!({"removed": Vec::<String>::new(), "kept": Vec::<String>::new()}),
+            ))
+        } else {
+            ok(format!("{message}\n"))
+        };
     };
     let mut removed = Vec::new();
     let mut kept = Vec::new();
@@ -417,67 +448,4 @@ fn prune_empty_parents(root: &Path, file: &Path) {
         }
         current = dir.parent().map(Path::to_path_buf);
     }
-}
-
-/// Append the never-overwritten list, if there is one.
-fn append_modified(out: &mut String, modified: &[String]) {
-    if modified.is_empty() {
-        return;
-    }
-    out.push_str(copy::lookup("pack.modified-note"));
-    out.push('\n');
-    for path in modified {
-        out.push_str("  ");
-        out.push_str(path);
-        out.push('\n');
-    }
-}
-
-/// Wrap a payload in the CLI's `{command, status, data}` envelope. Built
-/// through `serde_json` rather than string formatting: these payloads carry
-/// filesystem paths, which are exactly the values hand-rolled escaping gets
-/// wrong.
-fn envelope(command: &str, data: &serde_json::Value) -> String {
-    let body = serde_json::json!({"command": command, "status": "ok", "data": data});
-    format!("{body}\n")
-}
-
-fn apply_json(harness: &str, report: &ApplyReport) -> String {
-    envelope(
-        "pack",
-        &serde_json::json!({
-            "harness": harness,
-            "bundle_version": BUNDLE_VERSION,
-            "cli_version": env!("CARGO_PKG_VERSION"),
-            "written": report.written,
-            "refreshed": report.refreshed,
-            "adopted": report.adopted,
-            "modified": report.modified,
-            "unchanged": report.unchanged,
-        }),
-    )
-}
-
-fn status_json(
-    manifest: Option<&InstalledManifest>,
-    missing: &[String],
-    modified: &[String],
-    stale: &[String],
-    pristine: &[String],
-) -> String {
-    envelope(
-        "pack status",
-        &serde_json::json!({
-            "installed": manifest.is_some(),
-            "harness": manifest.map(|m| m.harness.as_str()),
-            "installed_bundle_version": manifest.map(|m| m.bundle_version.as_str()),
-            "installed_cli_version": manifest.map(|m| m.cli_version.as_str()),
-            "bundle_version": BUNDLE_VERSION,
-            "cli_version": env!("CARGO_PKG_VERSION"),
-            "pristine": pristine,
-            "outdated": stale,
-            "missing": missing,
-            "modified": modified,
-        }),
-    )
 }

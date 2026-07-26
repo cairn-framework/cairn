@@ -21,6 +21,9 @@ const AGENT_GUIDE: &str = include_str!("../agent_guide.md");
 
 pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
     let already_initialized = root.join("cairn.blueprint").exists();
+    // The guide names the router by path, so it is written for the adapter this
+    // project actually installs, never for a tree that was never created.
+    let guide = AGENT_GUIDE.replace("{pack}", super::pack_harness::project_pack_root(root));
     let writes = [
         (
             "cairn.blueprint",
@@ -33,7 +36,7 @@ pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
         ("meta/contracts/.gitkeep", ""),
         ("meta/todos/.gitkeep", ""),
         (".cairn/state/.gitkeep", ""),
-        (".cairn/AGENTS.md", AGENT_GUIDE),
+        (".cairn/AGENTS.md", guide.as_str()),
     ];
     let mut backfilled: Vec<&str> = Vec::new();
     for (path, content) in writes {
@@ -60,7 +63,8 @@ pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
         copy::lookup("init.next-steps-wired")
     } else {
         copy::lookup("init.next-steps")
-    };
+    }
+    .replace("{pack}", super::pack_harness::project_pack_root(root));
     ok(format!("{}\n\n{}\n", copy::lookup("init.done"), next_steps))
 }
 /// Build the message for `cairn init` run in an already-initialized project:
@@ -117,8 +121,16 @@ mod tests {
 
         let guide = std::fs::read_to_string(dir.path().join(".cairn/AGENTS.md")).unwrap();
         assert!(
-            guide.contains(".claude/skills/cairn-dev"),
+            guide.contains(".claude/skills/cairn-dev/SKILL.md"),
             "agent guide must reference the installed router"
+        );
+        assert!(
+            !guide.contains("{pack}"),
+            "the guide template must be rendered, not written raw"
+        );
+        assert!(
+            !guide.contains(".omp/"),
+            "a Claude scaffold must not name another adapter's tree"
         );
 
         let config = std::fs::read_to_string(dir.path().join("cairn.config.yaml")).unwrap();
