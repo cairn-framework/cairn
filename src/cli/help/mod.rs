@@ -114,7 +114,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec(
         "feedback",
         "feedback",
-        &["area", "severity", "json", "file", "help"],
+        &["area", "severity", "verbose", "json", "file", "help"],
     ),
     spec("files", "files", FLAGS_BASIC),
     spec("frontier", "frontier", FLAGS_BASIC),
@@ -313,6 +313,33 @@ fn resolve_spec(tokens: &[&str]) -> Option<&'static CommandHelpSpec> {
         }
     }
     best
+}
+
+pub(crate) fn validate_command_flags(args: &[String]) -> Result<(), String> {
+    let tokens = command_tokens(args);
+    let Some(entry) = resolve_spec(&tokens) else {
+        return Ok(());
+    };
+    for flag in args.iter().filter(|arg| arg.starts_with("--")) {
+        let global = matches!(
+            flag.as_str(),
+            "--json" | "--verbose" | "--brief" | "--file" | "--changes-dir"
+        );
+        if global || flag == "--help" || entry.flags.iter().any(|key| flag_matches(key, flag)) {
+            continue;
+        }
+        return Err(copy::lookup("errors.unsupported-flag")
+            .replace("{flag}", flag)
+            .replace("{command}", entry.name));
+    }
+    Ok(())
+}
+
+fn flag_matches(key: &str, flag: &str) -> bool {
+    match key {
+        "node-flag" => flag == "--node",
+        key => flag.strip_prefix("--") == Some(key),
+    }
 }
 
 /// Renders the per-command usage page for `name`, or `None` if unknown.

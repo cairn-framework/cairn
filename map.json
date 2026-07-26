@@ -1465,8 +1465,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 998,
-          "end_line": 1016
+          "line": 1001,
+          "end_line": 1019
         },
         {
           "name": "blank_command_failure_detail",
@@ -1514,7 +1514,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 207,
-          "end_line": 448
+          "end_line": 451
         },
         {
           "name": "run",
@@ -1649,8 +1649,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 993,
-          "end_line": 993
+          "line": 996,
+          "end_line": 996
         },
         {
           "name": "blueprint_root",
@@ -1665,8 +1665,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1024,
-          "end_line": 1032
+          "line": 1027,
+          "end_line": 1035
         },
         {
           "name": "current_timestamp_rfc3339",
