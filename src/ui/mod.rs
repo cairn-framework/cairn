@@ -506,6 +506,70 @@ mod tests {
     }
 
     #[test]
+    fn test_ui_reloads_when_an_artefact_changes() -> Result<(), Box<dyn Error>> {
+        let root = temp_root("artefact-reload")?;
+        write_artefact_project(&root)?;
+        let todos_dir = root.join("meta/todos");
+        let todo_path = todos_dir.join("todo.api.md");
+        let server = start_background(UiOptions {
+            port: 0,
+            no_open: true,
+            blueprint_path: root.join("cairn.blueprint"),
+        })?;
+
+        let first = request(server.address(), "GET", "/api/node/app.api/todos")?;
+        let first: Value = serde_json::from_str(&first.body)?;
+        assert_eq!(first["todos"].as_array().expect("todos array").len(), 1);
+
+        let original_mtime = fs::metadata(&todo_path)?.modified()?;
+        let mut file_changed = false;
+        for _ in 0..100 {
+            fs::write(
+                &todo_path,
+                "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\n---\n# Edited API Todo\nReload the API.\n",
+            )?;
+            if fs::metadata(&todo_path)?.modified()? != original_mtime {
+                file_changed = true;
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(file_changed, "todo mtime did not advance");
+
+        let second = request(server.address(), "GET", "/api/node/app.api/todos")?;
+        let second: Value = serde_json::from_str(&second.body)?;
+        let todos = second["todos"].as_array().expect("todos array");
+        assert_eq!(todos.len(), 1);
+        assert_eq!(todos[0]["title"], "Edited API Todo");
+
+        let original_dir_mtime = fs::metadata(&todos_dir)?.modified()?;
+        let added_path = todos_dir.join("todo.added.md");
+        let mut directory_changed = false;
+        for _ in 0..100 {
+            fs::write(
+                &added_path,
+                "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\n---\n# Added API Todo\nReload the API.\n",
+            )?;
+            if fs::metadata(&todos_dir)?.modified()? != original_dir_mtime {
+                directory_changed = true;
+                break;
+            }
+            fs::remove_file(&added_path)?;
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(directory_changed, "todo directory mtime did not advance");
+
+        let third = request(server.address(), "GET", "/api/node/app.api/todos")?;
+        server.stop();
+
+        let third: Value = serde_json::from_str(&third.body)?;
+        let todos = third["todos"].as_array().expect("todos array");
+        assert_eq!(todos.len(), 2);
+        assert!(todos.iter().any(|todo| todo["title"] == "Added API Todo"));
+
+        Ok(())
+    }
+    #[test]
     fn test_ui_spine_endpoint_returns_404_for_unknown_node() -> Result<(), Box<dyn Error>> {
         let root = temp_root("todos-endpoint-unknown-node")?;
         write_artefact_project(&root)?;

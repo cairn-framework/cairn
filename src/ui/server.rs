@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: recursive artefact reload watch
 //! Embedded HTTP server for the graph explorer UI.
 
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
@@ -15,7 +16,7 @@ pub(super) struct Server {
     pub(super) address: SocketAddr,
     cached_scan: RefCell<Option<scanner::ScanResult>>,
     cached_mtime: RefCell<Option<SystemTime>>,
-    cached_watched_mtime: RefCell<Option<SystemTime>>,
+    cached_watched_mtime: RefCell<Option<String>>,
     // Time of the cached scan; retained across a cached-scan fallback.
     cached_scan_time: RefCell<Option<SystemTime>>,
     changes_dir: PathBuf,
@@ -318,12 +319,12 @@ impl Server {
         let current_watched_mtime = self.watched_files_mtime();
         let should_reload = {
             let cached_mtime = *self.cached_mtime.borrow();
-            let cached_watched = *self.cached_watched_mtime.borrow();
+            let cached_watched = self.cached_watched_mtime.borrow().clone();
             let blueprint_changed = match (cached_mtime, current_mtime) {
                 (Some(c), Some(m)) => c != m,
                 _ => true,
             };
-            let watched_changed = match (cached_watched, current_watched_mtime) {
+            let watched_changed = match (cached_watched, current_watched_mtime.clone()) {
                 (Some(c), Some(m)) => c != m,
                 _ => true,
             };
@@ -353,27 +354,47 @@ impl Server {
             }
         }
     }
-    fn watched_files_mtime(&self) -> Option<SystemTime> {
+    fn watched_files_mtime(&self) -> Option<String> {
+        let mut entries = Vec::new();
+        collect_watched_mtime(&self.root.join("meta/todos"), true, &mut entries);
+        collect_watched_mtime(&self.root.join("meta/decisions"), true, &mut entries);
+        collect_watched_mtime(&self.root.join("meta/research"), true, &mut entries);
+        collect_watched_mtime(&self.root.join("meta/sources"), true, &mut entries);
         let scan = self.cached_scan.borrow();
-        let scan = scan.as_ref()?;
-        let mut max_mtime: Option<SystemTime> = None;
+        let Some(scan) = scan.as_ref() else {
+            return (!entries.is_empty()).then(|| entries.join("\n"));
+        };
         for report in &scan.target_reports {
-            let path = self.root.join(&report.target_id.path);
-            if let Ok(meta) = fs::metadata(&path)
-                && let Ok(mtime) = meta.modified()
-            {
-                max_mtime = Some(max_mtime.map_or(mtime, |m| m.max(mtime)));
-            }
+            collect_watched_mtime(&self.root.join(&report.target_id.path), false, &mut entries);
         }
         for contract in scan.contracts.contracts.values() {
-            let path = self.root.join(&contract.path);
-            if let Ok(meta) = fs::metadata(&path)
-                && let Ok(mtime) = meta.modified()
-            {
-                max_mtime = Some(max_mtime.map_or(mtime, |m| m.max(mtime)));
-            }
+            collect_watched_mtime(&self.root.join(&contract.path), false, &mut entries);
         }
-        max_mtime
+        entries.sort();
+        (!entries.is_empty()).then(|| entries.join("\n"))
+    }
+}
+
+fn collect_watched_mtime(path: &Path, recursive: bool, entries: &mut Vec<String>) {
+    let Ok(meta) = (if recursive {
+        fs::symlink_metadata(path)
+    } else {
+        fs::metadata(path)
+    }) else {
+        return;
+    };
+    if let Ok(mtime) = meta.modified() {
+        entries.push(format!("{}:{mtime:?}", path.display()));
+    }
+    if recursive
+        && !meta.file_type().is_symlink()
+        && let Ok(read_dir) = fs::read_dir(path)
+    {
+        let mut children: Vec<_> = read_dir.flatten().map(|entry| entry.path()).collect();
+        children.sort();
+        for child in children {
+            collect_watched_mtime(&child, true, entries);
+        }
     }
 }
 
