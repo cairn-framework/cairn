@@ -179,8 +179,8 @@
           "kind": "function",
           "signature": "pub fn classify_score(score: f64) -> CandidateConfidence",
           "file": "src/brownfield/heuristics.rs",
-          "line": 135,
-          "end_line": 143
+          "line": 171,
+          "end_line": 179
         },
         {
           "name": "complete_session",
@@ -195,8 +195,8 @@
           "kind": "function",
           "signature": "pub fn coupling_score(internal_imports: usize, external_imports: usize) -> f64",
           "file": "src/brownfield/heuristics.rs",
-          "line": 127,
-          "end_line": 131
+          "line": 163,
+          "end_line": 167
         },
         {
           "name": "directory",
@@ -212,7 +212,7 @@
           "signature": "pub fn discover(root: &Path) -> Result<Extraction, CairnError>",
           "file": "src/brownfield/discovery.rs",
           "line": 90,
-          "end_line": 133
+          "end_line": 134
         },
         {
           "name": "enrich_candidate",
@@ -307,8 +307,8 @@
           "kind": "function",
           "signature": "pub fn run_refine(root: &Path) -> Result<Option<String>, CairnError>",
           "file": "src/brownfield/refine.rs",
-          "line": 30,
-          "end_line": 57
+          "line": 31,
+          "end_line": 59
         },
         {
           "name": "start_session",
@@ -509,6 +509,22 @@
           "file": "src/brownfield/heuristics.rs",
           "line": 108,
           "end_line": 114
+        },
+        {
+          "name": "sanitised_path_derived_id",
+          "kind": "function",
+          "signature": "pub(crate) fn sanitised_path_derived_id(directory: &str) -> String",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 116,
+          "end_line": 133
+        },
+        {
+          "name": "unique_node_id",
+          "kind": "function",
+          "signature": "pub(crate) fn unique_node_id( base: String, used: &mut std::collections::BTreeSet<String>, ) -> String",
+          "file": "src/brownfield/heuristics.rs",
+          "line": 135,
+          "end_line": 150
         },
         {
           "name": "normalise_separators",
