@@ -20,6 +20,10 @@
 use std::{fs, path::Path};
 
 use super::graph::{Finding, FindingSeverity, Graph};
+use crate::{
+    artefacts::registry::{Decision, DecisionStatus},
+    copy,
+};
 
 const REGISTRY: &str = "docs/registries/spec-rules.md";
 
@@ -112,6 +116,42 @@ pub(crate) fn validate_spec_rule_coverage(graph: &mut Graph, root: &Path) {
     }
 }
 
+/// Reports deferred-by cells that do not name a live decision artefact.
+pub(crate) fn validate_deferred_decision_targets(
+    graph: &mut Graph,
+    root: &Path,
+    decisions: &[Decision],
+) {
+    let Ok(registry) = fs::read_to_string(root.join(REGISTRY)) else {
+        return;
+    };
+    let live_decisions = decisions
+        .iter()
+        .filter(|decision| decision.status != DecisionStatus::Superseded)
+        .map(|decision| decision.id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    for rule in parse_rules(&registry) {
+        let Some(deferred_by) = rule.deferred_by else {
+            continue;
+        };
+        if live_decisions.contains(deferred_by.as_str()) {
+            continue;
+        }
+        graph.findings.push(Finding {
+            code: "CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID".to_owned(),
+            severity: FindingSeverity::Warning,
+            message: copy::lookup("findings.codes.CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID")
+                .replace("{rule}", &rule.rule)
+                .replace("{spec}", &rule.spec)
+                .replace("{decision}", &deferred_by),
+            node: None,
+            target: Some(format!("{} {}", rule.spec, rule.rule)),
+            path: Some(REGISTRY.to_owned()),
+            deferred_by: None,
+        });
+    }
+}
+
 impl Status {
     const fn label(self) -> &'static str {
         match self {
@@ -148,11 +188,7 @@ fn parse_rules(registry: &str) -> Vec<SpecRule> {
             spec: cells[1].to_owned(),
             code: parse_code(cells[2]),
             status,
-            // The Deferred-by cell is a pending-row contract: an enforced rule
-            // regression must never render as deliberately deferred.
-            deferred_by: (status == Status::Pending)
-                .then(|| cells.get(4).and_then(|cell| parse_code(cell)))
-                .flatten(),
+            deferred_by: cells.get(4).and_then(|cell| parse_code(cell)),
         });
     }
     rules

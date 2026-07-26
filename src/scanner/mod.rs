@@ -488,6 +488,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         files.dedup();
     }
     let mut graph = build_graph(&ast, root, &contracts, &mut claimed_files, all_findings);
+    crate::map::validate_deferred_decision_targets(&mut graph, root, &artefacts.decisions);
     // Populate per-node symbols from reconciled target reports.
     for report in &target_reports {
         if let Some(node) = graph.nodes.get_mut(&report.target_id.node_id) {
