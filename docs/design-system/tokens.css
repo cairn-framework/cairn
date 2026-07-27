@@ -351,3 +351,139 @@
     --motion-ease: linear;
   }
 }
+
+/* ===================================================================
+   MARKETING LANE  (--mk-*)
+   ===================================================================
+   The airworthiness record: the paperwork that makes an aircraft legal
+   to fly. Authority: dec.marketing-visual-world.
+
+   This lane is additive. It renames and removes nothing, so the product
+   webui is unaffected by anything below. Marketing surfaces consume
+   `--mk-*` for colour, type, elevation, lane layout, and motion, and share
+   the canonical `--s-*`, `--r-*`, `--line-*`, and `--tap-min` primitives
+   with the product lane. Motion is not shared: the lane's one authored
+   moment needs its own timings, so it defines `--mk-dur-*`.
+
+   Ground rule: carbonless copy paper, read under hangar light. Dark is
+   reserved for instrument insets, which is where command output and
+   blueprint source live.
+
+   Ink rule: two inks, and the distinction is load-bearing. Pre-printed
+   form ink (`--mk-ink-print`) states what was DECLARED. Ballpoint
+   (`--mk-ink-pen`) states what was FOUND.
+
+   Signal rule: aviation status colour is codified, not decorative, so it
+   carries whole regions. Serviceable green, unserviceable red, deferred
+   amber. Every pairing below clears 4.5:1 against every surface it is
+   permitted on.
+   =================================================================== */
+
+:root,
+[data-theme="light"] {
+  /* Paper. Three carbonless copies, lightest on top. */
+  --mk-paper: #e7e8e0;
+  --mk-paper-2: #dddfd3;
+  --mk-paper-3: #d0d3c5;
+
+  /* Pre-printed ruling. Non-text; never carries meaning on its own. */
+  --mk-rule: #a6ab98;
+  --mk-rule-soft: #c3c7b5;
+  --mk-rule-hard: #6f7663;
+
+  /* Instrument inset. Command output, blueprint source, panel chrome. */
+  --mk-panel: #1c2321;
+  --mk-panel-2: #252e2a;
+  --mk-panel-rule: #3b4741;
+
+  /* Inks. */
+  --mk-ink-print: #191c18;
+  --mk-ink-print-2: #474e44;
+  --mk-ink-pen: #1e3868;
+  --mk-ink-panel: #dde4db;
+  --mk-ink-panel-2: #93a398;
+
+  /* Status: serviceable. Declaration matches reality, signed. */
+  --mk-svc: #15683b;
+  --mk-svc-deep: #0f4e2c;
+  --mk-svc-tint: #c7dbc8;
+  --mk-svc-lamp: #63c08c;
+
+  /* Status: unserviceable. Blocking. Grounds the scan or the merge. */
+  --mk-uns: #b02318;
+  --mk-uns-deep: #8c1c13;
+  --mk-uns-tint: #efcec8;
+
+  /* Status: deferred defect. Advisory. Raised, tracked, not grounding. */
+  --mk-def: #8e5a05;
+  --mk-def-deep: #7a4d04;
+  --mk-def-tint: #efddb2;
+  --mk-def-lamp: #e0a63c;
+
+  /* Type families. Archivo prints, Courier Prime records. */
+  --mk-font-form: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mk-font-record: "Courier Prime", "Courier New", ui-monospace, monospace;
+
+  /* Width axis. Placards run condensed, running text runs normal. */
+  --mk-wdth-plate: 78;
+  --mk-wdth-text: 100;
+
+  /* Type scale. */
+  --mk-t-micro: 12px;
+  --mk-t-label: 13px;
+  --mk-t-small: 14px;
+  --mk-t-entry: 15px;
+  --mk-t-body: 17px;
+  --mk-t-lede: 21px;
+  --mk-t-h4: 20px;
+  --mk-t-h2: clamp(29px, 3.8vw, 40px);
+  --mk-t-h1: clamp(36px, 5.9vw, 66px);
+
+  /* Tracking. Placards are tracked, running text is not. */
+  --mk-track-plate: 0.14em;
+  --mk-track-stamp: 0.2em;
+  --mk-track-tight: -0.022em;
+
+  /* Elevation. Paper on paper, plus one lifted tag. */
+  --mk-lift-sheet: 0 1px 0 rgba(41, 46, 38, 0.16);
+  --mk-lift-copy: 0 2px 5px rgba(41, 46, 38, 0.13);
+  --mk-lift-crs: 0 6px 16px rgba(41, 46, 38, 0.22);
+  --mk-lift-panel: inset 0 1px 0 rgba(221, 228, 219, 0.07);
+
+  /* Social card. Fixed to the Open Graph frame; not responsive by design. */
+  --mk-card-w: 1200px;
+  --mk-card-h: 630px;
+  --mk-t-card: 62px;
+
+  /* Lane layout. */
+  --mk-sheet-max: 1120px;
+  --mk-gutter: var(--s-6);
+  --mk-measure: 68ch;
+  --mk-hole: 13px;
+  --mk-stripe-w: 3px;
+  --mk-stripe-slip: 7px;
+  --mk-stripe-half: 22px;
+  --mk-stripe-half-narrow: 16px;
+
+  /* Lane motion. One authored settle, everything else is quiet. */
+  --mk-dur-quiet: 160ms;
+  --mk-dur-open: 260ms;
+  --mk-dwell: 340ms;
+  --mk-dur-settle: 620ms;
+  --mk-dur-stamp: 420ms;
+  --mk-ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --mk-ease-stamp: cubic-bezier(0.34, 1.1, 0.5, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  [data-theme="light"] {
+    --mk-dur-quiet: 0.001ms;
+    --mk-dur-open: 0.001ms;
+    --mk-dwell: 0.001ms;
+    --mk-dur-settle: 0.001ms;
+    --mk-dur-stamp: 0.001ms;
+    --mk-ease-settle: linear;
+    --mk-ease-stamp: linear;
+  }
+}

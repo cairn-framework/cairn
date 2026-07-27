@@ -127,7 +127,8 @@
       <li><a href="#logo">20. Logo mark</a></li>
       <li><a href="#empty-state">21. Empty state</a></li>
       <li><a href="#components">22. Component classes</a></li>
-      <li><a href="#glossary">23. Glossary</a></li>
+      <li><a href="#marketing">23. Marketing lane</a></li>
+      <li><a href="#glossary">24. Glossary</a></li>
     </ol>
   </aside>
 
@@ -1067,8 +1068,120 @@ state: stable</pre>
     </section>
 
     <!-- ======================================================== -->
+    <section class="block" id="marketing">
+      <div class="section-kicker">23 . Marketing lane</div>
+      <h2 class="section-title">Marketing lane</h2>
+      <p class="section-lede">The airworthiness record: the paperwork that makes an aircraft legal to fly. This is the second lane of the same design system, used by <code>docs/index.html</code> and every outward page. It shares the <code>--s-*</code>, <code>--r-*</code>, <code>--line-*</code>, and <code>--tap-min</code> primitives with the product lane, and adds its own colour, type, motion, and components under the <code>--mk-*</code> and <code>.mk-*</code> prefixes. Motion is lane-local: the lane owns <code>--mk-dur-*</code>. Authority: <code>dec.marketing-visual-world</code>.</p>
+
+      <div class="section-note">
+        <h3 class="sub-title">Why this world</h3>
+        <p>An aircraft is airworthy because a record asserts that every fitted part matches the type certificate, and because every deviation has been raised, classified, and signed for by a named person. Cairn makes the same assertion about a codebase, so the record's grammar is Cairn's grammar.</p>
+        <ul>
+          <li><code>synced</code> is a green serviceable tag, signed.</li>
+          <li>A structural error or an interface contradiction is a red unserviceable tag. Both block; they differ in what they block.</li>
+          <li>A rationale tension is an amber deferred defect. Raised and tracked, never grounding.</li>
+          <li><code>ghost</code> is a part that was never fitted; <code>orphaned</code> is a part fitted with nobody's signature against it.</li>
+          <li>Drift is a torque stripe: a paint mark across a bolt and its housing whose halves have stopped lining up.</li>
+        </ul>
+        <p>Two inks are load-bearing. <code>--mk-ink-print</code> is pre-printed form ink and states what was <em>declared</em>. <code>--mk-ink-pen</code> is ballpoint and states what was <em>found</em>. Dark is reserved for instrument insets, which is where command output and blueprint source live.</p>
+      </div>
+
+      <div class="demo-stage">
+        <div class="mk-page mk-page--inset">
+          <div class="mk-sheet mk-stack" style="padding-top: var(--s-6); padding-bottom: var(--s-6);">
+
+            <dl class="mk-plate" style="max-width: 460px;">
+              <dt>Type</dt><dd>architecture reconciliation controller</dd>
+              <dt>Serial</dt><dd>v0.9.0</dd>
+            </dl>
+
+            <div class="mk-strip">
+              <div class="mk-strip-head">
+                <span class="mk-strip-title">Reconciliation strip</span>
+                <span class="mk-strip-note">specimen entry</span>
+              </div>
+              <div class="mk-strip-cols" aria-hidden="true">
+                <span class="mk-label">Declared</span>
+                <span class="mk-label">Joint</span>
+                <span class="mk-label">Found on disk</span>
+              </div>
+              <div class="mk-row">
+                <span class="mk-row-declared">auth.api.session</span>
+                <span class="mk-stripe" aria-hidden="true"></span>
+                <span class="mk-row-found"><span class="mk-chip mk-chip--svc">Serviceable</span></span>
+              </div>
+              <div class="mk-row mk-row--drift">
+                <span class="mk-row-declared">auth.api.tokens</span>
+                <span class="mk-stripe" aria-hidden="true"></span>
+                <span class="mk-row-found"><span class="mk-chip mk-chip--uns">Unserviceable</span></span>
+              </div>
+              <div class="mk-row mk-row--ghost">
+                <span class="mk-row-declared">auth.api.rate_limit</span>
+                <span class="mk-stripe" aria-hidden="true"></span>
+                <span class="mk-row-found"><span class="mk-chip mk-chip--none">Not fitted</span></span>
+              </div>
+              <div class="mk-row mk-row--orphaned">
+                <span class="mk-row-declared">no entry</span>
+                <span class="mk-stripe" aria-hidden="true"></span>
+                <span class="mk-row-found"><span class="mk-chip mk-chip--def">Unlogged</span></span>
+              </div>
+            </div>
+
+            <div class="mk-tags-grid">
+              <article class="mk-tag mk-tag--uns">
+                <span class="mk-tag-status">Unserviceable</span>
+                <h3 class="mk-tag-title">Interface contradiction</h3>
+                <p class="mk-tag-body">The contract says one thing and the code does another.</p>
+                <p class="mk-tag-sig"><span class="mk-label">Stops</span> the merge</p>
+              </article>
+              <article class="mk-tag mk-tag--def">
+                <span class="mk-tag-status">Deferred defect</span>
+                <h3 class="mk-tag-title">Rationale tension</h3>
+                <p class="mk-tag-body">The code still builds, but the story has drifted.</p>
+                <p class="mk-tag-sig"><span class="mk-label">Stops</span> nothing, books a review</p>
+              </article>
+            </div>
+
+            <details class="mk-entry">
+              <summary class="mk-entry-summary">
+                <span class="mk-entry-no">E-01</span>
+                <span class="mk-entry-title">Progressive disclosure is the page structure.
+                  <span class="mk-entry-gist">Every block reads complete at its summary line and opens to the raw record. Native details, so the page is whole with scripting off.</span>
+                </span>
+                <span class="mk-entry-more">Record</span>
+              </summary>
+              <div class="mk-entry-body">
+                <div class="mk-panel">
+                  <div class="mk-panel-head"><span>Reconciled</span><span class="mk-panel-file">cairn scan</span></div>
+<pre>Findings: <span class="mk-o-key">0 errors</span>, <span class="mk-o-warn">0 warnings</span>, <span class="mk-o-dim">1 info</span></pre>
+                </div>
+              </div>
+            </details>
+
+            <div class="mk-actions">
+              <a class="mk-btn mk-btn--stamp" href="#marketing">Release to service</a>
+              <a class="mk-btn mk-btn--quiet" href="#marketing">Quiet action</a>
+            </div>
+
+          </div>
+        </div>
+        <div class="demo-label">Marketing lane<span class="code">.mk-page<br>.mk-plate<br>.mk-strip / .mk-row / .mk-stripe<br>.mk-tag<br>.mk-entry<br>.mk-panel<br>.mk-btn</span></div>
+      </div>
+
+      <h3 class="sub-title">Social card</h3>
+      <p class="t-body-s" style="max-width: 68ch; color: var(--ink-aged);">
+        <code>.mk-card</code> is the Open Graph frame, fixed at <code>--mk-card-w</code> by <code>--mk-card-h</code> and rendered once to a PNG. It is built from the lane, never from a product screenshot. Source: <code>docs/assets/social-card.html</code>. Regeneration instructions live in the README.
+      </p>
+
+      <div class="demo-stage">
+        <img src="../assets/social-card.png" width="1200" height="630" style="width: 100%; height: auto; display: block; border: 1px solid var(--seam-thin);" alt="The Cairn social card: a reconciliation strip in a technical log, one row tagged unserviceable where the declaration and the code stopped matching.">
+        <div class="demo-label">Open Graph card<span class="code">.mk-card<br>.mk-card-top<br>.mk-card-body<br>.mk-card-foot</span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
     <section class="block" id="glossary">
-      <div class="section-kicker">22 . Glossary</div>
+      <div class="section-kicker">24 . Glossary</div>
       <h2 class="section-title">Glossary</h2>
       <p class="section-lede">Load-bearing vocabulary. Never paraphrase these in UI.</p>
 
