@@ -240,7 +240,7 @@ app.api -> app "reports"
         "---\nnode: app.api\n---\n# API Contract\n",
     )?;
     fs::write(
-        root.join("meta/decisions/dec.api.md"),
+        root.join("meta/decisions/api.md"),
         "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\n---\n# API Decision\n",
     )?;
     Ok(())

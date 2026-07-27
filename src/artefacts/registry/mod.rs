@@ -120,7 +120,7 @@ mod tests {
         )?;
         fs::create_dir_all(root.join("meta/decisions"))?;
         fs::write(
-            root.join("meta/decisions/dec.api.md"),
+            root.join("meta/decisions/api.md"),
             "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [missing.ref]\n---\n# Decision\n",
         )?;
 

@@ -405,7 +405,7 @@ mod tests {
 
         let decision = Decision {
             id: "dec.api".to_owned(),
-            path: "/project/meta/decisions/dec.md".to_owned(),
+            path: "/project/meta/decisions/api.md".to_owned(),
             nodes: vec!["app.api".to_owned()],
             status: DecisionStatus::Accepted,
             date: "2026-04-01".to_owned(),
@@ -422,7 +422,7 @@ mod tests {
             body: "# API Decision\nUse stable JSON.".to_owned(),
         };
         let value = decision_enriched_json(&decision, root);
-        assert_eq!(value["path"], "meta/decisions/dec.md");
+        assert_eq!(value["path"], "meta/decisions/api.md");
         assert_eq!(value["title"], "API Decision");
         assert_eq!(value["body"], decision.body);
         assert_eq!(value["date"], "2026-04-01");
@@ -431,7 +431,7 @@ mod tests {
 
         let research = Research {
             id: "res.api".to_owned(),
-            path: "/project/meta/research/res.md".to_owned(),
+            path: "/project/meta/research/api.md".to_owned(),
             nodes: vec!["app.api".to_owned()],
             date: "2026-03-20".to_owned(),
             sources: vec!["src.api".to_owned()],
@@ -440,13 +440,13 @@ mod tests {
             body: "# API Research\nStudied evolution.".to_owned(),
         };
         let value = research_enriched_json(&research, root);
-        assert_eq!(value["path"], "meta/research/res.md");
+        assert_eq!(value["path"], "meta/research/api.md");
         assert_eq!(value["title"], "API Research");
         assert_eq!(value["body"], research.body);
 
         let source = Source {
             id: "src.api".to_owned(),
-            path: "/project/meta/sources/src.md".to_owned(),
+            path: "/project/meta/sources/api.md".to_owned(),
             file: "docs-source.txt".to_owned(),
             sha256: None,
             verification: SourceVerification::Verified,
@@ -457,7 +457,7 @@ mod tests {
             body: "# API Source\nBootstrap evidence.".to_owned(),
         };
         let value = source_enriched_json(&source, root);
-        assert_eq!(value["path"], "meta/sources/src.md");
+        assert_eq!(value["path"], "meta/sources/api.md");
         assert_eq!(value["title"], "API Source");
         assert_eq!(value["body"], source.body);
     }

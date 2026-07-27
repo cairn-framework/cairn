@@ -233,7 +233,7 @@ mod tests {
     fn accepted_for(node_id: &str) -> Decision {
         Decision {
             id: format!("dec.{node_id}"),
-            path: format!("meta/decisions/dec.{node_id}.md"),
+            path: format!("meta/decisions/{node_id}.md"),
             nodes: vec![node_id.to_owned()],
             status: DecisionStatus::Accepted,
             date: "2026-06-16".to_owned(),
