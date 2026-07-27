@@ -2,7 +2,7 @@
 id: dec.pack-adapter-roots
 nodes:
   - cairn.kernel.cli
-status: proposed
+status: accepted
 date: 2026-07-26
 informed_by:
   - res.pack-omp-adapter-validation

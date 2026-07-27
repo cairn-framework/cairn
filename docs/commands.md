@@ -152,6 +152,8 @@ operators are not supported. Prefer simple commands without spaces in args.
 | `cairn pack resolve` | Resolve an entry to its prompt bytes and required asset closure |
 | `cairn pack campaign` | Pin resolved pack bytes for a campaign, verify them, or release them |
 
+Every pack verb takes `--harness <name>`. Cairn ships two adapters, both validated against a live host: `claude` installs under `.claude/`, and `omp` installs under `.omp/`. A first install with no selector detects the host, so a project with an `.omp/` directory and no `.claude/` tree gets the OMP adapter and everything else gets Claude. Afterwards every verb binds to the harness the ownership manifest records, and a `--harness` that disagrees with it is refused. The exception is `cairn pack campaign end`, which releases a campaign without consulting the ownership manifest so an unreadable one cannot strand a project.
+
 ### Summariser and drafts (JSON-only)
 
 These commands require the `--json` flag and are grouped under one `draft` command.

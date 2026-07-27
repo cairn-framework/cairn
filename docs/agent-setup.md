@@ -119,7 +119,12 @@ Look at the repository you are in.
 If you followed the review-first existing-code path, run `cairn init --wire`
 after applying the proposal. It installs the owned pack through the same
 lifecycle engine as `cairn pack install` and appends a pointer to
-`.cairn/AGENTS.md` in `AGENTS.md` or `CLAUDE.md`. The operation is idempotent.
+`.cairn/AGENTS.md` in `AGENTS.md` or `CLAUDE.md`. It detects your harness,
+installing the OMP adapter under `.omp/` when the project already has an
+`.omp/` directory and no `.claude/` tree, and the Claude adapter under
+`.claude/` otherwise. `cairn init` takes no harness selector; to choose one
+explicitly, run `cairn pack install --harness <name>`. The operation is
+idempotent.
 If Step 3 already used `--wire`, nothing more is needed.
 
 ## Step 5: Wire the gate

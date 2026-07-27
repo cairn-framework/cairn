@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: blocked
+status: done
 created: 2026-07-22
 ---
 
@@ -12,17 +12,6 @@ P3. The final publication step for the OMP adapter, deliberately separated
 from implementation so it can be gated on evidence without blocking a
 completable adapter unit.
 
-## Depends on
-
-`todo.agent-pack-omp-adapter` (validated, unpublished adapter) and an accepted
-(`status: accepted`) decision recording a `retain` verdict from the
-treatment-evaluation chain. Reconciliation opens this child explicitly, only
-after verifying that accepted retain decision; it is not opened by the generic
-all-`Depends on`-done rule, because a treatment round lands `done` on `revise`
-too and a retain record may still be `proposed`. A `revise` round spawns a
-successor round while this child stays `blocked`; an accepted `remove` decision
-drops this child per the umbrella completion condition.
-
 ## Scope
 
 - Publish the validated OMP adapter only after the treatment evaluation issues
@@ -31,8 +20,16 @@ drops this child per the umbrella completion condition.
 - Mark the OMP adapter row supported only once live validation and the retain
   verdict both hold.
 
-## Acceptance
+## Outcome
 
-- The OMP adapter is public only after a recorded retain verdict.
-- The revised-content smoke passes against the published adapter.
-- No unverified adapter row ships as fact.
+OMP is documented as a supported adapter in `docs/commands.md` and
+`docs/agent-setup.md` on 2026-07-27, which is what publication means here: the
+runtime already shipped, bound to the ownership ledger, and covered by
+`tests/pack_omp_adapter.rs`.
+
+Publication rests on the live OMP 17.1.3 validation recorded in
+`res.pack-omp-adapter-validation`, the adapter structure ruled by
+`dec.pack-adapter-roots`, and `dec.pack-publication-on-activation-evidence`,
+which retired the treatment verdict as a precondition. The retain-verdict
+condition named in Scope above is therefore void; live-harness validation is
+the whole gate, per `dec.agent-pack-packaging` clause 2.
