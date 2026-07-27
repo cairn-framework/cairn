@@ -1,8 +1,8 @@
 ---
 node: cairn.brownfield
-status: open
+status: blocked
 created: 2026-07-26
-related: [todo.brownfield-contract-pointer]
+related: [todo.brownfield-contract-pointer, todo.brownfield-parent-child-edge-model, todo.brownfield-nested-package-scan-clean]
 ---
 
 # Resolve the parent/child package cycle in brownfield output
@@ -43,3 +43,14 @@ On a real brownfield project (a package root with subpackages that import it),
 - After `cairn init --from-code` and `cairn change apply brownfield-init` on a
   nested-package project, `cairn scan` reports no `CAIRN_ORDER_CYCLE` finding
   and exits zero.
+
+## Decomposition (2026-07-27)
+
+Too large for one reviewable PR, per verified fact 2.
+
+blocked on sub-todos: todo.brownfield-parent-child-edge-model, todo.brownfield-nested-package-scan-clean
+
+The first rules on how brownfield models mutual imports between a package root
+and its subpackages and carries the evidence for that ruling. The second
+implements the chosen rule and pins the round-trip. This todo flips to `done`
+when the second lands.
