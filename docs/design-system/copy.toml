@@ -486,6 +486,7 @@ help = "  -h, --help                     Print this help"
 strict = "  --strict                       Exit 1 on Warning findings (scan/lint)"
 verbose = "  --verbose                      Show full finding detail"
 brief = "  --brief                        Compact status summary"
+dry-run = "  --dry-run                      Preview the gate steps without running them"
 node = "  --node <id>                    Restrict findings to one node (lint)"
 node-flag = "  --node <id>                    Attach the artefact to a graph node (repeatable)"
 symbols = "  --symbols                      Include public symbols (get)"
@@ -547,7 +548,7 @@ usage = "cairn change <new|list|show|accept|apply|archive> [args] [options]"
 args = """  new <change-id>              Scaffold a new change
   list                         List active and archived changes
   show <change-id>             Show details of a change
-  accept [change-id]           Run the acceptance gate
+  accept [change-id]           Run the acceptance gate (--dry-run to preview it)
   apply <change-id>            Apply (archive) a completed change
   archive <change-id>          Archive a completed change"""
 
@@ -731,7 +732,7 @@ args = "  <change-id>  Change id to show"
 
 [help.commands.change-accept]
 description = "Run the acceptance gate for a change"
-usage = "cairn change accept [change-id] [options]"
+usage = "cairn change accept [change-id] [--dry-run] [options]"
 args = "  [change-id]  Optional change id to lint and check suggested edges for"
 
 [help.commands.change-apply]

@@ -316,6 +316,7 @@ fn change_with_delta(delta: BlueprintDelta) -> Change {
         design: None,
         delta,
         artefacts: Vec::new(),
+        progress: crate::artefacts::TaskProgress::default(),
         findings: Vec::new(),
     }
 }

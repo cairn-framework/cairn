@@ -95,6 +95,7 @@ fn empty_change() -> Change {
         design: None,
         delta: BlueprintDelta::default(),
         artefacts: Vec::new(),
+        progress: crate::artefacts::TaskProgress::default(),
         findings: Vec::new(),
     }
 }

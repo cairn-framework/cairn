@@ -11,13 +11,26 @@ use crate::verification::VerificationState;
 use gates::{AcceptStep, BatterySelection, blank_command_failure_detail, select_language_battery};
 
 /// Run the verification battery for `cairn change accept`.
-pub fn run_accept_gate(project_root: &Path, change_id: Option<&str>, json: bool) -> CliResult {
+///
+/// With `dry_run` the battery is only resolved and reported: no gate step is
+/// spawned, nothing is read beyond the gate recipe, and every step is listed as
+/// `planned` so a caller can preview what acceptance would run.
+pub fn run_accept_gate(
+    project_root: &Path,
+    change_id: Option<&str>,
+    json: bool,
+    dry_run: bool,
+) -> CliResult {
     let mut findings = Vec::new();
 
     match crate::scanner::gate_recipe::resolve_gate_recipe(project_root) {
         Ok(recipe) => {
             let selection = select_language_battery(recipe);
-            apply_language_battery(&mut findings, selection, project_root, json);
+            if dry_run {
+                plan_language_battery(&mut findings, selection);
+            } else {
+                apply_language_battery(&mut findings, selection, project_root, json);
+            }
         }
         Err(message) => {
             // Do not fall back by language when config is unreadable: that would
@@ -31,14 +44,25 @@ pub fn run_accept_gate(project_root: &Path, change_id: Option<&str>, json: bool)
     }
 
     if let Some(id) = change_id {
-        run_step(
-            &mut findings,
-            &format!("cairn lint --strict {id}"),
-            || run_command("cairn", &["lint", "--strict", id], project_root, json),
-            "validation failed",
-            "could not run validation",
-        );
-        check_suggested_edges(&mut findings, id, project_root);
+        if dry_run {
+            findings.push(planned_step(
+                format!("cairn lint --strict {id}"),
+                Some(format!("cairn lint --strict {id}")),
+            ));
+            findings.push(planned_step(
+                "suggested edges triaged".to_owned(),
+                Some(format!("meta/changes/{id}/suggested-edges.md")),
+            ));
+        } else {
+            run_step(
+                &mut findings,
+                &format!("cairn lint --strict {id}"),
+                || run_command("cairn", &["lint", "--strict", id], project_root, json),
+                "validation failed",
+                "could not run validation",
+            );
+            check_suggested_edges(&mut findings, id, project_root);
+        }
     }
 
     let has_failed = findings
@@ -49,15 +73,49 @@ pub fn run_accept_gate(project_root: &Path, change_id: Option<&str>, json: bool)
         .any(|f| f.state == VerificationState::Blocked);
 
     let output = if json {
-        format_json(&findings, has_failed, has_blocked)
+        format_json(&findings, has_failed, has_blocked, dry_run)
     } else {
-        format_findings(&findings, has_blocked)
+        format_findings(&findings, has_blocked, dry_run)
     };
 
     CliResult {
         code: u8::from(has_failed),
         stdout: output,
         stderr: String::new(),
+    }
+}
+
+/// A step the gate would run, recorded without spawning it.
+fn planned_step(test: String, detail: Option<String>) -> VerificationFinding {
+    VerificationFinding {
+        test,
+        state: VerificationState::Planned,
+        detail,
+    }
+}
+
+/// Record the language battery as planned steps instead of running it.
+fn plan_language_battery(findings: &mut Vec<VerificationFinding>, selection: BatterySelection) {
+    match selection {
+        BatterySelection::Steps(steps) => {
+            for step in steps {
+                let command = if step.args.is_empty() {
+                    step.program.clone()
+                } else {
+                    format!("{} {}", step.program, step.args.join(" "))
+                };
+                findings.push(planned_step(step.name, Some(command)));
+            }
+        }
+        BatterySelection::SkipInfo { language } => {
+            findings.push(VerificationFinding {
+                test: format!("language battery ({language})"),
+                state: VerificationState::Skipped,
+                detail: Some(format!(
+                    "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
+                )),
+            });
+        }
     }
 }
 
@@ -238,8 +296,15 @@ fn state_str(state: &VerificationState) -> &'static str {
     }
 }
 
-fn format_json(findings: &[VerificationFinding], has_failed: bool, has_blocked: bool) -> String {
-    let gate_outcome = if has_failed {
+fn format_json(
+    findings: &[VerificationFinding],
+    has_failed: bool,
+    has_blocked: bool,
+    dry_run: bool,
+) -> String {
+    let gate_outcome = if dry_run {
+        "preview"
+    } else if has_failed {
         "failed"
     } else if has_blocked {
         "blocked"
@@ -273,8 +338,13 @@ fn format_json(findings: &[VerificationFinding], has_failed: bool, has_blocked: 
     )
 }
 
-fn format_findings(findings: &[VerificationFinding], has_blocked: bool) -> String {
-    let mut lines = vec!["Verification Battery Results:".to_string()];
+fn format_findings(findings: &[VerificationFinding], has_blocked: bool, dry_run: bool) -> String {
+    let header = if dry_run {
+        "Verification Battery Plan (dry run, nothing was run):"
+    } else {
+        "Verification Battery Results:"
+    };
+    let mut lines = vec![header.to_string()];
 
     for finding in findings {
         let label = state_str(&finding.state).to_ascii_uppercase();

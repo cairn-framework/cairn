@@ -452,7 +452,16 @@ pub fn run(args: &[String]) -> CliResult {
 
 fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
     let subcommand = parsed.command_args.get(1).map(String::as_str);
-    let change_id = parsed.command_args.get(2).map(String::as_str);
+    // `--dry-run` is a recognised `accept` flag, never a change id. Only that
+    // exact token is skipped: a typo'd flag stays positional and still fails.
+    let dry_run =
+        subcommand == Some("accept") && parsed.command_args.iter().any(|arg| arg == "--dry-run");
+    let change_id = parsed
+        .command_args
+        .iter()
+        .skip(2)
+        .find(|arg| !(dry_run && arg.as_str() == "--dry-run"))
+        .map(String::as_str);
     match subcommand {
         Some("new") => {
             let Some(id) = change_id else {
@@ -520,7 +529,9 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
                 Err(finding) => error_output(parsed.json, &finding.code, &finding.message),
             }
         }
-        Some("accept") => crate::cli::accept::run_accept_gate(project_root, change_id, parsed.json),
+        Some("accept") => {
+            crate::cli::accept::run_accept_gate(project_root, change_id, parsed.json, dry_run)
+        }
         Some(cmd @ ("archive" | "apply")) => {
             let Some(id) = change_id else {
                 return err(2, &format!("usage: cairn change {cmd} <change-id>"));
@@ -2546,6 +2557,71 @@ app.api -> app.core "reports"
             order_human.stdout.starts_with("Order:"),
             "human order output: {}",
             order_human.stdout
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_change_show_reports_task_progress() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("change-progress")?;
+        write_project(&root)?;
+        let change_dir = root.join("meta/changes/demo");
+        fs::create_dir_all(&change_dir)?;
+        fs::write(change_dir.join("proposal.md"), "# Proposal: Demo\n")?;
+        fs::write(
+            change_dir.join("tasks.md"),
+            "- [x] one\n- [x] two\n- [ ] three\n",
+        )?;
+
+        let json = run_in(&root, &["--json", "change", "show", "demo"]);
+        assert_eq!(json.code, 0, "change show stderr: {}", json.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(json.stdout.trim())
+            .unwrap_or_else(|e| panic!("invalid JSON from change show: {e}\n{}", json.stdout));
+        assert_eq!(parsed["progress"]["completed"], 2);
+        assert_eq!(parsed["progress"]["total"], 3);
+        assert_eq!(parsed["progress"]["remaining"], 1);
+
+        let human = run_in(&root, &["change", "show", "demo"]);
+        assert_eq!(human.code, 0, "change show stderr: {}", human.stderr);
+        assert!(
+            human.stdout.contains("Tasks: 2/3 complete"),
+            "human change show must report task progress, got: {}",
+            human.stdout
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_change_accept_dry_run_previews_without_consuming_the_change_id()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("change-accept-dry-run")?;
+        write_project(&root)?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "gates:\n  - name: touch sentinel\n    command: touch sentinel.txt\n",
+        )?;
+
+        let result = run_in(&root, &["--json", "change", "accept", "--dry-run", "demo"]);
+        assert_eq!(result.code, 0, "accept stderr: {}", result.stderr);
+        assert!(
+            !root.join("sentinel.txt").exists(),
+            "dry run must not run gate commands"
+        );
+        // The regression: `--dry-run` used to be parsed as the change id, so the
+        // lint step named the flag instead of `demo`.
+        assert!(
+            result
+                .stdout
+                .contains("\"test\":\"cairn lint --strict demo\",\"state\":\"planned\""),
+            "dry run must keep `demo` as the change id, got: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("\"gate_outcome\":\"preview\""),
+            "dry run reports a preview outcome, got: {}",
+            result.stdout
         );
 
         Ok(())

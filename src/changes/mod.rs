@@ -88,6 +88,9 @@ pub fn load_change(root: &Path, path: PathBuf) -> Change {
         .map_err(|message| findings.push(message))
         .unwrap_or_default();
     let artefacts = parse_artefact_operations(root, &path, &mut findings);
+    let progress = fs::read_to_string(path.join("tasks.md"))
+        .map(|source| crate::artefacts::count_tasks(&source))
+        .unwrap_or_default();
     Change {
         id,
         path,
@@ -96,6 +99,7 @@ pub fn load_change(root: &Path, path: PathBuf) -> Change {
         design,
         delta,
         artefacts,
+        progress,
         findings,
     }
 }

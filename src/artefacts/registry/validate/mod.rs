@@ -195,34 +195,7 @@ pub(super) fn validate_changes(set: &mut ArtefactSet) {
         let Ok(source) = fs::read_to_string(&tasks_path) else {
             continue;
         };
-        let mut checked = 0;
-        let mut unchecked = 0;
-        let mut in_fence = false;
-        for line in source.lines() {
-            let trimmed = line.trim_start();
-            if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
-                in_fence = !in_fence;
-                continue;
-            }
-            if in_fence {
-                continue;
-            }
-            let marker = trimmed
-                .strip_prefix("- ")
-                .or_else(|| trimmed.strip_prefix("* "))
-                .map(str::trim_start);
-            match marker {
-                Some(rest) if rest == "[x]" || rest == "[X]" => checked += 1,
-                Some(rest) if rest.starts_with("[x] ") || rest.starts_with("[X] ") => {
-                    checked += 1;
-                }
-                Some(rest) if rest == "[ ]" || rest.starts_with("[ ] ") => {
-                    unchecked += 1;
-                }
-                _ => {}
-            }
-        }
-        if checked > 0 && unchecked == 0 {
+        if crate::artefacts::count_tasks(&source).is_complete() {
             let id = &change.id;
             set.findings.push(info(
                 "CAIRN_CHANGE_TASKS_COMPLETE",
