@@ -38,9 +38,16 @@ them that asserts a clean finding list will fail for a reason unrelated to what
 it is testing, and every one of these is a worked example of the shape the tool
 now warns about.
 
-`src/cli/commands/decision.rs` is the deliberate exception: its fixture creates
-`dec.my-rule.md` precisely to exercise the legacy-collision guard, and it must
-keep doing so.
+Three fixtures are deliberate exceptions, because each one exists to exercise
+the forbidden shape and must keep producing it:
+
+- `src/cli/commands/decision.rs` creates `dec.my-rule.md` to exercise the
+  legacy-collision guard.
+- `src/artefacts/registry/validate/tests.rs` is CA038's own unit test, and
+  `make_decision` derives the path from the id, so a `dec.`-prefixed id
+  necessarily produces the legacy shape it asserts on.
+- `tests/artefact_filename_remediation.rs` writes `dec.only-rule.md` to prove
+  the finding fails a strict scan and yields a rename plan.
 
 ## Task
 
@@ -50,6 +57,26 @@ diff to confirm only paths changed.
 
 ## Acceptance
 
-- No fixture outside `src/cli/commands/decision.rs` writes a
-  `meta/{decisions,research,sources}/{dec,res,src}.<slug>.md` path.
+- No fixture outside the three deliberate exceptions above writes a
+  `meta/{decisions,research,sources}/{dec,res,src}.<slug>.md` path. The second
+  and third exception were missed when this todo was written, which made the
+  original single-exception wording unsatisfiable: a filename-drift detector
+  cannot be tested without a drifted filename, so honouring it literally would
+  have meant deleting CA038's own coverage.
 - `cargo test` passes with snapshots reviewed, not blanket-accepted.
+
+## Out of scope
+
+`tests/fixtures/cairn-bootstrap/meta/sources/` holds nine `src.*.md` files that
+carry the forbidden prefix, two of which also disagree with their own `id`
+(`src.dlthub-ontology-first.md` declares `id: src.dlthub-map-first`,
+`src.structurizr-dsl.md` declares `id: src.structurizr-blueprint`). They are
+not fixtures in this todo's sense and they carry no CA038 warning: the bootstrap
+blueprint declares no `sources` pointer, so nothing ever loads them. Measured on
+2026-07-27, `cairn --file tests/fixtures/cairn-bootstrap/cairn.blueprint scan
+--strict` reports 23 findings and not one is
+`CAIRN_ARTEFACT_FILENAME_DRIFT`. Renaming them is real work with a real
+judgment call in it (`src.review-adversarial-1.md` has `file:
+./meta/sources/review-adversarial-1.md`, the exact path its conforming name
+would occupy), so it is tracked as
+`todo.bootstrap-fixture-artefact-filenames`.
