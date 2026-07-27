@@ -7,6 +7,8 @@ use io::{error, info, is_url, warning};
 use sha256::sha256_hex;
 use std::collections::BTreeMap;
 
+mod filenames;
+
 pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
     let research_ids = set
         .research
@@ -30,6 +32,7 @@ pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: 
     validate_decision_claims(root, set);
     validate_gaps(set);
     validate_changes(set);
+    filenames::validate_filenames(set);
 }
 
 pub(super) fn validate_nodes(node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {

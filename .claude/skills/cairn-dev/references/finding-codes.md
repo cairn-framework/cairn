@@ -71,6 +71,12 @@ These findings are surfaced in `cairn hook tension` and in `cairn lint` output b
 **Meaning:** A leaf node in the blueprint has no accepted decision artefact covering it (no decision has this node's ID in its `nodes` field).
 **Remediation:** Author a decision artefact with `nodes: [<this-node-id>]` and `status: accepted` explaining why this module exists and how it's shaped. Only fires when at least one decision exists in the project (avoids noise in fresh projects).
 
+### CAIRN_ARTEFACT_FILENAME_DRIFT (CA038)
+
+**Severity:** Warning
+**Meaning:** An artefact filename does not match its `id`. For a decision, research, or source the filename stem must be the `id` with its `dec.`/`res.`/`src.` prefix stripped, so `id: dec.no-orchestrator` belongs in `no-orchestrator.md`. Todos are the exception and keep `todo.<slug>.md`, because `cairn todo new` and `cairn todo set` resolve slugs through that path.
+**Remediation:** Rename the file to the name the finding reports. Renaming changes no `id`, so no provenance link breaks, but prose that cites the old path must be updated in the same change. See `dec.artefact-filename-rule`.
+
 ## Info findings (informational)
 
 These findings are surfaced in `cairn lint` and `cairn scan` output but do not block any hook.

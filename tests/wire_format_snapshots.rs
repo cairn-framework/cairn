@@ -140,16 +140,16 @@ app.core -> app.api "serves"
         "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\nsatisfies: status.contract\n---\n# API Todo\nShip the endpoint.\n",
     )?;
     fs::write(
-        root.join("meta/decisions/dec.api.md"),
+        root.join("meta/decisions/api.md"),
         "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# API Decision\nUse stable JSON payloads.\n",
     )?;
     fs::write(
-        root.join("meta/research/res.api.md"),
+        root.join("meta/research/api.md"),
         "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api]\ntags: [wire]\n---\n# API Research\nStudied payload evolution.\n",
     )?;
     fs::write(root.join("docs-source.txt"), "wire format source\n")?;
     fs::write(
-        root.join("meta/sources/src.api.md"),
+        root.join("meta/sources/api.md"),
         "---\nid: src.api\nfile: docs-source.txt\nsha256: ecf5dae7a91b73f6faec1d386583345afe598f4b8af0d647f28f0b0f46f7c633\nverification: verified\ntype: note\ndate: 2026-03-19\ntags: [wire]\ndescription: bootstrap source\n---\n# API Source\nBootstrap evidence.\n",
     )?;
     fs::write(root.join(".cairn/log.md"), "- note: bootstrap log entry\n")?;

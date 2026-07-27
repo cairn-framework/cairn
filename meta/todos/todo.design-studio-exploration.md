@@ -29,7 +29,7 @@ question.
   `skills/design-studio/agents/`, runs in OMP with a browser tool. Its methodology
   is two track (greenfield simulated versus iterate current) and explicitly denies
   design agents the existing CSS and tokens to defeat code anchoring bias.
-- Backing session plan: `meta/research/res.design-studio-greenfield.md`
+- Backing session plan: `meta/research/design-studio-greenfield.md`
   (informed by this todo).
 
 ## Approach: two tracks
@@ -40,7 +40,7 @@ question.
   render real data. Run the full create loop. Deliverable: fast static HTML mock
   examples the maintainer can open immediately, plus the codified harness output
   and design system (`design-dna.md`, `tokens.css`, skill template). Exact recipe
-  in `res.design-studio-greenfield.md`.
+  in `design-studio-greenfield.md`.
 - Track B (iterate current): run the `/review` lane against the current live webui
   for an audit and polish direction.
 - Compare the two tracks and ratify the direction as a decision artefact
@@ -72,7 +72,7 @@ question.
   `todo.simplify-ui-query-api` remaining endpoint flips land, to avoid rebasing
   design over wire churn. This todo produces direction only; implementation is a
   separate follow up.
-- Depends on `res.design-studio-greenfield.md` being available before Track A runs.
+- Depends on `design-studio-greenfield.md` being available before Track A runs.
 - Depends on the `design-studio` skill being installed and available in OMP with a
   browser tool.
 

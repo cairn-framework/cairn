@@ -48,8 +48,8 @@ project.
 ## Status (2026-07-08)
 
 Strategy ratified: **Strategy B** (adopt `query_api` canonical wire). Decision
-recorded in `meta/decisions/dec.ui-query-api-strategy.md`; evidence in
-`meta/research/res.ui-query-api-wire-fork.md`. Implementation deferred to a
+recorded in `meta/decisions/ui-query-api-strategy.md`; evidence in
+`meta/research/ui-query-api-wire-fork.md`. Implementation deferred to a
 later dev-loop session (this session is signing off). Scaffolded plan lives in
 `meta/changes/simplify-ui-query-api/`.
 

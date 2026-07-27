@@ -167,6 +167,7 @@ CAIRN_RECONCILE_LANGUAGE_UNKNOWN = { heading = "Unknown language", body = "The t
 CAIRN_RECONCILE_EMPTY_TARGET = { heading = "Empty target", body = "The target `{target}` at `{path}` discovered zero files during reconciliation.", cta = "Check the path is correct, or remove the target if it is no longer needed." }
 CAIRN_CONFIG_UNKNOWN_KEY = { heading = "Unknown config key", body = "cairn.config.yaml contains an unrecognised top-level key.", cta = "Use a supported key (`context`, `rules`, `artefact_types`, `targets`, `multi_target`, `ignore`, `gates`) or remove the entry." }
 CAIRN_CHANGE_TASKS_COMPLETE = { heading = "Change tasks complete", body = "Change `{node}` has all tasks complete.", cta = "Run `cairn change apply {node}` to archive it." }
+CAIRN_ARTEFACT_FILENAME_DRIFT = { heading = "Artefact filename drift", body = "The artefact at `{path}` is not named after its id.", cta = "Rename the file to its id without the typed prefix; todos keep `todo.<slug>.md`." }
 
 
 CT001 = { heading = "Interface contradiction", body = "Targets for `{node}` with the same contract role have divergent interfaces.", cta = "Review the contract and reconcile the interface shapes." }
@@ -871,6 +872,7 @@ fix_decisions = "Decision artefacts have issues (orphaned, invalid status, or mi
 fix_todos = "Todo artefacts have issues (orphan node or invalid status). Review and fix todo files."
 fix_sources = "Source artefacts have issues (orphan, unverified, or read failed). Review and fix source files."
 fix_research = "Research artefacts have issues (missing sources or unknown source). Review and fix research files."
+rename_artefacts = "Artefact filenames do not match their ids. Rename each file to the name the finding reports; todos keep the `todo.` prefix."
 fix_order = "An ordering cycle was detected in the blueprint (dependency edges, or containment contradicting a dependency edge). Review and fix the conflicting edges."
 split_module = "One or more claimed files exceed the 500-line module-size guideline with no allow-list marker. Split the module, or add a `cairn:allow-large-module reason: ...` marker as its first non-blank line."
 none = "No remediation actions are required. The project is in good shape."

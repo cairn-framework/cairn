@@ -353,7 +353,7 @@ The canonical, scanner-loaded provenance artefacts live artefact-type-first and 
 - `meta/research/` : research files, FLAT. id prefix `res.`.
 - `meta/sources/` : source files, FLAT. id prefix `src.`.
 
-Filenames MUST be slug-only (for example `no-orchestrator.md`, `beads-repo.md`). The typed prefix lives ONLY in the `id:` frontmatter field (`id: dec.no-orchestrator`). A filename MUST NOT carry a `dec.`/`res.`/`src.` prefix. This matches every existing artefact; a filename-prefix rule would flag the entire current corpus.
+Filenames MUST be slug-only (for example `no-orchestrator.md`, `beads-repo.md`). The typed prefix lives ONLY in the `id:` frontmatter field (`id: dec.no-orchestrator`). Precisely: the filename stem MUST equal the `id` with its `dec.`/`res.`/`src.` prefix stripped, so a file MUST NOT carry the prefix and MUST NOT be named after anything but its own id. `CAIRN_ARTEFACT_FILENAME_DRIFT` (CA038, Warning) enforces this during artefact loading (`dec.artefact-filename-rule`, 2026-07-27).
 
 Decisions, research, and sources MUST NOT use topic subfolders. The loader's directory read is NON-RECURSIVE: a file placed in a subfolder of a pointer directory is silently ignored with no finding, so folder placement alone never makes a file an artefact. Topical grouping MUST instead be expressed by slug namespacing in the id and filename (for example `res.gas-city.analysis`, `res.gas-city.issue-slate`). The ONLY sanctioned way to load a file outside the top level of a pointer directory is an explicit per-file blueprint pointer to that exact file. There is no depth limit to enforce, because depth is not the failure mode: non-recursion is.
 
@@ -452,17 +452,17 @@ Mechanically DETECTED but ADVISORY (Warning or Info; recorded but does NOT fail 
 - `CAIRN_SOURCE_ORPHAN` : a source is cited by nothing.
 - `CAIRN_TODO_ORPHAN_NODE` : a todo references an unknown node.
 - `CAIRN_SOURCE_UNVERIFIED` : an unverified source.
+- `CAIRN_ARTEFACT_FILENAME_DRIFT` : a filename does not follow the rule for its kind, or an id-bearing artefact's id is not its typed prefix plus a slug. Advisory against the Error-only hook gate, but `cairn scan --strict` counts Warnings and so does fail on it.
 
 The provenance up-chain is therefore MECHANICALLY DETECTED, not mechanically enforced: a dangling `informed_by` is flagged but does not block. Authors MUST NOT treat a clean gate as proof the up-chain resolves.
 
 NOT yet gated (author-side POLICY only; the scanner is silent):
 
 - Global id uniqueness across the decision/research/source union. Two files sharing an id both load and the duplicate is collapsed silently.
-- Typed-prefix conformance. An id is read verbatim; a mismatched or missing prefix is not detected.
 - Unwired or mis-placed artefacts. A file in a pointer-directory subfolder is dropped with no finding.
 - Artefact-id renames. `cairn rename` renames graph NODE ids only, and its frontmatter rewriter is substring-based, so it can corrupt `informed_by`/`sources` references where a node id is a substring of an artefact id. Artefact ids are immutable-by-policy until a safe cascade exists; renames are manual and unguarded.
 
-Codification. This section is the normative home of the rules above; it DOCUMENTS the shipped checks rather than proposing them. The `agent_guide.md` delivered by `cairn init` SHOULD carry only a short orienting note pointing here, not a restatement of the layout. To make the policy-tier rules mechanical, the following NET-NEW gates are recommended (tracked as open questions): `CAIRN_ARTEFACT_DUPLICATE_ID` (across the dec/res/src union), an id-prefix-conformance check, and an 'unwired artefact under a meta/ pointer root' check. The phrase 'mechanically verifiable' MUST NOT be applied to any rule until its gate exists; until then describe it as detected (advisory) or as policy.
+Codification. This section is the normative home of the rules above; it DOCUMENTS the shipped checks rather than proposing them. The `agent_guide.md` delivered by `cairn init` SHOULD carry only a short orienting note pointing here, not a restatement of the layout. To make the remaining policy-tier rules mechanical, the following NET-NEW gates are recommended (tracked as open questions): `CAIRN_ARTEFACT_DUPLICATE_ID` (across the dec/res/src union) and an 'unwired artefact under a meta/ pointer root' check. Id-prefix conformance was the third of these and is now shipped as part of `CAIRN_ARTEFACT_FILENAME_DRIFT` (`dec.artefact-filename-rule`). The phrase 'mechanically verifiable' MUST NOT be applied to any rule until its gate exists; until then describe it as detected (advisory) or as policy.
 
 
 ## 11. Where content belongs

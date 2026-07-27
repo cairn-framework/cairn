@@ -71,7 +71,7 @@ remediation is a consolidating decision (one new decision superseding N
 stale ones), not folding into contracts, which have a soft size limit
 (spec section 13) and would just relocate the unbounded growth; and the
 check is deterministic and small (count per node, Info tier). Caveat
-found: `meta/decisions/dec.revisit-trigger-relevance.md` uses a
+found: `meta/decisions/revisit-trigger-relevance.md` uses a
 `superseded_by` frontmatter field the parser does not read; the canonical
 direction is the superseding decision's `supersedes` list. Follow-up:
 `todo.decision-accumulation-finding`.

@@ -264,7 +264,6 @@ Last reviewed for v0.9.0 (2026-07-27). This is the near-term shape, not a schedu
 
 - **Typed todo relationships.** Todos carry no dependency or parent-child model, so ordering lives in prose. A schema decision comes first, then the CLI and scanner surfaces that enforce it.
 - **Wider symbol coverage.** Rust and TypeScript symbol extraction only sees explicitly public or exported items, which limits what `cairn get <node> --symbols` can report for those languages.
-- **Artefact filename conformance.** The documented slug-only rule and the filenames the tooling actually writes disagree. One decision, one migration or amendment, and one scan check settle it.
 - **Work selection that respects priority.** After findings, `cairn next` picks the oldest open native todo. Priority is unstructured prose today, so Cairn needs a structured priority field before selection can rank by it.
 
 **Not planned.** A scheduler, a runner, or anything that repeats work for you. Iteration belongs to your harness, not to Cairn.

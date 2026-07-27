@@ -118,6 +118,7 @@ All codes follow the pattern **`CXNNN`**:
 - CA035 -- source's `verification` frontmatter is malformed (CAIRN_SOURCE_VERIFICATION_INVALID) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA036 -- todo artefact declares an unknown `node` (CAIRN_TODO_ORPHAN_NODE) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA037 -- todo artefact frontmatter declares an invalid `status` (CAIRN_TODO_STATUS_INVALID) -- pre-registry provenance unknown -- audited 2026-07-16
+- CA038 -- artefact filename does not follow the naming rule for its kind: id-derived for decisions, research, and sources, `todo.<slug>.md` for todos (CAIRN_ARTEFACT_FILENAME_DRIFT) -- todo.artefact-filename-convention
 
 ## CC -- Changes
 

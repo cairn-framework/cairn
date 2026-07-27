@@ -14,7 +14,7 @@ expression: value
       "nodes": [
         "app.api"
       ],
-      "path": "meta/decisions/dec.api.md",
+      "path": "meta/decisions/api.md",
       "refines": [],
       "related": [],
       "revisit_triggers": [],
@@ -33,7 +33,7 @@ expression: value
       "nodes": [
         "app.api"
       ],
-      "path": "meta/research/res.api.md",
+      "path": "meta/research/api.md",
       "sources": [
         "src.api"
       ],
@@ -47,7 +47,7 @@ expression: value
       "date": "2026-03-19",
       "file": "docs-source.txt",
       "id": "src.api",
-      "path": "meta/sources/src.api.md",
+      "path": "meta/sources/api.md",
       "title": "API Source",
       "type": "note",
       "verification": "verified"

@@ -14,7 +14,7 @@ expression: value
       "nodes": [
         "app.api"
       ],
-      "path": "meta/decisions/dec.api.md",
+      "path": "meta/decisions/api.md",
       "refines": [],
       "related": [],
       "revisit_triggers": [],

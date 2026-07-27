@@ -6,7 +6,9 @@
 // than the single-expression struct-update alternative when multiple fields vary.
 use std::{collections::BTreeSet, path::Path};
 
+use super::filenames;
 use super::{sha256::sha256_hex, *};
+use crate::map::FindingSeverity;
 
 // ── fixtures ─────────────────────────────────────────────────────────────
 
@@ -723,4 +725,139 @@ fn test_change_missing_tasks_md_emits_no_finding() {
         "missing tasks.md must not emit finding; got: {:?}",
         set.findings
     );
+}
+
+// ── validate_filenames ────────────────────────────────────────────────────
+
+/// `make_decision` derives its path from the id, so a `dec.`-prefixed id
+/// produces exactly the legacy `meta/decisions/dec.<slug>.md` shape.
+#[test]
+fn test_typed_filename_prefix_emits_drift_warning() {
+    let mut set = ArtefactSet::default();
+    set.decisions = vec![make_decision(
+        "dec.no-orchestrator",
+        &[],
+        DecisionStatus::Accepted,
+    )];
+    filenames::validate_filenames(&mut set);
+
+    assert_eq!(set.findings.len(), 1, "got: {:?}", set.findings);
+    let finding = &set.findings[0];
+    assert_eq!(finding.code, "CAIRN_ARTEFACT_FILENAME_DRIFT");
+    assert_eq!(finding.severity, FindingSeverity::Warning);
+    assert_eq!(
+        finding.path.as_deref(),
+        Some("meta/decisions/dec.no-orchestrator.md")
+    );
+    assert!(
+        finding.message.contains("`no-orchestrator.md`"),
+        "message must name the expected filename; got: {}",
+        finding.message
+    );
+}
+
+#[test]
+fn test_research_and_source_prefixes_each_emit_drift_warning() {
+    let mut set = ArtefactSet::default();
+    set.research = vec![make_research("res.probe", &["app.real"], &[])];
+    set.sources = vec![make_source("src.gh-cli", SourceVerification::Verified, "u")];
+    filenames::validate_filenames(&mut set);
+
+    assert_eq!(
+        finding_codes(&set),
+        vec![
+            "CAIRN_ARTEFACT_FILENAME_DRIFT",
+            "CAIRN_ARTEFACT_FILENAME_DRIFT"
+        ],
+        "got: {:?}",
+        set.findings
+    );
+}
+
+/// Only the final extension is stripped, so a namespaced slug such as
+/// `res.gas-city.analysis` conforms as `gas-city.analysis.md`.
+#[test]
+fn test_slug_only_filenames_including_namespaced_slugs_are_clean() {
+    let mut set = ArtefactSet::default();
+    let mut decision = make_decision("dec.no-orchestrator", &[], DecisionStatus::Accepted);
+    decision.path = "meta/decisions/no-orchestrator.md".to_owned();
+    let mut research = make_research("res.gas-city.analysis", &["app.real"], &[]);
+    research.path = "meta/research/gas-city.analysis.md".to_owned();
+    let mut source = make_source("src.gh-cli", SourceVerification::Verified, "u");
+    source.path = "meta/sources/gh-cli.md".to_owned();
+    set.decisions = vec![decision];
+    set.research = vec![research];
+    set.sources = vec![source];
+    filenames::validate_filenames(&mut set);
+
+    assert!(set.findings.is_empty(), "got: {:?}", set.findings);
+}
+
+/// The id-to-filename comparison catches a file named after the wrong slug,
+/// which carries no typed prefix and so a prefix-only rule would miss.
+#[test]
+fn test_filename_naming_a_different_slug_emits_drift_warning() {
+    let mut set = ArtefactSet::default();
+    let mut decision = make_decision("dec.no-orchestrator", &[], DecisionStatus::Accepted);
+    decision.path = "meta/decisions/orchestrator-policy.md".to_owned();
+    set.decisions = vec![decision];
+    filenames::validate_filenames(&mut set);
+
+    assert_eq!(
+        finding_codes(&set),
+        vec!["CAIRN_ARTEFACT_FILENAME_DRIFT"],
+        "got: {:?}",
+        set.findings
+    );
+}
+
+/// Nothing else checks that an id carries the prefix its kind requires, so a
+/// malformed id must not be turned into rename advice: `dec.` alone would ask
+/// for `.md`, and a decision declaring `id: res.foo` would be told to adopt a
+/// typed filename. Both report the id instead.
+#[test]
+fn test_malformed_id_reports_the_id_and_never_suggests_a_filename() {
+    for id in ["dec.", "res.foo", ""] {
+        let mut set = ArtefactSet::default();
+        let mut decision = make_decision(id, &[], DecisionStatus::Accepted);
+        decision.path = "meta/decisions/foo.md".to_owned();
+        set.decisions = vec![decision];
+        filenames::validate_filenames(&mut set);
+
+        assert_eq!(
+            finding_codes(&set),
+            vec!["CAIRN_ARTEFACT_FILENAME_DRIFT"],
+            "id `{id}` must drift; got: {:?}",
+            set.findings
+        );
+        assert!(
+            set.findings[0]
+                .message
+                .contains("which is not `dec.` plus a slug"),
+            "id `{id}` must be reported as malformed, not renamed; got: {}",
+            set.findings[0].message
+        );
+    }
+}
+
+/// Todos invert the rule: `cairn todo new`/`todo set` resolve slugs through
+/// `meta/todos/todo.<slug>.md`, so a bare slug is the drift.
+#[test]
+fn test_todo_without_prefix_emits_drift_warning_and_prefixed_todo_is_clean() {
+    let mut set = ArtefactSet::default();
+    set.todos = vec![make_todo("app.real")];
+    filenames::validate_filenames(&mut set);
+    assert_eq!(
+        finding_codes(&set),
+        vec!["CAIRN_ARTEFACT_FILENAME_DRIFT"],
+        "bare `meta/todos/t.md` must drift; got: {:?}",
+        set.findings
+    );
+
+    let mut clean = ArtefactSet::default();
+    let mut todo = make_todo("app.real");
+    todo.path = "meta/todos/todo.wire-format-schemas.md".to_owned();
+    clean.todos = vec![todo];
+    filenames::validate_filenames(&mut clean);
+    assert!(clean.findings.is_empty(), "got: {:?}", clean.findings);
 }

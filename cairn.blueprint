@@ -6,7 +6,6 @@
 System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" @framework {
     decisions "./meta/decisions"
     research "./meta/research"
-    research "./meta/research/gas-city-cairn-integration/analysis.md"
     sources "./meta/sources"
     todos "./meta/todos"
 
