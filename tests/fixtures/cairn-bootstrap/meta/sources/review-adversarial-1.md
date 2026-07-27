@@ -1,6 +1,6 @@
 ---
 id: src.review-adversarial-1
-file: ./meta/sources/review-adversarial-1.md
+file: null
 sha256: null
 verification: unverified
 type: conversation
@@ -12,3 +12,10 @@ description: Adversarial review of Cairn spec v0.4 by an external reviewer. Iden
 # Adversarial review of Cairn v0.4
 
 Seven structural recommendations, all adopted in v0.5: split authority hierarchy into provenance + authority chains, add stable IDs, define ownership resolution precisely, separate machine state from authored files, classify contradiction severity, add source checksums, decide blueprint-vs-ADR current-state authority.
+
+`file:` is null because no standalone transcript exists: the review arrived in
+conversation and the body above is the evidence. It previously named
+`./meta/sources/review-adversarial-1.md`, which is this artefact's own path once
+the filename follows `dec.artefact-filename-rule`, so a source record would have
+cited itself. Set it to the transcript path and `verification: verified` with a
+`sha256` if the conversation is ever saved to a file.
