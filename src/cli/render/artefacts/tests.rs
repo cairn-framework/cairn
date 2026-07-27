@@ -160,12 +160,12 @@ fn rationale_text_labels_transitive_decisions_with_via() {
             {
                 "id": "dec.direct",
                 "status": "accepted",
-                "path": "meta/decisions/dec.direct.md",
+                "path": "meta/decisions/direct.md",
             },
             {
                 "id": "dec.neighbour",
                 "status": "accepted",
-                "path": "meta/decisions/dec.neighbour.md",
+                "path": "meta/decisions/neighbour.md",
                 "via": ["app.db"],
             },
         ],
@@ -174,11 +174,11 @@ fn rationale_text_labels_transitive_decisions_with_via() {
     });
     let rendered = rationale_text(&data);
     assert!(
-        rendered.contains("dec.neighbour [accepted] meta/decisions/dec.neighbour.md (via app.db)"),
+        rendered.contains("dec.neighbour [accepted] meta/decisions/neighbour.md (via app.db)"),
         "transitive decision must carry a via label: {rendered}"
     );
     assert!(
-        rendered.contains("dec.direct [accepted] meta/decisions/dec.direct.md\n"),
+        rendered.contains("dec.direct [accepted] meta/decisions/direct.md\n"),
         "direct decision must render without a via label: {rendered}"
     );
 }

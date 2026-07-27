@@ -60,7 +60,7 @@ rules:
         "---\nnode: app.auth\nstatus: open\ncreated: 2026-04-20\n---\n# Todo\n",
     )?;
     fs::write(
-        root.join("meta/decisions/dec.auth.md"),
+        root.join("meta/decisions/auth.md"),
         "---\nid: dec.auth\nnodes: [app.auth]\nstatus: accepted\ndate: 2026-04-20\n---\n# Decision\n",
     )?;
     Ok(root)

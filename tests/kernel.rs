@@ -737,7 +737,7 @@ fn test_phase_2_integrity_findings() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("artefact-integrity")?;
     write_phase_2_fixture(&root)?;
     fs::write(
-        root.join("meta/sources/src.auth.md"),
+        root.join("meta/sources/auth.md"),
         "---\nid: src.auth\nfile: ./meta/sources/auth.txt\nsha256: bad\nverification: verified\ntype: document\ndate: 2026-04-17\ndescription: Auth evidence.\n---\n# Source\n",
     )?;
     fs::write(
@@ -1648,7 +1648,7 @@ fn test_provenance_lint_warns_for_uncovered_nodes() -> Result<(), Box<dyn std::e
 "#,
     )?;
     fs::write(
-        root.join("meta/decisions/dec.auth.md"),
+        root.join("meta/decisions/auth.md"),
         "---\nid: dec.auth\nnodes: [app.auth]\nstatus: accepted\ndate: 2026-05-11\n---\n# Auth decision\n",
     )?;
 
@@ -1765,7 +1765,7 @@ fn test_blueprint_change_gate_fires_on_new_module() -> Result<(), Box<dyn std::e
     // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::write(
-        root.join("meta/decisions/dec.other.md"),
+        root.join("meta/decisions/other.md"),
         "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
     )?;
     fs::write(
@@ -1808,7 +1808,7 @@ fn test_blueprint_change_gate_passes_with_decision() -> Result<(), Box<dyn std::
     fs::write(root.join("src/auth/lib.rs"), "pub fn login() {}\n")?;
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::write(
-        root.join("meta/decisions/dec.auth.md"),
+        root.join("meta/decisions/auth.md"),
         "---\nid: dec.auth\nnodes: [app.auth]\nstatus: accepted\ndate: 2026-05-11\n---\n# Auth decision\n",
     )?;
     fs::write(
@@ -1890,7 +1890,7 @@ fn test_blueprint_change_gate_fires_on_parent_change() -> Result<(), Box<dyn std
     // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::write(
-        root.join("meta/decisions/dec.other.md"),
+        root.join("meta/decisions/other.md"),
         "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
     )?;
     fs::write(
@@ -1924,7 +1924,7 @@ fn test_blueprint_change_gate_fires_on_removed_module() -> Result<(), Box<dyn st
     // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::write(
-        root.join("meta/decisions/dec.other.md"),
+        root.join("meta/decisions/other.md"),
         "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
     )?;
     // Current blueprint only has app (app.auth removed).
@@ -1965,7 +1965,7 @@ fn test_blueprint_change_gate_fires_on_kind_change() -> Result<(), Box<dyn std::
     // The decision covers `app` (not `app.auth`), so app.auth is still uncovered.
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::write(
-        root.join("meta/decisions/dec.other.md"),
+        root.join("meta/decisions/other.md"),
         "---\nid: dec.other\nnodes: [app]\nstatus: accepted\ndate: 2026-05-11\n---\n# Other decision\n",
     )?;
     // Current blueprint declares app.auth as Container instead of Module.

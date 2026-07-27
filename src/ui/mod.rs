@@ -607,7 +607,7 @@ mod tests {
         let decisions = body["decisions"].as_array().expect("decisions array");
         assert_eq!(decisions.len(), 1);
         let decision = &decisions[0];
-        assert_eq!(decision["path"], "meta/decisions/dec.api.md");
+        assert_eq!(decision["path"], "meta/decisions/api.md");
         assert_eq!(decision["id"], "dec.api");
         assert_eq!(decision["status"], "accepted");
         assert_eq!(decision["nodes"], serde_json::json!(["app.api"]));
@@ -641,7 +641,7 @@ mod tests {
         let research_items = body["research"].as_array().expect("research array");
         assert_eq!(research_items.len(), 1);
         let research = &research_items[0];
-        assert_eq!(research["path"], "meta/research/res.api.md");
+        assert_eq!(research["path"], "meta/research/api.md");
         assert_eq!(research["id"], "res.api");
         assert_eq!(research["nodes"], serde_json::json!(["app.api"]));
         assert_eq!(research["sources"], serde_json::json!(["src.api"]));
@@ -675,7 +675,7 @@ mod tests {
         let sources = body["sources"].as_array().expect("sources array");
         assert_eq!(sources.len(), 1);
         let source = &sources[0];
-        assert_eq!(source["path"], "meta/sources/src.api.md");
+        assert_eq!(source["path"], "meta/sources/api.md");
         assert_eq!(source["id"], "src.api");
         assert_eq!(source["file"], "docs-source.txt");
         assert_eq!(source["verification"], "verified");
@@ -744,7 +744,7 @@ mod tests {
         let decisions = body["decisions"].as_array().expect("decisions array");
         assert_eq!(decisions.len(), 1);
         let decision = &decisions[0];
-        assert_eq!(decision["path"], "meta/decisions/dec.api.md");
+        assert_eq!(decision["path"], "meta/decisions/api.md");
         assert_eq!(decision["id"], "dec.api");
         assert_eq!(decision["title"], "API Decision");
         assert_eq!(
@@ -755,7 +755,7 @@ mod tests {
         let research_items = body["research"].as_array().expect("research array");
         assert_eq!(research_items.len(), 1);
         let research = &research_items[0];
-        assert_eq!(research["path"], "meta/research/res.api.md");
+        assert_eq!(research["path"], "meta/research/api.md");
         assert_eq!(research["id"], "res.api");
         assert_eq!(research["title"], "API Research");
         assert_eq!(
@@ -766,7 +766,7 @@ mod tests {
         let sources = body["sources"].as_array().expect("sources array");
         assert_eq!(sources.len(), 1);
         let source = &sources[0];
-        assert_eq!(source["path"], "meta/sources/src.api.md");
+        assert_eq!(source["path"], "meta/sources/api.md");
         assert_eq!(source["id"], "src.api");
         assert_eq!(source["title"], "API Source");
         assert_eq!(source["body"], "# API Source\nBootstrap evidence.");
@@ -810,16 +810,16 @@ mod tests {
             "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\nsatisfies: status.contract\n---\n# API Todo\nShip the endpoint.\n",
         )?;
         fs::write(
-            root.join("meta/decisions/dec.api.md"),
+            root.join("meta/decisions/api.md"),
             "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# API Decision\nUse stable JSON payloads.\n",
         )?;
         fs::write(
-            root.join("meta/research/res.api.md"),
+            root.join("meta/research/api.md"),
             "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api]\ntags: [wire]\n---\n# API Research\nStudied payload evolution.\n",
         )?;
         fs::write(root.join("docs-source.txt"), "wire format source\n")?;
         fs::write(
-            root.join("meta/sources/src.api.md"),
+            root.join("meta/sources/api.md"),
             "---\nid: src.api\nfile: docs-source.txt\nsha256: ecf5dae7a91b73f6faec1d386583345afe598f4b8af0d647f28f0b0f46f7c633\nverification: verified\ntype: note\ndate: 2026-03-19\ntags: [wire]\ndescription: bootstrap source\n---\n# API Source\nBootstrap evidence.\n",
         )?;
         Ok(())

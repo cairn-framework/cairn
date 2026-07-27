@@ -1975,16 +1975,16 @@ app.api -> app.core "reports"
             "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\n---\n# Todo\n",
         )?;
         fs::write(
-            root.join("meta/decisions/dec.api.md"),
+            root.join("meta/decisions/api.md"),
             "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# Decision\n",
         )?;
         fs::write(
-            root.join("meta/research/res.api.md"),
+            root.join("meta/research/api.md"),
             "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api]\n---\n# Research\n",
         )?;
         fs::write(root.join("docs-source.txt"), "source\n")?;
         fs::write(
-            root.join("meta/sources/src.api.md"),
+            root.join("meta/sources/api.md"),
             "---\nid: src.api\nfile: docs-source.txt\nsha256: b8bb034f9b63bd0254fbc7c157cae746c75853f4643d6cea844dc48ddb57f522\nverification: verified\ntype: note\ndate: 2026-03-19\n---\n# Source\n",
         )?;
         fs::write(root.join(".cairn/log.md"), "- first log\n")?;
