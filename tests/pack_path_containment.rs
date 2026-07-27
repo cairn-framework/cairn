@@ -285,3 +285,103 @@ fn init_never_scaffolds_outside_the_project() {
         "init must not write the agent guide or state directory outside the project"
     );
 }
+
+#[cfg(unix)]
+#[test]
+fn wire_never_blocks_on_a_non_regular_instructions_file() {
+    let root = temp_root("wire-fifo");
+    // `init --wire` detects the instructions file, then reads it. A FIFO with
+    // no writer never returns from that read, so the type must be refused.
+    let made = std::process::Command::new("mkfifo")
+        .arg(root.join("AGENTS.md"))
+        .status()
+        .expect("mkfifo must be available to exercise the blocking-read regression");
+    assert!(made.success(), "could not create the FIFO fixture");
+
+    let mut child = std::process::Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .args([
+            "--file",
+            &root.join("cairn.blueprint").to_string_lossy(),
+            "init",
+            "--wire",
+        ])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .unwrap();
+
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+    let finished = loop {
+        match child.try_wait().unwrap() {
+            Some(status) => break Some(status),
+            None if std::time::Instant::now() >= deadline => break None,
+            None => std::thread::sleep(std::time::Duration::from_millis(50)),
+        }
+    };
+    if finished.is_none() {
+        let _ = child.kill();
+        let _ = child.wait();
+    }
+    let Some(status) = finished else {
+        panic!("init --wire blocked on a FIFO instructions file instead of refusing it");
+    };
+    assert!(
+        !status.success(),
+        "a non-regular instructions file must be refused, not accepted"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn an_unreadable_owned_file_is_never_overwritten_or_silently_dropped() {
+    use std::os::unix::fs::PermissionsExt;
+    let root = temp_root("unreadable");
+    assert_eq!(pack(&root, &["install"]).code, 0);
+
+    // Present, owned, regular, and unreadable, holding bytes that differ from
+    // the bundle so an erroneous write is detectable. The parent stays
+    // writable, so an atomic replace would still succeed: only classification
+    // stops it.
+    let owned = root.join(ROUTER);
+    let sentinel = "cairn-unreadable-sentinel\n";
+    fs::write(&owned, sentinel).unwrap();
+    fs::set_permissions(&owned, fs::Permissions::from_mode(0o000)).unwrap();
+    if fs::read(&owned).is_ok() {
+        // Running as root, where mode 0o000 is not unreadable. The property
+        // under test cannot be established here.
+        fs::set_permissions(&owned, fs::Permissions::from_mode(0o644)).unwrap();
+        return;
+    }
+
+    let status: serde_json::Value =
+        serde_json::from_str(&pack(&root, &["status", "--json"]).stdout).unwrap();
+    assert!(
+        status["data"]["modified"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|path| path == ROUTER),
+        "an unreadable owned file must be reported, not treated as missing: {status}"
+    );
+
+    assert_eq!(pack(&root, &["update"]).code, 0);
+    fs::set_permissions(&owned, fs::Permissions::from_mode(0o644)).unwrap();
+    assert_eq!(
+        fs::read_to_string(&owned).unwrap(),
+        sentinel,
+        "update must not overwrite a file it cannot read"
+    );
+    fs::set_permissions(&owned, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let uninstall: serde_json::Value =
+        serde_json::from_str(&pack(&root, &["uninstall", "--json"]).stdout).unwrap();
+    assert!(
+        uninstall["data"]["kept"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|path| path == ROUTER),
+        "an unreadable owned file must be reported as kept, not dropped: {uninstall}"
+    );
+    fs::set_permissions(&owned, fs::Permissions::from_mode(0o644)).unwrap();
+}

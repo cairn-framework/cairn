@@ -416,9 +416,9 @@ fn run_uninstall(
                 removed.push(file.path.clone());
                 prune_empty_parents(root, &full);
             }
-            Ok(_) => kept.push(file.path.clone()),
-            // Already gone: nothing to retire, nothing to report as kept.
-            Err(_) => {}
+            // Edited, or present but unreadable. `readable_path` already ruled
+            // out absence, so either way this is kept, never silently dropped.
+            _ => kept.push(file.path.clone()),
         }
     }
     let ledger = match contained_path(root, MANIFEST_PATH) {
