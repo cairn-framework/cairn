@@ -38,7 +38,7 @@ Nothing loads them today. The bootstrap blueprint declares `contract`,
 `decisions`, and `research` pointers but no `sources` pointer, so these files
 are never read into an `ArtefactSet` and emit no `CAIRN_ARTEFACT_FILENAME_DRIFT`
 finding. Measured on 2026-07-27, `cairn --file
-tests/fixtures/cairn-bootstrap/cairn.blueprint scan --strict` reports 23
+tests/fixtures/cairn-bootstrap/cairn.blueprint scan --strict` reports 22
 findings and not one of them is CA038.
 
 So this is a latent defect, not a live one. It bites the day someone adds a
@@ -57,8 +57,7 @@ the source record point at itself. That needs a decision, not a rename:
 - Or give the artefact a different slug so the two paths stay distinct.
 
 Check whether `CAIRN_SOURCE_*` validation has anything to say about a `file:`
-that resolves to the artefact itself before choosing; if it does not, that gap
-may be worth its own finding.
+that resolves to the artefact itself before choosing.
 
 ## Task
 
@@ -68,6 +67,9 @@ Update any prose that names an old path.
 
 ## Acceptance
 
+- All nine source ids still exist, with their bodies unchanged. This is a
+  rename, so deleting the directory satisfies nothing: no test names these
+  files, which means the gates below cannot tell removal from remediation.
 - Every file under `tests/fixtures/cairn-bootstrap/meta/sources/` is named for
   its own `id` with the `src.` prefix stripped.
 - `src.review-adversarial-1.md`'s successor has a `file:` value that does not
