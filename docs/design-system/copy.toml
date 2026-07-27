@@ -227,6 +227,16 @@ err-write = "failed to write {file}: {detail}"
 err-temp-collision = "too many temp file collisions"
 err-from-code-conflict = "usage: cairn init --from-code --apply --wire [path]"
 
+# -- Path containment -----------------------------------------------------
+
+# Shared by every command that writes into a user's project: the pack
+# lifecycle, the campaign lock, and `cairn init` scaffolding.
+[paths]
+err-unsafe = "{file} is not a project-relative path; cairn will not act on it"
+err-symlink = "refusing to act on {file}: the path is reachable through a symlink"
+err-not-regular = "refusing to act on {file}: not a regular file"
+err-unreadable = "cannot inspect {file}: {detail}"
+
 # -- Agent pack -----------------------------------------------------------
 
 [pack]

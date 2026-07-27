@@ -8,7 +8,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::pack_assets::PackAsset;
-use super::wire::atomic_write;
+use super::wire::{atomic_write, contained_path, readable_path};
 use sha2::{Digest, Sha256};
 use std::fs;
 
@@ -90,7 +90,9 @@ pub(crate) fn digest(bytes: &[u8]) -> String {
 
 /// Read the ledger, or `None` when this is a fresh or legacy install.
 pub(crate) fn read_manifest(root: &Path) -> Result<Option<InstalledManifest>, CliResult> {
-    let path = root.join(MANIFEST_PATH);
+    let Some(path) = readable_path(root, MANIFEST_PATH)? else {
+        return Ok(None);
+    };
     let text = match fs::read_to_string(&path) {
         Ok(text) => text,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
@@ -115,7 +117,15 @@ pub(crate) fn read_manifest(root: &Path) -> Result<Option<InstalledManifest>, Cl
 
 /// Classify one asset against the ledger and the disk.
 pub(crate) fn classify(root: &Path, asset: &PackAsset, owned: Option<&str>) -> Action {
-    let full = root.join(asset.path.as_ref());
+    // A path reachable through a symlink, or one that is not a regular file,
+    // is reported and never touched. Treating it as pristine would let a
+    // symlink stand in for an owned file and redirect a later refresh or
+    // removal outside the project.
+    let full = match readable_path(root, asset.path.as_ref()) {
+        Ok(Some(full)) => full,
+        Ok(None) => return Action::Backfill,
+        Err(_) => return Action::Modified,
+    };
     let Ok(disk) = fs::read(&full) else {
         return Action::Backfill;
     };
@@ -157,7 +167,7 @@ pub(crate) fn write_manifest(
         return Err(err(1, "failed to serialise the pack manifest"));
     };
     body.push('\n');
-    let full = root.join(MANIFEST_PATH);
+    let full = contained_path(root, MANIFEST_PATH)?;
     let Some(parent) = full.parent() else {
         return Err(err(1, "pack manifest has no parent directory"));
     };

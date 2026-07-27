@@ -2,6 +2,7 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
+use super::wire::contained_path;
 
 pub(crate) fn run_ui_command(parsed: &ParsedArgs) -> CliResult {
     match ui::UiOptions::from_args(&parsed.command_args) {
@@ -40,7 +41,13 @@ pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
     ];
     let mut backfilled: Vec<&str> = Vec::new();
     for (path, content) in writes {
-        let full = root.join(path);
+        // Scaffolding runs before the pack lifecycle, so it needs the same
+        // containment policy: a symlinked `.cairn` would otherwise place the
+        // agent guide and state directory outside the project.
+        let full = match contained_path(root, path) {
+            Ok(full) => full,
+            Err(error) => return error,
+        };
         if let Some(parent) = full.parent()
             && let Err(error) = fs::create_dir_all(parent)
         {
@@ -49,11 +56,20 @@ pub(crate) fn init_project(root: &Path, wire: bool) -> CliResult {
                 &format!("failed to create {}: {error}", parent.display()),
             );
         }
-        if !full.exists() {
-            if fs::write(&full, content).is_err() {
-                return err(1, &format!("failed to write {}", full.display()));
+        // Only a genuine absence is backfillable. `exists()` is also false on a
+        // permission or I/O error, which would silently skip a scaffold file
+        // and still report success.
+        match fs::symlink_metadata(&full) {
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                if fs::write(&full, content).is_err() {
+                    return err(1, &format!("failed to write {}", full.display()));
+                }
+                backfilled.push(path);
             }
-            backfilled.push(path);
+            Err(error) => {
+                return err(1, &format!("cannot inspect {}: {error}", full.display()));
+            }
         }
     }
     if already_initialized {

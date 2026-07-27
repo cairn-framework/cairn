@@ -16,7 +16,7 @@ use super::pack_manifest::{
     classify, digest, has_loop_assets, migration_notes, read_manifest, write_manifest,
 };
 use super::pack_report::{append_modified, apply_json, envelope, status_json};
-use super::wire::{atomic_write, check_symlink_containment};
+use super::wire::{atomic_write, contained_path, readable_path};
 use std::fs;
 
 /// Dispatches `cairn pack <subcommand>`.
@@ -156,7 +156,6 @@ fn run_apply(
 
     for asset in &assets {
         let action = classify(root, asset, owned.get(asset.path.as_ref()).copied());
-        let full = root.join(asset.path.as_ref());
         if action == Action::Modified {
             report.modified.push(asset.path.clone().into_owned());
             // Keep ownership of a file we already owned so a later edit-revert
@@ -170,7 +169,7 @@ fn run_apply(
             continue;
         }
         if action == Action::Backfill || action == Action::Refresh {
-            if let Err(result) = write_asset(root, &full, asset) {
+            if let Err(result) = write_asset(root, asset) {
                 // Publish all prior ownership plus what already landed before
                 // surfacing the failure. Dropping later owned rows here would
                 // orphan exactly the files this recovery path protects.
@@ -264,12 +263,11 @@ fn render_apply_human(
     out
 }
 
-/// Write one asset, refusing any destination reachable through a symlink.
-fn write_asset(root: &Path, full: &Path, asset: &PackAsset) -> Result<(), CliResult> {
-    let containment = check_symlink_containment(root, full);
-    if containment.code != 0 {
-        return Err(containment);
-    }
+/// Write one asset through the single containment policy: project-relative,
+/// and no component reachable through a symlink.
+fn write_asset(root: &Path, asset: &PackAsset) -> Result<(), CliResult> {
+    let owned = contained_path(root, asset.path.as_ref())?;
+    let full = owned.as_path();
     let Some(parent) = full.parent() else {
         return Err(err(1, "pack destination has no parent directory"));
     };
@@ -397,7 +395,18 @@ fn run_uninstall(
     let mut removed = Vec::new();
     let mut kept = Vec::new();
     for file in &manifest.files {
-        let full = root.join(&file.path);
+        // Read and remove only through a contained, regular path. A ledger row
+        // whose parent became a symlink would otherwise delete the file it
+        // points at, outside the project.
+        let full = match readable_path(root, &file.path) {
+            Ok(Some(full)) => full,
+            // Already gone: nothing to retire, nothing to report as kept.
+            Ok(None) => continue,
+            Err(_) => {
+                kept.push(file.path.clone());
+                continue;
+            }
+        };
         match fs::read(&full) {
             Ok(disk) if digest(&disk) == file.sha256 => {
                 if fs::remove_file(&full).is_err() {
@@ -412,7 +421,11 @@ fn run_uninstall(
             Err(_) => {}
         }
     }
-    if fs::remove_file(root.join(MANIFEST_PATH)).is_err() {
+    let ledger = match contained_path(root, MANIFEST_PATH) {
+        Ok(path) => path,
+        Err(error) => return error,
+    };
+    if fs::remove_file(&ledger).is_err() {
         return err(
             1,
             &copy::lookup("pack.err-write")

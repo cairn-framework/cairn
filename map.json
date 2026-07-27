@@ -6646,6 +6646,7 @@
         "tests/pack_campaign.rs",
         "tests/pack_lifecycle.rs",
         "tests/pack_omp_adapter.rs",
+        "tests/pack_path_containment.rs",
         "tests/phase_10_distribution.rs",
         "tests/phase_7_6_ai_provenance.rs",
         "tests/phase_7_7_ux_foundation.rs",
