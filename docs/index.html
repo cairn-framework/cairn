@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cairn: architecture your repository can prove wrong.</title>
-<meta name="description" content="Cairn is the log book for your codebase. Your coding agent writes down what the system is meant to be. Cairn checks that against the real code on every commit, then signs it off, defers it, or grounds the merge.">
+<title>Cairn: a written plan your code has to keep.</title>
+<meta name="description" content="Cairn is a log book for your codebase. Your coding agent records what each part is meant to do. Wired into your commit hook, Cairn compares that record with the real code and fails the commit when the record contradicts itself or an interface breaks its contract.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Cairn: architecture your repository can prove wrong.">
-<meta property="og:description" content="Your agent writes down what the system is meant to be. Cairn reconciles it against the code you shipped, and blocks the merge when the two disagree.">
+<meta property="og:title" content="Cairn: a written plan your code has to keep.">
+<meta property="og:description" content="Your coding agent records what each part of the system is meant to do. Wired into your commit hook, Cairn compares that record with the code you shipped. It fails the commit when the record contradicts itself or an interface breaks its contract.">
 <meta property="og:url" content="https://cairn-framework.github.io/cairn/">
 <meta property="og:image" content="https://cairn-framework.github.io/cairn/assets/social-card.png">
 <meta property="og:image:width" content="1200">
@@ -15,8 +15,8 @@
 <meta property="og:image:alt" content="Cairn: a reconciliation strip in a technical log, one row tagged unserviceable where the declaration and the code stopped matching.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://cairn-framework.github.io/cairn/assets/social-card.png">
-<meta name="twitter:title" content="Cairn: architecture your repository can prove wrong.">
-<meta name="twitter:description" content="Your agent writes down what the system is meant to be. Cairn reconciles it against the code you shipped, and blocks the merge when the two disagree.">
+<meta name="twitter:title" content="Cairn: a written plan your code has to keep.">
+<meta name="twitter:description" content="Your coding agent records what each part of the system is meant to do. Wired into your commit hook, Cairn compares that record with the code you shipped. It fails the commit when the record contradicts itself or an interface breaks its contract.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="./design-system/fonts.css">
@@ -89,28 +89,28 @@
           <dt>Cert</dt><dd>MIT OR Apache-2.0, runs on your machine</dd>
         </dl>
 
-        <h1 class="mk-display" id="hero-title">Your architecture is only true if something can <em>prove it wrong</em>.</h1>
+        <h1 class="mk-display" id="hero-title">Your code drifts away from the plan, and <em>nobody tells you</em>.</h1>
 
-        <p class="mk-lede">Cairn is the log book for your codebase. Your coding agent writes down what the system is meant to be. Cairn checks that against the code on every commit, then signs it off, defers it, or grounds the merge.</p>
+        <p class="mk-lede">Cairn is a log book for your codebase. Your coding agent writes down what each part is meant to do and why. Wire Cairn into your commit hook. On every commit it compares what you declared with the real code. The serious disagreements fail the commit before they go any further.</p>
 
         <div class="mk-actions">
           <a class="mk-btn mk-btn--stamp" href="#install">Set it up with your agent</a>
           <a class="mk-btn mk-btn--quiet" href="https://github.com/cairn-framework/cairn/blob/main/docs/spec.md">Read the spec</a>
         </div>
 
-        <p class="mk-note">A blueprint that disagrees with the code is reported as a finding, exactly like wrong code is. That is the whole trick. Documentation you cannot falsify is documentation you cannot trust.</p>
+        <p class="mk-note">Comparing a written record against the real thing is called reconciling. A mechanic does it before an aircraft may fly. Do it to a codebase, and the notes you leave today are still worth trusting a year from now.</p>
       </div>
 
       <div class="mk-hero-aside">
         <div class="mk-strip" id="strip">
           <div class="mk-strip-head">
             <span class="mk-strip-title">Reconciliation strip</span>
-            <span class="mk-strip-note">specimen entry &middot; worked example, not a real repository</span>
+            <span class="mk-strip-note">specimen entry &middot; a synthetic auth system</span>
           </div>
 
           <div class="mk-strip-cols" aria-hidden="true">
             <span class="mk-label">Declared in cairn.blueprint</span>
-            <span class="mk-label">Joint</span>
+            <span class="mk-label">Check</span>
             <span class="mk-label">Found on disk</span>
           </div>
 
@@ -146,11 +146,11 @@
 
           <div class="mk-strip-foot">
             <span class="mk-rec mk-ink-firm">$ cairn scan</span>
-            <span class="mk-strip-note">2 synced &middot; 1 contradiction &middot; 1 ghost &middot; 1 orphan &middot; merge blocked</span>
+            <span class="mk-strip-note">2 synced &middot; 1 interface contradiction &middot; 1 ghost &middot; 1 orphan</span>
           </div>
         </div>
 
-        <p class="mk-note">The middle column is a torque stripe: a paint mark drawn across a bolt and its housing. While the two halves line up, nothing has moved. When they stop lining up, something did. That is drift, and you can see it before you read anything.</p>
+        <p class="mk-note">The middle column is the check itself, drawn as a mark borrowed from the workshop. A mechanic paints one line across a bolt and its housing, so that later a single glance shows whether the bolt has turned. Here the line is painted across what you declared and what is on disk. While the two halves meet, the records agree. When they slip apart, that is drift.</p>
       </div>
     </section>
   </div>
@@ -161,8 +161,8 @@
       <div class="mk-block-head">
         <span class="mk-block-no">01</span>
         <div>
-          <h2 class="mk-block-title" id="how-title">Three entries, and you never write any of them by hand.</h2>
-          <p class="mk-block-lede">Each entry below reads complete as it stands. Open one when you want the record underneath it: the real file, the real command, the real output.</p>
+          <h2 class="mk-block-title" id="how-title">Your agent keeps the log, and later sessions start from it.</h2>
+          <p class="mk-block-lede">Each entry below is complete as it stands. Open one to see the file, the command, or the output behind it.</p>
         </div>
       </div>
 
@@ -172,13 +172,13 @@
           <summary class="mk-entry-summary">
             <span class="mk-entry-no">E-01</span>
             <span class="mk-entry-title">Your agent writes down what the system is meant to be.
-              <span class="mk-entry-gist">One short file names your systems, your parts, the promise each part makes, and the choices behind them. Your agent drafts the first pass from the code you already have, then keeps it current as part of the work you already asked for.</span>
+              <span class="mk-entry-gist">One short file lists your systems and their parts, and points at the contract each part must honour and the decisions behind it. Your agent writes the first draft from the code you already have, then keeps it up to date as it works.</span>
             </span>
             <span class="mk-entry-more">Record</span>
           </summary>
           <div class="mk-entry-body">
             <div class="mk-prose">
-              <p>An excerpt from Cairn's own blueprint, verbatim apart from the marked omissions. A node claims paths, points at the contract it must honour, and inherits the decisions that constrain it. Nothing here is generated prose. Every line is checkable against the tree it describes.</p>
+              <p>This passage from Cairn's own blueprint omits only the marked cuts. Each node claims its paths, names the contract it must honour, and inherits the decisions that constrain it. Every line can be checked against the files it describes.</p>
             </div>
             <div class="mk-panel">
               <div class="mk-panel-head"><span>Declared</span><span class="mk-panel-file">cairn.blueprint</span></div>
@@ -211,17 +211,17 @@
         <details class="mk-entry">
           <summary class="mk-entry-summary">
             <span class="mk-entry-no">E-02</span>
-            <span class="mk-entry-title">Cairn checks it against the code, and stops the ones that matter.
-              <span class="mk-entry-gist">Every declared part is compared with what is really on disk. Disagreements become findings. Blocking findings fail the commit, so the mistake stops at the boundary instead of arriving in review.</span>
+            <span class="mk-entry-title">Cairn checks the log against the code, and stops the mistakes that matter.
+              <span class="mk-entry-gist">Every part you declared is compared with what is really on disk, and each mismatch becomes a finding. Wire the gate into your commit hook and the two blocking classes, structural errors and interface contradictions, fail the commit. The mistake stops at your keyboard and never reaches review.</span>
             </span>
             <span class="mk-entry-more">Record</span>
           </summary>
           <div class="mk-entry-body">
             <div class="mk-prose">
-              <p>Wire <code>cairn hook all</code> into pre-commit and it becomes the gate. It only enforces intent you have actually declared, so it stays quiet until you write a contract or a decision worth defending. Verbatim output from this repository on 27 July 2026, with the JSON re-wrapped to fit.</p>
+              <p>Wire <code>cairn hook all</code> into pre-commit or CI and it becomes the gate. It holds you to what you have actually written down, so it stays quiet until you write a promise worth keeping. Below is real output from this repository on 27 July 2026, with the JSON wrapped to fit.</p>
             </div>
             <div class="mk-panel">
-              <div class="mk-panel-head"><span>Reconciled</span><span class="mk-panel-file">this repository, today</span></div>
+              <div class="mk-panel-head"><span>Reconciled</span><span class="mk-panel-file">this repository &middot; 27 July 2026</span></div>
 <pre class="mk-wrap" tabindex="0" role="region" aria-label="Output of cairn hook all and cairn lint --json"><span class="mk-o-dim">$</span> cairn hook all
 Hook: all
 Decision: <span class="mk-o-key">pass</span>
@@ -243,14 +243,14 @@ dec.revisit-trigger-correlator-deferred)",<span class="mk-o-key">"node"</span>:n
         <details class="mk-entry">
           <summary class="mk-entry-summary">
             <span class="mk-entry-no">E-03</span>
-            <span class="mk-entry-title">Every later session reads the log instead of guessing.
-              <span class="mk-entry-gist">Your next agent stops re-reading the source tree. It asks the map what a part promises, which decisions bind it, and what sits next to it, then ships code that fits.</span>
+            <span class="mk-entry-title">Your next session starts from the log instead of starting over.
+              <span class="mk-entry-gist">Your next agent asks the map what a node promises, which decisions bind it, and what sits beside it. One command answers, and the agent begins with the record in hand.</span>
             </span>
             <span class="mk-entry-more">Record</span>
           </summary>
           <div class="mk-entry-body">
             <div class="mk-prose">
-              <p>Verbatim output from this repository. One command returns the dependency edges, the owning contract, and every accepted decision that constrains the node, including the ones inherited from its neighbours. Five further decisions are omitted here for length.</p>
+              <p>This output is real, with five accepted decisions cut for length. One command returns the node's dependency edges and its owning contract. It also returns every accepted decision that binds the node, including the ones that reach it via its neighbours.</p>
             </div>
             <div class="mk-panel">
               <div class="mk-panel-head"><span>Queried</span><span class="mk-panel-file">cairn neighbourhood cairn.reconcile</span></div>
@@ -283,8 +283,8 @@ Accepted decisions:
       <div class="mk-block-head">
         <span class="mk-block-no">02</span>
         <div>
-          <h2 class="mk-block-title" id="tags-title">Three kinds of wrong, kept apart on purpose.</h2>
-          <p class="mk-block-lede">A workshop does not have one word for a problem. It has a tag that says what the problem stops, and a line for the person who signed it. Cairn works the same way. Calling everything a warning is how a good plan quietly rots.</p>
+          <h2 class="mk-block-title" id="tags-title">A problem gets a tag, and the tag says what it stops.</h2>
+          <p class="mk-block-lede">In a workshop, a red tag keeps an aircraft on the ground until a mechanic clears the fault. An amber one lets it fly and books the repair. When everything is called a warning instead, everything gets waved through, and a good plan rots quietly.</p>
         </div>
       </div>
 
@@ -294,34 +294,34 @@ Accepted decisions:
           <article class="mk-tag mk-tag--uns">
             <span class="mk-tag-status">Unserviceable</span>
             <h3 class="mk-tag-title">Structural error</h3>
-            <p class="mk-tag-body">The record contradicts itself: the same node ID declared twice, an edge pointing at a node that does not exist, an artefact naming a node nobody declared, or a cycle in the dependency graph. Nothing built on a record like that can be trusted.</p>
-            <p class="mk-tag-sig"><span class="mk-label">Stops</span> the scan</p>
+            <p class="mk-tag-body">The record contradicts itself. The same node ID is declared twice, or two nodes claim the same path. An artefact points at a file that is not there, or names a node nobody declared. Until that is repaired, nothing the record says can be trusted.</p>
+            <p class="mk-tag-sig"><span class="mk-label">Stops</span> the commit, always</p>
           </article>
 
           <article class="mk-tag mk-tag--uns">
             <span class="mk-tag-status">Unserviceable</span>
             <h3 class="mk-tag-title">Interface contradiction</h3>
-            <p class="mk-tag-body">The contract says one thing and the code does another. The interface hash moved and nobody updated the promise. This is drift caught in the act, before your agent ships the version that breaks everything above it.</p>
-            <p class="mk-tag-sig"><span class="mk-label">Stops</span> the merge</p>
+            <p class="mk-tag-body">The contract says one thing and the code does another. The interface hash moved, and nobody updated the promise. Cairn catches the drift in the commit that causes it, before the rest of the system leans on the changed code.</p>
+            <p class="mk-tag-sig"><span class="mk-label">Stops</span> the commit, until you settle it</p>
           </article>
 
           <article class="mk-tag mk-tag--def">
             <span class="mk-tag-status">Deferred defect</span>
             <h3 class="mk-tag-title">Rationale tension</h3>
-            <p class="mk-tag-body">Two decisions are fighting, or the evidence behind one no longer holds. The code still builds and the promises still hold, but the story has drifted. Raised and tracked, so you can settle it next time you are in there anyway.</p>
-            <p class="mk-tag-sig"><span class="mk-label">Stops</span> nothing, books a review</p>
+            <p class="mk-tag-body">Two decisions are fighting, or the evidence behind one no longer holds. Nothing mechanical is broken, so Cairn makes no claim that the code is wrong. It raises the tension and keeps track, so you can settle it the next time you work on that part.</p>
+            <p class="mk-tag-sig"><span class="mk-label">Stops</span> nothing, stays on the record</p>
           </article>
 
           <article class="mk-tag mk-tag--svc">
             <span class="mk-tag-status">Serviceable</span>
             <h3 class="mk-tag-title">Synced</h3>
-            <p class="mk-tag-body">The declaration and the code agree. This is not a green tick on a dashboard. It is a statement that something checked, and that the check can be run again by anyone who does not believe it.</p>
+            <p class="mk-tag-body">The declaration and the code agree. Cairn checked, and wrote the result down. Anyone who doubts it can run the same check and get the same answer.</p>
             <p class="mk-tag-sig"><span class="mk-label">Signed by</span> cairn scan</p>
           </article>
 
         </div>
 
-        <p class="mk-aside"><strong>Two of those tags are red on purpose.</strong> Both block, and they differ in what they block. A broken record fails the scan outright. A contract the code has outgrown fails the merge. Collapsing them into one severity would tell you something is wrong without telling you what to do about it.</p>
+        <p class="mk-aside"><strong>Two of those tags are red, and once the gate is wired both fail the commit.</strong> They are kept apart because you clear them in different ways. A broken record has to be repaired before anything else it says means much. A contract the code has outgrown is settled by updating the contract and recording the new hash, or by putting the code back. One shared word for both would tell you that something is wrong and leave you to guess what to do about it.</p>
       </div>
     </section>
   </div>
@@ -333,7 +333,7 @@ Accepted decisions:
         <span class="mk-block-no">03</span>
         <div>
           <h2 class="mk-block-title" id="own-title">Cairn keeps its own log, and you can read it.</h2>
-          <p class="mk-block-lede">Cairn declares itself in its own <code>cairn.blueprint</code> and reconciles against its own source on every commit. These are real numbers read from the graph on 27 July 2026, not a mock. They move as the repository moves, so clone it and run <code>cairn context</code> to get today's.</p>
+          <p class="mk-block-lede">Cairn declares itself in its own <code>cairn.blueprint</code> and checks itself against its own source on every commit. The numbers below were read from the graph on 27 July 2026. They move as the repository moves, so clone it and run <code>cairn context</code> to see today's.</p>
         </div>
       </div>
 
@@ -349,6 +349,38 @@ Accepted decisions:
           <div class="mk-ledger-clear"><span class="mk-label">Errors</span><b>0</b></div>
         </div>
 
+        <div class="mk-schematic">
+          <div class="mk-schematic-head">
+            <span class="mk-schematic-title">Structure diagram</span>
+            <span class="mk-schematic-note">Cairn's own top level &middot; 27 July 2026</span>
+          </div>
+          <div class="mk-schematic-body" role="img" aria-label="Cairn's top-level structure on 27 July 2026. The kernel container holds eight nodes. Five nodes connect to it: mcp, brownfield, reconcile, ui and state. The ui node also connects to state.">
+            <div class="mk-sch-col mk-sch-col--l">
+              <span class="mk-sch-node">mcp</span>
+              <span class="mk-sch-node">brownfield</span>
+              <span class="mk-sch-node">reconcile</span>
+            </div>
+
+            <span class="mk-sch-bus mk-sch-bus--l" aria-hidden="true"></span>
+
+            <div class="mk-sch-hub">
+              <span class="mk-sch-hub-name">kernel</span>
+              <span class="mk-sch-hub-note">8 nodes inside &middot; 5 connect to it</span>
+            </div>
+
+            <span class="mk-sch-bus mk-sch-bus--r" aria-hidden="true"></span>
+
+            <div class="mk-sch-col mk-sch-col--r">
+              <span class="mk-sch-node">ui</span>
+              <span class="mk-sch-node mk-sch-node--linked">state</span>
+            </div>
+          </div>
+          <div class="mk-schematic-foot">
+            <span class="mk-schematic-note">Shape only. Which way each edge runs, and why, is printed in the record below.</span>
+            <span class="mk-schematic-note">10 further modules at this level declare no edge</span>
+          </div>
+        </div>
+
         <div class="mk-panel">
           <div class="mk-panel-head"><span>Own log</span><span class="mk-panel-file">cairn context, structure abridged</span></div>
 <pre tabindex="0" role="region" aria-label="Output of cairn context, structure abridged">Cairn (25 nodes, 27 edges)
@@ -362,19 +394,24 @@ Structure:
     -&gt; kernel        <span class="mk-o-dim"># Reads orphan findings</span>
   kernel
     <span class="mk-o-dim">(8 nested node(s) collapsed; cairn context --scope kernel)</span>
+    -&gt; brownfield    <span class="mk-o-dim"># Dispatches onboard command</span>
     -&gt; reconcile     <span class="mk-o-dim"># Invokes registered reconcilers</span>
+    -&gt; state         <span class="mk-o-dim"># Reads beads to flag orphan node labels</span>
     -&gt; ui            <span class="mk-o-dim"># Launches graph explorer</span>
+  mcp
+    -&gt; kernel        <span class="mk-o-dim"># Wraps queries as MCP tools</span>
   reconcile
     -&gt; kernel        <span class="mk-o-dim"># Reports findings to graph</span>
+  state
   ui
-    -&gt; kernel        <span class="mk-o-dim"># Serves graph data</span>
-    -&gt; state         <span class="mk-o-dim"># Reads node-linked beads</span>
+    -&gt; kernel        <span class="mk-o-dim"># Runs scans for API responses; Serves graph data</span>
+    -&gt; state         <span class="mk-o-dim"># Reads node-linked beads for the inspector</span>
 <span class="mk-o-dim">  ... 10 more nodes</span>
 
 Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
         </div>
 
-        <p class="mk-aside">The one remaining finding is an <strong>info</strong>: a spec rule that names no enforcer yet, deliberately deferred by a recorded decision. Cairn does not hide it, and it does not pretend it is clean. That is the point of a log.</p>
+        <p class="mk-aside">The one finding left is an <strong>info</strong>: a spec rule that nothing enforces yet, put off on purpose by a recorded decision. It stays in the log, in plain sight, with the reason written beside it for whoever reads next.</p>
       </div>
     </section>
   </div>
@@ -385,8 +422,8 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
       <div class="mk-block-head">
         <span class="mk-block-no">04</span>
         <div>
-          <h2 class="mk-block-title" id="trail-title">Evidence goes in. Authority comes out. A decision is where they meet.</h2>
-          <p class="mk-block-lede">An aircraft is legal to fly because a chain of paper says so, and because one named certificate reads that evidence and issues the permission. Cairn has the same shape, and it is the part that answers "why is it like this" a year from now.</p>
+          <h2 class="mk-block-title" id="trail-title">A decision is the place where evidence turns into a rule.</h2>
+          <p class="mk-block-lede">A chain of paper shows why an aircraft may fly. A signed certificate turns that evidence into permission. Cairn is built the same way. This is the record that answers "why is it like this" when you come back a year later and cannot remember.</p>
         </div>
       </div>
 
@@ -396,18 +433,18 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
             <span class="mk-label">Provenance chain &middot; evidence in</span>
             <div class="mk-trail-step">
               <span class="mk-rec">source</span>
-              <p>The raw material. A paper, a benchmark, a thread, a spec you had to read.</p>
+              <p>The raw material: a paper, a benchmark, a chat thread, a spec you had to read.</p>
             </div>
             <div class="mk-trail-step">
               <span class="mk-rec">research</span>
-              <p>What you made of it. Sources cited, so the reasoning can be re-walked.</p>
+              <p>What you made of it, with its sources cited, so anyone can walk the reasoning again.</p>
             </div>
           </div>
 
           <div class="mk-crs">
             <span class="mk-label">Certificate</span>
             <span class="mk-crs-name">Decision</span>
-            <p class="mk-tag-body">Reads the evidence. Issues the rule. Nothing downstream is allowed to appear from nowhere.</p>
+            <p class="mk-tag-body">It reads the evidence and it issues the rule. When you ask why a part is shaped this way, this is the record that answers.</p>
             <span class="mk-crs-sig">dec.code-reconciliation</span>
           </div>
 
@@ -415,20 +452,20 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
             <span class="mk-label">Authority chain &middot; rules out</span>
             <div class="mk-trail-step">
               <span class="mk-rec">blueprint</span>
-              <p>The shape of the system. Which parts exist and how they depend on each other.</p>
+              <p>The shape of the system: which parts exist, and how they depend on each other.</p>
             </div>
             <div class="mk-trail-step">
               <span class="mk-rec">contract</span>
-              <p>The promise a part makes. Broken quietly, this is what grounds a merge.</p>
+              <p>The promise a part makes to everything built on top of it.</p>
             </div>
             <div class="mk-trail-step">
               <span class="mk-rec">code</span>
-              <p>What is actually on disk. The only thing that gets to be the last word.</p>
+              <p>What is actually on disk. This is the reality the record is measured against.</p>
             </div>
           </div>
         </div>
 
-        <p class="mk-aside">Ask any node why it is shaped the way it is and you get the trail back, not a guess: <code>cairn rationale cairn.reconcile</code> returns every accepted decision that binds it, each with the research and sources behind it. Decisions your team argued about in a thread six months ago now live next to the code they constrain.</p>
+        <p class="mk-aside">Ask any node why it is shaped the way it is, and you get the trail back. <code>cairn rationale cairn.reconcile</code> returns every accepted decision that binds it, with the research and the sources in its rationale chain. The argument your team had in a thread six months ago ends up beside the code it shaped.</p>
       </div>
     </section>
   </div>
@@ -440,7 +477,7 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
         <span class="mk-block-no">05</span>
         <div>
           <h2 class="mk-block-title" id="ratings-title">Code is the first thing it is rated to check.</h2>
-          <p class="mk-block-lede">A <em>reconciler</em> answers one question: for a declared part, what is really there? Cairn's core does not care which one you plug in. Anywhere "what we said" has to stay honest with "what is", the same machine applies. Only the first is certified today.</p>
+          <p class="mk-block-lede">A <em>reconciler</em> answers one question: for a part you declared, what is really there? The source-code reconciler is the only one certified today. Cairn's core works with any of them, so the same machine applies wherever a written record has to stay honest with reality.</p>
         </div>
       </div>
 
@@ -478,7 +515,7 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
         <span class="mk-block-no">06</span>
         <div>
           <h2 class="mk-block-title" id="install-title">Release to service.</h2>
-          <p class="mk-block-lede">Your first scan writes <code>map.md</code> and <code>map.json</code> for humans reading a diff, and from the next prompt your agents orient with <code>cairn context</code>, <code>cairn get</code>, and <code>cairn neighbourhood</code> instead of re-reading your source tree. Cairn runs locally. Nothing leaves your machine.</p>
+          <p class="mk-block-lede">Your first scan writes <code>map.md</code> and <code>map.json</code>, so a person reading a diff can see the shape change. From the next prompt on, your agents get their bearings from three commands: <code>cairn context</code>, <code>cairn get</code>, and <code>cairn neighbourhood</code>. That saves them reading your whole source tree again to work out where they are. Everything runs on your machine.</p>
         </div>
       </div>
 
@@ -491,7 +528,7 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
               <code id="cmd-agent">Read https://raw.githubusercontent.com/cairn-framework/cairn/main/docs/agent-setup.md and follow it to set up Cairn in this repo.</code>
               <button type="button" data-copy="cmd-agent">Copy</button>
             </div>
-            <p class="mk-note">Your agent installs the CLI, works out whether this is a new or existing project, drafts the map with you, wires itself in, and arms the gate.</p>
+            <p class="mk-note">Your agent installs the CLI, works out whether this is a new or an existing project, drafts the blueprint with you, wires itself in, and arms the gate.</p>
           </div>
 
           <div class="mk-stack mk-stack--tight">
@@ -508,7 +545,7 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
           </div>
         </div>
 
-        <p class="mk-aside"><strong>The clean exit guarantee.</strong> Try it on a branch. If you hate it, run <code>cairn pack uninstall</code> to take the agent pack back out, then delete <code>cairn.blueprint</code>, <code>cairn.config.yaml</code>, <code>.cairn/</code>, the generated map files, and the empty <code>meta/</code> folders the scaffold made. Then take Cairn's block back out of your agent instructions file, or delete that file if Cairn created it. Your repository is exactly what it was. Already have a codebase? <code>cairn init --from-code</code> drafts the whole map from your source tree as a change proposal you review before anything lands.</p>
+        <p class="mk-aside"><strong>Leaving is a short job.</strong> Try it on a branch. If you hate it, run <code>cairn pack uninstall</code>, which retires the pack files Cairn owns and has not seen edited. Delete any pack file you did edit yourself. Then delete <code>cairn.blueprint</code>, <code>cairn.config.yaml</code>, <code>.cairn/</code>, the generated map files, and the empty <code>meta/</code> folders the scaffold made. Last, take Cairn's block back out of your agent instructions file, or delete that file if Cairn created it. Already have a codebase? <code>cairn init --from-code</code> drafts the whole blueprint from your source tree as a change proposal you review before anything lands.</p>
 
       </div>
     </section>
@@ -519,7 +556,7 @@ Artefacts: 22 contracts, 81 decisions, 134 todos, 25 research, 14 sources</pre>
 <footer class="mk-footer">
   <div class="mk-sheet mk-footer-in">
     <div>
-      <p class="mk-footer-brand"><strong>Cairn.</strong> One stone stacked against forgetting what you built and why. Free, open source, and local first.</p>
+      <p class="mk-footer-brand"><strong>Cairn.</strong> One stone stacked against forgetting what you built and why. It is free, open source, and runs on your machine.</p>
     </div>
     <nav class="mk-footer-nav" aria-label="Footer">
       <a href="https://github.com/cairn-framework/cairn">Repository</a>

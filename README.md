@@ -27,9 +27,9 @@ Cairn is built for you if any of this sounds familiar:
 - Your agent forgets decisions and rebreaks things you settled weeks ago.
 - Work across sessions or agents drifts from the plan, and you find out too late.
 
-Cairn fixes that. You talk to your agent about what to build. Your agent writes the map as you talk: the blueprint, the contracts, the decisions. Cairn checks that map against the real code, so the plan and the shipped code always match. A declaration that disagrees with the code shows up as a finding, the same as wrong code. Because the map can be proven wrong, you can actually trust what it says. Every future session picks up the same map and starts already knowing your system.
+Cairn fixes that. You talk to your agent about what to build. Your agent writes the declarations as you talk: the blueprint, the contracts, the decisions. Cairn checks those declarations against the real code, and writes the map as the reviewable view of the result. A declaration that disagrees with the code shows up as a finding, the same as wrong code. Because those declarations can be proven wrong, you can actually trust what they say. Every future session picks up the same map and starts already knowing your system.
 
-You do almost nothing. Your agent drafts the first map in one command, and keeps it in sync as part of the work you already asked for. The map and all of its notes are plain text in your repo, plus a blueprint file and a small config file. Cairn is local-first, so your project data stays on your machine. If you ever want out, delete `.cairn/`, `cairn.blueprint`, `cairn.config.yaml`, and the generated map files, and your repo is back to how it was.
+You do almost nothing. Your agent drafts the first blueprint in one command, and keeps it in sync as part of the work you already asked for. The declarations and all of their notes are plain text in your repo, alongside a small config file and the generated map. Cairn is local-first, so your project data stays on your machine. If you ever want out, run `cairn pack uninstall`, which retires the pack files Cairn owns and has not seen edited. Delete any pack file you edited yourself. Then delete `.cairn/`, `cairn.blueprint`, `cairn.config.yaml`, the generated map files, the empty scaffolded `meta/` folders, and Cairn's block in your agent instructions file.
 
 Think of it like a floor plan for a house. A floor plan shows which walls hold the house up, so you do not knock down the wrong one. Cairn shows which parts of your code hold everything else up, so your agent does not break them by accident.
 
@@ -84,13 +84,13 @@ cairn scan                                                          # reconcile 
   <img src="docs/assets/demo/install.gif" alt="Installing cairn via curl, then cairn init and cairn scan on a fresh project" width="820">
 </p>
 
-Already have a codebase? Run `cairn init --from-code --apply --wire` to draft the map from your source tree, land it, install the agent pack, and wire its pointer in one step. Drop `--apply --wire` to review the proposal first, land it with `cairn change apply brownfield-init`, then run `cairn init --wire`.
+Already have a codebase? Run `cairn init --from-code --apply --wire` to draft the blueprint from your source tree, land it, install the agent pack, and wire its pointer in one step. Drop `--apply --wire` to review the proposal first, land it with `cairn change apply brownfield-init`, then run `cairn init --wire`.
 
 Once the draft is applied, `cairn scan` writes the map and lists every place the map and the code disagree: files on disk that no module claims (orphans), modules planned but not yet built (ghosts), and mismatches between the two. `cairn onboard` groups the leftover files and suggests where they fit. The gate only catches intent you have actually declared: contracts and decisions. Spell those out and the gate arms itself.
 
 See [docs/quickstart.md](docs/quickstart.md) for prerequisites, other install methods, and a full first-run walkthrough. The blueprint grammar is in [docs/blueprint.md](docs/blueprint.md), and the command list in [docs/commands.md](docs/commands.md).
 
-**The Clean Exit Guarantee.** Try Cairn on a branch. If you hate it, delete `cairn.blueprint`, `cairn.config.yaml`, `.cairn/`, and the generated map files, and take the pasted section back out of your agent instructions. Your repo is exactly what it was.
+**The clean exit.** Try Cairn on a branch. If you hate it, run `cairn pack uninstall` to retire the pack files Cairn owns and has not seen edited, then delete any pack file you edited yourself. Delete `cairn.blueprint`, `cairn.config.yaml`, `.cairn/`, the generated map files, and the empty scaffolded `meta/` folders. Last, take Cairn's block back out of your agent instructions, or delete that file if Cairn created it.
 
 **Local-first.** Cairn runs on your machine and your project data stays there.
 
