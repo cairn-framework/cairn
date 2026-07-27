@@ -15,7 +15,7 @@ use super::pack_campaign::{
     pinned_root, render_resolution, resolve,
 };
 use super::pack_manifest::digest;
-use super::wire::check_symlink_containment;
+use super::wire::{contained_path, readable_path};
 use std::fs;
 
 pub(crate) fn run_campaign(
@@ -67,13 +67,7 @@ fn validate_snapshot(snapshot: &Resolution) -> Result<(), CliResult> {
 /// verification rather than pinning half a campaign.
 fn publish_snapshot(root: &Path, body: &str) -> Result<(), CliResult> {
     use std::io::Write as _;
-    let path = root.join(SNAPSHOT_PATH);
-    // The claim's own path must not be reachable through a symlink, or the
-    // campaign state lands outside the project.
-    let containment = check_symlink_containment(root, &path);
-    if containment.code != 0 {
-        return Err(containment);
-    }
+    let path = contained_path(root, SNAPSHOT_PATH)?;
     if let Some(parent) = path.parent()
         && let Err(error) = fs::create_dir_all(parent)
     {
@@ -117,7 +111,7 @@ fn publish_snapshot(root: &Path, body: &str) -> Result<(), CliResult> {
 /// read-only. Nothing is reread from the live pack: the copies are exactly the
 /// bytes that were hashed.
 fn pin_bytes(root: &Path, buffered: &Buffered) -> Result<(), CliResult> {
-    let base = root.join(pinned_root(&buffered.resolution));
+    let base = pinned_root(&buffered.resolution);
     let mut written: Vec<&str> = Vec::new();
     for held in std::iter::once(&buffered.prompt).chain(&buffered.closure) {
         // The router entry is its own closure head in some layouts: write each
@@ -127,11 +121,8 @@ fn pin_bytes(root: &Path, buffered: &Buffered) -> Result<(), CliResult> {
         }
         // Refuse a destination reachable through a symlink before creating any
         // of it: exclusive creation only guards the final component.
-        let containment = check_symlink_containment(root, &base.join(&held.asset.path));
-        if containment.code != 0 {
-            return Err(containment);
-        }
-        if let Err(error) = write_pinned(&base, held) {
+        let target = contained_path(root, &format!("{base}/{}", held.asset.path))?;
+        if let Err(error) = write_pinned(&target, held) {
             return Err(err(
                 1,
                 &copy::lookup("pack.err-write")
@@ -144,8 +135,7 @@ fn pin_bytes(root: &Path, buffered: &Buffered) -> Result<(), CliResult> {
     Ok(())
 }
 
-fn write_pinned(base: &Path, held: &HeldAsset) -> std::io::Result<()> {
-    let target = base.join(&held.asset.path);
+fn write_pinned(target: &Path, held: &HeldAsset) -> std::io::Result<()> {
     if let Some(parent) = target.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -155,19 +145,27 @@ fn write_pinned(base: &Path, held: &HeldAsset) -> std::io::Result<()> {
     let mut file = fs::OpenOptions::new()
         .write(true)
         .create_new(true)
-        .open(&target)?;
+        .open(target)?;
     std::io::Write::write_all(&mut file, &held.bytes)?;
-    drop(file);
-    let mut permissions = fs::metadata(&target)?.permissions();
+    // Through the open handle, not by re-resolving the path: a concurrent
+    // rename could otherwise swap a symlink in and have this chmod land on
+    // whatever it points at.
+    let mut permissions = file.metadata()?.permissions();
     permissions.set_readonly(true);
-    fs::set_permissions(&target, permissions)
+    file.set_permissions(permissions)
 }
 
 /// Confirm the pinned copies still hold the bytes the snapshot recorded.
 fn verify_pinned(root: &Path, snapshot: &Resolution) -> Result<(), String> {
-    let base = root.join(pinned_root(snapshot));
+    let base = pinned_root(snapshot);
     for asset in std::iter::once(&snapshot.prompt).chain(&snapshot.closure) {
-        let Ok(bytes) = fs::read(base.join(&asset.path)) else {
+        // Pinned copies are ordinary files on disk, so the same policy applies:
+        // a symlink or blocking file type here would defeat the whole point of
+        // an immutable campaign.
+        let Ok(Some(full)) = readable_path(root, &format!("{base}/{}", asset.path)) else {
+            return Err(copy::lookup("pack.campaign-absent").replace("{file}", &asset.path));
+        };
+        let Ok(bytes) = fs::read(full) else {
             return Err(copy::lookup("pack.campaign-absent").replace("{file}", &asset.path));
         };
         if digest(&bytes) != asset.sha256 {
@@ -197,7 +195,9 @@ fn campaign_start(root: &Path, requested: Option<&str>, with_loop: bool, json: b
         // successor's state would be worse than leaving debris.
         if read_snapshot(root).ok().as_ref() == Some(resolution) {
             let _ = remove_pinned(root, resolution);
-            let _ = fs::remove_file(root.join(SNAPSHOT_PATH));
+            if let Ok(claim) = contained_path(root, SNAPSHOT_PATH) {
+                let _ = fs::remove_file(claim);
+            }
         }
         return result;
     }
@@ -264,16 +264,15 @@ fn campaign_verify(root: &Path, requested: Option<&str>, json: bool) -> CliResul
 /// Drop one campaign's pinned copies. They are read-only by design, so on
 /// Windows the bit comes off first.
 fn remove_pinned(root: &Path, resolution: &Resolution) -> std::io::Result<()> {
-    let pinned = root.join(pinned_root(resolution));
     // A recursive delete never follows a path out of the project, whatever the
     // snapshot or an intermediate symlink claims.
-    if check_symlink_containment(root, &pinned).code != 0 {
-        return Err(std::io::Error::other(
-            "the campaign directory is not contained by the project root",
-        ));
-    }
-    if !pinned.exists() {
-        return Ok(());
+    let pinned = contained_path(root, &pinned_root(resolution)).map_err(|_| {
+        std::io::Error::other("the campaign directory is not contained by the project root")
+    })?;
+    match fs::symlink_metadata(&pinned) {
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(error),
     }
     // Unix deletes a read-only file when its directory is writable; Windows
     // refuses, so the bit comes off there before the tree goes.
@@ -285,8 +284,15 @@ fn remove_pinned(root: &Path, resolution: &Resolution) -> std::io::Result<()> {
 #[cfg(windows)]
 fn clear_readonly(dir: &Path) -> std::io::Result<()> {
     for entry in fs::read_dir(dir)? {
-        let path = entry?.path();
-        if path.is_dir() {
+        let entry = entry?;
+        // Never follow a nested link out of the campaign tree: a junction here
+        // would otherwise have this walker clear read-only flags anywhere.
+        let file_type = entry.file_type()?;
+        if file_type.is_symlink() {
+            continue;
+        }
+        let path = entry.path();
+        if file_type.is_dir() {
             clear_readonly(&path)?;
         } else {
             let mut permissions = fs::metadata(&path)?.permissions();
@@ -301,15 +307,35 @@ fn clear_readonly(dir: &Path) -> std::io::Result<()> {
 }
 
 fn campaign_end(root: &Path, json: bool) -> CliResult {
-    if !root.join(SNAPSHOT_PATH).exists() {
-        return if json {
-            ok(envelope(
-                "pack campaign end",
-                &serde_json::json!({"ended": false}),
-            ))
-        } else {
-            ok(format!("{}\n", copy::lookup("pack.campaign-none")))
-        };
+    // `end` is the one verb that runs before the ownership ledger is consulted,
+    // so it carries the containment check itself: a symlinked `.cairn/state`
+    // would otherwise make it unlink a snapshot outside the project.
+    let claim = match contained_path(root, SNAPSHOT_PATH) {
+        Ok(path) => path,
+        Err(error) => return error,
+    };
+    match fs::symlink_metadata(&claim) {
+        Ok(_) => {}
+        // Only a genuine absence is "no campaign". A permission or I/O error
+        // must not be reported as nothing to release.
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return if json {
+                ok(envelope(
+                    "pack campaign end",
+                    &serde_json::json!({"ended": false}),
+                ))
+            } else {
+                ok(format!("{}\n", copy::lookup("pack.campaign-none")))
+            };
+        }
+        Err(error) => {
+            return err(
+                1,
+                &copy::lookup("pack.err-unreadable")
+                    .replace("{file}", SNAPSHOT_PATH)
+                    .replace("{detail}", &error.to_string()),
+            );
+        }
     }
     // An interrupted start leaves a claim nothing can parse. `end` is the
     // release verb, so it clears that state too: otherwise the campaign could
@@ -325,13 +351,10 @@ fn campaign_end(root: &Path, json: bool) -> CliResult {
                     .replace("{detail}", &error.to_string()),
             );
         }
-    } else {
-        let base = root.join(PINNED_ROOT);
-        if check_symlink_containment(root, &base).code == 0 {
-            let _ = fs::remove_dir_all(base);
-        }
+    } else if let Ok(base) = contained_path(root, PINNED_ROOT) {
+        let _ = fs::remove_dir_all(base);
     }
-    if let Err(error) = fs::remove_file(root.join(SNAPSHOT_PATH)) {
+    if let Err(error) = fs::remove_file(&claim) {
         return err(
             1,
             &copy::lookup("pack.err-write")
@@ -351,7 +374,10 @@ fn campaign_end(root: &Path, json: bool) -> CliResult {
 /// Read the pinned campaign. The snapshot is user-writable, so it is validated
 /// before any of its values reach the filesystem.
 fn read_snapshot(root: &Path) -> Result<Resolution, CliResult> {
-    let Ok(body) = fs::read_to_string(root.join(SNAPSHOT_PATH)) else {
+    let Ok(Some(path)) = readable_path(root, SNAPSHOT_PATH) else {
+        return Err(err(1, copy::lookup("pack.campaign-none")));
+    };
+    let Ok(body) = fs::read_to_string(path) else {
         return Err(err(1, copy::lookup("pack.campaign-none")));
     };
     let snapshot: Resolution = serde_json::from_str(&body)

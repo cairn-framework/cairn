@@ -100,6 +100,64 @@ pub(crate) fn check_symlink_containment(root: &Path, file: &Path) -> CliResult {
     ok(String::new())
 }
 
+/// Resolve a project-relative path, refusing anything that could act outside
+/// the project root. Shared by the pack lifecycle, the campaign lock, and
+/// `cairn init` scaffolding, so one policy covers every write into a project.
+///
+/// The lexical check is not redundant with `check_symlink_containment`, which
+/// walks `strip_prefix(root)`: that yields the original path when it is not
+/// under `root`, and pushing an absolute component then resets the walk onto
+/// an entirely different tree.
+pub(crate) fn contained_path(root: &Path, relative: &str) -> Result<PathBuf, CliResult> {
+    let rel = Path::new(relative);
+    if !rel
+        .components()
+        .all(|component| matches!(component, std::path::Component::Normal(_)))
+    {
+        return Err(err(
+            1,
+            &copy::lookup("paths.err-unsafe").replace("{file}", relative),
+        ));
+    }
+    let full = root.join(rel);
+    if check_symlink_containment(root, &full).code != 0 {
+        return Err(err(
+            1,
+            &copy::lookup("paths.err-symlink").replace("{file}", relative),
+        ));
+    }
+    Ok(full)
+}
+
+/// A contained path that is safe to read. `Ok(None)` means absent, which most
+/// callers treat as an ordinary state rather than an error.
+///
+/// Absence is decided by `symlink_metadata`, not `Path::exists`, which is also
+/// false on a permission or I/O error and would turn an unreadable owned file
+/// into a fresh backfill.
+///
+/// A directory is deliberately passed through rather than refused. Reading one
+/// fails immediately at the caller, which is the behaviour every verb already
+/// had; only types whose read can block are rejected.
+pub(crate) fn readable_path(root: &Path, relative: &str) -> Result<Option<PathBuf>, CliResult> {
+    let full = contained_path(root, relative)?;
+    match fs::symlink_metadata(&full) {
+        Ok(meta) if meta.file_type().is_file() || meta.file_type().is_dir() => Ok(Some(full)),
+        // A FIFO, socket, or device would block a read that follows it.
+        Ok(_) => Err(err(
+            1,
+            &copy::lookup("paths.err-not-regular").replace("{file}", relative),
+        )),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(err(
+            1,
+            &copy::lookup("paths.err-unreadable")
+                .replace("{file}", relative)
+                .replace("{detail}", &error.to_string()),
+        )),
+    }
+}
+
 /// Check if `file` is or is under a cairn scaffold path. Compares
 /// case-insensitively so the guard matches filesystem identity on macOS and
 /// Windows. `.claude` itself is rejected (init creates it for skills) but
@@ -436,6 +494,47 @@ mod tests {
         assert_eq!(
             result.code, 2,
             "path with '..' must be rejected, not used to escape project root"
+        );
+    }
+
+    #[test]
+    fn test_contained_path_rejects_non_normal_components() {
+        let dir = tempfile::tempdir().unwrap();
+        // The lexical half of the policy. `check_symlink_containment` cannot
+        // catch these on its own: it strips the root prefix, so an absolute
+        // path resets its walk onto a different tree entirely.
+        for candidate in [
+            "../escape.md",
+            "a/../../escape.md",
+            "/etc/passwd",
+            "./a/../../b.md",
+        ] {
+            assert!(
+                contained_path(dir.path(), candidate).is_err(),
+                "{candidate} must be refused before it reaches the filesystem"
+            );
+        }
+        assert!(
+            contained_path(dir.path(), "a/b/c.md").is_ok(),
+            "an ordinary project-relative path must be accepted"
+        );
+    }
+
+    #[test]
+    fn test_readable_path_reports_absence_and_refuses_escape() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(
+            matches!(readable_path(dir.path(), "missing.md"), Ok(None)),
+            "an absent path is an ordinary state, not an error"
+        );
+        std::fs::write(dir.path().join("present.md"), "x").unwrap();
+        assert!(
+            matches!(readable_path(dir.path(), "present.md"), Ok(Some(_))),
+            "a regular file resolves"
+        );
+        assert!(
+            readable_path(dir.path(), "../escape.md").is_err(),
+            "a traversal must not resolve to a readable path"
         );
     }
 

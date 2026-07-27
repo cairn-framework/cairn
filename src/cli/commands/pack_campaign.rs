@@ -12,6 +12,7 @@ use super::super::*;
 use super::pack_assets::harness_root;
 
 use super::pack_manifest::{InstalledManifest, MANIFEST_PATH, digest};
+use super::wire::readable_path;
 use std::fs;
 
 /// The campaign snapshot: the exact bytes a campaign is pinned to.
@@ -232,7 +233,13 @@ fn cli_digest() -> Result<String, CliResult> {
 /// uninstall, or hand edit changes them, and an interrupted write never
 /// publishes.
 fn read_ledger(root: &Path) -> Result<Vec<u8>, CliResult> {
-    match fs::read(root.join(MANIFEST_PATH)) {
+    let Some(ledger) = readable_path(root, MANIFEST_PATH)? else {
+        return Err(err(
+            1,
+            &copy::lookup("pack.not-installed").replace("{file}", MANIFEST_PATH),
+        ));
+    };
+    match fs::read(ledger) {
         Ok(bytes) => Ok(bytes),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Err(err(
             1,
@@ -250,7 +257,13 @@ fn read_ledger(root: &Path) -> Result<Vec<u8>, CliResult> {
 /// Read one asset and require the ledger to own it at exactly these bytes.
 /// A missing, unreadable, unowned, or edited asset fails the resolution.
 fn buffer(root: &Path, path: &str, manifest: &InstalledManifest) -> Result<HeldAsset, CliResult> {
-    let Ok(bytes) = fs::read(root.join(path)) else {
+    let Ok(Some(full)) = readable_path(root, path) else {
+        return Err(err(
+            1,
+            &copy::lookup("pack.resolve-unreadable").replace("{file}", path),
+        ));
+    };
+    let Ok(bytes) = fs::read(&full) else {
         return Err(err(
             1,
             &copy::lookup("pack.resolve-unreadable").replace("{file}", path),
