@@ -88,10 +88,17 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn change new <change-id>` | Scaffold a new change directory |
 | `cairn change show <change-id>` | Show details of a change |
 | `cairn change accept [<change-id>]` | Run acceptance gate for a change |
+| `cairn change accept --dry-run [<change-id>]` | Preview the acceptance gate without running any step |
 | `cairn change apply <change-id>` | Apply a completed change (alias: `archive`) |
 
 `cairn change accept` runs a language-aware verification battery, then (when a
 change id is given) `cairn lint --strict <id>` and suggested-edge triage.
+
+With `--dry-run` it resolves the battery and lists every step as `planned`
+with the command it would run, spawning nothing and reporting
+`gate_outcome: preview`. One exception: a configured gate with a blank
+command is reported as `failed` with exit 1, exactly as the live gate
+rejects it.
 
 Language battery selection:
 

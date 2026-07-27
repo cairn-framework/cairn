@@ -121,6 +121,7 @@ Error responses from the MCP/query path:
 | `hook status` | Report Cairn hook ownership | Exit 0 = reported |
 | `hook uninstall` | Remove only a Cairn-owned hook | Exit 0 = removed or absent |
 | `change accept [<change>]` | Full verification battery | JSON: `data.gate_outcome` = passed/failed/blocked |
+| `change accept --dry-run [<change>]` | Preview the battery, running nothing | JSON: `data.gate_outcome` = preview; steps are `planned`, except a configured gate with a blank command, which is `failed` with exit 1 as it would be live |
 | `check [<node>]` | Non-blocking inspection | Always reports, never blocks |
 | `pack install` | Install the agent pack, recording an ownership manifest | Exit 0 = installed or already current |
 | `pack update` | Refresh pristine pack files, backfill missing ones | Exit 0 = reported; modified files are never overwritten |

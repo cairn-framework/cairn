@@ -176,7 +176,11 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("change new", "change-new", FLAGS_FILE_HELP),
     spec("change list", "change-list", FLAGS_CHANGES),
     spec("change show", "change-show", FLAGS_CHANGES),
-    spec("change accept", "change-accept", FLAGS_JSON_ONLY),
+    spec(
+        "change accept",
+        "change-accept",
+        &["dry-run", "json", "help"],
+    ),
     spec("change apply", "change-apply", FLAGS_ARCHIVE),
     spec("change archive", "change-archive", FLAGS_ARCHIVE),
     // --- compound draft family ---------------------------------------------

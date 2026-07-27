@@ -73,13 +73,18 @@ fn show_change_text(data: &Value) -> String {
     let path = data["path"].as_str().unwrap_or_default();
     let summary = data["summary"].as_str().unwrap_or_default();
     let proposal = data["proposal"].as_str().unwrap_or_default();
+    let total = data["progress"]["total"].as_u64().unwrap_or_default();
     let mut out = vec![
         format!("Change: {id} ({title})"),
         format!("Path: {path}"),
         format!("Summary: {summary}"),
-        String::new(),
-        proposal.trim().to_owned(),
     ];
+    if total > 0 {
+        let completed = data["progress"]["completed"].as_u64().unwrap_or_default();
+        out.push(format!("Tasks: {completed}/{total} complete"));
+    }
+    out.push(String::new());
+    out.push(proposal.trim().to_owned());
     if let Some(design) = data["design"].as_str() {
         out.push(String::new());
         out.push(design.trim().to_owned());

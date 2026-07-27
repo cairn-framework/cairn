@@ -149,6 +149,11 @@ pub(super) fn change_json(change: &changes::Change) -> Value {
         "design": change.design,
         "summary": changes::operation_summary(change),
         "findings": change.findings,
+        "progress": {
+            "completed": change.progress.completed,
+            "total": change.progress.total,
+            "remaining": change.progress.remaining(),
+        },
         "delta": {
             "added_nodes": change.delta.added_nodes.len(),
             "modified_nodes": change.delta.modified_nodes.len(),

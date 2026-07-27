@@ -101,10 +101,10 @@ Mark each `VERIFY` before recording the final verdict.
 
 ### Change lifecycle read surface
 - #241 Change lifecycle has no coherent read surface: active-change definitions
-  conflict; progress and gate status are invisible. Partly addressed by
-  todo.status-active-changes-bug (fixes active-change definitions) but progress and
-  gate preview are still missing. `Proposed: still-valid (partial)`. Mint
-  todo.change-read-surface with `gh:#241`.
+  conflict; progress and gate status are invisible. Addressed:
+  todo.status-active-changes-bug fixed the active-change definitions, and
+  todo.change-read-surface added `progress` counts on `cairn change show`/`list`
+  plus the `cairn change accept --dry-run` gate preview. `Proposed: resolved`.
 
 ### Todo UX
 - #242 No project-wide todo listing; `cairn todo new` stamps the wrong created date.
@@ -151,7 +151,7 @@ todos; closures are deferred to todo.feedback-issue-closures (gh:#247).
 | #238 no ghost vs implemented signal | still-valid | Partial: todo.ghost-module-signal (gh:#238); missing-dir Ghost works, empty-dir still reports Synced. |
 | #239 node-query ergonomics bundle | still-valid | Partial: todo.query-ergonomics (gh:#239); sub-gap (d) shared contracts fixed, (a)(b)(c) remain. |
 | #240 --json envelope violations | wont-fix | Superseded by dec.query-json-schema-version: schema-versioned data payload is the ratified contract. Doc residue folded into todo.cairn-dev-docs-sync. |
-| #241 change lifecycle read surface | still-valid | Partial: todo.change-read-surface (gh:#241); active-change definitions fixed by todo.status-active-changes-bug, progress/gate preview missing. |
+| #241 change lifecycle read surface | resolved | todo.change-read-surface (gh:#241) done: active-change definitions fixed by todo.status-active-changes-bug, progress counts and `accept --dry-run` gate preview landed. |
 | #242 no project-wide todo listing; wrong created date | still-valid | Partial: todo.todo-listing (gh:#242); date bug fixed on main (`src/cli/commands/todo.rs:48`). |
 | #243 skill and finding-codes docs drift | still-valid | Urgent: todo.cairn-dev-docs-sync (gh:#243) |
 | #244 per-command --help falls back to global | still-valid | todo.per-command-help (gh:#244) |

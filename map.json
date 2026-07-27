@@ -567,12 +567,29 @@
         "src/artefacts/registry/types.rs",
         "src/artefacts/registry/validate/filenames.rs",
         "src/artefacts/registry/validate/mod.rs",
-        "src/artefacts/registry/validate/tests.rs"
+        "src/artefacts/registry/validate/tests.rs",
+        "src/artefacts/tasks.rs"
       ],
       "contracts": [
         "./meta/contracts/kernel.artefacts.md"
       ],
       "symbols": [
+        {
+          "name": "is_complete",
+          "kind": "function",
+          "signature": "pub const fn is_complete(self) -> bool",
+          "file": "src/artefacts/tasks.rs",
+          "line": 25,
+          "end_line": 27
+        },
+        {
+          "name": "remaining",
+          "kind": "function",
+          "signature": "pub const fn remaining(self) -> usize",
+          "file": "src/artefacts/tasks.rs",
+          "line": 19,
+          "end_line": 21
+        },
         {
           "name": "ArtefactType",
           "kind": "enum",
@@ -646,6 +663,14 @@
           "end_line": 60
         },
         {
+          "name": "count_tasks",
+          "kind": "function",
+          "signature": "pub fn count_tasks(source: &str) -> TaskProgress",
+          "file": "src/artefacts/tasks.rs",
+          "line": 35,
+          "end_line": 62
+        },
+        {
           "name": "from_cli",
           "kind": "function",
           "signature": "pub fn from_cli(value: &str) -> Option<Self>",
@@ -708,6 +733,14 @@
           "file": "src/artefacts/mod.rs",
           "line": 5,
           "end_line": 5
+        },
+        {
+          "name": "tasks",
+          "kind": "module",
+          "signature": "pub mod tasks",
+          "file": "src/artefacts/mod.rs",
+          "line": 6,
+          "end_line": 6
         },
         {
           "name": "types",
@@ -796,6 +829,14 @@
           "file": "src/artefacts/registry/types.rs",
           "line": 226,
           "end_line": 247
+        },
+        {
+          "name": "TaskProgress",
+          "kind": "struct",
+          "signature": "pub struct TaskProgress",
+          "file": "src/artefacts/tasks.rs",
+          "line": 8,
+          "end_line": 13
         },
         {
           "name": "Todo",
@@ -1067,32 +1108,32 @@
           "kind": "enum",
           "signature": "pub enum ChangeOperation",
           "file": "src/changes/types.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 97,
+          "end_line": 106
         },
         {
           "name": "active_changes_lines",
           "kind": "function",
           "signature": "pub fn active_changes_lines(changes: &[Change]) -> Vec<String>",
           "file": "src/changes/mod.rs",
-          "line": 331,
-          "end_line": 343
+          "line": 352,
+          "end_line": 364
         },
         {
           "name": "archive",
           "kind": "function",
           "signature": "pub fn archive( root: &Path, blueprint_path: &Path, changes_dir: &Path, change_id: &str, ) -> Result<ArchiveReport, String>",
           "file": "src/changes/mod.rs",
-          "line": 108,
-          "end_line": 169
+          "line": 129,
+          "end_line": 190
         },
         {
           "name": "create_rename_change",
           "kind": "function",
           "signature": "pub fn create_rename_change( root: &Path, blueprint_path: &Path, old_id: &str, new_id: &str, ) -> Result<Change, String>",
           "file": "src/changes/mod.rs",
-          "line": 177,
-          "end_line": 226
+          "line": 198,
+          "end_line": 247
         },
         {
           "name": "discover",
@@ -1107,8 +1148,8 @@
           "kind": "function",
           "signature": "pub fn is_empty(&self) -> bool",
           "file": "src/changes/types.rs",
-          "line": 48,
-          "end_line": 57
+          "line": 50,
+          "end_line": 59
         },
         {
           "name": "load_change",
@@ -1116,23 +1157,23 @@
           "signature": "pub fn load_change(root: &Path, path: PathBuf) -> Change",
           "file": "src/changes/mod.rs",
           "line": 68,
-          "end_line": 101
+          "end_line": 103
         },
         {
           "name": "operation_summary",
           "kind": "function",
           "signature": "pub fn operation_summary(change: &Change) -> String",
           "file": "src/changes/mod.rs",
-          "line": 230,
-          "end_line": 259
+          "line": 251,
+          "end_line": 280
         },
         {
           "name": "operations_for_nodes",
           "kind": "function",
           "signature": "pub fn operations_for_nodes(changes: &[Change], nodes: &BTreeSet<String>) -> Vec<String>",
           "file": "src/changes/mod.rs",
-          "line": 263,
-          "end_line": 327
+          "line": 284,
+          "end_line": 348
         },
         {
           "name": "parse_blueprint_delta",
@@ -1155,24 +1196,24 @@
           "kind": "struct",
           "signature": "pub struct ArchiveReport",
           "file": "src/changes/types.rs",
-          "line": 108,
-          "end_line": 113
+          "line": 110,
+          "end_line": 115
         },
         {
           "name": "ArtefactOperation",
           "kind": "struct",
           "signature": "pub struct ArtefactOperation",
           "file": "src/changes/types.rs",
-          "line": 80,
-          "end_line": 91
+          "line": 82,
+          "end_line": 93
         },
         {
           "name": "BlueprintDelta",
           "kind": "struct",
           "signature": "pub struct BlueprintDelta",
           "file": "src/changes/types.rs",
-          "line": 26,
-          "end_line": 43
+          "line": 28,
+          "end_line": 45
         },
         {
           "name": "Change",
@@ -1180,23 +1221,23 @@
           "signature": "pub struct Change",
           "file": "src/changes/types.rs",
           "line": 5,
-          "end_line": 22
+          "end_line": 24
         },
         {
           "name": "EdgeRename",
           "kind": "struct",
           "signature": "pub struct EdgeRename",
           "file": "src/changes/types.rs",
-          "line": 71,
-          "end_line": 76
+          "line": 73,
+          "end_line": 78
         },
         {
           "name": "Rename",
           "kind": "struct",
           "signature": "pub struct Rename",
           "file": "src/changes/types.rs",
-          "line": 62,
-          "end_line": 67
+          "line": 64,
+          "end_line": 69
         },
         {
           "name": "clean_list_line",
@@ -1323,8 +1364,8 @@
           "kind": "struct",
           "signature": "pub(super) struct Snapshot",
           "file": "src/changes/types.rs",
-          "line": 116,
-          "end_line": 119
+          "line": 118,
+          "end_line": 121
         }
       ]
     },
@@ -1466,8 +1507,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1001,
-          "end_line": 1019
+          "line": 1012,
+          "end_line": 1030
         },
         {
           "name": "blank_command_failure_detail",
@@ -1528,10 +1569,10 @@
         {
           "name": "run_accept_gate",
           "kind": "function",
-          "signature": "pub fn run_accept_gate(project_root: &Path, change_id: Option<&str>, json: bool) -> CliResult",
+          "signature": "pub fn run_accept_gate( project_root: &Path, change_id: Option<&str>, json: bool, dry_run: bool, ) -> CliResult",
           "file": "src/cli/accept/mod.rs",
-          "line": 14,
-          "end_line": 62
+          "line": 18,
+          "end_line": 86
         },
         {
           "name": "run_check",
@@ -1650,8 +1691,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 996,
-          "end_line": 996
+          "line": 1007,
+          "end_line": 1007
         },
         {
           "name": "blueprint_root",
@@ -1666,8 +1707,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1027,
-          "end_line": 1035
+          "line": 1038,
+          "end_line": 1046
         },
         {
           "name": "current_timestamp_rfc3339",

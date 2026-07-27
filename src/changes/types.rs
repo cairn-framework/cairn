@@ -17,6 +17,8 @@ pub struct Change {
     pub delta: BlueprintDelta,
     /// Parsed artefact operations.
     pub artefacts: Vec<ArtefactOperation>,
+    /// Task-checkbox completion counts from `tasks.md` (zeroed when absent).
+    pub progress: crate::artefacts::TaskProgress,
     /// Validation messages collected while loading the change.
     pub findings: Vec<String>,
 }

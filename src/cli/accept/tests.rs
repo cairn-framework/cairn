@@ -15,7 +15,7 @@ fn test_format_json_produces_valid_json() {
             detail: Some("tests failed".to_string()),
         },
     ];
-    let output = format_json(&findings, true, false);
+    let output = format_json(&findings, true, false, false);
     let parsed: serde_json::Value = serde_json::from_str(output.trim())
         .unwrap_or_else(|e| panic!("invalid JSON from accept --json: {e}\n{output}"));
     assert_eq!(parsed["command"], "accept");
@@ -35,7 +35,7 @@ fn test_format_json_passed_status() {
         state: VerificationState::Passed,
         detail: None,
     }];
-    let output = format_json(&findings, false, false);
+    let output = format_json(&findings, false, false, false);
     let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
     assert_eq!(parsed["status"], "ok");
     assert_eq!(parsed["data"]["gate_outcome"], "passed");
@@ -48,7 +48,7 @@ fn test_format_json_blocked_status() {
         state: VerificationState::Blocked,
         detail: Some("not installed".to_string()),
     }];
-    let output = format_json(&findings, false, true);
+    let output = format_json(&findings, false, true, false);
     let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
     assert_eq!(parsed["status"], "error");
     assert_eq!(parsed["data"]["gate_outcome"], "blocked");
@@ -99,7 +99,7 @@ fn test_format_findings_single_passed_step() {
         state: VerificationState::Passed,
         detail: None,
     }];
-    let out = format_findings(&findings, false);
+    let out = format_findings(&findings, false, false);
     assert!(out.contains("Verification Battery Results:"));
     assert!(out.contains("[PASSED] cargo build"));
     assert!(out.ends_with('\n'));
@@ -112,7 +112,7 @@ fn test_format_findings_detail_in_parentheses() {
         state: VerificationState::Failed,
         detail: Some("3 tests failed".to_string()),
     }];
-    let out = format_findings(&findings, false);
+    let out = format_findings(&findings, false, false);
     assert!(out.contains("[FAILED] cargo test (3 tests failed)"));
 }
 
@@ -123,7 +123,7 @@ fn test_format_findings_blocked_note_appended() {
         state: VerificationState::Blocked,
         detail: None,
     }];
-    let out = format_findings(&findings, true);
+    let out = format_findings(&findings, true, false);
     assert!(out.contains("Note: Blocked outcomes do not fail the gate"));
 }
 
@@ -134,7 +134,7 @@ fn test_format_findings_no_blocked_note_when_false() {
         state: VerificationState::Passed,
         detail: None,
     }];
-    let out = format_findings(&findings, false);
+    let out = format_findings(&findings, false, false);
     assert!(!out.contains("Note:"));
 }
 
@@ -145,7 +145,7 @@ fn test_format_json_failed_wins_over_blocked() {
         state: VerificationState::Failed,
         detail: None,
     }];
-    let out = format_json(&findings, true, true);
+    let out = format_json(&findings, true, true, false);
     let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
     assert_eq!(parsed["data"]["gate_outcome"], "failed");
 }
@@ -168,7 +168,7 @@ fn test_skipped_info_does_not_fail_or_block() {
         .any(|f| f.state == VerificationState::Blocked);
     assert!(!has_failed);
     assert!(!has_blocked);
-    let out = format_json(&findings, has_failed, has_blocked);
+    let out = format_json(&findings, has_failed, has_blocked, false);
     let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
     assert_eq!(parsed["status"], "ok");
     assert_eq!(parsed["data"]["gate_outcome"], "passed");
@@ -189,7 +189,7 @@ fn test_format_findings_shows_skipped() {
         state: VerificationState::Skipped,
         detail: Some("no gates configured for python".to_string()),
     }];
-    let out = format_findings(&findings, false);
+    let out = format_findings(&findings, false, false);
     assert!(out.contains("[SKIPPED] language battery (python)"));
     assert!(out.contains("no gates configured for python"));
 }
@@ -235,7 +235,7 @@ fn test_blank_command_gate_fails_with_nonzero_exit() {
     assert!(has_failed);
     assert!(!has_blocked);
     assert_eq!(u8::from(has_failed), 1);
-    let out = format_json(&findings, has_failed, has_blocked);
+    let out = format_json(&findings, has_failed, has_blocked, false);
     let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
     assert_eq!(parsed["data"]["gate_outcome"], "failed");
     assert_eq!(parsed["status"], "error");
@@ -276,7 +276,7 @@ fn test_load_gate_context_skip_wiring_end_to_end() {
     assert!(!has_failed);
     assert!(!has_blocked);
     assert_eq!(u8::from(has_failed), 0);
-    let out = format_json(&findings, has_failed, has_blocked);
+    let out = format_json(&findings, has_failed, has_blocked, false);
     let parsed: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
     assert_eq!(parsed["data"]["gate_outcome"], "passed");
     assert_eq!(parsed["data"]["steps"][0]["state"], "skipped");
@@ -332,9 +332,80 @@ fn accept_runs_gate_commands_from_project_root() {
     )
     .unwrap();
 
-    let result = run_accept_gate(root, None, true);
+    let result = run_accept_gate(root, None, true, false);
 
     assert_eq!(result.code, 0, "accept output: {}", result.stdout);
     assert!(result.stdout.contains("\"test\":\"read marker\""));
     assert!(result.stdout.contains("\"state\":\"passed\""));
+}
+
+#[test]
+fn accept_dry_run_previews_steps_without_running_them() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(
+        root.join("cairn.config.yaml"),
+        "gates:\n  - name: touch sentinel\n    command: touch sentinel.txt\n",
+    )
+    .unwrap();
+
+    let result = run_accept_gate(root, Some("some-change"), true, true);
+
+    assert_eq!(result.code, 0, "accept output: {}", result.stdout);
+    assert!(
+        !root.join("sentinel.txt").exists(),
+        "dry run must not spawn gate commands"
+    );
+    assert!(
+        result.stdout.contains("\"gate_outcome\":\"preview\""),
+        "dry run reports a preview outcome: {}",
+        result.stdout
+    );
+    assert!(
+        result.stdout.contains(
+            "{\"test\":\"touch sentinel\",\"state\":\"planned\",\"detail\":\"touch sentinel.txt\"}"
+        ),
+        "dry run lists the resolved gate command: {}",
+        result.stdout
+    );
+    assert!(
+        result
+            .stdout
+            .contains("\"test\":\"cairn lint --strict some-change\",\"state\":\"planned\""),
+        "dry run lists the change-scoped lint step: {}",
+        result.stdout
+    );
+    assert!(
+        !result.stdout.contains("\"state\":\"passed\""),
+        "dry run never reports an executed result: {}",
+        result.stdout
+    );
+}
+
+#[test]
+fn accept_dry_run_fails_blank_configured_commands() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(
+        root.join("cairn.config.yaml"),
+        "gates:\n  - name: blank gate\n    command: \"   \"\n",
+    )
+    .unwrap();
+
+    let result = run_accept_gate(root, None, true, true);
+
+    // The live gate fails closed on a blank command; the preview must not
+    // advertise it as a runnable step.
+    assert_eq!(
+        result.code, 1,
+        "blank command must fail the preview: {}",
+        result.stdout
+    );
+    assert!(
+        result
+            .stdout
+            .contains("\"test\":\"blank gate\",\"state\":\"failed\""),
+        "blank command must be reported as failed: {}",
+        result.stdout
+    );
 }
