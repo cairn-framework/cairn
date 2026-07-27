@@ -1,14 +1,23 @@
 # Cairn Design System
 
-Canonical UI reference for Cairn. The five files in this directory are the authority: tokens, fonts, components, a live showcase, and this README. Every surface in Cairn (marketing site, Rust web UI, future consoles) grounds on these tokens. If a color, size, or duration needs to change, it changes here first.
+Canonical UI reference for Cairn. The five files in this directory are the authority: tokens, fonts, components, a live showcase, and this README. Every surface in Cairn grounds on these tokens. If a color, size, or duration needs to change, it changes here first.
 
-The metaphor is geological: stone and paper, weight you can read, strata that earn their place. The taxonomy is load-bearing: blueprint, map, provenance chain, authority chain, hinge. These words appear verbatim in the UI and in this design system; they are not decoration.
+The system runs **two lanes**. They share the scales and the file layout; they do not share faces, ground, or component vocabulary.
+
+| Lane | Surfaces | World | Prefix |
+|---|---|---|---|
+| Product | webui (`src/ui_assets/`), consoles, anything a user operates | Calibrated instrument. Warm dark stone, geological state vocabulary as motif. `dec.webui-design-direction` | unprefixed and `--ci-*` / `--ui-*` |
+| Marketing | `docs/index.html` and every outward page | The airworthiness record: the paperwork that makes an aircraft legal to fly. `dec.marketing-visual-world` | `--mk-*` / `.mk-*` |
+
+The marketing lane is additive. It renames and removes nothing, and every selector it adds is `.mk-*` scoped, so a change to it cannot change how the product lane renders. It is not weightless: `src/ui/mod.rs` embeds `tokens.css` and `components.css` wholesale, so the web UI serves roughly 38 KB it does not use. That is accepted in exchange for one authority (`dec.marketing-visual-world`). Section 23 of `index.html` renders the lane live.
+
+The product lane's metaphor is geological: stone and paper, weight you can read, strata that earn their place. The taxonomy is load-bearing in both lanes: blueprint, map, provenance chain, authority chain, hinge. These words appear verbatim in the UI and in this design system; they are not decoration.
 
 ## File structure and load order
 
 ```
 docs/design-system/
-  fonts.css        Google Fonts imports (Source Serif 4, IBM Plex Sans, IBM Plex Mono)
+  fonts.css        Google Fonts imports. Product lane: Source Serif 4, IBM Plex Sans, IBM Plex Mono. Marketing lane: Archivo, Courier Prime
   tokens.css       :root custom properties, [data-theme="light"] overrides, reduced-motion
   components.css   Every styled surface, referencing tokens by name
   index.html       Single-page showcase with TOC, swatches, type samples, glossary
@@ -127,6 +136,112 @@ Canonical webui classes in this stage:
 - `.channel-bar`
 - `.state-legend`
 
+Marketing lane classes:
+
+- `.mk-page` (add `.mk-page--inset` when the lane renders inside another page), `.mk-sheet`
+- `.mk-header` / `.mk-header-in` / `.mk-mark` / `.mk-header-doc` / `.mk-nav`
+- `.mk-plate`, `.mk-display`, `.mk-lede`, `.mk-prose`, `.mk-note`, `.mk-aside`
+- `.mk-label` (pre-printed field caption), `.mk-rec` (what is written into a field), and the ink utilities `.mk-ink-firm` / `.mk-ink-soft`
+- `.mk-btn` with `.mk-btn--stamp` and `.mk-btn--quiet`
+- `.mk-tag` with `.mk-tag--svc`, `--uns`, `--def`; `.mk-tag-status`, `.mk-tag-title`, `.mk-tag-body`, `.mk-tag-sig`. A modifier sets only `--tag-ink` and `--tag-paper`
+- `.mk-chip` with the same four variants
+- `.mk-strip`, `.mk-strip-head`, `.mk-strip-cols`, `.mk-strip-foot`, `.mk-row` with `.mk-row--drift`, `--ghost`, `--orphaned`, and `.mk-stripe` (an empty element; the joint is its background and the two painted halves are its pseudo-elements)
+- `.mk-entry` / `.mk-entry-summary` / `.mk-entry-no` / `.mk-entry-title` / `.mk-entry-gist` / `.mk-entry-more` / `.mk-entry-body`
+- `.mk-panel`, `.mk-panel-head`, `.mk-panel-file`, and the output inks `.mk-o-dim`, `.mk-o-key`, `.mk-o-warn`
+- `.mk-block`, `.mk-block-head`, `.mk-block-no`, `.mk-block-title`, `.mk-block-lede`, `.mk-block-body`
+- `.mk-ledger` with `.mk-ledger-clear`, `.mk-trail`, `.mk-crs`, `.mk-ratings` / `.mk-rating`
+- `.mk-copyline` with `.mk-copyline--wrap`
+- `.mk-footer`, `.mk-footer-in`, `.mk-footer-nav`, `.mk-footer-brand`, `.mk-kofi`
+- Composition: `.mk-hero`, `.mk-stack` with `.mk-stack--tight`, `.mk-tags-grid`, `.mk-columns`
+- Social card: `.mk-card`, `.mk-card-top`, `.mk-card-body`, `.mk-card-foot`
+
+## Marketing lane
+
+Authority: `dec.marketing-visual-world`. The world is the airworthiness record, the
+paperwork that makes an aircraft legal to fly. It is not a mood. It supplies a
+grammar Cairn already has:
+
+| Cairn concept | Record equivalent | Token |
+|---|---|---|
+| `synced` | Serviceable. Green tag, signed. | `--mk-svc` |
+| structural error | Unserviceable. The record is void, the scan halts. | `--mk-uns` |
+| interface contradiction | Unserviceable. The fitted part does not match the record, the merge is grounded. | `--mk-uns` |
+| rationale tension | Deferred defect. Raised and tracked, does not ground it. | `--mk-def` |
+| `ghost` | Not fitted. Declared on the build sheet, no part installed. | dashed, no colour |
+| `orphaned` | Unlogged part. Fitted, and nobody signed for it. | `--mk-def` plus tilt |
+| drift | A torque stripe whose halves stopped lining up. | `.mk-row--drift` |
+| decision | Certificate of release to service. | `.mk-crs` |
+
+### Rules that bind every marketing surface
+
+- **Ground is paper.** `--mk-paper` (top copy), `--mk-paper-2` (ruled band),
+  `--mk-paper-3` (deeper tint). Dark is reserved for instrument insets
+  (`--mk-panel`), which is where command output and blueprint source live. A dark
+  marketing page is not a variant of this lane; it is a different lane.
+- **Two inks, and the distinction is load-bearing.** `--mk-ink-print` is
+  pre-printed form ink and states what was *declared*. `--mk-ink-pen` is
+  ballpoint and states what was *found*. Never use one for the other's job.
+- **Colour strategy is committed, not accented.** Status colour is codified, so
+  it carries whole regions: a tag, a row, a rating cell. Scattering it as
+  highlights breaks the grammar.
+- **Type.** `--mk-font-form` is Archivo, at `--mk-wdth-plate` (78) for placards
+  and `--mk-wdth-text` (100) for running text. `--mk-font-record` is Courier
+  Prime and sets every entry, identifier, path, and command. No serif appears in
+  this lane.
+- **Disclosure is structure.** A block that carries a raw record (command
+  output, source, an artefact) uses `.mk-entry`, a native `<details>` that reads
+  complete at its summary line. A block whose whole content is the argument
+  stays open. Disclosure is never scripted: every surface must read complete
+  with JavaScript disabled.
+- **One authored motion.** `.mk-strip` settles once, on arrival: rows land, the
+  drift row's stripe slips out of alignment, the red chip stamps. Nothing else on
+  the page animates beyond quiet state change. The strip renders its final state
+  when scripting is off and when `prefers-reduced-motion: reduce` is set.
+- **No colour is hardcoded.** Marketing pages link `tokens.css` and read
+  `var(--mk-*)`, exactly as `dec.landing-design-token-conformance` requires.
+  `scripts/check-design-tokens.sh` gates it.
+
+### Marketing lane tokens
+
+| Group | Tokens |
+|---|---|
+| Paper | `--mk-paper`, `--mk-paper-2`, `--mk-paper-3` |
+| Ruling | `--mk-rule`, `--mk-rule-soft`, `--mk-rule-hard` |
+| Instrument inset | `--mk-panel`, `--mk-panel-2`, `--mk-panel-rule` |
+| Inks | `--mk-ink-print`, `--mk-ink-print-2`, `--mk-ink-pen`, `--mk-ink-panel`, `--mk-ink-panel-2` |
+| Serviceable | `--mk-svc`, `--mk-svc-deep`, `--mk-svc-tint`, `--mk-svc-lamp` |
+| Unserviceable | `--mk-uns`, `--mk-uns-deep`, `--mk-uns-tint` |
+| Deferred | `--mk-def`, `--mk-def-deep`, `--mk-def-tint`, `--mk-def-lamp` |
+| Type | `--mk-font-form`, `--mk-font-record`, `--mk-wdth-plate`, `--mk-wdth-text`, `--mk-t-micro`, `--mk-t-label`, `--mk-t-small`, `--mk-t-entry`, `--mk-t-body`, `--mk-t-lede`, `--mk-t-h4`, `--mk-t-h2`, `--mk-t-h1`, `--mk-track-plate`, `--mk-track-stamp`, `--mk-track-tight` |
+| Elevation | `--mk-lift-sheet`, `--mk-lift-copy`, `--mk-lift-crs`, `--mk-lift-panel` |
+| Layout | `--mk-sheet-max`, `--mk-gutter`, `--mk-measure`, `--mk-hole`, `--mk-stripe-w`, `--mk-stripe-slip`, `--mk-stripe-half`, `--mk-stripe-half-narrow` |
+| Motion | `--mk-dur-quiet`, `--mk-dur-open`, `--mk-dur-settle`, `--mk-dur-stamp`, `--mk-dwell`, `--mk-ease-settle`, `--mk-ease-stamp` |
+| Social card | `--mk-card-w`, `--mk-card-h`, `--mk-t-card` |
+
+The lane shares the canonical `--s-*`, `--r-*`, `--line-*`, and `--tap-min`
+primitives with the product lane. It does not share `--dur-*`: its one authored
+moment needs its own timings, so it defines `--mk-dur-*`.
+
+Every ink and status pairing clears 4.5:1 against every surface it is permitted
+on. The `-lamp` variants exist because status colour needs a lighter value to
+clear that floor on `--mk-panel`.
+
+### Social card
+
+`docs/assets/social-card.html` is the source for `docs/assets/social-card.png`,
+the `og:image` and `twitter:image` the landing page points at.
+`tests/landing_assets.rs` gates that both meta tags exist, ride the Pages
+origin, and resolve to a committed file.
+
+The card is built from `.mk-card` and the lane's own components, never from a
+product screenshot: the web UI is mid-overhaul (`todo.ui-asset-refresh`), and a
+stale screenshot is the defect `dec.marketing-visual-world` exists to fix. Its
+specimen strip carries the same synthetic labelling the landing page uses.
+
+Regenerate after any change to the lane or to the source: open
+`docs/assets/social-card.html` at exactly 1200 by 630 with no device pixel ratio
+scaling, and screenshot it to `docs/assets/social-card.png`.
+
 ## Token naming conventions
 
 | Prefix        | Meaning                                                             |
@@ -156,6 +271,7 @@ Canonical webui classes in this stage:
 | `--dur-*`     | Motion durations (tick, quick, settle, reveal, breathe, build)       |
 | `--ease-*`    | Motion easings (settle, stack, lift, paper)                          |
 | `--font-*`    | Font families (serif, sans, mono)                                    |
+| `--mk-*`      | Marketing lane. See the marketing lane section below                  |
 
 Numeric aliases (`--ink-1` through `--ink-4`, `--fast`, `--med`, `--slow`) remain for legacy shell code. New code should prefer the named tokens.
 

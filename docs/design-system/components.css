@@ -1278,3 +1278,1224 @@ marker path {
     animation: none;
   }
 }
+
+/* ===================================================================
+   MARKETING LANE COMPONENTS  (.mk-*)
+   ===================================================================
+   The airworthiness record. Authority: dec.marketing-visual-world.
+
+   Additive: nothing above this banner is modified, so the product webui
+   is unaffected. Every value below resolves through a token; colour comes
+   from the `--mk-*` surface in tokens.css, and geometry shares the
+   canonical `--s-*` / `--r-*` scales.
+
+   Reading order of the world: a pre-printed form (Archivo, condensed for
+   placards) holds fields; the entries written into those fields are set
+   in a line-printer face (Courier Prime); status is a punched parts tag
+   whose colour is codified; drift is a torque stripe whose halves have
+   stopped lining up.
+   =================================================================== */
+
+/* --- lane root ----------------------------------------------------- */
+
+.mk-page {
+  margin: 0;
+  background: var(--mk-paper);
+  color: var(--mk-ink-print);
+  font-family: var(--mk-font-form);
+  font-variation-settings: "wdth" var(--mk-wdth-text);
+  font-size: var(--mk-t-body);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Carbonless fibre. Faint enough to feel like stock, not like a pattern. */
+.mk-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--mk-ink-print) 7%, transparent) 1px, transparent 0),
+    radial-gradient(circle at 5px 9px, color-mix(in oklab, var(--mk-rule-hard) 5%, transparent) 1px, transparent 0);
+  background-size: 7px 7px, 13px 13px;
+}
+
+.mk-sheet {
+  position: relative;
+  z-index: 1;
+  max-width: var(--mk-sheet-max);
+  margin: 0 auto;
+  padding: 0 var(--mk-gutter);
+}
+
+/* A link in body copy. Scoped to prose containers so it can never outrank a
+   navigation, button, or tag component, all of which own their own colour. */
+.mk-page :is(p, li, dd) a {
+  color: var(--mk-ink-pen);
+  text-decoration-color: color-mix(in oklab, var(--mk-ink-pen) 40%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--mk-dur-quiet) linear;
+}
+
+.mk-page :is(p, li, dd) a:hover { text-decoration-color: var(--mk-ink-pen); }
+
+.mk-page :focus-visible {
+  outline: var(--line-2) solid var(--mk-ink-pen);
+  outline-offset: 2px;
+}
+
+/* Ballpoint blue disappears on the instrument ground, so focus inside a panel
+   switches to the panel's own ink. Scrollable output is focusable, so this is a
+   real path, not a defensive rule. */
+.mk-panel :focus-visible,
+.mk-panel pre:focus-visible {
+  outline-color: var(--mk-ink-panel);
+  outline-offset: calc(-1 * var(--line-2));
+}
+
+.mk-skip {
+  position: absolute;
+  left: var(--s-4);
+  top: calc(-1 * var(--s-10));
+  z-index: 20;
+  padding: var(--s-2) var(--s-4);
+  background: var(--mk-ink-pen);
+  color: var(--mk-paper);
+  font-size: var(--mk-t-label);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.mk-skip:focus { top: var(--s-4); }
+
+/* --- printed vocabulary -------------------------------------------- */
+
+/* A pre-printed field caption. Used only where it labels a real field. */
+.mk-label {
+  display: block;
+  font-size: var(--mk-t-label);
+  font-weight: 600;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  color: var(--mk-ink-print-2);
+}
+
+/* Anything written into a field, in the record face. */
+.mk-rec {
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-entry);
+  color: var(--mk-ink-pen);
+  font-feature-settings: "kern" 0;
+}
+
+/* Ink utilities. They set colour only, so they sit on text that already
+   inherits the record face from its container. */
+.mk-ink-firm { color: var(--mk-ink-print); }
+.mk-ink-soft { color: var(--mk-ink-print-2); }
+
+.mk-page code {
+  font-family: var(--mk-font-record);
+  font-size: 0.92em;
+  color: var(--mk-ink-pen);
+  background: color-mix(in oklab, var(--mk-paper-3) 70%, transparent);
+  padding: 1px 4px;
+  border-radius: var(--r-edge);
+}
+
+/* --- header -------------------------------------------------------- */
+
+.mk-header {
+  position: relative;
+  z-index: 2;
+  border-bottom: var(--line-2) solid var(--mk-ink-print);
+  background: var(--mk-paper-2);
+}
+
+.mk-header-in {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-height: 58px;
+  padding-top: var(--s-2);
+  padding-bottom: var(--s-2);
+}
+
+
+.mk-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  color: var(--mk-ink-print);
+  text-decoration: none;
+  flex: none;
+}
+
+.mk-mark svg { display: block; }
+
+.mk-header-doc {
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-micro);
+  line-height: 1.35;
+  color: var(--mk-ink-print-2);
+  border-left: var(--line-1) solid var(--mk-rule-hard);
+  padding-left: var(--s-4);
+  flex: none;
+}
+
+.mk-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mk-nav a,
+.mk-footer-nav a {
+  font-size: var(--mk-t-label);
+  font-weight: 600;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  color: var(--mk-ink-print-2);
+  text-decoration: none;
+  transition: color var(--mk-dur-quiet) linear, border-color var(--mk-dur-quiet) linear;
+}
+
+.mk-nav a:hover,
+.mk-footer-nav a:hover { color: var(--mk-ink-print); border-bottom-color: var(--mk-ink-print); }
+
+.mk-nav a {
+  border-bottom: var(--line-2) solid transparent;
+  padding: var(--s-2) 0;
+}
+
+/* --- data plate ----------------------------------------------------- */
+
+/* The riveted identification plate. Etched, not printed: no paper grain. */
+.mk-plate {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-1) var(--s-4);
+  align-content: start;
+  padding: var(--s-4) var(--s-5);
+  background: var(--mk-paper-3);
+  border: var(--line-1) solid var(--mk-rule-hard);
+  box-shadow: var(--mk-lift-sheet);
+  position: relative;
+}
+
+/* Corner rivets. */
+.mk-plate::before,
+.mk-plate::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--r-round);
+  background: var(--mk-rule-hard);
+  top: 7px;
+}
+
+.mk-plate::before { left: 7px; }
+.mk-plate::after { right: 7px; }
+
+.mk-plate dt {
+  font-size: var(--mk-t-micro);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  color: var(--mk-ink-print-2);
+  white-space: nowrap;
+}
+
+.mk-plate dd {
+  margin: 0;
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+  color: var(--mk-ink-print);
+}
+
+/* --- display type --------------------------------------------------- */
+
+.mk-display {
+  margin: 0;
+  font-size: var(--mk-t-h1);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-tight);
+  line-height: 0.98;
+  text-wrap: balance;
+  color: var(--mk-ink-print);
+}
+
+.mk-display em {
+  font-style: normal;
+  color: var(--mk-uns-deep);
+}
+
+.mk-lede {
+  max-width: var(--mk-measure);
+  margin: 0;
+  font-size: var(--mk-t-lede);
+  line-height: 1.5;
+  color: var(--mk-ink-print);
+}
+
+.mk-prose {
+  display: grid;
+  gap: var(--s-4);
+  max-width: var(--mk-measure);
+}
+
+.mk-prose p { margin: 0; }
+
+/* --- actions --------------------------------------------------------- */
+
+.mk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: stretch;
+}
+
+.mk-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: var(--s-3) var(--s-5);
+  font-family: var(--mk-font-form);
+  font-size: var(--mk-t-label);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  text-decoration: none;
+  border: var(--line-2) solid var(--mk-ink-print);
+  border-radius: 0;
+  background: var(--mk-paper);
+  color: var(--mk-ink-print);
+  cursor: pointer;
+  transition: transform var(--mk-dur-quiet) var(--mk-ease-settle),
+              box-shadow var(--mk-dur-quiet) var(--mk-ease-settle),
+              background-color var(--mk-dur-quiet) linear;
+}
+
+.mk-btn:hover { transform: translateY(-1px); box-shadow: var(--mk-lift-copy); }
+.mk-btn:active { transform: translateY(0); box-shadow: none; }
+
+/* The release-to-service stamp: the one element allowed to look inked on. */
+.mk-btn--stamp {
+  background: var(--mk-svc);
+  border-color: var(--mk-svc-deep);
+  color: var(--mk-paper);
+}
+
+.mk-btn--stamp:hover { background: var(--mk-svc-deep); }
+
+.mk-btn--quiet {
+  background: transparent;
+  border-color: var(--mk-rule-hard);
+  color: var(--mk-ink-print-2);
+}
+
+.mk-btn--quiet:hover { color: var(--mk-ink-print); border-color: var(--mk-ink-print); }
+
+/* --- parts tag -------------------------------------------------------- */
+
+/* A punched tag, wired to the component it condemns or clears. */
+.mk-tag {
+  position: relative;
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5) var(--s-4) calc(var(--s-5) + var(--mk-hole));
+  background: var(--mk-paper);
+  border: var(--line-1) solid var(--mk-rule-hard);
+  box-shadow: var(--mk-lift-copy);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+/* The punched eyelet. */
+.mk-tag::before {
+  content: "";
+  position: absolute;
+  left: var(--s-3);
+  top: var(--s-4);
+  width: var(--mk-hole);
+  height: var(--mk-hole);
+  border-radius: var(--r-round);
+  background: var(--mk-paper-3);
+  box-shadow: inset 0 1px 2px color-mix(in oklab, var(--mk-ink-print) 35%, transparent);
+}
+
+.mk-tag-status {
+  font-size: var(--mk-t-label);
+  font-weight: 800;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-stamp);
+  text-transform: uppercase;
+}
+
+.mk-tag-title {
+  margin: 0;
+  font-size: var(--mk-t-h4);
+  font-weight: 700;
+  letter-spacing: var(--mk-track-tight);
+  line-height: 1.2;
+  color: var(--mk-ink-print);
+}
+
+.mk-tag-body {
+  margin: 0;
+  font-size: var(--mk-t-small);
+  line-height: 1.55;
+  color: var(--mk-ink-print-2);
+}
+
+/* Signature block: the field that says a named thing stopped or passed it. */
+.mk-tag-sig {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin-top: var(--s-1);
+  padding-top: var(--s-3);
+  border-top: var(--line-1) dashed var(--mk-rule);
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+}
+
+.mk-tag-sig .mk-label { display: inline; }
+
+/* A status modifier sets two values. Everything else is the shared tag. */
+.mk-tag--svc { --tag-ink: var(--mk-svc-deep); --tag-paper: var(--mk-svc-tint); }
+.mk-tag--uns { --tag-ink: var(--mk-uns-deep); --tag-paper: var(--mk-uns-tint); }
+.mk-tag--def { --tag-ink: var(--mk-def-deep); --tag-paper: var(--mk-def-tint); }
+
+.mk-tag--svc,
+.mk-tag--uns,
+.mk-tag--def {
+  background: var(--tag-paper);
+  border-color: var(--tag-ink);
+}
+
+.mk-tag--svc .mk-tag-status,
+.mk-tag--uns .mk-tag-status,
+.mk-tag--def .mk-tag-status,
+.mk-tag--svc .mk-tag-body,
+.mk-tag--uns .mk-tag-body,
+.mk-tag--def .mk-tag-body { color: var(--tag-ink); }
+
+.mk-tag--svc .mk-tag-sig,
+.mk-tag--uns .mk-tag-sig,
+.mk-tag--def .mk-tag-sig {
+  color: var(--tag-ink);
+  border-top-color: color-mix(in oklab, var(--tag-ink) 45%, transparent);
+}
+
+.mk-tag--svc::before,
+.mk-tag--uns::before,
+.mk-tag--def::before { background: color-mix(in oklab, var(--tag-ink) 18%, var(--mk-paper)); }
+
+/* --- inline status chip ----------------------------------------------- */
+
+.mk-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--s-2);
+  font-size: var(--mk-t-micro);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: var(--line-1) solid currentcolor;
+}
+
+.mk-chip--svc { color: var(--mk-svc-deep); background: var(--mk-svc-tint); }
+.mk-chip--uns { color: var(--mk-uns-deep); background: var(--mk-uns-tint); }
+.mk-chip--def { color: var(--mk-def-deep); background: var(--mk-def-tint); }
+.mk-chip--none { color: var(--mk-ink-print-2); background: transparent; border-style: dashed; }
+
+/* --- torque stripe strip ----------------------------------------------- */
+
+/* A paint mark is drawn across a fastener and its housing. If the two halves
+   stop lining up, the fastener moved. The strip is the page's thesis: drift is
+   visible before a word is read. */
+
+.mk-strip {
+  background: var(--mk-paper);
+  border: var(--line-2) solid var(--mk-ink-print);
+  box-shadow: var(--mk-lift-copy);
+}
+
+.mk-strip-head,
+.mk-strip-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding: var(--s-3) var(--s-4);
+  background: var(--mk-paper-3);
+}
+
+.mk-strip-head { border-bottom: var(--line-1) solid var(--mk-rule-hard); }
+.mk-strip-foot { border-top: var(--line-1) solid var(--mk-rule-hard); }
+
+.mk-strip-title {
+  font-size: var(--mk-t-label);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+}
+
+.mk-strip-note {
+  margin-left: auto;
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-micro);
+  color: var(--mk-ink-print-2);
+}
+
+.mk-strip-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1.08fr);
+  gap: 0 var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  border-bottom: var(--line-1) solid var(--mk-rule);
+  background: var(--mk-paper-2);
+}
+
+.mk-strip-cols .mk-label:nth-child(3) { text-align: right; }
+
+.mk-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1.08fr);
+  align-items: center;
+  gap: 0 var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: var(--line-1) solid var(--mk-rule-soft);
+}
+
+.mk-row:last-child { border-bottom: 0; }
+.mk-row:nth-child(even) { background: color-mix(in oklab, var(--mk-paper-2) 55%, transparent); }
+
+.mk-row-declared,
+.mk-row-found {
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+  line-height: 1.35;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.mk-row-declared { color: var(--mk-ink-print); }
+
+.mk-row-found {
+  color: var(--mk-ink-pen);
+  text-align: right;
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+}
+
+/* The mark itself. The joint is the element's own background; the two painted
+   halves are its pseudo-elements, so a row needs no filler nodes. */
+.mk-stripe {
+  --stripe-ink: var(--mk-svc);
+  position: relative;
+  height: 30px;
+  justify-self: center;
+  width: 56px;
+  background:
+    linear-gradient(
+      to right,
+      transparent calc(50% - var(--line-1) / 2),
+      var(--mk-rule-hard) calc(50% - var(--line-1) / 2),
+      var(--mk-rule-hard) calc(50% + var(--line-1) / 2),
+      transparent calc(50% + var(--line-1) / 2)
+    );
+}
+
+.mk-stripe::before,
+.mk-stripe::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  height: var(--mk-stripe-w);
+  width: var(--mk-stripe-half);
+  margin-top: calc(-1 * var(--mk-stripe-w) / 2);
+  background: var(--stripe-ink);
+}
+
+.mk-stripe::before { left: 3px; }
+.mk-stripe::after { right: 3px; }
+
+/* Drift: the housing half stayed, the part half moved. */
+.mk-row--drift .mk-stripe { --stripe-ink: var(--mk-uns); }
+.mk-row--drift .mk-stripe::after { transform: translateY(var(--mk-stripe-slip)); }
+
+/* Not fitted: nothing to paint across. */
+.mk-row--ghost .mk-row-declared,
+.mk-row--ghost .mk-row-found { color: var(--mk-ink-print-2); }
+
+.mk-row--ghost .mk-stripe::before,
+.mk-row--ghost .mk-stripe::after {
+  background: transparent;
+  border-top: var(--line-1) dashed var(--mk-rule-hard);
+}
+
+/* Orphaned: fitted, but no entry claims it. Tilted, because nothing squared it. */
+.mk-row--orphaned .mk-row-declared { color: var(--mk-ink-print-2); font-style: italic; }
+.mk-row--orphaned .mk-row-found { color: var(--mk-def-deep); }
+
+.mk-row--orphaned .mk-stripe::before {
+  background: transparent;
+  border-top: var(--line-1) dashed var(--mk-rule-hard);
+}
+
+.mk-row--orphaned .mk-stripe::after { background: var(--mk-def); transform: rotate(-4deg); }
+
+/* The one authored moment: the strip settles once, on arrival. */
+@media (prefers-reduced-motion: no-preference) {
+  .mk-strip.is-armed .mk-row { opacity: 0; }
+
+  .mk-strip.is-settled .mk-row {
+    animation: mk-row-land var(--mk-dur-settle) var(--mk-ease-settle) both;
+  }
+
+  .mk-strip.is-settled .mk-row--drift .mk-stripe::after {
+    animation: mk-stripe-slip var(--mk-dur-settle) var(--mk-ease-settle) both;
+    animation-delay: calc(var(--mk-dwell) + 120ms);
+  }
+
+  .mk-strip.is-settled .mk-row--drift .mk-chip--uns {
+    animation: mk-stamp var(--mk-dur-stamp) var(--mk-ease-stamp) both;
+    animation-delay: calc(var(--mk-dwell) + var(--mk-dur-stamp));
+  }
+}
+
+@keyframes mk-row-land {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mk-stripe-slip {
+  0%, 55% { transform: translateY(0); }
+  100% { transform: translateY(var(--mk-stripe-slip)); }
+}
+
+@keyframes mk-stamp {
+  0% { opacity: 0; transform: scale(1.5) rotate(-5deg); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Reduced motion: no arming, no animation, final state rendered directly. */
+@media (prefers-reduced-motion: reduce) {
+  .mk-strip .mk-row,
+  .mk-strip.is-armed .mk-row,
+  .mk-strip.is-settled .mk-row { opacity: 1; animation: none; transform: none; }
+  .mk-strip.is-settled .mk-row--drift .mk-stripe::after {
+    animation: none;
+    transform: translateY(var(--mk-stripe-slip));
+  }
+  .mk-strip.is-settled .mk-row--drift .mk-chip--uns { animation: none; opacity: 1; transform: none; }
+}
+
+/* --- log entry: the disclosure primitive -------------------------------- */
+
+/* Every block reads complete at its summary line and opens to the full entry.
+   Native <details>, so the page is whole with scripting off. */
+
+.mk-entry {
+  border-bottom: var(--line-1) solid var(--mk-rule);
+  background: transparent;
+}
+
+.mk-entry:first-of-type { border-top: var(--line-1) solid var(--mk-rule); }
+
+.mk-entry-summary {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  align-items: baseline;
+  gap: var(--s-3) var(--s-4);
+  padding: var(--s-4) 0;
+  min-height: var(--tap-min);
+  cursor: pointer;
+  list-style: none;
+  transition: background-color var(--mk-dur-quiet) linear;
+}
+
+.mk-entry-summary::-webkit-details-marker { display: none; }
+.mk-entry-summary:hover { background: color-mix(in oklab, var(--mk-paper-2) 70%, transparent); }
+
+.mk-entry-no {
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+  color: var(--mk-ink-print-2);
+}
+
+.mk-entry-title {
+  font-size: var(--mk-t-h4);
+  font-weight: 700;
+  letter-spacing: var(--mk-track-tight);
+  line-height: 1.25;
+  color: var(--mk-ink-print);
+  text-wrap: balance;
+}
+
+.mk-entry-gist {
+  display: block;
+  max-width: var(--mk-measure);
+  margin-top: var(--s-1);
+  font-size: var(--mk-t-small);
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5;
+  color: var(--mk-ink-print-2);
+}
+
+/* The affordance: a printed "SEE OVER" instruction, not a chevron. */
+.mk-entry-more {
+  align-self: center;
+  font-size: var(--mk-t-micro);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  color: var(--mk-ink-pen);
+  border: var(--line-1) solid var(--mk-ink-pen);
+  padding: var(--s-1) var(--s-2);
+  white-space: nowrap;
+}
+
+.mk-entry-more::after { content: " +"; }
+.mk-entry[open] .mk-entry-more::after { content: " \2212"; }
+
+.mk-entry-body {
+  padding: 0 0 var(--s-6) calc(46px + var(--s-4));
+  display: grid;
+  gap: var(--s-5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mk-entry[open] .mk-entry-body {
+    animation: mk-open var(--mk-dur-open) var(--mk-ease-settle) both;
+  }
+}
+
+@keyframes mk-open {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --- instrument inset ---------------------------------------------------- */
+
+/* Where the machine speaks: real command output and real blueprint source. */
+.mk-panel {
+  background: var(--mk-panel);
+  border: var(--line-1) solid var(--mk-panel-rule);
+  box-shadow: var(--mk-lift-panel), var(--mk-lift-copy);
+  overflow: hidden;
+}
+
+.mk-panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding: var(--s-2) var(--s-4);
+  background: var(--mk-panel-2);
+  border-bottom: var(--line-1) solid var(--mk-panel-rule);
+  font-size: var(--mk-t-micro);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  color: var(--mk-ink-panel-2);
+}
+
+.mk-panel-head .mk-panel-file {
+  margin-left: auto;
+  font-family: var(--mk-font-record);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.mk-panel pre {
+  margin: 0;
+  padding: var(--s-4);
+  overflow-x: auto;
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-entry);
+  line-height: 1.65;
+  color: var(--mk-ink-panel);
+  white-space: pre;
+  tab-size: 2;
+}
+
+.mk-panel pre.mk-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.mk-o-dim { color: var(--mk-ink-panel-2); }
+.mk-o-key { color: var(--mk-svc-lamp); }
+.mk-o-warn { color: var(--mk-def-lamp); }
+
+.mk-panel pre b { font-weight: 700; color: var(--mk-ink-panel); }
+
+/* --- block: a numbered section of the log --------------------------------- */
+
+.mk-block { padding: var(--s-9) 0; border-top: var(--line-2) solid var(--mk-ink-print); }
+.mk-block--plain { border-top: var(--line-1) solid var(--mk-rule); }
+
+.mk-block-head {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: var(--s-4);
+  align-items: start;
+  margin-bottom: var(--s-6);
+}
+
+.mk-block-no {
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+  color: var(--mk-ink-print-2);
+  padding-top: 7px;
+}
+
+.mk-block-title {
+  margin: 0;
+  font-size: var(--mk-t-h2);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-tight);
+  line-height: 1.06;
+  text-wrap: balance;
+  color: var(--mk-ink-print);
+}
+
+.mk-block-lede {
+  max-width: var(--mk-measure);
+  margin: var(--s-4) 0 0;
+  color: var(--mk-ink-print-2);
+}
+
+.mk-block-body { padding-left: calc(46px + var(--s-4)); }
+
+/* --- ledger: counted facts, ruled like a form ------------------------------ */
+
+.mk-ledger {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: var(--line-1) solid var(--mk-rule-hard);
+  border-left: var(--line-1) solid var(--mk-rule-hard);
+  background: var(--mk-paper);
+}
+
+@media (min-width: 620px) { .mk-ledger { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.mk-ledger div {
+  padding: var(--s-3) var(--s-4);
+  border-right: var(--line-1) solid var(--mk-rule-hard);
+  border-bottom: var(--line-1) solid var(--mk-rule-hard);
+}
+
+.mk-ledger b {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-h4);
+  font-weight: 700;
+  color: var(--mk-ink-pen);
+}
+
+.mk-ledger div.mk-ledger-clear b { color: var(--mk-svc-deep); }
+
+/* --- paper trail: evidence in, authority out ------------------------------- */
+
+.mk-trail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+}
+
+.mk-trail-col { display: grid; gap: var(--s-3); }
+
+.mk-trail-step {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-3) var(--s-4);
+  background: var(--mk-paper);
+  border: var(--line-1) solid var(--mk-rule-hard);
+}
+
+.mk-trail-step p { margin: 0; font-size: var(--mk-t-small); color: var(--mk-ink-print-2); line-height: 1.5; }
+
+.mk-trail-col--in .mk-trail-step .mk-rec { color: var(--mk-ink-pen); }
+.mk-trail-col--out .mk-trail-step .mk-rec { color: var(--mk-svc-deep); }
+.mk-trail-col > .mk-label { min-height: 30px; }
+
+/* The certificate: the one document that reads evidence and issues authority. */
+.mk-crs {
+  align-self: center;
+  display: grid;
+  gap: var(--s-2);
+  justify-items: center;
+  text-align: center;
+  padding: var(--s-5) var(--s-4);
+  width: min(320px, 100%);
+  background: var(--mk-paper-3);
+  border: var(--line-2) solid var(--mk-ink-print);
+  box-shadow: var(--mk-lift-crs);
+}
+
+.mk-crs-name {
+  font-size: var(--mk-t-h4);
+  font-weight: 800;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  color: var(--mk-ink-print);
+}
+
+.mk-crs-sig {
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+  color: var(--mk-ink-pen);
+  border-top: var(--line-1) solid var(--mk-rule-hard);
+  padding-top: var(--s-2);
+  width: 100%;
+}
+
+/* --- type ratings: what this airframe is certified to reconcile ------------- */
+
+.mk-ratings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+  border-top: var(--line-1) solid var(--mk-rule-hard);
+  border-left: var(--line-1) solid var(--mk-rule-hard);
+}
+
+.mk-rating {
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+  padding: var(--s-4) var(--s-5);
+  border-right: var(--line-1) solid var(--mk-rule-hard);
+  border-bottom: var(--line-1) solid var(--mk-rule-hard);
+  background: var(--mk-paper);
+}
+
+.mk-rating h3 {
+  margin: 0;
+  font-size: var(--mk-t-h4);
+  font-weight: 700;
+  letter-spacing: var(--mk-track-tight);
+  color: var(--mk-ink-print);
+}
+
+.mk-rating p { margin: 0; font-size: var(--mk-t-small); line-height: 1.55; color: var(--mk-ink-print-2); }
+.mk-rating--certified { background: var(--mk-svc-tint); }
+.mk-rating--certified p { color: var(--mk-svc-deep); }
+.mk-rating--pending { background: color-mix(in oklab, var(--mk-paper-2) 60%, transparent); }
+
+/* --- copy line: a command you take away ------------------------------------ */
+
+.mk-copyline {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  border: var(--line-2) solid var(--mk-ink-print);
+  background: var(--mk-panel);
+}
+
+.mk-copyline code {
+  flex: 1;
+  min-width: 0;
+  padding: var(--s-3) var(--s-4);
+  overflow-x: auto;
+  white-space: nowrap;
+  line-height: 1.55;
+  background: transparent;
+  border-radius: 0;
+  color: var(--mk-ink-panel);
+  font-size: var(--mk-t-small);
+}
+
+.mk-copyline button {
+  flex: none;
+  min-width: 84px;
+  min-height: var(--tap-min);
+  padding: 0 var(--s-4);
+  border: 0;
+  border-left: var(--line-2) solid var(--mk-ink-print);
+  background: var(--mk-paper-3);
+  color: var(--mk-ink-print);
+  font-family: var(--mk-font-form);
+  font-size: var(--mk-t-micro);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--mk-dur-quiet) linear;
+}
+
+.mk-copyline button:hover { background: var(--mk-paper-2); }
+.mk-copyline button[data-copied="yes"] { background: var(--mk-svc); color: var(--mk-paper); }
+
+/* --- footer ----------------------------------------------------------------- */
+
+.mk-footer {
+  border-top: var(--line-2) solid var(--mk-ink-print);
+  background: var(--mk-paper-2);
+  padding: var(--s-7) 0 var(--s-8);
+}
+
+.mk-footer-in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.mk-footer-nav { display: flex; flex-wrap: wrap; gap: var(--s-4); }
+
+.mk-footer-nav a {
+  border-bottom: var(--line-1) solid var(--mk-rule-hard);
+  padding-bottom: 2px;
+}
+
+/* The maintainer's tag: same grammar as every other tag on the page. */
+.mk-kofi {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: var(--s-2) var(--s-4);
+  background: var(--mk-def-tint);
+  border: var(--line-1) solid var(--mk-def-deep);
+  color: var(--mk-def-deep);
+  font-size: var(--mk-t-label);
+  font-weight: 700;
+  font-variation-settings: "wdth" var(--mk-wdth-plate);
+  letter-spacing: var(--mk-track-plate);
+  text-transform: uppercase;
+  text-decoration: none;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.mk-kofi:hover { background: var(--mk-def-lamp); }
+
+/* --- lane responsive --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  :root,
+  [data-theme="light"] {
+    --mk-gutter: var(--s-4);
+  }
+
+  /* Tap surfaces: every link the thumb has to hit clears the minimum. */
+  .mk-nav a,
+  .mk-footer-nav a,
+  .mk-entry-more {
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .mk-header-doc { display: none; }
+  .mk-strip-cols,
+  .mk-row { grid-template-columns: 1fr 44px 1fr; }
+  .mk-stripe { width: 44px; --mk-stripe-half: var(--mk-stripe-half-narrow); }
+  .mk-block { padding: var(--s-7) 0; }
+  .mk-block-head { grid-template-columns: 34px 1fr; gap: var(--s-3); }
+  .mk-block-body { padding-left: 0; }
+  .mk-entry-summary { grid-template-columns: 34px 1fr; }
+  .mk-entry-more { grid-column: 2; justify-self: start; margin-top: var(--s-2); }
+  .mk-entry-body { padding-left: calc(34px + var(--s-3)); }
+  .mk-trail { grid-template-columns: 1fr; }
+  .mk-crs { justify-self: stretch; }
+}
+
+@media (max-width: 700px) {
+  .mk-header-in { flex-wrap: wrap; gap: var(--s-2) var(--s-4); }
+
+  .mk-nav {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    gap: var(--s-2) var(--s-4);
+    padding-bottom: var(--s-1);
+    border-top: var(--line-1) solid var(--mk-rule);
+    padding-top: var(--s-2);
+  }
+}
+
+@media (max-width: 620px) {
+  .mk-strip-cols { display: none; }
+
+  .mk-row {
+    grid-template-columns: 1fr auto;
+    gap: var(--s-2) var(--s-3);
+    padding: var(--s-4);
+  }
+
+  .mk-row-found { grid-column: 1 / -1; text-align: left; justify-items: start; }
+  .mk-stripe { grid-row: 1; grid-column: 2; height: 24px; }
+  .mk-block-head { grid-template-columns: 1fr; }
+  .mk-block-no { padding-top: 0; }
+  .mk-entry-summary { grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
+  .mk-entry-more { grid-column: auto; justify-self: start; margin-top: 0; }
+  .mk-entry-body { padding-left: 0; }
+}
+
+/* --- marketing lane composition ---------------------------------------------
+   Page-level arrangements the marketing lane reuses across surfaces. Kept here
+   rather than in a page <style> block so `docs/design-system/` stays the single
+   authority (AGENTS.md, dec.marketing-visual-world). */
+
+.mk-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+  gap: var(--s-8) var(--s-7);
+  align-items: start;
+  padding: var(--s-6) 0 var(--s-8);
+}
+
+.mk-hero-text,
+.mk-hero-aside { display: grid; align-content: start; }
+.mk-hero-text { gap: var(--s-5); }
+.mk-hero-aside { gap: var(--s-4); }
+.mk-hero-plate { justify-self: start; }
+
+/* An aside set in the record face: the machine's own note on what you see. */
+.mk-note {
+  margin: 0;
+  max-width: 52ch;
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+  line-height: 1.6;
+  color: var(--mk-ink-print-2);
+}
+
+.mk-stack { display: grid; gap: var(--s-5); min-width: 0; }
+.mk-stack--tight { gap: var(--s-4); }
+
+.mk-tags-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-4);
+}
+
+@media (min-width: 760px) { .mk-tags-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.mk-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--s-5);
+  align-items: start;
+}
+
+/* A margin note against a ruled edge: the caveat the page refuses to bury. */
+.mk-aside {
+  margin: 0;
+  max-width: var(--mk-measure);
+  padding-left: var(--s-4);
+  border-left: var(--line-1) solid var(--mk-rule-hard);
+  font-size: var(--mk-t-small);
+  line-height: 1.6;
+  color: var(--mk-ink-print-2);
+}
+
+.mk-aside strong { color: var(--mk-ink-print); }
+
+.mk-footer-brand {
+  margin: 0;
+  max-width: 44ch;
+  font-size: var(--mk-t-small);
+  line-height: 1.6;
+  color: var(--mk-ink-print-2);
+}
+
+.mk-footer-brand strong { color: var(--mk-ink-print); }
+
+/* Strip settle order comes from document order, not from an inline index. */
+@media (prefers-reduced-motion: no-preference) {
+  .mk-strip.is-settled .mk-row:nth-child(1 of .mk-row) { animation-delay: 0ms; }
+  .mk-strip.is-settled .mk-row:nth-child(2 of .mk-row) { animation-delay: 70ms; }
+  .mk-strip.is-settled .mk-row:nth-child(3 of .mk-row) { animation-delay: 140ms; }
+  .mk-strip.is-settled .mk-row:nth-child(4 of .mk-row) { animation-delay: 210ms; }
+  .mk-strip.is-settled .mk-row:nth-child(n + 5 of .mk-row) { animation-delay: 280ms; }
+}
+
+@media (max-width: 900px) {
+  .mk-hero { grid-template-columns: 1fr; gap: var(--s-6); padding: var(--s-6) 0 var(--s-7); }
+}
+
+/* A paste-prompt is a paragraph of content, not a one-line command: it wraps
+   rather than hiding its tail behind a horizontal scroll. */
+.mk-copyline--wrap code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow-x: visible;
+}
+
+/* The lane rendered inside another page (the design-system reference, an embed):
+   the ground and its fibre stay inside the block instead of taking the viewport. */
+.mk-page--inset { position: relative; }
+.mk-page--inset::before { position: absolute; }
+
+/* --- social card ------------------------------------------------------------
+   The Open Graph frame, built from the lane rather than from a product
+   screenshot. Fixed at exactly --mk-card-w by --mk-card-h; it is rendered once
+   to a PNG and never served as a responsive page. Source and regeneration
+   instructions: docs/assets/social-card.html. */
+
+.mk-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--s-6);
+  width: var(--mk-card-w);
+  height: var(--mk-card-h);
+  padding: var(--s-7) var(--s-8);
+  overflow: hidden;
+}
+
+.mk-card-top { display: flex; align-items: center; gap: var(--s-4); }
+
+/* The rule that carries the eye from mark to log title. */
+.mk-card-top::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  height: var(--line-1);
+  background: var(--mk-rule-hard);
+}
+
+.mk-card-top > :last-child { order: 2; }
+
+.mk-card-body {
+  display: grid;
+  grid-template-columns: 1.06fr 1fr;
+  gap: var(--s-7);
+  align-items: center;
+}
+
+.mk-card-body .mk-display { font-size: var(--mk-t-card); }
+
+.mk-card-foot { display: flex; align-items: baseline; gap: var(--s-4); }
+.mk-card-foot .mk-rec { margin-left: auto; }
