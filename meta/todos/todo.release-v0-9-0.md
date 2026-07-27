@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-27
 ---
 
@@ -43,3 +43,38 @@ already fixed on main; the second is fixed in this unit.
 - The GitHub Release, the crates.io version, and the Homebrew formula all
   show 0.9.0.
 - `cargo package` contains every embedded `src/ui_assets` file.
+
+## Outcome
+
+Released 2026-07-27 from `66af1e3` (PR #487), tagged `v0.9.0`. Every
+acceptance line was verified against the live artefacts, not inferred from the
+pipeline exiting green:
+
+- `cairn --version` reports `cairn 0.9.0`; `cairn scan` holds at its one
+  deliberate deferred finding and `cairn hook all` exits 0 on merged `main`.
+- `CHANGELOG.md` names all six `cairn pack` verbs, distinguishes OMP's
+  retained live-host record from Claude's dogfood evidence, and scopes the
+  containment fix to its audited surfaces.
+- The FIFO and unreadable-file regressions are covered by
+  `tests/pack_path_containment.rs` plus the direct `wire_agent_guide` unit
+  test in `src/cli/commands/wire.rs`.
+- GitHub Release `v0.9.0` is published, not a draft, carrying 18 assets.
+- crates.io reports `max_version` and `newest_version` of `0.9.0`.
+- The Homebrew tap formula reads `version "0.9.0"`.
+- `cargo package` produced `cairn-framework-0.9.0.crate` with every embedded
+  `src/ui_assets` asset present. The extensionless `src/ui_assets/api/*`
+  fixtures are correctly excluded: nothing embeds them.
+
+Review expanded a notes-and-version-bump unit into two code fixes: the
+`init --wire` FIFO hang, which was reproduced against a binary built from the
+`v0.8.0` tag and so was a second shipped defect, and the unreadable owned pack
+file, which was reachable but unreleased.
+
+Three reviewer passes produced 21 findings: 19 were a claim written wider than
+its evidence, and 2 were regression-test quality. Fourteen of the 21 were
+anchored to the draft release notes, including "both validated against a live
+host" when only OMP has a retained record
+(`res.pack-omp-adapter-validation`). All were resolved before tagging. The
+notes are derived from artefacts rather than commit subjects for exactly this
+reason: the merged `#484` subject line says "every project write", which is
+wider than the surfaces `todo.pack-path-containment` actually audited.
