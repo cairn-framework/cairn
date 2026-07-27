@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.9.0
+
+### Agent pack
+
+- Cairn now installs and maintains its own agent guidance as an owned pack: `cairn pack install`, `update`, `status`, and `uninstall` (#466), plus `cairn pack resolve` and `campaign` (#468). An ownership manifest records a SHA-256 for each owned pack asset, so install, update, status, and uninstall report a file you edited and leave it alone, and only a file still matching what the packager wrote is ever refreshed or retired.
+- Two harness adapters ship: `claude` installs under `.claude/`, and `omp` installs under `.omp/`. The OMP adapter carries a retained live-host validation record (`res.pack-omp-adapter-validation`, OMP 17.1.3); the Claude adapter is the tree this repository installs and dogfoods, with no separate capture retained. A first install with no selector detects the host, and afterwards every verb binds to the harness the manifest records, refusing a `--harness` that disagrees with it. The exception is `cairn pack campaign end`, which releases a campaign without consulting the manifest so an unreadable one cannot strand a project (#471, #483).
+- `cairn init` bootstraps through that same lifecycle instead of writing skill files itself, and `--wire` now works on the brownfield path (#467).
+- `cairn pack campaign` pins the resolved entry and its declared closure as immutable bytes, so a pack edit landing mid-session cannot reach a running campaign. A changed procedure halts before work rather than silently taking effect (#468).
+
+### Agent guidance
+
+- `cairn-dev` is now a compact router that loads at most one just-in-time reference for the task at hand, rather than a single large always-loaded document. When no route fits it stays put and uses the query surface directly. The loop procedure is split into required skills with declared typed exits, and fails closed when one is missing (#460).
+- Plan reconciliation is a required step inside the landing commit, so the next session reads a corrected plan from main with no external memory (#461).
+- `docs/spec.md` becomes fallback narrative rather than the read surface: reads are graph-first (#469).
+- The shipped apply, propose, and archive skills use host-language gates and claim-matched proof rather than assuming a Rust project (#459).
+
+### Fixes
+
+- The pack lifecycle, the campaign lock, and `cairn init` now reject, at validation time, any path that leaves the project root and any path reached through a symlink. The lifecycle and campaign reads additionally refuse a file type whose read can block; init's own scaffolding inspects its destinations by metadata without reading them. Previously `pack uninstall` could delete a file outside the project, `pack install` and `campaign end` could write or remove state outside it, and `init` could scaffold outside it through a symlinked `.cairn`. Of these, only the `init` scaffold escape reached a released binary; the rest are in code that never shipped. A bounded parent-component race remains between the check and the act, which is documented rather than claimed away (#484).
+- `cairn init --wire` now refuses a non-regular agent instructions file instead of reading it. Previously a FIFO at that path could block the command forever. This one did reach the released v0.8.0 binary (#487).
+- An owned pack file that exists but cannot be read is now reported as modified and left alone, rather than classified as missing and overwritten by `pack install` or `pack update`, or silently dropped from the `uninstall` report (#487).
+- Brownfield discovery sanitises node ids it derives from directory names, and declares the contracts it writes (#476, #481).
+- Artefact status writes replace their file atomically (#480).
+- An unsupported long option on a command that declares its own flag set is now rejected with a usage error instead of being silently ignored, and the help metadata behind that check is guarded against drift. Options treated as global are still accepted everywhere (#479).
+- Remediation copy is centralised, and packaged includes are anchored so no embedded asset can be dropped from a release (#472, #473).
+- A deferred spec-rule decision that no longer resolves now raises a warning rather than silently suppressing its finding (#474).
+- The web explorer reloads changed or newly added artefacts without a restart (#475).
+
+### Known boundary
+
+- `cairn scan` reports one deferred Info finding on this repository. It is retained deliberately by `dec.revisit-trigger-correlator-deferred` as the honest tracker for a designed-but-unbuilt spec rule, and is not a defect.
+
 ## v0.8.0
 
 ### Graph explorer relayout

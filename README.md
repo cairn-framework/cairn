@@ -252,7 +252,22 @@ No. Only hard findings block a commit: broken structure, a contradicted interfac
 
 ## Status
 
-Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped. Cairn is published to crates.io (`cairn-framework`) and the CLI surface may still move, but every artefact it writes is plain text in your repo (markdown plus a JSON snapshot), so a format change cannot strand your data: you can read or drop it with no special tool. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
+Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry, change tracking, brownfield onboarding, hooks, MCP server, and web explorer have all shipped, alongside an agent pack that installs and maintains Cairn's own guidance for your coding agent, with adapters for Claude and OMP. Cairn is published to crates.io (`cairn-framework`) and the CLI surface may still move, but every artefact it writes is plain text in your repo (markdown plus a JSON snapshot), so a format change cannot strand your data: you can read or drop it with no special tool. This repository uses Cairn on itself: the root `cairn.blueprint` describes Cairn, and the commit gate runs `cairn hook all`.
+
+## Roadmap
+
+Last reviewed for v0.9.0 (2026-07-27). This is the near-term shape, not a schedule or a commitment. The graph is the live source of truth: run `cairn frontier` for what is buildable now, and `cairn status` for the current backlog and findings.
+
+**Just landed.** The agent pack lifecycle with harness adapters for Claude and OMP, the `cairn-dev` router that loads at most one just-in-time reference per task, and path containment for the pack lifecycle, the campaign lock, and `cairn init` scaffolding.
+
+**Next up.**
+
+- **Typed todo relationships.** Todos carry no dependency or parent-child model, so ordering lives in prose. A schema decision comes first, then the CLI and scanner surfaces that enforce it.
+- **Wider symbol coverage.** Rust and TypeScript symbol extraction only sees explicitly public or exported items, which limits what `cairn get <node> --symbols` can report for those languages.
+- **Artefact filename conformance.** The documented slug-only rule and the filenames the tooling actually writes disagree. One decision, one migration or amendment, and one scan check settle it.
+- **Work selection that respects priority.** After findings, `cairn next` picks the oldest open native todo. Priority is unstructured prose today, so Cairn needs a structured priority field before selection can rank by it.
+
+**Not planned.** A scheduler, a runner, or anything that repeats work for you. Iteration belongs to your harness, not to Cairn.
 
 ## Feedback
 

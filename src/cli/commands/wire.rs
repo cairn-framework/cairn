@@ -223,13 +223,33 @@ pub(crate) fn preflight_wire_check(root: &Path, target: Option<&str>) -> CliResu
     if containment.code != 0 {
         return containment;
     }
-    if file.is_dir() {
-        return err(
-            1,
-            &copy::lookup("init.wire.err-not-file").replace("{file}", &file.display().to_string()),
-        );
+    if let Err(refusal) = require_regular_or_absent(&file) {
+        return refusal;
     }
     ok(String::new())
+}
+
+/// The instructions file must be a regular file, or absent so it can be
+/// created. A directory was always refused; every other non-regular type is
+/// refused too. A FIFO is the motivating case: `fs::read_to_string` on one
+/// with no writer never returns.
+fn require_regular_or_absent(file: &Path) -> Result<(), CliResult> {
+    match fs::symlink_metadata(file) {
+        Ok(meta) if meta.file_type().is_file() => Ok(()),
+        Ok(_) => Err(err(
+            1,
+            &copy::lookup("init.wire.err-not-file").replace("{file}", &file.display().to_string()),
+        )),
+        // Only a genuine absence is creatable. A permission or I/O error must
+        // not be mistaken for "no file here".
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(err(
+            1,
+            &copy::lookup("init.wire.err-read")
+                .replace("{file}", &file.display().to_string())
+                .replace("{detail}", &error.to_string()),
+        )),
+    }
 }
 
 /// Wire `.cairn/AGENTS.md` into the project's agent instructions file by
@@ -261,11 +281,8 @@ pub(crate) fn wire_agent_guide(root: &Path, target: Option<&str>) -> CliResult {
     if containment.code != 0 {
         return containment;
     }
-    if file.is_dir() {
-        return err(
-            1,
-            &copy::lookup("init.wire.err-not-file").replace("{file}", &file.display().to_string()),
-        );
+    if let Err(refusal) = require_regular_or_absent(&file) {
+        return refusal;
     }
     let existing = match fs::read_to_string(&file) {
         Ok(s) => s,
@@ -535,6 +552,31 @@ mod tests {
         assert!(
             readable_path(dir.path(), "../escape.md").is_err(),
             "a traversal must not resolve to a readable path"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_wire_refuses_a_non_regular_instructions_file() {
+        let dir = tempfile::tempdir().unwrap();
+        init_project(dir.path(), false);
+
+        // `preflight_wire_check` guards the CLI route, but `wire_agent_guide`
+        // does its own read and must refuse independently. The fixture is a
+        // socket rather than a FIFO deliberately: opening a socket fails fast,
+        // so removing the guard fails this test instead of wedging the whole
+        // suite on an unbounded read. The FIFO case is covered by
+        // `tests/pack_path_containment.rs`, which runs the binary with a
+        // deadline.
+        let target = dir.path().join("AGENTS.md");
+        let _ = std::fs::remove_file(&target);
+        let _listener =
+            std::os::unix::net::UnixListener::bind(&target).expect("binding a unix socket fixture");
+
+        let result = wire_agent_guide(dir.path(), Some("AGENTS.md"));
+        assert_eq!(
+            result.code, 1,
+            "wire must refuse a non-regular instructions file rather than read it"
         );
     }
 

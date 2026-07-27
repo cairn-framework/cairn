@@ -127,7 +127,16 @@ pub(crate) fn classify(root: &Path, asset: &PackAsset, owned: Option<&str>) -> A
         Err(_) => return Action::Modified,
     };
     let Ok(disk) = fs::read(&full) else {
-        return Action::Backfill;
+        // A directory keeps the loud failure it always had: it classifies as
+        // Backfill, the write attempt fails, and the verb reports it
+        // (`tests/pack_lifecycle.rs` pins that). A regular file that exists
+        // but cannot be read is reported and left alone instead, because
+        // backfilling would overwrite bytes this verb cannot even inspect.
+        return if full.is_dir() {
+            Action::Backfill
+        } else {
+            Action::Modified
+        };
     };
     let on_disk = digest(&disk);
     let bundled = digest(asset.content.as_bytes());
