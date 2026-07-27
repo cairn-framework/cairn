@@ -145,11 +145,12 @@ Marketing lane classes:
 - `.mk-btn` with `.mk-btn--stamp` and `.mk-btn--quiet`
 - `.mk-tag` with `.mk-tag--svc`, `--uns`, `--def`; `.mk-tag-status`, `.mk-tag-title`, `.mk-tag-body`, `.mk-tag-sig`. A modifier sets only `--tag-ink` and `--tag-paper`
 - `.mk-chip` with the same four variants
-- `.mk-strip`, `.mk-strip-head`, `.mk-strip-cols`, `.mk-strip-foot`, `.mk-row` with `.mk-row--drift`, `--ghost`, `--orphaned`, and `.mk-stripe` (an empty element; the joint is its background and the two painted halves are its pseudo-elements)
+- `.mk-strip`, `.mk-strip-head`, `.mk-strip-cols`, `.mk-strip-foot`, `.mk-row` with `.mk-row--drift`, `--ghost`, `--orphaned`, and `.mk-stripe` (an empty element; the seam is its background and the two painted halves are its pseudo-elements)
 - `.mk-entry` / `.mk-entry-summary` / `.mk-entry-no` / `.mk-entry-title` / `.mk-entry-gist` / `.mk-entry-more` / `.mk-entry-body`
 - `.mk-panel`, `.mk-panel-head`, `.mk-panel-file`, and the output inks `.mk-o-dim`, `.mk-o-key`, `.mk-o-warn`
 - `.mk-block`, `.mk-block-head`, `.mk-block-no`, `.mk-block-title`, `.mk-block-lede`, `.mk-block-body`
 - `.mk-ledger` with `.mk-ledger-clear`, `.mk-trail`, `.mk-crs`, `.mk-ratings` / `.mk-rating`
+- `.mk-schematic` (structure diagram) with `.mk-schematic-head`, `-title`, `-note`, `-body`, `-foot`; inside the body `.mk-sch-col` with `--l` / `--r`, `.mk-sch-node` with `--linked`, `.mk-sch-bus` with `--l` / `--r`, and `.mk-sch-hub` with `.mk-sch-hub-name` / `.mk-sch-hub-note`. It draws adjacency and kernel membership only. Each column has one spine gathering its node stubs and one rule into the hub. A `--linked` node draws a rule to the node above it in the same column. Edge direction and reason are never drawn, so every real instance must be paired with a record that prints them. Below 900px the hub moves to the top and its connectors are dropped, so the hub note must state the connection count in words. The body carries `role="img"` and an `aria-label` describing the whole graph
 - `.mk-copyline` with `.mk-copyline--wrap`
 - `.mk-footer`, `.mk-footer-in`, `.mk-footer-nav`, `.mk-footer-brand`, `.mk-kofi`
 - Composition: `.mk-hero`, `.mk-stack` with `.mk-stack--tight`, `.mk-tags-grid`, `.mk-columns`

@@ -1102,7 +1102,7 @@ state: stable</pre>
               </div>
               <div class="mk-strip-cols" aria-hidden="true">
                 <span class="mk-label">Declared</span>
-                <span class="mk-label">Joint</span>
+                <span class="mk-label">Check</span>
                 <span class="mk-label">Found on disk</span>
               </div>
               <div class="mk-row">
@@ -1132,14 +1132,41 @@ state: stable</pre>
                 <span class="mk-tag-status">Unserviceable</span>
                 <h3 class="mk-tag-title">Interface contradiction</h3>
                 <p class="mk-tag-body">The contract says one thing and the code does another.</p>
-                <p class="mk-tag-sig"><span class="mk-label">Stops</span> the merge</p>
+                <p class="mk-tag-sig"><span class="mk-label">Stops</span> the commit, until you settle it</p>
               </article>
               <article class="mk-tag mk-tag--def">
                 <span class="mk-tag-status">Deferred defect</span>
                 <h3 class="mk-tag-title">Rationale tension</h3>
-                <p class="mk-tag-body">The code still builds, but the story has drifted.</p>
-                <p class="mk-tag-sig"><span class="mk-label">Stops</span> nothing, books a review</p>
+                <p class="mk-tag-body">Nothing mechanical is broken, but the story behind the code has drifted.</p>
+                <p class="mk-tag-sig"><span class="mk-label">Stops</span> nothing, stays on the record</p>
               </article>
+            </div>
+
+            <div class="mk-schematic">
+              <div class="mk-schematic-head">
+                <span class="mk-schematic-title">Structure diagram</span>
+                <span class="mk-schematic-note">specimen entry</span>
+              </div>
+              <div class="mk-schematic-body" role="img" aria-label="Specimen structure diagram: the kernel contains eight nodes. Five nodes connect to it: mcp, brownfield, reconcile, ui and state. The ui node also connects to state.">
+                <div class="mk-sch-col mk-sch-col--l">
+                  <span class="mk-sch-node">mcp</span>
+                  <span class="mk-sch-node">brownfield</span>
+                  <span class="mk-sch-node">reconcile</span>
+                </div>
+                <span class="mk-sch-bus mk-sch-bus--l" aria-hidden="true"></span>
+                <div class="mk-sch-hub">
+                  <span class="mk-sch-hub-name">kernel</span>
+                  <span class="mk-sch-hub-note">8 nodes inside &middot; 5 connect to it</span>
+                </div>
+                <span class="mk-sch-bus mk-sch-bus--r" aria-hidden="true"></span>
+                <div class="mk-sch-col mk-sch-col--r">
+                  <span class="mk-sch-node">ui</span>
+                  <span class="mk-sch-node mk-sch-node--linked">state</span>
+                </div>
+              </div>
+              <div class="mk-schematic-foot">
+                <span class="mk-schematic-note">Shape only. Pair a real instance with the record that gives each edge its direction and reason.</span>
+              </div>
             </div>
 
             <details class="mk-entry">
@@ -1165,7 +1192,7 @@ state: stable</pre>
 
           </div>
         </div>
-        <div class="demo-label">Marketing lane<span class="code">.mk-page<br>.mk-plate<br>.mk-strip / .mk-row / .mk-stripe<br>.mk-tag<br>.mk-entry<br>.mk-panel<br>.mk-btn</span></div>
+        <div class="demo-label">Marketing lane<span class="code">.mk-page<br>.mk-plate<br>.mk-strip / .mk-row / .mk-stripe<br>.mk-tag<br>.mk-schematic<br>.mk-entry<br>.mk-panel<br>.mk-btn</span></div>
       </div>
 
       <h3 class="sub-title">Social card</h3>

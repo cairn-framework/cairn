@@ -1754,7 +1754,8 @@ marker path {
 .mk-strip-head { border-bottom: var(--line-1) solid var(--mk-rule-hard); }
 .mk-strip-foot { border-top: var(--line-1) solid var(--mk-rule-hard); }
 
-.mk-strip-title {
+.mk-strip-title,
+.mk-schematic-title {
   font-size: var(--mk-t-label);
   font-weight: 700;
   font-variation-settings: "wdth" var(--mk-wdth-plate);
@@ -1811,7 +1812,7 @@ marker path {
   justify-items: end;
 }
 
-/* The mark itself. The joint is the element's own background; the two painted
+/* The mark itself. The seam is the element's own background; the two painted
    halves are its pseudo-elements, so a row needs no filler nodes. */
 .mk-stripe {
   --stripe-ink: var(--mk-svc);
@@ -2123,6 +2124,148 @@ marker path {
 
 .mk-ledger div.mk-ledger-clear b { color: var(--mk-svc-deep); }
 
+/* --- structure diagram: the declared graph, drawn as a printed schematic ----
+   Draws adjacency and kernel membership only. Every instance must be paired
+   with a record that gives each edge its direction and reason. */
+
+.mk-schematic {
+  border: var(--line-1) solid var(--mk-rule-hard);
+  background: var(--mk-paper);
+}
+
+.mk-schematic-head,
+.mk-schematic-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-1) var(--s-4);
+  padding: var(--s-2) var(--s-4);
+  background: var(--mk-paper-2);
+}
+
+.mk-schematic-head { border-bottom: var(--line-1) solid var(--mk-rule); }
+.mk-schematic-foot { border-top: var(--line-1) solid var(--mk-rule); }
+
+/* Title shares the strip's treatment; see .mk-strip-title. */
+
+
+.mk-schematic-note {
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-micro);
+  color: var(--mk-ink-print-2);
+}
+
+.mk-schematic-body {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) var(--s-6) minmax(0, 0.85fr) var(--s-6) minmax(0, 1fr);
+  align-items: center;
+  padding: var(--s-5) var(--s-4);
+}
+
+.mk-sch-col {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.mk-sch-col--l { justify-items: end; }
+.mk-sch-col--r { justify-items: start; }
+
+.mk-sch-node {
+  position: relative;
+  min-width: calc(var(--tap-min) * 4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min);
+  padding: var(--s-2) var(--s-3);
+  border: var(--line-1) solid var(--mk-rule-hard);
+  background: var(--mk-paper-2);
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-small);
+  color: var(--mk-ink-print);
+  text-align: center;
+}
+
+/* Stub from a node out to the bus spine. Grid cells do not clip, so the rule
+   crosses into the bus column and meets the spine at its centre. */
+.mk-sch-col .mk-sch-node::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: calc(var(--s-6) / 2);
+  height: var(--line-1);
+  background: var(--mk-rule-hard);
+}
+
+.mk-sch-col--l .mk-sch-node::after { left: 100%; }
+.mk-sch-col--r .mk-sch-node::after { right: 100%; }
+
+/* A node wired to the one directly above it in the same column. The rule
+   spans the column gap exactly, so the two boxes read as joined. */
+.mk-sch-node--linked::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: var(--line-1);
+  height: var(--s-4);
+  background: var(--mk-rule-hard);
+}
+
+/* Each bus gathers one column's stubs and joins them to the hub. Its spine
+   runs from the first node centre to the last, both of which sit half a node
+   height inside the column, so it never overshoots into empty paper. */
+.mk-sch-bus {
+  position: relative;
+  align-self: stretch;
+}
+
+.mk-sch-bus::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(var(--tap-min) / 2);
+  bottom: calc(var(--tap-min) / 2);
+  width: var(--line-1);
+  background: var(--mk-rule-hard);
+}
+
+.mk-sch-bus::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  height: var(--line-1);
+  background: var(--mk-rule-hard);
+}
+
+.mk-sch-bus--l::after { left: 50%; right: 0; }
+.mk-sch-bus--r::after { left: 0; right: 50%; }
+
+.mk-sch-hub {
+  padding: var(--s-4) var(--s-3);
+  border: var(--line-2) solid var(--mk-ink-print);
+  background: var(--mk-paper-3);
+  text-align: center;
+}
+
+.mk-sch-hub-name {
+  display: block;
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-body);
+  font-weight: 700;
+  color: var(--mk-ink-print);
+}
+
+.mk-sch-hub-note {
+  display: block;
+  margin-top: var(--s-1);
+  font-family: var(--mk-font-record);
+  font-size: var(--mk-t-micro);
+  color: var(--mk-ink-print-2);
+}
+
 /* --- paper trail: evidence in, authority out ------------------------------- */
 
 .mk-trail {
@@ -2329,6 +2472,29 @@ marker path {
   .mk-entry-body { padding-left: calc(34px + var(--s-3)); }
   .mk-trail { grid-template-columns: 1fr; }
   .mk-crs { justify-self: stretch; }
+
+  /* Too narrow to draw a hub with arms. The kernel moves to the top and the
+     nodes attached to it stack beneath. The hub-to-node connectors are dropped
+     rather than left pointing at empty paper, so the hub note has to carry the
+     connection count in words at every width. */
+  .mk-schematic-body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-3);
+    padding: var(--s-4);
+  }
+  .mk-sch-hub { order: -1; }
+  .mk-sch-col {
+    gap: var(--s-3);
+    justify-items: stretch;
+  }
+  .mk-sch-bus,
+  .mk-sch-col .mk-sch-node::after { display: none; }
+  /* The one rule that survives: stacked, a linked node sits directly under the
+     node it joins, so the mark is unambiguous. It spans the stack gap. */
+  .mk-sch-node--linked::before { height: var(--s-3); }
+  .mk-sch-node { min-width: 0; }
 }
 
 @media (max-width: 700px) {
