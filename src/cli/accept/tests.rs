@@ -381,3 +381,31 @@ fn accept_dry_run_previews_steps_without_running_them() {
         result.stdout
     );
 }
+
+#[test]
+fn accept_dry_run_fails_blank_configured_commands() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(
+        root.join("cairn.config.yaml"),
+        "gates:\n  - name: blank gate\n    command: \"   \"\n",
+    )
+    .unwrap();
+
+    let result = run_accept_gate(root, None, true, true);
+
+    // The live gate fails closed on a blank command; the preview must not
+    // advertise it as a runnable step.
+    assert_eq!(
+        result.code, 1,
+        "blank command must fail the preview: {}",
+        result.stdout
+    );
+    assert!(
+        result
+            .stdout
+            .contains("\"test\":\"blank gate\",\"state\":\"failed\""),
+        "blank command must be reported as failed: {}",
+        result.stdout
+    );
+}

@@ -579,16 +579,16 @@
           "kind": "function",
           "signature": "pub const fn is_complete(self) -> bool",
           "file": "src/artefacts/tasks.rs",
-          "line": 24,
-          "end_line": 26
+          "line": 25,
+          "end_line": 27
         },
         {
           "name": "remaining",
           "kind": "function",
           "signature": "pub const fn remaining(self) -> usize",
           "file": "src/artefacts/tasks.rs",
-          "line": 18,
-          "end_line": 20
+          "line": 19,
+          "end_line": 21
         },
         {
           "name": "ArtefactType",
@@ -667,8 +667,8 @@
           "kind": "function",
           "signature": "pub fn count_tasks(source: &str) -> TaskProgress",
           "file": "src/artefacts/tasks.rs",
-          "line": 34,
-          "end_line": 61
+          "line": 35,
+          "end_line": 62
         },
         {
           "name": "from_cli",
@@ -1116,24 +1116,24 @@
           "kind": "function",
           "signature": "pub fn active_changes_lines(changes: &[Change]) -> Vec<String>",
           "file": "src/changes/mod.rs",
-          "line": 335,
-          "end_line": 347
+          "line": 352,
+          "end_line": 364
         },
         {
           "name": "archive",
           "kind": "function",
           "signature": "pub fn archive( root: &Path, blueprint_path: &Path, changes_dir: &Path, change_id: &str, ) -> Result<ArchiveReport, String>",
           "file": "src/changes/mod.rs",
-          "line": 112,
-          "end_line": 173
+          "line": 129,
+          "end_line": 190
         },
         {
           "name": "create_rename_change",
           "kind": "function",
           "signature": "pub fn create_rename_change( root: &Path, blueprint_path: &Path, old_id: &str, new_id: &str, ) -> Result<Change, String>",
           "file": "src/changes/mod.rs",
-          "line": 181,
-          "end_line": 230
+          "line": 198,
+          "end_line": 247
         },
         {
           "name": "discover",
@@ -1157,23 +1157,23 @@
           "signature": "pub fn load_change(root: &Path, path: PathBuf) -> Change",
           "file": "src/changes/mod.rs",
           "line": 68,
-          "end_line": 105
+          "end_line": 103
         },
         {
           "name": "operation_summary",
           "kind": "function",
           "signature": "pub fn operation_summary(change: &Change) -> String",
           "file": "src/changes/mod.rs",
-          "line": 234,
-          "end_line": 263
+          "line": 251,
+          "end_line": 280
         },
         {
           "name": "operations_for_nodes",
           "kind": "function",
           "signature": "pub fn operations_for_nodes(changes: &[Change], nodes: &BTreeSet<String>) -> Vec<String>",
           "file": "src/changes/mod.rs",
-          "line": 267,
-          "end_line": 331
+          "line": 284,
+          "end_line": 348
         },
         {
           "name": "parse_blueprint_delta",

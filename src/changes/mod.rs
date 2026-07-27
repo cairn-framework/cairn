@@ -88,9 +88,7 @@ pub fn load_change(root: &Path, path: PathBuf) -> Change {
         .map_err(|message| findings.push(message))
         .unwrap_or_default();
     let artefacts = parse_artefact_operations(root, &path, &mut findings);
-    let progress = fs::read_to_string(path.join("tasks.md"))
-        .map(|source| crate::artefacts::count_tasks(&source))
-        .unwrap_or_default();
+    let progress = load_task_progress(&path, &mut findings);
     Change {
         id,
         path,
@@ -101,6 +99,25 @@ pub fn load_change(root: &Path, path: PathBuf) -> Change {
         artefacts,
         progress,
         findings,
+    }
+}
+
+/// Reads `tasks.md` checkbox progress for a change directory.
+///
+/// A missing file simply means the change tracks no tasks. Any other read
+/// failure is recorded as a finding, like the other change files, rather than
+/// silently reported as zero progress.
+fn load_task_progress(path: &Path, findings: &mut Vec<String>) -> crate::artefacts::TaskProgress {
+    let tasks_path = path.join("tasks.md");
+    match fs::read_to_string(&tasks_path) {
+        Ok(source) => crate::artefacts::count_tasks(&source),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            crate::artefacts::TaskProgress::default()
+        }
+        Err(error) => {
+            findings.push(format!("failed to read {}: {error}", tasks_path.display()));
+            crate::artefacts::TaskProgress::default()
+        }
     }
 }
 

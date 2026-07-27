@@ -94,27 +94,51 @@ fn planned_step(test: String, detail: Option<String>) -> VerificationFinding {
     }
 }
 
+/// The informational finding recorded when no language battery applies.
+///
+/// Shared by the preview and the live battery so the two cannot drift.
+fn skipped_language_finding(language: &str) -> VerificationFinding {
+    VerificationFinding {
+        test: format!("language battery ({language})"),
+        state: VerificationState::Skipped,
+        detail: Some(format!(
+            "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
+        )),
+    }
+}
+
 /// Record the language battery as planned steps instead of running it.
+///
+/// A configured gate with a blank command fails here exactly as it does live:
+/// the preview must not advertise a step real acceptance would refuse to run.
 fn plan_language_battery(findings: &mut Vec<VerificationFinding>, selection: BatterySelection) {
     match selection {
         BatterySelection::Steps(steps) => {
             for step in steps {
-                let command = if step.args.is_empty() {
-                    step.program.clone()
+                if let Some(detail) = blank_command_failure_detail(&step) {
+                    findings.push(VerificationFinding {
+                        test: step.name,
+                        state: VerificationState::Failed,
+                        detail: Some(detail),
+                    });
+                    continue;
+                }
+                let AcceptStep {
+                    name,
+                    program,
+                    args,
+                    ..
+                } = step;
+                let command = if args.is_empty() {
+                    program
                 } else {
-                    format!("{} {}", step.program, step.args.join(" "))
+                    format!("{program} {}", args.join(" "))
                 };
-                findings.push(planned_step(step.name, Some(command)));
+                findings.push(planned_step(name, Some(command)));
             }
         }
         BatterySelection::SkipInfo { language } => {
-            findings.push(VerificationFinding {
-                test: format!("language battery ({language})"),
-                state: VerificationState::Skipped,
-                detail: Some(format!(
-                    "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
-                )),
-            });
+            findings.push(skipped_language_finding(&language));
         }
     }
 }
@@ -136,13 +160,7 @@ fn apply_language_battery(
             }
         }
         BatterySelection::SkipInfo { language } => {
-            findings.push(VerificationFinding {
-                test: format!("language battery ({language})"),
-                state: VerificationState::Skipped,
-                detail: Some(format!(
-                    "no gates configured for {language}; configure a `gates:` section in cairn.config.yaml to run build/test checks"
-                )),
-            });
+            findings.push(skipped_language_finding(&language));
         }
     }
 }

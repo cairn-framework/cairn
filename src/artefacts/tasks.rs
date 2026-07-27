@@ -13,10 +13,11 @@ pub struct TaskProgress {
 }
 
 impl TaskProgress {
-    /// Outstanding boxes: `total - completed`.
+    /// Outstanding boxes: `total - completed`, saturating at zero so a
+    /// caller-built malformed value cannot underflow.
     #[must_use]
     pub const fn remaining(self) -> usize {
-        self.total - self.completed
+        self.total.saturating_sub(self.completed)
     }
 
     /// True when the change tracks at least one task and none remain.
