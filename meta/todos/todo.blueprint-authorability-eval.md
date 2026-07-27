@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: blocked
 created: 2026-07-16
 ---
 
@@ -52,3 +52,12 @@ validation, and deterministic scoring.
 `todo.example-corpus-scan-assertions`, so the fixture substrate is trustworthy.
 This needs a change proposal because it adds a declared harness or scripts
 surface.
+
+## Status note
+
+BLOCKED on `todo.example-corpus-scan-assertions` (node `cairn.tests`). That
+prerequisite may repair or delete `tests/fixtures/cairn-bootstrap`, and the
+authoring family above scores model output against a temporary copy of exactly
+that fixture. If the prerequisite retains and repairs the fixture, reopen this
+todo. If it deletes the fixture, revise the authoring family to name the
+surviving corpus before reopening; the eval has no substrate otherwise.
