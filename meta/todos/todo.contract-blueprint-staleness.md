@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.scanner
-status: open
+status: blocked
 created: 2026-07-16
 ---
 
@@ -28,3 +28,7 @@ Motivation: `res.a2ui-analysis` finding 3 (a2ui pins codebase blueprints
 to module-blueprint commits; the adaptation keeps the kernel, drops git).
 Warning tier interacts with `scan --strict`, so wording and tier should
 get a change proposal before implementation.
+
+## Depends on
+
+`todo.contract-node-shape-drift-proposal` (node `cairn.kernel.scanner`).
