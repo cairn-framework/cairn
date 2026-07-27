@@ -27,7 +27,7 @@ automatic, consistent with the summariser's propose-never-apply
 principle. Provenance survives: superseded decisions still count as
 provenance coverage (`src/scanner/tests.rs:362`).
 
-Caveat to fold into guidance: `meta/decisions/dec.revisit-trigger-relevance.md`
+Caveat to fold into guidance: `meta/decisions/revisit-trigger-relevance.md`
 uses a `superseded_by` frontmatter field the parser does not read; the
 canonical link direction is the superseding decision's `supersedes` list.
 

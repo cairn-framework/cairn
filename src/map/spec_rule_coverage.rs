@@ -15,7 +15,7 @@
 //!   every future change.
 //! - `declared`: exempt (named but not yet designed enough to enforce).
 //!
-//! See `meta/decisions/dec.ghost-rule-tracking.md` for rationale.
+//! See `meta/decisions/ghost-rule-tracking.md` for rationale.
 
 use std::{fs, path::Path};
 

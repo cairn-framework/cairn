@@ -12,7 +12,7 @@ expression: value
       "nodes": [
         "app.api"
       ],
-      "path": "meta/research/res.api.md",
+      "path": "meta/research/api.md",
       "sources": [
         "src.api"
       ],

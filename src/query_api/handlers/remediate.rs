@@ -111,6 +111,7 @@ pub(crate) fn remediate_actions_raw(
     let mut has_todo_issues = false;
     let mut has_source_issues = false;
     let mut has_research_issues = false;
+    let mut has_filename_drift = false;
     let mut has_order_issues = false;
     let mut has_gitignored_paths = false;
     let mut has_oversized_modules = false;
@@ -160,6 +161,10 @@ pub(crate) fn remediate_actions_raw(
             }
             "CAIRN_RESEARCH_MISSING_SOURCES" | "CAIRN_RESEARCH_UNKNOWN_SOURCE" => {
                 has_research_issues = true;
+            }
+            // Spans all four artefact kinds, hence its own action.
+            "CAIRN_ARTEFACT_FILENAME_DRIFT" => {
+                has_filename_drift = true;
             }
             "CAIRN_ORDER_CYCLE" => {
                 has_order_issues = true;
@@ -336,6 +341,15 @@ pub(crate) fn remediate_actions_raw(
             "nodes": [],
         }));
     }
+    if has_filename_drift {
+        actions.push(json!({
+            "priority": 4,
+            "action": "rename_artefacts",
+            "command": "cairn lint",
+            "description": crate::copy::lookup("remediate.actions.rename_artefacts"),
+            "nodes": [],
+        }));
+    }
     if has_order_issues {
         actions.push(json!({
             "priority": 4,
@@ -453,6 +467,7 @@ mod tests {
             "fix_todos",
             "fix_sources",
             "fix_research",
+            "rename_artefacts",
             "fix_order",
             "split_module",
             "none",

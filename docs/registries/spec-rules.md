@@ -9,7 +9,7 @@ half of the ghost-rule mechanism: `cairn scan` reads this table and emits
 `CAIRN_SPEC_RULE_UNIMPLEMENTED` (registry code CK004) when a rule's enforcer is
 missing. This turns a Designed-but-unimplemented rule from prose that silently
 passes scan into tracked cairn state, the way the spec mandates (spec.md:24). See
-`meta/decisions/dec.ghost-rule-tracking.md` for the rationale.
+`meta/decisions/ghost-rule-tracking.md` for the rationale.
 
 ## Format
 

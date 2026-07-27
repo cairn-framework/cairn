@@ -584,7 +584,7 @@ fn test_phase_2_loads_artefacts_and_query_commands() -> Result<(), Box<dyn std::
     assert!(status.status.success());
     let status = String::from_utf8(status.stdout)?;
     assert!(status.contains("\"active_changes\":[]"));
-    assert!(status.contains("todo.md"));
+    assert!(status.contains("todo.auth.md"));
     assert!(status.contains("scan: nodes=2"));
 
     // locate hit
@@ -1416,15 +1416,15 @@ app.auth -> app.store "persists"
         "---\nnode: app.store\n---\n# Store Contract\n",
     )?;
     fs::write(
-        root.join("meta/todos/todo.md"),
+        root.join("meta/todos/todo.auth.md"),
         "---\nnode: app.auth\nstatus: open\ncreated: 2026-04-17\nsatisfies: login\n---\n# Todo\n",
     )?;
     fs::write(
-        root.join("meta/decisions/dec.auth.md"),
+        root.join("meta/decisions/auth.md"),
         "---\nid: dec.auth\nnodes: [app.auth, app.store]\nstatus: accepted\ndate: 2026-04-17\nrevisited: 2026-04-17\nrevisit_triggers:\n  - \"Auth persistence changes\"\ninformed_by:\n  - type: research\n    id: res.auth\n  - type: source\n    id: src.auth\nsupersedes: [dec.old]\nrefines: []\nrelated: []\n---\n# Decision\n",
     )?;
     fs::write(
-        root.join("meta/decisions/dec.old.md"),
+        root.join("meta/decisions/old.md"),
         "---\nid: dec.old\nnodes: [app.auth]\nstatus: superseded\ndate: 2026-04-16\n---\n# Old Decision\n",
     )?;
     fs::write(
@@ -1432,11 +1432,11 @@ app.auth -> app.store "persists"
         "---\nnode: app.auth\ndate: 2026-04-17\nreviewer: george\nrelated_change: commit:abc\n---\n# Review\n",
     )?;
     fs::write(
-        root.join("meta/research/res.auth.md"),
+        root.join("meta/research/auth.md"),
         "---\nid: res.auth\nnodes: [app.auth]\ndate: 2026-04-17\nsources:\n  - src.auth\ntags: [auth]\n---\n# Research\n",
     )?;
     fs::write(
-        root.join("meta/sources/src.auth.md"),
+        root.join("meta/sources/auth.md"),
         "---\nid: src.auth\nfile: ./meta/sources/auth.txt\nsha256: bdcf4c994585af6dd6cb1cfbff78bcc73ab27dc30a299db5bb83766ca05b5de4\nverification: verified\ntype: document\ndate: 2026-04-17\ntags: [auth]\ndescription: Auth evidence.\n---\n# Source\n",
     )?;
     Ok(())

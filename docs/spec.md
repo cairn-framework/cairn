@@ -528,9 +528,9 @@ Proposed modifications to the map never touch the main tree directly. They live 
             notifications.md  # ADDED contract
             auth.md           # MODIFIED contract
     decisions/
-        dec.extract-notification-logic.md  # New decision
+        extract-notification-logic.md  # New decision
     research/
-        res.notification-provider-comparison.md
+        notification-provider-comparison.md
 ```
 
 A change directory is any subdirectory of `./meta/changes/` that contains a `proposal.md`. The directory name is the change ID.

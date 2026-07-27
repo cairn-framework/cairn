@@ -11,7 +11,7 @@ expression: value
       "date": "2026-03-19",
       "file": "docs-source.txt",
       "id": "src.api",
-      "path": "meta/sources/src.api.md",
+      "path": "meta/sources/api.md",
       "title": "API Source",
       "type": "note",
       "verification": "verified"

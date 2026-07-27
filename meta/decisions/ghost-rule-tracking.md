@@ -27,7 +27,7 @@ project's own Cairn state, not in the spec itself," but nothing turns a Designed
 spec rule into tracked cairn state. Consequence: a Designed integrity rule can
 rot in prose and pass scan. Proven twice: the leaf-contract rule (spec:318) sat
 unimplemented until cairn-481, and the cairn-mqe audit
-(`meta/research/res.spec-designed-audit.md`) found two more (research-orphan
+(`meta/research/spec-designed-audit.md`) found two more (research-orphan
 spec:632, revisit-trigger relevance spec:634) that only a manual pass caught.
 
 ## Options

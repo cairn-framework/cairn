@@ -565,6 +565,7 @@
         "src/artefacts/registry/parse.rs",
         "src/artefacts/registry/sha256.rs",
         "src/artefacts/registry/types.rs",
+        "src/artefacts/registry/validate/filenames.rs",
         "src/artefacts/registry/validate/mod.rs",
         "src/artefacts/registry/validate/tests.rs"
       ],
@@ -2378,8 +2379,8 @@
           "kind": "struct",
           "signature": "pub struct RemediateResponse",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 381,
-          "end_line": 388
+          "line": 395,
+          "end_line": 402
         },
         {
           "name": "ResponseEnvelopeSchema",
@@ -2507,15 +2508,15 @@
           "signature": "pub(crate) fn remediate_actions_raw( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Vec<Value>",
           "file": "src/query_api/handlers/remediate.rs",
           "line": 95,
-          "end_line": 372
+          "end_line": 386
         },
         {
           "name": "remediate_json",
           "kind": "function",
           "signature": "pub(crate) fn remediate_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 391,
-          "end_line": 407
+          "line": 405,
+          "end_line": 421
         },
         {
           "name": "status_json",
@@ -6621,6 +6622,7 @@
         "./tests"
       ],
       "files": [
+        "tests/artefact_filename_remediation.rs",
         "tests/artefacts_contract.rs",
         "tests/artefacts_frontmatter.rs",
         "tests/blueprint_lexer.rs",
