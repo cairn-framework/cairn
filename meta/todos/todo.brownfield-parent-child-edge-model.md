@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: open
+status: done
 created: 2026-07-27
 related: [todo.brownfield-parent-package-cycle]
 ---
@@ -122,3 +122,26 @@ where `pkg/util.py` imports `pkg.sub.helper` and `pkg/sub/extra.py` imports
   body. It is unblocked only if the decision landed `status: accepted`; if
   acceptance is the maintainer's call, it stays blocked and this unit says so.
 - `cairn scan` reports no new findings.
+
+## Result (2026-07-27)
+
+Delivered `dec.brownfield-discovery-cycle-severity` (`status: proposed`),
+informed by `res.brownfield-observed-cycle-measurement`. The measurement
+disqualified the two edge-suppression options and reframed the ruling onto cycle
+severity rather than node shape; the artefacts carry the evidence and the
+rejections.
+
+`proposed`, not `accepted`, because clause 3 narrows a consequence of the
+accepted `dec.order-containment-rule`. Per the acceptance above,
+`todo.brownfield-nested-package-scan-clean` therefore stays `blocked`, and its
+body and the parent's were corrected where this unit's evidence invalidated them.
+
+On the supersession clause of the acceptance: the contradiction is declared, and
+clause 6 restates every surviving obligation of `dec.order-containment-rule` as
+that clause requires, but the marking itself is deliberately deferred. A
+`proposed` decision cannot mark an accepted one `superseded` without
+self-ratifying, and `supersedes:` does not validate until the target is already
+marked, so the two edits have to land with ratification. The decision's "What
+ratification must do" section names both admissible resolutions, and the blocked
+child gates on that section being carried out, not merely on a status flip. That
+obligation is therefore tracked, not dropped.

@@ -39,10 +39,15 @@ On a real brownfield project (a package root with subpackages that import it),
 ## Acceptance
 
 - A decision records how brownfield models a parent package and its
-  subpackages.
+  subpackages. Delivered: `dec.brownfield-discovery-cycle-severity`
+  (`status: proposed`, awaiting maintainer ratification), informed by
+  `res.brownfield-observed-cycle-measurement`.
 - After `cairn init --from-code` and `cairn change apply brownfield-init` on a
-  nested-package project, `cairn scan` reports no `CAIRN_ORDER_CYCLE` finding
-  and exits zero.
+  nested-package project, `cairn scan` exits zero. Corrected 2026-07-27: the
+  original wording required no `CAIRN_ORDER_CYCLE` finding at all, which the
+  measurement shows the tested edge rules cannot guarantee across repositories.
+  The finding may still be reported and is non-blocking when every edge inside
+  the cyclic component is discovery-observed.
 
 ## Decomposition (2026-07-27)
 
