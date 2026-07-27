@@ -96,7 +96,9 @@ change id is given) `cairn lint --strict <id>` and suggested-edge triage.
 
 With `--dry-run` it resolves the battery and lists every step as `planned`
 with the command it would run, spawning nothing and reporting
-`gate_outcome: preview`.
+`gate_outcome: preview`. One exception: a configured gate with a blank
+command is reported as `failed` with exit 1, exactly as the live gate
+rejects it.
 
 Language battery selection:
 

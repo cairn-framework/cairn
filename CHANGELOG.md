@@ -2,6 +2,12 @@
 
 ## v0.9.0
 
+### Change lifecycle read surface
+
+- `cairn change show` and `cairn change list` report task progress: JSON carries `progress: {completed, total, remaining}` parsed from the change's `tasks.md` checkboxes, and the human `change show` prints `Tasks: n/m complete`. The checkbox parser is now shared with the scan check behind `CAIRN_CHANGE_TASKS_COMPLETE` (#508).
+- `cairn change accept --dry-run` previews the acceptance gate: it resolves the battery, lists every step as `planned` with the command it would run, spawns nothing, and reports `gate_outcome: preview`. A configured gate with a blank command still fails, as it does live. Previously `--dry-run` was parsed as the change id, so the full battery ran against a change literally named `--dry-run` (#508, gh:#241).
+- Query JSON payloads bump to `schema_version` 4 (#508).
+
 ### Agent pack
 
 - Cairn now installs and maintains its own agent guidance as an owned pack: `cairn pack install`, `update`, `status`, and `uninstall` (#466), plus `cairn pack resolve` and `campaign` (#468). An ownership manifest records a SHA-256 for each owned pack asset, so install, update, status, and uninstall report a file you edited and leave it alone, and only a file still matching what the packager wrote is ever refreshed or retired.
