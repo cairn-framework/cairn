@@ -19,6 +19,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
         "multi_target",
         "ignore",
         "gates",
+        "decision_accumulation_threshold",
     ];
 
     let mut in_ignore = false;
@@ -124,6 +125,17 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_artefacts = false;
             in_targets = false;
             in_asymmetry = false;
+        } else if indentation(line) == 0 && trimmed.starts_with("decision_accumulation_threshold:")
+        {
+            // Invalid values leave the default in force.
+            config.decision_accumulation_threshold = value_after_colon(trimmed).parse().ok();
+            in_gates = false;
+            in_ignore = false;
+            in_rules = false;
+            in_artefacts = false;
+            in_targets = false;
+            in_asymmetry = false;
+            flush_gate(&mut current_gate, config);
         } else if in_ignore && trimmed.starts_with('-') {
             config.ignores.push(
                 trimmed

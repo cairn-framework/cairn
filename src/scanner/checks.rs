@@ -1,6 +1,9 @@
 //! Blueprint change, provenance, claims, and gitignored-path checks emitted during scanning.
 
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+};
 
 use super::{ArtefactSet, Graph, blueprint, config, state};
 use crate::artefacts::registry::DecisionStatus;
@@ -105,6 +108,49 @@ pub(crate) fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactS
                 deferred_by: None,
             });
         }
+    }
+}
+
+/// Emits `CAIRN_DECISION_ACCUMULATION` for every graph node carrying more
+/// than `threshold` directly-attached accepted decisions.
+///
+/// Decisions naming a node absent from the graph are
+/// `CAIRN_DECISION_ORPHANED`, not accumulation, so they are skipped, and a
+/// node repeated inside one decision's `nodes:` list counts once.
+pub(crate) fn check_decision_accumulation(
+    graph: &mut Graph,
+    artefacts: &ArtefactSet,
+    threshold: usize,
+) {
+    let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
+    for decision in &artefacts.decisions {
+        if !matches!(decision.status, DecisionStatus::Accepted) {
+            continue;
+        }
+        let mut seen: BTreeSet<&str> = BTreeSet::new();
+        for node in &decision.nodes {
+            if graph.nodes.contains_key(node) && seen.insert(node.as_str()) {
+                *counts.entry(node.as_str()).or_default() += 1;
+            }
+        }
+    }
+    let body = crate::copy::lookup("findings.codes.CAIRN_DECISION_ACCUMULATION.body");
+    for (node, count) in counts {
+        if count <= threshold {
+            continue;
+        }
+        graph.findings.push(crate::map::graph::Finding {
+            code: "CAIRN_DECISION_ACCUMULATION".to_owned(),
+            severity: crate::map::graph::FindingSeverity::Info,
+            message: body
+                .replace("{node}", node)
+                .replace("{count}", &count.to_string())
+                .replace("{threshold}", &threshold.to_string()),
+            node: Some(node.to_owned()),
+            target: None,
+            path: None,
+            deferred_by: None,
+        });
     }
 }
 

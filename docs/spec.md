@@ -205,7 +205,8 @@ A **summariser** is a pluggable ninth component, invoked by hooks when interface
 ```yaml
 # cairn.config.yaml
 # Real top-level keys the parser implements today:
-#   context, rules, artefact_types, targets, multi_target, ignore, gates
+#   context, rules, artefact_types, targets, multi_target, ignore, gates,
+#   decision_accumulation_threshold
 
 targets:
   # Per-node language / contract-role overrides (consumed by build_targets).
@@ -223,6 +224,10 @@ ignore:
   - "**/dist/**"
   - "**/target/**"
   - "*.lock"
+
+# Optional. A node with more accepted decisions than this raises an Info
+# CAIRN_DECISION_ACCUMULATION finding prompting a consolidating decision.
+decision_accumulation_threshold: 10
 
 # Accept-gate steps (optional). Highest priority for `cairn change accept`.
 # Each command is whitespace-split into argv and run directly (no shell).

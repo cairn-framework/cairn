@@ -187,6 +187,41 @@ fn test_parse_config_unknown_top_level_key_warns() {
 }
 
 #[test]
+fn test_parse_config_decision_accumulation_threshold() {
+    let mut config = Config::default();
+    parse_config("decision_accumulation_threshold: 25\n", &mut config);
+    assert_eq!(config.decision_accumulation_threshold, Some(25));
+    assert!(
+        config.findings.is_empty(),
+        "the key is recognised: {:?}",
+        config.findings
+    );
+}
+
+#[test]
+fn test_parse_config_decision_accumulation_threshold_non_numeric_falls_back() {
+    let mut config = Config::default();
+    parse_config("decision_accumulation_threshold: lots\n", &mut config);
+    assert_eq!(
+        config.decision_accumulation_threshold, None,
+        "an unparsable value leaves the default in force"
+    );
+}
+
+#[test]
+fn test_parse_config_indented_threshold_is_not_a_top_level_override() {
+    let mut config = Config::default();
+    parse_config(
+        "rules:\n  decision: |\n    decision_accumulation_threshold: 2\n",
+        &mut config,
+    );
+    assert_eq!(
+        config.decision_accumulation_threshold, None,
+        "nested prose must not set the global threshold"
+    );
+}
+
+#[test]
 fn test_parse_config_unknown_key_does_not_abort_known_keys() {
     let mut config = Config::default();
     parse_config(

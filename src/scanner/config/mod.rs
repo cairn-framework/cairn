@@ -7,6 +7,11 @@ use crate::map::graph::Finding;
 mod parse;
 use parse::parse_config;
 
+/// Default accepted-decision count above which
+/// `CAIRN_DECISION_ACCUMULATION` fires, overridable with the
+/// `decision_accumulation_threshold` config key.
+pub(super) const DEFAULT_DECISION_ACCUMULATION_THRESHOLD: usize = 10;
+
 /// Target configuration from cairn.config.yaml.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct TargetConfig {
@@ -66,6 +71,9 @@ pub struct Config {
     /// Distinguishes "no gates configured" (fall back by language) from an
     /// explicit empty `gates:` list (run zero language steps).
     pub gates_configured: bool,
+    /// Accepted-decision count above which a node is flagged for
+    /// consolidation. `None` means the default applies.
+    pub decision_accumulation_threshold: Option<usize>,
     /// Non-fatal config findings (unknown keys, etc.).
     pub findings: Vec<Finding>,
 }

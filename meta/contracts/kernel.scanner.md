@@ -16,8 +16,8 @@ machine state plus generated outputs. `load_project` is the pure read path;
 
 - `load_project(root, blueprint_path)`: loads config, parses the blueprint,
   loads contracts and artefacts, builds targets, reconciles them, dedups
-  findings, builds the graph, and runs the provenance, claims,
-  gitignored-path, orphan-bead, and blueprint-change checks. Returns a
+  findings, builds the graph, and runs the provenance, decision-accumulation,
+  claims, gitignored-path, orphan-bead, and blueprint-change checks. Returns a
   `ScanResult` or an error string.
 - `scan(root, blueprint_path)`: calls `load_project`, then writes the interface
   hash, blueprint snapshot, `map.md`, and the scan log concurrently via

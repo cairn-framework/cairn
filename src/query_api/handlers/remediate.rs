@@ -119,6 +119,7 @@ pub(crate) fn remediate_actions_raw(
     let mut decision_nodes: Vec<String> = Vec::new();
     let mut gitignored_nodes: Vec<String> = Vec::new();
     let mut oversized_nodes: Vec<String> = Vec::new();
+    let mut accumulation_nodes: Vec<String> = Vec::new();
     for finding in &lint_response.findings {
         match finding.code.as_str() {
             "CAIRN_RECONCILE_ORPHANED_FILE" => has_orphans = true,
@@ -148,6 +149,13 @@ pub(crate) fn remediate_actions_raw(
             | "CAIRN_DECISION_SUPERSEDES_STATUS"
             | "CAIRN_DECISION_UNKNOWN_PROVENANCE" => {
                 has_decision_issues = true;
+            }
+            "CAIRN_DECISION_ACCUMULATION" => {
+                if let Some(node) = &finding.node
+                    && !accumulation_nodes.contains(node)
+                {
+                    accumulation_nodes.push(node.clone());
+                }
             }
             "CAIRN_TODO_ORPHAN_NODE" | "CAIRN_TODO_STATUS_INVALID" => {
                 has_todo_issues = true;
@@ -314,6 +322,18 @@ pub(crate) fn remediate_actions_raw(
             "nodes": [],
         }));
     }
+    if !accumulation_nodes.is_empty() {
+        actions.push(json!({
+            "priority": 5,
+            "action": "consolidate_decisions",
+            "command": format!(
+                "cairn decisions <node>  // accumulated: {}",
+                accumulation_nodes.join(", ")
+            ),
+            "description": crate::copy::lookup("remediate.actions.consolidate_decisions"),
+            "nodes": accumulation_nodes,
+        }));
+    }
     if has_todo_issues {
         actions.push(json!({
             "priority": 4,
@@ -421,79 +441,4 @@ pub(crate) fn remediate_json(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::collections::BTreeMap;
-
-    #[test]
-    fn emitted_remediation_description_uses_copy_entry() {
-        let mut scan_result = scanner::ScanResult {
-            graph: crate::map::Graph {
-                nodes: BTreeMap::new(),
-                names: BTreeMap::new(),
-                outbound: BTreeMap::new(),
-                inbound: BTreeMap::new(),
-                findings: Vec::new(),
-            },
-            artefacts: crate::artefacts::registry::ArtefactSet::default(),
-            contracts: crate::artefacts::contract::ContractSet::default(),
-            interface_hash: String::new(),
-            target_reports: Vec::new(),
-            target_hashes: scanner::state::TargetHashes::default(),
-            blueprint_snapshot: scanner::state::BlueprintSnapshot::default(),
-        };
-        let actions =
-            remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
-        let description = actions
-            .iter()
-            .find(|action| action["action"] == "none")
-            .and_then(|action| action["description"].as_str());
-
-        assert_eq!(
-            description,
-            Some(crate::copy::lookup("remediate.actions.none"))
-        );
-        assert_ne!(description, Some("remediate.actions.none"));
-
-        for action in [
-            "fix_blueprint",
-            "init_from_code",
-            "refine",
-            "fix_gitignored_path",
-            "summarise",
-            "fix_contracts",
-            "add_decision",
-            "fix_decisions",
-            "fix_todos",
-            "fix_sources",
-            "fix_research",
-            "rename_artefacts",
-            "fix_order",
-            "split_module",
-            "none",
-        ] {
-            let key = format!("remediate.actions.{action}");
-            assert_ne!(crate::copy::lookup(&key), key);
-        }
-
-        scan_result.graph.findings.push(crate::map::Finding {
-            code: "CAIRN_ORDER_CYCLE".to_owned(),
-            severity: crate::map::FindingSeverity::Error,
-            message: "cycle".to_owned(),
-            node: None,
-            target: None,
-            path: None,
-            deferred_by: None,
-        });
-        let actions =
-            remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
-        let description = actions
-            .iter()
-            .find(|action| action["action"] == "fix_order")
-            .and_then(|action| action["description"].as_str());
-        assert_eq!(
-            description,
-            Some(crate::copy::lookup("remediate.actions.fix_order"))
-        );
-    }
-}
+mod tests;

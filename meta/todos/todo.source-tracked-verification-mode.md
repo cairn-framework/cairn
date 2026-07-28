@@ -35,8 +35,8 @@ containment checked, no perpetual advisory.
   resolution. It has no `[findings.codes]` entry in
   `docs/design-system/copy.toml` to update.
 - A `tracked` source declaring `sha256` raises the new
-  `CAIRN_SOURCE_SHA256_UNEXPECTED` at Error, registered as CA039 (CA001 to
-  CA038 are contiguous) in `docs/registries/error-codes.md` with a
+  `CAIRN_SOURCE_SHA256_UNEXPECTED` at Error, registered as CA040 (CA039 went
+  to `CAIRN_DECISION_ACCUMULATION`) in `docs/registries/error-codes.md` with a
   `[findings.codes]` entry in `docs/design-system/copy.toml`, per clause 5. It
   is a distinct code, not a reuse of `CAIRN_SOURCE_VERIFICATION_INVALID`, and
   it joins the source-issue list in
