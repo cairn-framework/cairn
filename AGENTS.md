@@ -134,7 +134,7 @@ This repo's own development uses cairn's native Todo artefact (spec section 8.2,
 which scaffolds `meta/todos/todo.<slug>.md`; there is no separate claim/close
 verb, status changes (`open`, `in_progress`, `done`, `blocked`) go through the
 sanctioned write verb `cairn todo set <slug> <status>` (surgical frontmatter
-edit; `dec.todo-write-surface`), not ad-hoc file edits. Inspect with `cairn
+edit; `dec.cli-agent-workflow-consolidation`), not ad-hoc file edits. Inspect with `cairn
 todos <node>` or `cairn status`.
 
 ## Developing cairn itself: the dev loop

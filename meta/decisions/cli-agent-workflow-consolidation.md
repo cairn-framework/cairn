@@ -24,6 +24,8 @@ supersedes:
   - dec.init-from-code-apply-flag
   - dec.simplify-cli-subset-folds
   - dec.pack-publication-on-activation-evidence
+refines:
+  - dec.native-todos-first
 related:
   - dec.unified-cairn-dev-entry
   - dec.loop-reconcile-step
@@ -36,12 +38,10 @@ related:
 
 ## Context
 
-The CLI node carried twenty accepted decisions. Eleven described successive
-stages of one agent-facing workflow or recorded narrow command implementations
-that have already shipped. Reading them independently obscured the current
-contract, especially where the original ten-phase self-loop became the
-one-unit, harness-invoked loop and where direct skill emission became the
-manifest-owned agent pack.
+The CLI node carried twenty accepted decisions. Eleven were narrow agent
+guidance or point-contract rulings that had already shipped. Reading them as
+independent binding authorities obscured their current shared contract and the
+query, brownfield, MCP, and root boundaries they also govern.
 
 This decision consolidates those obligations without changing behaviour. The
 more detailed authorities for the original loop contract, unified loop entry,
@@ -49,37 +49,20 @@ reconciliation step, agent-pack packaging, and adapter roots remain accepted.
 
 ## Decision
 
-### Agent workflow
+### Retained loop authority
 
-`cairn-dev` is the single logical entry for agent guidance. Its compact default
-mode routes ordinary work. Its loop mode activates only when explicitly
-selected and remains the sole normative one-iteration procedure together with
-exactly its declared asset closure.
-
-One loop invocation selects and lands exactly one unit, then ends. It preserves
-the accepted fail-closed preflight, dedicated worktree and `loop/*` namespace,
-exact node resolution, explicit-path staging, one-PR squash landing, and final
-token contract in `dec.unified-cairn-dev-entry`. Reconciliation remains a
-required step under `dec.loop-reconcile-step`. Cairn may compute eligibility
-inside an invocation, but the user or harness owns invocation, repetition,
-runtime, and concurrency.
-
-Every implemented unit must satisfy its written acceptance criterion, run the
-repository's language gates when relevant, reach zero blocking `cairn scan`
-findings, pass `cairn hook all`, and land only after review and CI. A knowable
-decision gap becomes a researched, adversarially tested recommendation plus a
-blocked tracker item. A true external blocker is reported precisely. Neither
-path permits self-ratification or selection of a second unit.
+This consolidation does not restate or alter the development-loop contract.
+`dec.adopt-cairn-dev-loop`, `dec.loop-command-harness-model`,
+`dec.unified-cairn-dev-entry`, `dec.loop-reconcile-step`, and
+`dec.loop-resolves-knowable-gaps` remain accepted and govern loop activation,
+procedure, gates, reconciliation, gap handling, and harness ownership.
 
 ### Agent guidance and pack
 
 The canonical, harness-neutral agent pack and deterministic adapters remain
 governed by `dec.agent-pack-packaging` and `dec.pack-adapter-roots`. Init wiring
 delegates to that manifest-owned installer instead of maintaining a second
-direct-emission authority. Adapter publication requires successful validation
-in the live harness and may claim activation only, not improved answer quality.
-Any restored six-arm trial is a fresh unit, and any stronger quality claim
-requires new evidence.
+direct-emission authority.
 
 The shipped `cairn-explore` guidance includes the provenance query path through
 `rationale`, `decisions`, `research`, and `sources`, while making clear that the
@@ -88,31 +71,45 @@ not restored. Its durable discipline stays absorbed in `cairn-dev` and the loop
 implementation procedure: state material assumptions, write a checkable
 criterion, prefer the smallest sufficient change, and ask only when readings
 have materially different consequences.
+Future pack promotions are judged on marginal lift over the current pack and
+merge non-overlapping value into the owning skill before adding a new skill.
 
 ### CLI point contracts
 
 The following shipped contracts remain binding:
 
 1. `cairn brief` fuses the selected unit, its accepted decisions, node contract,
-   task body, and gates. Proposed or superseded decisions are not presented as
-   binding. A unit without a node still receives universal gates and a visible
-   node-binding hint.
-2. `cairn context --json` exposes full dependency edges. Human output presents
-   one structure tree with labelled outbound edges and retains anomalous state.
-3. `cairn feedback` records versioned friction locally and produces a prefilled
-   upstream issue URL without network access. Init guidance teaches the command
-   and prints actionable next steps.
-4. `cairn hook install`, `status`, and `uninstall` own only marker-managed hooks,
-   resolve the repository root through Git, treat dangling symlinks as occupied,
-   preserve platform-correct permissions, and remain explicit opt-in.
-5. `cairn init --from-code --apply` remains explicit opt-in and delegates to the
-   normal change-apply path, preserving conflict checks, validation, rollback,
-   and archive logging.
-6. Strict-subset commands remain folded without aliases: `get --symbols`
-   conditionally includes symbols, `lint --node` preserves the non-blocking
-   node-check exit contract, and `deps <id> --direction in|out` defaults to
-   outbound. Existing MCP command names, schemas, and direct web routes remain
-   stable.
+   task body, and gates. Proposed or superseded decisions are not binding. A
+   unit without a node still receives universal gates and a node-binding hint.
+   `brief` and `next` remain registered in help and command documentation.
+   Selection reads the committed Beads export without a live Dolt dependency
+   and prints a staleness note naming `bd ready` as authoritative.
+2. `cairn context --json` retains `edge_count` and an `edges` array of full-id
+   `{source,target,label}` objects. Human `Structure:` output lists every node
+   once, shows labelled outbound edges with the system-root prefix stripped,
+   omits redundant paths and default synced state, and retains anomalous state.
+3. `cairn feedback` appends timestamped, versioned friction to
+   `.cairn/feedback.md` and produces a prefilled upstream issue URL without
+   network access. Init writes appendable `.cairn/AGENTS.md` guidance covering
+   orientation commands, the scan-before-commit loop, and feedback before a
+   workaround, then prints actionable next steps.
+4. `cairn hook install`, `status`, and `uninstall` own only hooks marked
+   `# Managed by Cairn. Do not edit.` and refuse unmarked files or dangling
+   symlinks. They resolve the repository root and hook path through Git before
+   scanner startup, work without a blueprint, preserve platform-correct
+   permissions, install a script that invokes `cairn hook all`, and remain
+   explicit opt-in.
+5. `cairn init --from-code --apply` remains explicit opt-in, preserves the
+   reviewable default, and delegates to the normal change-apply path with its
+   conflict checks, validation, rollback, and archive logging. JSON mode emits
+   the archive command envelope unchanged; the prose prefix is text-only.
+6. Strict-subset commands remain folded without aliases. `get --symbols`
+   conditionally adds symbols to `NodeResponse`; MCP retains `cairn_get` and
+   does not restore `cairn_symbols`. `lint --node` preserves its non-blocking
+   exit, missing-blueprint preflight, legacy-file rename guidance, and empty
+   state copy; MCP retains `cairn_lint`. `deps <id> --direction in|out` defaults
+   outbound; MCP retains `cairn_depends` and `cairn_dependents`, and the web
+   routes remain `/api/depends` and `/api/dependents`.
 7. Pack publication is gated by live-harness validation and the adapter
    conformance obligations in `dec.unified-cairn-dev-entry`. It carries only
    the measured activation claim. A quality claim requires new evidence, and
@@ -128,6 +125,8 @@ The following shipped contracts remain binding:
    Validated mutation is state stewardship, while claiming, assigning,
    sequencing, and prioritising remain forbidden coordination. Direct edits
    remain legal but discouraged, with lint as the backstop.
+   This verb is the single backend seam for a future `StateBackend` or GitHub
+   projector; file-only writes remain the default.
 
 The eleven decisions named in `supersedes` are historical detail after this
 consolidation. This decision carries their live obligations; their frontmatter

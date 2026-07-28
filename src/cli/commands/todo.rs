@@ -63,7 +63,7 @@ fn todo_stub(slug: &str, node: &str, date: &str) -> String {
     )
 }
 /// Writes `status:` for `todo.<slug>.md` via a surgical frontmatter edit
-/// (spec `dec.todo-write-surface`): only the `status:` line changes; every
+/// (spec `dec.cli-agent-workflow-consolidation`): only the `status:` line changes; every
 /// other byte is preserved. This is state stewardship, not a workflow verb.
 fn run_todo_set(root: &Path, slug: &str, status: &str, json: bool) -> CliResult {
     if !is_kebab_slug(slug) {

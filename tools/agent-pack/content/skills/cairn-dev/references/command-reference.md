@@ -45,7 +45,7 @@ Every `query_api` command accepts `--json`.
 | Record friction | `cairn feedback "<message>"` |
 
 `cairn todo set` is the sanctioned mutation verb for todo status
-(`dec.todo-write-surface`); it rewrites only the frontmatter `status` field.
+(`dec.cli-agent-workflow-consolidation`); it rewrites only the frontmatter `status` field.
 
 ## Changes
 

@@ -46,7 +46,8 @@ closure. The reconciliation obligation had no such home.
    units stays with the operator or harness under `dec.no-orchestrator`.
 5. Status changes go through `cairn todo set`, new units through `cairn todo
    new`, and decisions through `cairn decision new`, per
-   `dec.todo-write-surface` and `dec.native-todos-first`. A dependant is opened
+   `dec.cli-agent-workflow-consolidation` and `dec.native-todos-first`.
+   A dependant is opened
    only after every entry in its own `Depends on` list is done; a child gated on
    a verdict is opened only against an accepted decision.
 
