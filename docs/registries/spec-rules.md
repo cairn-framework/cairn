@@ -87,6 +87,7 @@ until built.
 | Rule | Spec | Code | Status | Deferred-by |
 |------|------|------|--------|-------------|
 | ADR revisit_triggers appear relevant to recent changes | spec:634 | - | pending | dec.revisit-trigger-correlator-deferred |
+| Contract has not been reviewed against its node's current declared shape | - | - | pending | dec.contract-node-shape-drift-deferred |
 
 ## Declared rules
 

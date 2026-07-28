@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.scanner
-status: open
+status: done
 created: 2026-07-27
 ---
 
@@ -57,3 +57,25 @@ None.
 `cairn change list` shows the new change as active, its `specs/` state the
 tier and the finding code as testable criteria, and `cairn scan` reports no new
 findings.
+
+## Outcome
+
+Delivered as `meta/changes/contract-node-shape-drift/`. Its `proposal.md`
+records why the mandated `pending` rule row necessarily adds one non-blocking
+CK004 Info, which is the one acceptance clause this unit could not satisfy as
+literally written. Errors and warnings stay at zero and `cairn scan --strict`
+exits 0.
+
+The unit also proved a prerequisite the plan did not have: re-recording a
+baseline is unreachable with the summariser disabled, so
+`todo.contract-baseline-rerecord-surface` was authored and
+`todo.contract-blueprint-staleness` stays `blocked` behind it. That supersedes
+this todo's Scope question 4, which asked to confirm `src/summariser/accept.rs`
+as the only writer: it is the accept-time writer, and the re-record surface is
+the second sanctioned one. The scanner writes the file at no point.
+
+Scope question 2 is likewise narrowed. It asked for the code to be registered in
+`docs/registries/error-codes.md` here; `docs/conventions.md` rule 2 binds that
+allocation to the commit introducing the code in Rust, so this unit lands the
+`pending` rule row with an empty `Code` cell and the enforcer's commit allocates
+the number.
