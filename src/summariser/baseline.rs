@@ -45,10 +45,6 @@ pub(crate) enum BaselineError {
     StateWriteFailed(String),
 }
 
-// User-facing text for these variants lives in `docs/design-system/copy.toml`
-// under `[baseline]` and is rendered by the CLI, so no `Display` impl
-// hardcodes a message here.
-
 /// Records the node's current declared shape as its contract baseline,
 /// overwriting any existing entry.
 ///

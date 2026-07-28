@@ -78,6 +78,7 @@ All codes follow the pattern **`CXNNN`**:
 - CK030 -- workspace member's root or blueprint failed to load (CAIRN_WORKSPACE_MEMBER_MISSING) -- pre-registry provenance unknown -- audited 2026-07-16
 - CK031 -- claimed source/asset file exceeds the 500-line module-size guideline with no allow-list marker (CAIRN_MODULE_OVERSIZED) -- todo.modularity-scan-finding
 - CK032 -- spec rule defers to a missing or superseded decision (CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID) -- todo.spec-rule-deferred-cell-check
+- CK033 -- contract has not been reviewed against its node's current declared shape (CAIRN_CONTRACT_NODE_SHAPE_DRIFT) -- todo.contract-blueprint-staleness
 
 ## CA -- Artefacts
 

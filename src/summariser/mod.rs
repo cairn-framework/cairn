@@ -4,8 +4,10 @@
 //! future commits.
 
 mod accept;
+mod accept_transaction;
 mod backend;
 mod baseline;
+mod baseline_copy;
 mod config;
 mod generate;
 mod prompt;
@@ -18,6 +20,7 @@ pub use backend::{
     SummariserBackend, SummariserBackendError, SummariserMode,
 };
 pub(crate) use baseline::{BaselineError, drop_baseline, record_baseline};
+pub(crate) use baseline_copy::describe as describe_baseline_error;
 pub use config::SummariserSettings;
 pub use generate::{GenerateError, generate};
 pub use prompt::{PromptError, build_request};

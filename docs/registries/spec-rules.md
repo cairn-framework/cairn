@@ -78,6 +78,7 @@ does not count.
 | Decision claims to close a still-open spec question | spec:633 | `CAIRN_DECISION_CLAIM_UNRESOLVED` | enforced |
 | Blueprint shape change lacks a covering decision | spec:633 | `CAIRN_BLUEPRINT_CHANGE_NO_DECISION` | enforced |
 | Spec rule has no emitting enforcer | spec:24 | `CAIRN_SPEC_RULE_UNIMPLEMENTED` | enforced |
+| Contract has not been reviewed against its node's current declared shape | - | `CAIRN_CONTRACT_NODE_SHAPE_DRIFT` | enforced |
 
 ## Pending rules
 
@@ -87,7 +88,6 @@ until built.
 | Rule | Spec | Code | Status | Deferred-by |
 |------|------|------|--------|-------------|
 | ADR revisit_triggers appear relevant to recent changes | spec:634 | - | pending | dec.revisit-trigger-correlator-deferred |
-| Contract has not been reviewed against its node's current declared shape | - | - | pending | dec.contract-node-shape-drift-deferred |
 
 ## Declared rules
 

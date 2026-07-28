@@ -1,11 +1,15 @@
 //! Contract-baseline state persistence.
 //!
-//! The non-generative record/drop surface is its current writer. The planned
-//! drift enforcer will read this state, and draft acceptance will become the
-//! second sanctioned writer when that follow-up lands.
+//! Two writers are sanctioned: draft acceptance (`summariser::accept`) and the
+//! non-generative record/drop surface. The drift enforcer reads this state and
+//! never writes it.
 
 use crate::persist;
-use std::{collections::BTreeMap, io, path::Path};
+use std::{
+    collections::BTreeMap,
+    io,
+    path::{Path, PathBuf},
+};
 
 /// Schema version of `.cairn/state/contract-baselines.json`.
 const VERSION: u32 = 1;
@@ -62,13 +66,23 @@ impl Default for ContractBaselines {
     }
 }
 
+/// Path of the baseline state file under `root`.
+///
+/// Exposed so a caller that must restore the file byte-for-byte on rollback,
+/// including deleting one it created, can address it without duplicating the
+/// relative path.
+#[must_use]
+pub fn state_path(root: &Path) -> PathBuf {
+    root.join(STATE_PATH)
+}
+
 /// Writes contract-baseline state JSON.
 ///
 /// # Errors
 ///
 /// Returns an I/O error when the state directory or JSON file cannot be written.
 pub fn write(root: &Path, baselines: &ContractBaselines) -> io::Result<()> {
-    persist::write_json(&root.join(STATE_PATH), baselines)
+    persist::write_json(&state_path(root), baselines)
 }
 
 /// Reads contract-baseline state from JSON.
@@ -81,7 +95,7 @@ pub fn write(root: &Path, baselines: &ContractBaselines) -> io::Result<()> {
 /// Returns an I/O error when the file exists but cannot be read, parsed, or
 /// carries an unsupported schema version.
 pub fn read(root: &Path) -> io::Result<ContractBaselines> {
-    let path = root.join(STATE_PATH);
+    let path = state_path(root);
     let Some((version, content)) = persist::read_versioned_json(&path)? else {
         return Ok(ContractBaselines::default());
     };

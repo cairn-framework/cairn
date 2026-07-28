@@ -11,6 +11,9 @@ use std::{
 use crate::{
     artefacts::frontmatter,
     blueprint, scanner,
+    summariser::accept_transaction as transaction,
+    summariser::baseline,
+    summariser::baseline_copy::describe as describe_baseline_error,
     summariser::store::{
         AcceptedDraft, Draft, DraftHeader, DraftStatus, DraftStore, DraftStoreError,
         DraftTransitionError, TransitionRecord, validate_transition,
@@ -36,6 +39,9 @@ pub enum AcceptError {
     NoContract(String),
     /// Invalid draft status transition.
     InvalidTransition(DraftTransitionError),
+    /// Recording the accepted node's contract baseline failed; every write this
+    /// call made was rolled back. Carries the copy-resolved cause.
+    Baseline(String),
 }
 
 impl std::fmt::Display for AcceptError {
@@ -49,6 +55,7 @@ impl std::fmt::Display for AcceptError {
             Self::NodeNotFound(id) => write!(f, "node `{id}` not found in blueprint"),
             Self::NoContract(id) => write!(f, "node `{id}` has no contract pointer"),
             Self::InvalidTransition(e) => write!(f, "invalid transition: {e}"),
+            Self::Baseline(e) => write!(f, "{e}"),
         }
     }
 }
@@ -115,6 +122,9 @@ pub fn accept(
     let target_path = root.join(&contract_path);
     let original = std::fs::read_to_string(&target_path)
         .map_err(|e| AcceptError::Io(format!("read contract: {e}")))?;
+    // Snapshot the baseline file before anything is installed, so no fallible
+    // step after the contract write can escape without a restorable copy.
+    let baseline_backup = transaction::read_baseline_file(root)?;
 
     std::fs::write(&target_path, &contract_text)
         .map_err(|e| AcceptError::Io(format!("write contract: {e}")))?;
@@ -126,13 +136,20 @@ pub fn accept(
     };
 
     if needs_rollback {
-        std::fs::write(&target_path, original)
-            .map_err(|e| AcceptError::Io(format!("restore contract: {e}")))?;
+        transaction::rollback(&target_path, &original, root, baseline_backup.as_deref())?;
         return Err(AcceptError::ScanFailed(
             scan_result
                 .err()
                 .unwrap_or_else(|| "post-write scan had errors".to_owned()),
         ));
+    }
+
+    // Commit steps below are individually fallible and collectively atomic: the
+    // contract text is already installed, so any failure restores the contract,
+    // the baseline file, and the draft's lifecycle state.
+    if let Err(error) = baseline::record_baseline(root, blueprint_path, &header.node_id) {
+        transaction::rollback(&target_path, &original, root, baseline_backup.as_deref())?;
+        return Err(AcceptError::Baseline(describe_baseline_error(&error)));
     }
 
     let hash = compute_hash(&contract_text);
@@ -147,7 +164,10 @@ pub fn accept(
         AcceptedDraft::new(accepted_header, hash)
             .map_err(|e| AcceptError::Validation(e.to_string()))?,
     );
-    store.overwrite(&accepted)?;
+    if let Err(error) = store.overwrite(&accepted) {
+        transaction::rollback(&target_path, &original, root, baseline_backup.as_deref())?;
+        return Err(error.into());
+    }
 
     Ok(draft_id.to_owned())
 }
