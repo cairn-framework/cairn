@@ -516,6 +516,63 @@ fn test_provenance_coverage_parent_node_exempt_from_warning() {
     assert!(g.findings.is_empty());
 }
 
+// ── check_decision_accumulation ───────────────────────────────────────────
+
+fn accepted_decisions(node: &str, count: usize) -> Vec<Decision> {
+    (0..count)
+        .map(|i| decision(&format!("d{i}"), &[node], DecisionStatus::Accepted))
+        .collect()
+}
+
+#[test]
+fn test_decision_accumulation_at_threshold_emits_nothing() {
+    let mut g = graph_with_leaf("app.api");
+    let artefacts = artefacts_with(accepted_decisions("app.api", 3));
+    checks::check_decision_accumulation(&mut g, &artefacts, 3);
+    assert!(g.findings.is_empty(), "count == threshold is not over it");
+}
+
+#[test]
+fn test_decision_accumulation_over_threshold_emits_info() {
+    let mut g = graph_with_leaf("app.api");
+    let artefacts = artefacts_with(accepted_decisions("app.api", 4));
+    checks::check_decision_accumulation(&mut g, &artefacts, 3);
+    assert_eq!(g.findings.len(), 1);
+    assert_eq!(g.findings[0].code, "CAIRN_DECISION_ACCUMULATION");
+    assert_eq!(g.findings[0].severity, FindingSeverity::Info);
+    assert_eq!(g.findings[0].node.as_deref(), Some("app.api"));
+    assert!(
+        g.findings[0].message.contains('4') && g.findings[0].message.contains("threshold 3"),
+        "message reports the count and the threshold: {}",
+        g.findings[0].message
+    );
+}
+
+#[test]
+fn test_decision_accumulation_counts_accepted_only() {
+    let mut g = graph_with_leaf("app.api");
+    let mut decisions = accepted_decisions("app.api", 2);
+    decisions.push(decision("p1", &["app.api"], DecisionStatus::Proposed));
+    decisions.push(decision("s1", &["app.api"], DecisionStatus::Superseded));
+    let artefacts = artefacts_with(decisions);
+    checks::check_decision_accumulation(&mut g, &artefacts, 2);
+    assert!(
+        g.findings.is_empty(),
+        "proposed and superseded decisions do not accumulate"
+    );
+}
+
+#[test]
+fn test_decision_accumulation_skips_nodes_absent_from_graph() {
+    let mut g = graph_with_leaf("app.api");
+    let artefacts = artefacts_with(accepted_decisions("app.other", 4));
+    checks::check_decision_accumulation(&mut g, &artefacts, 3);
+    assert!(
+        g.findings.is_empty(),
+        "an unknown node is CAIRN_DECISION_ORPHANED, not accumulation"
+    );
+}
+
 // ── detect_divergence ─────────────────────────────────────────────────────
 
 #[test]

@@ -205,7 +205,8 @@ A **summariser** is a pluggable ninth component, invoked by hooks when interface
 ```yaml
 # cairn.config.yaml
 # Real top-level keys the parser implements today:
-#   context, rules, artefact_types, targets, multi_target, ignore, gates
+#   context, rules, artefact_types, targets, multi_target, ignore, gates,
+#   decision_accumulation_threshold
 
 targets:
   # Per-node language / contract-role overrides (consumed by build_targets).

@@ -2292,6 +2292,7 @@
         "src/query_api/handlers/node.rs",
         "src/query_api/handlers/project.rs",
         "src/query_api/handlers/remediate.rs",
+        "src/query_api/handlers/remediate/tests.rs",
         "src/query_api/handlers/spine.rs",
         "src/query_api/handlers/work_item.rs",
         "src/query_api/mod.rs",
@@ -2421,8 +2422,8 @@
           "kind": "struct",
           "signature": "pub struct RemediateResponse",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 395,
-          "end_line": 402
+          "line": 415,
+          "end_line": 422
         },
         {
           "name": "ResponseEnvelopeSchema",
@@ -2550,15 +2551,15 @@
           "signature": "pub(crate) fn remediate_actions_raw( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Vec<Value>",
           "file": "src/query_api/handlers/remediate.rs",
           "line": 95,
-          "end_line": 386
+          "end_line": 406
         },
         {
           "name": "remediate_json",
           "kind": "function",
           "signature": "pub(crate) fn remediate_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 405,
-          "end_line": 421
+          "line": 425,
+          "end_line": 441
         },
         {
           "name": "status_json",
@@ -2659,24 +2660,24 @@
           "kind": "function",
           "signature": "pub fn is_ignored(path: &str, ignores: &[String]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 124,
-          "end_line": 139
+          "line": 132,
+          "end_line": 147
         },
         {
           "name": "is_intentional_asymmetry",
           "kind": "function",
           "signature": "pub fn is_intentional_asymmetry( &self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf], ) -> Option<&IntentionalAsymmetry>",
           "file": "src/scanner/config/mod.rs",
-          "line": 194,
-          "end_line": 203
+          "line": 202,
+          "end_line": 211
         },
         {
           "name": "load",
           "kind": "function",
           "signature": "pub fn load(root: &Path) -> Result<Config, ConfigError>",
           "file": "src/scanner/config/mod.rs",
-          "line": 95,
-          "end_line": 120
+          "line": 103,
+          "end_line": 128
         },
         {
           "name": "load_project",
@@ -2684,15 +2685,15 @@
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
           "line": 446,
-          "end_line": 530
+          "end_line": 537
         },
         {
           "name": "matches",
           "kind": "function",
           "signature": "pub fn matches(&self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 175,
-          "end_line": 188
+          "line": 183,
+          "end_line": 196
         },
         {
           "name": "migrate_single_hash",
@@ -2755,8 +2756,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 537,
-          "end_line": 573
+          "line": 544,
+          "end_line": 580
         },
         {
           "name": "select_gate_recipe",
@@ -2859,16 +2860,16 @@
           "kind": "struct",
           "signature": "pub struct Config",
           "file": "src/scanner/config/mod.rs",
-          "line": 49,
-          "end_line": 71
+          "line": 54,
+          "end_line": 79
         },
         {
           "name": "ConfigError",
           "kind": "struct",
           "signature": "pub struct ConfigError",
           "file": "src/scanner/config/mod.rs",
-          "line": 75,
-          "end_line": 80
+          "line": 83,
+          "end_line": 88
         },
         {
           "name": "ContractBaseline",
@@ -2899,16 +2900,16 @@
           "kind": "struct",
           "signature": "pub struct GateStep",
           "file": "src/scanner/config/mod.rs",
-          "line": 40,
-          "end_line": 45
+          "line": 45,
+          "end_line": 50
         },
         {
           "name": "IntentionalAsymmetry",
           "kind": "struct",
           "signature": "pub struct IntentionalAsymmetry",
           "file": "src/scanner/config/mod.rs",
-          "line": 25,
-          "end_line": 34
+          "line": 30,
+          "end_line": 39
         },
         {
           "name": "MapSnapshot",
@@ -2955,8 +2956,8 @@
           "kind": "struct",
           "signature": "pub struct TargetConfig",
           "file": "src/scanner/config/mod.rs",
-          "line": 12,
-          "end_line": 21
+          "line": 17,
+          "end_line": 26
         },
         {
           "name": "TargetReport",
@@ -2979,8 +2980,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 606,
-          "end_line": 621
+          "line": 613,
+          "end_line": 628
         },
         {
           "name": "cache",
@@ -3021,6 +3022,14 @@
           "file": "src/scanner/mod.rs",
           "line": 9,
           "end_line": 9
+        },
+        {
+          "name": "DEFAULT_DECISION_ACCUMULATION_THRESHOLD",
+          "kind": "const",
+          "signature": "pub(super) const DEFAULT_DECISION_ACCUMULATION_THRESHOLD usize",
+          "file": "src/scanner/config/mod.rs",
+          "line": 13,
+          "end_line": 13
         }
       ]
     },
@@ -6776,6 +6785,7 @@
         "tests/check_file_sizes.rs",
         "tests/command_reference_consistency.rs",
         "tests/conventions.rs",
+        "tests/decision_accumulation_remediation.rs",
         "tests/decision_claims.rs",
         "tests/dogfood_gate.rs",
         "tests/finding_code_coverage.rs",
@@ -7242,6 +7252,27 @@
       "node": null,
       "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
       "path": "docs/registries/spec-rules.md"
+    },
+    {
+      "code": "CAIRN_DECISION_ACCUMULATION",
+      "severity": "info",
+      "message": "Node `cairn.kernel.cli` carries 20 accepted decisions (threshold 10).",
+      "node": "cairn.kernel.cli",
+      "path": null
+    },
+    {
+      "code": "CAIRN_DECISION_ACCUMULATION",
+      "severity": "info",
+      "message": "Node `cairn.root` carries 23 accepted decisions (threshold 10).",
+      "node": "cairn.root",
+      "path": null
+    },
+    {
+      "code": "CAIRN_DECISION_ACCUMULATION",
+      "severity": "info",
+      "message": "Node `cairn.ui` carries 14 accepted decisions (threshold 10).",
+      "node": "cairn.ui",
+      "path": null
     }
   ]
 }

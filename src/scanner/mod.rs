@@ -499,6 +499,13 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
     }
     checks::check_contract_interface_drift(&mut graph, &contracts);
     checks::check_provenance_coverage(&mut graph, &artefacts);
+    checks::check_decision_accumulation(
+        &mut graph,
+        &artefacts,
+        config
+            .decision_accumulation_threshold
+            .unwrap_or(config::DEFAULT_DECISION_ACCUMULATION_THRESHOLD),
+    );
     checks::check_claims(&mut graph, &artefacts, root);
     checks::check_gitignored_paths(&mut graph, &ast, &config.ignores);
     checks::check_orphan_beads(&mut graph, root);
