@@ -44,35 +44,51 @@ not evidence of correctness; it is evidence that this round found nothing.
 A round is defined so it can be audited rather than asserted, and the receipt is a
 typed artefact rather than an id in prose. Cairn already has the shape: the Review
 artefact (`docs/artefacts.md:58-72`) carries `node`, `review_type`, `date`,
-`reviewer`, and `related_change: commit:<sha>`. So each lens produces
+`reviewer`, and `related_change`. Each lens produces
 `meta/reviews/rev.<slug>-<lens>.md` with `review_type: agent_cross_model`, a
-`reviewer` naming that lens, `related_change` bound to the commit it read, a Verdict
-section, and a hash of the payload it graded. That makes independence, subject
-commit, and verdict machine-checkable by the scanner and the hook, instead of
-trusting a body that says review happened. `agent://` handles and harness
-transcripts are ephemeral and must never be the evidence of record.
+`reviewer` naming that lens, a Verdict section, and a `subject_hash`.
+`agent://` handles and harness transcripts are ephemeral and must never be the
+evidence of record.
 
-**Two commits, because a receipt cannot cite the commit that contains it.** Writing
-the receipts changes the tree, so "both receipts name the SHA being accepted" is a
-cycle. The protocol is therefore:
+**The binding identity is a content hash over the whole reviewed change, not a commit
+SHA.** Two constraints rule out commits. A receipt cannot cite the commit that
+contains it, and the loop lands one squash commit per iteration
+(`.claude/skills/cairn-dev/references/loop-mode.md`), which rewrites any SHA a
+receipt might have named.
 
-1. **Candidate.** Commit the decision at `status: proposed` together with whatever it
-   rules on. Call that commit C. C is immutable from here.
-2. **Review.** Each lens reads C independently and writes a receipt binding
-   `related_change: commit:C`.
-3. **Acceptance.** A second commit adds the receipts and changes only the ratification
-   fields: `status`, `ratification`, `ratified_by`, and the receipt references. The
-   hook recomputes the decision's governed content, everything except those fields,
-   and refuses acceptance unless it is byte-identical to C. So the thing reviewed and
-   the thing accepted are provably the same, and the receipts never need to name their
-   own commit.
+So `subject_hash` is a canonical hash of a manifest covering everything the review
+judged:
 
-Two receipts naming the same reviewer are one round. Earlier rounds on superseded
-candidates are kept for audit and never counted: fixing a blocker produces a new
-candidate C', which needs its own two receipts. The acceptance commit's `affects:`
-list must cover the receipt paths, or the tier hook would reject the evidence it
-requires. This is deliberately the stricter reading: PR #520 needed three rounds, so
-the last word has to be about the artefact that actually lands.
+- the decision's **governed content**, meaning its body plus its frontmatter with the
+  ratification fields excluded (`status`, `ratification`, `ratified_by`, and the
+  receipt references), so the status flip does not change its own subject; and
+- every path in `affects:`, each with its content hash, in sorted order.
+
+The receipt artefacts themselves are the only exclusion. Hashing the decision alone
+would let the implementation drift after review: the ruling stays byte-identical
+while a file it governs changes, and a receipt bound to the decision text would still
+verify. Binding the manifest closes that, and it is also why `affects:` must be
+complete, which the hook already enforces against the diff.
+
+That makes the protocol squash-safe and cycle-free:
+
+1. **Candidate.** The decision and the change it rules on reach their final state at
+   `status: proposed`. The manifest hashes to H.
+2. **Review.** Each lens reads that state and writes a receipt carrying
+   `subject_hash: H`. `related_change` may record the working commit for audit, but
+   nothing depends on that SHA surviving.
+3. **Acceptance.** The status flip plus the receipts may land in the same squash commit
+   as the candidate, because identity is content. The hook recomputes the manifest from
+   the tree and refuses acceptance unless it equals the `subject_hash` both receipts
+   carry. Editing one word of the ruling, or one line of any governed file, changes H
+   and invalidates both receipts.
+
+Two receipts naming the same reviewer are one round. Receipts carrying a stale
+`subject_hash` are kept for audit and never counted: re-wording after a blocker
+produces H', which needs two fresh receipts. The `affects:` list must cover the
+receipt paths, or the tier hook would reject the evidence it requires. This is
+deliberately the stricter reading: PR #520 needed three rounds, so the last word has
+to be about the wording that actually lands.
 
 The tier must be validated, not self-asserted, and the two halves of it validate
 differently.
