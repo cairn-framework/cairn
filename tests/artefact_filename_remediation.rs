@@ -7,10 +7,10 @@
 //! is the exact contradiction this test exists to prevent.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+
+use tempfile::TempDir;
 
 const BLUEPRINT: &str = r#"System App "app" id "app" {
     decisions "./meta/decisions"
@@ -21,20 +21,18 @@ const BLUEPRINT: &str = r#"System App "app" id "app" {
 
 const DECISION: &str = "---\nid: dec.only-rule\nnodes: [app.lib]\nstatus: accepted\ndate: 2026-07-27\n---\n# Only Rule\n";
 
-fn write_project(filename: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
-    // Both tests in this binary run concurrently and `SystemTime::now()` is
-    // not guaranteed to differ between them, so the counter, not the clock,
-    // is what keeps the two roots apart.
-    static SEQ: AtomicUsize = AtomicUsize::new(0);
-    let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
-    let seq = SEQ.fetch_add(1, Ordering::Relaxed);
-    let root = std::env::temp_dir().join(format!("cairn-ca038-{suffix}-{seq}"));
+fn write_project(filename: &str) -> Result<TempDir, Box<dyn std::error::Error>> {
+    // A unique directory per call: the two tests in this binary run
+    // concurrently, and deriving the root from the clock alone let them
+    // collide and share one fixture.
+    let dir = TempDir::new()?;
+    let root = dir.path();
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::create_dir_all(root.join("src"))?;
     fs::write(root.join("src/lib.rs"), "pub fn go() {}\n")?;
     fs::write(root.join("cairn.blueprint"), BLUEPRINT)?;
     fs::write(root.join("meta/decisions").join(filename), DECISION)?;
-    Ok(root)
+    Ok(dir)
 }
 
 fn run(root: &Path, args: &[&str]) -> Result<(bool, String), Box<dyn std::error::Error>> {
@@ -51,9 +49,9 @@ fn run(root: &Path, args: &[&str]) -> Result<(bool, String), Box<dyn std::error:
 fn drifted_filename_fails_strict_scan_and_yields_a_rename_plan()
 -> Result<(), Box<dyn std::error::Error>> {
     // Filename carries the typed prefix the convention forbids.
-    let root = write_project("dec.only-rule.md")?;
+    let dir = write_project("dec.only-rule.md")?;
 
-    let (_, lint) = run(&root, &["lint", "--json"])?;
+    let (_, lint) = run(dir.path(), &["lint", "--json"])?;
     assert!(
         lint.contains("CAIRN_ARTEFACT_FILENAME_DRIFT"),
         "prefixed filename must drift; got: {lint}"
@@ -63,12 +61,12 @@ fn drifted_filename_fails_strict_scan_and_yields_a_rename_plan()
         "finding must name the expected filename; got: {lint}"
     );
 
-    let (strict_ok, _) = run(&root, &["scan", "--strict"])?;
+    let (strict_ok, _) = run(dir.path(), &["scan", "--strict"])?;
     assert!(!strict_ok, "a Warning finding must fail --strict");
 
     // `remediate --json` projects to the shared work-item shape, which keeps
     // the title and command but not the action name; assert on the CLI render.
-    let (_, plan) = run(&root, &["remediate"])?;
+    let (_, plan) = run(dir.path(), &["remediate"])?;
     assert!(
         plan.contains("rename_artefacts"),
         "remediate must plan the rename rather than report no actions; got: {plan}"
@@ -78,27 +76,25 @@ fn drifted_filename_fails_strict_scan_and_yields_a_rename_plan()
         "the `none` action must not be returned while drift exists; got: {plan}"
     );
 
-    fs::remove_dir_all(&root)?;
     Ok(())
 }
 
 #[test]
 fn conforming_filename_is_clean_and_needs_no_remediation() -> Result<(), Box<dyn std::error::Error>>
 {
-    let root = write_project("only-rule.md")?;
+    let dir = write_project("only-rule.md")?;
 
-    let (_, lint) = run(&root, &["lint", "--json"])?;
+    let (_, lint) = run(dir.path(), &["lint", "--json"])?;
     assert!(
         !lint.contains("CAIRN_ARTEFACT_FILENAME_DRIFT"),
         "slug-only filename must be clean; got: {lint}"
     );
 
-    let (_, plan) = run(&root, &["remediate"])?;
+    let (_, plan) = run(dir.path(), &["remediate"])?;
     assert!(
         !plan.contains("rename_artefacts"),
         "no drift means no rename action; got: {plan}"
     );
 
-    fs::remove_dir_all(&root)?;
     Ok(())
 }

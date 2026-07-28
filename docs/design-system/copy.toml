@@ -169,7 +169,7 @@ CAIRN_CONFIG_UNKNOWN_KEY = { heading = "Unknown config key", body = "cairn.confi
 CAIRN_CHANGE_TASKS_COMPLETE = { heading = "Change tasks complete", body = "Change `{node}` has all tasks complete.", cta = "Run `cairn change apply {node}` to archive it." }
 CAIRN_ARTEFACT_FILENAME_DRIFT = { heading = "Artefact filename drift", body = "The artefact at `{path}` is not named after its id.", cta = "Rename the file to its id without the typed prefix; todos keep `todo.<slug>.md`." }
 CAIRN_CONTRACT_NODE_SHAPE_DRIFT = { heading = "Contract not reviewed against current node shape", body = "The baseline for `{node}` was recorded against a different node shape; `{target}` changed.", cta = "Re-read the contract against the current declaration, then re-record its baseline." }
-CAIRN_DECISION_ACCUMULATION = { heading = "Accepted decisions accumulating", body = "Node `{node}` carries {count} accepted decisions (threshold {threshold}).", cta = "Author one consolidating decision listing the stale set in its `supersedes` field (the parser never reads `superseded_by`). Superseded decisions keep their provenance and drop out of default payloads." }
+CAIRN_DECISION_ACCUMULATION = { heading = "Accepted decisions accumulating", body = "Node `{node}` carries {count} accepted decisions (threshold {threshold}).", cta = "Author one consolidating decision listing the stale set in its `supersedes` field (the parser never reads `superseded_by`), and set each of those targets to `status: superseded`. Both halves are required: a target left accepted keeps counting here and also raises CAIRN_DECISION_SUPERSEDES_STATUS. Superseded decisions keep their provenance and drop out of default payloads." }
 
 
 CT001 = { heading = "Interface contradiction", body = "Targets for `{node}` with the same contract role have divergent interfaces.", cta = "Review the contract and reconcile the interface shapes." }
@@ -904,7 +904,7 @@ summarise = "Interface hashes have changed. Run the summariser on affected nodes
 fix_contracts = "Contract artefacts have issues (missing, wrong node, or unknown node). Review and fix contract assignments."
 add_decision = "Blueprint changes require a recorded decision. Create a change directory with a decision artefact."
 fix_decisions = "Decision artefacts have issues (orphaned, invalid status, or missing nodes). Review and fix decision files."
-consolidate_decisions = "One or more nodes carry more accepted decisions than the consolidation threshold. Author one decision listing the stale set in its `supersedes` field (the parser never reads `superseded_by`). Superseded decisions keep their provenance and drop out of default payloads."
+consolidate_decisions = "One or more nodes carry more accepted decisions than the consolidation threshold. Author one decision listing the stale set in its `supersedes` field (the parser never reads `superseded_by`), and set each of those targets to `status: superseded`. Both halves are required: a target left accepted keeps counting and also raises CAIRN_DECISION_SUPERSEDES_STATUS. Superseded decisions keep their provenance and drop out of default payloads."
 fix_todos = "Todo artefacts have issues (orphan node or invalid status). Review and fix todo files."
 fix_sources = "Source artefacts have issues (orphan, unverified, or read failed). Review and fix source files."
 fix_research = "Research artefacts have issues (missing sources or unknown source). Review and fix research files."
