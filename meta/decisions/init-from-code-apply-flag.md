@@ -3,7 +3,7 @@ id: dec.init-from-code-apply-flag
 nodes:
   - cairn.brownfield
   - cairn.kernel.cli
-status: accepted
+status: superseded
 date: 2026-07-12
 ---
 # One-step first map: `cairn init --from-code --apply`

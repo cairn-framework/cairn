@@ -7256,13 +7256,6 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.kernel.cli` carries 20 accepted decisions (threshold 10).",
-      "node": "cairn.kernel.cli",
-      "path": null
-    },
-    {
-      "code": "CAIRN_DECISION_ACCUMULATION",
-      "severity": "info",
       "message": "Node `cairn.root` carries 23 accepted decisions (threshold 10).",
       "node": "cairn.root",
       "path": null
