@@ -11,8 +11,8 @@ created: 2026-07-28
 The loop may never self-ratify a decision, so every ruling costs a maintainer
 round trip regardless of how small its blast radius is. That is correct for
 rulings every adopting repository inherits and wrong for the long tail of local
-ones. The gate is currently all-or-nothing, and the all end is what stalls
-automation.
+ones. The gate is all-or-nothing, and it is the maintainer-only end of it that
+stalls automation.
 
 Opening the gate globally is not the answer: `dec.source-tracked-verification`
 changes the source verification enum every repository shares, and
@@ -45,10 +45,22 @@ A round is defined so it can be audited rather than asserted, and the receipt is
 typed artefact rather than an id in prose. Cairn already has the shape: the Review
 artefact (`docs/artefacts.md:58-72`) carries `node`, `review_type`, `date`,
 `reviewer`, and `related_change`. Each lens produces
-`meta/reviews/rev.<slug>-<lens>.md` with `review_type: agent_cross_model`, a
-`reviewer` naming that lens, a Verdict section, and a `subject_hash`.
-`agent://` handles and harness transcripts are ephemeral and must never be the
-evidence of record.
+`meta/reviews/rev.<slug>-<lens>.md` with `review_type: agent_cross_model`, a Verdict
+section, and a `subject_hash`. `agent://` handles and harness transcripts are
+ephemeral and must never be the evidence of record.
+
+**Lens identity, so independence is checked rather than claimed.** `reviewer` is not
+free text. It is `<model-id>/<lens-id>`, where the model id is the provider's exact
+model string and the lens id names the committed prompt that produced the review. The
+receipt also carries `lens_prompt_hash`, the hash of that prompt file. Two receipts
+are independent when their `reviewer` values differ in the model id, the lens id, or
+both, and when neither review saw the other's output, which the harness asserts by
+running them concurrently from one dispatch. Two receipts with identical `reviewer`
+and `lens_prompt_hash` are one round however many times they were run. The prompts
+live in the repository, so a lens can be audited later rather than being an
+unreproducible name in a file. Today's evidence says the pair is asymmetric, with the
+correctness lens carrying most semantic findings, so a same-model rerun of one prompt
+must never count as two votes.
 
 **The binding identity is a content hash over the whole reviewed change, not a commit
 SHA.** Two constraints rule out commits. A receipt cannot cite the commit that
@@ -57,18 +69,21 @@ contains it, and the loop lands one squash commit per iteration
 receipt might have named.
 
 So `subject_hash` is a canonical hash of a manifest covering everything the review
-judged:
+judged. The manifest is a sorted list of `path` plus `hash` pairs, built by one rule
+per path so nothing is hashed twice or cycles:
 
-- the decision's **governed content**, meaning its body plus its frontmatter with the
-  ratification fields excluded (`status`, `ratification`, `ratified_by`, and the
-  receipt references), so the status flip does not change its own subject; and
-- every path in `affects:`, each with its content hash, in sorted order.
+- The decision's own path, which `affects:` must list because the hook checks the
+  diff against it, is hashed from its **governed content**: body plus frontmatter with
+  the ratification fields excluded (`status`, `ratification`, `ratified_by`, and the
+  receipt references). Never from its raw bytes, which change at the status flip and
+  would make the subject depend on its own acceptance.
+- The receipt artefacts are excluded entirely. They are the evidence, not the subject.
+- Every other path in `affects:` is hashed from its raw bytes.
 
-The receipt artefacts themselves are the only exclusion. Hashing the decision alone
-would let the implementation drift after review: the ruling stays byte-identical
-while a file it governs changes, and a receipt bound to the decision text would still
-verify. Binding the manifest closes that, and it is also why `affects:` must be
-complete, which the hook already enforces against the diff.
+Hashing the decision alone would let the implementation drift after review: the ruling
+stays byte-identical while a file it governs changes, and a receipt bound only to the
+decision text would still verify. Binding the manifest closes that, and it is also why
+`affects:` must be complete, which the hook enforces against the diff.
 
 That makes the protocol squash-safe and cycle-free:
 
@@ -101,24 +116,50 @@ while it supersedes anything is an Error with no further evidence needed.
 What the graph cannot prove: `nodes:` says nothing about which files a decision
 changes, so no lint rule can infer schema, spec, registry, or pack impact from it.
 That half needs a declared `affects:` list of repository paths on the decision,
-checked two ways: every declared path must sit outside a committed
-binding-surface allowlist (`docs/spec.md`, `docs/registries/`,
-`tools/agent-pack/content/`, the artefact schema modules), and the hook that runs
-at commit time must confirm the commit's changed paths are a subset of `affects:`.
-An undeclared path in the diff is an Error, so understating `affects:` fails
-closed at the gate rather than passing on the agent's word. An agent that wants a
-cheaper tier must therefore make the change smaller, not the claim bolder.
+checked two ways. The hook confirms the commit's changed paths are a subset of
+`affects:`, so understating it fails closed rather than passing on the agent's word.
+And every declared path must sit outside the binding-surface allowlist.
+
+**The allowlist is data, matched deterministically.** It lives in one committed file
+as an ordered list of rules, each an exact repository-relative path or a path ending
+in `/` meaning that directory and everything under it. No globs, no regex, no
+categories: "the artefact schema modules" is not a rule, `src/artefacts/registry/` is.
+Matching is: normalise both sides to repository-relative form with no `.` or `..`
+segment, then a path is inside the allowlist when it equals an exact rule or is
+prefixed by a directory rule. Symlinks resolve before matching, and a path escaping
+the repository is an Error rather than a miss. The starting list is `docs/spec.md`,
+`docs/registries/`, `tools/agent-pack/content/`, `src/artefacts/registry/`, and the
+blueprint. Extending it is a binding decision by construction, since the file is
+itself inside `docs/registries/`.
+
+An agent that wants a cheaper tier must therefore make the change smaller, not the
+claim bolder.
 
 Surfaces to touch:
 
-- `src/artefacts/registry/types.rs` and `parse.rs`: the `ratification:` and
-  `affects:` fields, their parse, and an invalid-value finding.
+- `src/artefacts/registry/types.rs` and `parse.rs`: the `ratification:`, `affects:`,
+  and `ratified_by:` decision fields, the `subject_hash`, `reviewer`, and
+  `lens_prompt_hash` review fields, their parse, and an invalid-value finding per
+  field.
+- `src/artefacts/registry/validate/mod.rs`: the receipt-to-decision link check, so a
+  decision naming a receipt that does not exist, or a receipt whose `subject_hash`
+  matches nothing, is a finding rather than silence.
+- The canonical manifest hasher, one function with its own unit tests, since both the
+  scanner and the hook must compute byte-identical results from it.
 - `src/scanner/checks.rs`: the graph half of the tier check (container span,
-  supersession) plus the `affects:` allowlist check, with codes registered in
+  supersession), the `affects:` allowlist check, and the convergence check (two
+  receipts, distinct reviewers, matching `subject_hash`), with codes registered in
   `docs/registries/error-codes.md` and `[findings.codes]` entries in
   `docs/design-system/copy.toml`.
-- `src/hooks/`: the commit-time check that the diff's changed paths are a subset
-  of `affects:` for any decision the commit accepts at tier `local`.
+- `src/hooks/`: the commit-time checks, that the diff's changed paths are a subset of
+  `affects:`, and that the recomputed manifest equals the `subject_hash` the receipts
+  carry, for any decision the commit accepts at tier `local`.
+- `src/query_api/serialise.rs`: the new fields are wire values, so the exhaustive
+  matches there fail to build without them, and the wire snapshots rebase.
+- The lens prompt files the `reviewer` ids name, committed so a review is
+  reproducible.
+- Tests: the acceptance status flip alone must not change `subject_hash`, which is the
+  regression that would break every receipt at once.
 - `docs/registries/spec-rules.md`: a row per rule this makes enforceable.
 - The loop assets that state the never-self-ratify rule
   (`.claude/skills/cairn-loop-reconcile/SKILL.md` clause 4,
@@ -146,12 +187,16 @@ implementing commit, per `docs/conventions.md` rule 2.
   `affects:` list is blocked by the hook. This is the case that makes the tier fail
   closed, so it gets a test of its own.
 - A `local` decision is refused unless it references two committed Review artefacts
-  with distinct `reviewer` values, clean verdicts, and `related_change` bound to the
-  same candidate commit C. One receipt, two receipts naming the same reviewer, and a
-  receipt path missing from `affects:` each fail, with a test apiece.
-- An acceptance commit is refused when the decision's governed content differs from
-  the candidate C the receipts reviewed, even by a byte, so slipping a rule change in
-  alongside the status flip is impossible. This is the keystone test of the tier.
+  with clean verdicts, `reviewer` values differing in model id or lens id, and the
+  same `subject_hash`. One receipt, two receipts from the same `reviewer` and
+  `lens_prompt_hash`, and a receipt path missing from `affects:` each fail, with a
+  test apiece.
+- Acceptance is refused when the manifest recomputed from the tree differs from the
+  `subject_hash` the receipts carry, even by a byte, so slipping a rule or an
+  implementation change in alongside the status flip is impossible. This is the
+  keystone test of the tier.
+- Flipping `status` to `accepted` and adding the receipt references does not itself
+  change `subject_hash`, or every receipt would invalidate at the moment of use.
 - A decision with no `ratification:` field is treated as `binding`, so existing
   artefacts keep their current protection without a migration.
 - `ratified_by: machine` is queryable, so `cairn decisions <node>` can list every
