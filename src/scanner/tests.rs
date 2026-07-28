@@ -533,6 +533,21 @@ fn test_decision_accumulation_at_threshold_emits_nothing() {
 }
 
 #[test]
+fn test_decision_accumulation_counts_a_repeated_node_once() {
+    let mut g = graph_with_leaf("app.api");
+    let artefacts = artefacts_with(vec![decision(
+        "d0",
+        &["app.api", "app.api"],
+        DecisionStatus::Accepted,
+    )]);
+    checks::check_decision_accumulation(&mut g, &artefacts, 1);
+    assert!(
+        g.findings.is_empty(),
+        "one decision naming a node twice is still one decision"
+    );
+}
+
+#[test]
 fn test_decision_accumulation_over_threshold_emits_info() {
     let mut g = graph_with_leaf("app.api");
     let artefacts = artefacts_with(accepted_decisions("app.api", 4));

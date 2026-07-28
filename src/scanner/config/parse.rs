@@ -125,9 +125,9 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_artefacts = false;
             in_targets = false;
             in_asymmetry = false;
-        } else if trimmed.starts_with("decision_accumulation_threshold:") {
-            // A non-numeric value is ignored and the default stands, matching
-            // how every other malformed value in this parser is handled.
+        } else if indentation(line) == 0 && trimmed.starts_with("decision_accumulation_threshold:")
+        {
+            // Invalid values leave the default in force.
             config.decision_accumulation_threshold = value_after_colon(trimmed).parse().ok();
             in_gates = false;
             in_ignore = false;

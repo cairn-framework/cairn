@@ -114,9 +114,9 @@ pub(crate) fn check_provenance_coverage(graph: &mut Graph, artefacts: &ArtefactS
 /// Emits `CAIRN_DECISION_ACCUMULATION` for every graph node carrying more
 /// than `threshold` directly-attached accepted decisions.
 ///
-/// Advisory only: consolidating a stale set into one superseding decision is
-/// judgment work, never automatic. Decisions naming a node absent from the
-/// graph are `CAIRN_DECISION_ORPHANED`, not accumulation, so they are skipped.
+/// Decisions naming a node absent from the graph are
+/// `CAIRN_DECISION_ORPHANED`, not accumulation, so they are skipped, and a
+/// node repeated inside one decision's `nodes:` list counts once.
 pub(crate) fn check_decision_accumulation(
     graph: &mut Graph,
     artefacts: &ArtefactSet,
@@ -127,8 +127,9 @@ pub(crate) fn check_decision_accumulation(
         if !matches!(decision.status, DecisionStatus::Accepted) {
             continue;
         }
+        let mut seen: BTreeSet<&str> = BTreeSet::new();
         for node in &decision.nodes {
-            if graph.nodes.contains_key(node) {
+            if graph.nodes.contains_key(node) && seen.insert(node.as_str()) {
                 *counts.entry(node.as_str()).or_default() += 1;
             }
         }

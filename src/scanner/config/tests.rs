@@ -209,6 +209,19 @@ fn test_parse_config_decision_accumulation_threshold_non_numeric_falls_back() {
 }
 
 #[test]
+fn test_parse_config_indented_threshold_is_not_a_top_level_override() {
+    let mut config = Config::default();
+    parse_config(
+        "rules:\n  decision: |\n    decision_accumulation_threshold: 2\n",
+        &mut config,
+    );
+    assert_eq!(
+        config.decision_accumulation_threshold, None,
+        "nested prose must not set the global threshold"
+    );
+}
+
+#[test]
 fn test_parse_config_unknown_key_does_not_abort_known_keys() {
     let mut config = Config::default();
     parse_config(

@@ -225,6 +225,10 @@ ignore:
   - "**/target/**"
   - "*.lock"
 
+# Optional. A node with more accepted decisions than this raises an Info
+# CAIRN_DECISION_ACCUMULATION finding prompting a consolidating decision.
+decision_accumulation_threshold: 10
+
 # Accept-gate steps (optional). Highest priority for `cairn change accept`.
 # Each command is whitespace-split into argv and run directly (no shell).
 gates:

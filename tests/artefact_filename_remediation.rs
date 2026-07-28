@@ -9,6 +9,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const BLUEPRINT: &str = r#"System App "app" id "app" {
@@ -21,8 +22,13 @@ const BLUEPRINT: &str = r#"System App "app" id "app" {
 const DECISION: &str = "---\nid: dec.only-rule\nnodes: [app.lib]\nstatus: accepted\ndate: 2026-07-27\n---\n# Only Rule\n";
 
 fn write_project(filename: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    // Both tests in this binary run concurrently and `SystemTime::now()` is
+    // not guaranteed to differ between them, so the counter, not the clock,
+    // is what keeps the two roots apart.
+    static SEQ: AtomicUsize = AtomicUsize::new(0);
     let suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
-    let root = std::env::temp_dir().join(format!("cairn-ca038-{suffix}"));
+    let seq = SEQ.fetch_add(1, Ordering::Relaxed);
+    let root = std::env::temp_dir().join(format!("cairn-ca038-{suffix}-{seq}"));
     fs::create_dir_all(root.join("meta/decisions"))?;
     fs::create_dir_all(root.join("src"))?;
     fs::write(root.join("src/lib.rs"), "pub fn go() {}\n")?;
