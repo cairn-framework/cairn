@@ -2593,6 +2593,7 @@
         "src/scanner/config/parse.rs",
         "src/scanner/config/tests.rs",
         "src/scanner/contract_baselines.rs",
+        "src/scanner/contract_shape.rs",
         "src/scanner/gate_recipe.rs",
         "src/scanner/inference_tests.rs",
         "src/scanner/mod.rs",
@@ -2682,8 +2683,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 445,
-          "end_line": 522
+          "line": 446,
+          "end_line": 530
         },
         {
           "name": "matches",
@@ -2706,8 +2707,8 @@
           "kind": "function",
           "signature": "pub fn new() -> Self",
           "file": "src/scanner/contract_baselines.rs",
-          "line": 51,
-          "end_line": 56
+          "line": 55,
+          "end_line": 60
         },
         {
           "name": "new",
@@ -2722,8 +2723,8 @@
           "kind": "function",
           "signature": "pub fn read(root: &Path) -> io::Result<ContractBaselines>",
           "file": "src/scanner/contract_baselines.rs",
-          "line": 83,
-          "end_line": 95
+          "line": 97,
+          "end_line": 109
         },
         {
           "name": "read_blueprint_snapshot",
@@ -2754,8 +2755,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 529,
-          "end_line": 565
+          "line": 537,
+          "end_line": 573
         },
         {
           "name": "select_gate_recipe",
@@ -2766,12 +2767,20 @@
           "end_line": 98
         },
         {
+          "name": "state_path",
+          "kind": "function",
+          "signature": "pub fn state_path(root: &Path) -> PathBuf",
+          "file": "src/scanner/contract_baselines.rs",
+          "line": 75,
+          "end_line": 77
+        },
+        {
           "name": "write",
           "kind": "function",
           "signature": "pub fn write(root: &Path, baselines: &ContractBaselines) -> io::Result<()>",
           "file": "src/scanner/contract_baselines.rs",
-          "line": 70,
-          "end_line": 72
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "write",
@@ -2818,24 +2827,24 @@
           "kind": "module",
           "signature": "pub mod outputs",
           "file": "src/scanner/mod.rs",
-          "line": 11,
-          "end_line": 11
+          "line": 12,
+          "end_line": 12
         },
         {
           "name": "snapshot",
           "kind": "module",
           "signature": "pub mod snapshot",
           "file": "src/scanner/mod.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/scanner/mod.rs",
-          "line": 13,
-          "end_line": 13
+          "line": 14,
+          "end_line": 14
         },
         {
           "name": "BlueprintSnapshot",
@@ -2866,16 +2875,16 @@
           "kind": "struct",
           "signature": "pub struct ContractBaseline",
           "file": "src/scanner/contract_baselines.rs",
-          "line": 24,
-          "end_line": 31
+          "line": 28,
+          "end_line": 35
         },
         {
           "name": "ContractBaselines",
           "kind": "struct",
           "signature": "pub struct ContractBaselines",
           "file": "src/scanner/contract_baselines.rs",
-          "line": 41,
-          "end_line": 46
+          "line": 45,
+          "end_line": 50
         },
         {
           "name": "GateRecipeStep",
@@ -2922,8 +2931,8 @@
           "kind": "struct",
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
-          "line": 59,
-          "end_line": 74
+          "line": 60,
+          "end_line": 75
         },
         {
           "name": "SnapshotEdge",
@@ -2954,8 +2963,8 @@
           "kind": "struct",
           "signature": "pub struct TargetReport",
           "file": "src/scanner/mod.rs",
-          "line": 40,
-          "end_line": 55
+          "line": 41,
+          "end_line": 56
         },
         {
           "name": "TargetHashes",
@@ -2970,8 +2979,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 598,
-          "end_line": 613
+          "line": 606,
+          "end_line": 621
         },
         {
           "name": "cache",
@@ -2998,12 +3007,20 @@
           "end_line": 7
         },
         {
+          "name": "contract_shape",
+          "kind": "module",
+          "signature": "pub(crate) mod contract_shape",
+          "file": "src/scanner/mod.rs",
+          "line": 8,
+          "end_line": 8
+        },
+        {
           "name": "gate_recipe",
           "kind": "module",
           "signature": "pub(crate) mod gate_recipe",
           "file": "src/scanner/mod.rs",
-          "line": 8,
-          "end_line": 8
+          "line": 9,
+          "end_line": 9
         }
       ]
     },
@@ -6248,9 +6265,11 @@
       ],
       "files": [
         "src/summariser/accept.rs",
+        "src/summariser/accept_transaction.rs",
         "src/summariser/backend/mod.rs",
         "src/summariser/backend/tests.rs",
         "src/summariser/baseline.rs",
+        "src/summariser/baseline_copy.rs",
         "src/summariser/config.rs",
         "src/summariser/generate.rs",
         "src/summariser/mod.rs",
@@ -6324,8 +6343,8 @@
           "kind": "enum",
           "signature": "pub enum AcceptError",
           "file": "src/summariser/accept.rs",
-          "line": 22,
-          "end_line": 39
+          "line": 25,
+          "end_line": 45
         },
         {
           "name": "Draft",
@@ -6396,8 +6415,8 @@
           "kind": "function",
           "signature": "pub fn accept( root: &Path, draft_id: &str, blueprint_path: &Path, edited: bool, ) -> Result<String, AcceptError>",
           "file": "src/summariser/accept.rs",
-          "line": 79,
-          "end_line": 153
+          "line": 86,
+          "end_line": 173
         },
         {
           "name": "accepted_interface_hash",
@@ -6412,16 +6431,16 @@
           "kind": "function",
           "signature": "pub fn assert_draft_tool_safety_classes()",
           "file": "src/summariser/mod.rs",
-          "line": 71,
-          "end_line": 107
+          "line": 74,
+          "end_line": 110
         },
         {
           "name": "assert_draft_tools_registered",
           "kind": "function",
           "signature": "pub fn assert_draft_tools_registered()",
           "file": "src/summariser/mod.rs",
-          "line": 39,
-          "end_line": 60
+          "line": 42,
+          "end_line": 63
         },
         {
           "name": "build_request",
@@ -6724,16 +6743,16 @@
           "kind": "function",
           "signature": "pub(crate) fn drop_baseline( root: &Path, blueprint_path: &Path, node_id: &str, ) -> Result<(), BaselineError>",
           "file": "src/summariser/baseline.rs",
-          "line": 103,
-          "end_line": 119
+          "line": 99,
+          "end_line": 115
         },
         {
           "name": "record_baseline",
           "kind": "function",
           "signature": "pub(crate) fn record_baseline( root: &Path, blueprint_path: &Path, node_id: &str, ) -> Result<ContractBaseline, BaselineError>",
           "file": "src/summariser/baseline.rs",
-          "line": 67,
-          "end_line": 88
+          "line": 63,
+          "end_line": 84
         }
       ]
     },
@@ -6788,6 +6807,7 @@
         "tests/reconcile_typescript.rs",
         "tests/scanner_interface_hash.rs",
         "tests/schema_validation.rs",
+        "tests/summariser_accept_baseline.rs",
         "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
         "tests/watch.rs",
@@ -7221,14 +7241,6 @@
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
       "node": null,
       "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
-      "path": "docs/registries/spec-rules.md"
-    },
-    {
-      "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
-      "severity": "info",
-      "message": "spec rule `Contract has not been reviewed against its node's current declared shape` (-) is pending but names no enforcer (deferred by dec.contract-node-shape-drift-deferred)",
-      "node": null,
-      "target": "- Contract has not been reviewed against its node's current declared shape",
       "path": "docs/registries/spec-rules.md"
     }
   ]

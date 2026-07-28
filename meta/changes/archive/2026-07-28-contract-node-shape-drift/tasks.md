@@ -15,7 +15,7 @@ enforcer. Their canonical trackers are
 - [x] Add the finding's user-facing text to `docs/design-system/copy.toml`
 - [x] Author the re-record prerequisite the summariser-disabled evidence proved
       necessary, and list it in the enforcer todo's `Depends on`
-- [ ] Build the non-generative baseline re-record surface, with record and drop
-- [ ] Implement the enforcer against `specs/contract-node-shape-drift.md`,
+- [x] Build the non-generative baseline re-record surface, with record and drop
+- [x] Implement the enforcer against `specs/contract-node-shape-drift.md`,
       allocate its code in `docs/registries/error-codes.md`, fill the rule row's
       `Code` cell, and promote the row from `pending` to `enforced`

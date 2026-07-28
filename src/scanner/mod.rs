@@ -5,6 +5,7 @@ pub(crate) mod cache;
 pub(crate) mod checks;
 pub mod config;
 pub(crate) mod contract_baselines;
+pub(crate) mod contract_shape;
 pub(crate) mod gate_recipe;
 #[cfg(test)]
 mod inference_tests;
@@ -509,6 +510,13 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         &artefacts,
         &current_snapshot,
         &previous_snapshot,
+    );
+    let baselines = contract_baselines::read(root).map_err(|error| error.to_string())?;
+    contract_shape::check_contract_node_shape_drift(
+        &mut graph,
+        &contracts,
+        &baselines,
+        &current_snapshot,
     );
     Ok(ScanResult {
         graph,

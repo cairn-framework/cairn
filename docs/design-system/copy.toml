@@ -350,6 +350,8 @@ not-recorded = "no contract baseline is recorded for node `{node}`"
 still-live = "node `{node}` is declared and its contract loads, so its baseline is live; re-record it rather than dropping it"
 state-read-failed = "failed to read .cairn/state/contract-baselines.json: {error}"
 state-write-failed = "failed to write .cairn/state/contract-baselines.json: {error}"
+state-restore-failed = "failed to restore .cairn/state/contract-baselines.json: {error}"
+contract-restore-failed = "failed to restore the contract at {path}: {error}"
 
 
 # -- Brief (fused next-unit orientation) --------------------------------

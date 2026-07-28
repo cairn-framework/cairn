@@ -2073,6 +2073,56 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn test_cli_scan_reports_node_shape_drift_and_never_writes_the_baseline()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("baseline-drift")?;
+        write_project_summariser_disabled(&root)?;
+        assert_eq!(run_in(&root, &["baseline", "record", "app.api"]).code, 0);
+        let recorded = fs::read(root.join(".cairn/state/contract-baselines.json"))?;
+
+        // Drop the outbound edge the baseline was recorded against.
+        let blueprint = fs::read_to_string(root.join("cairn.blueprint"))?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            blueprint.replace("app.api -> app.core \"reports\"\n", ""),
+        )?;
+
+        let scan = run_in(&root, &["scan"]);
+        assert_eq!(scan.code, 0, "a Warning must not fail the plain gate");
+        let lint: serde_json::Value =
+            serde_json::from_str(&run_in(&root, &["lint", "--json"]).stdout)?;
+        let drift = lint["findings"]
+            .as_array()
+            .expect("findings array")
+            .iter()
+            .find(|f| f["code"] == "CAIRN_CONTRACT_NODE_SHAPE_DRIFT")
+            .expect("drift finding");
+        assert_eq!(drift["severity"], "warning");
+        assert_eq!(drift["node"], "app.api");
+        // `target` is not part of the findings wire format; the changed fields
+        // reach the reader through the resolved message.
+        assert!(
+            drift["message"]
+                .as_str()
+                .expect("message")
+                .contains("`edges` changed"),
+            "{drift}"
+        );
+
+        assert_eq!(
+            run_in(&root, &["scan", "--strict"]).code,
+            1,
+            "a Warning must fail the strict gate"
+        );
+        assert_eq!(
+            fs::read(root.join(".cairn/state/contract-baselines.json"))?,
+            recorded,
+            "scanning must never rewrite the baseline file"
+        );
+        Ok(())
+    }
+
     fn run_in(root: &Path, args: &[&str]) -> CliResult {
         let owned: Vec<String> = args.iter().map(|s| (*s).to_owned()).collect();
         run_in_str(root, &owned)
