@@ -41,18 +41,38 @@ and the day before, 19 surfaced an explicit blocker and 0 surfaced only nits, an
 PR #520 needed three rounds to reach a clean pair. A single clean round is therefore
 not evidence of correctness; it is evidence that this round found nothing.
 
-A round is defined so it can be audited rather than asserted: two lenses run
-independently, neither seeing the other's output, over one commit SHA, each
-producing a report stored immutably and referenced by id in the decision alongside
-the SHA it read.
+A round is defined so it can be audited rather than asserted, and the receipt is a
+typed artefact rather than an id in prose. Cairn already has the shape: the Review
+artefact (`docs/artefacts.md:58-72`) carries `node`, `review_type`, `date`,
+`reviewer`, and `related_change: commit:<sha>`. So each lens produces
+`meta/reviews/rev.<slug>-<lens>.md` with `review_type: agent_cross_model`, a
+`reviewer` naming that lens, `related_change` bound to the commit it read, a Verdict
+section, and a hash of the payload it graded. That makes independence, subject
+commit, and verdict machine-checkable by the scanner and the hook, instead of
+trusting a body that says review happened. `agent://` handles and harness
+transcripts are ephemeral and must never be the evidence of record.
 
-Self acceptance requires two independent clean lens reports on the FINAL SHA, the one
-being accepted. Earlier rounds are recorded for audit, not counted toward
-convergence, since fixing a blocker changes the tree and any clean report on a parent
-SHA says nothing about what replaced it. Rerunning the same lens twice over one SHA is
-one report, not two. This is deliberately the stricter reading: the whole point is
-that PR #520 needed three rounds, so the last word must be about the artefact that
-actually lands.
+**Two commits, because a receipt cannot cite the commit that contains it.** Writing
+the receipts changes the tree, so "both receipts name the SHA being accepted" is a
+cycle. The protocol is therefore:
+
+1. **Candidate.** Commit the decision at `status: proposed` together with whatever it
+   rules on. Call that commit C. C is immutable from here.
+2. **Review.** Each lens reads C independently and writes a receipt binding
+   `related_change: commit:C`.
+3. **Acceptance.** A second commit adds the receipts and changes only the ratification
+   fields: `status`, `ratification`, `ratified_by`, and the receipt references. The
+   hook recomputes the decision's governed content, everything except those fields,
+   and refuses acceptance unless it is byte-identical to C. So the thing reviewed and
+   the thing accepted are provably the same, and the receipts never need to name their
+   own commit.
+
+Two receipts naming the same reviewer are one round. Earlier rounds on superseded
+candidates are kept for audit and never counted: fixing a blocker produces a new
+candidate C', which needs its own two receipts. The acceptance commit's `affects:`
+list must cover the receipt paths, or the tier hook would reject the evidence it
+requires. This is deliberately the stricter reading: PR #520 needed three rounds, so
+the last word has to be about the artefact that actually lands.
 
 The tier must be validated, not self-asserted, and the two halves of it validate
 differently.
@@ -109,9 +129,13 @@ implementing commit, per `docs/conventions.md` rule 2.
 - A commit that accepts a `local` decision while touching a path absent from its
   `affects:` list is blocked by the hook. This is the case that makes the tier fail
   closed, so it gets a test of its own.
-- A `local` decision is refused unless it references two independent clean lens
-  reports whose recorded SHA equals the SHA being accepted. One report, two reports
-  from the same lens, or a clean report on a parent SHA all fail, each with a test.
+- A `local` decision is refused unless it references two committed Review artefacts
+  with distinct `reviewer` values, clean verdicts, and `related_change` bound to the
+  same candidate commit C. One receipt, two receipts naming the same reviewer, and a
+  receipt path missing from `affects:` each fail, with a test apiece.
+- An acceptance commit is refused when the decision's governed content differs from
+  the candidate C the receipts reviewed, even by a byte, so slipping a rule change in
+  alongside the status flip is impossible. This is the keystone test of the tier.
 - A decision with no `ratification:` field is treated as `binding`, so existing
   artefacts keep their current protection without a migration.
 - `ratified_by: machine` is queryable, so `cairn decisions <node>` can list every
@@ -159,7 +183,7 @@ Paired-review reliability was audited over 26 usable rounds spanning 17 changes 
   two approvals are not two independent votes on the same question.
 
 The audit trail behind the review-reliability numbers, including its window,
-sources, and limits, is recorded as a comment on PR #523. The transcripts
+sources, and limits, is recorded at https://github.com/cairn-framework/cairn/pull/523#issuecomment-5105144953, with the per-iteration session ids and pinned counts at https://github.com/cairn-framework/cairn/pull/523#issuecomment-5105158502. The transcripts
 themselves are machine-local and were not committable, so every number those todos
 rely on is restated here as a PR number or a measured count.
 

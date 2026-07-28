@@ -129,7 +129,7 @@ a result.
 - No CI scheduling is added before the instrument has produced one usable result.
 
 The apparatus inventory behind this todo was produced by a same-day audit whose
-window, sources, and limits are recorded as a comment on PR #523. Every claim it
+window, sources, and limits are recorded at https://github.com/cairn-framework/cairn/pull/523#issuecomment-5105144953. Every claim it
 rests on cites a committed artefact, so this todo stands without the transcripts.
 
 ## Origin

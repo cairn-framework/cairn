@@ -142,7 +142,7 @@ that clears the two `CAIRN_SOURCE_UNVERIFIED` findings costing iterations today.
   `cairn rationale <node>` prints, so measure with the check's own basis.
 
 The audit trail behind the numbers above, including its window, sources, and limits,
-is recorded as a comment on PR #523. The transcripts themselves are machine-local
+is recorded at https://github.com/cairn-framework/cairn/pull/523#issuecomment-5105144953, with the per-iteration session ids and pinned counts at https://github.com/cairn-framework/cairn/pull/523#issuecomment-5105158502. The transcripts themselves are machine-local
 and were not committable, so each claim is restated here as a PR number, a
 file:line, or a measured count.
 

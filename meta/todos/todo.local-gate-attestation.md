@@ -113,7 +113,7 @@ Phase 2, if entered:
   receipt.
 
 The audit trail behind the timings, including its window, sources, and limits, is
-recorded as a comment on PR #523. Workflow run ids are quoted inline above so the CI
+recorded at https://github.com/cairn-framework/cairn/pull/523#issuecomment-5105144953, with the pinned CI measurements at https://github.com/cairn-framework/cairn/pull/523#issuecomment-5105158502. Workflow run ids are quoted inline above so the CI
 numbers can be re-pulled from GitHub without it.
 
 ## Origin
