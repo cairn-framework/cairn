@@ -89,6 +89,7 @@ Error responses from the MCP/query path:
 
 | CLI | MCP tool | Effect |
 |---|---|---|
+| `baseline <record\|drop> <node>` | n/a | Write or prune a node's contract baseline. CLI-only |
 | `scan` | `cairn_scan` | Re-scan project, update interface hashes |
 | `rename <old> <new>` | `cairn_rename` | Rename a node ID across all files |
 | `change apply <change>` | `cairn_archive` | Apply a completed change |

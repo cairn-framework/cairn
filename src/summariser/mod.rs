@@ -5,6 +5,7 @@
 
 mod accept;
 mod backend;
+mod baseline;
 mod config;
 mod generate;
 mod prompt;
@@ -16,6 +17,7 @@ pub use backend::{
     DisabledBackend, FakeBackend, HostedBackend, HostedConfig, LocalCommandBackend,
     SummariserBackend, SummariserBackendError, SummariserMode,
 };
+pub(crate) use baseline::{BaselineError, drop_baseline, record_baseline};
 pub use config::SummariserSettings;
 pub use generate::{GenerateError, generate};
 pub use prompt::{PromptError, build_request};
