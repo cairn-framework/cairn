@@ -336,6 +336,21 @@ set-success = "set meta/todos/todo.{slug}.md status -> {status}"
 io-read-error = "failed to read {path}: {error}"
 io-write-error = "failed to write {path}: {error}"
 
+# -- Contract baseline record and drop ------------------------------------
+
+[baseline]
+usage = "usage: cairn baseline <record|drop> <node>"
+recorded = "recorded the current shape of `{node}` as its contract baseline"
+dropped = "dropped the contract baseline for `{node}`"
+blueprint-unreadable = "the blueprint at {path} could not be read: {error}"
+node-not-declared = "the blueprint does not declare node `{node}`"
+no-contract = "node `{node}` has no contract pointer, so it has no reviewed shape and cannot hold a baseline"
+contract-unreadable = "the contract for node `{node}` at {path} could not be read: {error}"
+not-recorded = "no contract baseline is recorded for node `{node}`"
+still-live = "node `{node}` is declared and its contract loads, so its baseline is live; re-record it rather than dropping it"
+state-read-failed = "failed to read .cairn/state/contract-baselines.json: {error}"
+state-write-failed = "failed to write .cairn/state/contract-baselines.json: {error}"
+
 
 # -- Brief (fused next-unit orientation) --------------------------------
 
@@ -526,6 +541,11 @@ once = "  --once                         Run a single scan then exit"
 [help.commands.backlog]
 usage = "cairn backlog [node] [options]"
 args = "  [node]  Optional node id; omit to list all linked beads"
+
+[help.commands.baseline]
+usage = "cairn baseline <record|drop> <node> [options]"
+args = """  record <node>  Record or re-record the node's current shape as its contract baseline
+  drop <node>    Remove an inert baseline entry (node undeclared, or contract does not load)"""
 
 [help.commands.beads]
 usage = "cairn beads [node] [options]"
@@ -779,6 +799,16 @@ args = "  <node>  Node id to summarise into a draft"
 description = "Scaffold a new decision artefact"
 usage = "cairn decision new <slug> [options]"
 args = "  <slug>  Kebab-case decision slug"
+
+[help.commands.baseline-record]
+description = "Record a node's current shape as its contract baseline"
+usage = "cairn baseline record <node> [options]"
+args = "  <node>  Node id declared in the blueprint, holding a contract that loads"
+
+[help.commands.baseline-drop]
+description = "Drop an inert contract baseline entry"
+usage = "cairn baseline drop <node> [options]"
+args = "  <node>  Node id whose baseline is inert: undeclared, or its contract no longer loads"
 
 [help.commands.todo-new]
 description = "Scaffold a new todo artefact"

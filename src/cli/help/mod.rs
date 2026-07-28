@@ -74,6 +74,7 @@ const FLAGS_PACK: &[&str] = &["harness", "loop", "json", "file", "help"];
 const COMMAND_HELP: &[CommandHelpSpec] = &[
     // --- top-level (alphabetical) ------------------------------------------
     spec("backlog", "backlog", FLAGS_BASIC),
+    spec("baseline", "baseline", FLAGS_HELP_ONLY),
     spec("beads", "beads", FLAGS_BASIC),
     spec("blueprint", "blueprint", FLAGS_BASIC),
     spec("brief", "brief", FLAGS_BASIC),
@@ -196,6 +197,8 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         "decision-new",
         &["node-flag", "informed-by", "file", "help"],
     ),
+    spec("baseline record", "baseline-record", FLAGS_BASIC),
+    spec("baseline drop", "baseline-drop", FLAGS_BASIC),
     spec("todo new", "todo-new", &["node-flag", "file", "help"]),
     spec("todo set", "todo-set", FLAGS_BASIC),
     spec("workspace status", "workspace-status", FLAGS_BASIC),

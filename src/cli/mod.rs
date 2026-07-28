@@ -39,8 +39,8 @@ pub(crate) use format::render_finding_lines;
 
 use commands::{
     atomic_write, init_project, install_default_pack, legacy_blueprint_warning,
-    preflight_wire_check, run_archive_command, run_archive_command_with_path, run_change_new,
-    run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
+    preflight_wire_check, run_archive_command, run_archive_command_with_path, run_baseline_command,
+    run_change_new, run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
     run_hook_command, run_hook_lifecycle_command, run_import_openspec, run_onboard_command,
     run_pack_command, run_shared_json_command, run_todo_command, run_ui_command, run_watch_command,
     run_workspace_command, wire_agent_guide,
@@ -383,6 +383,9 @@ pub fn run(args: &[String]) -> CliResult {
     }
     if parsed.command == "todo" {
         return run_todo_command(&parsed, project_root);
+    }
+    if parsed.command == "baseline" {
+        return run_baseline_command(&parsed, project_root);
     }
     if parsed.command == "pack" {
         return run_pack_command(&parsed, project_root);
@@ -944,6 +947,10 @@ const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
     CliOnlyCommand {
         name: "backlog",
         description: "List beads (issues) linked to a node",
+    },
+    CliOnlyCommand {
+        name: "baseline",
+        description: "Record or drop a node's contract baseline without a summariser",
     },
     CliOnlyCommand {
         name: "brief",
@@ -1916,6 +1923,154 @@ mod tests {
         let result = run(&["ui".to_owned(), "--port".to_owned()]);
         assert_eq!(result.code, 2);
         assert!(result.stderr.contains("--port requires a value"));
+    }
+
+    /// Writes a project whose summariser is off, so nothing in these tests can
+    /// reach a backend or mint a draft.
+    fn write_project_summariser_disabled(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        write_project(root)?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "summariser:\n  mode: disabled\n",
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_baseline_record_works_with_the_summariser_disabled()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("baseline-record")?;
+        write_project_summariser_disabled(&root)?;
+
+        let result = run_in(&root, &["baseline", "record", "app.api"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+
+        let raw = fs::read_to_string(root.join(".cairn/state/contract-baselines.json"))?;
+        let value: serde_json::Value = serde_json::from_str(&raw)?;
+        assert_eq!(value["version"], 1);
+        assert_eq!(value["nodes"]["app.api"]["kind"], "Container");
+        assert_eq!(value["nodes"]["app.api"]["parent"], "app");
+        assert_eq!(value["nodes"]["app.api"]["edges"][0], "app.core");
+        assert!(
+            value["nodes"]["app.api"].get("paths").is_none(),
+            "reduced record must not carry paths: {raw}"
+        );
+        assert!(
+            !root.join(".cairn/state/summariser").exists(),
+            "recording must not generate a draft"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_baseline_record_json_payload() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("baseline-record-json")?;
+        write_project_summariser_disabled(&root)?;
+
+        let result = run_in(&root, &["--json", "baseline", "record", "app.api"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let value: serde_json::Value = serde_json::from_str(&result.stdout)?;
+        assert_eq!(value["node"], "app.api");
+        assert_eq!(value["action"], "record");
+        assert_eq!(value["baseline"]["kind"], "Container");
+        assert_eq!(value["baseline"]["parent"], "app");
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_baseline_record_reports_an_unreadable_state_file()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("baseline-state-unreadable")?;
+        write_project_summariser_disabled(&root)?;
+        let state = root.join(".cairn/state/contract-baselines.json");
+        fs::create_dir_all(state.parent().expect("state dir"))?;
+        // A future schema version the current reader refuses, so the
+        // read-modify-write cycle must abort before touching the file.
+        let raw = r#"{"version":2,"nodes":{}}"#;
+        fs::write(&state, raw)?;
+
+        let result = run_in(&root, &["baseline", "record", "app.api"]);
+        assert_eq!(result.code, 1);
+        assert!(
+            result
+                .stderr
+                .contains("failed to read .cairn/state/contract-baselines.json"),
+            "stderr: {}",
+            result.stderr
+        );
+        assert_eq!(fs::read_to_string(&state)?, raw);
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_baseline_drop_refuses_a_live_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("baseline-drop-live")?;
+        write_project_summariser_disabled(&root)?;
+        assert_eq!(run_in(&root, &["baseline", "record", "app.api"]).code, 0);
+        let before = fs::read(root.join(".cairn/state/contract-baselines.json"))?;
+
+        let result = run_in(&root, &["baseline", "drop", "app.api"]);
+        assert_eq!(result.code, 1);
+        assert_eq!(
+            result.stderr.trim(),
+            copy::lookup("baseline.still-live").replace("{node}", "app.api")
+        );
+        assert_eq!(
+            fs::read(root.join(".cairn/state/contract-baselines.json"))?,
+            before,
+            "a refused drop must not rewrite the file"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_baseline_drop_prunes_an_inert_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("baseline-drop-inert")?;
+        write_project_summariser_disabled(&root)?;
+        assert_eq!(run_in(&root, &["baseline", "record", "app.api"]).code, 0);
+        // Removing the contract makes the entry inert: no shape left to review.
+        fs::remove_file(root.join("meta/contracts/api.md"))?;
+
+        let result = run_in(&root, &["baseline", "drop", "app.api"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let raw = fs::read_to_string(root.join(".cairn/state/contract-baselines.json"))?;
+        let value: serde_json::Value = serde_json::from_str(&raw)?;
+        assert!(value["nodes"].as_object().unwrap().is_empty(), "{raw}");
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_baseline_rejects_unknown_node_and_bad_usage()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("baseline-usage")?;
+        write_project_summariser_disabled(&root)?;
+
+        let unknown = run_in(&root, &["baseline", "record", "app.nope"]);
+        assert_eq!(unknown.code, 1);
+        assert_eq!(
+            unknown.stderr.trim(),
+            copy::lookup("baseline.node-not-declared").replace("{node}", "app.nope")
+        );
+        assert!(
+            !root.join(".cairn/state/contract-baselines.json").exists(),
+            "a rejected record must not create the state file"
+        );
+
+        for args in [
+            vec!["baseline"],
+            vec!["baseline", "record"],
+            vec!["baseline", "sideways", "app.api"],
+            vec!["baseline", "record", "app.api", "extra"],
+        ] {
+            let result = run_in(&root, &args);
+            assert_eq!(result.code, 2, "{args:?}");
+            assert_eq!(
+                result.stderr.trim(),
+                copy::lookup("baseline.usage"),
+                "{args:?}"
+            );
+        }
+        Ok(())
     }
 
     fn run_in(root: &Path, args: &[&str]) -> CliResult {

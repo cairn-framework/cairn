@@ -72,6 +72,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn todo new <slug> --node <id>` | Scaffold a new todo artefact |
 | `cairn todo set <slug> <open\|in_progress\|done\|blocked>` | Set a todo's status via a surgical frontmatter edit (`dec.todo-write-surface`) |
 | `cairn gap <node> --question "<text>"` | Log an unresolved question as a proposed decision artefact |
+| `cairn baseline <record\|drop> <node>` | Record, re-record, or prune a node's contract baseline in `.cairn/state/contract-baselines.json`. Needs no summariser backend; drop is restricted to inert entries |
 
 ### Optional integrations
 

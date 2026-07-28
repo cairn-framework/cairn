@@ -5,6 +5,7 @@ use super::format::{flag_value, positional_node};
 use super::*;
 
 mod archive;
+mod baseline;
 mod change;
 mod decision;
 mod feedback;
@@ -26,6 +27,7 @@ mod wire;
 mod workspace;
 
 pub(crate) use archive::{run_archive_command, run_archive_command_with_path};
+pub(crate) use baseline::run_baseline_command;
 pub(crate) use change::run_change_new;
 pub(crate) use decision::run_decision_command;
 pub(crate) use feedback::run_feedback_command;

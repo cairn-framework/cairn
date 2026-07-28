@@ -4,6 +4,7 @@
 pub(crate) mod cache;
 pub(crate) mod checks;
 pub mod config;
+pub(crate) mod contract_baselines;
 pub(crate) mod gate_recipe;
 #[cfg(test)]
 mod inference_tests;
@@ -591,7 +592,10 @@ fn walk_blueprint_nodes(
     }
 }
 
-fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot {
+/// Builds the structural fingerprint of every blueprint node. Crate-visible so
+/// the contract-baseline surface records exactly the shape the scanner
+/// compares against, rather than deriving a parallel one.
+pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot {
     let mut edges: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for edge in &ast.edges {
         edges
