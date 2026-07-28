@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: done
+status: blocked
 created: 2026-07-03
 ---
 
@@ -13,7 +13,7 @@ set by `docs/design-system/`: tokens-only styling, no hardcoded hex/rem,
 consistent component reuse across the graph explorer, inspector, and
 command palette.
 
-dec:dec.webui-design-quality-direction
+dec:dec.webui-design-authority
 
 ## Status (2026-07-08)
 
@@ -48,3 +48,12 @@ shipped; bet A is resolved by the decision above.
 ## Bet A implementation (2026-07-17)
 
 Bet A (graph canvas state legibility) implementation has started under `dec.webui-design-direction` (gh:#305): canvas selection emphasis, pan-to-selection, the module state keel, and an explained legend are being landed in dedicated worktrees. This todo stays `in_progress` as the home for bet D (design-quality scorer) tracking only.
+
+## Status correction (2026-07-28)
+
+Reopened as `blocked`, not `done`. Bet D (the deterministic design-quality
+scorer) is still unbuilt and still gated on the visual harness, and
+`dec.webui-design-authority` clause 3 names this todo as its tracker, so a
+`done` status misrepresented the plan. Bets A, B, and C are finished; this todo
+covers bet D only. Unblock by setting it `open` when the visual harness can host
+the scorer.
