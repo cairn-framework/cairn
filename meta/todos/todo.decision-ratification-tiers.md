@@ -158,6 +158,11 @@ Paired-review reliability was audited over 26 usable rounds spanning 17 changes 
   findings while the simplicity lens often reports only duplication or nothing, so
   two approvals are not two independent votes on the same question.
 
+The audit trail behind the review-reliability numbers, including its window,
+sources, and limits, is recorded as a comment on PR #523. The transcripts
+themselves are machine-local and were not committable, so every number those todos
+rely on is restated here as a PR number or a measured count.
+
 ## Origin
 
 Maintainer conversation, 2026-07-28, on why three consecutive iterations (#518,

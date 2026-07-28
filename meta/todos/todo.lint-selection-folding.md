@@ -141,6 +141,11 @@ that clears the two `CAIRN_SOURCE_UNVERIFIED` findings costing iterations today.
   accepted decisions whose `nodes:` name the node directly, which is not what
   `cairn rationale <node>` prints, so measure with the check's own basis.
 
+The audit trail behind the numbers above, including its window, sources, and limits,
+is recorded as a comment on PR #523. The transcripts themselves are machine-local
+and were not committable, so each claim is restated here as a PR number, a
+file:line, or a measured count.
+
 ## Origin
 
 Maintainer conversation, 2026-07-28. Both selection changes were called cheap and

@@ -112,6 +112,10 @@ Phase 2, if entered:
 - `windows-check` and the platform matrix still run on every PR regardless of any
   receipt.
 
+The audit trail behind the timings, including its window, sources, and limits, is
+recorded as a comment on PR #523. Workflow run ids are quoted inline above so the CI
+numbers can be re-pulled from GitHub without it.
+
 ## Origin
 
 Maintainer conversation, 2026-07-28: run the same CI locally where the machine is
