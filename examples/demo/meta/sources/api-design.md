@@ -1,12 +1,13 @@
 ---
-node: tasks.api
-id: api-design
-file: "https://example.com/api-design.md"
+id: src.api-design
+file: "https://cloud.google.com/apis/design/versioning"
 type: url
-verification: unverified
+verification: external
 date: 2026-05-22
 ---
 
-# API Design Notes
+# API versioning guidance
 
-RESTful design with JSON payloads. Version in URL path.
+The external guidance the API module was designed against: version an API only
+when a breaking change is unavoidable, and carry the version where every client
+can see it rather than negotiating it per request.

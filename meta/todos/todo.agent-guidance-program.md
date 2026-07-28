@@ -70,7 +70,8 @@ Wave 5 (done, 2026-07-27):
   `dec.pack-publication-on-activation-evidence` retired the treatment gate.
 
 Out of programme: todo.blueprint-authorability-eval keeps its own dependency on
-todo.example-corpus-scan-assertions.
+the example corpus. todo.example-corpus-scan-assertions is done; the eval now
+depends on todo.bootstrap-fixture-repair-or-delete.
 
 ## Outcome
 

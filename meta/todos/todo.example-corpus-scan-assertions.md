@@ -1,6 +1,6 @@
 ---
 node: cairn.tests
-status: open
+status: blocked
 created: 2026-07-16
 ---
 
@@ -27,3 +27,29 @@ Motivation: `res.a2ui-analysis` finding 5 (a2ui ports one numbered
 example corpus through every spec version as docs, CI fixture, and prompt
 material; a new parallel corpus for cairn was refuted, closing the loop
 on existing surfaces survived). No change proposal needed.
+
+## Landed
+
+`tests/examples_gate.rs` (PR #521). It copies each corpus to a temporary
+directory, runs `cairn --file <copy>/cairn.blueprint scan --json`, and compares
+the finding objects against `expected-findings.json` committed inside the corpus.
+
+- `examples/demo` was repaired to a clean scan (8 findings to 0) and its baseline
+  is `[]`, so any new finding fails the gate.
+- The optional finding-bearing brownfield example was not added. Adding a corpus
+  was out of scope until the existing ones were gated.
+
+## Depends on
+
+`todo.bootstrap-fixture-repair-or-delete` (node `cairn.tests`).
+
+## Status note
+
+BLOCKED, not done. `tests/fixtures/cairn-bootstrap` was neither repaired nor
+deleted: its 22 warnings are pinned as a committed burn-down, which stops further
+rot but settles nothing, and this todo's own scope asks for the fix-or-delete.
+That verdict decides a substrate question `todo.blueprint-authorability-eval` and
+`todo.artefact-filename-test-fixtures` both depend on, so the sizing rule sends it
+to its own unit, `todo.bootstrap-fixture-repair-or-delete`, which carries the 22
+findings grouped by cause. Close this todo when that verdict lands and the
+bootstrap case in `tests/examples_gate.rs` reflects it.
