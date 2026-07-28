@@ -3,7 +3,7 @@ id: dec.simplify-cut-sse
 nodes:
   - cairn.root
   - cairn.sse
-status: accepted
+status: superseded
 date: 2026-07-07
 related: [dec.close-blueprint-drift, dec.no-orchestrator]
 ---

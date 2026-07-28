@@ -2,7 +2,7 @@
 id: dec.github-todo-sync-projector
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-07-10
 informed_by: [res.github-todo-sync]
 ---

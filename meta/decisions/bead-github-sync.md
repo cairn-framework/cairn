@@ -2,7 +2,7 @@
 id: dec.bead-github-sync
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-06-23
 informed_by: [res.gas-city-cairn-integration]
 revisit_triggers:

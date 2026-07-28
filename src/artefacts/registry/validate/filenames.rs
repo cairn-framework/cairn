@@ -9,7 +9,7 @@ use super::super::types::ArtefactSet;
 
 const CODE: &str = "CAIRN_ARTEFACT_FILENAME_DRIFT";
 
-/// Checks every artefact filename against `dec.artefact-filename-rule`:
+/// Checks every artefact filename against `dec.artefact-layout-authority`:
 /// a decision, research, or source filename is its id with the typed prefix
 /// stripped, while a todo keeps `todo.<slug>.md` because `cairn todo new` and
 /// `cairn todo set` resolve slugs through that exact path.

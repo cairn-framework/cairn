@@ -2,7 +2,7 @@
 id: dec.no-orchestrator
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-05-13
 revisited: 2026-07-25
 revisit_triggers:

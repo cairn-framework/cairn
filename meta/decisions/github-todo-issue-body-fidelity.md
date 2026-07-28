@@ -2,7 +2,7 @@
 id: dec.github-todo-issue-body-fidelity
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-07-15
 informed_by: [res.github-todo-sync]
 refines: [dec.github-todo-sync-projector]

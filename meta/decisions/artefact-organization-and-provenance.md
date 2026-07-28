@@ -2,7 +2,7 @@
 id: dec.artefact-organization-and-provenance
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-06-26
 informed_by: []
 ---

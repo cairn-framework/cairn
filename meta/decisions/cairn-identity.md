@@ -2,7 +2,7 @@
 id: dec.cairn-identity
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-07-03
 informed_by:
   - res.cairn-identity
