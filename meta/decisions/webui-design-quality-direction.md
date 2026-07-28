@@ -2,7 +2,7 @@
 id: dec.webui-design-quality-direction
 nodes:
   - cairn.ui
-status: accepted
+status: superseded
 date: 2026-06-25
 informed_by: [res.webui-design-quality-review]
 related: [dec.webui-ai-vision-loop-declined]

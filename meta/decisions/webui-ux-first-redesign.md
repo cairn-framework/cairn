@@ -2,7 +2,7 @@
 id: dec.webui-ux-first-redesign
 nodes:
   - cairn.ui
-status: accepted
+status: superseded
 date: 2026-07-18
 informed_by: [res.design-studio-greenfield, res.webui-review-audit]
 refines: [dec.webui-design-direction]

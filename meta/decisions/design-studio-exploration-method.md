@@ -2,7 +2,7 @@
 id: dec.design-studio-exploration-method
 nodes:
   - cairn.ui
-status: accepted
+status: superseded
 date: 2026-07-10
 informed_by: [res.design-studio-greenfield]
 ---

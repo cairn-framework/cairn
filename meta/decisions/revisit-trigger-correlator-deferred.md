@@ -51,7 +51,7 @@ fundamentals:
   re-read concludes "not fired". That trains inattention on the one advisory channel, and
   trained inattention is not revertable.
 - This is the **"a proxy rewards a change a visual review judges worse"** failure mode that
-  `dec.webui-design-quality-direction` explicitly carries a standing revisit trigger
+  `dec.webui-design-authority` explicitly carries a standing revisit trigger
   against. Shipping a proximity proxy as a relevance signal repeats it.
 - Promoting `spec:634` to `enforced` would replace an **accurate** CK004 "pending" Info
   ("designed, no enforcer yet") with a **misleading** "may be relevant" Info at the same
@@ -68,8 +68,9 @@ So:
   and git-log correlation (breaks `dec.no-orchestrator` scan purity) remain foreclosed.
 - The real enforcer is parked behind a capability that can judge relevance rather than
   proximity: the `cairn-iy2` ghost-rule primitive, or a maintainer-sanctioned semantic /
-  vision gate (which would also supersede `dec.webui-ai-vision-loop-declined`). Re-file an
-  implementation bead when such a capability lands.
+  vision gate (which would also supersede the vision-loop foreclosure now carried by
+  `dec.webui-design-authority`). Re-file an implementation bead when such a capability
+  lands.
 
 This satisfies bead cairn-9w9's acceptance criterion ("an explicit decision to keep it
 Declared pending cairn-iy2; no silent prose-only state").

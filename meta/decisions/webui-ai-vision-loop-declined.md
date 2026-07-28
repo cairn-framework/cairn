@@ -2,7 +2,7 @@
 id: dec.webui-ai-vision-loop-declined
 nodes:
   - cairn.ui
-status: accepted
+status: superseded
 date: 2026-06-23
 ---
 
