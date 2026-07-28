@@ -7119,11 +7119,33 @@
   ],
   "findings": [
     {
+      "code": "CAIRN_SOURCE_UNVERIFIED",
+      "severity": "info",
+      "message": "source `src.query-api-draft-generation` is unverified",
+      "node": null,
+      "path": "././meta/sources/query-api-draft-generation.md"
+    },
+    {
+      "code": "CAIRN_SOURCE_UNVERIFIED",
+      "severity": "info",
+      "message": "source `src.summariser-accept-path` is unverified",
+      "node": null,
+      "path": "././meta/sources/summariser-accept-path.md"
+    },
+    {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
       "node": null,
       "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
+      "path": "docs/registries/spec-rules.md"
+    },
+    {
+      "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
+      "severity": "info",
+      "message": "spec rule `Contract has not been reviewed against its node's current declared shape` (-) is pending but names no enforcer (deferred by dec.contract-node-shape-drift-deferred)",
+      "node": null,
+      "target": "- Contract has not been reviewed against its node's current declared shape",
       "path": "docs/registries/spec-rules.md"
     }
   ]
