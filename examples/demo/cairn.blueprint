@@ -7,7 +7,7 @@ System Tasks "Task Manager API" id "tasks" {
     Module API "HTTP API surface" id "tasks.api" {
         path "./src/api"
         contract  "./meta/contracts/api.md"
-        decisions "./meta/decisions/api/"
+        decisions "./meta/decisions/"
         sources   "./meta/sources/"
         todos     "./meta/todos/"
     }
@@ -15,7 +15,7 @@ System Tasks "Task Manager API" id "tasks" {
     Module DB "Data layer" id "tasks.db" {
         path "./src/db"
         contract  "./meta/contracts/db.md"
-        research  "./meta/research/db/"
+        research  "./meta/research/"
     }
 
     Module Auth "Authentication" id "tasks.auth" {

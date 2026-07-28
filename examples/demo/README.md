@@ -5,15 +5,20 @@ artefacts, changes, and reconciler observations.
 
 ## Structure
 
-- `cairn.blueprint` — the declarative system map
-- `src/` — source code for each module (exercises code reconciler)
-- `meta/` — artefacts:
-  - `contracts/` — interface contracts per node
-  - `todos/` — open tasks
-  - `decisions/` — design decisions
-  - `sources/` — external references
-  - `research/` — background research
-- `meta/changes/` — pending change directories
+- `cairn.blueprint`: the declarative system map
+- `src/`: source code for each module (exercises code reconciler)
+- `meta/`: artefacts:
+  - `contracts/`: interface contracts per node
+  - `todos/`: open tasks
+  - `decisions/`: design decisions
+  - `sources/`: external references
+  - `research/`: background research
+- `meta/changes/`: pending change directories
+- `expected-findings.json`: not a cairn input. It is the baseline
+  `tests/examples_gate.rs` holds this project to, empty because the demo must
+  scan clean. The `#[cfg(test)]` modules under `src/` are what clear
+  `CAIRN_TEST_COVERAGE_MISSING`; the demo declares no cargo target, so they are
+  read by the reconciler rather than run.
 
 ## Commands
 

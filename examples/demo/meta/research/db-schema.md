@@ -1,5 +1,9 @@
 ---
-node: tasks.db
+id: res.db-schema
+nodes:
+  - tasks.db
+date: 2026-05-22
+sources: [src.sqlite-when-to-use]
 ---
 
 # Database Schema Research

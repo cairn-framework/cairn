@@ -6788,6 +6788,7 @@
         "tests/decision_accumulation_remediation.rs",
         "tests/decision_claims.rs",
         "tests/dogfood_gate.rs",
+        "tests/examples_gate.rs",
         "tests/finding_code_coverage.rs",
         "tests/fixtures_smoke.rs",
         "tests/gitignore_lint.rs",

@@ -49,15 +49,18 @@ validation, and deterministic scoring.
 
 ## Depends on
 
-`todo.example-corpus-scan-assertions`, so the fixture substrate is trustworthy.
-This needs a change proposal because it adds a declared harness or scripts
-surface.
+`todo.bootstrap-fixture-repair-or-delete`, so the fixture substrate is both
+trustworthy and clean. This needs a change proposal because it adds a declared
+harness or scripts surface.
 
 ## Status note
 
-BLOCKED on `todo.example-corpus-scan-assertions` (node `cairn.tests`). That
-prerequisite may repair or delete `tests/fixtures/cairn-bootstrap`, and the
-authoring family above scores model output against a temporary copy of exactly
-that fixture. If the prerequisite retains and repairs the fixture, reopen this
-todo. If it deletes the fixture, revise the authoring family to name the
-surviving corpus before reopening; the eval has no substrate otherwise.
+BLOCKED on `todo.bootstrap-fixture-repair-or-delete` (node `cairn.tests`).
+
+The earlier prerequisite `todo.example-corpus-scan-assertions` is done. It
+retained `tests/fixtures/cairn-bootstrap` and pinned its 22 warnings as a
+committed baseline (`expected-findings.json`, gated by
+`tests/examples_gate.rs`), so fixture drift is now loud. It did not take the
+repair-or-delete verdict, which the primary metric above still needs: scoring
+iterations to a clean scan is not measurable on a fixture that starts with 22
+warnings. That verdict is the remaining prerequisite.
