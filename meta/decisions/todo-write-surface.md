@@ -3,7 +3,7 @@ id: dec.todo-write-surface
 nodes:
   - cairn.kernel.cli
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-07-13
 informed_by:
   - res.loop-efficiency-observations

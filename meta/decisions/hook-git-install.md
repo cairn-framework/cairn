@@ -1,7 +1,7 @@
 ---
 id: dec.hook-git-install
 nodes: [cairn.kernel.cli]
-status: accepted
+status: superseded
 date: 2026-07-12
 ---
 

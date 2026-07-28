@@ -2,7 +2,7 @@
 id: dec.feedback-loop
 nodes:
   - cairn.kernel.cli
-status: accepted
+status: superseded
 date: 2026-06-10
 informed_by:
   - res.agent-experiment-linklint

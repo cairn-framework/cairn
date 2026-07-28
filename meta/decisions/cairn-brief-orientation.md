@@ -2,7 +2,7 @@
 id: dec.cairn-brief-orientation
 nodes:
   - cairn.kernel.cli
-status: accepted
+status: superseded
 date: 2026-06-26
 informed_by: []
 related:

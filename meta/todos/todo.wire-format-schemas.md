@@ -32,8 +32,8 @@ Scope to what external consumers parse, in increments:
    structure.
 
 Motivation: `res.a2ui-analysis` finding 8. Note
-dec.simplify-cli-subset-folds already cites a "query JSON schema
-versioning convention" that has no artifact; this creates it. Needs a
+dec.query-json-schema-version carries the query JSON schema
+versioning convention whose shape artefact this todo creates. Needs a
 change proposal (touches the external contract).
 
 ## Review note (2026-07-16)

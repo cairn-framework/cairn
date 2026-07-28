@@ -2,7 +2,7 @@
 id: dec.retire-karpathy-guidelines-skill
 nodes:
   - cairn.kernel.cli
-status: accepted
+status: superseded
 date: 2026-07-25
 informed_by:
   - res.harness-engineering

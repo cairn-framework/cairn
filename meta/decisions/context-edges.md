@@ -3,7 +3,7 @@ id: dec.context-edges
 nodes:
   - cairn.kernel.query
   - cairn.kernel.cli
-status: accepted
+status: superseded
 date: 2026-06-27
 informed_by: []
 ---

@@ -4,7 +4,7 @@ nodes:
   - cairn.kernel.query
   - cairn.kernel.cli
   - cairn.mcp
-status: accepted
+status: superseded
 date: 2026-07-17
 informed_by: [res.codeatlas-analysis]
 ---

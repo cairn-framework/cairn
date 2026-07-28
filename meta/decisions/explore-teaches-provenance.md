@@ -2,7 +2,7 @@
 id: dec.explore-teaches-provenance
 nodes:
   - cairn.kernel.cli
-status: accepted
+status: superseded
 date: 2026-06-27
 informed_by:
   - res.cairn-oax-skill-promotion

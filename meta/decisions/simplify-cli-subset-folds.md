@@ -3,7 +3,7 @@ id: dec.simplify-cli-subset-folds
 nodes:
   - cairn.kernel.cli
   - cairn.kernel.query
-status: accepted
+status: superseded
 date: 2026-07-09
 ---
 

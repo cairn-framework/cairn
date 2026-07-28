@@ -2,7 +2,7 @@
 id: dec.pack-publication-on-activation-evidence
 nodes:
   - cairn.kernel.cli
-status: accepted
+status: superseded
 date: 2026-07-27
 informed_by:
   - res.agent-experiment-linklint
