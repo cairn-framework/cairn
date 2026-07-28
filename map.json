@@ -7252,13 +7252,6 @@
       "node": null,
       "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
       "path": "docs/registries/spec-rules.md"
-    },
-    {
-      "code": "CAIRN_DECISION_ACCUMULATION",
-      "severity": "info",
-      "message": "Node `cairn.root` carries 23 accepted decisions (threshold 10).",
-      "node": "cairn.root",
-      "path": null
     }
   ]
 }

@@ -2,7 +2,7 @@
 id: dec.native-task-state-and-agent-guidance
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-06-25
 revisited: 2026-07-03
 informed_by: [res.native-task-state-gap]

@@ -38,7 +38,7 @@ fn test_bootstrap_fixture_readable_contains_declared_node() -> Result<(), Box<dy
     assert_fixture_contains_declared_node("tests/fixtures/cairn-bootstrap/cairn.blueprint")
 }
 
-/// `dec.artefact-filename-rule` for a corpus no reconciler reaches: each file
+/// `dec.artefact-layout-authority` for a corpus no reconciler reaches: each file
 /// is its own `id` with the `src.` prefix stripped, and the directory holds
 /// exactly the pinned set, so a removal fails as loudly as a bad name.
 #[test]

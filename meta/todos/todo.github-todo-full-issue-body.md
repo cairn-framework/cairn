@@ -2,7 +2,7 @@
 node: cairn.root
 status: open
 created: 2026-07-15
-satisfies: dec.github-todo-issue-body-fidelity
+satisfies: dec.task-tracking-authority
 ---
 
 # Project full todo markdown into the GitHub issue body
@@ -10,14 +10,16 @@ satisfies: dec.github-todo-issue-body-fidelity
 ## Problem
 
 The one-way projector (`scripts/sync-github-todos.sh`, ratified by
-`dec.github-todo-sync-projector`) currently writes only a stub body: the
+`dec.github-todo-sync-projector`, now consolidated into
+`dec.task-tracking-authority` clause 7) currently writes only a stub body: the
 `cairn-todo: todo.<slug>` marker, a minimal node/status/artefact header, and a
 multi-line one-way disclaimer. The todo's real markdown (H1, Problem, Task,
 Acceptance, and so on) never reaches GitHub. The issue inventory materialises
 only status and node from the fetched body, so rebody fires only when status or
 node changes; a body-only edit is invisible to the next sync.
-`dec.github-todo-issue-body-fidelity` ratifies full-body mirroring; this todo
-implements that ruling only.
+`dec.task-tracking-authority` clause 7 carries the full-body mirroring ruling
+(originally `dec.github-todo-issue-body-fidelity`); this todo implements that
+ruling only.
 
 ## Scope
 
@@ -31,7 +33,7 @@ is tracked separately by `todo.todo-relationship-model-and-issue-links`.
    - the stable marker line `cairn-todo: todo.<slug>` first;
    - a minimal deterministic header of `node:`, `status:`, `artefact:`, and a
      single one-line one-way note (for example `one-way mirror of a cairn todo;
-     edits here are not read back, dec.bead-github-sync`); the prior multi-line
+     edits here are not read back, dec.task-tracking-authority`); the prior multi-line
      disclaimer paragraph is dropped so the implementer neither keeps both nor
      loses the one-way signal;
    - then the complete todo markdown body after the todo's frontmatter (H1 and

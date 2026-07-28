@@ -3,7 +3,7 @@ id: dec.domain-expandability
 nodes:
   - cairn.root
   - cairn.reconcile
-status: accepted
+status: superseded
 date: 2026-06-27
 informed_by:
   - res.cairn-domain-expandability

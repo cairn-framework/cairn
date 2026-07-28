@@ -2,7 +2,7 @@
 id: dec.beads-task-layer
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-06-23
 revisited: 2026-07-03
 informed_by: [res.gas-city-cairn-integration]

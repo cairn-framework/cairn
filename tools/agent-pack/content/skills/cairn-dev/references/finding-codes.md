@@ -75,7 +75,7 @@ These findings are surfaced in `cairn hook tension` and in `cairn lint` output b
 
 **Severity:** Warning
 **Meaning:** An artefact filename does not match its `id`. For a decision, research, or source the filename stem must be the `id` with its `dec.`/`res.`/`src.` prefix stripped, so `id: dec.no-orchestrator` belongs in `no-orchestrator.md`. Todos are the exception and keep `todo.<slug>.md`, because `cairn todo new` and `cairn todo set` resolve slugs through that path.
-**Remediation:** Rename the file to the name the finding reports. Renaming changes no `id`, so no provenance link breaks, but prose that cites the old path must be updated in the same change. See `dec.artefact-filename-rule`.
+**Remediation:** Rename the file to the name the finding reports. Renaming changes no `id`, so no provenance link breaks, but prose that cites the old path must be updated in the same change. See `dec.artefact-layout-authority`.
 
 ## Info findings (informational)
 

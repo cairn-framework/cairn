@@ -2,7 +2,7 @@
 id: dec.bd-upgrade-plan
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-06-23
 revisited: 2026-07-03
 related: [dec.native-todos-first]

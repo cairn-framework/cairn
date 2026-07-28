@@ -3,7 +3,7 @@ id: dec.artefact-filename-rule
 nodes:
   - cairn.kernel.artefacts
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-07-27
 informed_by: [res.artefact-filename-drift-audit]
 ---

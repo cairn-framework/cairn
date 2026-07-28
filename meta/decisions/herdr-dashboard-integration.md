@@ -2,7 +2,7 @@
 id: dec.herdr-dashboard-integration
 nodes:
   - cairn.root
-status: accepted
+status: superseded
 date: 2026-07-25
 informed_by:
   - res.herdr-plugin-feasibility
