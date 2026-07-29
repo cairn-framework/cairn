@@ -201,6 +201,15 @@ array) extends that component with a required nullable `deferred_by`: the
 accepted decision deferring the finding, or `null`
 (`dec.loop-selection-deferred-findings`); its shape is pinned by
 `EnvelopeFinding` in `schemas/envelope.schema.json`.
+The lint/scan `data` payload additionally publishes a top-level `strict_green`
+boolean: `true` exactly when `--strict` would exit zero over the emitted
+finding set (no Error and no Warning finding). This is the machine-visible
+verdict that loop selection's Info fold keys on
+(`dec.loop-selection-strict-green-fold`), and under `--strict` the CLI exit
+code for `lint --json` / `scan --json` reads the published field itself, so
+the wire verdict and the exit code cannot disagree. The hand-rendered CLI
+findings payloads (`workspace lint --json` and JSON error envelopes) carry the
+same field, computed by the same predicate over the findings they print.
 `schemas/work-item.schema.json` defines
 the `{source,title,node,command,rank}` projection shared by status, next, and
 remediate JSON. `schemas/envelope.schema.json` defines the MCP

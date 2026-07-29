@@ -223,6 +223,25 @@ impl Graph {
     }
 }
 
+/// True when `--strict` would exit zero over this finding set: no Error and
+/// no Warning finding, whatever their deferral state. Info findings never
+/// affect the verdict.
+///
+/// The single strict predicate: the human `lint`/`scan` and `workspace lint`
+/// strict exit codes call this directly, and the `--json` paths read the
+/// `strict_green` field it computed, so the classification the wire publishes
+/// cannot drift from the gate it claims to represent
+/// (`dec.loop-selection-strict-green-fold`).
+#[must_use]
+pub(crate) fn strict_green(findings: &[Finding]) -> bool {
+    !findings.iter().any(|finding| {
+        matches!(
+            finding.severity,
+            FindingSeverity::Error | FindingSeverity::Warning
+        )
+    })
+}
+
 impl fmt::Display for Finding {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "{}: {}", self.code, self.message)
@@ -337,6 +356,57 @@ mod tests {
             deferred_by: None,
         });
         assert!(g.has_errors());
+    }
+
+    // ── strict_green ──────────────────────────────────────────────────────────
+
+    fn severity_finding(severity: FindingSeverity, deferred_by: Option<&str>) -> Finding {
+        Finding {
+            code: "CAIRN_TEST".to_owned(),
+            severity,
+            message: "test".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: deferred_by.map(ToOwned::to_owned),
+        }
+    }
+
+    #[test]
+    fn test_strict_green_empty_set_is_green() {
+        assert!(strict_green(&[]));
+    }
+
+    #[test]
+    fn test_strict_green_info_only_is_green_deferred_or_live() {
+        let findings = [
+            severity_finding(FindingSeverity::Info, None),
+            severity_finding(FindingSeverity::Info, Some("dec.x")),
+        ];
+        assert!(
+            strict_green(&findings),
+            "info findings must never turn the strict verdict red"
+        );
+    }
+
+    #[test]
+    fn test_strict_green_warning_is_red_even_when_deferred() {
+        let findings = [
+            severity_finding(FindingSeverity::Info, None),
+            severity_finding(FindingSeverity::Warning, Some("dec.x")),
+        ];
+        assert!(
+            !strict_green(&findings),
+            "a warning must keep strict red regardless of deferral state"
+        );
+    }
+
+    #[test]
+    fn test_strict_green_error_is_red() {
+        assert!(!strict_green(&[severity_finding(
+            FindingSeverity::Error,
+            None
+        )]));
     }
 
     // ── Graph::resolve — exact ID ─────────────────────────────────────────────

@@ -20,7 +20,8 @@ returns exactly one, as its final line:
   this skill's path). On a clean merge, emit this.
 - `LOOP HALTED` - a fail-closed merge state the session cannot classify or
   clear: CLOSED-unmerged PR, unreadable PR state, a dirty tree at merge time,
-  or the post-merge `cairn scan` is non-zero. Touch nothing; report and halt.
+  or the post-merge `cairn scan --strict` is non-zero. Touch nothing; report
+  and halt.
 
 The command's End step passes the emitted token through verbatim.
 
@@ -46,7 +47,7 @@ Always required (the command passes these in):
 Skip this section when entering at Cleanup (open-PR recovery).
 
 If this unit had a change directory, run `$CAIRN change apply <id>` on the
-branch as its final task, then re-run `$CAIRN scan` and `$CAIRN hook all` so
+branch as its final task, then re-run `$CAIRN scan --strict` and `$CAIRN hook all` so
 the archived state is what gets verified; completion and archival land in the
 same commit.
 
@@ -118,7 +119,7 @@ if git show-ref --verify -q "refs/heads/loop/$slug"; then
     git branch -D "loop/$slug"
   fi  # tip differs: leave the branch, the next preflight owns it
 fi    # branch absent (PR recovery): nothing to delete
-"$CAIRN" scan                             # against merged main; must be zero
+"$CAIRN" scan --strict                    # against merged main; must exit 0
 ```
 
 End state of every successful iteration: `../cairn-loop` detached at
@@ -133,5 +134,6 @@ emit `ITERATION COMPLETE`.
 - `git add -A` and `git add .` are banned; stage explicit paths only.
 - Branch deletion requires merged evidence: a MERGED PR at the same tip, or
   an explicit maintainer discard note. Nothing else, nowhere else.
-- The post-merge `cairn scan` is part of the gate; a non-zero result halts.
+- The post-merge `cairn scan --strict` is part of the gate; a non-zero result
+  halts.
 - Never bypass hooks (`--no-verify`, `SKIP=` are forbidden). Fix the cause.

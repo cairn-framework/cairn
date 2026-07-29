@@ -899,18 +899,15 @@ fn render_loaded_project_command(
                     stderr: legacy_warning,
                 };
             }
-            let has_error = response
-                .findings
-                .iter()
-                .any(|finding| finding.severity == FindingSeverity::Error);
-            let has_warning = response
-                .findings
-                .iter()
-                .any(|finding| finding.severity == FindingSeverity::Warning);
             let code = if parsed.strict {
-                u8::from(has_error || has_warning)
+                u8::from(!crate::map::graph::strict_green(&response.findings))
             } else {
-                u8::from(has_error)
+                u8::from(
+                    response
+                        .findings
+                        .iter()
+                        .any(|finding| finding.severity == FindingSeverity::Error),
+                )
             };
             let stdout = render_findings(&response.findings, parsed.json, parsed.verbose);
             return CliResult {
@@ -2114,6 +2111,19 @@ mod tests {
             run_in(&root, &["scan", "--strict"]).code,
             1,
             "a Warning must fail the strict gate"
+        );
+        let strict_json = run_in(&root, &["scan", "--strict", "--json"]);
+        assert_eq!(
+            strict_json.code, 1,
+            "the JSON path must honour --strict on a Warning"
+        );
+        let strict_data: serde_json::Value = serde_json::from_str(&strict_json.stdout)?;
+        assert_eq!(
+            strict_data
+                .get("strict_green")
+                .and_then(serde_json::Value::as_bool),
+            Some(false),
+            "a Warning set must publish strict_green false on the wire"
         );
         assert_eq!(
             fs::read(root.join(".cairn/state/contract-baselines.json"))?,

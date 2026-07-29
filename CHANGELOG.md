@@ -2,6 +2,12 @@
 
 ## v0.9.0
 
+### Strict-green folding and loop selection
+
+- The lint/scan JSON `data` payload publishes `strict_green`: `true` exactly when `--strict` would exit zero over the emitted finding set (no Error and no Warning finding). One shared predicate feeds the published field and both strict exit paths, and under `--strict` the `lint --json` / `scan --json` exit code reads the published field itself, so the wire verdict and the gate cannot disagree; previously the shared-JSON path ignored `--strict` and exited 0 on warnings (`todo.lint-selection-folding` item 2, ratified 2026-07-29, PR #528 sheet W2).
+- Query JSON payloads bump to `schema_version` 6, and the webui `/api/*` envelope bumps to `schema_version` 6, for the added field.
+- Loop-mode selection folds Info findings while the lint wire publishes `strict_green: true`: `cairn scan --strict` is the CI gate, so a finding it tolerates cannot block an iteration. Default selection, both MISSION paths, the stop evidence, the Verify blocking bar, and the guardrail key on the published field, never a recomputed verdict; an Error or Warning finding with no published deferral stays selectable whatever any artefact says. Pack phrase assertions pin each sentence.
+
 ### Deferral publication and loop selection
 
 - Findings on the lint/scan JSON wire carry `deferred_by`: the id of the accepted decision deferring the finding, or `null`. Publication is gated on decision status: a `Deferred-by` cell naming a decision that is not accepted (missing, proposed, deprecated, or superseded) raises `CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID` and publishes no deferral on the query findings wire (the finding stays live, its message suffix retracted alongside the field), so a published deferral names an accepted decision (`dec.loop-selection-deferred-findings`).
