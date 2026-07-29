@@ -9,7 +9,7 @@ created: 2026-07-29
 ## Problem
 
 Nothing surfaces what is waiting on the maintainer. Measured on 2026-07-29:
-six decisions sat at `status: proposed`, blocking at least seven todos, and
+six decisions sat at `status: proposed` (seven counting the north-star this branch adds), blocking at least seven todos, and
 the maintainer had been told about two of them. Reconstructing the queue took
 a grep session across `meta/decisions/` and `meta/todos/`; the day before, a
 whole session argued about standing findings whose fixes were parked behind

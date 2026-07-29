@@ -13,10 +13,11 @@ related:
 
 # North star: continuous development with a quiet signature queue
 
-Proposed for maintainer ratification. This is the alignment referent other
-artefacts cite. It changes no code by itself; it states the goal, the rubric
-queued decisions must carry, and the boundary the orchestration layer builds
-against.
+Proposed for maintainer ratification; upon acceptance this becomes the
+alignment referent other artefacts cite. It changes no code by itself; it
+states the goal, the rubric queued decisions must carry, and the boundary the
+orchestration layer builds against. Its own queue entry carries the rubric it
+defines; from acceptance the rubric lives in each queued artefact itself.
 
 ## The goal, stated once
 
@@ -37,8 +38,12 @@ against.
    for. Everything below it is self-serve under recorded adversarial review.
 4. No surprise signatures. A binding need is discovered at Scope time, enqueued
    as a proposed decision carrying the rubric below, and the loop continues
-   with other work. A binding need first discovered mid-implementation is a
-   scoping defect and is recorded as one.
+   with other work. A binding need first surfacing mid-implementation follows
+   the SAME path, enqueue and reroute, with one addition: the proposed
+   decision's Context section records where Scope missed it. The handling is
+   identical either way, so there is nothing to gain by relabelling a binding
+   need as local; the late-discovery note only feeds the audit of how Scope is
+   performing.
 5. The signature queue is visible in one place, sorted by what each item
    unblocks (`todo.maintainer-pending-queue`). The maintainer not knowing what
    is waiting on them is a defect state, not a mood.
