@@ -80,6 +80,25 @@ would require superseding `dec.product-perimeter`, whose own revisit trigger
 (a scheduling primitive inexpressible outside cairn, or demand for a
 zero-dependency orchestrator outweighing integration cost) has not fired.
 
+## The rubric, applied to this decision
+
+- **Tier**: `binding`. It sets decision-authoring practice, and its rubric
+  reaches shipped pack content through the tiers unit.
+- **Unblocks**: nothing mechanically. It is the referent
+  `todo.decision-ratification-tiers` (goal 3) and
+  `todo.maintainer-pending-queue` (goal 5) implement against, and the
+  alignment target every later queue entry cites.
+- **Alignment**: goal 1, it defines the terminal state continuation drives to;
+  goal 2, it names the map-and-decisions correction loop as the guardrail;
+  goal 3, it fixes the signature boundary at the binding surface; goal 4, it
+  makes late binding discoveries followable instead of gameable; goal 5, it
+  makes the queue a surface rather than a conversation.
+- **Options**: (a) no stated goal, alignment re-argued per session, which is
+  the measured status quo; (b) goals as AGENTS.md prose, unratified and
+  outside the graph, invisible to `cairn rationale`; (c) this decision.
+  Recommendation: (c). Cost of no: the rubric has no referent, and queue
+  triage stays judgement calls made fresh each session.
+
 ## Consequences
 
 - `todo.decision-ratification-tiers` implements goal 3's boundary.
