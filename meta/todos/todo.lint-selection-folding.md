@@ -56,6 +56,23 @@ parked.
 Three independent changes. Land them as separate units if either of the first two
 grows.
 
+Prior art this todo composes with rather than duplicates:
+`dec.loop-selection-deferred-findings` (proposed 2026-07-27) and its
+implementation todo carry the narrowest rule. The three selection rules, once
+all land, are:
+
+- a finding whose `deferred_by` names an accepted decision is not selectable
+  (that decision, not this todo);
+- an Info finding a `blocked` todo explicitly parks via `defers:` is not
+  selectable (item 1 here);
+- any Info finding is non-selecting while `scan --strict` is green (item 2
+  here).
+
+Signing that decision first neither conflicts with nor substitutes for items 1
+and 2. Each unit lands its own selector-asset edit atomically with its scanner
+half, per the two-halves rule below; combine the asset edits only when units
+deliberately co-land.
+
 1. **Fold parked findings, todo-side first.** A fold must rest on a typed link,
    never on prose or a keyword match: an unrelated `blocked` todo that merely
    mentions a code would otherwise remove a real finding from selection. So the
@@ -67,9 +84,11 @@ grows.
    finding, so nothing can park a blocking finding by accident or on purpose.
    A reference matching no emitted finding is likewise a finding, so the links
    cannot rot silently. Cut 1b extends the same field to decisions, which is where
-   the `dec.contract-node-shape-drift-deferred` case belongs; until 1b lands that
-   finding keeps the inline deferral annotation it already has, untouched by this
-   todo.
+   a decision-deferred finding with no registry row would belong; the live
+   registry-backed case (`spec:634`, deferred by
+   `dec.revisit-trigger-correlator-deferred`) is already covered by
+   `dec.loop-selection-deferred-findings` and keeps its inline annotation,
+   untouched by this todo.
    Todo is a typed artefact in the same shared schema, so 1a is binding too, not a
    schema-free shortcut. It is smaller in surface and it clears the case that
    actually costs iterations today, which is the only sense in which it comes
