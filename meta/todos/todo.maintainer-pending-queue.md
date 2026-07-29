@@ -29,8 +29,10 @@ convention the folding todo rejects. So:
 - `cairn pending` and `cairn pending --json` list every decision at
   `status: proposed`, with its age in days, `nodes:`, and its `ratification:`
   tier once that field exists (absent renders as `binding`, that todo's
-  default). Sort: age descending, oldest first. Nothing else is listed,
-  parsed, or inferred.
+  default). Age is whole days between the decision's `date:` frontmatter and
+  today, so it is computable from the artefact alone. Sort: age descending,
+  oldest first, ties broken by id ascending so output is deterministic.
+  Nothing else is listed, parsed, or inferred.
 - The webui gains a read-only Pending panel consuming the same JSON. Read-only
   is load-bearing: `cairn.ui` stays an explorer, and any future orchestrator
   console consumes the same response rather than growing a second source of
