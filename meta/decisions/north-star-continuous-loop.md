@@ -44,9 +44,11 @@ defines; from acceptance the rubric lives in each queued artefact itself.
    identical either way, so there is nothing to gain by relabelling a binding
    need as local; the late-discovery note only feeds the audit of how Scope is
    performing.
-5. The signature queue is visible in one place, sorted by what each item
-   unblocks (`todo.maintainer-pending-queue`). The maintainer not knowing what
-   is waiting on them is a defect state, not a mood.
+5. The signature queue is visible in one place
+   (`todo.maintainer-pending-queue`): first age-sorted over typed data, then
+   sorted by what each item unblocks once `dec.todo-relationship-model` gives
+   todos typed edges. The maintainer not knowing what is waiting on them is a
+   defect state, not a mood.
 
 ## The rubric a queued decision must carry
 
