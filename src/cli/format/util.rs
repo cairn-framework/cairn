@@ -12,6 +12,7 @@ pub(crate) fn symbol_arg(args: &[String]) -> Result<&str, Finding> {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     })
 }
 
@@ -24,6 +25,7 @@ pub(crate) fn node_arg(args: &[String]) -> Result<&str, Finding> {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     })
 }
 
@@ -71,6 +73,7 @@ pub(crate) fn error_output(json: bool, code: &str, message: &str) -> CliResult {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     };
     finding_output(json, false, finding)
 }

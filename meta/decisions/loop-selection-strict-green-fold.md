@@ -7,6 +7,7 @@ nodes:
   - cairn.kernel.cli
 status: accepted
 date: 2026-07-29
+revisited: 2026-07-29
 informed_by: [res.shared-json-strict-flag-gap]
 related: [dec.loop-selection-deferred-findings]
 revisit_triggers:

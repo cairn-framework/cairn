@@ -114,6 +114,7 @@ pub(crate) fn validate_spec_rule_coverage(graph: &mut Graph, root: &Path) {
             target: Some(format!("{} {}", rule.spec, rule.rule)),
             path: Some(REGISTRY.to_owned()),
             deferred_by,
+            parked_by: None,
         });
     }
 }
@@ -171,6 +172,7 @@ pub(crate) fn validate_deferred_decision_targets(
             target: Some(format!("{} {}", rule.spec, rule.rule)),
             path: Some(REGISTRY.to_owned()),
             deferred_by: None,
+            parked_by: None,
         });
     }
 }

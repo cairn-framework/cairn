@@ -249,6 +249,7 @@ mod tests {
             target: None,
             path: Some(path.to_owned()),
             deferred_by: None,
+            parked_by: None,
         }
     }
 
@@ -421,6 +422,7 @@ mod tests {
                 target: None,
                 path: Some("src/other/file.rs".to_owned()),
                 deferred_by: None,
+                parked_by: None,
             },
         ];
         let report = analyze(&findings);

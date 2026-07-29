@@ -47,6 +47,7 @@ pub(crate) fn validate_contract_coverage(graph: &mut Graph) {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         });
     }
 }

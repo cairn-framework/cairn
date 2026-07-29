@@ -35,6 +35,7 @@ fn finding_schema_accepts_wire_finding() {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     };
     assert_valid("finding", &serde_json::to_value(finding).unwrap());
 }

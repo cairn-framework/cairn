@@ -9,6 +9,7 @@ expression: value
       "deferred_by": null,
       "message": "node `app.core` has no decision artefact explaining why it exists",
       "node": "app.core",
+      "parked_by": null,
       "path": null,
       "severity": "warning"
     },
@@ -17,10 +18,11 @@ expression: value
       "deferred_by": null,
       "message": "dependency cycle: app.api -> app.core -> app.api",
       "node": "app.api",
+      "parked_by": null,
       "path": null,
       "severity": "error"
     }
   ],
-  "schema_version": 6,
+  "schema_version": 7,
   "strict_green": false
 }

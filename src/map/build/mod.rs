@@ -59,6 +59,7 @@ fn insert_node(
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         });
         return;
     }
@@ -131,6 +132,7 @@ fn validate_edges(graph: &mut Graph, edges: &[Edge]) {
                 target: None,
                 path: None,
                 deferred_by: None,
+                parked_by: None,
             });
             continue;
         }
@@ -168,6 +170,7 @@ fn validate_ids(graph: &mut Graph) {
                 target: None,
                 path: None,
                 deferred_by: None,
+                parked_by: None,
             });
         }
     }
@@ -195,6 +198,7 @@ fn validate_path_ties(graph: &mut Graph) {
                 target: None,
                 path: Some(path),
                 deferred_by: None,
+                parked_by: None,
             });
         }
     }
@@ -211,6 +215,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
                 target: None,
                 path: Some(contract.path.clone()),
                 deferred_by: None,
+                parked_by: None,
             });
         }
     }
@@ -230,6 +235,7 @@ fn validate_contracts(graph: &mut Graph, root: &Path, contracts: &ContractSet) {
                     target: None,
                     path: Some(pointer.clone()),
                     deferred_by: None,
+                    parked_by: None,
                 });
             }
         }

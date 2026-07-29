@@ -137,6 +137,7 @@ mod tests {
             status: TodoStatus::Open,
             created: "2026-01-01".to_owned(),
             satisfies: None,
+            defers: Vec::new(),
             body: "# Wire the thing".to_owned(),
         }
     }

@@ -197,10 +197,13 @@ consumed wire shapes. `schemas/map.schema.json` defines the deterministic
 `map.json` snapshot, and `schemas/finding.schema.json` defines the
 serde-derived Finding component shared by map and watch payloads. The query
 findings wire (`lint --json`, `scan --json`, and the envelope's `findings`
-array) extends that component with a required nullable `deferred_by`: the
-accepted decision deferring the finding, or `null`
-(`dec.loop-selection-deferred-findings`); its shape is pinned by
-`EnvelopeFinding` in `schemas/envelope.schema.json`.
+array) extends that component with two required nullable fields: `deferred_by`,
+the accepted decision deferring the finding, or `null`
+(`dec.loop-selection-deferred-findings`), and `parked_by`, the `blocked` todo
+whose `defers:` reference parks the finding, or `null`. Parking applies to
+Info findings alone and is report-level: the finding keeps printing and only
+loop selection folds it (`todo.lint-selection-folding` item 1a). Both shapes
+are pinned by `EnvelopeFinding` in `schemas/envelope.schema.json`.
 The lint/scan `data` payload additionally publishes a top-level `strict_green`
 boolean: `true` exactly when `--strict` would exit zero over the emitted
 finding set (no Error and no Warning finding). This is the machine-visible

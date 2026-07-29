@@ -44,12 +44,16 @@ node: node.id                   # required, the blueprint node this todo is for
 status: open                    # required: open | in_progress | done | blocked
 created: 2026-05-11             # required, ISO date
 satisfies: change-id            # optional, links to a cairn change
+defers:                         # optional, typed parking references (see below)
+  - CAIRN_SOURCE_UNVERIFIED meta/sources/example.md
 ---
 
 Description of what needs to be done.
 ```
 
 **File location:** Place in the node's declared `todos` directory, or `meta/todos/` by convention.
+
+**Parking (`defers:`).** Each entry is one reference: a finding code, one space, then the path or node the finding was raised against. While the todo's `status` is `blocked`, each live Info finding matching a reference on both halves is classified parked (a deferred finding stays deferred: `dec.parked-deferral-composition`): still printed, naming this todo, and published as `parked_by` on the lint wire, which loop selection skips. Info only: a reference aimed at an Error or Warning raises `CAIRN_TODO_DEFERS_BLOCKING` and parks nothing; one matching no finding raises `CAIRN_TODO_DEFERS_UNMATCHED`; prose mentions park nothing.
 
 ## Research
 

@@ -42,6 +42,7 @@ pub(crate) fn render_show(parsed: &ParsedArgs, root: &Path) -> Result<String, Fi
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     })?;
     let request = QueryRequest {
         tool: "show".to_owned(),

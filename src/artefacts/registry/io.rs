@@ -146,6 +146,7 @@ pub(super) fn error(
         target: None,
         path,
         deferred_by: None,
+        parked_by: None,
     }
 }
 
@@ -163,6 +164,7 @@ pub(super) fn warning(
         target: None,
         path,
         deferred_by: None,
+        parked_by: None,
     }
 }
 
@@ -184,6 +186,7 @@ pub(super) fn info(
         target: None,
         path,
         deferred_by: None,
+        parked_by: None,
     }
 }
 

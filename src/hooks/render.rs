@@ -119,6 +119,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         }
     }
 

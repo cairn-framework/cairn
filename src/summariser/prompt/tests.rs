@@ -229,6 +229,7 @@ fn test_build_request_filters_interface_findings() {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     });
     graph.findings.push(Finding {
         code: "CT002".to_owned(),
@@ -238,6 +239,7 @@ fn test_build_request_filters_interface_findings() {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     });
 
     let config = Config::default();

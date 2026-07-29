@@ -166,6 +166,7 @@ pub(super) fn findings_json(findings: &[Finding]) -> Vec<Value> {
                 "node": finding.node,
                 "path": finding.path,
                 "deferred_by": finding.deferred_by,
+                "parked_by": finding.parked_by,
             })
         })
         .collect()
@@ -396,6 +397,7 @@ mod tests {
             status: TodoStatus::Open,
             created: "2026-04-01".to_owned(),
             satisfies: Some("status.contract".to_owned()),
+            defers: Vec::new(),
             body: "# Ship the endpoint\n\nDetails.".to_owned(),
         };
         let value = todo_enriched_json(&todo, root);

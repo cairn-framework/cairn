@@ -3,6 +3,7 @@
 
 pub(crate) mod cache;
 pub(crate) mod checks;
+pub(crate) mod claims;
 pub mod config;
 pub(crate) mod contract_baselines;
 pub(crate) mod contract_shape;
@@ -14,6 +15,7 @@ pub mod snapshot;
 pub mod state;
 #[cfg(test)]
 mod tests;
+pub(crate) mod todo_defers;
 
 use std::{
     collections::BTreeMap,
@@ -159,6 +161,7 @@ fn build_assets_report(
                     target: Some(target.id.as_str()),
                     path: Some(target.id.path.to_string_lossy().to_string()),
                     deferred_by: None,
+                    parked_by: None,
                 })
             } else {
                 None
@@ -194,6 +197,7 @@ fn build_assets_report(
                 target: Some(target.id.as_str()),
                 path: Some(target.id.path.to_string_lossy().to_string()),
                 deferred_by: None,
+                parked_by: None,
             }),
         ),
     }
@@ -242,6 +246,7 @@ fn reconcile_targets(
                 target: Some(target.id.as_str()),
                 path: Some(target.id.path.to_string_lossy().to_string()),
                 deferred_by: None,
+                parked_by: None,
             });
             reports.push(TargetReport {
                 target_id: target.id.clone(),
@@ -292,6 +297,7 @@ fn reconcile_targets(
                 target: Some(target.id.as_str()),
                 path: Some(target.id.path.to_string_lossy().to_string()),
                 deferred_by: None,
+                parked_by: None,
             });
             None
         } else {
@@ -417,6 +423,7 @@ fn detect_divergence(
                     target: Some(role.clone()),
                     path: None,
                     deferred_by: None,
+                    parked_by: None,
                 });
             } else {
                 findings.push(crate::map::graph::Finding {
@@ -430,6 +437,7 @@ fn detect_divergence(
                     target: Some(role.clone()),
                     path: None,
                                 deferred_by: None,
+                                parked_by: None,
 });
             }
         }
@@ -506,7 +514,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
             .decision_accumulation_threshold
             .unwrap_or(config::DEFAULT_DECISION_ACCUMULATION_THRESHOLD),
     );
-    checks::check_claims(&mut graph, &artefacts, root);
+    claims::check_claims(&mut graph, &artefacts, root);
     checks::check_gitignored_paths(&mut graph, &ast, &config.ignores);
     checks::check_orphan_beads(&mut graph, root);
     let current_snapshot = compute_blueprint_snapshot(&ast);
@@ -525,6 +533,8 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         &baselines,
         &current_snapshot,
     );
+    // Last: parked classification must see the complete finding set.
+    todo_defers::check_todo_defers(&mut graph, &artefacts, root);
     Ok(ScanResult {
         graph,
         target_hashes,

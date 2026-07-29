@@ -78,5 +78,6 @@ pub(crate) fn query_error_to_finding(error: QueryError) -> Finding {
         target: None,
         path: error.source_span,
         deferred_by: None,
+        parked_by: None,
     }
 }

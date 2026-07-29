@@ -604,6 +604,7 @@ mod reconciliation {
             target: None,
             path: Some("meta/sources/s1.md".to_owned()),
             deferred_by: None,
+            parked_by: None,
         };
         assert_eq!(finding.severity, cairn::map::FindingSeverity::Info);
     }
@@ -635,6 +636,7 @@ mod reconciliation {
             target: Some("public_api".to_owned()),
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let json = serde_json::to_string(&finding).expect("serialise");
         assert!(

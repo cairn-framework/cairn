@@ -110,6 +110,7 @@ fn todo(status: TodoStatus) -> Todo {
         status,
         created: "2026-01-01".to_owned(),
         satisfies: None,
+        defers: Vec::new(),
         body: String::new(),
     }
 }
@@ -190,6 +191,7 @@ fn render_status_human_prefers_native_todo_in_next_recommended() {
         status: TodoStatus::Open,
         created: "2026-01-01".to_owned(),
         satisfies: None,
+        defers: Vec::new(),
         body: "# Wire the thing".to_owned(),
     }]);
     let rendered = render_status(&parsed(false), &scan, std::path::Path::new("."));
@@ -208,6 +210,7 @@ fn render_status_json_includes_next_recommended_for_native_todo() {
         status: TodoStatus::Open,
         created: "2026-01-01".to_owned(),
         satisfies: None,
+        defers: Vec::new(),
         body: "# Wire the thing".to_owned(),
     }]);
     let dir = tempfile::tempdir().unwrap();

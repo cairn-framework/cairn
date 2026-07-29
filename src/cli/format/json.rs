@@ -132,6 +132,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let json = finding_json(&finding);
         assert!(json.contains("\"code\":\"CAIRN_TEST\\\"\""));
@@ -202,6 +203,7 @@ mod tests {
             status,
             created: "2026-01-01".to_owned(),
             satisfies: satisfies.map(ToOwned::to_owned),
+            defers: Vec::new(),
             body: String::new(),
         }
     }

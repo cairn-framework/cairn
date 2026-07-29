@@ -621,6 +621,7 @@ mod tests {
             status: TodoStatus::Open,
             created: created.to_owned(),
             satisfies: None,
+            defers: Vec::new(),
             body: body.to_owned(),
         }
     }
