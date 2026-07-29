@@ -4,9 +4,10 @@ nodes:
   - cairn.root
 status: proposed
 date: 2026-07-29
+informed_by: [res.gas-city-cairn-integration]
 related:
   - dec.product-perimeter
-  - dec.beads-task-layer
+  - dec.task-tracking-authority
   - dec.workspace-aggregation
 ---
 
@@ -30,9 +31,10 @@ against.
    why a thing is shaped the way it is, find the assumption that died, and
    re-aim the work without archaeology.
 3. The maintainer signs the binding surface only: spec invariants, artefact
-   schemas, registries, shipped pack content, and supersessions of accepted
-   decisions, the boundary `todo.decision-ratification-tiers` implements.
-   Everything below it is self-serve under recorded adversarial review.
+   schemas, registries, shipped pack content, supersessions of accepted
+   decisions, and decisions whose `nodes:` span more than one container, the
+   boundary `todo.decision-ratification-tiers` implements and is authoritative
+   for. Everything below it is self-serve under recorded adversarial review.
 4. No surprise signatures. A binding need is discovered at Scope time, enqueued
    as a proposed decision carrying the rubric below, and the loop continues
    with other work. A binding need first discovered mid-implementation is a
@@ -63,24 +65,13 @@ selectability) and owns assignments, leases, and scheduling outside the
 repository. Per-repository truth (blueprint, contracts, decisions, todos)
 stays inside the repository, where it lands atomically with the code it
 governs; externalised task state already has an accepted precedent in
-`dec.beads-task-layer`, and multi-project read aggregation in
-`dec.workspace-aggregation`.
+`dec.task-tracking-authority`, which carries forward the read-only beads view,
+and multi-project read aggregation in `dec.workspace-aggregation`.
 
 Building that layer beside cairn supersedes nothing. Moving it inside cairn
 would require superseding `dec.product-perimeter`, whose own revisit trigger
 (a scheduling primitive inexpressible outside cairn, or demand for a
 zero-dependency orchestrator outweighing integration cost) has not fired.
-
-## Provenance note
-
-The May analysis that first drew this boundary lives at
-`meta/research/gas-city-cairn-integration/` as pre-convention, unregistered
-markdown. It is background here, not cited provenance: registering it waits on
-the `tracked` source verification mode (`todo.source-tracked-verification-mode`),
-at which point it becomes tracked sources plus a research artefact and this
-decision gains the `informed_by` chain. Until then the binding content above
-rests on the accepted decisions named in `related:` and on the maintainer's
-ratification of the goal itself.
 
 ## Consequences
 

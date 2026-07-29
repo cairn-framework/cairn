@@ -9,10 +9,7 @@ created: 2026-07-29
 ## Problem
 
 Nothing surfaces what is waiting on the maintainer. Measured on 2026-07-29:
-six decisions sat at `status: proposed` (`dec.source-tracked-verification`,
-`dec.source-file-never-self`, `dec.loop-selection-deferred-findings`,
-`dec.brownfield-discovery-cycle-severity`, `dec.autodocs-head-to-head-arm-b`,
-`dec.contract-node-shape-drift-deferred`), blocking at least seven todos, and
+six decisions sat at `status: proposed`, blocking at least seven todos, and
 the maintainer had been told about two of them. Reconstructing the queue took
 a grep session across `meta/decisions/` and `meta/todos/`; the day before, a
 whole session argued about standing findings whose fixes were parked behind
@@ -20,55 +17,49 @@ two of exactly these signatures. The maintainer's words: "I don't actually
 know right now what's waiting."
 
 `cairn status` shows todos, `cairn change list` shows changes, `cairn frontier`
-shows buildable ghosts. No surface shows proposed decisions or the
-ruling-blocked todos behind them.
+shows buildable ghosts. No surface shows proposed decisions.
 
 ## Scope
 
-- `cairn pending` and `cairn pending --json` list, in one view:
-  - every decision at `status: proposed`, with age, `nodes:`, its
-    `ratification:` tier once that field exists, and the count of artefacts
-    it blocks;
-  - every `blocked` todo whose Depends-on names a non-accepted `dec.*` or an
-    explicit maintainer verdict, with the blocking id;
-  - open todos that exist only to draft a ruling (today:
-    `todo.todo-relationship-schema-decision`), since they become signatures.
-- Sort: transitive unblock count descending, then age descending. The top row
-  is always the signature that moves the most work.
-- Blocked-on-capability and blocked-on-other-todo rows are excluded: this is
-  the human queue, not the dependency graph. `todo.revisit-trigger-correlator`
-  (waits on a capability) and `todo.herdr-cairn-tool-attribution` (waits on
-  another todo) are the regression cases.
-- Wire shape follows the query-api spine: typed response struct, schema
-  version, snapshot test, per `src/query_api/` conventions.
-- The webui gains a read-only Pending panel fed by the same handler. Read-only
+First cut, typed data only. Todos carry no machine-readable relationship
+edges yet (`todo.todo-relationship-schema-decision` exists precisely because
+of that), and parsing Depends-on prose would introduce the second, untyped
+convention the folding todo rejects. So:
+
+- `cairn pending` and `cairn pending --json` list every decision at
+  `status: proposed`, with its age in days, `nodes:`, and its `ratification:`
+  tier once that field exists (absent renders as `binding`, that todo's
+  default). Sort: age descending, oldest first. Nothing else is listed,
+  parsed, or inferred.
+- The webui gains a read-only Pending panel consuming the same JSON. Read-only
   is load-bearing: `cairn.ui` stays an explorer, and any future orchestrator
-  console consumes the same JSON rather than growing a second source of truth.
-- The loop's End step prints the pending count with the summary, so every
-  session ends by surfacing the queue instead of narrating fragments of it.
-  That line is a pack-content edit, which is binding; it rides the same
-  ratification as `todo.decision-ratification-tiers` or its own explicit word.
+  console consumes the same response rather than growing a second source of
+  truth.
+
+Follow-ups that are NOT this unit:
+
+- Ruling-blocked todo rows and unblock-count sorting need typed
+  decision-to-todo edges, so they arrive only after
+  `dec.todo-relationship-model` is ratified and implemented.
+- Printing the pending count from the loop's End step is a shipped-pack edit,
+  which is binding; it belongs to the `todo.decision-ratification-tiers`
+  ratification or its own explicit word, never to this query unit.
 
 ## Depends on
 
-Nothing for the command and panel. The End-step line needs the binding word
-above. The `ratification:` column degrades gracefully while the tiers unit has
-not landed: absent field renders as `binding` per that todo's default.
+Nothing.
 
 ## Acceptance
 
-- On a fixture holding one proposed decision blocking two todos and one
-  independent blocked todo, `cairn pending --json` lists the decision with
-  unblock count 2 and the ruling-blocked todos, excludes the
-  capability-blocked todo, and sorts the decision first.
-- Accepting the fixture decision empties its row on the next run without any
-  other edit.
-- `cairn pending` on this repository lists the six decisions named above (or
-  their successors) the day it lands, and the count matches
-  `grep -l "^status: proposed" meta/decisions/ | wc -l`.
+- On a fixture holding decisions in `proposed`, `accepted`, `superseded`, and
+  `deprecated` states, `cairn pending --json` lists every proposed decision
+  and no other, oldest first.
+- Flipping the fixture decision to `accepted` empties its row on the next run
+  with no other edit.
 - The command passes the `command_reference_consistency` battery (dispatch,
   `--json`, help, docs row), per the `cairn-add-cli-command` recipe.
-- A wire snapshot pins the response shape.
+- The webui panel renders from the same response the CLI prints, verified the
+  way existing webui surfaces are.
 
 ## Origin
 

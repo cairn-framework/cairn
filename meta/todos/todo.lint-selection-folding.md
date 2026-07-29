@@ -57,14 +57,21 @@ Three independent changes. Land them as separate units if either of the first tw
 grows.
 
 Prior art this todo composes with rather than duplicates:
-`dec.loop-selection-deferred-findings` (proposed 2026-07-27) already rules the
-narrowest case, a finding whose `deferred_by` names an **accepted** decision is
-not a selectable unit, and `todo.loop-selection-deferred-findings` carries its
-implementation. Item 1 here adds the todo-side park for findings no decision
-defers, and item 2 generalises non-selection to all Info while strict is green.
-Signing that decision first neither conflicts with nor substitutes for this
-todo; the three layers compose, and the loop-asset edit should land once,
-teaching all of them together.
+`dec.loop-selection-deferred-findings` (proposed 2026-07-27) and its
+implementation todo carry the narrowest rule. The three selection rules, once
+all land, are:
+
+- a finding whose `deferred_by` names an accepted decision is not selectable
+  (that decision, not this todo);
+- an Info finding a `blocked` todo explicitly parks via `defers:` is not
+  selectable (item 1 here);
+- any Info finding is non-selecting while `scan --strict` is green (item 2
+  here).
+
+Signing that decision first neither conflicts with nor substitutes for items 1
+and 2. Each unit lands its own selector-asset edit atomically with its scanner
+half, per the two-halves rule below; combine the asset edits only when units
+deliberately co-land.
 
 1. **Fold parked findings, todo-side first.** A fold must rest on a typed link,
    never on prose or a keyword match: an unrelated `blocked` todo that merely
