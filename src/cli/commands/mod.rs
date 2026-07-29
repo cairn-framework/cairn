@@ -110,7 +110,7 @@ pub(crate) fn execute_json_request(
                 format!("{}\n", response.data)
             };
             CliResult {
-                code: shared_exit_code(&request.tool, &response.data),
+                code: shared_exit_code(&request.tool, &response.data, parsed.strict),
                 stdout,
                 stderr: legacy_warning,
             }
@@ -192,9 +192,23 @@ pub(crate) fn shared_flags(args: &[String]) -> BTreeSet<crate::query_api::QueryF
     flags
 }
 
-pub(crate) fn shared_exit_code(command: &str, data: &serde_json::Value) -> u8 {
+/// Exit code for a shared-JSON command from its emitted `data` payload.
+///
+/// Under `--strict`, `lint`/`scan` read the published `strict_green` field so
+/// the exit code and the wire verdict cannot disagree; a payload without the
+/// field fails closed, treating a Warning as blocking. Otherwise (and for
+/// `hook`) exit 1 keys on an `error`-severity finding.
+pub(crate) fn shared_exit_code(command: &str, data: &serde_json::Value, strict: bool) -> u8 {
     if !matches!(command, "lint" | "scan" | "hook") {
         return 0;
+    }
+    let strict_lint = strict && matches!(command, "lint" | "scan");
+    if strict_lint
+        && let Some(green) = data
+            .get("strict_green")
+            .and_then(serde_json::Value::as_bool)
+    {
+        return u8::from(!green);
     }
     let findings = data
         .get("findings")
@@ -208,7 +222,9 @@ pub(crate) fn shared_exit_code(command: &str, data: &serde_json::Value) -> u8 {
                 // Cycle 4: severity wire format is now lowercase per
                 // FindingSeverity::name(). Compare to "error" rather
                 // than the legacy PascalCase "Error".
-                severity.as_str().is_some_and(|value| value == "error")
+                severity
+                    .as_str()
+                    .is_some_and(|value| value == "error" || (strict_lint && value == "warning"))
             }),
     )
 }
@@ -317,9 +333,9 @@ mod tests {
     #[test]
     fn test_shared_exit_code_non_lint_always_zero() {
         let data = serde_json::json!({"findings": [{"severity": "error"}]});
-        assert_eq!(shared_exit_code("get", &data), 0);
-        assert_eq!(shared_exit_code("neighbourhood", &data), 0);
-        assert_eq!(shared_exit_code("export", &data), 0);
+        assert_eq!(shared_exit_code("get", &data, false), 0);
+        assert_eq!(shared_exit_code("neighbourhood", &data, false), 0);
+        assert_eq!(shared_exit_code("export", &data, false), 0);
     }
 
     #[test]
@@ -327,9 +343,9 @@ mod tests {
         let data = serde_json::json!({
             "findings": [{"severity": "error"}, {"severity": "warning"}]
         });
-        assert_eq!(shared_exit_code("lint", &data), 1);
-        assert_eq!(shared_exit_code("scan", &data), 1);
-        assert_eq!(shared_exit_code("hook", &data), 1);
+        assert_eq!(shared_exit_code("lint", &data, false), 1);
+        assert_eq!(shared_exit_code("scan", &data, false), 1);
+        assert_eq!(shared_exit_code("hook", &data, false), 1);
     }
 
     #[test]
@@ -337,7 +353,68 @@ mod tests {
         let data = serde_json::json!({
             "findings": [{"severity": "warning"}, {"severity": "info"}]
         });
-        assert_eq!(shared_exit_code("lint", &data), 0);
+        assert_eq!(shared_exit_code("lint", &data, false), 0);
+    }
+
+    #[test]
+    fn test_shared_exit_code_strict_reads_published_strict_green() {
+        let data = serde_json::json!({
+            "findings": [{"severity": "warning"}],
+            "strict_green": false
+        });
+        assert_eq!(
+            shared_exit_code("lint", &data, true),
+            1,
+            "strict must exit 1 when the wire publishes strict_green false"
+        );
+        assert_eq!(
+            shared_exit_code("scan", &data, true),
+            1,
+            "scan --strict --json must honour the strict flag"
+        );
+        assert_eq!(
+            shared_exit_code("lint", &data, false),
+            0,
+            "without --strict a warning-only set stays exit 0"
+        );
+    }
+
+    #[test]
+    fn test_shared_exit_code_strict_green_true_exits_zero() {
+        let data = serde_json::json!({
+            "findings": [{"severity": "info"}],
+            "strict_green": true
+        });
+        assert_eq!(shared_exit_code("lint", &data, true), 0);
+    }
+
+    #[test]
+    fn test_shared_exit_code_strict_without_published_verdict_fails_closed() {
+        // A payload lacking `strict_green` (older or foreign wire) must not
+        // let a warning-only set pass the strict gate.
+        let data = serde_json::json!({
+            "findings": [{"severity": "warning"}]
+        });
+        assert_eq!(
+            shared_exit_code("lint", &data, true),
+            1,
+            "strict without a published verdict must treat a warning as blocking"
+        );
+        assert_eq!(
+            shared_exit_code("lint", &data, false),
+            0,
+            "the fail-closed fallback applies only under --strict"
+        );
+    }
+
+    #[test]
+    fn test_shared_exit_code_hook_ignores_strict_flag() {
+        // `--strict` is documented for scan/lint only; hook keys on errors.
+        let data = serde_json::json!({
+            "findings": [{"severity": "warning"}],
+            "strict_green": false
+        });
+        assert_eq!(shared_exit_code("hook", &data, true), 0);
     }
 
     #[test]
@@ -346,7 +423,7 @@ mod tests {
         // The function checks lowercase only — a legacy client sending "Error"
         // would get exit code 0, not 1.  This is documented behavior.
         let data = serde_json::json!({"findings": [{"severity": "Error"}]});
-        assert_eq!(shared_exit_code("lint", &data), 0);
+        assert_eq!(shared_exit_code("lint", &data, false), 0);
     }
 
     // ── shared_flags ──────────────────────────────────────────────────────────

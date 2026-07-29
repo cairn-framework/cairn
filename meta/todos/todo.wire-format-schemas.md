@@ -67,3 +67,10 @@ serde-derived consumers (`map.json`, watch events) deliberately keep
 serde-derived shape only; the `LintResponse` / `ScanResponse` labels in the
 burn-down must model the query findings entry as that shape plus a required
 nullable `deferred_by`, not by reusing the component schema unchanged.
+
+2026-07-29 (later): `dec.loop-selection-strict-green-fold` added a top-level
+`strict_green` boolean to the lint/scan `data` payload, computed by the shared
+strict predicate (`map::graph::strict_green`); query and webui envelopes are
+now `schema_version` 6. The `LintResponse` / `ScanResponse` labels in the
+burn-down must model that required boolean alongside the findings array; the
+envelope schema itself is unchanged (tool-specific data properties stay open).

@@ -58,7 +58,7 @@ use util::{finding_error, findings_error, load_for, required};
 /// Both the CLI `--json` surface (which prints `data` directly) and the MCP
 /// envelope (which wraps `data`) carry this version on the top-level data
 /// object so consumers can branch on the output contract uniformly.
-pub const SCHEMA_VERSION: u32 = 5;
+pub const SCHEMA_VERSION: u32 = 6;
 
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -510,7 +510,10 @@ fn execute_data_with_scan(
         "graph" => Ok(graph_response_json(scan_result)),
         "lint" | "scan" => {
             let response = query::lint(&scan_result.graph);
-            Ok(json!({ "findings": findings_json(&response.findings) }))
+            Ok(json!({
+                "findings": findings_json(&response.findings),
+                "strict_green": crate::map::graph::strict_green(&response.findings),
+            }))
         }
         "status" => Ok(status_json(root, changes_dir, scan_result)),
         "context" => Ok(context_json(root, scan_result, loaded_config)),
@@ -639,5 +642,7 @@ fn execute_data_with_scan(
     }
 }
 
+#[cfg(test)]
+mod strict_green_tests;
 #[cfg(test)]
 mod tests;

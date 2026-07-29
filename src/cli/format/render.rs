@@ -19,9 +19,6 @@ pub(crate) fn render_node(node: &NodeRecord, json: bool) -> String {
 
 pub(crate) fn render_findings(findings: &[Finding], json: bool, verbose: bool) -> String {
     if json {
-        if findings.is_empty() {
-            return "{\"findings\":[]}\n".to_owned();
-        }
         let mut out = String::from("{\"findings\":[");
         for (i, finding) in findings.iter().enumerate() {
             if i > 0 {
@@ -41,7 +38,13 @@ pub(crate) fn render_findings(findings: &[Finding], json: bool, verbose: bool) -
             }
             out.push('}');
         }
-        out.push_str("]}\n");
+        out.push_str("],\"strict_green\":");
+        out.push_str(if crate::map::graph::strict_green(findings) {
+            "true"
+        } else {
+            "false"
+        });
+        out.push_str("}\n");
         out
     } else if findings.is_empty() {
         format!(
@@ -273,7 +276,10 @@ mod tests {
 
     #[test]
     fn test_render_findings_empty_json() {
-        assert_eq!(render_findings(&[], true, false), "{\"findings\":[]}\n");
+        assert_eq!(
+            render_findings(&[], true, false),
+            "{\"findings\":[],\"strict_green\":true}\n"
+        );
     }
 
     #[test]
@@ -318,6 +324,42 @@ mod tests {
         assert!(
             !rendered.contains("\"message\":\"live\",\"deferred_by\""),
             "a finding without a deferral must omit the field: {rendered}"
+        );
+    }
+
+    #[test]
+    fn test_render_findings_json_strict_green_true_on_info_only() {
+        let finding = Finding {
+            code: "CAIRN_TEST".to_owned(),
+            severity: FindingSeverity::Info,
+            message: "advisory".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: None,
+        };
+        let rendered = render_findings(&[finding], true, false);
+        assert!(
+            rendered.contains("\"strict_green\":true"),
+            "info-only sets are strict-green: {rendered}"
+        );
+    }
+
+    #[test]
+    fn test_render_findings_json_strict_green_false_on_warning() {
+        let finding = Finding {
+            code: "CAIRN_TEST".to_owned(),
+            severity: FindingSeverity::Warning,
+            message: "look out".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: None,
+        };
+        let rendered = render_findings(&[finding], true, false);
+        assert!(
+            rendered.contains("\"strict_green\":false"),
+            "a warning must publish strict_green false: {rendered}"
         );
     }
 

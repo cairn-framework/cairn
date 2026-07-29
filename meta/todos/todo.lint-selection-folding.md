@@ -100,6 +100,11 @@ deliberately co-land.
    CI gate and it tolerates Info, so anything it tolerates is by definition not
    iteration-blocking. Make Info non-selecting whenever `--strict` would exit
    zero. Errors and Warnings are unaffected.
+   Landed 2026-07-29 (`dec.loop-selection-strict-green-fold`): the lint/scan
+   wire publishes `strict_green` from the shared strict predicate
+   (`schema_version` 6), both loop-mode.md copies teach the fold in selection,
+   MISSION, stop evidence, Verify, and guardrail, and under `--strict` the
+   shared-JSON exit code reads the published field. Items 1a, 1b, and 3 remain.
 3. **Accumulation threshold.** `DEFAULT_DECISION_ACCUMULATION_THRESHOLD` in
    `src/scanner/config/mod.rs:13` is a flat 10 for every node, and the check counts
    only accepted decisions whose `nodes:` name the node directly
@@ -140,9 +145,9 @@ Ratify cut 1a alone if the decision-side field needs more thought: it is the hal
 that clears the two `CAIRN_SOURCE_UNVERIFIED` findings costing iterations today.
 
 Cut 1a and item 2 were ratified 2026-07-29 (PR #528 sheet W2, which reads
-"folding items 1a+2"), so their implementation may proceed. Cut 1b, the
-decision-side `defers:` field, is NOT ratified and still needs its own
-maintainer ruling.
+"folding items 1a+2"), so cut 1a's implementation may proceed; item 2 landed
+the same day (see its note above). Cut 1b, the decision-side `defers:` field,
+is NOT ratified and still needs its own maintainer ruling.
 
 ## Acceptance
 

@@ -57,12 +57,14 @@ evolve across iterations belongs in the tracker, not in MISSION. Precedence:
 
 1. The preflight verdict always wins; MISSION never builds on unresolved state.
 2. MISSION names a unit (todo slug, node id, finding code): select exactly that. A
-   node id selects its first lint finding with no published `deferred_by`, else
-   its top open todo. A finding code resolves per finding instance, not per code:
-   one code can cover a deferred instance and a live one at once, so select the
-   first sorted instance with no published `deferred_by`, and report settled only
-   when every instance carrying that code has a validated deferral. Already done,
-   blocked, deferred by an accepted decision, or quarantined: report why and
+   node id selects its first lint finding with no published `deferred_by` and no
+   strict-green fold (Select ONE unit owns both rules), else its top open todo. A
+   finding code resolves per finding instance, not per code: one code can cover a
+   deferred instance and a live one at once, so select the first sorted instance
+   with no published `deferred_by` and no strict-green fold, and report settled
+   only when every instance carrying that code has a validated deferral or stands
+   folded by a published strict-green verdict. Already done, blocked, deferred by
+   an accepted decision, folded by strict-green, or quarantined: report why and
    output `LOOP EXHAUSTED`.
 3. MISSION is a scope filter: apply normal selection restricted to that scope.
    Nothing in scope: report, output `LOOP EXHAUSTED`. Never select outside it.
@@ -158,19 +160,27 @@ gh pr list --state open --json number,headRefName \
 ## Select ONE unit
 
 After MISSION precedence: the first `$CAIRN lint --json` finding, skipping every
-finding that publishes a `deferred_by`; else the top open todo from
+finding that publishes a `deferred_by` and, while that wire publishes
+`"strict_green": true`, every `info` finding; else the top open todo from
 `$CAIRN status` / `$CAIRN todos <node>`, skipping `blocked`; else verify the stop
-evidence (lint clean apart from findings with a validated deferral, no open
-todos, no unquarantined `loop/*` branches or PRs, clean park; quarantined
-branches and their blocked recover-todos do not block exhaustion) and output
+evidence (lint clean apart from findings with a validated deferral or Info
+findings folded by a published strict-green verdict, no open todos, no
+unquarantined `loop/*` branches or PRs, clean park; quarantined branches and
+their blocked recover-todos do not block exhaustion) and output
 `LOOP EXHAUSTED`.
 
 A finding carrying a validated `deferred_by` is not selectable: an accepted
 decision has already ruled it must keep standing, so skip to the next finding,
 then to todos. The deferral is machine-visible or it does not exist: trust only
 the published `deferred_by` field on the lint wire, never a message that merely
-looks deferred, and never severity. A finding with no published `deferred_by`
-remains selectable regardless of severity.
+looks deferred, and never severity. Separately, every `info` finding is
+non-selecting while the same wire publishes `"strict_green": true`: `$CAIRN scan
+--strict` is the CI gate, and a finding that gate tolerates cannot block an
+iteration (`todo.lint-selection-folding` item 2, ratified 2026-07-29, PR #528
+sheet W2). Trust only the published `strict_green` field, never a verdict you
+recompute yourself; a wire that does not publish the field folds nothing. An
+`error` or `warning` finding with no published `deferred_by` is always
+selectable, whatever any other artefact or verdict says about it.
 
 "First" and "top" are defined, not incidental: sort findings by severity (errors
 first), then file path, then line, then code; sort todos by slug. Tool output
@@ -224,8 +234,11 @@ change satisfying the criterion, blueprint upkeep, and the test rule. On
 
 ## Verify: the gate
 
-Run the bound language gates. Always `$CAIRN scan` (zero findings) and
-`$CAIRN hook all` (exit 0). Fix the cause of any failure. Never bypass hooks.
+Run the bound language gates. Always `$CAIRN scan --strict` (the full report;
+zero findings is the target, and its exit 0 is the blocking bar: an Error or
+Warning blocks the iteration, a standing Info the strict gate tolerates does
+not), then `$CAIRN hook all` (exit 0). Fix the cause of any failure. Never
+bypass hooks.
 
 ## Reconcile the plan
 
@@ -269,7 +282,8 @@ as the single commit, report, output `ITERATION COMPLETE`. Never wait mid-loop.
 
 ## Guardrails
 
-- Zero `cairn scan` findings is the target; a finding blocks the iteration.
+- Zero `$CAIRN scan` findings is the target; a finding that
+  `$CAIRN scan --strict` rejects blocks the iteration.
 - Behaviour without a test is not done.
 - Never contradict an accepted decision without writing a superseding one.
 - One iteration, one unit, one squash commit on main. A growing PR means split.

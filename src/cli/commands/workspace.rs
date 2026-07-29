@@ -87,16 +87,14 @@ fn render_workspace_status(parsed: &ParsedArgs, workspace: &Workspace) -> CliRes
 
 fn render_workspace_lint(parsed: &ParsedArgs, workspace: &Workspace) -> CliResult {
     let findings = workspace::lint(workspace);
-    let has_error = findings
-        .iter()
-        .any(|finding| finding.severity == FindingSeverity::Error);
-    let has_warning = findings
-        .iter()
-        .any(|finding| finding.severity == FindingSeverity::Warning);
     let code = if parsed.strict {
-        u8::from(has_error || has_warning)
+        u8::from(!crate::map::graph::strict_green(&findings))
     } else {
-        u8::from(has_error)
+        u8::from(
+            findings
+                .iter()
+                .any(|finding| finding.severity == FindingSeverity::Error),
+        )
     };
     CliResult {
         code,

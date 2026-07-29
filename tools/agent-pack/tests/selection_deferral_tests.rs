@@ -55,9 +55,10 @@ fn default_selection_skips_findings_with_a_published_deferral() {
     );
     assert!(
         select.contains(
-            "A finding with no published `deferred_by` remains selectable regardless of severity"
+            "An `error` or `warning` finding with no published `deferred_by` is always selectable"
         ),
-        "the exception must stay narrow: no deferral means selectable"
+        "the deferral exception must stay narrow: nothing but a published deferral may \
+         unselect a blocking finding (`todo.lint-selection-folding` item 2 folds Info only)"
     );
 }
 
