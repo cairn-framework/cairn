@@ -2,7 +2,7 @@
 id: dec.source-tracked-verification
 nodes:
   - cairn.kernel.artefacts
-status: proposed
+status: accepted
 date: 2026-07-28
 informed_by:
   - res.source-verification-modes-live-files
@@ -82,10 +82,11 @@ Add a fourth value of `verification`: `tracked`.
    `docs/registries/spec-rules.md`, which claims to track all of them:
    tracked-path resolution, tracked-path containment, and hash-absence.
 
-This decision is `proposed`. It changes a stated spec invariant and adds a value
-to the artefact schema every adopting repository shares. A loop iteration cannot
-make a ruling of that reach; `dec.source-file-never-self` stopped at the same
-boundary for the same reason.
+This decision was filed `proposed` and accepted 2026-07-29 by maintainer
+ratification (PR #528 sheet W3). It changes a stated spec invariant and adds a
+value to the artefact schema every adopting repository shares. A loop iteration
+cannot make a ruling of that reach; `dec.source-file-never-self` stopped at the
+same boundary for the same reason.
 
 ## Rationale
 
@@ -149,4 +150,4 @@ which is the cost this option exists to avoid.
 - Adopting repositories gain a value, not a constraint: nothing existing
   re-classifies itself, and no current record becomes invalid.
 - Implementation is tracked by `todo.source-tracked-verification-mode`, blocked
-  until this decision is accepted.
+  while this decision was `proposed` and reopened 2026-07-29 on acceptance.

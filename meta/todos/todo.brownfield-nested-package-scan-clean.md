@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: open
 created: 2026-07-27
 related: [todo.brownfield-parent-package-cycle, todo.brownfield-parent-child-edge-model]
 ---
@@ -10,16 +10,21 @@ related: [todo.brownfield-parent-package-cycle, todo.brownfield-parent-child-edg
 Implementation unit split out of `todo.brownfield-parent-package-cycle` under
 the sizing rule.
 
-Blocked on ratification, not on a unit. `dec.brownfield-discovery-cycle-severity`
-is `status: proposed`, because its clause 3 narrows a consequence of the accepted
-`dec.order-containment-rule`. Unblock with
-`cairn todo set brownfield-nested-package-scan-clean open` only once that
-decision is `status: accepted` AND its "What ratification must do" section has
-been carried out, so the contradiction with `dec.order-containment-rule` is
-resolved rather than left standing in the graph. A status flip alone is not
-enough. If the maintainer
-rejects clause 3, take the decision's fallback instead: document the exit-1 first
-scan in the brownfield quickstart and close this todo without code.
+Blocked on ratification, not on a unit, when filed.
+`dec.brownfield-discovery-cycle-severity` was `status: proposed`, because its
+clause 3 narrows a consequence of the then-accepted
+`dec.order-containment-rule`. The unblock condition was that
+decision reaching `status: accepted` AND its "What ratification must do"
+section carried out, so the contradiction with `dec.order-containment-rule` is
+resolved rather than left standing in the graph; a status flip alone was not
+enough. Had the maintainer rejected clause 3, the decision's fallback applied
+instead: document the exit-1 first scan in the brownfield quickstart and close
+this todo without code.
+
+Satisfied 2026-07-29 by acceptance of `dec.brownfield-discovery-cycle-severity`
+(maintainer ratification, sheet of record PR #528, row W5), option A carried
+out: `dec.order-containment-rule` marked `superseded` with the `supersedes:`
+link added in the same commit. This todo is open accordingly.
 
 Also update `src/map/integrity.rs:74-76`, whose doc comment states the
 contradiction rule this changes, when the code lands.

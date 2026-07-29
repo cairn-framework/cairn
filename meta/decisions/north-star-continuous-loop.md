@@ -2,7 +2,7 @@
 id: dec.north-star-continuous-loop
 nodes:
   - cairn.root
-status: proposed
+status: accepted
 date: 2026-07-29
 informed_by: [res.gas-city-cairn-integration]
 related:
@@ -13,11 +13,11 @@ related:
 
 # North star: continuous development with a quiet signature queue
 
-Proposed for maintainer ratification; upon acceptance this becomes the
+Accepted 2026-07-29 by maintainer ratification (PR #528 sheet W9). This is the
 alignment referent other artefacts cite. It changes no code by itself; it
 states the goal, the rubric queued decisions must carry, and the boundary the
-orchestration layer builds against. Its own queue entry carries the rubric it
-defines; from acceptance the rubric lives in each queued artefact itself.
+orchestration layer builds against. Its own queue entry carried the rubric it
+defines; the rubric now lives in each queued artefact itself.
 
 ## The goal, stated once
 

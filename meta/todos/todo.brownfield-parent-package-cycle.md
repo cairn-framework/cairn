@@ -40,7 +40,7 @@ On a real brownfield project (a package root with subpackages that import it),
 
 - A decision records how brownfield models a parent package and its
   subpackages. Delivered: `dec.brownfield-discovery-cycle-severity`
-  (`status: proposed`, awaiting maintainer ratification), informed by
+  (accepted 2026-07-29 by maintainer ratification), informed by
   `res.brownfield-observed-cycle-measurement`.
 - After `cairn init --from-code` and `cairn change apply brownfield-init` on a
   nested-package project, `cairn scan` exits zero. Corrected 2026-07-27: the

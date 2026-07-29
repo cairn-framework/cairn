@@ -2,10 +2,12 @@
 id: dec.brownfield-discovery-cycle-severity
 nodes:
   - cairn.brownfield
-status: proposed
+status: accepted
 date: 2026-07-27
 informed_by:
   - res.brownfield-observed-cycle-measurement
+supersedes:
+  - dec.order-containment-rule
 related:
   - dec.order-containment-rule
   - dec.brownfield-init-round-trip
@@ -14,11 +16,14 @@ related:
 
 ## Status note
 
-`proposed`, not `accepted`, deliberately. Clause 3 narrows a consequence of the
-accepted `dec.order-containment-rule`, and the dev loop does not self-ratify a
-ruling that bends an accepted invariant
-(`dec.loop-resolves-knowable-gaps`). `todo.brownfield-nested-package-scan-clean`
-stays blocked until a maintainer ratifies this or replaces it.
+Filed `proposed`, not `accepted`, deliberately: clause 3 narrows a
+consequence of the then-accepted `dec.order-containment-rule`, and the dev loop
+does not self-ratify a ruling that bends an accepted invariant
+(`dec.loop-resolves-knowable-gaps`). Accepted 2026-07-29 by maintainer
+ratification (PR #528 sheet W5), taking option A of "What ratification must do"
+below: `dec.order-containment-rule` is marked `superseded` and this decision
+carries `supersedes: [dec.order-containment-rule]`, landed together in the same
+commit. `todo.brownfield-nested-package-scan-clean` is unblocked accordingly.
 
 ## What ratification must do
 
@@ -36,9 +41,10 @@ the graph, by one of:
   cycles, leaving it accepted, and demote the `related` link here to a
   cross-reference.
 
-Until one of those two lands, this decision stays `proposed` and the child todo
-stays blocked. A `proposed` decision cannot retire an accepted one without
-self-ratifying, which is why the marking is not in the authoring commit.
+Until option A landed, this decision stayed `proposed` and the child todo
+stayed blocked. A `proposed` decision cannot retire an accepted one without
+self-ratifying, which is why the marking was not in the authoring commit; it
+landed with the acceptance on 2026-07-29.
 
 ## Context
 
@@ -79,7 +85,7 @@ that is enough to rule on.
 
 ## Decision
 
-Recommended, pending ratification:
+Recommended, then ratified 2026-07-29:
 
 1. **Discovery keeps both observed edges.** `derive_import_edges` continues to
    emit every direction it can prove from the code. A first map does not delete
@@ -199,10 +205,10 @@ the edges.
 
 ## Consequences
 
-- `todo.brownfield-nested-package-scan-clean` is rewritten and stays blocked. Its
-  implementation surface moves off `derive_import_edges`: the work is edge
-  provenance, cycle enumeration, and a severity branch, not a change to what
-  discovery emits.
+- `todo.brownfield-nested-package-scan-clean` is rewritten; it stayed blocked
+  until ratification and opened 2026-07-29. Its implementation surface moves
+  off `derive_import_edges`: the work is edge provenance, cycle enumeration,
+  and a severity branch, not a change to what discovery emits.
 - The acceptance shared by `todo.brownfield-parent-package-cycle` and
   `todo.brownfield-nested-package-scan-clean`, that `cairn scan` reports no
   `CAIRN_ORDER_CYCLE` and exits zero after a brownfield round-trip, is corrected

@@ -21,11 +21,11 @@ is pending but names no enforcer
 `spec:634` stays `pending` and that the Info "remains the honest living tracker of
 a Designed-but-unbuilt rule". It said to "re-file an implementation bead when
 such a capability lands", so no tracker existed.
-`dec.loop-selection-deferred-findings` (proposed) recommends that deferred work
-be represented by a todo, so this record is filed `blocked` as the tracker item
-for the parked enforcer. It does not supersede the earlier ruling and does not
-wait on ratification to be useful: nothing about the correlator may be built,
-and a blocked todo is a record, not a work item.
+`dec.loop-selection-deferred-findings` (accepted 2026-07-29) recommends that
+deferred work be represented by a todo, so this record is filed `blocked` as
+the tracker item for the parked enforcer. It does not supersede the earlier
+ruling and does not wait on ratification to be useful: nothing about the
+correlator may be built, and a blocked todo is a record, not a work item.
 
 ## Scope
 

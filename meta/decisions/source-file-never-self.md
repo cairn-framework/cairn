@@ -2,7 +2,7 @@
 id: dec.source-file-never-self
 nodes:
   - cairn.kernel.artefacts
-status: proposed
+status: accepted
 date: 2026-07-27
 informed_by:
   - res.source-self-reference-unchecked
@@ -36,9 +36,10 @@ conversation and was never saved to a file, `file:` is `null` and the body
 states why. `null` is the honest encoding: there is no external file, and
 `verification: unverified` already says the record is not hash-backed.
 
-This is `proposed`, not `accepted`. The rule is stated here so the fixture
-change that prompted it does not carry an unrecorded judgment, but ratifying a
-repository-wide artefact rule is the maintainer's call, not a loop iteration's.
+This was filed `proposed`, not self-ratified: the rule is stated here so the
+fixture change that prompted it does not carry an unrecorded judgment, but
+ratifying a repository-wide artefact rule is the maintainer's call, not a loop
+iteration's. Accepted 2026-07-29 by maintainer ratification (PR #528 sheet W4).
 
 ## Rationale
 
@@ -75,7 +76,7 @@ sources in that same directory already use it
   the bootstrap blueprint declares no `sources` pointer, so a test is the only
   available gate there.
 - A general reconciler check is filed as `todo.source-self-reference-finding`
-  against `cairn.kernel.artefacts`, blocked until this decision is accepted.
-  Its severity is deliberately left open.
+  against `cairn.kernel.artefacts`, blocked while this decision was `proposed`
+  and reopened 2026-07-29 on acceptance. Its severity is deliberately left open.
 - No existing decision is superseded. `dec.artefact-filename-rule` is unchanged;
   this decision governs a different field and was prompted by applying it.

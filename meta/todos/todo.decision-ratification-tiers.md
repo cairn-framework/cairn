@@ -16,8 +16,8 @@ stalls automation.
 
 Opening the gate globally is not the answer: `dec.source-tracked-verification`
 changes the source verification enum every repository shares, and
-`dec.contract-node-shape-drift-deferred` parks a spec rule. Both must stay
-maintainer-only forever.
+`dec.contract-node-shape-drift-deferred` parked a spec rule (since fulfilled
+and deprecated). Both must stay maintainer-only forever.
 
 ## Scope
 
@@ -174,6 +174,10 @@ Maintainer acceptance of the tiering rule itself. It changes the artefact schema
 every adopting repository shares, so by its own definition it is `binding` and the
 loop may not ratify it. The rule is promoted and its codes allocated by the
 implementing commit, per `docs/conventions.md` rule 2.
+
+Tier design ratified 2026-07-29 (PR #528 sheet W8); implementation may proceed.
+The implementation is substantial, so it goes through a change proposal
+(`cairn-propose`) rather than a bare loop unit.
 
 ## Acceptance
 

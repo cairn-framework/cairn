@@ -6,7 +6,7 @@ nodes:
   - cairn.kernel.query
   - cairn.kernel.scanner
   - cairn.root
-status: proposed
+status: accepted
 date: 2026-07-27
 informed_by: [res.loop-selection-deferred-findings]
 revisit_triggers:
@@ -15,10 +15,9 @@ revisit_triggers:
 ---
 # A decision-deferred finding is standing evidence, not a selectable unit
 
-**Proposed, awaiting a maintainer ruling.** It changes the sole normative loop
-procedure and its obligation 2 sits against a line in an accepted decision (see
-below), so it is not self-ratified. Nothing in the loop changes until it is
-accepted.
+**Accepted 2026-07-29 by maintainer ratification** (sheet of record: PR #528,
+row W1). Obligation 2 is accepted as written. The loop-asset edit remains
+tracked by `todo.loop-selection-deferred-findings`, reopened on acceptance.
 
 ## Context
 
@@ -96,11 +95,11 @@ relation is the hardening if that control proves insufficient.
   edit lands should recognise it as the known gap that todo closes and report
   it, not re-derive a private exception. Building the correlator remains
   foreclosed by `dec.revisit-trigger-correlator-deferred` either way.
-- `todo.loop-selection-deferred-findings` is `blocked` while this decision is
-  `proposed`, so nothing selects it. Once accepted and reopened, the standing
-  finding still sorts ahead of every todo, so the follow-up iteration must be
-  invoked with a MISSION naming that todo. This decision creates no mechanism
-  that routes there by itself.
+- `todo.loop-selection-deferred-findings` was `blocked` while this decision was
+  `proposed`, so nothing selected it. Now that it is accepted and reopened,
+  the standing finding still sorts ahead of every todo, so the follow-up
+  iteration must be invoked with a MISSION naming that todo. This decision
+  creates no mechanism that routes there by itself.
 - `dec.revisit-trigger-correlator-deferred` is not superseded, and superseding
   it would invalidate the `Deferred-by` cell in
   `docs/registries/spec-rules.md` that names it. `todo.revisit-trigger-correlator`
