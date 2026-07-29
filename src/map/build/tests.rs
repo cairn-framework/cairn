@@ -343,6 +343,7 @@ fn test_build_external_findings_are_preserved() {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     };
     let a = ast(vec![leaf("app.api")], vec![]);
     let g = build_graph(

@@ -2,6 +2,13 @@
 
 ## v0.9.0
 
+### Parked findings and loop selection
+
+- Todos gain an optional `defers:` frontmatter list; each entry is a finding code, one space, then the path or node the finding was raised against. While the todo is `blocked`, each matching live Info finding is classified parked: `cairn lint` and `cairn scan` still print it in full, annotated `(parked by todo.<slug>)`, and the JSON wire publishes per-finding `parked_by` naming the parking todo, or `null`. Parking never suppresses and never collapses, so the count a human sees does not change (`todo.lint-selection-folding` item 1a, ratified 2026-07-29, PR #528 sheet W2).
+- Parking applies to Info findings alone, and only through the typed reference: a `defers:` reference aimed at an Error or Warning raises `CAIRN_TODO_DEFERS_BLOCKING` (CA042) and parks nothing, a reference matching no emitted finding raises `CAIRN_TODO_DEFERS_UNMATCHED` (CA041) so a stale park cannot hide a real finding, a malformed entry raises `CAIRN_TODO_DEFERS_INVALID` (CA043) at Error, and a prose mention parks nothing. A decision-deferred finding stays under its deferral regime and is never re-classified (`dec.parked-deferral-composition`, proposed).
+- Query JSON payloads bump to `schema_version` 7, and the webui `/api/*` envelope bumps to `schema_version` 7, for the added field.
+- Loop-mode selection skips parked Info findings on the published `parked_by` field only, in default selection, both MISSION paths, and the stop evidence; a `parked_by` on an `error` or `warning` is a wire defect and never unselects it. Pack phrase assertions pin each sentence (`tools/agent-pack/tests/selection_parked_tests.rs`).
+
 ### Strict-green folding and loop selection
 
 - The lint/scan JSON `data` payload publishes `strict_green`: `true` exactly when `--strict` would exit zero over the emitted finding set (no Error and no Warning finding). One shared predicate feeds the published field and both strict exit paths, and under `--strict` the `lint --json` / `scan --json` exit code reads the published field itself, so the wire verdict and the gate cannot disagree; previously the shared-JSON path ignored `--strict` and exited 0 on warnings (`todo.lint-selection-folding` item 2, ratified 2026-07-29, PR #528 sheet W2).

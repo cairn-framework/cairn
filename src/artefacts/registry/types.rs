@@ -60,6 +60,17 @@ impl TodoStatus {
     }
 }
 
+/// One parsed `defers:` reference from a todo: a finding code plus the path
+/// or node it was raised against (`todo.lint-selection-folding` item 1a).
+/// Both halves must match an emitted finding for the reference to bind.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DefersRef {
+    /// Finding code the reference points at.
+    pub code: String,
+    /// Path or node id the finding was raised against.
+    pub location: String,
+}
+
 /// Parsed todo.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Todo {
@@ -73,6 +84,9 @@ pub struct Todo {
     pub created: String,
     /// Optional satisfied contract clause.
     pub satisfies: Option<String>,
+    /// Parsed `defers:` references. While the todo is `blocked`, each
+    /// reference parks the matching Info finding out of loop selection.
+    pub defers: Vec<DefersRef>,
     /// Markdown body.
     pub body: String,
 }

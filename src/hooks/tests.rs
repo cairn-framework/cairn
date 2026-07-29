@@ -12,6 +12,7 @@ fn finding(severity: FindingSeverity, code: &str) -> Finding {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     }
 }
 

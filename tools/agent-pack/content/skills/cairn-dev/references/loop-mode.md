@@ -57,15 +57,18 @@ evolve across iterations belongs in the tracker, not in MISSION. Precedence:
 
 1. The preflight verdict always wins; MISSION never builds on unresolved state.
 2. MISSION names a unit (todo slug, node id, finding code): select exactly that. A
-   node id selects its first lint finding with no published `deferred_by` and no
-   strict-green fold (Select ONE unit owns both rules), else its top open todo. A
-   finding code resolves per finding instance, not per code: one code can cover a
+   node id selects its first lint finding with no published `deferred_by`, not
+   parked (an `info` finding publishing `parked_by`; Select ONE unit owns all
+   three rules), and no strict-green fold, else its top open todo. A finding
+   code resolves per finding instance, not per code: one code can cover a
    deferred instance and a live one at once, so select the first sorted instance
-   with no published `deferred_by` and no strict-green fold, and report settled
-   only when every instance carrying that code has a validated deferral or stands
-   folded by a published strict-green verdict. Already done, blocked, deferred by
-   an accepted decision, folded by strict-green, or quarantined: report why and
-   output `LOOP EXHAUSTED`.
+   with no published `deferred_by`, not parked, and no strict-green fold, and
+   report settled only when every instance carrying that code has a
+   validated deferral, stands parked (`info` with published `parked_by`), or
+   stands folded by a published strict-green verdict. Already done, blocked,
+   deferred by an accepted decision,
+   parked by a blocked todo, folded by strict-green, or quarantined: report why
+   and output `LOOP EXHAUSTED`.
 3. MISSION is a scope filter: apply normal selection restricted to that scope.
    Nothing in scope: report, output `LOOP EXHAUSTED`. Never select outside it.
 4. MISSION describes new work: derive the slug canonically so every session
@@ -160,12 +163,14 @@ gh pr list --state open --json number,headRefName \
 ## Select ONE unit
 
 After MISSION precedence: the first `$CAIRN lint --json` finding, skipping every
-finding that publishes a `deferred_by` and, while that wire publishes
-`"strict_green": true`, every `info` finding; else the top open todo from
+finding that publishes a `deferred_by`, every `info` finding that publishes a
+`parked_by`, and, while that wire publishes `"strict_green": true`, every
+`info` finding; else the top open todo from
 `$CAIRN status` / `$CAIRN todos <node>`, skipping `blocked`; else verify the stop
 evidence (lint clean apart from findings with a validated deferral or Info
-findings folded by a published strict-green verdict, no open todos, no
-unquarantined `loop/*` branches or PRs, clean park; quarantined branches and
+findings folded by a published strict-green verdict or parked by a `blocked`
+todo (published `parked_by`), no open todos, no unquarantined `loop/*`
+branches or PRs, clean park; quarantined branches and
 their blocked recover-todos do not block exhaustion) and output
 `LOOP EXHAUSTED`.
 
@@ -178,9 +183,17 @@ non-selecting while the same wire publishes `"strict_green": true`: `$CAIRN scan
 --strict` is the CI gate, and a finding that gate tolerates cannot block an
 iteration (`todo.lint-selection-folding` item 2, ratified 2026-07-29, PR #528
 sheet W2). Trust only the published `strict_green` field, never a verdict you
-recompute yourself; a wire that does not publish the field folds nothing. An
-`error` or `warning` finding with no published `deferred_by` is always
-selectable, whatever any other artefact or verdict says about it.
+recompute yourself; a wire that does not publish the field folds nothing.
+Separately again, an Info finding that a `blocked` todo parks through a matching
+`defers:` reference is not selectable: the parking is typed and machine-visible
+or it does not exist, so trust only the published `parked_by` field on the lint
+wire, naming the parking todo, never a todo that merely mentions a code in prose
+(`todo.lint-selection-folding` item 1a, ratified 2026-07-29, PR #528 sheet W2).
+A wire that does not publish the field parks nothing, and parking applies to
+Info alone: a `parked_by` on an `error` or `warning` is a wire defect and
+never unselects it. An `error` or `warning` finding with no published
+`deferred_by` is always selectable, whatever any other artefact or verdict
+says about it.
 
 "First" and "top" are defined, not incidental: sort findings by severity (errors
 first), then file path, then line, then code; sort todos by slug. Tool output

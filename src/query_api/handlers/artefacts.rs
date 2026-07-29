@@ -146,6 +146,7 @@ mod tests {
             status,
             created: "2026-07-16".to_owned(),
             satisfies: None,
+            defers: Vec::new(),
             body: "# Todo".to_owned(),
         }
     }

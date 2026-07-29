@@ -22,6 +22,40 @@ pub(super) fn parse_todo_status(
     }
 }
 
+/// Parses one `defers:` list entry: `<FINDING_CODE> <path-or-node>`.
+///
+/// The reference is typed, never prose: a malformed entry raises
+/// `CAIRN_TODO_DEFERS_INVALID` at Error, matching the other frontmatter
+/// parse findings, so a broken park can never rot silently
+/// (`todo.lint-selection-folding` item 1a).
+pub(super) fn parse_defers_reference(
+    value: &str,
+    path: &Path,
+    set: &mut ArtefactSet,
+) -> Option<DefersRef> {
+    let reference = value
+        .split_once(char::is_whitespace)
+        .and_then(|(code, location)| {
+            // The code is the first token; the trimmed remainder is the location,
+            // spaces included, since repository paths can legally contain them.
+            let location = location.trim();
+            (!code.is_empty() && !location.is_empty()).then(|| DefersRef {
+                code: code.to_owned(),
+                location: location.to_owned(),
+            })
+        });
+    if reference.is_none() {
+        set.findings.push(error_finding(
+            "CAIRN_TODO_DEFERS_INVALID",
+            crate::copy::lookup("findings.codes.CAIRN_TODO_DEFERS_INVALID.body")
+                .replace("{todo}", &path_string(path))
+                .replace("{value}", value),
+            Some(path_string(path)),
+        ));
+    }
+    reference
+}
+
 pub(super) fn parse_decision_status(
     value: &str,
     path: &Path,
@@ -252,5 +286,47 @@ mod tests {
         let result = parse_source_verification("trusted", path(), &mut set);
         assert!(result.is_none());
         assert_eq!(set.findings[0].code, "CAIRN_SOURCE_VERIFICATION_INVALID");
+    }
+
+    // ── parse_defers_reference ────────────────────────────────────────────────
+
+    #[test]
+    fn test_defers_reference_valid_forms() {
+        let cases = [
+            (
+                "CAIRN_SOURCE_UNVERIFIED meta/sources/a.md",
+                ("CAIRN_SOURCE_UNVERIFIED", "meta/sources/a.md"),
+            ),
+            (
+                "CAIRN_DECISION_ACCUMULATION app.api",
+                ("CAIRN_DECISION_ACCUMULATION", "app.api"),
+            ),
+            // Repository paths can legally contain spaces; the code is the
+            // first token and the trimmed remainder is the location.
+            (
+                "CAIRN_RECONCILE_ORPHANED_FILE my docs/file.md",
+                ("CAIRN_RECONCILE_ORPHANED_FILE", "my docs/file.md"),
+            ),
+        ];
+        for (value, (code, location)) in cases {
+            let mut set = ArtefactSet::default();
+            let parsed = parse_defers_reference(value, path(), &mut set)
+                .unwrap_or_else(|| panic!("'{value}' must parse"));
+            assert_eq!(parsed.code, code);
+            assert_eq!(parsed.location, location);
+            assert!(set.findings.is_empty(), "'{value}' must raise nothing");
+        }
+    }
+
+    #[test]
+    fn test_defers_reference_malformed_emits_error_finding() {
+        for value in ["CAIRN_SOURCE_UNVERIFIED", "", "   ", "LONE "] {
+            let mut set = ArtefactSet::default();
+            let parsed = parse_defers_reference(value, path(), &mut set);
+            assert!(parsed.is_none(), "'{value}' must not parse");
+            assert_eq!(set.findings.len(), 1, "'{value}'");
+            assert_eq!(set.findings[0].code, "CAIRN_TODO_DEFERS_INVALID");
+            assert_eq!(set.findings[0].severity, crate::map::FindingSeverity::Error);
+        }
     }
 }

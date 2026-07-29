@@ -232,6 +232,7 @@ pub(crate) fn build_reports_from_cache(
                 target: Some(target.id.as_str()),
                 path: Some(target.id.path.to_string_lossy().to_string()),
                 deferred_by: None,
+                parked_by: None,
             });
             reports.push(TargetReport {
                 target_id: target.id.clone(),
@@ -270,6 +271,7 @@ pub(crate) fn build_reports_from_cache(
                     target: Some(target.id.as_str()),
                     path: Some(target.id.path.to_string_lossy().to_string()),
                     deferred_by: None,
+                    parked_by: None,
                 });
                 None
             } else {

@@ -64,6 +64,7 @@ pub(crate) fn check_contract_node_shape_drift(
             target: Some(target),
             path: None,
             deferred_by: None,
+            parked_by: None,
         });
     }
 }

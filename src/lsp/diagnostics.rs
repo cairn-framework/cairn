@@ -237,6 +237,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let diagnostic = finding_to_diagnostic(&finding);
         assert_eq!(diagnostic.severity, Some(DiagnosticSeverity::WARNING));
@@ -281,6 +282,7 @@ mod tests {
                 target: None,
                 path: Some("src/a.rs".to_owned()),
                 deferred_by: None,
+                parked_by: None,
             },
             Finding {
                 code: "B".to_owned(),
@@ -290,6 +292,7 @@ mod tests {
                 target: None,
                 path: Some("src/a.rs".to_owned()),
                 deferred_by: None,
+                parked_by: None,
             },
             Finding {
                 code: "C".to_owned(),
@@ -299,6 +302,7 @@ mod tests {
                 target: None,
                 path: Some("src/b.rs".to_owned()),
                 deferred_by: None,
+                parked_by: None,
             },
         ];
         let by_uri = findings_by_uri(&findings, Utf8Path::new("/project"));

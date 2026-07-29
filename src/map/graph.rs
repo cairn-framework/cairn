@@ -84,6 +84,15 @@ pub struct Finding {
     /// the field explicitly in `findings_json`.
     #[serde(skip)]
     pub deferred_by: Option<String>,
+    /// Todo id (`todo.<slug>`) parking this finding, if any. Set by
+    /// `check_todo_defers` when a `blocked` todo's `defers:` reference
+    /// matches this finding's code and path or node; Info findings only
+    /// (`todo.lint-selection-folding` item 1a). Report-level classification:
+    /// renderers annotate from this field and the query wire publishes it,
+    /// while `serde(skip)` keeps derived wires (`map.json`, watch events)
+    /// unchanged.
+    #[serde(skip)]
+    pub parked_by: Option<String>,
 }
 
 /// Flattened node record.
@@ -187,6 +196,7 @@ impl Graph {
                     target: None,
                     path: None,
                     deferred_by: None,
+                    parked_by: None,
                 });
             }
         }
@@ -211,6 +221,7 @@ impl Graph {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         })
     }
 
@@ -316,6 +327,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         assert_eq!(f.to_string(), "CAIRN_TEST: something went wrong");
     }
@@ -339,6 +351,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         });
         assert!(!g.has_errors(), "warning alone must not count as error");
     }
@@ -354,6 +367,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         });
         assert!(g.has_errors());
     }
@@ -369,6 +383,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: deferred_by.map(ToOwned::to_owned),
+            parked_by: None,
         }
     }
 

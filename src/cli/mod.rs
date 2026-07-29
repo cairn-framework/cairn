@@ -422,6 +422,7 @@ pub fn run(args: &[String]) -> CliResult {
                         target: None,
                         path: None,
                         deferred_by: None,
+                        parked_by: None,
                     })
                 ));
             }
@@ -442,6 +443,7 @@ pub fn run(args: &[String]) -> CliResult {
                     target: None,
                     path: None,
                     deferred_by: None,
+                    parked_by: None,
                 })
             ));
         }
@@ -2129,6 +2131,195 @@ mod tests {
             fs::read(root.join(".cairn/state/contract-baselines.json"))?,
             recorded,
             "scanning must never rewrite the baseline file"
+        );
+        Ok(())
+    }
+
+    /// `write_project` variant reconciling to zero findings: sources under
+    /// test coverage, every leaf under a contract and a decision. Tests that
+    /// assert on the strict gate need this explicit baseline so their own
+    /// additions are provably the only standing finding set.
+    fn write_project_strict_green(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        write_project(root)?;
+        fs::write(
+            root.join("src/api/lib.rs"),
+            "pub fn serve() {}\n#[cfg(test)]\nmod tests {}\n",
+        )?;
+        fs::write(
+            root.join("src/core/lib.rs"),
+            "pub fn core() {}\n#[cfg(test)]\nmod tests {}\n",
+        )?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            r#"System App "desc" id "app" {
+    Module Core "core" id "app.core" {
+        path "./src/core"
+        contract "./meta/contracts/core.md"
+    }
+    Container Api "api" id "app.api" {
+        path "./src/api"
+        contract "./meta/contracts/api.md"
+        todos "./meta/todos"
+        decisions "./meta/decisions"
+        research "./meta/research"
+        sources "./meta/sources"
+    }
+}
+app.api -> app.core "reports"
+"#,
+        )?;
+        fs::write(
+            root.join("meta/contracts/core.md"),
+            "---\nnode: app.core\n---\n# Core Contract\n",
+        )?;
+        fs::write(
+            root.join("meta/decisions/api.md"),
+            "---\nid: dec.api\nnodes: [app.api, app.core]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# Decision\n",
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_lint_parks_the_unverified_pair_behind_a_blocked_todo()
+    -> Result<(), Box<dyn std::error::Error>> {
+        // `todo.lint-selection-folding` item 1a acceptance fixture: exactly
+        // the two CAIRN_SOURCE_UNVERIFIED Info findings, parked by one
+        // blocked todo whose `defers:` references both, end to end from
+        // frontmatter to the lint wire under an absolute project root.
+        let root = temp_root("parked-pair")?;
+        write_project_strict_green(&root)?;
+        let baseline: serde_json::Value =
+            serde_json::from_str(&run_in(&root, &["lint", "--json"]).stdout)?;
+        assert_eq!(
+            baseline["findings"].as_array().map(Vec::len),
+            Some(0),
+            "the baseline fixture must stand at zero findings: {baseline}"
+        );
+        write_unverified_pair(&root)?;
+        let parking = "---\nnode: app.api\nstatus: blocked\ncreated: 2026-07-29\ndefers:\n  - CAIRN_SOURCE_UNVERIFIED meta/sources/a.md\n  - CAIRN_SOURCE_UNVERIFIED meta/sources/b.md\n---\n# Park\n\nblocked on upstream mode work\n";
+        fs::write(root.join("meta/todos/todo.park-sources.md"), parking)?;
+
+        let lint: serde_json::Value =
+            serde_json::from_str(&run_in(&root, &["lint", "--json"]).stdout)?;
+        let findings = lint["findings"].as_array().expect("findings array");
+        assert_eq!(
+            findings.len(),
+            2,
+            "exactly the parked pair may stand: {lint}"
+        );
+        let unverified: Vec<_> = findings
+            .iter()
+            .filter(|f| f["code"] == "CAIRN_SOURCE_UNVERIFIED")
+            .collect();
+        assert_eq!(unverified.len(), 2, "reporting is untouched: {lint}");
+        for finding in &unverified {
+            assert_eq!(
+                finding["parked_by"], "todo.park-sources",
+                "the wire must name the parking todo: {finding}"
+            );
+            assert_eq!(finding["severity"], "info");
+        }
+        assert!(
+            !findings.iter().any(|f| f["code"]
+                .as_str()
+                .is_some_and(|c| c.starts_with("CAIRN_TODO_DEFERS"))),
+            "matching references raise nothing: {lint}"
+        );
+        assert_eq!(
+            run_in(&root, &["scan", "--strict"]).code,
+            0,
+            "a parked Info set must keep the strict gate green"
+        );
+        let human = run_in(&root, &["lint"]).stdout;
+        assert_eq!(
+            human.matches("(parked by todo.park-sources)").count(),
+            2,
+            "each parked finding still prints, naming its todo: {human}"
+        );
+
+        // Unblocking the todo dissolves the park but keeps the references.
+        let unblocked = parking.replace("status: blocked", "status: open");
+        fs::write(root.join("meta/todos/todo.park-sources.md"), &unblocked)?;
+        let lint: serde_json::Value =
+            serde_json::from_str(&run_in(&root, &["lint", "--json"]).stdout)?;
+        for finding in lint["findings"].as_array().expect("findings array") {
+            if finding["code"] == "CAIRN_SOURCE_UNVERIFIED" {
+                assert_eq!(
+                    finding["parked_by"],
+                    serde_json::Value::Null,
+                    "an open todo parks nothing: {finding}"
+                );
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Two unverified sources cited by research, so the pair stands alone
+    /// with no orphan warnings: the parked-pair acceptance substrate.
+    fn write_unverified_pair(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        for name in ["a", "b"] {
+            fs::write(
+                root.join(format!("meta/sources/{name}.md")),
+                format!(
+                    "---\nid: src.{name}\nfile: docs-source.txt\nverification: unverified\ntype: note\ndate: 2026-03-19\n---\n# Source\n"
+                ),
+            )?;
+        }
+        fs::write(
+            root.join("meta/research/api.md"),
+            "---\nid: res.api\nnodes: [app.api]\ndate: 2026-03-20\nsources: [src.api, src.a, src.b]\n---\n# Research\n",
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_lint_stale_defers_reference_turns_strict_red()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_root("parked-stale")?;
+        write_project_strict_green(&root)?;
+        write_unverified_pair(&root)?;
+        // Reference `a` still matches; `gone` matches nothing.
+        fs::write(
+            root.join("meta/todos/todo.park-sources.md"),
+            "---\nnode: app.api\nstatus: blocked\ncreated: 2026-07-29\ndefers:\n  - CAIRN_SOURCE_UNVERIFIED meta/sources/a.md\n  - CAIRN_SOURCE_UNVERIFIED meta/sources/gone.md\n---\n# Park\n",
+        )?;
+        let lint: serde_json::Value =
+            serde_json::from_str(&run_in(&root, &["lint", "--json"]).stdout)?;
+        let stale = lint["findings"]
+            .as_array()
+            .expect("findings array")
+            .iter()
+            .find(|f| f["code"] == "CAIRN_TODO_DEFERS_UNMATCHED")
+            .expect("stale reference finding")
+            .clone();
+        assert_eq!(stale["severity"], "warning");
+        // Parking is per-finding classification, not a whole-set verdict: the
+        // still-matching reference keeps its finding parked while the stale
+        // one turns strict red, so this state discriminates `parked_by` from
+        // the strict-green fold (which is off here).
+        assert_eq!(
+            lint["strict_green"], false,
+            "the stale-reference Warning must turn the published verdict red"
+        );
+        let still_parked = lint["findings"]
+            .as_array()
+            .expect("findings array")
+            .iter()
+            .find(|f| {
+                f["code"] == "CAIRN_SOURCE_UNVERIFIED"
+                    && f["path"].as_str().is_some_and(|p| p.ends_with("a.md"))
+            })
+            .expect("finding for the still-matching reference")
+            .clone();
+        assert_eq!(
+            still_parked["parked_by"], "todo.park-sources",
+            "a parked finding stays parked under a strict-red set: {still_parked}"
+        );
+        assert_eq!(
+            run_in(&root, &["scan", "--strict"]).code,
+            1,
+            "a stale park must not hide behind the gate"
         );
         Ok(())
     }

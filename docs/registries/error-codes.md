@@ -121,6 +121,10 @@ All codes follow the pattern **`CXNNN`**:
 - CA037 -- todo artefact frontmatter declares an invalid `status` (CAIRN_TODO_STATUS_INVALID) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA038 -- artefact filename does not follow the naming rule for its kind: id-derived for decisions, research, and sources, `todo.<slug>.md` for todos (CAIRN_ARTEFACT_FILENAME_DRIFT) -- todo.artefact-filename-convention
 - CA039 -- node carries more accepted decisions than the consolidation threshold (CAIRN_DECISION_ACCUMULATION) -- todo.decision-accumulation-finding
+- CA040 -- reserved by `todo.source-tracked-verification-mode` for CAIRN_SOURCE_SHA256_UNEXPECTED; allocated when that unit lands
+- CA041 -- todo `defers:` reference matches no emitted finding (CAIRN_TODO_DEFERS_UNMATCHED) -- todo.lint-selection-folding
+- CA042 -- todo `defers:` reference targets an Error or Warning finding (CAIRN_TODO_DEFERS_BLOCKING) -- todo.lint-selection-folding
+- CA043 -- todo `defers:` frontmatter entry is malformed (CAIRN_TODO_DEFERS_INVALID) -- todo.lint-selection-folding
 
 ## CC -- Changes
 

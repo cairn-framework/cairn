@@ -50,8 +50,9 @@ fn default_selection_folds_info_findings_under_strict_green() {
     let select = section("\n## Select ONE unit");
     assert!(
         select.contains(
-            "skipping every finding that publishes a `deferred_by` and, while that wire \
-             publishes `\"strict_green\": true`, every `info` finding"
+            "skipping every finding that publishes a `deferred_by`, every `info` finding \
+             that publishes a `parked_by`, and, while that wire publishes \
+             `\"strict_green\": true`, every `info` finding"
         ),
         "default selection must fold Info findings whenever the wire is strict-green"
     );
@@ -110,21 +111,23 @@ fn mission_paths_apply_the_same_strict_green_fold() {
     let mission = section("\n## Input: MISSION");
     assert!(
         mission.contains(
-            "A node id selects its first lint finding with no published `deferred_by` and \
-             no strict-green fold"
+            "A node id selects its first lint finding with no published `deferred_by`, \
+             not parked (an `info` finding publishing `parked_by`; Select ONE unit owns \
+             all three rules), and no strict-green fold"
         ),
         "the node-id path must not hand a MISSION a folded instance"
     );
     assert!(
         mission.contains(
-            "select the first sorted instance with no published `deferred_by` and no \
-             strict-green fold"
+            "select the first sorted instance with no published `deferred_by`, not \
+             parked, and no strict-green fold"
         ),
         "the finding-code path must take the first live, unfolded instance"
     );
     assert!(
         mission.contains(
-            "has a validated deferral or stands folded by a published strict-green verdict"
+            "has a validated deferral, stands parked (`info` with published `parked_by`), \
+             or stands folded by a published strict-green verdict"
         ),
         "a code is settled when every instance is deferred or folded"
     );

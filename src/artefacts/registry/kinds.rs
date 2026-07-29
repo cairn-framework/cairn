@@ -9,8 +9,8 @@
 use super::super::frontmatter::Frontmatter;
 use super::io::{list, markdown_paths, optional, parse_file, path_string, pointers, required};
 use super::parse::{
-    parse_decision_status, parse_research_method, parse_review_type, parse_source_verification,
-    parse_todo_status,
+    parse_decision_status, parse_defers_reference, parse_research_method, parse_review_type,
+    parse_source_verification, parse_todo_status,
 };
 use super::*;
 use crate::blueprint::Ast;
@@ -87,12 +87,23 @@ fn load_one_todo(path: &Path, parsed: &Frontmatter, set: &mut ArtefactSet) {
     let Some(created) = required(&parsed.values, "created", path_string(path), set) else {
         return;
     };
+    // A scalar `defers: CODE path` reaches only `values`, never `lists`, and
+    // would otherwise be a silent no-op; the field is a list or it is
+    // malformed (an inline `[..]` form populates both maps and is fine).
+    if optional(&parsed.values, "defers").is_some() && !parsed.lists.contains_key("defers") {
+        parse_defers_reference("", path, set);
+    }
+    let defers = list(parsed, "defers")
+        .iter()
+        .filter_map(|value| parse_defers_reference(value, path, set))
+        .collect();
     set.todos.push(Todo {
         path: path_string(path),
         node,
         status,
         created,
         satisfies: optional(&parsed.values, "satisfies"),
+        defers,
         body: parsed.body.clone(),
     });
 }
@@ -241,5 +252,35 @@ mod tests {
             pointers,
             vec!["todos", "decisions", "reviews", "research", "sources"]
         );
+    }
+
+    #[test]
+    fn load_one_todo_scalar_defers_is_malformed_not_silent() {
+        // A scalar `defers: CODE path` reaches only frontmatter `values`, so
+        // without the guard it would be a silent no-op instead of CA043.
+        let parsed = crate::artefacts::frontmatter::parse(
+            "---\nnode: app.api\nstatus: blocked\ncreated: 2026-07-29\ndefers: CAIRN_TEST src/lib.rs\n---\nbody\n",
+        );
+        let mut set = ArtefactSet::default();
+        load_one_todo(Path::new("meta/todos/todo.scalar.md"), &parsed, &mut set);
+        assert_eq!(set.todos.len(), 1);
+        assert!(set.todos[0].defers.is_empty());
+        assert_eq!(set.findings.len(), 1);
+        assert_eq!(set.findings[0].code, "CAIRN_TODO_DEFERS_INVALID");
+    }
+
+    #[test]
+    fn load_one_todo_inline_list_defers_parses() {
+        // The inline `[..]` form populates both frontmatter maps and must not
+        // trip the scalar guard.
+        let parsed = crate::artefacts::frontmatter::parse(
+            "---\nnode: app.api\nstatus: blocked\ncreated: 2026-07-29\ndefers: [CAIRN_TEST src/lib.rs]\n---\nbody\n",
+        );
+        let mut set = ArtefactSet::default();
+        load_one_todo(Path::new("meta/todos/todo.inline.md"), &parsed, &mut set);
+        assert_eq!(set.findings.len(), 0, "{:?}", set.findings);
+        assert_eq!(set.todos[0].defers.len(), 1);
+        assert_eq!(set.todos[0].defers[0].code, "CAIRN_TEST");
+        assert_eq!(set.todos[0].defers[0].location, "src/lib.rs");
     }
 }

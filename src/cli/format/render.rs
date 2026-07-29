@@ -36,6 +36,11 @@ pub(crate) fn render_findings(findings: &[Finding], json: bool, verbose: bool) -
                 out.push_str(&esc(deferred_by));
                 out.push('"');
             }
+            if let Some(parked_by) = &finding.parked_by {
+                out.push_str(",\"parked_by\":\"");
+                out.push_str(&esc(parked_by));
+                out.push('"');
+            }
             out.push('}');
         }
         out.push_str("],\"strict_green\":");
@@ -61,16 +66,15 @@ pub(crate) fn render_findings(findings: &[Finding], json: bool, verbose: bool) -
 /// Renders finding lines (without the `Findings:` header). When `verbose` is
 /// false, findings deferred by a decision collapse into a single summary line
 /// per decision; non-deferred findings always render in full. Verbose mode
-/// renders every finding in full regardless of deferral.
+/// renders every finding in full regardless of deferral. A parked finding
+/// never collapses: it renders in full with a suffix naming its parking todo,
+/// so the count a human sees does not change
+/// (`todo.lint-selection-folding` item 1a).
 pub(crate) fn render_finding_lines(findings: &[Finding], verbose: bool) -> String {
     if verbose {
         let mut out = String::new();
         for finding in findings {
-            let _ = writeln!(
-                out,
-                "{:?}: {} {}",
-                finding.severity, finding.code, finding.message
-            );
+            let _ = writeln!(out, "{}", full_finding_line(finding));
         }
         return out;
     }
@@ -96,15 +100,25 @@ pub(crate) fn render_finding_lines(findings: &[Finding], verbose: bool) -> Strin
                 }
             }
             None => {
-                let _ = writeln!(
-                    out,
-                    "{:?}: {} {}",
-                    finding.severity, finding.code, finding.message
-                );
+                let _ = writeln!(out, "{}", full_finding_line(finding));
             }
         }
     }
     out
+}
+
+/// One full finding line, annotated from `parked_by` when the finding is
+/// parked. The annotation is render-level: the message itself stays as the
+/// emitting check wrote it.
+fn full_finding_line(finding: &Finding) -> String {
+    let mut line = format!(
+        "{:?}: {} {}",
+        finding.severity, finding.code, finding.message
+    );
+    if let Some(todo) = &finding.parked_by {
+        line.push_str(&crate::copy::lookup("findings.parked-suffix").replace("{todo}", todo));
+    }
+    line
 }
 
 pub(crate) fn todo_line(todo: &Todo) -> String {
@@ -172,6 +186,7 @@ mod tests {
             status,
             created: "2026-01-01".to_owned(),
             satisfies: None,
+            defers: Vec::new(),
             body: String::new(),
         }
     }
@@ -292,6 +307,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let rendered = render_findings(&[finding], true, false);
         assert!(rendered.contains("\"code\":\"CAIRN_TEST\""));
@@ -309,6 +325,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: Some("dec.x".to_owned()),
+            parked_by: None,
         };
         let live = Finding {
             code: "CAIRN_TEST".to_owned(),
@@ -318,6 +335,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let rendered = render_findings(&[deferred, live], true, false);
         assert!(rendered.contains("\"deferred_by\":\"dec.x\""));
@@ -337,6 +355,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let rendered = render_findings(&[finding], true, false);
         assert!(
@@ -355,6 +374,7 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let rendered = render_findings(&[finding], true, false);
         assert!(
@@ -373,9 +393,68 @@ mod tests {
             target: None,
             path: None,
             deferred_by: None,
+            parked_by: None,
         };
         let rendered = render_findings(&[finding], false, false);
         assert!(rendered.starts_with("Findings:\n"));
         assert!(rendered.contains("Warning: CAIRN_TEST look out"));
+    }
+
+    fn parked_info(message: &str, todo: Option<&str>) -> Finding {
+        Finding {
+            code: "CAIRN_SOURCE_UNVERIFIED".to_owned(),
+            severity: FindingSeverity::Info,
+            message: message.to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: None,
+            parked_by: todo.map(str::to_owned),
+        }
+    }
+
+    #[test]
+    fn test_render_findings_json_parked_by_present_only_when_set() {
+        let parked = parked_info("parked one", Some("todo.park-sources"));
+        let live = parked_info("live one", None);
+        let rendered = render_findings(&[parked, live], true, false);
+        assert!(rendered.contains("\"parked_by\":\"todo.park-sources\""));
+        assert!(
+            !rendered.contains("\"message\":\"live one\",\"parked_by\""),
+            "a finding without a parking todo must omit the field: {rendered}"
+        );
+    }
+
+    #[test]
+    fn test_render_finding_lines_parked_full_line_never_collapses() {
+        let findings = [
+            parked_info("first", Some("todo.park-sources")),
+            parked_info("second", Some("todo.park-sources")),
+        ];
+        let rendered = render_finding_lines(&findings, false);
+        let lines: Vec<&str> = rendered.lines().collect();
+        assert_eq!(
+            lines.len(),
+            2,
+            "the count a human sees must not change: {rendered}"
+        );
+        for (line, message) in lines.iter().zip(["first", "second"]) {
+            assert!(
+                line.contains(message) && line.ends_with("(parked by todo.park-sources)"),
+                "each parked finding renders in full naming its todo: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_render_finding_lines_verbose_annotates_parked() {
+        let rendered =
+            render_finding_lines(&[parked_info("first", Some("todo.park-sources"))], true);
+        assert!(
+            rendered
+                .trim_end()
+                .ends_with("(parked by todo.park-sources)"),
+            "verbose mode keeps the parked annotation: {rendered}"
+        );
     }
 }

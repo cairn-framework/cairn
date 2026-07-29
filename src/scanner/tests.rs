@@ -32,6 +32,7 @@ fn finding(
         path: path.map(str::to_owned),
         target: target.map(str::to_owned),
         deferred_by: None,
+        parked_by: None,
     }
 }
 
@@ -791,4 +792,359 @@ fn test_build_targets_path_scoped_override() {
     assert_eq!(ui_target.language, Language::Unknown);
     assert_eq!(assets_target.language, Language::Assets);
     let _ = std::fs::remove_dir_all(&temp_root);
+}
+
+// ── check_todo_defers ─────────────────────────────────────────────────────
+
+fn info_finding(code: &str, node: Option<&str>, path: Option<&str>) -> Finding {
+    Finding {
+        code: code.to_owned(),
+        severity: FindingSeverity::Info,
+        message: "standing info".to_owned(),
+        node: node.map(str::to_owned),
+        target: None,
+        path: path.map(str::to_owned),
+        deferred_by: None,
+        parked_by: None,
+    }
+}
+
+fn defers_todo(
+    slug: &str,
+    status: crate::artefacts::registry::TodoStatus,
+    refs: &[(&str, &str)],
+) -> crate::artefacts::registry::Todo {
+    crate::artefacts::registry::Todo {
+        path: format!("meta/todos/todo.{slug}.md"),
+        node: "app.api".to_owned(),
+        status,
+        created: "2026-07-29".to_owned(),
+        satisfies: None,
+        defers: refs
+            .iter()
+            .map(|(code, location)| crate::artefacts::registry::DefersRef {
+                code: (*code).to_owned(),
+                location: (*location).to_owned(),
+            })
+            .collect(),
+        body: String::new(),
+    }
+}
+
+fn todos_set(todos: Vec<crate::artefacts::registry::Todo>) -> ArtefactSet {
+    ArtefactSet {
+        todos,
+        ..ArtefactSet::default()
+    }
+}
+
+use crate::artefacts::registry::TodoStatus;
+
+#[test]
+fn test_todo_defers_blocked_todo_parks_the_standing_info_pair() {
+    // The acceptance shape: exactly the two CAIRN_SOURCE_UNVERIFIED Info
+    // findings, parked by one blocked todo declaring both references.
+    let mut g = empty_graph();
+    g.findings.push(info_finding(
+        "CAIRN_SOURCE_UNVERIFIED",
+        None,
+        Some("./meta/sources/a.md"),
+    ));
+    g.findings.push(info_finding(
+        "CAIRN_SOURCE_UNVERIFIED",
+        None,
+        Some("./meta/sources/b.md"),
+    ));
+    let artefacts = todos_set(vec![defers_todo(
+        "park-sources",
+        TodoStatus::Blocked,
+        &[
+            ("CAIRN_SOURCE_UNVERIFIED", "meta/sources/a.md"),
+            ("CAIRN_SOURCE_UNVERIFIED", "meta/sources/b.md"),
+        ],
+    )]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(
+        g.findings.len(),
+        2,
+        "parking must never add or drop findings"
+    );
+    for finding in &g.findings {
+        assert_eq!(finding.parked_by.as_deref(), Some("todo.park-sources"));
+        assert_eq!(
+            finding.message, "standing info",
+            "parked is a field, never a message mutation"
+        );
+        assert_eq!(finding.severity, FindingSeverity::Info);
+    }
+}
+
+#[test]
+fn test_todo_defers_open_todo_parks_nothing_and_raises_nothing() {
+    let mut g = empty_graph();
+    g.findings.push(info_finding(
+        "CAIRN_SOURCE_UNVERIFIED",
+        None,
+        Some("meta/sources/a.md"),
+    ));
+    let artefacts = todos_set(vec![defers_todo(
+        "park-sources",
+        TodoStatus::Open,
+        &[("CAIRN_SOURCE_UNVERIFIED", "meta/sources/a.md")],
+    )]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(g.findings.len(), 1);
+    assert_eq!(
+        g.findings[0].parked_by, None,
+        "only a blocked todo parks; a matching open todo is inert"
+    );
+}
+
+#[test]
+fn test_todo_defers_stale_reference_raises_unmatched_for_any_status() {
+    for status in [TodoStatus::Blocked, TodoStatus::Done, TodoStatus::Open] {
+        let mut g = empty_graph();
+        let artefacts = todos_set(vec![defers_todo(
+            "park-sources",
+            status,
+            &[("CAIRN_SOURCE_UNVERIFIED", "meta/sources/gone.md")],
+        )]);
+        todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+        assert_eq!(g.findings.len(), 1, "{status:?}");
+        let finding = &g.findings[0];
+        assert_eq!(finding.code, "CAIRN_TODO_DEFERS_UNMATCHED");
+        assert_eq!(finding.severity, FindingSeverity::Warning);
+        assert_eq!(
+            finding.path.as_deref(),
+            Some("meta/todos/todo.park-sources.md")
+        );
+        assert!(
+            finding.message.contains("todo.park-sources")
+                && finding.message.contains("meta/sources/gone.md"),
+            "message names the todo and the reference: {}",
+            finding.message
+        );
+    }
+}
+
+#[test]
+fn test_todo_defers_blocking_target_raises_and_never_parks() {
+    for severity in [FindingSeverity::Warning, FindingSeverity::Error] {
+        let mut g = empty_graph();
+        let mut blocking = info_finding("CAIRN_TEST", None, Some("src/lib.rs"));
+        blocking.severity = severity;
+        g.findings.push(blocking);
+        let artefacts = todos_set(vec![defers_todo(
+            "park-blocking",
+            TodoStatus::Blocked,
+            &[("CAIRN_TEST", "src/lib.rs")],
+        )]);
+        todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+        assert_eq!(g.findings.len(), 2, "{severity:?}");
+        assert_eq!(
+            g.findings[0].parked_by, None,
+            "an Error or Warning stays selecting whatever any artefact declares"
+        );
+        let raised = &g.findings[1];
+        assert_eq!(raised.code, "CAIRN_TODO_DEFERS_BLOCKING");
+        assert_eq!(raised.severity, FindingSeverity::Warning);
+        assert!(
+            raised.message.contains(severity.name()),
+            "message names the target severity: {}",
+            raised.message
+        );
+    }
+}
+
+#[test]
+fn test_todo_defers_mixed_match_blocking_voids_the_park() {
+    // The Info sibling comes FIRST, so a single-pass implementation would
+    // park it before discovering the blocking match; the contract is that a
+    // reference hitting any Error or Warning parks nothing at all.
+    let mut g = empty_graph();
+    g.findings
+        .push(info_finding("CAIRN_TEST", None, Some("src/lib.rs")));
+    let mut warning = info_finding("CAIRN_TEST", None, Some("src/lib.rs"));
+    warning.severity = FindingSeverity::Warning;
+    g.findings.push(warning);
+    let artefacts = todos_set(vec![defers_todo(
+        "park-mixed",
+        TodoStatus::Blocked,
+        &[("CAIRN_TEST", "src/lib.rs")],
+    )]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(g.findings.len(), 3);
+    assert!(
+        g.findings[..2].iter().all(|f| f.parked_by.is_none()),
+        "a reference hitting a blocking finding must not park its Info sibling"
+    );
+    assert_eq!(g.findings[2].code, "CAIRN_TODO_DEFERS_BLOCKING");
+}
+
+#[test]
+fn test_todo_defers_first_blocked_parker_wins() {
+    let mut g = empty_graph();
+    g.findings.push(info_finding(
+        "CAIRN_SOURCE_UNVERIFIED",
+        None,
+        Some("meta/sources/a.md"),
+    ));
+    let artefacts = todos_set(vec![
+        defers_todo(
+            "park-first",
+            TodoStatus::Blocked,
+            &[("CAIRN_SOURCE_UNVERIFIED", "meta/sources/a.md")],
+        ),
+        defers_todo(
+            "park-second",
+            TodoStatus::Blocked,
+            &[("CAIRN_SOURCE_UNVERIFIED", "meta/sources/a.md")],
+        ),
+    ]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(
+        g.findings[0].parked_by.as_deref(),
+        Some("todo.park-first"),
+        "the first blocked parker in registry order wins deterministically"
+    );
+    assert_eq!(
+        g.findings.len(),
+        1,
+        "the second todo's reference still matches, so it is not stale"
+    );
+}
+
+#[test]
+fn test_todo_defers_one_node_reference_parks_every_match() {
+    // One reference, two Info findings on the referenced node: both park,
+    // and nothing is raised, because the reference matched.
+    let mut g = empty_graph();
+    g.findings
+        .push(info_finding("CAIRN_TEST", Some("app.api"), None));
+    g.findings
+        .push(info_finding("CAIRN_TEST", Some("app.api"), None));
+    let artefacts = todos_set(vec![defers_todo(
+        "park-node-pair",
+        TodoStatus::Blocked,
+        &[("CAIRN_TEST", "app.api")],
+    )]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(g.findings.len(), 2);
+    assert!(
+        g.findings
+            .iter()
+            .all(|f| f.parked_by.as_deref() == Some("todo.park-node-pair")),
+        "every Info match of one reference parks"
+    );
+}
+
+#[test]
+fn test_todo_defers_node_reference_parks_by_node_id() {
+    let mut g = empty_graph();
+    g.findings.push(info_finding(
+        "CAIRN_DECISION_ACCUMULATION",
+        Some("app.api"),
+        None,
+    ));
+    let artefacts = todos_set(vec![defers_todo(
+        "park-node",
+        TodoStatus::Blocked,
+        &[("CAIRN_DECISION_ACCUMULATION", "app.api")],
+    )]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(g.findings.len(), 1);
+    assert_eq!(g.findings[0].parked_by.as_deref(), Some("todo.park-node"));
+}
+
+#[test]
+fn test_todo_defers_deferred_finding_stays_deferred_not_parked() {
+    let mut g = empty_graph();
+    let mut deferred = info_finding(
+        "CAIRN_SPEC_RULE_UNIMPLEMENTED",
+        None,
+        Some("docs/registries/spec-rules.md"),
+    );
+    deferred.deferred_by = Some("dec.x".to_owned());
+    g.findings.push(deferred);
+    let artefacts = todos_set(vec![defers_todo(
+        "park-deferred",
+        TodoStatus::Blocked,
+        &[(
+            "CAIRN_SPEC_RULE_UNIMPLEMENTED",
+            "docs/registries/spec-rules.md",
+        )],
+    )]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(
+        g.findings.len(),
+        1,
+        "a matching reference to a deferred finding is neither stale nor blocking"
+    );
+    assert_eq!(
+        g.findings[0].parked_by, None,
+        "a decision-deferred finding stays under the deferral regime"
+    );
+    assert_eq!(g.findings[0].deferred_by.as_deref(), Some("dec.x"));
+}
+
+#[test]
+fn test_todo_defers_prose_mention_parks_nothing() {
+    let mut g = empty_graph();
+    g.findings.push(info_finding(
+        "CAIRN_SOURCE_UNVERIFIED",
+        None,
+        Some("meta/sources/a.md"),
+    ));
+    let mut todo = defers_todo("prose-only", TodoStatus::Blocked, &[]);
+    todo.body = "This mentions CAIRN_SOURCE_UNVERIFIED meta/sources/a.md in prose.".to_owned();
+    let artefacts = todos_set(vec![todo]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, std::path::Path::new("."));
+    assert_eq!(g.findings.len(), 1);
+    assert_eq!(
+        g.findings[0].parked_by, None,
+        "a fold rests on a typed reference, never on prose"
+    );
+}
+
+#[test]
+fn test_todo_defers_root_relative_normalisation_under_absolute_root() {
+    let root = std::path::Path::new("/tmp/cairn-proj");
+    let mut g = empty_graph();
+    g.findings.push(info_finding(
+        "CAIRN_SOURCE_UNVERIFIED",
+        None,
+        Some("/tmp/cairn-proj/meta/sources/a.md"),
+    ));
+    // A sibling of the root must not be treated as inside it.
+    g.findings.push(info_finding(
+        "CAIRN_SOURCE_UNVERIFIED",
+        None,
+        Some("/tmp/cairn-proj-other/meta/sources/b.md"),
+    ));
+    let artefacts = todos_set(vec![defers_todo(
+        "park-sources",
+        TodoStatus::Blocked,
+        &[
+            ("CAIRN_SOURCE_UNVERIFIED", "meta/sources/a.md"),
+            ("CAIRN_SOURCE_UNVERIFIED", "meta/sources/b.md"),
+        ],
+    )]);
+    todo_defers::check_todo_defers(&mut g, &artefacts, root);
+    assert_eq!(
+        g.findings[0].parked_by.as_deref(),
+        Some("todo.park-sources"),
+        "a root-joined finding path must match a root-relative reference"
+    );
+    assert_eq!(
+        g.findings[1].parked_by, None,
+        "a sibling directory of the root is outside the project"
+    );
+    assert_eq!(
+        g.findings
+            .iter()
+            .filter(|finding| finding.code == "CAIRN_TODO_DEFERS_UNMATCHED")
+            .count(),
+        1,
+        "the sibling reference matches nothing and must surface as stale"
+    );
 }

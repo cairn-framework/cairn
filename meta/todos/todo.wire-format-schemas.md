@@ -74,3 +74,12 @@ strict predicate (`map::graph::strict_green`); query and webui envelopes are
 now `schema_version` 6. The `LintResponse` / `ScanResponse` labels in the
 burn-down must model that required boolean alongside the findings array; the
 envelope schema itself is unchanged (tool-specific data properties stay open).
+
+2026-07-29 (parked classification): `todo.lint-selection-folding` item 1a added
+a required nullable `parked_by` to the query findings wire alongside
+`deferred_by` (the `blocked` todo whose `defers:` reference parks a live Info
+finding, or null); query and webui envelopes are now `schema_version` 7, and
+`schemas/envelope.schema.json` pins the field on `EnvelopeFinding`. The
+`LintResponse` / `ScanResponse` labels in the burn-down must model the query
+findings entry with both required nullable fields; the serde-derived component
+shape (`schemas/finding.schema.json`) still omits both by design.

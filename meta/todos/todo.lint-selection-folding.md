@@ -96,6 +96,23 @@ deliberately co-land.
    print the parked findings, naming the parking artefact, and the count a human
    sees does not change. Parked is a report-level classification, never a silent
    suppression.
+   Cut 1a landed 2026-07-29 (`res.lint-selection-folding.parked-classification`):
+   todos parse `defers:` (code plus path-or-node; a malformed entry raises
+   CA043 `CAIRN_TODO_DEFERS_INVALID` at Error), `check_todo_defers`
+   (src/scanner/todo_defers.rs) sets `parked_by` on matching live Info findings
+   while the todo is `blocked`, a stale reference raises CA041
+   `CAIRN_TODO_DEFERS_UNMATCHED` and a blocking-aimed reference raises CA042
+   `CAIRN_TODO_DEFERS_BLOCKING` (both Warning), the lint wire publishes
+   per-finding `parked_by` (query and webui `schema_version` 7), renderers
+   print parked findings in full naming the todo, and both loop-mode.md copies
+   teach the composed skip in selection, MISSION, and stop evidence. A
+   decision-deferred finding is never re-classified, composing with
+   `dec.loop-selection-deferred-findings`; that intersection rule is carried by
+   `dec.parked-deferral-composition` (proposed, maintainer ratification
+   pending, tracked by `todo.parked-deferral-composition`).
+   The live pair stays covered by the strict-green fold because
+   `todo.source-tracked-verification-mode` is open since sheet W3, so no live
+   `defers:` was added. Cut 1b and item 3 remain.
 2. **Info is non-selecting while strict is green.** `cairn scan --strict` is the
    CI gate and it tolerates Info, so anything it tolerates is by definition not
    iteration-blocking. Make Info non-selecting whenever `--strict` would exit
@@ -104,7 +121,7 @@ deliberately co-land.
    wire publishes `strict_green` from the shared strict predicate
    (`schema_version` 6), both loop-mode.md copies teach the fold in selection,
    MISSION, stop evidence, Verify, and guardrail, and under `--strict` the
-   shared-JSON exit code reads the published field. Items 1a, 1b, and 3 remain.
+   shared-JSON exit code reads the published field. Items 1b and 3 remain.
 3. **Accumulation threshold.** `DEFAULT_DECISION_ACCUMULATION_THRESHOLD` in
    `src/scanner/config/mod.rs:13` is a flat 10 for every node, and the check counts
    only accepted decisions whose `nodes:` name the node directly

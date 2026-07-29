@@ -152,6 +152,7 @@ pub(crate) fn validate_module_sizes(graph: &mut Graph, root: &Path) {
                 target: None,
                 path: Some(file.clone()),
                 deferred_by: None,
+                parked_by: None,
             });
         }
     }

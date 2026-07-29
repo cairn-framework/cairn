@@ -26,6 +26,13 @@
             "null"
           ]
         },
+        "parked_by": {
+          "description": "Parking todo id, always present on the wire: the `blocked` todo whose `defers:` reference parks this Info finding, or null when live.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "path": {
           "description": "Optional file path, always present on the wire.",
           "type": [
@@ -43,6 +50,7 @@
         "deferred_by",
         "message",
         "node",
+        "parked_by",
         "path",
         "severity"
       ],

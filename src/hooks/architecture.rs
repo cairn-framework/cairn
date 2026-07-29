@@ -62,6 +62,7 @@ pub fn architecture_findings(
                 target: None,
                 path: Some("cairn.blueprint".to_owned()),
                 deferred_by: None,
+                parked_by: None,
             });
         }
     }
@@ -80,6 +81,7 @@ pub fn architecture_findings(
                 target: None,
                 path: Some("cairn.blueprint".to_owned()),
                 deferred_by: None,
+                parked_by: None,
             });
         }
     }
@@ -105,6 +107,7 @@ pub fn architecture_findings(
                 target: None,
                 path: Some("cairn.blueprint".to_owned()),
                         deferred_by: None,
+                        parked_by: None,
 });
         }
     }

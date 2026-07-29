@@ -211,6 +211,7 @@ fn interface_findings(root: &Path, current: &scanner::state::TargetHashes) -> Ve
             target: None,
             path: Some(path_string(&state_path)),
             deferred_by: None,
+            parked_by: None,
         }]
     }
 }
@@ -446,6 +447,7 @@ fn detect_duplicate_targets<'a>(
             target: None,
             path: Some(path_string(&changes[0].path)),
             deferred_by: None,
+            parked_by: None,
         });
     }
 }

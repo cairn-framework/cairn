@@ -40,6 +40,7 @@ pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
                                         target: None,
                                         path: None,
                                         deferred_by: None,
+                                        parked_by: None,
                                     }];
                                 }
                                 2 => {}
@@ -171,6 +172,7 @@ pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
                 target: None,
                 path: None,
                 deferred_by: None,
+                parked_by: None,
             }]);
         };
         ready.remove(next);

@@ -62,6 +62,7 @@ fn emitted_remediation_description_uses_copy_entry() {
         target: None,
         path: None,
         deferred_by: None,
+        parked_by: None,
     });
     let actions = remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
     let description = actions

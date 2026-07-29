@@ -23,6 +23,7 @@ fn make_todo(node: &str) -> Todo {
         status: TodoStatus::Open,
         created: "2024-01-01".to_owned(),
         satisfies: None,
+        defers: Vec::new(),
         body: String::new(),
     }
 }
