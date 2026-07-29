@@ -165,6 +165,7 @@ pub(super) fn findings_json(findings: &[Finding]) -> Vec<Value> {
                 "message": finding.message,
                 "node": finding.node,
                 "path": finding.path,
+                "deferred_by": finding.deferred_by,
             })
         })
         .collect()

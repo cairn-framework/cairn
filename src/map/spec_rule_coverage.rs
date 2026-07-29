@@ -91,7 +91,9 @@ pub(crate) fn validate_spec_rule_coverage(graph: &mut Graph, root: &Path) {
         };
         // A deferral only applies while the rule is still pending. Once a rule
         // is enforced (emitter still missing) the deferral no longer applies:
-        // the finding resurfaces in full and must not be collapsed.
+        // the finding resurfaces in full and must not be collapsed. The cell
+        // is copied unvalidated; `validate_deferred_decision_targets` retracts
+        // it unless the named decision is accepted.
         let deferred_by = if rule.status == Status::Pending {
             rule.deferred_by.clone()
         } else {
@@ -116,34 +118,55 @@ pub(crate) fn validate_spec_rule_coverage(graph: &mut Graph, root: &Path) {
     }
 }
 
-/// Reports deferred-by cells that do not name a live decision artefact.
+/// Enforces the accepted-only deferral contract
+/// (`dec.loop-selection-deferred-findings` obligation 1) in two independent
+/// halves. A sweep over the already-emitted findings retracts every
+/// `deferred_by` (and its message suffix) whose decision is not **accepted**,
+/// keyed on the decision set alone, so publication stays trustworthy even if
+/// the registry read below fails or the file changed after emission copied
+/// the cell. A registry pass then reports each `Deferred-by` cell naming a
+/// missing, proposed, deprecated, or superseded decision as
+/// `CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID`.
 pub(crate) fn validate_deferred_decision_targets(
     graph: &mut Graph,
     root: &Path,
     decisions: &[Decision],
 ) {
+    let accepted = decisions
+        .iter()
+        .filter(|decision| decision.status == DecisionStatus::Accepted)
+        .map(|decision| decision.id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    for finding in &mut graph.findings {
+        let Some(decision) = finding.deferred_by.as_deref() else {
+            continue;
+        };
+        if accepted.contains(decision) {
+            continue;
+        }
+        let suffix = format!(" (deferred by {decision})");
+        finding.deferred_by = None;
+        if let Some(stripped) = finding.message.strip_suffix(&suffix) {
+            finding.message = stripped.to_owned();
+        }
+    }
     let Ok(registry) = fs::read_to_string(root.join(REGISTRY)) else {
         return;
     };
-    let live_decisions = decisions
-        .iter()
-        .filter(|decision| decision.status != DecisionStatus::Superseded)
-        .map(|decision| decision.id.as_str())
-        .collect::<std::collections::BTreeSet<_>>();
     for rule in parse_rules(&registry) {
-        let Some(deferred_by) = rule.deferred_by else {
+        let Some(deferred_by) = rule.deferred_by.as_deref() else {
             continue;
         };
-        if live_decisions.contains(deferred_by.as_str()) {
+        if accepted.contains(deferred_by) {
             continue;
         }
         graph.findings.push(Finding {
             code: "CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID".to_owned(),
             severity: FindingSeverity::Warning,
-            message: copy::lookup("findings.codes.CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID")
+            message: copy::lookup("findings.codes.CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID.body")
                 .replace("{rule}", &rule.rule)
                 .replace("{spec}", &rule.spec)
-                .replace("{decision}", &deferred_by),
+                .replace("{decision}", deferred_by),
             node: None,
             target: Some(format!("{} {}", rule.spec, rule.rule)),
             path: Some(REGISTRY.to_owned()),

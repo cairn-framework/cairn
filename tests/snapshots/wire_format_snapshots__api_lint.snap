@@ -6,6 +6,7 @@ expression: value
   "findings": [
     {
       "code": "CAIRN_PROVENANCE_NO_DECISION",
+      "deferred_by": null,
       "message": "node `app.core` has no decision artefact explaining why it exists",
       "node": "app.core",
       "path": null,
@@ -13,11 +14,12 @@ expression: value
     },
     {
       "code": "CAIRN_ORDER_CYCLE",
+      "deferred_by": null,
       "message": "dependency cycle: app.api -> app.core -> app.api",
       "node": "app.api",
       "path": null,
       "severity": "error"
     }
   ],
-  "schema_version": 4
+  "schema_version": 5
 }

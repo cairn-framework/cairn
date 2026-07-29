@@ -218,10 +218,10 @@
           </summary>
           <div class="mk-entry-body">
             <div class="mk-prose">
-              <p>Wire <code>cairn hook all</code> into pre-commit or CI and it becomes the gate. It holds you to what you have actually written down, so it stays quiet until you write a promise worth keeping. Below is real output from this repository on 27 July 2026, with the JSON wrapped to fit.</p>
+              <p>Wire <code>cairn hook all</code> into pre-commit or CI and it becomes the gate. It holds you to what you have actually written down, so it stays quiet until you write a promise worth keeping. Below is real output from this repository on 29 July 2026, with the JSON wrapped to fit.</p>
             </div>
             <div class="mk-panel">
-              <div class="mk-panel-head"><span>Reconciled</span><span class="mk-panel-file">this repository &middot; 27 July 2026</span></div>
+              <div class="mk-panel-head"><span>Reconciled</span><span class="mk-panel-file">this repository &middot; 29 July 2026</span></div>
 <pre class="mk-wrap" tabindex="0" role="region" aria-label="Output of cairn hook all and cairn lint --json"><span class="mk-o-dim">$</span> cairn hook all
 Hook: all
 Decision: <span class="mk-o-key">pass</span>
@@ -231,11 +231,12 @@ Findings:
 
 <span class="mk-o-dim">$</span> cairn lint --json
 {<span class="mk-o-key">"findings"</span>:[{<span class="mk-o-key">"code"</span>:<span class="mk-o-warn">"CAIRN_SPEC_RULE_UNIMPLEMENTED"</span>,
+<span class="mk-o-key">"deferred_by"</span>:"dec.revisit-trigger-correlator-deferred",
 <span class="mk-o-key">"message"</span>:"spec rule `ADR revisit_triggers appear relevant to recent
 changes` (spec:634) is pending but names no enforcer (deferred by
 dec.revisit-trigger-correlator-deferred)",<span class="mk-o-key">"node"</span>:null,
 <span class="mk-o-key">"path"</span>:"docs/registries/spec-rules.md",<span class="mk-o-key">"severity"</span>:<span class="mk-o-warn">"info"</span>}],
-<span class="mk-o-key">"schema_version"</span>:4}</pre>
+<span class="mk-o-key">"schema_version"</span>:5}</pre>
             </div>
           </div>
         </details>

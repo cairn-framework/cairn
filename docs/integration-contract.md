@@ -83,7 +83,7 @@ Error responses from the MCP/query path:
 | `blueprint` | `cairn_blueprint` | Raw blueprint file content |
 | `ui` | - | Launch the web UI server |
 | `watch` | `cairn_watch` | Watch for finding changes and emit events |
-| `workspace <status\|lint\|frontier>` | — | Aggregate status, lint, and frontier queries across a `cairn.workspace`'s member projects |
+| `workspace <status\|lint\|frontier>` | - | Aggregate status, lint, and frontier queries across a `cairn.workspace`'s member projects |
 
 ### Mutating commands (modify filesystem)
 
@@ -93,14 +93,14 @@ Error responses from the MCP/query path:
 | `scan` | `cairn_scan` | Re-scan project, update interface hashes |
 | `rename <old> <new>` | `cairn_rename` | Rename a node ID across all files |
 | `change apply <change>` | `cairn_archive` | Apply a completed change |
-| `change new <id>` | — | Scaffold a new change directory |
+| `change new <id>` | - | Scaffold a new change directory |
 | `init` | `cairn_init` | Scaffold new cairn project |
 | `init --from-code` | `cairn_init_from_code` | Brownfield extraction from existing code |
 | `refine` | `cairn_refine` | Re-run brownfield discovery |
 | `import-openspec` | `cairn_import_openspec` | Migrate openspec changes to meta/changes |
-| `feedback "<message>"` | — | Record cairn friction in `.cairn/feedback.md`, print upstream issue link |
-| `decision new <slug>` | — | Scaffold a new decision artefact (frontmatter + sections) |
-| `gap <node> --question "<text>"` | — | Log an unresolved question as a `gap: true`, `status: proposed` decision artefact |
+| `feedback "<message>"` | - | Record cairn friction in `.cairn/feedback.md`, print upstream issue link |
+| `decision new <slug>` | - | Scaffold a new decision artefact (frontmatter + sections) |
+| `gap <node> --question "<text>"` | - | Log an unresolved question as a `gap: true`, `status: proposed` decision artefact |
 
 ### Draft lifecycle (semi-stable)
 
@@ -194,8 +194,14 @@ Version the integration by checking `cairn --version`. Breaking changes to the J
 
 The committed JSON Schemas under `schemas/` are the authority for externally
 consumed wire shapes. `schemas/map.schema.json` defines the deterministic
-`map.json` snapshot, `schemas/finding.schema.json` defines the Finding shape
-shared by map/lint/watch payloads, and `schemas/work-item.schema.json` defines
+`map.json` snapshot, and `schemas/finding.schema.json` defines the
+serde-derived Finding component shared by map and watch payloads. The query
+findings wire (`lint --json`, `scan --json`, and the envelope's `findings`
+array) extends that component with a required nullable `deferred_by`: the
+accepted decision deferring the finding, or `null`
+(`dec.loop-selection-deferred-findings`); its shape is pinned by
+`EnvelopeFinding` in `schemas/envelope.schema.json`.
+`schemas/work-item.schema.json` defines
 the `{source,title,node,command,rank}` projection shared by status, next, and
 remediate JSON. `schemas/envelope.schema.json` defines the MCP
 `{project_context,rules,data,findings}` envelope, requiring

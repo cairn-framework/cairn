@@ -19,7 +19,7 @@ passes scan into tracked cairn state, the way the spec mandates (spec.md:24). Se
 | Spec | `spec:<line>` anchor into `docs/spec.md` where the rule originated there; `-` for a rule this registry owns outright. |
 | Code | The `CAIRN_*` finding the rule's enforcer emits, in backticks. Empty (`-`) means no enforcer is named yet. |
 | Status | `enforced`, `pending`, or `declared` (see below). |
-| Deferred-by | Optional fifth cell on `pending` rows: the decision artefact deferring the rule's build (e.g. `dec.<slug>`). Empty (`-`) or absent means no deferral is recorded. The finding message names it inline. |
+| Deferred-by | Optional fifth cell on `pending` rows: the decision artefact deferring the rule's build (e.g. `dec.<slug>`). Empty (`-`) or absent means no deferral is recorded. The finding message names it inline and `lint --json` publishes it as `deferred_by`, but only while the named decision is **accepted**: any other target (missing, proposed, deprecated, or superseded) raises `CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID` and the finding stays live with no published deferral (`dec.loop-selection-deferred-findings`). |
 
 ## Status semantics
 

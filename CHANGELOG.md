@@ -2,6 +2,12 @@
 
 ## v0.9.0
 
+### Deferral publication and loop selection
+
+- Findings on the lint/scan JSON wire carry `deferred_by`: the id of the accepted decision deferring the finding, or `null`. Publication is gated on decision status: a `Deferred-by` cell naming a decision that is not accepted (missing, proposed, deprecated, or superseded) raises `CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID` and publishes no deferral on the query findings wire (the finding stays live, its message suffix retracted alongside the field), so a published deferral names an accepted decision (`dec.loop-selection-deferred-findings`).
+- Query JSON payloads bump to `schema_version` 5, and the webui `/api/*` envelope bumps to `schema_version` 5, for the added field.
+- Loop-mode selection treats a finding with a published `deferred_by` as standing evidence, not a selectable unit: default selection skips it, a MISSION naming a node or finding code resolves per instance and takes the first live one, and a code is reported settled only when every instance carrying it has a validated deferral. Pack phrase assertions pin the sentences in both selection paths.
+
 ### Change lifecycle read surface
 
 - `cairn change show` and `cairn change list` report task progress: JSON carries `progress: {completed, total, remaining}` parsed from the change's `tasks.md` checkboxes, and the human `change show` prints `Tasks: n/m complete`. The checkbox parser is now shared with the scan check behind `CAIRN_CHANGE_TASKS_COMPLETE` (#508).
@@ -32,6 +38,7 @@
 - An unsupported long option on a command that declares its own flag set is now rejected with a usage error instead of being silently ignored, and the help metadata behind that check is guarded against drift. Options treated as global are still accepted everywhere (#479).
 - Remediation copy is centralised, and packaged includes are anchored so no embedded asset can be dropped from a release (#472, #473).
 - A deferred spec-rule decision that no longer resolves now raises a warning rather than silently suppressing its finding (#474).
+- The `CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID` message now renders its copy body with the rule, spec anchor, and rejected decision substituted; the lookup previously missed the `.body` segment and rendered the literal copy key.
 - The web explorer reloads changed or newly added artefacts without a restart (#475).
 
 ### Known boundary

@@ -138,7 +138,7 @@ fn dash_deferred_by_cell_renders_unchanged() {
 }
 
 #[test]
-fn dangling_deferred_decision_is_found_but_live_one_is_not() {
+fn dangling_deferred_decision_is_found_but_accepted_one_is_not() {
     let (dir, mut g) = run(
         concat!(
             "| Dangling | spec:1 | - | pending | dec.missing |\n",
@@ -331,4 +331,161 @@ fn url_in_string_preserves_code_on_same_line() {
         "fn f() { let u = \"https://x\"; warning(\"CAIRN_FOO\", u); }",
     );
     assert!(g.findings.is_empty(), "{:?}", codes(&g));
+}
+
+// ── accepted-only deferral publication (dec.loop-selection-deferred-findings) ──
+
+/// Runs coverage then deferral validation in production order
+/// (`scanner::scan_project`): emission copies the registry cell, validation
+/// retracts it unless the named decision is accepted.
+fn run_with_decisions(rows: &str, decisions: &[Decision]) -> (tempfile::TempDir, Graph) {
+    let (dir, mut g) = run(rows, "src/check.rs", "fn f() {}");
+    validate_deferred_decision_targets(&mut g, dir.path(), decisions);
+    (dir, g)
+}
+
+fn unimplemented_finding(g: &Graph) -> &Finding {
+    g.findings
+        .iter()
+        .find(|finding| finding.code == "CAIRN_SPEC_RULE_UNIMPLEMENTED")
+        .expect("coverage finding present")
+}
+
+/// Both halves of the rejection contract: the invalid-deferral finding is
+/// raised (with the rejected decision named by the substituted copy), and the
+/// coverage finding publishes no `deferred_by`, its message suffix retracted.
+fn assert_invalid_and_unpublished(g: &Graph, decision_id: &str) {
+    let invalid = g
+        .findings
+        .iter()
+        .find(|finding| finding.code == "CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID")
+        .expect("invalid-deferral finding present");
+    assert!(
+        invalid.message.contains(decision_id),
+        "copy must name the rejected decision: {}",
+        invalid.message
+    );
+    let coverage = unimplemented_finding(g);
+    assert_eq!(
+        coverage.deferred_by, None,
+        "an unaccepted deferral must not publish"
+    );
+    assert_eq!(
+        coverage.message, "spec rule `R` (spec:634) is pending but names no enforcer",
+        "the deferral suffix must be retracted with the field"
+    );
+}
+
+#[test]
+fn deferral_naming_proposed_decision_is_invalid_and_unpublished() {
+    let (_d, g) = run_with_decisions(
+        "| R | spec:634 | - | pending | dec.x |\n",
+        &[decision("dec.x", DecisionStatus::Proposed)],
+    );
+    let invalid = g
+        .findings
+        .iter()
+        .find(|finding| finding.code == "CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID")
+        .expect("invalid-deferral finding present");
+    assert_eq!(
+        invalid.message,
+        "Spec rule `R` (spec:634) defers to `dec.x`, which is not an accepted decision.",
+        "the copy body must resolve and substitute every placeholder"
+    );
+    assert_invalid_and_unpublished(&g, "dec.x");
+}
+
+#[test]
+fn deferral_naming_deprecated_decision_is_invalid_and_unpublished() {
+    let (_d, g) = run_with_decisions(
+        "| R | spec:634 | - | pending | dec.x |\n",
+        &[decision("dec.x", DecisionStatus::Deprecated)],
+    );
+    assert_invalid_and_unpublished(&g, "dec.x");
+}
+
+#[test]
+fn deferral_naming_missing_decision_is_invalid_and_unpublished() {
+    let (_d, g) = run_with_decisions("| R | spec:634 | - | pending | dec.x |\n", &[]);
+    assert_invalid_and_unpublished(&g, "dec.x");
+}
+
+#[test]
+fn deferral_naming_superseded_decision_is_invalid_and_unpublished() {
+    let (_d, g) = run_with_decisions(
+        "| R | spec:634 | - | pending | dec.x |\n",
+        &[decision("dec.x", DecisionStatus::Superseded)],
+    );
+    assert_invalid_and_unpublished(&g, "dec.x");
+}
+
+#[test]
+fn deferral_naming_accepted_decision_publishes() {
+    let (_d, g) = run_with_decisions(
+        "| R | spec:634 | - | pending | dec.x |\n",
+        &[decision("dec.x", DecisionStatus::Accepted)],
+    );
+    assert_eq!(codes(&g), vec!["CAIRN_SPEC_RULE_UNIMPLEMENTED"]);
+    let coverage = unimplemented_finding(&g);
+    assert_eq!(coverage.deferred_by.as_deref(), Some("dec.x"));
+    assert_eq!(
+        coverage.message,
+        "spec rule `R` (spec:634) is pending but names no enforcer (deferred by dec.x)"
+    );
+}
+
+#[test]
+fn mixed_instances_sharing_a_code_publish_deferral_per_instance() {
+    // One code (CAIRN_SPEC_RULE_UNIMPLEMENTED) can cover a deferred instance
+    // and a live one at once. Publication is per instance, so a selector takes
+    // the live one instead of reporting the whole code settled.
+    let (_d, g) = run_with_decisions(
+        concat!(
+            "| Deferred | spec:1 | - | pending | dec.x |\n",
+            "| Live | spec:2 | - | pending | - |\n",
+        ),
+        &[decision("dec.x", DecisionStatus::Accepted)],
+    );
+    let coverage: Vec<_> = g
+        .findings
+        .iter()
+        .filter(|finding| finding.code == "CAIRN_SPEC_RULE_UNIMPLEMENTED")
+        .collect();
+    assert_eq!(coverage.len(), 2, "{:?}", codes(&g));
+    let by_target = |target: &str| {
+        coverage
+            .iter()
+            .find(|finding| finding.target.as_deref() == Some(target))
+            .unwrap_or_else(|| panic!("no finding for target {target}"))
+    };
+    assert_eq!(
+        by_target("spec:1 Deferred").deferred_by.as_deref(),
+        Some("dec.x")
+    );
+    assert_eq!(by_target("spec:2 Live").deferred_by, None);
+}
+
+#[test]
+fn retraction_does_not_depend_on_the_registry_read() {
+    // The sweep is keyed on the decision set alone, so a registry that
+    // vanishes (or shifts) between emission and validation cannot leave an
+    // unaccepted deferral published.
+    let (dir, mut g) = run(
+        "| R | spec:634 | - | pending | dec.x |\n",
+        "src/check.rs",
+        "fn f() {}",
+    );
+    fs::remove_file(dir.path().join(REGISTRY)).unwrap();
+    validate_deferred_decision_targets(&mut g, dir.path(), &[]);
+    let coverage = unimplemented_finding(&g);
+    assert_eq!(coverage.deferred_by, None);
+    assert_eq!(
+        coverage.message,
+        "spec rule `R` (spec:634) is pending but names no enforcer"
+    );
+    assert!(
+        !codes(&g).contains(&"CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID"),
+        "no registry rows remain to report: {:?}",
+        codes(&g)
+    );
 }

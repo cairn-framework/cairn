@@ -33,7 +33,13 @@ pub(crate) fn render_findings(findings: &[Finding], json: bool, verbose: bool) -
             out.push_str(finding.severity.name());
             out.push_str("\",\"message\":\"");
             out.push_str(&esc(&finding.message));
-            out.push_str("\"}");
+            out.push('"');
+            if let Some(deferred_by) = &finding.deferred_by {
+                out.push_str(",\"deferred_by\":\"");
+                out.push_str(&esc(deferred_by));
+                out.push('"');
+            }
+            out.push('}');
         }
         out.push_str("]}\n");
         out
@@ -285,6 +291,34 @@ mod tests {
         assert!(rendered.contains("\"code\":\"CAIRN_TEST\""));
         assert!(rendered.contains("\"severity\":\"error\""));
         assert!(rendered.contains("\"message\":\"bad\""));
+    }
+
+    #[test]
+    fn test_render_findings_json_deferred_by_present_only_when_set() {
+        let deferred = Finding {
+            code: "CAIRN_SPEC_RULE_UNIMPLEMENTED".to_owned(),
+            severity: FindingSeverity::Info,
+            message: "pending (deferred by dec.x)".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: Some("dec.x".to_owned()),
+        };
+        let live = Finding {
+            code: "CAIRN_TEST".to_owned(),
+            severity: FindingSeverity::Warning,
+            message: "live".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: None,
+        };
+        let rendered = render_findings(&[deferred, live], true, false);
+        assert!(rendered.contains("\"deferred_by\":\"dec.x\""));
+        assert!(
+            !rendered.contains("\"message\":\"live\",\"deferred_by\""),
+            "a finding without a deferral must omit the field: {rendered}"
+        );
     }
 
     #[test]

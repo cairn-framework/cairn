@@ -77,8 +77,11 @@ pub struct Finding {
     /// Optional file path.
     #[schemars(required, schema_with = "nullable_string_schema")]
     pub path: Option<String>,
-    /// Decision id this finding is deferred by, if any (set at the emission site).
-    /// Skipped in `--json` so the wire format is unchanged.
+    /// Decision id this finding is deferred by, if any. Retracted by
+    /// `validate_deferred_decision_targets` unless that decision is accepted
+    /// (`dec.loop-selection-deferred-findings`). `serde(skip)` keeps derived
+    /// wires (`map.json`, watch events) unchanged; the query wire publishes
+    /// the field explicitly in `findings_json`.
     #[serde(skip)]
     pub deferred_by: Option<String>,
 }
