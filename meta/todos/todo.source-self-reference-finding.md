@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.artefacts
-status: blocked
+status: open
 created: 2026-07-27
 ---
 
@@ -19,8 +19,8 @@ records no evidence: the pointer resolves to the record. It was found in
 rule made the collision reachable by rename rather than by typo
 (`res.source-self-reference-unchecked`).
 
-`dec.source-file-never-self` states the rule. This todo is the enforcement, and
-it is blocked until that decision is accepted.
+`dec.source-file-never-self` states the rule. This todo is the enforcement; it
+was blocked until that decision was accepted (2026-07-29).
 
 ## Scope
 
@@ -42,10 +42,12 @@ the neighbouring check. Decide it in the change, do not default to it.
 
 ## Depends on
 
-- `dec.source-file-never-self` reaching `status: accepted`. It is `proposed`: a
+- `dec.source-file-never-self` reaching `status: accepted`. It was `proposed`: a
   loop iteration may not ratify a repository-wide artefact rule. Building the
-  check before the rule is ratified would gate every adopting repository on an
-  unaccepted decision.
+  check before the rule was ratified would have gated every adopting repository
+  on an unaccepted decision. Satisfied 2026-07-29 by acceptance of
+  `dec.source-file-never-self` (maintainer ratification, sheet of record PR
+  #528, row W4).
 
 ## Acceptance
 

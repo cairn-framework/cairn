@@ -2,11 +2,19 @@
 id: dec.contract-node-shape-drift-deferred
 nodes:
   - cairn.kernel.scanner
-status: proposed
+status: deprecated
 date: 2026-07-28
 informed_by: [res.contract-baseline-rerecord-reachability]
 ---
 # Contract node-shape drift: build parked behind a non-generative re-record surface
+
+**Deprecated 2026-07-29 as fulfilled, not repudiated** (maintainer
+ratification, PR #528 sheet W7 as corrected in review). The parking this
+decision ordered ran to completion: the prerequisite re-record surface landed
+in #515, the enforcer in #516, and `CAIRN_CONTRACT_NODE_SHAPE_DRIFT` is
+`enforced` in `docs/registries/spec-rules.md`. Accepting it instead would have
+attached present-tense authority to a parking that no longer exists, so it
+takes the schema's non-accepted terminal.
 
 ## Context
 
@@ -56,12 +64,15 @@ is not true of this rule.
 
 ## Consequences
 
-- `cairn scan` reports one `CAIRN_SPEC_RULE_UNIMPLEMENTED` Info for this rule,
-  naming this decision inline, until the enforcer lands. It does not block
-  `--strict`.
-- The re-record surface is on the critical path for the enforcer. If it is never
-  built, this rule is never enforced, and the honest response is to withdraw the
-  row rather than ship the check without remediation.
-- This decision is `proposed`. Accepting it is the maintainer's call; the
-  registry cell is valid either way, since a live decision is any decision that
-  is not superseded.
+- While the parking stood, `cairn scan` reported one
+  `CAIRN_SPEC_RULE_UNIMPLEMENTED` Info for this rule, naming this decision
+  inline, and it did not block `--strict`. The enforcer landed in #516, so
+  that Info no longer fires.
+- The re-record surface was on the critical path for the enforcer: had it
+  never been built, this rule would never have been enforced, and the honest
+  response was to withdraw the row rather than ship the check without
+  remediation. It landed in #515, so that fallback was never needed.
+- This decision was `proposed`; on 2026-07-29 it was deprecated as fulfilled
+  rather than accepted, per the note above. While the parking stood, the
+  registry cell was valid either way, since a live decision is any decision
+  that is not superseded.

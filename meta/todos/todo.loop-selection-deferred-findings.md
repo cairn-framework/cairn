@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: blocked
+status: open
 created: 2026-07-27
 ---
 
@@ -17,16 +17,15 @@ as evidence of a Designed-but-unbuilt rule. Selection and the graph's own
 authority disagree permanently, so every iteration either re-derives the
 exception by hand or follows the letter and stalls.
 
-Recommended by `dec.loop-selection-deferred-findings`, which is `proposed`;
+Recommended by `dec.loop-selection-deferred-findings`, accepted 2026-07-29;
 evidence and rejected options in `res.loop-selection-deferred-findings`. This
-todo is `blocked` until that decision is accepted. Unblock with
-`cairn todo set loop-selection-deferred-findings open` once it is, implement
-under it, and do not author a competing decision.
+todo was `blocked` until that decision was accepted. Implement under the
+accepted decision, and do not author a competing decision.
 
-While this todo is `blocked`, selection skips it and a MISSION naming it reports
-and ends. Once it is accepted and reopened, reaching it still needs a MISSION
-that names it: until the loop-mode edit below lands, default selection takes the
-standing finding ahead of every todo.
+While this todo was `blocked`, selection skipped it and a MISSION naming it
+reported and ended. Now that the decision is accepted and this todo reopened,
+reaching it still needs a MISSION that names it: until the loop-mode edit below
+lands, default selection takes the standing finding ahead of every todo.
 
 ## Scope
 
@@ -97,3 +96,6 @@ Amend the procedure:
 `dec.loop-selection-deferred-findings` being accepted. Nothing else:
 `todo.revisit-trigger-correlator` records the deferred work this rule learns to
 skip, and does not gate this change.
+
+Satisfied 2026-07-29 by acceptance of `dec.loop-selection-deferred-findings`
+(maintainer ratification, sheet of record PR #528, row W1).

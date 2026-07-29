@@ -17,9 +17,9 @@ findings block selection. Fourteen out of fourteen, in fresh sessions with no me
 of the last one. The standing set is two `CAIRN_SOURCE_UNVERIFIED`, whose bodies state
 that hash-pinning a live source file would turn ordinary edits into structural errors
 and whose fix is parked in `todo.source-tracked-verification-mode`, plus one
-`CAIRN_SPEC_RULE_UNIMPLEMENTED` deferred by `dec.contract-node-shape-drift-deferred`.
-Scan already prints "deferred by dec.X" for the third, so the annotation exists and
-selection ignores it.
+`CAIRN_SPEC_RULE_UNIMPLEMENTED` deferred by `dec.revisit-trigger-correlator-deferred`
+(spec:634). Scan already prints "deferred by dec.X" for the third, so the annotation
+exists and selection ignores it.
 
 **What is smaller than assumed.** Direct time spent deciding selectability was about
 56 of 1,042 minutes of loop elapsed time, roughly 5%. Review, rework, and CI
@@ -57,9 +57,9 @@ Three independent changes. Land them as separate units if either of the first tw
 grows.
 
 Prior art this todo composes with rather than duplicates:
-`dec.loop-selection-deferred-findings` (proposed 2026-07-27) and its
-implementation todo carry the narrowest rule. The three selection rules, once
-all land, are:
+`dec.loop-selection-deferred-findings` (proposed 2026-07-27, accepted
+2026-07-29) and its implementation todo carry the narrowest rule. The three
+selection rules, once all land, are:
 
 - a finding whose `deferred_by` names an accepted decision is not selectable
   (that decision, not this todo);
@@ -138,6 +138,11 @@ finding, which does.
 
 Ratify cut 1a alone if the decision-side field needs more thought: it is the half
 that clears the two `CAIRN_SOURCE_UNVERIFIED` findings costing iterations today.
+
+Cut 1a and item 2 were ratified 2026-07-29 (PR #528 sheet W2, which reads
+"folding items 1a+2"), so their implementation may proceed. Cut 1b, the
+decision-side `defers:` field, is NOT ratified and still needs its own
+maintainer ruling.
 
 ## Acceptance
 

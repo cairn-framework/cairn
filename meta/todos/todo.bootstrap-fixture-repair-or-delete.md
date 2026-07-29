@@ -47,9 +47,17 @@ Check the two readers of the fixture before deciding:
 of it, and `todo.artefact-filename-test-fixtures` uses its sources directory as a
 corpus no reconciler reaches. Repair keeps both. Delete has to relocate both.
 
+## Verdict
+
+The maintainer ratified REPAIR on 2026-07-29 (PR #528 sheet W10). The repair
+itself is a later loop unit, not part of the ratification batch, so this todo
+stays open until it lands. Dependants (`todo.blueprint-authorability-eval`,
+`todo.example-corpus-scan-assertions`) unblock when the repair lands, not at
+ratification.
+
 ## Depends on
 
-Nothing. The verdict is available now.
+Nothing. The verdict was given 2026-07-29; see Verdict.
 
 ## Acceptance
 
@@ -61,6 +69,10 @@ Nothing. The verdict is available now.
 
 ## Dependants
 
-- `todo.blueprint-authorability-eval` (node `cairn.root`) is blocked on this
-  verdict: its primary metric is iterations to a clean scan of this fixture,
-  which is not measurable while the fixture starts dirty.
+- `todo.blueprint-authorability-eval` (node `cairn.root`) was blocked on this
+  verdict and now waits on the repair landing: its primary metric is iterations
+  to a clean scan of this fixture, which is not measurable while the fixture
+  starts dirty.
+- `todo.example-corpus-scan-assertions` (node `cairn.tests`) likewise waits on
+  the repair landing: it closes when the verdict is reflected in the bootstrap
+  case in `tests/examples_gate.rs`.

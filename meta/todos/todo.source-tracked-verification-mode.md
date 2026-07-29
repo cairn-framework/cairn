@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.artefacts
-status: blocked
+status: open
 created: 2026-07-28
 ---
 
@@ -80,7 +80,9 @@ containment checked, no perpetual advisory.
 
 - `dec.source-tracked-verification` reaching `status: accepted`. It changes a
   spec invariant and the artefact schema every adopting repository shares, so a
-  loop iteration may not ratify it.
+  loop iteration may not ratify it. Satisfied 2026-07-29 by acceptance of
+  `dec.source-tracked-verification` (maintainer ratification, sheet of record
+  PR #528, row W3).
 
 ## Acceptance
 

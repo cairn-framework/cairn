@@ -2,7 +2,7 @@
 id: dec.autodocs-head-to-head-arm-b
 nodes:
   - cairn.brownfield
-status: proposed
+status: accepted
 date: 2026-07-27
 informed_by: [res.autodocs-head-to-head-feasibility]
 revisit_triggers:
@@ -11,8 +11,10 @@ revisit_triggers:
 
 # How to resolve AutoDocs-on-itself (Arm B) in the head-to-head
 
-Proposed, not accepted: this needs a maintainer ruling, so nothing here binds
-`cairn.brownfield` yet.
+Accepted 2026-07-29 by maintainer ratification (PR #528 sheet W6), taking the
+recommended branch: Arm B is dropped and `todo.autodocs-head-to-head` is
+rewritten as a one-sided Arm A stress test and reopened. This now binds
+`cairn.brownfield`.
 
 ## Context
 
@@ -30,7 +32,7 @@ free and local. Arm B is blocked twice over, per
 
 Blocker 1 is a capability gap upstream. Money does not close it.
 
-## Proposed decision
+## Decision
 
 Drop Arm B and rewrite `todo.autodocs-head-to-head` as a one-sided Arm A
 brownfield stress test over the AutoDocs repository.
@@ -62,14 +64,14 @@ into a product claim.
 
 ## Consequences
 
-Until this is accepted or replaced, `todo.autodocs-head-to-head` stays `blocked`
-on `todo.autodocs-arm-b-ruling`, and Arm A does not land on its own, because
-landing half the Acceptance would read as progress while the binding criterion
-stayed unmet.
+Until this was accepted, `todo.autodocs-head-to-head` stayed `blocked` on
+`todo.autodocs-arm-b-ruling`, and Arm A did not land on its own, because
+landing half the Acceptance would have read as progress while the binding
+criterion stayed unmet.
 
-Whoever accepts this should set `status: accepted` and state which branch was
-chosen. Accepting the recommended branch does not by itself unblock the parent:
-its Acceptance still mandates both arms, so it must first be rewritten to the
-one-sided form, and only then reopened. A future ruling that authorizes a real
-Arm B run would unblock it as written, but only once both upstream limits no
-longer apply to the target.
+Whoever accepted this was to set `status: accepted` and state which branch was
+chosen; accepting the recommended branch did not by itself unblock the parent,
+whose Acceptance still mandated both arms. That protocol was carried out on
+2026-07-29: the parent was rewritten to the one-sided form, then reopened. Arm
+B as originally specified returns via the parent's revisit trigger, once both
+upstream limits no longer apply to the target.

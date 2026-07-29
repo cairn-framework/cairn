@@ -3,11 +3,14 @@ id: dec.order-containment-rule
 nodes:
   - cairn.kernel.query
   - cairn.kernel.map
-status: accepted
+status: superseded
 date: 2026-07-12
 ---
 
 # Order query: containment is a hard children-first constraint
+
+Superseded 2026-07-29 by `dec.brownfield-discovery-cycle-severity` (option A of
+its ratification protocol; its clause 6 restates every surviving obligation).
 
 ## Context
 

@@ -1,53 +1,74 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: open
 created: 2026-07-11
 ---
 
-# Brownfield head-to-head: Cairn on AutoDocs versus AutoDocs on itself
+# Brownfield stress test: Cairn on the AutoDocs repository (Arm A)
 
-Experiment (2026-07-11): clone TrySita/AutoDocs locally, run Cairn's brownfield onboarding on it (Arm A), and separately run AutoDocs against its own repository (Arm B). Compare the two outputs on the same codebase.
+One-sided Arm A experiment, rewritten 2026-07-29 under the accepted
+`dec.autodocs-head-to-head-arm-b` (maintainer ratification, PR #528 sheet W6).
+The head-to-head as filed on 2026-07-11 also mandated Arm B, AutoDocs run over
+its own repository. That arm is dropped: AutoDocs supports neither polyglot nor
+nested-layout repositories and its own repo is both, so lifting either limit
+alone is not enough, and the comparison was unavailable at any price
+(`res.autodocs-head-to-head-feasibility`, source `src.autodocs`).
 
-Three goals:
+## Status note
 
-- Stress-test Cairn brownfield on a real polyglot repo (Python ingestion service plus TypeScript Next.js app, Docker Compose, MCP surface).
-- Use Cairn's map as the navigation aid for our own competitor study of their codebase, so the study itself validates the tool.
-- Head-to-head: what does Cairn's authored architecture/intent map capture that their generated dependency docs miss, and the reverse (summary quality, freshness, blast radius, provenance).
+Open. The blocking prerequisite was satisfied 2026-07-29 by acceptance of
+`dec.autodocs-head-to-head-arm-b` (maintainer ratification, sheet of record
+PR #528, row W6).
 
-Scope and boundaries:
+## Scope
 
-- Local and private; publish nothing project-specific without maintainer clearance (see business adoption plan in the george repo).
-- Record setup friction, runtime, node counts, findings, false positives for both tools.
-- Output: a research artefact (meta/research) with the comparison table and any Cairn defects or borrow-candidates it exposes; file follow-up todos per defect.
+- Clone TrySita/AutoDocs locally and run Cairn's brownfield onboarding on it:
+  `cairn init --from-code`, the delta apply, and a first scan.
+- Stress-test Cairn brownfield on a real polyglot repo (Python ingestion
+  service plus TypeScript Next.js app, Docker Compose, MCP surface).
+- Use Cairn's map as the navigation aid for our own competitor study of their
+  codebase, so the study itself validates the tool.
+- Record setup friction, runtime, node counts, findings, and false positives.
+- This run also unblocks the large-brownfield measurement deferred in
+  `res.codeatlas-analysis` item 7.
 
-Acceptance: both runs completed and documented; comparison note written with at least three concrete Cairn improvements or confirmations; no unsolicited external contact.
+## Boundaries
 
-## Review disposition (2026-07-11)
+- Local and private; publish nothing project-specific without maintainer
+  clearance (see business adoption plan in the george repo). No unsolicited
+  external contact.
+- The webui/dashboard comparison sub-goal stays dropped, per the 2026-07-11
+  review disposition: it was already delivered by
+  `todo.webui-simplicity-review`.
+- No quality-axis substitution: reporting a local model's output as AutoDocs'
+  quality would launder a model swap into a product claim, per the decision's
+  rationale.
 
-Backlog review recommends **narrow + defer**. The webui/dashboard comparison
-sub-goal is already delivered by `todo.webui-simplicity-review` (the AutoDocs
-dashboard was cloned and compared this session), so drop that from scope. What
-remains is the brownfield-map versus generated-dependency-docs comparison, which
-partly overlaps `todo.discovery-import-edges` and the first-run work. This is a
-research artefact with no user-facing deliverable and carries external-contact
-risk, so it is **low priority at current scale**: keep as a deferred research
-note, run only alongside a real brownfield validation pass, and never make
-external contact from it.
+## Acceptance
 
-## Blocked (2026-07-27)
+- The Arm A run is completed and documented as a research artefact
+  (meta/research) carrying the recorded measurements and any Cairn defects or
+  borrow-candidates it exposes, with follow-up todos filed per defect.
+- At least three concrete Cairn improvements or confirmations recorded.
+- No unsolicited external contact.
 
-blocked on sub-todos: todo.autodocs-arm-b-ruling (node cairn.brownfield)
+## Revisit
 
-The 2026-07-11 scope narrowing above still stands: the webui/dashboard sub-goal
-stays dropped. Only that disposition's **deferral** is superseded. "Low priority
-at current scale" was a priority argument, and the real obstacle turned out to be
-concrete: Arm B is blocked by an upstream capability gap (AutoDocs supports
-neither polyglot nor nested-layout repos, and its own repo is both, so lifting
-either limit alone is not enough), plus metered spend on the documented
-default-provider configuration. Arm A is deliberately not landed alone, because
-half a binding Acceptance would read as progress.
+Arm B as originally specified returns when upstream lifts both limits, the
+decision's revisit trigger: AutoDocs supports polyglot repositories AND drops
+the repository-root layout requirement. At that point running Arm B needs only
+a spend ruling.
 
-Evidence: `res.autodocs-head-to-head-feasibility` (source `src.autodocs`).
-Recommendation pending maintainer ratification: `dec.autodocs-head-to-head-arm-b`,
-status `proposed`, which recommends dropping Arm B and rewriting this todo as a
-one-sided Arm A stress test.
+## History
+
+- 2026-07-11: filed as a two-arm head-to-head, Cairn on AutoDocs versus
+  AutoDocs on itself.
+- 2026-07-11 review disposition: narrow and defer; the webui/dashboard
+  sub-goal dropped as already delivered by `todo.webui-simplicity-review`.
+- 2026-07-27: blocked on `todo.autodocs-arm-b-ruling` after
+  `res.autodocs-head-to-head-feasibility` showed Arm B doubly blocked, an
+  upstream capability gap plus metered spend on the documented
+  default-provider configuration. Arm A deliberately not landed alone, because
+  half a binding Acceptance would read as progress.
+- 2026-07-29: `dec.autodocs-head-to-head-arm-b` accepted; rewritten one-sided
+  and reopened.
