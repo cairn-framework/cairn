@@ -57,8 +57,13 @@ evolve across iterations belongs in the tracker, not in MISSION. Precedence:
 
 1. The preflight verdict always wins; MISSION never builds on unresolved state.
 2. MISSION names a unit (todo slug, node id, finding code): select exactly that. A
-   node id selects its first lint finding, else its top open todo. Already done,
-   blocked, or quarantined: report why and output `LOOP EXHAUSTED`.
+   node id selects its first lint finding with no published `deferred_by`, else
+   its top open todo. A finding code resolves per finding instance, not per code:
+   one code can cover a deferred instance and a live one at once, so select the
+   first sorted instance with no published `deferred_by`, and report settled only
+   when every instance carrying that code has a validated deferral. Already done,
+   blocked, deferred by an accepted decision, or quarantined: report why and
+   output `LOOP EXHAUSTED`.
 3. MISSION is a scope filter: apply normal selection restricted to that scope.
    Nothing in scope: report, output `LOOP EXHAUSTED`. Never select outside it.
 4. MISSION describes new work: derive the slug canonically so every session
@@ -152,11 +157,20 @@ gh pr list --state open --json number,headRefName \
 
 ## Select ONE unit
 
-After MISSION precedence: the first `$CAIRN lint --json` finding; else the top
-open todo from `$CAIRN status` / `$CAIRN todos <node>`, skipping `blocked`; else
-verify the stop evidence (lint clean, no open todos, no unquarantined `loop/*`
-branches or PRs, clean park; quarantined branches and their blocked recover-todos
-do not block exhaustion) and output `LOOP EXHAUSTED`.
+After MISSION precedence: the first `$CAIRN lint --json` finding, skipping every
+finding that publishes a `deferred_by`; else the top open todo from
+`$CAIRN status` / `$CAIRN todos <node>`, skipping `blocked`; else verify the stop
+evidence (lint clean apart from findings with a validated deferral, no open
+todos, no unquarantined `loop/*` branches or PRs, clean park; quarantined
+branches and their blocked recover-todos do not block exhaustion) and output
+`LOOP EXHAUSTED`.
+
+A finding carrying a validated `deferred_by` is not selectable: an accepted
+decision has already ruled it must keep standing, so skip to the next finding,
+then to todos. The deferral is machine-visible or it does not exist: trust only
+the published `deferred_by` field on the lint wire, never a message that merely
+looks deferred, and never severity. A finding with no published `deferred_by`
+remains selectable regardless of severity.
 
 "First" and "top" are defined, not incidental: sort findings by severity (errors
 first), then file path, then line, then code; sort todos by slug. Tool output

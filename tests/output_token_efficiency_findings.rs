@@ -97,7 +97,7 @@ fn write_spec_project(root: &Path, registry_rows: &str) -> Result<(), Box<dyn st
     fs::write(root.join("src/lib.rs"), "pub fn placeholder() {}\n")?;
     fs::write(
         root.join("cairn.blueprint"),
-        "System App \"desc\" id \"app\" {}\n",
+        "System App \"desc\" id \"app\" {\n    decisions \"./meta/decisions\"\n}\n",
     )?;
     fs::create_dir_all(root.join("docs/registries"))?;
     fs::write(
@@ -106,6 +106,19 @@ fn write_spec_project(root: &Path, registry_rows: &str) -> Result<(), Box<dyn st
             "| Rule | Spec | Code | Status | Deferred-by |\n|---|---|---|---|---|\n{registry_rows}"
         ),
     )?;
+    // Deferral publication is gated on the named decision being accepted
+    // (`dec.loop-selection-deferred-findings`), so every decision a registry
+    // row can name exists here as an accepted artefact; the rows alone decide
+    // which fixtures actually defer.
+    fs::create_dir_all(root.join("meta/decisions"))?;
+    for slug in ["revisit-trigger-correlator-deferred", "alpha", "beta"] {
+        fs::write(
+            root.join(format!("meta/decisions/{slug}.md")),
+            format!(
+                "---\nid: dec.{slug}\nnodes:\n  - app\nstatus: accepted\ndate: 2026-07-29\n---\n\n# Fixture decision {slug}\n\nAccepted deferral target for spec-rule fixtures.\n"
+            ),
+        )?;
+    }
     Ok(())
 }
 
@@ -178,6 +191,20 @@ fn scan_json_contains_full_message() -> Result<(), Box<dyn std::error::Error>> {
         message.contains(DEFERRED_SUFFIX),
         "json message must keep full deferred text, got: {message}"
     );
+    // The wire is what loop selection reads: a validated deferral must be
+    // machine-visible there (`dec.loop-selection-deferred-findings`), and
+    // every finding carries the key explicitly, null when live.
+    assert_eq!(
+        finding["deferred_by"],
+        serde_json::json!(DEFERRED_DECISION),
+        "published deferral must name the accepted decision on the wire"
+    );
+    for entry in findings {
+        assert!(
+            entry.get("deferred_by").is_some(),
+            "every finding carries deferred_by (null when live): {entry}"
+        );
+    }
     Ok(())
 }
 
@@ -331,6 +358,21 @@ fn lint_json_identical_with_or_without_verbose() -> Result<(), Box<dyn std::erro
     assert_eq!(
         a.stdout, b.stdout,
         "JSON wire format must not change with --verbose"
+    );
+    // Acceptance for `dec.loop-selection-deferred-findings`: `cairn lint
+    // --json` itself publishes the validated deferral.
+    let value: serde_json::Value = serde_json::from_str(&String::from_utf8(a.stdout)?)?;
+    let finding = value["findings"]
+        .as_array()
+        .expect("findings array")
+        .iter()
+        .find(|f| f["code"] == "CAIRN_SPEC_RULE_UNIMPLEMENTED")
+        .expect("deferred finding present in lint json")
+        .clone();
+    assert_eq!(
+        finding["deferred_by"],
+        serde_json::json!(DEFERRED_DECISION),
+        "lint --json must publish the accepted deferral"
     );
     Ok(())
 }

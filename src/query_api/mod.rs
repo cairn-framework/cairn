@@ -58,7 +58,7 @@ use util::{finding_error, findings_error, load_for, required};
 /// Both the CLI `--json` surface (which prints `data` directly) and the MCP
 /// envelope (which wraps `data`) carry this version on the top-level data
 /// object so consumers can branch on the output contract uniformly.
-pub const SCHEMA_VERSION: u32 = 4;
+pub const SCHEMA_VERSION: u32 = 5;
 
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -170,6 +170,10 @@ pub struct EnvelopeFinding {
     /// Optional file path, always present on the wire.
     #[schemars(required, schema_with = "nullable_string_schema")]
     pub path: Option<String>,
+    /// Deferring decision id, always present on the wire: the accepted
+    /// decision the finding is deferred by, or null when live.
+    #[schemars(required, schema_with = "nullable_string_schema")]
+    pub deferred_by: Option<String>,
 }
 
 /// Versioned, heterogeneous query data carried by the outer envelope.

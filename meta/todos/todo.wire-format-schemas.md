@@ -57,3 +57,13 @@ envelope, requiring `data.schema_version` while permitting heterogeneous
 tool-specific data. Added full post-dispatch schemas and validation tests for
 `StatusResponse` and `RemediateResponse`, and refactored both handlers to
 serialise typed structs without changing wire snapshots. The allowlist now has 40 remaining labels: NodeResponse, NeighbourhoodResponse, ContractResponse, DocstringResponse, FilesResponse, BundleResponse, DependencyResponse, OrderResponse, IslandsResponse, FrontierResponse, GraphResponse, LintResponse, RationaleResponse, TodosResponse, DecisionsResponse, ResearchResponse, SourcesResponse, ChangesResponse, ShowChangeResponse, HookReport, HealthResponse, UiServerResponse, ScanResponse, ArchiveResponse, RenameResponse, InitResponse, ContextResponse, InitFromCodeResponse, RefineResponse, DraftsResponse, DraftShowResponse, DraftDiscardResponse, DraftEditResponse, DraftAcceptResponse, SummariseResponse, WatchResponse, UiMetaResponse, BlueprintResponse, BeadsResponse, and LocateResponse. Continue burning it down before marking this todo done.
+
+2026-07-29: The Finding wire is no longer one shared shape.
+`dec.loop-selection-deferred-findings` added `deferred_by` to the query
+findings wire (`lint --json` / `scan --json`, hand-built in
+`query_api::serialise::findings_json`, `schema_version` 5), while the
+serde-derived consumers (`map.json`, watch events) deliberately keep
+`serde(skip)` and omit the field. `schemas/finding.schema.json` documents the
+serde-derived shape only; the `LintResponse` / `ScanResponse` labels in the
+burn-down must model the query findings entry as that shape plus a required
+nullable `deferred_by`, not by reusing the component schema unchanged.

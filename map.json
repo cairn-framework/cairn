@@ -1465,6 +1465,7 @@
         "tools/agent-pack/tests/host_language_neutrality_tests.rs",
         "tools/agent-pack/tests/reconcile_step_tests.rs",
         "tools/agent-pack/tests/router_route_tests.rs",
+        "tools/agent-pack/tests/selection_deferral_tests.rs",
         "tools/agent-pack/tests/validation_error_tests.rs"
       ],
       "contracts": [
@@ -2043,8 +2044,8 @@
           "kind": "function",
           "signature": "pub fn has_errors(&self) -> bool",
           "file": "src/map/graph.rs",
-          "line": 216,
-          "end_line": 220
+          "line": 219,
+          "end_line": 223
         },
         {
           "name": "islands",
@@ -2083,8 +2084,8 @@
           "kind": "function",
           "signature": "pub fn resolve(&self, value: &str) -> Result<&NodeRecord, Finding>",
           "file": "src/map/graph.rs",
-          "line": 154,
-          "end_line": 212
+          "line": 157,
+          "end_line": 215
         },
         {
           "name": "symbols",
@@ -2147,8 +2148,8 @@
           "kind": "struct",
           "signature": "pub struct EdgeRef",
           "file": "src/map/graph.rs",
-          "line": 121,
-          "end_line": 128
+          "line": 124,
+          "end_line": 131
         },
         {
           "name": "FilesResponse",
@@ -2164,7 +2165,7 @@
           "signature": "pub struct Finding",
           "file": "src/map/graph.rs",
           "line": 64,
-          "end_line": 84
+          "end_line": 87
         },
         {
           "name": "FrontierEntry",
@@ -2187,8 +2188,8 @@
           "kind": "struct",
           "signature": "pub struct Graph",
           "file": "src/map/graph.rs",
-          "line": 132,
-          "end_line": 143
+          "line": 135,
+          "end_line": 146
         },
         {
           "name": "GraphEdgeResponse",
@@ -2243,8 +2244,8 @@
           "kind": "struct",
           "signature": "pub struct NodeRecord",
           "file": "src/map/graph.rs",
-          "line": 88,
-          "end_line": 117
+          "line": 91,
+          "end_line": 120
         },
         {
           "name": "NodeResponse",
@@ -2318,8 +2319,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 227,
-          "end_line": 229
+          "line": 231,
+          "end_line": 233
         },
         {
           "name": "QueryFlag",
@@ -2350,40 +2351,40 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 394,
-          "end_line": 401
+          "line": 398,
+          "end_line": 405
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 405,
-          "end_line": 412
+          "line": 409,
+          "end_line": 416
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 257,
-          "end_line": 315
+          "line": 261,
+          "end_line": 319
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 323,
-          "end_line": 374
+          "line": 327,
+          "end_line": 378
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 244,
-          "end_line": 250
+          "line": 248,
+          "end_line": 254
         },
         {
           "name": "EnvelopeFinding",
@@ -2391,15 +2392,15 @@
           "signature": "pub struct EnvelopeFinding",
           "file": "src/query_api/mod.rs",
           "line": 160,
-          "end_line": 173
+          "end_line": 177
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 206,
-          "end_line": 215
+          "line": 210,
+          "end_line": 219
         },
         {
           "name": "QueryRequest",
@@ -2430,8 +2431,8 @@
           "kind": "struct",
           "signature": "pub struct ResponseEnvelopeSchema",
           "file": "src/query_api/mod.rs",
-          "line": 187,
-          "end_line": 196
+          "line": 191,
+          "end_line": 200
         },
         {
           "name": "StatusActiveChange",
@@ -2470,8 +2471,8 @@
           "kind": "struct",
           "signature": "pub struct VersionedDataSchema",
           "file": "src/query_api/mod.rs",
-          "line": 177,
-          "end_line": 183
+          "line": 181,
+          "end_line": 187
         },
         {
           "name": "WorkItem",
@@ -2542,8 +2543,8 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 384,
-          "end_line": 390
+          "line": 388,
+          "end_line": 394
         },
         {
           "name": "remediate_actions_raw",

@@ -8,6 +8,13 @@
           "description": "Stable finding code.",
           "type": "string"
         },
+        "deferred_by": {
+          "description": "Deferring decision id, always present on the wire: the accepted decision the finding is deferred by, or null when live.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "message": {
           "description": "Human-readable message.",
           "type": "string"
@@ -33,6 +40,7 @@
       },
       "required": [
         "code",
+        "deferred_by",
         "message",
         "node",
         "path",

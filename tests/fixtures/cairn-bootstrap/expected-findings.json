@@ -1,6 +1,7 @@
 [
   {
     "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+    "deferred_by": null,
     "message": "artefact pointer `./meta/decisions/kernel/artefacts/` is missing",
     "node": null,
     "path": "./meta/decisions/kernel/artefacts/",
@@ -8,6 +9,7 @@
   },
   {
     "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+    "deferred_by": null,
     "message": "artefact pointer `./meta/decisions/kernel/changes/` is missing",
     "node": null,
     "path": "./meta/decisions/kernel/changes/",
@@ -15,6 +17,7 @@
   },
   {
     "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+    "deferred_by": null,
     "message": "artefact pointer `./meta/decisions/kernel/parser/` is missing",
     "node": null,
     "path": "./meta/decisions/kernel/parser/",
@@ -22,6 +25,7 @@
   },
   {
     "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+    "deferred_by": null,
     "message": "artefact pointer `./meta/decisions/kernel/reconciler/` is missing",
     "node": null,
     "path": "./meta/decisions/kernel/reconciler/",
@@ -29,6 +33,7 @@
   },
   {
     "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+    "deferred_by": null,
     "message": "artefact pointer `./meta/decisions/reconcilers/code/` is missing",
     "node": null,
     "path": "./meta/decisions/reconcilers/code/",
@@ -36,6 +41,7 @@
   },
   {
     "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+    "deferred_by": null,
     "message": "artefact pointer `./meta/research/kernel/reconciler/` is missing",
     "node": null,
     "path": "./meta/research/kernel/reconciler/",
@@ -43,6 +49,7 @@
   },
   {
     "code": "CAIRN_ARTEFACT_POINTER_MISSING",
+    "deferred_by": null,
     "message": "artefact pointer `./meta/research/reconcilers/code/` is missing",
     "node": null,
     "path": "./meta/research/reconcilers/code/",
@@ -50,6 +57,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.kernel.parser` at `src/blueprint` has unknown language; declare it in targets.",
     "node": "cairn.kernel.parser",
     "path": "src/blueprint",
@@ -57,6 +65,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.kernel.artefacts` at `src/artefacts` has unknown language; declare it in targets.",
     "node": "cairn.kernel.artefacts",
     "path": "src/artefacts",
@@ -64,6 +73,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.kernel.scanner` at `src/scanner` has unknown language; declare it in targets.",
     "node": "cairn.kernel.scanner",
     "path": "src/scanner",
@@ -71,6 +81,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.kernel.changes` at `src/changes` has unknown language; declare it in targets.",
     "node": "cairn.kernel.changes",
     "path": "src/changes",
@@ -78,6 +89,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.kernel.hooks` at `src/hooks` has unknown language; declare it in targets.",
     "node": "cairn.kernel.hooks",
     "path": "src/hooks",
@@ -85,6 +97,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.kernel.query` at `src/query_api` has unknown language; declare it in targets.",
     "node": "cairn.kernel.query",
     "path": "src/query_api",
@@ -92,6 +105,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.kernel.cli` at `src/cli` has unknown language; declare it in targets.",
     "node": "cairn.kernel.cli",
     "path": "src/cli",
@@ -99,6 +113,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.code-reconciler` at `src/reconcile` has unknown language; declare it in targets.",
     "node": "cairn.code-reconciler",
     "path": "src/reconcile",
@@ -106,6 +121,7 @@
   },
   {
     "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
+    "deferred_by": null,
     "message": "Target `cairn.summariser` at `src/summariser` has unknown language; declare it in targets.",
     "node": "cairn.summariser",
     "path": "src/summariser",
@@ -113,6 +129,7 @@
   },
   {
     "code": "CAIRN_CONTRACT_MISSING",
+    "deferred_by": null,
     "message": "contract pointer `./meta/contracts/kernel/artefacts.md` is missing for `cairn.kernel.artefacts`",
     "node": "cairn.kernel.artefacts",
     "path": "./meta/contracts/kernel/artefacts.md",
@@ -120,6 +137,7 @@
   },
   {
     "code": "CAIRN_CONTRACT_MISSING",
+    "deferred_by": null,
     "message": "contract pointer `./meta/contracts/kernel/changes.md` is missing for `cairn.kernel.changes`",
     "node": "cairn.kernel.changes",
     "path": "./meta/contracts/kernel/changes.md",
@@ -127,6 +145,7 @@
   },
   {
     "code": "CAIRN_CONTRACT_MISSING",
+    "deferred_by": null,
     "message": "contract pointer `./meta/contracts/kernel/cli.md` is missing for `cairn.kernel.cli`",
     "node": "cairn.kernel.cli",
     "path": "./meta/contracts/kernel/cli.md",
@@ -134,6 +153,7 @@
   },
   {
     "code": "CAIRN_CONTRACT_MISSING",
+    "deferred_by": null,
     "message": "contract pointer `./meta/contracts/kernel/hooks.md` is missing for `cairn.kernel.hooks`",
     "node": "cairn.kernel.hooks",
     "path": "./meta/contracts/kernel/hooks.md",
@@ -141,6 +161,7 @@
   },
   {
     "code": "CAIRN_CONTRACT_MISSING",
+    "deferred_by": null,
     "message": "contract pointer `./meta/contracts/kernel/query.md` is missing for `cairn.kernel.query`",
     "node": "cairn.kernel.query",
     "path": "./meta/contracts/kernel/query.md",
@@ -148,6 +169,7 @@
   },
   {
     "code": "CAIRN_CONTRACT_MISSING",
+    "deferred_by": null,
     "message": "contract pointer `./meta/contracts/summariser.md` is missing for `cairn.summariser`",
     "node": "cairn.summariser",
     "path": "./meta/contracts/summariser.md",

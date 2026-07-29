@@ -23,5 +23,5 @@ expression: value
   "recent_log_entries": [
     "- note: bootstrap log entry"
   ],
-  "schema_version": 4
+  "schema_version": 5
 }
