@@ -76,12 +76,12 @@ proposed.
 - **Options**: (a) split the corpora, evidence unclaimed and cited in
   prose, authority loaded and machine-verified (this decision, shipped);
   (b) trim citation frontmatter from loaded research, hollowing the
-  artefacts (rejected in Rationale); (c) load the evidence corpora as
-  well, unexercised and foreclosed while the smoke-test premise
-  (`todo.artefact-filename-test-fixtures`) keeps `meta/sources/`
-  unreached. Recommendation: (a). Cost of no: hollowed citations, or the
-  reversal of a landed premise plus the unexercised clean-scan
-  verification.
+  artefacts (rejected in Rationale); (c) also load the evidence corpus
+  (`meta/sources/`, `meta/research/`), unexercised, and foreclosed
+  because the smoke-test premise (`todo.artefact-filename-test-fixtures`)
+  requires `meta/sources/` to stay unreached. Recommendation: (a). Cost
+  of no: hollowed citations, or the reversal of a landed premise plus
+  the unexercised clean-scan verification.
 
 ## Consequences
 
