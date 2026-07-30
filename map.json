@@ -7309,9 +7309,30 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.overharness-design-threads` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/overharness-design-threads.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
       "node": null,
       "path": "././meta/research/spec-rules-anchor-drift.md"
+    },
+    {
+      "code": "CAIRN_SOURCE_UNVERIFIED",
+      "severity": "info",
+      "message": "source `src.huntley-software-factory` is unverified",
+      "node": null,
+      "path": "././meta/sources/huntley-software-factory.md"
+    },
+    {
+      "code": "CAIRN_SOURCE_UNVERIFIED",
+      "severity": "info",
+      "message": "source `src.maintainer-design-threads-2026-07-30` is unverified",
+      "node": null,
+      "path": "././meta/sources/maintainer-design-threads-2026-07-30.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
