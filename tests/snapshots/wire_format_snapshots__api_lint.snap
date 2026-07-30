@@ -5,15 +5,6 @@ expression: value
 {
   "findings": [
     {
-      "code": "CAIRN_PROVENANCE_NO_DECISION",
-      "deferred_by": null,
-      "message": "node `app.core` has no decision artefact explaining why it exists",
-      "node": "app.core",
-      "parked_by": null,
-      "path": null,
-      "severity": "warning"
-    },
-    {
       "code": "CAIRN_ORDER_CYCLE",
       "deferred_by": null,
       "message": "dependency cycle: app.api -> app.core -> app.api",

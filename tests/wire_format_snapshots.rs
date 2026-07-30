@@ -19,6 +19,7 @@ const ENDPOINTS: &[(&str, &str)] = &[
     ("api_status", "/api/status"),
     ("api_graph", "/api/graph"),
     ("api_lint", "/api/lint"),
+    ("api_pending", "/api/pending"),
     ("api_blueprint", "/api/blueprint"),
     ("api_node_app_api", "/api/node/app.api"),
     ("api_node_app_api_contract", "/api/node/app.api/contract"),
@@ -83,6 +84,11 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
                 ".version" => "[version]",
                 ".last_reconciled" => "[timestamp]",
             });
+        } else if *snapshot_name == "api_pending" {
+            // Age is computed against the wall clock; pin the shape, not the value.
+            assert_json_snapshot!(*snapshot_name, value, {
+                ".pending[].age_days" => "[age]",
+            });
         } else {
             assert_json_snapshot!(*snapshot_name, value);
         }
@@ -142,6 +148,10 @@ app.core -> app.api "serves"
     fs::write(
         root.join("meta/decisions/api.md"),
         "---\nid: dec.api\nnodes: [app.api]\nstatus: accepted\ndate: 2026-04-01\ninformed_by: [res.api]\n---\n# API Decision\nUse stable JSON payloads.\n",
+    )?;
+    fs::write(
+        root.join("meta/decisions/queue.md"),
+        "---\nid: dec.queue\nnodes: [app.core]\nstatus: proposed\ndate: 2026-04-02\n---\n# Queue Decision\nAwaiting ratification.\n",
     )?;
     fs::write(
         root.join("meta/research/api.md"),

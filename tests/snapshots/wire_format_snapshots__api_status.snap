@@ -5,11 +5,11 @@ expression: value
 {
   "active_changes": [],
   "next_recommended": {
-    "command": "cairn change new <change-id>  // affected: app.core",
-    "node": "app.core",
-    "rank": 3,
+    "command": "cairn order",
+    "node": null,
+    "rank": 4,
     "source": "finding",
-    "title": "Blueprint changes require a recorded decision. Create a change directory with a decision artefact."
+    "title": "An ordering cycle was detected in the blueprint (dependency edges, or containment contradicting a dependency edge). Review and fix the conflicting edges."
   },
   "open_todos": [
     {

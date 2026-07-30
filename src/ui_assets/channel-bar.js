@@ -1,6 +1,6 @@
 import { clsx, copy, html, useState } from "./utils.js";
 
-const CHANNELS = ["findings", "drift", "changes", "backlog"];
+const CHANNELS = ["findings", "drift", "pending", "changes", "backlog"];
 
 function slugFromPath(path) {
   if (!path || typeof path !== "string") {
@@ -57,6 +57,16 @@ function itemLabel(item, kind) {
       title: slugFromPath(item?.path) || copy("webui.channel.backlog"),
       meta: `${item?.node || copy("webui.none")} · ${item?.status || copy("webui.none")}`,
       body: item?.path || "",
+    };
+  }
+
+  if (kind === "pending") {
+    return {
+      title: item?.id || copy("webui.channel.pending"),
+      meta: copy("webui.channel.pending-meta")
+        .replace("{age}", String(item?.age_days))
+        .replace("{ratification}", item?.ratification || copy("webui.none")),
+      body: Array.isArray(item?.nodes) ? item.nodes.join(", ") : "",
     };
   }
 
@@ -123,11 +133,12 @@ function sortChannelItems(items, kind) {
     .map(({ item }) => item);
 }
 
-function ChannelBar({ active, findings, drift, changes, backlog, onChannel, onItem, defaultCollapsed = false }) {
+function ChannelBar({ active, findings, drift, pending, changes, backlog, onChannel, onItem, defaultCollapsed = false }) {
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const buckets = {
     findings: findings || [],
     drift: drift || [],
+    pending: pending || [],
     changes: changes || [],
     backlog: backlog || [],
   };

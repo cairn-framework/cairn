@@ -842,6 +842,28 @@ fn render_loaded_project_command(
             }
             Err(findings) => return findings_output(parsed.json, parsed.verbose, &findings),
         },
+        "pending" => match crate::query_api::pending_rows(scan_result) {
+            Ok(rows) => {
+                let mut out = format!("{}\n", copy::lookup("pending.header"));
+                if rows.is_empty() {
+                    let _ = writeln!(out, "{}", copy::lookup("pending.none"));
+                } else {
+                    for row in &rows {
+                        let _ = writeln!(
+                            out,
+                            "{}",
+                            copy::lookup("pending.row")
+                                .replace("{id}", &row.id)
+                                .replace("{age}", &row.age_days.to_string())
+                                .replace("{ratification}", &row.ratification)
+                                .replace("{nodes}", &row.nodes.join(", "))
+                        );
+                    }
+                }
+                Ok(out)
+            }
+            Err(error) => return error_output(parsed.json, &error.code, &error.message),
+        },
         "deps" => render_dependencies(parsed, root),
         // Spine ops (webui-first): the human rendering is the pretty canonical
         // JSON; the primary consumers are the webui and --json callers.
@@ -1132,6 +1154,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "lint"
             | "scan"
             | "status"
+            | "pending"
             | "rationale"
             | "todos"
             | "decisions"
@@ -1179,6 +1202,7 @@ mod tests {
             ("bundle", vec!["bundle", "app.api"]),
             ("order", vec!["order"]),
             ("frontier", vec!["frontier"]),
+            ("pending", vec!["pending"]),
             ("lint", vec!["lint"]),
             ("scan", vec!["scan"]),
             ("hook", vec!["hook", "all"]),

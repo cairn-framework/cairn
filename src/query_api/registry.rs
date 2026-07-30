@@ -5,7 +5,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 43] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 44] = [
     tool(
         "get",
         "cairn_get",
@@ -117,6 +117,14 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 43] = [
         "StatusResponse",
         SafetyClass::ReadOnly,
         "Show project status summary",
+    ),
+    tool(
+        "pending",
+        "cairn_pending",
+        "PendingRequest",
+        "PendingResponse",
+        SafetyClass::ReadOnly,
+        "List proposed decisions awaiting ratification, oldest first",
     ),
     tool(
         "rationale",
@@ -469,7 +477,7 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 43);
+        assert_eq!(TOOL_REGISTRY.len(), 44);
     }
 
     #[test]

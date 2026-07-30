@@ -1519,8 +1519,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1018,
-          "end_line": 1036
+          "line": 1040,
+          "end_line": 1058
         },
         {
           "name": "blank_command_failure_detail",
@@ -1703,8 +1703,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1013,
-          "end_line": 1013
+          "line": 1035,
+          "end_line": 1035
         },
         {
           "name": "blueprint_root",
@@ -1719,8 +1719,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1044,
-          "end_line": 1052
+          "line": 1066,
+          "end_line": 1074
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -2309,6 +2309,7 @@
         "src/query_api/handlers/mod.rs",
         "src/query_api/handlers/next_selection.rs",
         "src/query_api/handlers/node.rs",
+        "src/query_api/handlers/pending.rs",
         "src/query_api/handlers/project.rs",
         "src/query_api/handlers/remediate.rs",
         "src/query_api/handlers/remediate/tests.rs",
@@ -2330,32 +2331,32 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 235,
-          "end_line": 237
+          "line": 237,
+          "end_line": 239
         },
         {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 117,
-          "end_line": 138
+          "line": 119,
+          "end_line": 140
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 65,
-          "end_line": 70
+          "line": 67,
+          "end_line": 72
         },
         {
           "name": "WorkItemSource",
@@ -2370,72 +2371,88 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 402,
-          "end_line": 409
+          "line": 404,
+          "end_line": 411
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 413,
-          "end_line": 420
+          "line": 415,
+          "end_line": 422
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 265,
-          "end_line": 323
+          "line": 267,
+          "end_line": 325
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 331,
-          "end_line": 382
+          "line": 333,
+          "end_line": 384
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 252,
-          "end_line": 258
+          "line": 254,
+          "end_line": 260
         },
         {
           "name": "EnvelopeFinding",
           "kind": "struct",
           "signature": "pub struct EnvelopeFinding",
           "file": "src/query_api/mod.rs",
-          "line": 160,
-          "end_line": 181
+          "line": 162,
+          "end_line": 183
+        },
+        {
+          "name": "PendingDecision",
+          "kind": "struct",
+          "signature": "pub struct PendingDecision",
+          "file": "src/query_api/handlers/pending.rs",
+          "line": 21,
+          "end_line": 31
+        },
+        {
+          "name": "PendingResponse",
+          "kind": "struct",
+          "signature": "pub struct PendingResponse",
+          "file": "src/query_api/handlers/pending.rs",
+          "line": 35,
+          "end_line": 39
         },
         {
           "name": "QueryError",
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 214,
-          "end_line": 223
+          "line": 216,
+          "end_line": 225
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 92,
-          "end_line": 113
+          "line": 94,
+          "end_line": 115
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 148,
-          "end_line": 157
+          "line": 150,
+          "end_line": 159
         },
         {
           "name": "RemediateResponse",
@@ -2450,8 +2467,8 @@
           "kind": "struct",
           "signature": "pub struct ResponseEnvelopeSchema",
           "file": "src/query_api/mod.rs",
-          "line": 195,
-          "end_line": 204
+          "line": 197,
+          "end_line": 206
         },
         {
           "name": "StatusActiveChange",
@@ -2482,16 +2499,16 @@
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 74,
-          "end_line": 88
+          "line": 76,
+          "end_line": 90
         },
         {
           "name": "VersionedDataSchema",
           "kind": "struct",
           "signature": "pub struct VersionedDataSchema",
           "file": "src/query_api/mod.rs",
-          "line": 185,
-          "end_line": 191
+          "line": 187,
+          "end_line": 193
         },
         {
           "name": "WorkItem",
@@ -2562,8 +2579,24 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 392,
-          "end_line": 398
+          "line": 394,
+          "end_line": 400
+        },
+        {
+          "name": "pending_json",
+          "kind": "function",
+          "signature": "pub(crate) fn pending_json(scan_result: &scanner::ScanResult) -> Result<Value, QueryError>",
+          "file": "src/query_api/handlers/pending.rs",
+          "line": 42,
+          "end_line": 45
+        },
+        {
+          "name": "pending_rows",
+          "kind": "function",
+          "signature": "pub(crate) fn pending_rows( scan_result: &scanner::ScanResult, ) -> Result<Vec<PendingDecision>, QueryError>",
+          "file": "src/query_api/handlers/pending.rs",
+          "line": 48,
+          "end_line": 52
         },
         {
           "name": "remediate_actions_raw",
@@ -2594,8 +2627,8 @@
           "kind": "module",
           "signature": "pub(super) mod spine",
           "file": "src/query_api/handlers/mod.rs",
-          "line": 11,
-          "end_line": 11
+          "line": 12,
+          "end_line": 12
         }
       ]
     },
@@ -6841,6 +6874,7 @@
         "tests/pack_lifecycle.rs",
         "tests/pack_omp_adapter.rs",
         "tests/pack_path_containment.rs",
+        "tests/pending_queue.rs",
         "tests/phase_10_distribution.rs",
         "tests/phase_7_6_ai_provenance.rs",
         "tests/phase_7_7_ux_foundation.rs",

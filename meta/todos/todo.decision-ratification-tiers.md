@@ -156,6 +156,12 @@ Surfaces to touch:
   carry, for any decision the commit accepts at tier `local`.
 - `src/query_api/serialise.rs`: the new fields are wire values, so the exhaustive
   matches there fail to build without them, and the wire snapshots rebase.
+- `src/query_api/handlers/pending.rs`: `cairn pending` renders every row's tier
+  from a hardcoded `binding` default (`RATIFICATION_DEFAULT`) because the field
+  did not exist when the queue landed (`todo.maintainer-pending-queue`, v1).
+  Replace that constant with the parsed field, keeping `binding` for artefacts
+  that omit it, and extend the queue's tests and
+  `schemas/PendingResponse.schema.json` if the wire value set changes.
 - The lens prompt files the `reviewer` ids name, committed so a review is
   reproducible.
 - Tests: the acceptance status flip alone must not change `subject_hash`, which is the

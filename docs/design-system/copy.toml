@@ -379,6 +379,15 @@ none-ready = "No ready work: every open bead is blocked by a dependency. Run `bd
 not-ready = "Warning: this bead is not in the ready set (closed, or blocked by an open dependency). It may already be done or not yet actionable; check `bd ready` before working it."
 not-ready-todo = "Warning: this todo is not open (in progress, done, or blocked). Check its status in meta/todos/ before working it."
 
+# -- Pending (maintainer ratification queue) -----------------------------
+
+[pending]
+header = "Pending decisions:"
+none = "  (none)"
+row = "  {id} (age {age}d, {ratification}) nodes: {nodes}"
+err-invalid-date = "decision `{id}` has an unparseable `date:` value `{value}`; expected YYYY-MM-DD"
+remediation-invalid-date = "Fix the `date:` frontmatter in the decision file, then rerun `cairn pending`."
+
 # -- Webui: overview, findings, legend ------------------------------------
 [webui]
 app = "Cairn graph explorer"
@@ -440,6 +449,7 @@ findings-infos = "infos"
 bootstrap-status-failed = "Status panel failed to load."
 bootstrap-lint-failed = "Lint summary failed to load."
 bootstrap-blueprint-failed = "Blueprint failed to load."
+bootstrap-pending-failed = "Pending queue failed to load."
 retry = "Retry"
 [webui.severity]
 error = "Error"
@@ -477,6 +487,8 @@ actor = "Actor"
 [webui.channel]
 findings = "Findings"
 drift = "Drift"
+pending = "Pending"
+pending-meta = "{age}d · {ratification}"
 changes = "Changes"
 backlog = "Backlog"
 collapse = "Collapse"
@@ -485,6 +497,7 @@ expand = "Expand"
 [webui.empty]
 findings = "No findings"
 drift = "No drift warnings"
+pending = "No proposed decisions"
 changes = "No active changes"
 backlog = "No backlog items"
 
@@ -668,6 +681,9 @@ usage = "cairn onboard [options]"
 
 [help.commands.order]
 usage = "cairn order [options]"
+
+[help.commands.pending]
+usage = "cairn pending [options]"
 
 [help.commands.rationale]
 usage = "cairn rationale <node> [options]"

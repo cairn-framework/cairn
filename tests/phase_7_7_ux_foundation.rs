@@ -448,8 +448,10 @@ mod explorer {
         let channel_src = &js[channel_start..channel_end];
 
         assert!(
-            js.contains(r#"const CHANNELS = ["findings", "drift", "changes", "backlog"]"#),
-            "channel buckets must expose findings, drift, changes, and backlog"
+            js.contains(
+                r#"const CHANNELS = ["findings", "drift", "pending", "changes", "backlog"]"#
+            ),
+            "channel buckets must expose findings, drift, pending, changes, and backlog"
         );
         assert!(
             js.contains("severityLabel(item)")

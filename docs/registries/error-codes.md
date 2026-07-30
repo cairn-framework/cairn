@@ -182,6 +182,7 @@ CT002 -- rationale tension: intentional asymmetry flagged for human review -- ph
 - CM012 -- required query old-id parameter is missing (CAIRN_QUERY_MISSING_OLD_ID) -- pre-registry provenance unknown -- audited 2026-07-17
 - CM013 -- required query new-id parameter is missing (CAIRN_QUERY_MISSING_NEW_ID) -- pre-registry provenance unknown -- audited 2026-07-17
 - CM014 -- required query symbol parameter is missing (CAIRN_QUERY_MISSING_SYMBOL) -- pre-registry provenance unknown -- audited 2026-07-17
+- CM015 -- pending query found a proposed decision whose `date:` does not parse as YYYY-MM-DD (CAIRN_PENDING_INVALID_DATE) -- todo.maintainer-pending-queue -- added 2026-07-30
 
 ## CS -- Summariser
 

@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "PendingDecision": {
+      "description": "One row of the maintainer pending queue: a decision at `status: proposed`.",
+      "properties": {
+        "age_days": {
+          "description": "Signed whole days between the decision's `date:` frontmatter and today; negative when the date lies in the future.",
+          "format": "int64",
+          "type": "integer"
+        },
+        "id": {
+          "description": "Decision id.",
+          "type": "string"
+        },
+        "nodes": {
+          "description": "Node ids the decision references.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ratification": {
+          "description": "Ratification tier; `binding` when the artefact declares none.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "age_days",
+        "id",
+        "nodes",
+        "ratification"
+      ],
+      "type": "object"
+    }
+  },
+  "description": "Wire shape of the `pending` query response.",
+  "properties": {
+    "pending": {
+      "description": "Proposed decisions, oldest first (age descending, ties by id ascending).",
+      "items": {
+        "$ref": "#/definitions/PendingDecision"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "pending"
+  ],
+  "title": "PendingResponse",
+  "type": "object"
+}

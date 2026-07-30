@@ -95,6 +95,7 @@ fn response_schemas_accept_representative_outputs() {
     for (tool, schema_name) in [
         ("status", "StatusResponse"),
         ("remediate", "RemediateResponse"),
+        ("pending", "PendingResponse"),
     ] {
         let response = cairn::query_api::execute(
             root,
@@ -141,6 +142,10 @@ fn committed_schemas_match_rust_types() {
             "RemediateResponse",
             serde_json::to_value(schemars::schema_for!(cairn::query_api::RemediateResponse))
                 .unwrap(),
+        ),
+        (
+            "PendingResponse",
+            serde_json::to_value(schemars::schema_for!(cairn::query_api::PendingResponse)).unwrap(),
         ),
     ];
     for (name, value) in generated {
