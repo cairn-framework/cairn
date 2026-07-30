@@ -165,6 +165,7 @@ pub(crate) fn remediate_actions_raw(
             | "CAIRN_SOURCE_READ_FAILED"
             | "CAIRN_SOURCE_VERIFICATION_INVALID"
             | "CAIRN_SOURCE_SHA256_UNEXPECTED"
+            | "CAIRN_SOURCE_SELF_REFERENCE"
             | "CAIRN_SOURCE_INDEX_GAP" => {
                 has_source_issues = true;
             }
