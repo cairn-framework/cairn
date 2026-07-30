@@ -390,6 +390,11 @@ row = "  {id} (age {age}d, {ratification}) nodes: {nodes}"
 err-invalid-date = "decision `{id}` has an unparseable `date:` value `{value}`; expected YYYY-MM-DD"
 remediation-invalid-date = "Fix the `date:` frontmatter in the decision file, then rerun `cairn pending`."
 
+# -- Context (default agent entry point) ----------------------------------
+
+[context]
+pending-signatures = "Pending signatures: {count}"
+
 # -- Webui: overview, findings, legend ------------------------------------
 [webui]
 app = "Cairn graph explorer"
