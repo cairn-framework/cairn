@@ -42,6 +42,47 @@ implementation choice, not a ratified rule; ratifying it as binding for
 future fixture work is the maintainer's call, which is why this record is
 proposed.
 
+## The rubric, applied to this decision
+
+- **Tier**: `local`. Mechanical facts: one node (`cairn.tests`, a module
+  directly under the system node, so there is no cross-container span); it
+  supersedes nothing; and every affected path
+  (`tests/fixtures/cairn-bootstrap/`, `tests/fixtures_smoke.rs`,
+  `tests/examples_gate.rs`) sits under `cairn.tests`, outside the
+  binding-surface allowlist `todo.decision-ratification-tiers` defines: no
+  spec, registry, artefact-schema, or shipped-pack path. `cairn pending`
+  renders it `binding` only because v1 defaults the absent `ratification:`
+  field; under the ratified tier boundary this is the self-serve class,
+  signed by the maintainer today because the tiers machinery is not yet
+  implemented.
+- **Unblocks**: nothing mechanically: no todo blocks on this signature and
+  no finding names it. Signing converts the standing corpus split from a
+  repair-local implementation choice into a ratified rule future fixture
+  work cites instead of re-deriving from the coupling evidence.
+- **Alignment**: against `dec.cairn-mission`, the split keeps the fixture
+  fit for both recorded purposes (clean-scan gate and reconciler-free
+  source corpus) without falsifying citations, so fixture behaviour stays
+  investigable against recorded intent. Against
+  `dec.north-star-continuous-loop` as its operational strategy: goal 1,
+  the repair landed and work continued without waiting on this signature.
+  Goal 2, the record ties the split to the verified coupling evidence, so
+  a later session re-derives the constraint instead of "fixing" it away.
+  Goal 3, it sits in the self-serve class under the ratified boundary and
+  waits for a signature only until the tiers machinery makes machine
+  acceptance auditable. Goal 4, the choice was enqueued as this proposed
+  record the moment the repair shipped it, not relabelled as settled.
+  Goal 5, this entry now carries the rubric, so the queue triages in one
+  read.
+- **Options**: (a) split the corpora, evidence unclaimed and cited in
+  prose, authority loaded and machine-verified (this decision, shipped);
+  (b) trim citation frontmatter from loaded research, hollowing the
+  artefacts (rejected in Rationale); (c) also load the evidence corpus
+  (`meta/sources/`, `meta/research/`), unexercised, and foreclosed
+  because the smoke-test premise (`todo.artefact-filename-test-fixtures`)
+  requires `meta/sources/` to stay unreached. Recommendation: (a). Cost
+  of no: hollowed citations, or the reversal of a landed premise plus
+  the unexercised clean-scan verification.
+
 ## Consequences
 
 - Neither fixture blueprint may gain a `sources` or `research` pointer while
