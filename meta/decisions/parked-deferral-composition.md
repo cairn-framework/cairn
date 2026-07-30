@@ -71,17 +71,17 @@ summary lines.
   the intersection is empty today, and the sole deferred finding
   (`CAIRN_SPEC_RULE_UNIMPLEMENTED`, deferred by
   `dec.revisit-trigger-correlator-deferred`) appears in no `defers:` list.
-- **Alignment**: against `dec.cairn-mission`: one regime per finding,
+- **Alignment**: against `dec.cairn-mission`, one regime per finding,
   traceable to one decision, keeps selection behaviour investigable and
   maintainable at zero code cost. Against `dec.north-star-continuous-loop`
   as its operational strategy: goal 1, the conservative reading already
-  ships, so no agent waits on this signature; goal 2, the pinned test and
-  the published wire fields make the rule checkable rather than remembered;
-  goal 3, it queues instead of self-ratifying because it fixes semantics of
-  a schema field every adopting repository inherits; goal 4, the undefined
-  intersection was enqueued as this proposed record while the conservative
-  implementation shipped, and the loop continued; goal 5, this entry now
-  carries the rubric, so the queue triages in one read.
+  ships, so no agent waits on this signature. Goal 2, the pinned test and
+  the published wire fields make the rule checkable rather than
+  remembered. Goal 3, it queues instead of self-ratifying because it fixes
+  semantics of a schema field every adopting repository inherits. Goal 4,
+  the undefined intersection was enqueued as this proposed record while
+  the conservative implementation shipped, and the loop continued. Goal 5,
+  this entry now carries the rubric, so the queue triages in one read.
 - **Options**: (a) deferral wins and parking never overwrites a published
   `deferred_by` (this decision, shipped); (b) parking wins, breaking the
   deferred collapse `dec.loop-selection-deferred-findings` owns; (c) dual

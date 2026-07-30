@@ -59,20 +59,20 @@ proposed.
   no finding names it. Signing converts the standing corpus split from a
   repair-local implementation choice into a ratified rule future fixture
   work cites instead of re-deriving from the coupling evidence.
-- **Alignment**: against `dec.cairn-mission`: the split keeps the fixture
+- **Alignment**: against `dec.cairn-mission`, the split keeps the fixture
   fit for both recorded purposes (clean-scan gate and reconciler-free
   source corpus) without falsifying citations, so fixture behaviour stays
   investigable against recorded intent. Against
-  `dec.north-star-continuous-loop` as its operational strategy: goal 1, the
-  repair landed and work continued without waiting on this signature; goal
-  2, the record ties the split to the verified coupling evidence, so a
-  later session re-derives the constraint instead of "fixing" it away; goal
-  3, it sits in the self-serve class under the ratified boundary and waits
-  for a signature only until the tiers machinery makes machine acceptance
-  auditable; goal 4, the choice was enqueued as this
-  proposed record the moment the repair shipped it, not relabelled as
-  settled; goal 5, this entry now carries the rubric, so the queue triages
-  in one read.
+  `dec.north-star-continuous-loop` as its operational strategy: goal 1,
+  the repair landed and work continued without waiting on this signature.
+  Goal 2, the record ties the split to the verified coupling evidence, so
+  a later session re-derives the constraint instead of "fixing" it away.
+  Goal 3, it sits in the self-serve class under the ratified boundary and
+  waits for a signature only until the tiers machinery makes machine
+  acceptance auditable. Goal 4, the choice was enqueued as this proposed
+  record the moment the repair shipped it, not relabelled as settled.
+  Goal 5, this entry now carries the rubric, so the queue triages in one
+  read.
 - **Options**: (a) split the corpora, evidence unclaimed and cited in
   prose, authority loaded and machine-verified (this decision, shipped);
   (b) trim citation frontmatter from loaded research, hollowing the
