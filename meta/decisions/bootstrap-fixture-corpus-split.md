@@ -73,17 +73,15 @@ proposed.
   proposed record the moment the repair shipped it, not relabelled as
   settled; goal 5, this entry now carries the rubric, so the queue triages
   in one read.
-- **Options**: (a) split the corpora: evidence (`meta/sources/`,
-  `meta/research/`) stays unclaimed by both fixture blueprints and cited in
-  prose, the authority corpus stays loaded and machine-verified (this
-  decision, shipped); (b) trim citation frontmatter from loaded research,
-  rejected because the scanner classifies sourceless research as an Error,
-  so citations would be falsified or the artefact hollowed; (c) load the
-  evidence corpora as well, unexercised and foreclosed while the smoke-test
-  premise (`todo.artefact-filename-test-fixtures`) keeps `meta/sources/`
-  unreached. Recommendation: (a). Cost of no: either hollowed research
-  artefacts in the fixture, or reversing a landed premise plus verifying
-  the unexercised claim that a fully loaded fixture scans clean.
+- **Options**: (a) split the corpora, evidence unclaimed and cited in
+  prose, authority loaded and machine-verified (this decision, shipped);
+  (b) trim citation frontmatter from loaded research, hollowing the
+  artefacts (rejected in Rationale); (c) load the evidence corpora as
+  well, unexercised and foreclosed while the smoke-test premise
+  (`todo.artefact-filename-test-fixtures`) keeps `meta/sources/`
+  unreached. Recommendation: (a). Cost of no: hollowed citations, or the
+  reversal of a landed premise plus the unexercised clean-scan
+  verification.
 
 ## Consequences
 

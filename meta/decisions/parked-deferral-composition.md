@@ -64,9 +64,7 @@ summary lines.
   pack reference states it with this decision as its authority
   (`tools/agent-pack/content/skills/cairn-dev/references/artefact-schemas.md`,
   inside the binding-surface allowlist `todo.decision-ratification-tiers`
-  defines). Accepting as written changes no path at all; ruling otherwise
-  rewrites that pack reference plus `src/scanner/todo_defers.rs` and its
-  pinned test.
+  defines). Accepting as written changes no path at all.
 - **Unblocks**: `todo.parked-deferral-composition`, blocked on this
   signature: it flips to `done` with no code change if accepted as written,
   or to the coded flip in its Scope if ruled otherwise. No finding moves:
@@ -85,14 +83,12 @@ summary lines.
   implementation shipped, and the loop continued; goal 5, this entry now
   carries the rubric, so the queue triages in one read.
 - **Options**: (a) deferral wins and parking never overwrites a published
-  `deferred_by` (this decision, shipped); (b) parking wins, which breaks
-  the deferred collapse `dec.loop-selection-deferred-findings` owns; (c)
-  dual classification, which must break either the acceptance's full-line
-  rule or the collapse, and invites double counting in the summary lines.
-  Recommendation: (a). Cost of no: one guard flip in
-  `src/scanner/todo_defers.rs`, the pinned test rewritten, a rendering rule
-  authored for the reopened collapse conflict, and the shipped pack
-  reference re-stated.
+  `deferred_by` (this decision, shipped); (b) parking wins, breaking the
+  deferred collapse `dec.loop-selection-deferred-findings` owns; (c) dual
+  classification, breaking constraint 2 or 3 above. Recommendation: (a).
+  Cost of no: the guard flip, test rewrite, and rendering rule the
+  Consequences section inventories, plus re-stating the shipped pack
+  reference.
 
 ## Consequences
 

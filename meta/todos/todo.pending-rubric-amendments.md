@@ -23,7 +23,8 @@ this decision` section matching the accepted precedents
 (`dec.north-star-continuous-loop`, `dec.cairn-mission`):
 
 - **Tier**: `local` or `binding`, with the mechanical facts behind the claim
-  (node span, supersession, affected paths against the tiers allowlist).
+  (node span, supersession, affected paths against the binding-surface
+  allowlist).
 - **Unblocks**: the todos and findings that move on signature, by id.
 - **Alignment**: one sentence per goal, stated against `dec.cairn-mission`
   first, then `dec.north-star-continuous-loop` as its operational strategy.
