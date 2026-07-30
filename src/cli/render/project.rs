@@ -29,8 +29,15 @@ pub(crate) fn render_context(
     let warnings = scan_warning_count(scan_result);
     let infos = scan_info_count(scan_result);
 
+    let pending_signatures = scan_result
+        .artefacts
+        .decisions
+        .iter()
+        .filter(|decision| decision.status == DecisionStatus::Proposed)
+        .count();
+
     let mut out = format!(
-        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings, {} info\n\nStructure:\n",
+        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings, {} info\n{}\n\nStructure:\n",
         system_name,
         scan_result.graph.nodes.len(),
         edge_count,
@@ -38,6 +45,8 @@ pub(crate) fn render_context(
         errors,
         warnings,
         infos,
+        copy::lookup("context.pending-signatures")
+            .replace("{count}", &pending_signatures.to_string()),
     );
 
     let prefix = system.map(|s| format!("{}.", s.id)).unwrap_or_default();

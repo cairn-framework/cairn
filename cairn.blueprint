@@ -3,7 +3,7 @@
 # Promoted from tests/fixtures/cairn-bootstrap/ and updated to match
 # the real source tree as of 2026-05-11.
 
-System Cairn "Architecture map framework with pluggable reconcilers" id "cairn" @framework {
+System Cairn "Graph, decisions, and gates keeping extreme AI-agent software development maintainable, investigable, extendable, and fit for its purpose" id "cairn" @framework {
     decisions "./meta/decisions"
     research "./meta/research"
     sources "./meta/sources"

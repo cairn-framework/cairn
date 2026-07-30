@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::{
-    artefacts::registry::{Todo, TodoStatus},
+    artefacts::registry::{Decision, DecisionStatus, Todo, TodoStatus},
     blueprint::{NodeKind, Span},
     map::{Graph, NodeRecord, NodeState},
     scanner::{ScanResult, state::TargetHashes},
@@ -300,6 +300,52 @@ fn render_context_defaults_when_no_system() {
     let scan = scan_with_nodes(vec![node_record("app")]);
     let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
     assert!(rendered.contains("unknown (1 nodes, 0 edges)"));
+}
+
+fn decision(id: &str, status: DecisionStatus) -> Decision {
+    Decision {
+        id: id.to_owned(),
+        path: format!("meta/decisions/{id}.md"),
+        nodes: vec!["sys".to_owned()],
+        status,
+        date: "2026-07-30".to_owned(),
+        revisited: None,
+        revisit_triggers: Vec::new(),
+        informed_by: Vec::new(),
+        supersedes: Vec::new(),
+        refines: Vec::new(),
+        related: Vec::new(),
+        orphaned: false,
+        orphan_reason: None,
+        gap: false,
+        claims: None,
+        body: String::new(),
+    }
+}
+
+#[test]
+fn render_context_counts_pending_signatures() {
+    let mut scan = scan_with_nodes(vec![system("sys", "Sys", "Mission headline")]);
+    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
+    assert!(
+        rendered.contains("Pending signatures: 0"),
+        "zero proposed decisions: {rendered}"
+    );
+
+    scan.artefacts.decisions = vec![
+        decision("dec.signed", DecisionStatus::Accepted),
+        decision("dec.waiting", DecisionStatus::Proposed),
+        decision("dec.also-waiting", DecisionStatus::Proposed),
+    ];
+    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
+    assert!(
+        rendered.contains("Mission headline\n"),
+        "system description is the mission headline: {rendered}"
+    );
+    assert!(
+        rendered.contains("Pending signatures: 2"),
+        "proposed decisions only: {rendered}"
+    );
 }
 
 #[test]

@@ -7314,6 +7314,13 @@
       "path": "././meta/research/spec-rules-anchor-drift.md"
     },
     {
+      "code": "CAIRN_SOURCE_UNVERIFIED",
+      "severity": "info",
+      "message": "source `src.mission-ratification-2026-07-30` is unverified",
+      "node": null,
+      "path": "././meta/sources/mission-ratification-2026-07-30.md"
+    },
+    {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
       "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
