@@ -105,7 +105,7 @@ description: Notes used for auth design.
 # Source notes
 ```
 
-`verification` is one of `verified`, `external`, or `unverified`. Verified sources require a local file and matching SHA-256. External sources require an HTTP or HTTPS URL. Unverified sources are allowed but reported as rationale tensions.
+`verification` is one of `verified`, `external`, `unverified`, or `tracked`. Verified sources require a local file and matching SHA-256. External sources require an HTTP or HTTPS URL. Unverified sources are allowed but reported as rationale tensions. Tracked sources cite a live in-repo file or directory that must resolve inside the repository root, with no SHA-256.
 
 ## Finding Classes
 

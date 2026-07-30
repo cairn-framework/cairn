@@ -1,7 +1,7 @@
 ---
 id: src.summariser-accept-path
 file: src/summariser/
-verification: unverified
+verification: tracked
 type: in-repo code read
 date: 2026-07-28
 ---
@@ -9,10 +9,9 @@ date: 2026-07-28
 # The summariser draft-acceptance path, read at `00c212a`
 
 In-repo code inspected while designing
-`meta/changes/contract-node-shape-drift/`. Registered `unverified` on purpose:
-these are live source files under active development, so hash-pinning them would
-turn any ordinary edit into a structural error. The claims below are the state at
-`00c212a` on `main`, and a reader should re-read rather than trust the hash.
+`meta/changes/contract-node-shape-drift/`. The claims below are the state at
+`00c212a` on `main`; the paths are cited `tracked` and read as they stand, so
+re-read the files for the current behaviour.
 
 - `src/summariser/accept.rs`: `accept()` installs a contract's canonical text,
   records `accepted_interface_hash` as a hash of that text into the draft store

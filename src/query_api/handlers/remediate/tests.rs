@@ -74,3 +74,39 @@ fn emitted_remediation_description_uses_copy_entry() {
         Some(crate::copy::lookup("remediate.actions.fix_order"))
     );
 }
+
+#[test]
+fn sha256_unexpected_yields_fix_sources_action() {
+    let mut scan_result = scanner::ScanResult {
+        graph: crate::map::Graph {
+            nodes: BTreeMap::new(),
+            names: BTreeMap::new(),
+            outbound: BTreeMap::new(),
+            inbound: BTreeMap::new(),
+            findings: Vec::new(),
+        },
+        artefacts: crate::artefacts::registry::ArtefactSet::default(),
+        contracts: crate::artefacts::contract::ContractSet::default(),
+        interface_hash: String::new(),
+        target_reports: Vec::new(),
+        target_hashes: scanner::state::TargetHashes::default(),
+        blueprint_snapshot: scanner::state::BlueprintSnapshot::default(),
+    };
+    scan_result.graph.findings.push(crate::map::Finding {
+        code: "CAIRN_SOURCE_SHA256_UNEXPECTED".to_owned(),
+        severity: crate::map::FindingSeverity::Error,
+        message: "tracked source declares sha256".to_owned(),
+        node: None,
+        target: None,
+        path: None,
+        deferred_by: None,
+        parked_by: None,
+    });
+    let actions = remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
+    assert!(
+        actions
+            .iter()
+            .any(|action| action["action"] == "fix_sources"),
+        "CAIRN_SOURCE_SHA256_UNEXPECTED must yield the fix_sources action; got: {actions:?}"
+    );
+}

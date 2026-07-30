@@ -395,9 +395,9 @@ Research (`meta/research/`) carries:
 Sources (`meta/sources/`) carry:
 
 - `id` (REQUIRED), prefix `src.`.
-- `file` (REQUIRED): a URL for `external` sources, or a repo-relative path for `verified`/`unverified`.
-- `verification` (REQUIRED): `verified`, `external`, or `unverified`.
-- `type`, `date` (REQUIRED); `sha256` (REQUIRED when `verified`).
+- `file` (REQUIRED): a URL for `external` sources, or a repo-relative path for `verified`/`unverified`/`tracked`.
+- `verification` (REQUIRED): `verified`, `external`, `unverified`, or `tracked`.
+- `type`, `date` (REQUIRED); `sha256` (REQUIRED when `verified`, MUST be absent when `tracked`).
 
 Sources have NO loaded `nodes` field. The Source schema does not model one and the loader does not read it, so a `nodes:` line on a source is inert and MUST NOT be relied upon. A source anchors TRANSITIVELY by being cited (from `research.sources` or `decision.informed_by`); an un-cited source surfaces as an advisory orphan, not by a missing anchor.
 
@@ -422,7 +422,8 @@ The layout permits exactly the variation the engine can honour, and no more.
   - `external` for content the project does not hold the bytes of; `file` MUST be a URL.
   - `verified` for project-controlled local files whose bytes should be frozen; the scanner re-hashes the file on every scan, so any edit raises a sha256 mismatch until the hash is re-pinned. Use it only for genuinely immutable content.
   - `unverified` for local files not yet pinned; it surfaces a perpetual advisory until resolved.
-  There is no friction-free tracked-local-file mode today (see open questions); until one exists, routine, frequently-edited internal docs SHOULD be cited sparingly to avoid a re-pin treadmill.
+  - `tracked` for live in-repo files or directories read as they stand; the scanner checks that the path resolves inside the repository root (metadata probe, no hash, no byte read) and errors on a declared `sha256`. Not a licence to stop pinning: content cited as proof of a past state stays `verified`.
+  Under `verified`, routine, frequently-edited internal docs SHOULD be cited sparingly to avoid a re-pin treadmill; `tracked` is the mode for such live paths.
 - A genuinely cross-cutting decision (a project-wide policy with no natural module) MUST still carry a non-empty `nodes:`; the orphaned hatch does not waive that. Such a decision SHOULD anchor to the system root node, or set `orphaned: true` with an `orphan_reason` when its nodes are intentionally unknown.
 - Orphan research (research never cited by a decision) is LEGITIMATE per spec section 8.5 and MUST NOT be treated as an error.
 
@@ -438,7 +439,9 @@ Mechanically ENFORCED today (Error; fails `cairn scan`, `cairn lint`, and the co
 - `CAIRN_ARTEFACT_UNKNOWN_NODE` : a research node id is unknown (raised per unknown node).
 - `CAIRN_RESEARCH_MISSING_SOURCES` : secondary research cites no sources.
 - `CAIRN_SOURCE_EXTERNAL_URL` : an `external` source's `file` is not a URL.
-- `CAIRN_SOURCE_SHA256_MISSING` / `CAIRN_SOURCE_SHA256_MISMATCH` / `CAIRN_SOURCE_READ_FAILED` : verified-source integrity.
+- `CAIRN_SOURCE_SHA256_MISSING` / `CAIRN_SOURCE_SHA256_MISMATCH` : verified-source integrity.
+- `CAIRN_SOURCE_READ_FAILED` : source path resolution, a verified source that cannot be read or a tracked source that does not resolve inside the repository root.
+- `CAIRN_SOURCE_SHA256_UNEXPECTED` : a `tracked` source declares a `sha256`.
 - `CAIRN_ARTEFACT_MISSING_FIELD` : a required frontmatter field is absent.
 - `CAIRN_REVIEW_UNKNOWN_NODE` : a review's node is unknown (only when a `reviews` pointer is wired).
 

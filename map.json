@@ -567,6 +567,7 @@
         "src/artefacts/registry/types.rs",
         "src/artefacts/registry/validate/filenames.rs",
         "src/artefacts/registry/validate/mod.rs",
+        "src/artefacts/registry/validate/sources.rs",
         "src/artefacts/registry/validate/tests.rs",
         "src/artefacts/tasks.rs"
       ],
@@ -644,7 +645,7 @@
           "signature": "pub enum SourceVerification",
           "file": "src/artefacts/registry/types.rs",
           "line": 229,
-          "end_line": 236
+          "end_line": 239
         },
         {
           "name": "TodoStatus",
@@ -755,16 +756,16 @@
           "kind": "struct",
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
-          "line": 286,
-          "end_line": 303
+          "line": 289,
+          "end_line": 306
         },
         {
           "name": "ChangeRecord",
           "kind": "struct",
           "signature": "pub struct ChangeRecord",
           "file": "src/artefacts/registry/types.rs",
-          "line": 270,
-          "end_line": 282
+          "line": 273,
+          "end_line": 285
         },
         {
           "name": "Claims",
@@ -835,8 +836,8 @@
           "kind": "struct",
           "signature": "pub struct Source",
           "file": "src/artefacts/registry/types.rs",
-          "line": 240,
-          "end_line": 261
+          "line": 243,
+          "end_line": 264
         },
         {
           "name": "TaskProgress",
@@ -2318,6 +2319,7 @@
         "src/query_api/mod.rs",
         "src/query_api/registry.rs",
         "src/query_api/serialise.rs",
+        "src/query_api/serialise/tests.rs",
         "src/query_api/strict_green_tests.rs",
         "src/query_api/tests.rs",
         "src/query_api/util.rs"
@@ -2459,8 +2461,8 @@
           "kind": "struct",
           "signature": "pub struct RemediateResponse",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 415,
-          "end_line": 422
+          "line": 416,
+          "end_line": 423
         },
         {
           "name": "ResponseEnvelopeSchema",
@@ -2604,15 +2606,15 @@
           "signature": "pub(crate) fn remediate_actions_raw( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Vec<Value>",
           "file": "src/query_api/handlers/remediate.rs",
           "line": 95,
-          "end_line": 406
+          "end_line": 407
         },
         {
           "name": "remediate_json",
           "kind": "function",
           "signature": "pub(crate) fn remediate_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 425,
-          "end_line": 441
+          "line": 426,
+          "end_line": 442
         },
         {
           "name": "status_json",
@@ -7305,18 +7307,11 @@
   ],
   "findings": [
     {
-      "code": "CAIRN_SOURCE_UNVERIFIED",
+      "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
-      "message": "source `src.query-api-draft-generation` is unverified",
+      "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
       "node": null,
-      "path": "././meta/sources/query-api-draft-generation.md"
-    },
-    {
-      "code": "CAIRN_SOURCE_UNVERIFIED",
-      "severity": "info",
-      "message": "source `src.summariser-accept-path` is unverified",
-      "node": null,
-      "path": "././meta/sources/summariser-accept-path.md"
+      "path": "././meta/research/spec-rules-anchor-drift.md"
     },
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
