@@ -16,10 +16,8 @@
       "id": "cairn.code-reconciler",
       "kind": "module",
       "name": "CodeReconciler",
-      "state": "ghost",
-      "paths": [
-        "./src/reconcile"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/reconcilers/code.md"
@@ -40,10 +38,8 @@
       "id": "cairn.kernel.artefacts",
       "kind": "module",
       "name": "Artefacts",
-      "state": "ghost",
-      "paths": [
-        "./src/artefacts"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/kernel/artefacts.md"
@@ -54,10 +50,8 @@
       "id": "cairn.kernel.changes",
       "kind": "module",
       "name": "Changes",
-      "state": "ghost",
-      "paths": [
-        "./src/changes"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/kernel/changes.md"
@@ -68,10 +62,8 @@
       "id": "cairn.kernel.cli",
       "kind": "module",
       "name": "CLI",
-      "state": "ghost",
-      "paths": [
-        "./src/cli"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/kernel/cli.md"
@@ -82,10 +74,8 @@
       "id": "cairn.kernel.hooks",
       "kind": "module",
       "name": "Hooks",
-      "state": "ghost",
-      "paths": [
-        "./src/hooks"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/kernel/hooks.md"
@@ -96,10 +86,8 @@
       "id": "cairn.kernel.parser",
       "kind": "module",
       "name": "Parser",
-      "state": "ghost",
-      "paths": [
-        "./src/blueprint"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/kernel/parser.md"
@@ -110,10 +98,8 @@
       "id": "cairn.kernel.query",
       "kind": "module",
       "name": "Query",
-      "state": "ghost",
-      "paths": [
-        "./src/query_api"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/kernel/query.md"
@@ -136,10 +122,8 @@
       "id": "cairn.kernel.scanner",
       "kind": "module",
       "name": "Scanner",
-      "state": "ghost",
-      "paths": [
-        "./src/scanner"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/kernel/scanner.md"
@@ -150,10 +134,8 @@
       "id": "cairn.summariser",
       "kind": "module",
       "name": "Summariser",
-      "state": "ghost",
-      "paths": [
-        "./src/summariser"
-      ],
+      "state": "synced",
+      "paths": [],
       "files": [],
       "contracts": [
         "./meta/contracts/summariser.md"
@@ -208,169 +190,5 @@
       "description": "Proposes contract updates on contradictions"
     }
   ],
-  "findings": [
-    {
-      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
-      "severity": "warning",
-      "message": "artefact pointer `./meta/decisions/kernel/artefacts/` is missing",
-      "node": null,
-      "path": "./meta/decisions/kernel/artefacts/"
-    },
-    {
-      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
-      "severity": "warning",
-      "message": "artefact pointer `./meta/decisions/kernel/changes/` is missing",
-      "node": null,
-      "path": "./meta/decisions/kernel/changes/"
-    },
-    {
-      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
-      "severity": "warning",
-      "message": "artefact pointer `./meta/decisions/kernel/parser/` is missing",
-      "node": null,
-      "path": "./meta/decisions/kernel/parser/"
-    },
-    {
-      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
-      "severity": "warning",
-      "message": "artefact pointer `./meta/decisions/kernel/reconciler/` is missing",
-      "node": null,
-      "path": "./meta/decisions/kernel/reconciler/"
-    },
-    {
-      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
-      "severity": "warning",
-      "message": "artefact pointer `./meta/decisions/reconcilers/code/` is missing",
-      "node": null,
-      "path": "./meta/decisions/reconcilers/code/"
-    },
-    {
-      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
-      "severity": "warning",
-      "message": "artefact pointer `./meta/research/kernel/reconciler/` is missing",
-      "node": null,
-      "path": "./meta/research/kernel/reconciler/"
-    },
-    {
-      "code": "CAIRN_ARTEFACT_POINTER_MISSING",
-      "severity": "warning",
-      "message": "artefact pointer `./meta/research/reconcilers/code/` is missing",
-      "node": null,
-      "path": "./meta/research/reconcilers/code/"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.kernel.parser` at `src/blueprint` has unknown language; declare it in targets.",
-      "node": "cairn.kernel.parser",
-      "target": "cairn.kernel.parser:src/blueprint",
-      "path": "src/blueprint"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.kernel.artefacts` at `src/artefacts` has unknown language; declare it in targets.",
-      "node": "cairn.kernel.artefacts",
-      "target": "cairn.kernel.artefacts:src/artefacts",
-      "path": "src/artefacts"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.kernel.scanner` at `src/scanner` has unknown language; declare it in targets.",
-      "node": "cairn.kernel.scanner",
-      "target": "cairn.kernel.scanner:src/scanner",
-      "path": "src/scanner"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.kernel.changes` at `src/changes` has unknown language; declare it in targets.",
-      "node": "cairn.kernel.changes",
-      "target": "cairn.kernel.changes:src/changes",
-      "path": "src/changes"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.kernel.hooks` at `src/hooks` has unknown language; declare it in targets.",
-      "node": "cairn.kernel.hooks",
-      "target": "cairn.kernel.hooks:src/hooks",
-      "path": "src/hooks"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.kernel.query` at `src/query_api` has unknown language; declare it in targets.",
-      "node": "cairn.kernel.query",
-      "target": "cairn.kernel.query:src/query_api",
-      "path": "src/query_api"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.kernel.cli` at `src/cli` has unknown language; declare it in targets.",
-      "node": "cairn.kernel.cli",
-      "target": "cairn.kernel.cli:src/cli",
-      "path": "src/cli"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.code-reconciler` at `src/reconcile` has unknown language; declare it in targets.",
-      "node": "cairn.code-reconciler",
-      "target": "cairn.code-reconciler:src/reconcile",
-      "path": "src/reconcile"
-    },
-    {
-      "code": "CAIRN_RECONCILE_LANGUAGE_UNKNOWN",
-      "severity": "warning",
-      "message": "Target `cairn.summariser` at `src/summariser` has unknown language; declare it in targets.",
-      "node": "cairn.summariser",
-      "target": "cairn.summariser:src/summariser",
-      "path": "src/summariser"
-    },
-    {
-      "code": "CAIRN_CONTRACT_MISSING",
-      "severity": "warning",
-      "message": "contract pointer `./meta/contracts/kernel/artefacts.md` is missing for `cairn.kernel.artefacts`",
-      "node": "cairn.kernel.artefacts",
-      "path": "./meta/contracts/kernel/artefacts.md"
-    },
-    {
-      "code": "CAIRN_CONTRACT_MISSING",
-      "severity": "warning",
-      "message": "contract pointer `./meta/contracts/kernel/changes.md` is missing for `cairn.kernel.changes`",
-      "node": "cairn.kernel.changes",
-      "path": "./meta/contracts/kernel/changes.md"
-    },
-    {
-      "code": "CAIRN_CONTRACT_MISSING",
-      "severity": "warning",
-      "message": "contract pointer `./meta/contracts/kernel/cli.md` is missing for `cairn.kernel.cli`",
-      "node": "cairn.kernel.cli",
-      "path": "./meta/contracts/kernel/cli.md"
-    },
-    {
-      "code": "CAIRN_CONTRACT_MISSING",
-      "severity": "warning",
-      "message": "contract pointer `./meta/contracts/kernel/hooks.md` is missing for `cairn.kernel.hooks`",
-      "node": "cairn.kernel.hooks",
-      "path": "./meta/contracts/kernel/hooks.md"
-    },
-    {
-      "code": "CAIRN_CONTRACT_MISSING",
-      "severity": "warning",
-      "message": "contract pointer `./meta/contracts/kernel/query.md` is missing for `cairn.kernel.query`",
-      "node": "cairn.kernel.query",
-      "path": "./meta/contracts/kernel/query.md"
-    },
-    {
-      "code": "CAIRN_CONTRACT_MISSING",
-      "severity": "warning",
-      "message": "contract pointer `./meta/contracts/summariser.md` is missing for `cairn.summariser`",
-      "node": "cairn.summariser",
-      "path": "./meta/contracts/summariser.md"
-    }
-  ]
+  "findings": []
 }

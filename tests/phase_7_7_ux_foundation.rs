@@ -225,15 +225,19 @@ mod cli {
     }
 
     /// Scenario: Scan --strict exits non-zero on Warning findings.
+    ///
+    /// The bootstrap fixture scans clean since its repair
+    /// (todo.bootstrap-fixture-repair-or-delete), so the warning source is
+    /// built inline instead of borrowed from a corpus.
     #[test]
     fn test_scan__strict_exits_non_zero_on_warning_findings() {
+        let (_root, bp) = warning_only_project();
         let result = cairn::cli::run(&[
             "--file".to_owned(),
-            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
+            bp,
             "scan".to_owned(),
             "--strict".to_owned(),
         ]);
-        // The bootstrap fixture has warnings (ghost nodes) so strict must fail.
         assert!(
             result.code != 0,
             "scan --strict must exit non-zero when warnings exist; got code: {}",
@@ -244,15 +248,38 @@ mod cli {
     /// Scenario: Scan without --strict exits zero on Warning-only findings.
     #[test]
     fn test_scan__non_strict_exits_zero_on_warning_only_findings() {
-        let result = cairn::cli::run(&[
-            "--file".to_owned(),
-            "tests/fixtures/cairn-bootstrap/cairn.blueprint".to_owned(),
-            "scan".to_owned(),
-        ]);
+        let (_root, bp) = warning_only_project();
+        let result = cairn::cli::run(&["--file".to_owned(), bp, "scan".to_owned()]);
         assert_eq!(
             result.code, 0,
             "scan without --strict must exit zero when only warnings exist"
         );
+    }
+
+    /// A minimal project whose scan yields Warning findings and no Errors: a
+    /// module whose declared `path` resolves to nothing, so no language can
+    /// be inferred (at authoring time, exactly one
+    /// `CAIRN_RECONCILE_LANGUAGE_UNKNOWN`). The pair of scan tests above
+    /// pins only the warning-only premise: strict rejects the project, plain
+    /// tolerates it, and an Error sneaking in would fail the plain run.
+    ///
+    /// Returns the tempdir guard alongside the blueprint path; dropping the
+    /// guard deletes the project.
+    fn warning_only_project() -> (tempfile::TempDir, String) {
+        let root = tempfile::tempdir().expect("temp dir");
+        let bp = root.path().join("cairn.blueprint");
+        std::fs::write(
+            &bp,
+            r#"System Test "Warning-only fixture" id "test" {
+    Module M "Module whose path has no reconcilable language" id "test.m" {
+        path "./src/m"
+    }
+}
+"#,
+        )
+        .expect("write blueprint");
+        let bp = bp.to_string_lossy().to_string();
+        (root, bp)
     }
 }
 

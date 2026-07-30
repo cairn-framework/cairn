@@ -7,9 +7,6 @@ revisited: 2026-04-13
 revisit_triggers:
   - "ID convention proves too rigid in practice (e.g., IDs cannot be moved across containers)"
   - "A second reconciler surfaces a need for namespace-like ID semantics not covered by dotted notation"
-informed_by:
-  - type: source
-    id: src.review-adversarial-1
 ---
 
 # dec.stable-ids: All nodes and artefacts require stable dotted IDs
@@ -30,3 +27,9 @@ The CLI accepts either names or IDs for human convenience; internal representati
 - Duplicate display names become legal as long as IDs differ.
 - One more field to author per node. The grammar gets slightly heavier; the ID convention needs documentation.
 - Research and decision linking unifies around typed ID references, eliminating the v0.4 inconsistency where research used `sources: [path]` and decisions used `informed_by: [typed objects]`.
+
+## Provenance
+
+Informed by the adversarial structural review `src.review-adversarial-1`
+(meta/sources/review-adversarial-1.md), cited in prose because meta/sources/
+stays unclaimed by the blueprint (see the cairn.blueprint header note).

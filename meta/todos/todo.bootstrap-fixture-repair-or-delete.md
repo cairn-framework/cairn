@@ -1,6 +1,6 @@
 ---
 node: cairn.tests
-status: open
+status: done
 created: 2026-07-28
 ---
 
@@ -70,9 +70,22 @@ Nothing. The verdict was given 2026-07-29; see Verdict.
 ## Dependants
 
 - `todo.blueprint-authorability-eval` (node `cairn.root`) was blocked on this
-  verdict and now waits on the repair landing: its primary metric is iterations
-  to a clean scan of this fixture, which is not measurable while the fixture
-  starts dirty.
-- `todo.example-corpus-scan-assertions` (node `cairn.tests`) likewise waits on
-  the repair landing: it closes when the verdict is reflected in the bootstrap
-  case in `tests/examples_gate.rs`.
+  verdict, then on the repair landing; it moved to `open` in the landing
+  commit. Its primary metric (iterations to a clean scan of this fixture) is
+  measurable now that the fixture starts clean.
+- `todo.example-corpus-scan-assertions` (node `cairn.tests`) closed `done` in
+  the landing commit: the verdict is reflected in the bootstrap case in
+  `tests/examples_gate.rs` (`test_bootstrap_fixture_scans_clean`).
+
+## Landed
+
+The repair executed on 2026-07-30: pointer directories flattened into
+`meta/decisions/` and `meta/research/` (slug-only filenames), the nine
+phantom `src/*` paths dropped (declaration-only corpus), the six missing
+contracts populated, `expected-findings.json` deleted, and the bootstrap
+case in `tests/examples_gate.rs` folded into a direct clean-scan assertion.
+The evidence corpus (`meta/sources/`, `meta/research/`) stays deliberately
+unclaimed so the smoke-test corpus premise holds; the two `scan --strict`
+exit-code tests in `tests/phase_7_7_ux_foundation.rs` own an inline
+warning-only project instead of borrowing the fixture's dirt. Evidence:
+`res.bootstrap-fixture-repair`.

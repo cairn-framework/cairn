@@ -8,13 +8,6 @@ revisit_triggers:
   - "Change directories become cluttered in practice (too many active changes at once)"
   - "A workflow pattern emerges that change directories cannot express"
   - "OpenSpec's delta model evolves in ways that invalidate the semantics adopted here"
-informed_by:
-  - type: research
-    id: res.related-work-survey
-  - type: source
-    id: src.openspec-repo
-  - type: source
-    id: src.openspec-deepwiki
 ---
 
 # dec.change-directories: Isolate proposed modifications in change directories with delta operations
@@ -42,3 +35,11 @@ The blueprint in the main tree is current-state truth. Decisions in the main tre
 - Cross-cutting changes that touch many artefacts are expressible as a single coherent proposal rather than scattered edits.
 - Cairn adopts OpenSpec's delta semantics directly. If OpenSpec's model evolves, Cairn must decide whether to track it or diverge.
 - Cairn and OpenSpec can coexist. Projects can use OpenSpec for change workflow and Cairn for structural reconciliation, sharing the change directory pattern.
+
+## Provenance
+
+Informed by the related-work survey `res.related-work-survey`
+(meta/research/related-work-survey.md) and the OpenSpec repository and
+DeepWiki sources it catalogues (`src.openspec-repo`, `src.openspec-deepwiki`),
+cited in prose because meta/research/ and meta/sources/ stay unclaimed by the
+blueprint (see the cairn.blueprint header note).
