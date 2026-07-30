@@ -1,14 +1,15 @@
 //! Anti-rot gate for the maintained example corpus.
 //!
-//! Scans a fresh copy of each corpus and compares the whole finding set against
-//! the baseline committed inside it. `examples/demo` must stay clean: it is what
-//! a healthy project looks like. `tests/fixtures/cairn-bootstrap` is pinned to
-//! the warnings it currently produces, a burn-down held until
-//! `todo.bootstrap-fixture-repair-or-delete` takes its verdict.
+//! Scans a fresh copy of each corpus. `examples/demo` is compared against the
+//! empty baseline committed inside it: it is what a healthy project looks
+//! like. `tests/fixtures/cairn-bootstrap` was repaired to a clean scan under
+//! `todo.bootstrap-fixture-repair-or-delete` and is asserted clean directly,
+//! with no baseline file to drift.
 //!
-//! A baseline sits inside the project it pins, so it is present during the scan
-//! it describes. Both are plain JSON at a fixture root, which no reconciler
-//! claims and no artefact pointer reaches, so neither perturbs its own result.
+//! The demo baseline sits inside the project it pins, so it is present during
+//! the scan it describes. It is plain JSON at the corpus root, which no
+//! reconciler claims and no artefact pointer reaches, so it does not perturb
+//! its own result.
 
 use std::{fs, path::Path};
 
@@ -32,27 +33,24 @@ fn test_demo_example_scans_clean() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_bootstrap_fixture_scan_matches_baseline() -> Result<(), Box<dyn std::error::Error>> {
-    let findings = assert_scan_matches_baseline("tests/fixtures/cairn-bootstrap")?;
+fn test_bootstrap_fixture_scans_clean() -> Result<(), Box<dyn std::error::Error>> {
+    let findings = scan_fixture_copy("tests/fixtures/cairn-bootstrap")?;
     assert!(
-        !findings.is_empty(),
-        "the bootstrap baseline is a burn-down; once it is empty, assert the fixture \
-         scans clean instead of pinning an empty set here"
+        findings.is_empty(),
+        "the bootstrap fixture was repaired to a clean scan under \
+         todo.bootstrap-fixture-repair-or-delete; a finding here is fixture rot: {findings:#?}"
     );
     Ok(())
 }
 
-/// Scan a throwaway copy of `fixture` and assert its findings equal the baseline
-/// committed inside it.
+/// Scan a throwaway copy of `fixture` and return the findings, folded back to
+/// fixture-relative paths and canonically ordered.
 ///
-/// Returns the observed findings so a caller can assert the shape of the set on
-/// top of its exact contents.
-fn assert_scan_matches_baseline(
-    fixture: &str,
-) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+/// The copy lives in a `TempDir` held for the whole scan: `Drop` removes it and
+/// the state the scan writes into it on the success, error, and
+/// assertion-failure paths alike.
+fn scan_fixture_copy(fixture: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join(fixture);
-    // Held for the whole scan: `Drop` removes the copy and the state the scan
-    // writes into it on the success, error, and assertion-failure paths alike.
     let copy = TempDir::new()?;
     copy_tree(&source, copy.path())?;
 
@@ -75,16 +73,36 @@ fn assert_scan_matches_baseline(
 
     // A finding may carry an absolute path. The copy lives under a temporary
     // directory with a generated name, so that prefix is folded back to the
-    // fixture it came from or the baseline could never match twice.
+    // fixture it came from or a baseline could never match twice.
     let mut observed: Vec<serde_json::Value> = serde_json::from_str(
         &serde_json::to_string(findings)?
             .replace(&copy.path().to_string_lossy().to_string(), fixture),
     )?;
+    // Emission order is a traversal detail, so the set is ordered canonically
+    // rather than asserting the scanner's.
+    observed.sort_by_key(ToString::to_string);
+
+    assert_eq!(
+        result.code, 0,
+        "plain scan of {fixture} must stay green, stderr: {}",
+        result.stderr
+    );
+
+    Ok(observed)
+}
+
+/// Scan a throwaway copy of `fixture` and assert its findings equal the
+/// baseline committed inside it.
+///
+/// Returns the observed findings so a caller can assert the shape of the set on
+/// top of its exact contents.
+fn assert_scan_matches_baseline(
+    fixture: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let observed = scan_fixture_copy(fixture)?;
+    let source = Path::new(env!("CARGO_MANIFEST_DIR")).join(fixture);
     let mut expected: Vec<serde_json::Value> =
         serde_json::from_str(&fs::read_to_string(source.join(BASELINE))?)?;
-    // The baseline pins a set. Emission order is a traversal detail, so both
-    // sides are ordered canonically rather than asserting the scanner's.
-    observed.sort_by_key(ToString::to_string);
     expected.sort_by_key(ToString::to_string);
 
     assert_eq!(
@@ -94,11 +112,6 @@ fn assert_scan_matches_baseline(
          change is intended, rewrite the baseline:\n  cairn --file {fixture}/cairn.blueprint \
          scan --json | jq '.findings' > {fixture}/{BASELINE}\nobserved: {}",
         serde_json::to_string_pretty(&observed)?
-    );
-    assert_eq!(
-        result.code, 0,
-        "plain scan of {fixture} must stay green, stderr: {}",
-        result.stderr
     );
 
     Ok(observed)

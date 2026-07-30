@@ -1,6 +1,6 @@
 ---
 node: cairn.tests
-status: blocked
+status: done
 created: 2026-07-16
 ---
 
@@ -45,11 +45,9 @@ the finding objects against `expected-findings.json` committed inside the corpus
 
 ## Status note
 
-BLOCKED, not done. `tests/fixtures/cairn-bootstrap` was neither repaired nor
-deleted: its 22 warnings are pinned as a committed burn-down, which stops further
-rot but settles nothing, and this todo's own scope asks for the fix-or-delete.
-That verdict decides a substrate question `todo.blueprint-authorability-eval` and
-`todo.artefact-filename-test-fixtures` both depend on, so the sizing rule sends it
-to its own unit, `todo.bootstrap-fixture-repair-or-delete`, which carries the 22
-findings grouped by cause. Close this todo when that verdict lands and the
-bootstrap case in `tests/examples_gate.rs` reflects it.
+DONE. `todo.bootstrap-fixture-repair-or-delete` took the REPAIR verdict
+(ratified 2026-07-29, PR #528 sheet W10) and the repair landed:
+`tests/fixtures/cairn-bootstrap` scans clean, its `expected-findings.json`
+burn-down is deleted, and the bootstrap case in `tests/examples_gate.rs` is a
+direct clean-scan assertion (`test_bootstrap_fixture_scans_clean`). Both
+corpora are now pinned clean, which is the close condition this note named.

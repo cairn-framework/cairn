@@ -22,7 +22,7 @@ Start at `.claude/skills/cairn-dev/SKILL.md`. It is a short router: it names the
 | `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work. |
 | `docs/` | Marketing landing page (GitHub Pages target); pulls from the design system like any UI surface. |
 | `cairn.blueprint` | Root blueprint: cairn describing itself (dogfood). The graph's source of truth. |
-| `tests/fixtures/cairn-bootstrap/` | Bootstrap fixture for tests; may lag behind the root blueprint, only smoke-parsed. |
+| `tests/fixtures/cairn-bootstrap/` | Bootstrap fixture for tests; may lag behind the root blueprint, gate-asserted to scan clean (`tests/examples_gate.rs`). |
 
 ## Check if relevant, don't read by default
 

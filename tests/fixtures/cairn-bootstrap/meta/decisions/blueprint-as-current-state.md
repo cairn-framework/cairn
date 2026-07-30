@@ -1,15 +1,12 @@
 ---
 id: dec.blueprint-as-current-state
-nodes: [cairn.kernel.parser, cairn.kernel.scanner, cairn.kernel.query]
+nodes: [cairn.kernel.parser, cairn.kernel.scanner, cairn.kernel.query, cairn.kernel.cli]
 status: accepted
 date: 2026-04-13
 revisited: 2026-04-13
 revisit_triggers:
   - "A workflow emerges where decisions legitimately outrank the blueprint in operational queries"
   - "Multiple users consistently misread the system because the blueprint and active ADRs disagree"
-informed_by:
-  - type: source
-    id: src.review-adversarial-1
 ---
 
 # dec.blueprint-as-current-state: The blueprint is current-state truth; decisions are rationale and commitments
@@ -29,4 +26,10 @@ An accepted decision that has not been reflected in the blueprint is a proposal 
 - The "current state" question has one unambiguous answer.
 - Decisions cannot drift silently ahead of the blueprint; if the blueprint has not been updated, the decision is not in effect.
 - The ADR status lifecycle simplifies (see dec.change-directories).
-- Agents proposing changes read `cairn rationale <node>` to see the decisions that shaped the current blueprint. They do not read active ADRs to infer what the system will become — they read change directories.
+- Agents proposing changes read `cairn rationale <node>` to see the decisions that shaped the current blueprint. They do not read active ADRs to infer what the system will become; they read change directories.
+
+## Provenance
+
+Informed by the adversarial structural review `src.review-adversarial-1`
+(meta/sources/review-adversarial-1.md), cited in prose because meta/sources/
+stays unclaimed by the blueprint (see the cairn.blueprint header note).

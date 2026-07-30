@@ -9,7 +9,7 @@ review_type: human
 
 ## Subject
 
-`dec.module-path-mapping` (in `meta/decisions/kernel/`) lands the rename of `Reconciliation` to `Scanner`, simplifies `ReconcilerInterface` to `Reconciler`, drops the `path` declaration on `Container Kernel`, and corrects every kernel module path to match the actual `src/` layout. This review captures the human acceptance pass on the rename itself.
+`dec.module-path-mapping` (in `meta/decisions/`) lands the rename of `Reconciliation` to `Scanner`, simplifies `ReconcilerInterface` to `Reconciler`, drops the `path` declaration on `Container Kernel`, and corrects every kernel module path to match the actual `src/` layout. This review captures the human acceptance pass on the rename itself.
 
 ## Verdict
 

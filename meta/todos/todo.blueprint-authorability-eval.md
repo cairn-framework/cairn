@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: open
 created: 2026-07-16
 ---
 
@@ -55,12 +55,18 @@ harness or scripts surface.
 
 ## Status note
 
-BLOCKED on `todo.bootstrap-fixture-repair-or-delete` (node `cairn.tests`).
+OPEN. `todo.bootstrap-fixture-repair-or-delete` took the REPAIR verdict
+(ratified 2026-07-29, PR #528 sheet W10) and the repair landed: the fixture
+scans clean and `tests/examples_gate.rs` asserts it stays that way
+(`test_bootstrap_fixture_scans_clean`), so iterations to a clean scan is
+measurable from zero.
 
-The earlier prerequisite `todo.example-corpus-scan-assertions` is done. It
-retained `tests/fixtures/cairn-bootstrap` and pinned its 22 warnings as a
-committed baseline (`expected-findings.json`, gated by
-`tests/examples_gate.rs`), so fixture drift is now loud. It did not take the
-repair-or-delete verdict, which the primary metric above still needs: scoring
-iterations to a clean scan is not measurable on a fixture that starts with 22
-warnings. That verdict is the remaining prerequisite.
+Substrate constraint for prompt design: the fixture's evidence corpus
+(`meta/sources/`, `meta/research/`) is deliberately unclaimed by its
+blueprint (see the fixture header note and `res.bootstrap-fixture-repair`),
+and prompts must preserve that. Verified failure mode: adding a `research`
+pointer while `meta/sources/` stays unreached breaks the clean baseline
+(`CAIRN_RESEARCH_MISSING_SOURCES` at Error, or
+`CAIRN_RESEARCH_UNKNOWN_SOURCE` at Warning when the research cites the
+unloaded sources). Keep eval prompts inside the loaded authority corpus
+(modules, contracts, decisions, todos, reviews).

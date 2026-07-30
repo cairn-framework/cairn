@@ -7,11 +7,15 @@
 #
 # The default cairn.blueprint excludes meta/_demo/ so the regular
 # scan path stays green (see issue #54 acceptance).
+#
+# meta/sources/ and meta/research/ stay unclaimed here too; see
+# cairn.blueprint's header.
 
 System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
 
     todos    "./meta/todos"
     reviews  "./meta/reviews"
+    decisions "./meta/decisions"
 
     # Demonstrator pointers, only loaded by this variant.
     todos    "./meta/_demo/todos"
@@ -20,59 +24,43 @@ System Cairn "Map framework with pluggable reconcilers" id "cairn" @framework {
     Container Kernel "Domain-agnostic core" id "cairn.kernel" @kernel {
 
         Module Parser "Parses .blueprint files into a node graph" id "cairn.kernel.parser" {
-            path "./src/blueprint"
             contract  "./meta/contracts/kernel/parser.md"
-            decisions "./meta/decisions/kernel/parser/"
         }
 
         Module Artefacts "Pluggable artefact type registry" id "cairn.kernel.artefacts" {
-            path "./src/artefacts"
             contract  "./meta/contracts/kernel/artefacts.md"
-            decisions "./meta/decisions/kernel/artefacts/"
         }
 
         Module Reconciler "Abstract contract for reconcilers" id "cairn.kernel.reconciler" {
             contract  "./meta/contracts/kernel/reconciler.md"
-            decisions "./meta/decisions/kernel/reconciler/"
-            research  "./meta/research/kernel/reconciler/"
         }
 
         Module Scanner "Engine that runs reconcilers and joins their output into the map" id "cairn.kernel.scanner" {
-            path "./src/scanner"
             contract "./meta/contracts/kernel/scanner.md"
         }
 
         Module Changes "Change directories, delta semantics, archive" id "cairn.kernel.changes" {
-            path "./src/changes"
             contract  "./meta/contracts/kernel/changes.md"
-            decisions "./meta/decisions/kernel/changes/"
         }
 
         Module Hooks "Commit and task-boundary enforcement" id "cairn.kernel.hooks" {
-            path "./src/hooks"
             contract "./meta/contracts/kernel/hooks.md"
         }
 
         Module Query "Typed queries over the map" id "cairn.kernel.query" {
-            path "./src/query_api"
             contract "./meta/contracts/kernel/query.md"
         }
 
         Module CLI "Primary user surface" id "cairn.kernel.cli" {
-            path "./src/cli"
             contract "./meta/contracts/kernel/cli.md"
         }
     }
 
     Module CodeReconciler "Tree-sitter-based reconciler for source code" id "cairn.code-reconciler" @reconciler @code {
-        path "./src/reconcile"
         contract  "./meta/contracts/reconcilers/code.md"
-        decisions "./meta/decisions/reconcilers/code/"
-        research  "./meta/research/reconcilers/code/"
     }
 
     Module Summariser "Optional LLM callout for interface contradictions" id "cairn.summariser" @optional {
-        path "./src/summariser"
         contract "./meta/contracts/summariser.md"
     }
 }

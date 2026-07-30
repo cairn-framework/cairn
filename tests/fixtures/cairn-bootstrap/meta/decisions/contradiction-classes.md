@@ -1,15 +1,12 @@
 ---
 id: dec.contradiction-classes
-nodes: [cairn.kernel.scanner, cairn.kernel.hooks]
+nodes: [cairn.kernel.scanner, cairn.kernel.hooks, cairn.summariser]
 status: accepted
 date: 2026-04-13
 revisited: 2026-04-13
 revisit_triggers:
   - "A real-world pattern emerges that is neither clearly mechanical nor clearly advisory"
   - "Projects consistently disagree with the default severity of a specific finding type"
-informed_by:
-  - type: source
-    id: src.review-adversarial-1
 ---
 
 # dec.contradiction-classes: Split contradiction into three severity classes
@@ -28,7 +25,7 @@ Three classes:
 - **Interface contradictions.** Mechanical but resolvable (module interface hash differs from recorded hash). Block commits until explicitly resolved by updating the contract or reverting the change.
 - **Rationale tensions.** Advisory findings in the provenance chain (orphan research, decision citing deleted research, revisit trigger matched by recent changes). Surface in `cairn lint` and `map.md`, but never block.
 
-Only the first two are called "contradictions." The third is a "tension" — the framework draws attention without making a correctness claim.
+Only the first two are called "contradictions." The third is a "tension": the framework draws attention without making a correctness claim.
 
 ## Consequences
 
@@ -36,3 +33,9 @@ Only the first two are called "contradictions." The third is a "tension" — the
 - Agents receive clearer signal about what must be fixed versus what warrants attention.
 - `cairn lint` groups findings by class for scannability.
 - The word "contradiction" becomes precise rather than umbrella.
+
+## Provenance
+
+Informed by the adversarial structural review `src.review-adversarial-1`
+(meta/sources/review-adversarial-1.md), cited in prose because meta/sources/
+stays unclaimed by the blueprint (see the cairn.blueprint header note).

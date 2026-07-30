@@ -7,18 +7,13 @@ revisited: 2026-04-13
 revisit_triggers:
   - "Evidence that humans or agents consistently confuse provenance with authority findings in lint output"
   - "A third chain emerges that is neither pure evidence nor pure enforcement"
-informed_by:
-  - type: research
-    id: res.related-work-survey
-  - type: source
-    id: src.review-adversarial-1
 ---
 
 # dec.two-chain-authority: Split the authority hierarchy into two chains
 
 ## Context
 
-v0.4 presented a single six-layer hierarchy: source → research → decision → blueprint → contract → code. Elegant as a diagram but structurally wrong. A source cannot "win" over a decision in the same way a contract should win over code — they are different kinds of truth. The framework can mechanically verify that code matches a contract; it cannot mechanically verify that research faithfully reflects its sources. Presenting both under one word overclaimed enforcement.
+v0.4 presented a single six-layer hierarchy: source → research → decision → blueprint → contract → code. Elegant as a diagram but structurally wrong. A source cannot "win" over a decision in the same way a contract should win over code; they are different kinds of truth. The framework can mechanically verify that code matches a contract; it cannot mechanically verify that research faithfully reflects its sources. Presenting both under one word overclaimed enforcement.
 
 ## Decision
 
@@ -37,3 +32,11 @@ Findings from each chain surface differently. Provenance issues are rationale te
 - Artefact types divide cleanly: source, research, decision are provenance artefacts; contract, todo, review are authority artefacts. Decision belongs to both.
 - The ADR schema must carry both `informed_by` (provenance obligation, upward) and `nodes` (authority obligation, downward). This is why the decision layer is the hinge.
 - The phrase "authority hierarchy" survives only for the authority chain. The provenance chain is a traceability chain.
+
+## Provenance
+
+Informed by the related-work survey `res.related-work-survey`
+(meta/research/related-work-survey.md) and the adversarial structural review
+`src.review-adversarial-1` (meta/sources/review-adversarial-1.md), cited in
+prose because meta/research/ and meta/sources/ stay unclaimed by the blueprint
+(see the cairn.blueprint header note).
