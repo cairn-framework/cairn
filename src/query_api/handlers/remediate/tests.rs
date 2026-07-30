@@ -3,9 +3,8 @@
 use super::*;
 use std::collections::BTreeMap;
 
-#[test]
-fn emitted_remediation_description_uses_copy_entry() {
-    let mut scan_result = scanner::ScanResult {
+fn empty_scan_result() -> scanner::ScanResult {
+    scanner::ScanResult {
         graph: crate::map::Graph {
             nodes: BTreeMap::new(),
             names: BTreeMap::new(),
@@ -19,7 +18,12 @@ fn emitted_remediation_description_uses_copy_entry() {
         target_reports: Vec::new(),
         target_hashes: scanner::state::TargetHashes::default(),
         blueprint_snapshot: scanner::state::BlueprintSnapshot::default(),
-    };
+    }
+}
+
+#[test]
+fn emitted_remediation_description_uses_copy_entry() {
+    let mut scan_result = empty_scan_result();
     let actions = remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
     let description = actions
         .iter()
@@ -77,21 +81,7 @@ fn emitted_remediation_description_uses_copy_entry() {
 
 #[test]
 fn sha256_unexpected_yields_fix_sources_action() {
-    let mut scan_result = scanner::ScanResult {
-        graph: crate::map::Graph {
-            nodes: BTreeMap::new(),
-            names: BTreeMap::new(),
-            outbound: BTreeMap::new(),
-            inbound: BTreeMap::new(),
-            findings: Vec::new(),
-        },
-        artefacts: crate::artefacts::registry::ArtefactSet::default(),
-        contracts: crate::artefacts::contract::ContractSet::default(),
-        interface_hash: String::new(),
-        target_reports: Vec::new(),
-        target_hashes: scanner::state::TargetHashes::default(),
-        blueprint_snapshot: scanner::state::BlueprintSnapshot::default(),
-    };
+    let mut scan_result = empty_scan_result();
     scan_result.graph.findings.push(crate::map::Finding {
         code: "CAIRN_SOURCE_SHA256_UNEXPECTED".to_owned(),
         severity: crate::map::FindingSeverity::Error,

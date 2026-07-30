@@ -586,6 +586,20 @@ fn test_tracked_source_symlink_inside_root_no_finding() {
     );
 }
 
+#[cfg(unix)]
+#[test]
+fn test_tracked_source_special_file_emits_read_failed() {
+    // A socket canonicalises and stays contained, but is neither a file nor
+    // a directory; dec.source-tracked-verification clause 1 cites files and
+    // directories only.
+    let dir = tempfile::tempdir().unwrap();
+    let _listener = std::os::unix::net::UnixListener::bind(dir.path().join("live.sock")).unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "live.sock");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert_eq!(finding_codes(&set), vec!["CAIRN_SOURCE_READ_FAILED"]);
+}
+
 #[test]
 fn test_tracked_source_sha256_emits_unexpected_error() {
     let dir = tempfile::tempdir().unwrap();

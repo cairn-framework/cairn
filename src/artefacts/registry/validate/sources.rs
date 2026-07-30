@@ -31,26 +31,7 @@ pub(super) fn validate_sources(root: &Path, source_ids: &BTreeSet<String>, set: 
                 Some(source.path.clone()),
             ));
         }
-        match source.verification {
-            SourceVerification::Verified => validate_verified_source(root, source, set),
-            SourceVerification::External => {
-                if !is_url(&source.file) {
-                    set.findings.push(error(
-                        "CAIRN_SOURCE_EXTERNAL_URL",
-                        format!("external source `{}` file is not a URL", source.id),
-                        None,
-                        Some(source.path.clone()),
-                    ));
-                }
-            }
-            SourceVerification::Unverified => set.findings.push(info(
-                "CAIRN_SOURCE_UNVERIFIED",
-                format!("source `{}` is unverified", source.id),
-                None,
-                Some(source.path.clone()),
-            )),
-            SourceVerification::Tracked => validate_tracked_source(root, source, set),
-        }
+        validate_source_verification(root, source, set);
     }
     for source in source_ids {
         if !set.sources.iter().any(|item| &item.id == source) {
@@ -61,6 +42,30 @@ pub(super) fn validate_sources(root: &Path, source_ids: &BTreeSet<String>, set: 
                 None,
             ));
         }
+    }
+}
+
+/// Dispatches one source record to its verification mode's check.
+fn validate_source_verification(root: &Path, source: &Source, set: &mut ArtefactSet) {
+    match source.verification {
+        SourceVerification::Verified => validate_verified_source(root, source, set),
+        SourceVerification::External => {
+            if !is_url(&source.file) {
+                set.findings.push(error(
+                    "CAIRN_SOURCE_EXTERNAL_URL",
+                    format!("external source `{}` file is not a URL", source.id),
+                    None,
+                    Some(source.path.clone()),
+                ));
+            }
+        }
+        SourceVerification::Unverified => set.findings.push(info(
+            "CAIRN_SOURCE_UNVERIFIED",
+            format!("source `{}` is unverified", source.id),
+            None,
+            Some(source.path.clone()),
+        )),
+        SourceVerification::Tracked => validate_tracked_source(root, source, set),
     }
 }
 
@@ -121,6 +126,9 @@ pub(super) fn validate_tracked_source(root: &Path, source: &Source, set: &mut Ar
     let reason = match issue {
         TrackedPathIssue::NotRelative => "is not a relative path into the repository".to_owned(),
         TrackedPathIssue::Escapes => "resolves outside the repository root".to_owned(),
+        TrackedPathIssue::NotFileOrDirectory => {
+            "resolves to neither a file nor a directory".to_owned()
+        }
         TrackedPathIssue::Unresolved(probe_error) => format!("does not resolve: {probe_error}"),
     };
     set.findings.push(error(
@@ -141,13 +149,18 @@ enum TrackedPathIssue {
     NotRelative,
     /// The canonical path left the repository root.
     Escapes,
+    /// The canonical path is neither a file nor a directory (a socket or
+    /// FIFO, say): not citable evidence per `dec.source-tracked-verification`
+    /// clause 1.
+    NotFileOrDirectory,
     /// Canonicalisation failed: the path is missing or unreadable.
     Unresolved(std::io::Error),
 }
 
 /// Metadata probe for a tracked path: lexical shape (optional leading `./`,
-/// then normal components only), then canonical resolution and containment
-/// under the canonical root. `None` means the path is valid.
+/// then normal components only), then canonical resolution, containment
+/// under the canonical root, and a file-or-directory node type. `None`
+/// means the path is valid.
 fn tracked_path_issue(root: &Path, file: &Path) -> Option<TrackedPathIssue> {
     let mut components = file.components();
     let mut first = components.next();
@@ -165,7 +178,13 @@ fn tracked_path_issue(root: &Path, file: &Path) -> Option<TrackedPathIssue> {
             .map(|canonical| (canonical_root, canonical))
     });
     match resolved {
-        Ok((canonical_root, canonical)) if canonical.starts_with(&canonical_root) => None,
+        Ok((canonical_root, canonical)) if canonical.starts_with(&canonical_root) => {
+            match fs::metadata(&canonical) {
+                Ok(metadata) if metadata.is_file() || metadata.is_dir() => None,
+                Ok(_) => Some(TrackedPathIssue::NotFileOrDirectory),
+                Err(probe_error) => Some(TrackedPathIssue::Unresolved(probe_error)),
+            }
+        }
         Ok(_) => Some(TrackedPathIssue::Escapes),
         Err(probe_error) => Some(TrackedPathIssue::Unresolved(probe_error)),
     }

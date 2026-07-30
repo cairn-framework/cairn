@@ -1,4 +1,3 @@
-// cairn:allow-large-module reason: extracted test module for query serialisation (convention: tests.rs split from parent when parent exceeds the line limit)
 //! Tests for query wire serialisation: status roundtrips, enriched
 //! artefact wires, and path/title helpers.
 use super::*;
