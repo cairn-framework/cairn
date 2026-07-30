@@ -2461,8 +2461,8 @@
           "kind": "struct",
           "signature": "pub struct RemediateResponse",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 416,
-          "end_line": 423
+          "line": 417,
+          "end_line": 424
         },
         {
           "name": "ResponseEnvelopeSchema",
@@ -2606,15 +2606,15 @@
           "signature": "pub(crate) fn remediate_actions_raw( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Vec<Value>",
           "file": "src/query_api/handlers/remediate.rs",
           "line": 95,
-          "end_line": 407
+          "end_line": 408
         },
         {
           "name": "remediate_json",
           "kind": "function",
           "signature": "pub(crate) fn remediate_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 426,
-          "end_line": 442
+          "line": 427,
+          "end_line": 443
         },
         {
           "name": "status_json",

@@ -7,7 +7,10 @@
 use std::{collections::BTreeSet, path::Path};
 
 use super::filenames;
-use super::sources::{validate_sources, validate_tracked_source, validate_verified_source};
+use super::sources::{
+    validate_source_self_reference, validate_sources, validate_tracked_source,
+    validate_verified_source,
+};
 use super::{sha256::sha256_hex, *};
 use crate::map::FindingSeverity;
 
@@ -621,6 +624,136 @@ fn test_validate_sources_routes_tracked_arm() {
     set.research = vec![make_research("r1", &["app.real"], &["src1"])];
     validate_sources(dir.path(), &node_ids(&[]), &mut set);
     assert_eq!(finding_codes(&set), vec!["CAIRN_SOURCE_READ_FAILED"]);
+}
+
+// ── source self-reference (CA044, dec.source-file-never-self) ────────────
+
+/// A source whose artefact file really exists under `root`, with `path` set
+/// the way the loader sets it: the walked, root-embedded path.
+fn make_source_on_disk(
+    root: &Path,
+    id: &str,
+    verification: SourceVerification,
+    file: &str,
+) -> Source {
+    let dir = root.join("meta/sources");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join(format!("{id}.md"));
+    std::fs::write(&path, b"---\n---\n").unwrap();
+    let mut source = make_source(id, verification, file);
+    source.path = path.to_string_lossy().into_owned();
+    source
+}
+
+#[test]
+fn test_source_self_reference_emits_warning_under_all_four_modes() {
+    // Driven through validate_sources, not the helper, so the wiring is the
+    // contract: the rule must not depend on the declared mode
+    // (dec.source-file-never-self). A tracked self-pointer resolves and
+    // stays inside the root, so the containment probe alone would pass it.
+    for verification in [
+        SourceVerification::Verified,
+        SourceVerification::External,
+        SourceVerification::Unverified,
+        SourceVerification::Tracked,
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let mut set = ArtefactSet::default();
+        set.sources = vec![make_source_on_disk(
+            dir.path(),
+            "src1",
+            verification,
+            "meta/sources/src1.md",
+        )];
+        // Reference it so the mode's own findings are the only extras.
+        set.research = vec![make_research("r1", &["app.real"], &["src1"])];
+        validate_sources(dir.path(), &node_ids(&[]), &mut set);
+        let finding = set
+            .findings
+            .iter()
+            .find(|f| f.code == "CAIRN_SOURCE_SELF_REFERENCE")
+            .unwrap_or_else(|| panic!("{verification:?}: {:?}", set.findings));
+        assert_eq!(
+            finding.severity,
+            FindingSeverity::Warning,
+            "{verification:?}"
+        );
+    }
+}
+
+#[test]
+fn test_source_self_reference_counts_respelled_paths() {
+    // Both sides canonicalise, so the check is not dodged by respelling the
+    // same path with `./` or a `..` detour.
+    for file in ["./meta/sources/src1.md", "meta/sources/../sources/src1.md"] {
+        let dir = tempfile::tempdir().unwrap();
+        let mut set = ArtefactSet::default();
+        let source = make_source_on_disk(dir.path(), "src1", SourceVerification::Unverified, file);
+        validate_source_self_reference(dir.path(), &source, &mut set);
+        assert_eq!(
+            finding_codes(&set),
+            vec!["CAIRN_SOURCE_SELF_REFERENCE"],
+            "{file}"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn test_source_self_reference_counts_symlink_alias() {
+    // Canonicalisation also collapses a symlink alias back onto the record.
+    let dir = tempfile::tempdir().unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source_on_disk(
+        dir.path(),
+        "src1",
+        SourceVerification::Unverified,
+        "meta/sources/alias.md",
+    );
+    std::os::unix::fs::symlink(
+        dir.path().join("meta/sources/src1.md"),
+        dir.path().join("meta/sources/alias.md"),
+    )
+    .unwrap();
+    validate_source_self_reference(dir.path(), &source, &mut set);
+    assert_eq!(
+        finding_codes(&set),
+        vec!["CAIRN_SOURCE_SELF_REFERENCE"],
+        "symlink alias"
+    );
+}
+
+#[test]
+fn test_source_self_reference_ignores_null_url_and_other_paths() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("paper.md"), b"evidence").unwrap();
+    for file in ["null", "https://example.com/paper", "paper.md", "gone.md"] {
+        let mut set = ArtefactSet::default();
+        let source = make_source_on_disk(dir.path(), "src1", SourceVerification::Unverified, file);
+        validate_source_self_reference(dir.path(), &source, &mut set);
+        assert!(set.findings.is_empty(), "{file}: {:?}", set.findings);
+    }
+}
+
+#[test]
+fn test_validate_sources_routes_self_reference_beside_mode_dispatch() {
+    // The self-reference warning is additive: the declared mode's own
+    // finding (here the unverified Info) still stands beside it.
+    let dir = tempfile::tempdir().unwrap();
+    let mut set = ArtefactSet::default();
+    set.sources = vec![make_source_on_disk(
+        dir.path(),
+        "src1",
+        SourceVerification::Unverified,
+        "meta/sources/src1.md",
+    )];
+    // Reference it so it doesn't also emit CAIRN_SOURCE_ORPHAN.
+    set.research = vec![make_research("r1", &["app.real"], &["src1"])];
+    validate_sources(dir.path(), &node_ids(&[]), &mut set);
+    assert_eq!(
+        finding_codes(&set),
+        vec!["CAIRN_SOURCE_SELF_REFERENCE", "CAIRN_SOURCE_UNVERIFIED"]
+    );
 }
 
 // ── decision claim cross-check (CA004) ───────────────────────────────────

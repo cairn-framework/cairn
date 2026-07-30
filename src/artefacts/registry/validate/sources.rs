@@ -1,4 +1,5 @@
-//! Source-record validation: citation reachability, per-verification-mode
+//! Source-record validation: citation reachability, the self-reference rule
+//! (`file:` never resolves to the record itself), per-verification-mode
 //! integrity (`verified` hashes, `external` URLs, `tracked` resolution and
 //! containment), and index consistency.
 
@@ -31,6 +32,7 @@ pub(super) fn validate_sources(root: &Path, source_ids: &BTreeSet<String>, set: 
                 Some(source.path.clone()),
             ));
         }
+        validate_source_self_reference(root, source, set);
         validate_source_verification(root, source, set);
     }
     for source in source_ids {
@@ -66,6 +68,42 @@ fn validate_source_verification(root: &Path, source: &Source, set: &mut Artefact
             Some(source.path.clone()),
         )),
         SourceVerification::Tracked => validate_tracked_source(root, source, set),
+    }
+}
+
+/// Emits `CAIRN_SOURCE_SELF_REFERENCE` when a source's `file:` resolves to
+/// the source artefact itself: a pointer back at the record establishes no
+/// provenance (`dec.source-file-never-self`). The rule binds every
+/// `verification` value, so this runs beside mode dispatch rather than
+/// inside one arm; a `tracked` self-pointer resolves and would pass the
+/// containment probe alone. A `null` or URL `file:` is excluded outright,
+/// so the acceptance's exemptions hold even against a pathological local
+/// path that happens to spell them. Both remaining sides canonicalise, so
+/// `./` spellings, `..` detours, and symlink aliases all count, while a
+/// missing path fails to canonicalise and is left to its mode's own
+/// check. Warning, not Info: this enforces an accepted
+/// MUST NOT, so `cairn scan --strict` has to fail on it (the
+/// `CAIRN_ARTEFACT_FILENAME_DRIFT` precedent), where Info marks legitimate
+/// states like `unverified`. Not Error: the declared mode's integrity
+/// claim is intact; Error in this family marks broken ones.
+pub(super) fn validate_source_self_reference(root: &Path, source: &Source, set: &mut ArtefactSet) {
+    if source.file == "null" || is_url(&source.file) {
+        return;
+    }
+    let Ok(cited) = root.join(&source.file).canonicalize() else {
+        return;
+    };
+    let Ok(own) = Path::new(&source.path).canonicalize() else {
+        return;
+    };
+    if cited == own {
+        set.findings.push(warning(
+            "CAIRN_SOURCE_SELF_REFERENCE",
+            crate::copy::lookup("findings.codes.CAIRN_SOURCE_SELF_REFERENCE.body")
+                .replace("{node}", &source.id),
+            None,
+            Some(source.path.clone()),
+        ));
     }
 }
 

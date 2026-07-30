@@ -125,6 +125,7 @@ All codes follow the pattern **`CXNNN`**:
 - CA041 -- todo `defers:` reference matches no emitted finding (CAIRN_TODO_DEFERS_UNMATCHED) -- todo.lint-selection-folding
 - CA042 -- todo `defers:` reference targets an Error or Warning finding (CAIRN_TODO_DEFERS_BLOCKING) -- todo.lint-selection-folding
 - CA043 -- todo `defers:` frontmatter entry is malformed (CAIRN_TODO_DEFERS_INVALID) -- todo.lint-selection-folding
+- CA044 -- source's `file:` resolves to the source artefact itself, under any verification value (CAIRN_SOURCE_SELF_REFERENCE) -- todo.source-self-reference-finding
 
 ## CC -- Changes
 

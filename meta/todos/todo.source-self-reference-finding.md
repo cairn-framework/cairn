@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.artefacts
-status: open
+status: done
 created: 2026-07-27
 ---
 
@@ -64,3 +64,33 @@ the neighbouring check. Decide it in the change, do not default to it.
   in `tests/fixtures_smoke.rs` is redundant only if the bootstrap blueprint
   gains a `sources` pointer. It does not have one, so keep the test and say why
   in the change.
+
+## Resolution (2026-07-30)
+
+Landed as `CAIRN_SOURCE_SELF_REFERENCE` (CA044): a mode-independent check in
+`validate_sources` that canonicalises both `root.join(file)` and the artefact's
+own path and compares the results, so `./` spellings, `..` detours, and symlink
+aliases all count. `file: null` and URLs are excluded before any resolution,
+and a missing path fails to canonicalise; both produce nothing. It runs beside
+mode dispatch, additive to
+each mode's own findings, covering all four `verification` values.
+
+Severity is Warning, decided as the todo required, not defaulted:
+
+- Not Info: this is the enforcement of an accepted MUST NOT
+  (`dec.source-file-never-self`), so `cairn scan --strict` has to fail on it.
+  The neighbouring `CAIRN_SOURCE_UNVERIFIED` is Info because `unverified` is a
+  legitimate state; a self-reference never is, and an Info would be folded by
+  the strict-green rule into permanent tolerance.
+- Not Error: Error in the `CAIRN_SOURCE_*` family marks a broken integrity
+  claim of the declared mode (sha mismatch, unreadable path, non-URL). A
+  self-pointer can be well-formed and resolving; the defect is that the record
+  establishes no provenance. That is the `CAIRN_ARTEFACT_FILENAME_DRIFT`
+  precedent (`dec.artefact-filename-rule`): an artefact-hygiene rule at
+  Warning, advisory against the Error-only hook gate but blocking under
+  `--strict`.
+
+`test_bootstrap_fixture_sources_do_not_cite_themselves` stays: the bootstrap
+blueprint still declares no `sources` pointer, so no reconciler loads that
+directory and the test remains the only gate there, exactly as
+`dec.source-file-never-self` records.
