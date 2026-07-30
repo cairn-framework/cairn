@@ -55,6 +55,45 @@ acceptance's full-line rule or break the deferred collapse, and because a
 per-finding double annotation invites double counting in the collapsed
 summary lines.
 
+## The rubric, applied to this decision
+
+- **Tier**: `binding`. The mechanical span reads local: one node
+  (`cairn.kernel.scanner`) inside the single container `cairn.kernel`, and it
+  supersedes nothing. The ruled surface does not: the rule refines the
+  semantics of the adopter-inherited `defers:` schema field, and the shipped
+  pack reference states it with this decision as its authority
+  (`tools/agent-pack/content/skills/cairn-dev/references/artefact-schemas.md`,
+  inside the binding-surface allowlist `todo.decision-ratification-tiers`
+  defines). Accepting as written changes no path at all; ruling otherwise
+  rewrites that pack reference plus `src/scanner/todo_defers.rs` and its
+  pinned test.
+- **Unblocks**: `todo.parked-deferral-composition`, blocked on this
+  signature: it flips to `done` with no code change if accepted as written,
+  or to the coded flip in its Scope if ruled otherwise. No finding moves:
+  the intersection is empty today, and the sole deferred finding
+  (`CAIRN_SPEC_RULE_UNIMPLEMENTED`, deferred by
+  `dec.revisit-trigger-correlator-deferred`) appears in no `defers:` list.
+- **Alignment**: against `dec.cairn-mission`: one regime per finding,
+  traceable to one decision, keeps selection behaviour investigable and
+  maintainable at zero code cost. Against `dec.north-star-continuous-loop`
+  as its operational strategy: goal 1, the conservative reading already
+  ships, so no agent waits on this signature; goal 2, the pinned test and
+  the published wire fields make the rule checkable rather than remembered;
+  goal 3, it queues instead of self-ratifying because it fixes semantics of
+  a schema field every adopting repository inherits; goal 4, the undefined
+  intersection was enqueued as this proposed record while the conservative
+  implementation shipped, and the loop continued; goal 5, this entry now
+  carries the rubric, so the queue triages in one read.
+- **Options**: (a) deferral wins and parking never overwrites a published
+  `deferred_by` (this decision, shipped); (b) parking wins, which breaks
+  the deferred collapse `dec.loop-selection-deferred-findings` owns; (c)
+  dual classification, which must break either the acceptance's full-line
+  rule or the collapse, and invites double counting in the summary lines.
+  Recommendation: (a). Cost of no: one guard flip in
+  `src/scanner/todo_defers.rs`, the pinned test rewritten, a rendering rule
+  authored for the reopened collapse conflict, and the shipped pack
+  reference re-stated.
+
 ## Consequences
 
 - Pinned by `test_todo_defers_deferred_finding_stays_deferred_not_parked`
