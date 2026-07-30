@@ -52,8 +52,9 @@ the neighbouring check. Decide it in the change, do not default to it.
 ## Acceptance
 
 - A source whose `file:` resolves to its own path produces the new finding, with
-  a unit test in `src/artefacts/registry/validate/tests.rs` covering all three
-  `verification` values.
+  a unit test in `src/artefacts/registry/validate/tests.rs` covering all four
+  `verification` values (a `tracked` self-pointer resolves, so the existence
+  check alone would pass it).
 - A source whose `file:` is `null`, a URL, or a different local path produces
   no new finding.
 - The code appears in `docs/registries/error-codes.md` and `copy.toml`, and

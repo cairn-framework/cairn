@@ -80,7 +80,7 @@ Sources are the raw evidence at the base of the provenance chain. They point to 
 ---
 id: src.<short-name>            # required, unique
 file: <path-or-url>             # required, location of the source material
-verification: verified          # required: verified | external | unverified
+verification: verified          # required: verified | external | unverified | tracked
 type: <free-text>               # required, describes the kind of source (paper, repo, conversation, spec)
 date: 2026-05-11                # required, ISO date
 ---
@@ -92,6 +92,7 @@ Optional notes about the source.
 - `verified`: Source has been reviewed and confirmed accurate
 - `external`: Source is from an external authority (e.g., a published spec)
 - `unverified`: Source has not been independently verified
+- `tracked`: Live in-repo path (file or directory) read as it stands; must resolve inside the repository root, with no `sha256`
 
 ## Review
 

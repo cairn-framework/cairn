@@ -486,14 +486,14 @@ Should Auth and Billing share a crypto module, or each maintain their own?
 
 ### 8.6 Source (provenance)
 
-A raw source file or external reference with a sidecar manifest. Local files are immutable, enforced by checksum. External references (URLs) are tracked but cannot be checksummed without copying.
+A raw source file or external reference with a sidecar manifest. Frozen local files are immutable, enforced by checksum; live local files may instead be cited as they stand under the `tracked` state. External references (URLs) are recorded but cannot be checksummed without copying.
 
 ```markdown
 ---
 id: src.security-audit-2026-03
 file: ./meta/sources/security-audit-2026-03.pdf
 sha256: a3f2c1d8b5e9...
-verification: verified  # verified, external, unverified
+verification: verified  # verified, external, unverified, tracked
 type: document  # document, interview, transcript, link, research_paper, conversation
 date: 2026-03-15
 tags: [security, audit]
@@ -509,11 +509,12 @@ Optional free-form notes about the source: provenance, context, why it matters.
 
 - **verified.** Local file with a populated `sha256` that matches the file's current hash. The default for content the project controls. Immutability is mechanical.
 - **external.** A URL or external reference where the project does not hold the bytes. `file` is a URL, `sha256` may be null. Cannot be checksummed. Trust is conventional: the project accepts that the source exists at that URL and may change over time.
-- **unverified.** A local file with no `sha256` yet, or a claimed source whose integrity the project has not yet confirmed. Allowed temporarily; surfaces as a rationale tension until resolved to verified or external.
+- **unverified.** A local file with no `sha256` yet, or a claimed source whose integrity the project has not yet confirmed. Allowed temporarily; surfaces as a rationale tension until resolved to `verified`, `external`, or `tracked`.
+- **tracked.** A live file or directory in the repository's working tree, read as it stands rather than frozen. `file` is a relative path (optionally prefixed `./`) that must resolve inside the repository root; `sha256` is absent. For citing working code and docs; content cited as proof of a past state stays `verified`.
 
-**Integrity rule.** Every source must be referenced by at least one research artefact or decision. Orphan sources are warnings. Files without sidecars are not tracked as sources. Sources in `unverified` state persist as rationale tensions until moved to `verified` or `external`. Sources marked `external` must have a non-null `file` that parses as a URL.
+**Integrity rule.** Every source must be referenced by at least one research artefact or decision. Orphan sources are warnings. Files without sidecars are not recorded as sources. Sources in `unverified` state persist as rationale tensions until moved to `verified`, `external`, or `tracked`. Sources marked `external` must have a non-null `file` that parses as a URL. Sources marked `tracked` must have a relative `file` path that resolves to an existing file or directory whose canonical path stays under the repository root, and must not declare a `sha256`; a declared hash is a structural error.
 
-**Freshness rule.** For `verified` sources, if the underlying file's hash changes, the scanner raises a structural error: either the change is reverted or the file is re-registered as a new source with a new ID. For `external` and `unverified` sources, no freshness check.
+**Freshness rule.** For `verified` sources, if the underlying file's hash changes, the scanner raises a structural error: either the change is reverted or the file is re-registered as a new source with a new ID. For `external` and `unverified` sources, no freshness check. For `tracked` sources, an existence and containment check on every scan and no hash check.
 
 **What the framework does not do with sources.** It does not index their contents, chunk them, embed them, or search inside them. Sources are opaque. The framework tracks that they exist, that their integrity state is known, and that they are cited by downstream artefacts.
 

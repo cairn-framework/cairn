@@ -112,7 +112,7 @@ All codes follow the pattern **`CXNNN`**:
 - CA028 -- external source's path is not a URL (CAIRN_SOURCE_EXTERNAL_URL) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA029 -- validator received an indexed source id absent from the loaded source artefacts; production derives both from the same set, so this currently fires only under test-supplied indexes (CAIRN_SOURCE_INDEX_GAP) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA030 -- source artefact is not referenced by any research `sources` or decision `informed_by` (CAIRN_SOURCE_ORPHAN) -- pre-registry provenance unknown -- audited 2026-07-16
-- CA031 -- failed to read a verified source file (CAIRN_SOURCE_READ_FAILED) -- pre-registry provenance unknown -- audited 2026-07-16
+- CA031 -- source path resolution failed: a verified source could not be read, or a tracked source's path does not resolve inside the repository root (CAIRN_SOURCE_READ_FAILED) -- pre-registry provenance unknown; generalised by todo.source-tracked-verification-mode -- audited 2026-07-16
 - CA032 -- verified source's sha256 does not match its recorded digest (CAIRN_SOURCE_SHA256_MISMATCH) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA033 -- verified source declares no sha256 digest (CAIRN_SOURCE_SHA256_MISSING) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA034 -- source lacks the verification metadata required for its kind (CAIRN_SOURCE_UNVERIFIED) -- pre-registry provenance unknown -- audited 2026-07-16
@@ -121,7 +121,7 @@ All codes follow the pattern **`CXNNN`**:
 - CA037 -- todo artefact frontmatter declares an invalid `status` (CAIRN_TODO_STATUS_INVALID) -- pre-registry provenance unknown -- audited 2026-07-16
 - CA038 -- artefact filename does not follow the naming rule for its kind: id-derived for decisions, research, and sources, `todo.<slug>.md` for todos (CAIRN_ARTEFACT_FILENAME_DRIFT) -- todo.artefact-filename-convention
 - CA039 -- node carries more accepted decisions than the consolidation threshold (CAIRN_DECISION_ACCUMULATION) -- todo.decision-accumulation-finding
-- CA040 -- reserved by `todo.source-tracked-verification-mode` for CAIRN_SOURCE_SHA256_UNEXPECTED; allocated when that unit lands
+- CA040 -- tracked source declares a sha256 digest (CAIRN_SOURCE_SHA256_UNEXPECTED) -- todo.source-tracked-verification-mode
 - CA041 -- todo `defers:` reference matches no emitted finding (CAIRN_TODO_DEFERS_UNMATCHED) -- todo.lint-selection-folding
 - CA042 -- todo `defers:` reference targets an Error or Warning finding (CAIRN_TODO_DEFERS_BLOCKING) -- todo.lint-selection-folding
 - CA043 -- todo `defers:` frontmatter entry is malformed (CAIRN_TODO_DEFERS_INVALID) -- todo.lint-selection-folding

@@ -83,9 +83,9 @@ const FIELD_NAMES: &[&str] = &["code", "grammar_error_code", "parse_error_code"]
 ///   (unreadable directory/file, missing pointer target) not currently
 ///   exercised by any fixture that forces a read error.
 /// - `CAIRN_CONTRACT_READ_FAILED`, `CAIRN_CONFIG_READ_FAILED`,
-///   `CAIRN_IGNORE_READ_FAILED`, `CAIRN_IO_READ_BLUEPRINT`,
-///   `CAIRN_SOURCE_READ_FAILED`: same shape, other subsystems' unreadable-
-///   file paths.
+///   `CAIRN_IGNORE_READ_FAILED`, `CAIRN_IO_READ_BLUEPRINT`: same shape,
+///   other subsystems' unreadable-file paths. (`CAIRN_SOURCE_READ_FAILED`
+///   left this list when the tracked-source tests began exercising it.)
 /// - `CAIRN_RECONCILE_*_LANGUAGE` / `CAIRN_RECONCILE_PARSE_*` /
 ///   `CAIRN_RECONCILE_READ_*`: the reconcile-per-language IO/grammar/parse
 ///   failure tier the originating todo named directly; no test currently
@@ -163,8 +163,6 @@ const UNCOVERED_ALLOWLIST: &[&str] = &[
     "CAIRN_RECONCILE_TYPESCRIPT_LANGUAGE",
     // research method is invalid
     "CAIRN_RESEARCH_METHOD_INVALID",
-    // source file read failure in registry validation
-    "CAIRN_SOURCE_READ_FAILED",
     // summariser settings parsing/config error
     "CAIRN_SUMMARISER_CONFIG_ERROR",
     // summariser model response generation failure

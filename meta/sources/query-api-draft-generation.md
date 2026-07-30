@@ -1,7 +1,7 @@
 ---
 id: src.query-api-draft-generation
 file: src/query_api/mod.rs
-verification: unverified
+verification: tracked
 type: in-repo code read
 date: 2026-07-28
 ---
@@ -9,10 +9,9 @@ date: 2026-07-28
 # Draft generation refuses to run with the summariser disabled
 
 In-repo code inspected while designing
-`meta/changes/contract-node-shape-drift/`. Registered `unverified` on purpose:
-this is a live source file under active development, so hash-pinning it would
-turn any ordinary edit into a structural error. The claim below is the state at
-`00c212a` on `main`, and a reader should re-read rather than trust the hash.
+`meta/changes/contract-node-shape-drift/`. The claim below is the state at
+`00c212a` on `main`; the path is cited `tracked` and read as it stands, so
+re-read the file for the current behaviour.
 
 The draft-generation handler requires a node argument on the request, loads
 `SummariserSettings`, and matches on `settings.mode`. `SummariserMode::Disabled`

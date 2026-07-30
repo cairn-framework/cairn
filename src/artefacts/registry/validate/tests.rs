@@ -7,6 +7,7 @@
 use std::{collections::BTreeSet, path::Path};
 
 use super::filenames;
+use super::sources::{validate_sources, validate_tracked_source, validate_verified_source};
 use super::{sha256::sha256_hex, *};
 use crate::map::FindingSeverity;
 
@@ -457,6 +458,169 @@ fn test_verified_source_correct_sha256_no_finding() {
         "correct sha256 must produce no findings; got: {:?}",
         set.findings
     );
+}
+
+// ── validate_tracked_source ───────────────────────────────────────────────
+
+#[test]
+fn test_tracked_source_resolving_file_no_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("notes.md"), b"live").unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "notes.md");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert!(
+        set.findings.is_empty(),
+        "resolving tracked file must produce no findings; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_tracked_source_resolving_directory_no_finding() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir(dir.path().join("summariser")).unwrap();
+    let mut set = ArtefactSet::default();
+    // A directory path is what rules out fs::read as the probe.
+    let source = make_source("src1", SourceVerification::Tracked, "summariser/");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert!(
+        set.findings.is_empty(),
+        "resolving tracked directory must produce no findings; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_tracked_source_leading_curdir_accepted() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("notes.md"), b"live").unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "./notes.md");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert!(
+        set.findings.is_empty(),
+        "leading ./ before a real path must be accepted; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_tracked_source_interior_curdir_normalised_accepted() {
+    // The lexical rule is specified over `Path::components()`
+    // (todo.source-tracked-verification-mode), which normalises an interior
+    // `./` away: `notes/./sub.md` denotes `notes/sub.md`, cannot escape, and
+    // still goes through resolution and containment.
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir(dir.path().join("notes")).unwrap();
+    std::fs::write(dir.path().join("notes/sub.md"), b"live").unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "notes/./sub.md");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert!(
+        set.findings.is_empty(),
+        "interior ./ normalises to the same contained path; got: {:?}",
+        set.findings
+    );
+}
+
+#[test]
+fn test_tracked_source_missing_path_emits_read_failed() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "gone.md");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert_eq!(finding_codes(&set), vec!["CAIRN_SOURCE_READ_FAILED"]);
+    assert_eq!(set.findings[0].severity, FindingSeverity::Error);
+}
+
+#[test]
+fn test_tracked_source_rejects_unsafe_paths_lexically() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("notes.md"), b"live").unwrap();
+    // Absolute, parent traversal, and bare `./` are rejected before any
+    // filesystem probe; the absolute form points INSIDE the root to prove
+    // the rejection is lexical.
+    let absolute = dir.path().join("notes.md").display().to_string();
+    for file in [absolute.as_str(), "../notes.md", "./"] {
+        let mut set = ArtefactSet::default();
+        let source = make_source("src1", SourceVerification::Tracked, file);
+        validate_tracked_source(dir.path(), &source, &mut set);
+        assert_eq!(
+            finding_codes(&set),
+            vec!["CAIRN_SOURCE_READ_FAILED"],
+            "`{file}` must be rejected"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn test_tracked_source_symlink_escaping_root_emits_read_failed() {
+    let outside = tempfile::tempdir().unwrap();
+    std::fs::write(outside.path().join("target.md"), b"outside").unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    std::os::unix::fs::symlink(outside.path().join("target.md"), dir.path().join("link.md"))
+        .unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "link.md");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert_eq!(finding_codes(&set), vec!["CAIRN_SOURCE_READ_FAILED"]);
+}
+
+#[cfg(unix)]
+#[test]
+fn test_tracked_source_symlink_inside_root_no_finding() {
+    // Containment is canonical, not a symlink ban: a link whose target stays
+    // under the root resolves and passes.
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("target.md"), b"inside").unwrap();
+    std::os::unix::fs::symlink(dir.path().join("target.md"), dir.path().join("link.md")).unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "link.md");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert!(
+        set.findings.is_empty(),
+        "symlink resolving inside the root must pass; got: {:?}",
+        set.findings
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn test_tracked_source_special_file_emits_read_failed() {
+    // A socket canonicalises and stays contained, but is neither a file nor
+    // a directory; dec.source-tracked-verification clause 1 cites files and
+    // directories only.
+    let dir = tempfile::tempdir().unwrap();
+    let _listener = std::os::unix::net::UnixListener::bind(dir.path().join("live.sock")).unwrap();
+    let mut set = ArtefactSet::default();
+    let source = make_source("src1", SourceVerification::Tracked, "live.sock");
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert_eq!(finding_codes(&set), vec!["CAIRN_SOURCE_READ_FAILED"]);
+}
+
+#[test]
+fn test_tracked_source_sha256_emits_unexpected_error() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("notes.md"), b"live").unwrap();
+    let mut set = ArtefactSet::default();
+    let mut source = make_source("src1", SourceVerification::Tracked, "notes.md");
+    source.sha256 = Some(sha256_hex(b"live"));
+    validate_tracked_source(dir.path(), &source, &mut set);
+    assert_eq!(finding_codes(&set), vec!["CAIRN_SOURCE_SHA256_UNEXPECTED"]);
+    assert_eq!(set.findings[0].severity, FindingSeverity::Error);
+}
+
+#[test]
+fn test_validate_sources_routes_tracked_arm() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut set = ArtefactSet::default();
+    set.sources = vec![make_source("src1", SourceVerification::Tracked, "gone.md")];
+    // Reference it so it doesn't also emit CAIRN_SOURCE_ORPHAN.
+    set.research = vec![make_research("r1", &["app.real"], &["src1"])];
+    validate_sources(dir.path(), &node_ids(&[]), &mut set);
+    assert_eq!(finding_codes(&set), vec!["CAIRN_SOURCE_READ_FAILED"]);
 }
 
 // ── decision claim cross-check (CA004) ───────────────────────────────────

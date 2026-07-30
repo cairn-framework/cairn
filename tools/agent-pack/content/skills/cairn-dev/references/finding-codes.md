@@ -94,7 +94,7 @@ These findings are surfaced in `cairn lint` and `cairn scan` output but do not b
 
 **Severity:** Info
 **Meaning:** A source artefact has `verification: unverified` in its frontmatter, meaning its contents have not been checked against the original.
-**Remediation:** Verify the source against the original and update the frontmatter to `verification: verified` (with a `sha256` field) or `verification: external` (for URL-based sources).
+**Remediation:** Verify the source against the original and update the frontmatter to `verification: verified` (with a `sha256` field), `verification: external` (for URL-based sources), or `verification: tracked` (for a live in-repo path read as it stands).
 
 ## CLI errors (not scan findings)
 

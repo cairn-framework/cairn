@@ -3,11 +3,11 @@
 // Reason: this split keeps the original parent-owned import surface to avoid semantic drift.
 #![allow(clippy::wildcard_imports)]
 use super::*;
-use io::{error, info, is_url, warning};
-use sha256::sha256_hex;
+use io::{error, info, warning};
 use std::collections::BTreeMap;
 
 mod filenames;
+mod sources;
 
 pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
     let research_ids = set
@@ -28,7 +28,7 @@ pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: 
     validate_nodes(node_ids, set);
     validate_decision_refs(&decisions, set);
     validate_provenance_refs(&research_ids, &source_ids, set);
-    validate_sources(root, &source_ids, set);
+    sources::validate_sources(root, &source_ids, set);
     validate_decision_claims(root, set);
     validate_gaps(set);
     validate_changes(set);
@@ -270,93 +270,6 @@ pub(super) fn validate_provenance_refs(
                 ));
             }
         }
-    }
-}
-
-pub(super) fn validate_sources(root: &Path, source_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
-    let used_sources = set
-        .research
-        .iter()
-        .flat_map(|item| item.sources.iter().cloned())
-        .chain(
-            set.decisions
-                .iter()
-                .flat_map(|item| item.informed_by.iter().cloned()),
-        )
-        .collect::<BTreeSet<_>>();
-    let source_records = set.sources.clone();
-    for source in &source_records {
-        if !used_sources.contains(&source.id) {
-            set.findings.push(warning(
-                "CAIRN_SOURCE_ORPHAN",
-                format!("source `{}` is not referenced", source.id),
-                None,
-                Some(source.path.clone()),
-            ));
-        }
-        match source.verification {
-            SourceVerification::Verified => validate_verified_source(root, source, set),
-            SourceVerification::External => {
-                if !is_url(&source.file) {
-                    set.findings.push(error(
-                        "CAIRN_SOURCE_EXTERNAL_URL",
-                        format!("external source `{}` file is not a URL", source.id),
-                        None,
-                        Some(source.path.clone()),
-                    ));
-                }
-            }
-            SourceVerification::Unverified => set.findings.push(info(
-                "CAIRN_SOURCE_UNVERIFIED",
-                format!("source `{}` is unverified", source.id),
-                None,
-                Some(source.path.clone()),
-            )),
-        }
-    }
-    for source in source_ids {
-        if !set.sources.iter().any(|item| &item.id == source) {
-            set.findings.push(warning(
-                "CAIRN_SOURCE_INDEX_GAP",
-                format!("source `{source}` is indexed but missing"),
-                None,
-                None,
-            ));
-        }
-    }
-}
-
-pub(super) fn validate_verified_source(root: &Path, source: &Source, set: &mut ArtefactSet) {
-    let Some(expected) = &source.sha256 else {
-        set.findings.push(error(
-            "CAIRN_SOURCE_SHA256_MISSING",
-            format!("verified source `{}` lacks sha256", source.id),
-            None,
-            Some(source.path.clone()),
-        ));
-        return;
-    };
-    match fs::read(root.join(&source.file)) {
-        Ok(bytes) => {
-            let actual = sha256_hex(&bytes);
-            if &actual != expected {
-                set.findings.push(error(
-                    "CAIRN_SOURCE_SHA256_MISMATCH",
-                    format!("verified source `{}` sha256 mismatch", source.id),
-                    None,
-                    Some(source.path.clone()),
-                ));
-            }
-        }
-        Err(read_error) => set.findings.push(error(
-            "CAIRN_SOURCE_READ_FAILED",
-            format!(
-                "failed to read verified source `{}`: {read_error}",
-                source.id
-            ),
-            None,
-            Some(source.path.clone()),
-        )),
     }
 }
 

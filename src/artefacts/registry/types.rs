@@ -233,6 +233,9 @@ pub enum SourceVerification {
     External,
     /// Unverified source.
     Unverified,
+    /// Live in-repo path read as it stands: resolution and containment
+    /// checked, no hash (`dec.source-tracked-verification`).
+    Tracked,
 }
 
 /// Parsed source.

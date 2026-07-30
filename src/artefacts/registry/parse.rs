@@ -111,6 +111,7 @@ pub(super) fn parse_source_verification(
         "verified" => Some(SourceVerification::Verified),
         "external" => Some(SourceVerification::External),
         "unverified" => Some(SourceVerification::Unverified),
+        "tracked" => Some(SourceVerification::Tracked),
         _ => {
             set.findings.push(error_finding(
                 "CAIRN_SOURCE_VERIFICATION_INVALID",
@@ -268,6 +269,7 @@ mod tests {
             ("verified", Some(SourceVerification::Verified)),
             ("external", Some(SourceVerification::External)),
             ("unverified", Some(SourceVerification::Unverified)),
+            ("tracked", Some(SourceVerification::Tracked)),
         ];
         for (value, expected) in cases {
             let mut set = ArtefactSet::default();
