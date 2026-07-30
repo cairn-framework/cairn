@@ -6,6 +6,7 @@ mod graph;
 mod locate;
 mod next_selection;
 mod node;
+mod pending;
 mod project;
 mod remediate;
 pub(super) mod spine;
@@ -24,6 +25,9 @@ pub(crate) use next_selection::{
     work_item_for_selection,
 };
 pub(super) use node::{contract_json, docstring_json, files_json, rationale_json};
+pub(super) use pending::pending_json;
+pub(crate) use pending::pending_rows;
+pub use pending::{PendingDecision, PendingResponse};
 pub use project::{StatusActiveChange, StatusResponse, StatusTodo};
 pub(super) use project::{context_json, status_json};
 pub use remediate::RemediateResponse;

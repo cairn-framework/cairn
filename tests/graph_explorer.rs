@@ -64,6 +64,34 @@ fn test_ui_status_and_lint_endpoints_return_two_hundred() -> Result<(), Box<dyn 
 }
 
 #[test]
+fn test_ui_pending_endpoint_serves_proposed_decisions() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("ui-pending")?;
+    write_project(&root)?;
+    fs::write(
+        root.join("meta/decisions/proposed.md"),
+        "---\nid: dec.proposed\nnodes: [app.api]\nstatus: proposed\ndate: 2026-04-02\n---\n# Proposed Decision\n",
+    )?;
+    let server = ui::start_background(UiOptions {
+        port: 0,
+        no_open: true,
+        blueprint_path: root.join("cairn.blueprint"),
+    })?;
+    let pending = get(server.address(), "/api/pending")?;
+    server.stop();
+    // The queue lists the proposed decision and not the accepted fixture one,
+    // with the same payload shape the CLI prints.
+    assert!(pending.contains("\"pending\""), "{pending}");
+    assert!(pending.contains("\"id\":\"dec.proposed\""), "{pending}");
+    assert!(pending.contains("\"age_days\""), "{pending}");
+    assert!(
+        pending.contains("\"ratification\":\"binding\""),
+        "{pending}"
+    );
+    assert!(!pending.contains("dec.api"), "{pending}");
+    Ok(())
+}
+
+#[test]
 fn test_ui_serves_static_assets_with_detail_behaviour() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("ui-static")?;
     write_project(&root)?;

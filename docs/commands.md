@@ -31,6 +31,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 |---------|-------------|
 | `cairn context` | Structured project overview for agents |
 | `cairn status` | Show project status summary |
+| `cairn pending` | List proposed decisions awaiting ratification, oldest first |
 | `cairn health` | Comprehensive health check: lint, hooks, and module state |
 | `cairn remediate` | Generate an ordered action plan from current findings |
 | `cairn next` | Show the next ready unit of work |

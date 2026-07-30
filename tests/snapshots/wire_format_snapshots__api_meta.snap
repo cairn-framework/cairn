@@ -89,6 +89,12 @@ expression: value
       "safety": "ReadOnly"
     },
     {
+      "name": "pending",
+      "request": "PendingRequest",
+      "response": "PendingResponse",
+      "safety": "ReadOnly"
+    },
+    {
       "name": "rationale",
       "request": "NodeRequest",
       "response": "RationaleResponse",

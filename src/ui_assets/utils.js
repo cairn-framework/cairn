@@ -169,6 +169,10 @@ async function fetchLint() {
   return (await fetchJson("/api/lint")) || {};
 }
 
+async function fetchPending() {
+  return (await fetchJson("/api/pending")) || {};
+}
+
 async function fetchBlueprint() {
   return (await fetchJson("/api/blueprint")) || {};
 }
@@ -353,6 +357,7 @@ export {
   fetchGraph,
   fetchStatus,
   fetchLint,
+  fetchPending,
   fetchBlueprint,
   fetchNodeArtefacts,
   fetchNodeEvidence,

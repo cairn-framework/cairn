@@ -159,6 +159,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("onboard", "onboard", FLAGS_BASIC),
     spec("pack", "pack", FLAGS_PACK),
     spec("order", "order", FLAGS_BASIC),
+    spec("pending", "pending", FLAGS_BASIC),
     spec("rationale", "rationale", FLAGS_BASIC),
     spec("refine", "refine", FLAGS_FILE_HELP),
     spec("remediate", "remediate", FLAGS_BASIC),

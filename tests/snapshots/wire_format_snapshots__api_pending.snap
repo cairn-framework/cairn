@@ -1,0 +1,17 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: value
+---
+{
+  "pending": [
+    {
+      "age_days": "[age]",
+      "id": "dec.queue",
+      "nodes": [
+        "app.core"
+      ],
+      "ratification": "binding"
+    }
+  ],
+  "schema_version": 7
+}

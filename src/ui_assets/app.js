@@ -19,6 +19,7 @@ function App() {
   const [graph, setGraph] = useState({ nodes: [], edges: [] });
   const [status, setStatus] = useState({});
   const [lint, setLint] = useState({});
+  const [pending, setPending] = useState({});
   const [blueprint, setBlueprint] = useState({ path: "", source: "" });
   const [notices, setNotices] = useState([]);
 
@@ -63,7 +64,7 @@ function App() {
           return;
         }
 
-        const { graph, status, lint, blueprint, notices: nextNotices } = bootstrap;
+        const { graph, status, lint, pending, blueprint, notices: nextNotices } = bootstrap;
         if (!active) {
           return;
         }
@@ -71,6 +72,7 @@ function App() {
         setGraph(graph);
         setStatus(status);
         setLint(lint);
+        setPending(pending);
         setBlueprint(blueprint);
         setNotices(nextNotices);
 
@@ -222,6 +224,7 @@ function App() {
   const drift = findings.filter((item) => item?.severity === "error" || item?.severity === "warning");
   const changes = Array.isArray(status.active_changes) ? status.active_changes : [];
   const backlog = Array.isArray(status.open_todos) ? status.open_todos : [];
+  const pendingRows = Array.isArray(pending.pending) ? pending.pending : [];
 
   const selectionArtefacts = useMemo(() => artefactsByNode[selectionId] || {}, [artefactsByNode, selectionId]);
 
@@ -426,6 +429,7 @@ function App() {
         active=${channel}
         findings=${findings}
         drift=${drift}
+        pending=${pendingRows}
         changes=${changes}
         backlog=${backlog}
         onChannel=${setChannel}
