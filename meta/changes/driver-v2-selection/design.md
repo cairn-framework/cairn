@@ -12,8 +12,13 @@ of version one carried over verbatim:
    select), then the todo backlog. The signature queue is REPORTED, never
    dispatched: a proposed decision waits for a human and the driver moves on.
 3. Dispatch one session with the constructed mission line.
-4. Verify the session's terminal token and park state exactly as version one
-   does.
+4. Verify the session, failing closed and STOPPING on any of the version-one
+   conditions, which are requirements rather than a summary: a dirty park,
+   HEAD not at `origin/main`, a surviving loop branch or an open loop PR, a
+   nonzero session exit, a final non-blank line that is not exactly a
+   terminal token, `LOOP EXHAUSTED` without the unit's todo `done` on main,
+   and a completion where the todo went `blocked` (a split or defer means
+   replanning, not progress).
 5. Append the unit id to the ledger.
 
 Nothing in that loop needs a queue file, and nothing in it lets cairn schedule:
