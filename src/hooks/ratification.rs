@@ -1,16 +1,22 @@
 //! Ratification gate for newly accepted local decisions.
 
-use std::{collections::BTreeSet, path::Path, process::Command};
+use std::{collections::BTreeSet, path::Path};
 
 use crate::{
     artefacts::registry::{
-        ArtefactSet, Decision, DecisionStatus, RatificationTier, Review,
+        ArtefactSet, Decision, Review,
         manifest::{
             compute_decision_subject_hash, governed_canonical_files, normalise_repo_entry,
             normalise_repo_path, parse_allowlist, rule_matches,
         },
     },
     map::{Finding, FindingSeverity},
+};
+
+mod git;
+
+use git::{
+    candidate_accepted_local, changed_paths, decision_was_not_local, git_output, inside_work_tree,
 };
 
 const ALLOWLIST_PATH: &str = "docs/registries/binding-surface.md";
@@ -31,20 +37,55 @@ pub fn ratification_findings(
     artefacts: &ArtefactSet,
     mode: RatificationMode,
 ) -> Vec<Finding> {
-    // The ratified trigger is a range flip to ACCEPTED at tier local, so only
-    // an accepted local decision can put anything through this gate. Merely
-    // proposing one must not make a checkout without `origin/main` fail
-    // closed: there is nothing to validate until acceptance.
-    let local_decisions = artefacts
-        .decisions
-        .iter()
-        .filter(|decision| {
-            decision.ratification == RatificationTier::Local
-                && decision.status == DecisionStatus::Accepted
-        })
-        .collect::<Vec<_>>();
-    if local_decisions.is_empty() {
+    // The trigger is read from the CANDIDATE tree (index in pre-commit, HEAD
+    // in CI), never from the worktree: staging an acceptance and then editing
+    // the unstaged copy back to `proposed` would otherwise empty this set and
+    // skip the gate for a commit that does accept the decision. Only an
+    // accepted local decision gates anything, so a repository that merely
+    // proposes one still needs no merge base.
+    // Outside a Git work tree nothing can be committed, so there is nothing to
+    // gate; that is the ONLY silent case. Inside one, an unanswerable Git may
+    // be hiding an acceptance, so enumeration failure always fails closed
+    // (never inferred from worktree contents, which the candidate tree is
+    // free to contradict).
+    if !inside_work_tree(root) {
         return Vec::new();
+    }
+    let Some(candidates) = candidate_accepted_local(root, mode) else {
+        return vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot read candidate decisions while checking ratification evidence",
+            None,
+        )];
+    };
+    if candidates.is_empty() {
+        return Vec::new();
+    }
+    let mut local_decisions = Vec::new();
+    let mut missing = Vec::new();
+    for path in &candidates {
+        match artefacts
+            .decisions
+            .iter()
+            .find(|decision| &repository_path(root, &decision.path) == path)
+        {
+            Some(decision) => local_decisions.push(decision),
+            None => missing.push(path.clone()),
+        }
+    }
+    if !missing.is_empty() {
+        return missing
+            .into_iter()
+            .map(|path| {
+                finding(
+                    "CAIRN_HOOK_MANIFEST_MISMATCH",
+                    &format!(
+                        "candidate tree accepts local decision `{path}` that the working tree does not load, so its subject cannot be validated"
+                    ),
+                    Some(path),
+                )
+            })
+            .collect();
     }
 
     let Some(base) = git_output(root, ["merge-base", "origin/main", "HEAD"]) else {
@@ -64,7 +105,6 @@ pub fn ratification_findings(
 
     local_decisions
         .into_iter()
-        .filter(|decision| decision.status == DecisionStatus::Accepted)
         .filter(|decision| decision_was_not_local(root, base.trim(), decision))
         .filter(|decision| changed.contains(&repository_path(root, &decision.path)))
         .flat_map(|decision| {
@@ -79,46 +119,6 @@ pub fn ratification_findings(
                 ))
         })
         .collect()
-}
-
-fn changed_paths(root: &Path, base: &str, mode: RatificationMode) -> Option<BTreeSet<String>> {
-    // `-z` is mandatory: without it Git C-quotes paths holding control or
-    // non-ASCII bytes, the quoted spelling never equals the artefact path, and
-    // the whole ratification gate silently skips that decision.
-    let args = match mode {
-        RatificationMode::Index => vec![
-            "diff",
-            "-z",
-            "--name-only",
-            "--no-renames",
-            "--cached",
-            base,
-        ],
-        RatificationMode::Head => vec!["diff", "-z", "--name-only", "--no-renames", base, "HEAD"],
-    };
-    let output = git_output(root, args)?;
-    Some(
-        output
-            .split('\0')
-            .filter(|path| !path.is_empty())
-            .map(str::to_owned)
-            .collect(),
-    )
-}
-
-fn decision_was_not_local(root: &Path, base: &str, decision: &Decision) -> bool {
-    let path = repository_path(root, &decision.path);
-    let Some(raw) = git_output(root, ["show", &format!("{base}:{path}")]) else {
-        return true;
-    };
-    let frontmatter = crate::artefacts::frontmatter::parse(&raw);
-    !matches!(
-        (
-            frontmatter.values.get("status").map(String::as_str),
-            frontmatter.values.get("ratification").map(String::as_str),
-        ),
-        (Some("accepted"), Some("local"))
-    )
 }
 
 fn decision_findings(
@@ -384,19 +384,6 @@ fn review_stem(review: &Review) -> &str {
         .file_stem()
         .and_then(|stem| stem.to_str())
         .unwrap_or_default()
-}
-
-fn git_output<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) -> Option<String> {
-    let output = Command::new("git")
-        .current_dir(root)
-        .args(args)
-        .output()
-        .ok()?;
-    output
-        .status
-        .success()
-        .then(|| String::from_utf8(output.stdout).ok())
-        .flatten()
 }
 
 fn finding(code: &str, message: &str, path: Option<String>) -> Finding {

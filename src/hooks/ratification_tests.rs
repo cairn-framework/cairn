@@ -128,11 +128,27 @@ fn test_ratification_rename_rider_refused() {
 fn test_ratification_missing_base_with_local_decision_fails_closed() {
     let root = git_root_without_remote("missing-base");
     let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    // The trigger reads the candidate tree, so the acceptance must actually be
+    // committed for the missing base to matter.
+    commit(&root, "accept");
     let findings = ratification_findings(&root, &artefacts, RatificationMode::Head);
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].code, "CAIRN_HOOK_AFFECTS_SUBSET");
     assert!(findings[0].message.contains("origin/main"));
     cleanup(root);
+}
+
+fn proposed_local_decision(root: &Path, subject_path: &str) -> ArtefactSet {
+    let mut artefacts = accepted_decision(root, subject_path, "subject\n");
+    let decision_path = "meta/decisions/dec.local.md";
+    let source = fs::read_to_string(root.join(decision_path)).unwrap();
+    fs::write(
+        root.join(decision_path),
+        source.replace("status: accepted", "status: proposed"),
+    )
+    .unwrap();
+    artefacts.decisions[0].status = DecisionStatus::Proposed;
+    artefacts
 }
 
 fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> ArtefactSet {
@@ -309,5 +325,44 @@ fn test_ratification_self_weakened_allowlist_refused() {
             .any(|finding| finding.code == "CAIRN_DECISION_TIER_BINDING_PATH"),
         "{findings:?}"
     );
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_proposed_local_without_remote_is_silent() {
+    // Merely proposing a local decision gates nothing, so a checkout with no
+    // `origin/main` must not fail closed: there is no acceptance to validate.
+    let root = git_root_without_remote("proposed-no-remote");
+    write(&root, "src/subject.rs", "subject\n");
+    let artefacts = proposed_local_decision(&root, "src/subject.rs");
+    commit(&root, "propose");
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert!(findings.is_empty(), "{findings:?}");
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_staged_acceptance_with_proposed_worktree_still_gated() {
+    // The trigger reads the candidate tree: staging the acceptance and then
+    // reverting the unstaged copy to `proposed` must not skip the gate, or a
+    // commit could accept a decision the hook never examined.
+    let root = git_root("staged-accept-unstaged-propose");
+    let mut artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    write(&root, "src/junk.rs", "junk\n");
+    run(&root, ["add", "."]);
+    let decision_path = root.join("meta/decisions/dec.local.md");
+    let staged = fs::read_to_string(&decision_path).unwrap();
+    fs::write(
+        &decision_path,
+        staged.replace("status: accepted", "status: proposed"),
+    )
+    .unwrap();
+    // A fresh worktree scan would report the reverted status, so the artefact
+    // set must say `proposed` too: that is what makes this a real reproduction
+    // of the bypass rather than a test the worktree-based trigger also passes.
+    artefacts.decisions[0].status = DecisionStatus::Proposed;
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    let gated = findings.is_empty();
+    assert!(!gated, "staged acceptance must stay gated: {findings:?}");
     cleanup(root);
 }
