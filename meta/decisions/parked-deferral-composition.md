@@ -2,7 +2,7 @@
 id: dec.parked-deferral-composition
 nodes:
   - cairn.kernel.scanner
-status: proposed
+status: accepted
 ratification: binding
 date: 2026-07-29
 informed_by: [res.lint-selection-folding.parked-classification]
@@ -12,9 +12,10 @@ revisit_triggers:
 ---
 # At the deferred and parked intersection, deferral wins
 
-Proposed for maintainer ratification; the implementation ships the conservative
-reading below and flips on one guard if this is ruled otherwise
-(`todo.parked-deferral-composition`).
+Accepted 2026-07-31 by maintainer ratification, recorded in the pull request
+that lands this flip. The implementation already ships the conservative
+reading below, so acceptance changes no path and closes
+`todo.parked-deferral-composition` with no code change.
 
 ## Context
 

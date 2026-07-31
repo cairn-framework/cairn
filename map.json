@@ -1925,6 +1925,7 @@
         "src/hooks/architecture.rs",
         "src/hooks/mod.rs",
         "src/hooks/ratification.rs",
+        "src/hooks/ratification/git.rs",
         "src/hooks/ratification_tests.rs",
         "src/hooks/render.rs",
         "src/hooks/tests.rs"
@@ -1962,8 +1963,8 @@
           "kind": "enum",
           "signature": "pub enum RatificationMode",
           "file": "src/hooks/ratification.rs",
-          "line": 20,
-          "end_line": 25
+          "line": 26,
+          "end_line": 31
         },
         {
           "name": "architecture_findings",
@@ -1994,8 +1995,8 @@
           "kind": "function",
           "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
-          "line": 29,
-          "end_line": 80
+          "line": 35,
+          "end_line": 122
         },
         {
           "name": "render_human",
