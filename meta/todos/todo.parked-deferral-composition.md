@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.scanner
-status: blocked
+status: done
 created: 2026-07-29
 ---
 
