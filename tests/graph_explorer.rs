@@ -34,7 +34,7 @@ fn test_ui_port_zero_starts_and_serves_graph_api() -> Result<(), Box<dyn std::er
     assert!(graph.contains("\"kind\":\"Dependency\""));
     assert!(graph.contains("\"kind\":\"Module\""));
     assert!(graph.contains("\"id\":\"app.api.lib\""));
-    assert!(meta.contains("\"schema_version\":7"));
+    assert!(meta.contains("\"schema_version\":8"));
     assert!(meta.contains("\"name\":\"ui\""));
     let meta_json: serde_json::Value = serde_json::from_str(&meta)?;
     assert!(meta_json["last_reconciled"].is_u64());

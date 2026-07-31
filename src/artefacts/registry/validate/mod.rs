@@ -27,6 +27,8 @@ pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: 
         .collect::<BTreeMap<_, _>>();
     validate_nodes(node_ids, set);
     validate_decision_refs(&decisions, set);
+    validate_receipt_links(set);
+
     validate_provenance_refs(&research_ids, &source_ids, set);
     sources::validate_sources(root, &source_ids, set);
     validate_decision_claims(root, set);
@@ -159,6 +161,36 @@ pub(super) fn validate_decision_refs(
                     "CAIRN_DECISION_SUPERSEDES_STATUS",
                     format!(
                         "decision `{}` supersedes `{target}` but target is not superseded",
+                        decision.id
+                    ),
+                    None,
+                    Some(decision.path.clone()),
+                ));
+            }
+        }
+    }
+}
+
+/// Ensures each decision receipt names a loaded Review artefact file stem.
+pub(super) fn validate_receipt_links(set: &mut ArtefactSet) {
+    let review_stems = set
+        .reviews
+        .iter()
+        .filter_map(|review| {
+            Path::new(&review.path)
+                .file_stem()
+                .and_then(std::ffi::OsStr::to_str)
+                .map(str::to_owned)
+        })
+        .collect::<BTreeSet<_>>();
+
+    for decision in &set.decisions {
+        for receipt in &decision.receipts {
+            if !review_stems.contains(receipt) {
+                set.findings.push(error(
+                    "CAIRN_DECISION_RECEIPT_UNKNOWN",
+                    format!(
+                        "decision `{}` references unknown receipt `{receipt}`",
                         decision.id
                     ),
                     None,

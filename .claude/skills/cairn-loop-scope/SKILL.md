@@ -45,7 +45,10 @@ contradicting an accepted decision, that is not a coding problem:
   artefact, create a blocked tracker item, and return `REROUTED` so the package
   lands.
 - If it needs a ruling only the maintainer can give, do the same and say so
-  plainly in the artefact. Do not self-ratify.
+  plainly in the artefact. Never self-ratify a binding decision. A local-tier
+  decision may be accepted only through the receipt protocol: two independent lens
+  receipts bound to the subject hash and a `ratified_by: machine` marker when the
+  loop signs (`todo.decision-ratification-tiers`).
 
 ## 3. Write one verifiable success criterion
 

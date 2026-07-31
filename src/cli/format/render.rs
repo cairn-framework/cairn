@@ -219,6 +219,10 @@ mod tests {
             gap: false,
             claims: None,
             body: String::new(),
+            ratification: crate::artefacts::registry::RatificationTier::Binding,
+            affects: Vec::new(),
+            ratified_by_machine: false,
+            receipts: Vec::new(),
         };
         assert_eq!(decision_line(&decision), "adopt-rust [accepted] app, lib");
     }
@@ -246,6 +250,8 @@ mod tests {
             review_type: ReviewType::Human,
             date: String::new(),
             reviewer: String::new(),
+            subject_hash: None,
+            lens_prompt_hash: None,
             related_change: None,
             body: String::new(),
         };

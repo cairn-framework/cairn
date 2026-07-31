@@ -381,6 +381,8 @@ fn format_brief_json(data: &BriefData) -> String {
                     "id": decision.id,
                     "path": decision.path,
                     "summary": decision_summary(&decision.body),
+                    "ratification": query_api::ratification_tier(decision.ratification),
+                    "ratified_by": query_api::ratified_by_wire(decision),
                 })
             })
             .collect(),
@@ -653,6 +655,10 @@ mod tests {
             gap: false,
             claims: None,
             body: body.to_owned(),
+            ratification: crate::artefacts::registry::RatificationTier::Binding,
+            affects: Vec::new(),
+            ratified_by_machine: false,
+            receipts: Vec::new(),
         }
     }
 
@@ -1083,6 +1089,8 @@ mod tests {
         assert_eq!(value["brief"]["todo"], "meta/todos/todo.app.core.md");
         assert_eq!(value["brief"]["node"], "app.core");
         assert_eq!(value["brief"]["ready"], true);
+        assert_eq!(value["brief"]["decisions"][0]["ratification"], "binding");
+        assert_eq!(value["brief"]["decisions"][0]["ratified_by"], "maintainer");
         let _ = std::fs::remove_dir_all(&dir);
     }
 

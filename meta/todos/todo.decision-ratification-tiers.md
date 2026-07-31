@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.artefacts
-status: open
+status: done
 created: 2026-07-28
 ---
 

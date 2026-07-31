@@ -384,6 +384,8 @@ Decisions (`meta/decisions/`) carry:
 - `supersedes`, `refines`, `related`: arrays of DECISION ids (lateral edges). A `supersedes` target SHOULD itself carry `status: superseded`.
 - `orphaned` / `orphan_reason`: the sanctioned hatch for a decision whose nodes are all unknown (see below).
 
+Decisions also carry `ratification` (`local` or `binding`, with an absent field meaning `binding`), `affects` (repository-relative paths), `ratified_by` (`machine` only when the loop signs), and `receipts` (review file stems). Receipt-grade reviews carry `subject_hash`, `lens_prompt_hash`, and `reviewer` as `<model-id>/<lens-id>`; accepted local decisions require two independent such reviews whose committed lens hashes match their prompts and whose `## Verdict` section first has `PASS` or `BLOCKING` at column zero after its heading. Only `PASS` is clean.
+
 Research (`meta/research/`) carries:
 
 - `id` (REQUIRED), prefix `res.`.

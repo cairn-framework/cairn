@@ -15,6 +15,8 @@ expression: value
         "app.api"
       ],
       "path": "meta/decisions/api.md",
+      "ratification": "binding",
+      "ratified_by": "maintainer",
       "refines": [],
       "related": [],
       "revisit_triggers": [],
@@ -40,7 +42,7 @@ expression: value
       "title": "API Research"
     }
   ],
-  "schema_version": 7,
+  "schema_version": 8,
   "sources": [
     {
       "body": "# API Source\nBootstrap evidence.",

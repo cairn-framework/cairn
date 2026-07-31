@@ -561,6 +561,10 @@
         "src/artefacts/registry/changes.rs",
         "src/artefacts/registry/io.rs",
         "src/artefacts/registry/kinds.rs",
+        "src/artefacts/registry/kinds/tests.rs",
+        "src/artefacts/registry/manifest.rs",
+        "src/artefacts/registry/manifest/governed.rs",
+        "src/artefacts/registry/manifest/tests.rs",
         "src/artefacts/registry/mod.rs",
         "src/artefacts/registry/parse.rs",
         "src/artefacts/registry/sha256.rs",
@@ -575,6 +579,14 @@
         "./meta/contracts/kernel.artefacts.md"
       ],
       "symbols": [
+        {
+          "name": "RATIFICATION_KEYS",
+          "kind": "const",
+          "signature": "pub const RATIFICATION_KEYS",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 17,
+          "end_line": 17
+        },
         {
           "name": "is_complete",
           "kind": "function",
@@ -604,8 +616,8 @@
           "kind": "enum",
           "signature": "pub enum ClaimsMode",
           "file": "src/artefacts/registry/types.rs",
-          "line": 109,
-          "end_line": 114
+          "line": 118,
+          "end_line": 123
         },
         {
           "name": "DecisionStatus",
@@ -616,20 +628,36 @@
           "end_line": 105
         },
         {
+          "name": "RatificationTier",
+          "kind": "enum",
+          "signature": "pub enum RatificationTier",
+          "file": "src/artefacts/registry/types.rs",
+          "line": 109,
+          "end_line": 114
+        },
+        {
+          "name": "RepoPathRule",
+          "kind": "enum",
+          "signature": "pub enum RepoPathRule",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 24,
+          "end_line": 29
+        },
+        {
           "name": "ResearchMethod",
           "kind": "enum",
           "signature": "pub enum ResearchMethod",
           "file": "src/artefacts/registry/types.rs",
-          "line": 219,
-          "end_line": 225
+          "line": 246,
+          "end_line": 252
         },
         {
           "name": "ReviewType",
           "kind": "enum",
           "signature": "pub enum ReviewType",
           "file": "src/artefacts/registry/types.rs",
-          "line": 168,
-          "end_line": 175
+          "line": 189,
+          "end_line": 196
         },
         {
           "name": "SetFieldError",
@@ -644,8 +672,8 @@
           "kind": "enum",
           "signature": "pub enum SourceVerification",
           "file": "src/artefacts/registry/types.rs",
-          "line": 229,
-          "end_line": 239
+          "line": 256,
+          "end_line": 266
         },
         {
           "name": "TodoStatus",
@@ -664,6 +692,14 @@
           "end_line": 60
         },
         {
+          "name": "compute_subject_hash",
+          "kind": "function",
+          "signature": "pub fn compute_subject_hash( repo_root: &Path, decision_repo_path: &str, decision_raw: &str, affects: &[String], ) -> Result<String, ManifestError>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 136,
+          "end_line": 189
+        },
+        {
           "name": "count_tasks",
           "kind": "function",
           "signature": "pub fn count_tasks(source: &str) -> TaskProgress",
@@ -680,12 +716,20 @@
           "end_line": 49
         },
         {
+          "name": "governed_content",
+          "kind": "function",
+          "signature": "pub fn governed_content(raw: &str) -> String",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 36,
+          "end_line": 70
+        },
+        {
           "name": "load_artefacts",
           "kind": "function",
           "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 38,
-          "end_line": 48
+          "line": 39,
+          "end_line": 49
         },
         {
           "name": "load_contracts",
@@ -696,12 +740,36 @@
           "end_line": 119
         },
         {
+          "name": "normalise_repo_entry",
+          "kind": "function",
+          "signature": "pub fn normalise_repo_entry(raw: &str) -> Option<RepoPathRule>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 84,
+          "end_line": 92
+        },
+        {
+          "name": "normalise_repo_path",
+          "kind": "function",
+          "signature": "pub fn normalise_repo_path(raw: &str) -> Option<String>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 78,
+          "end_line": 80
+        },
+        {
           "name": "parse",
           "kind": "function",
           "signature": "pub fn parse(source: &str) -> Frontmatter",
           "file": "src/artefacts/frontmatter.rs",
           "line": 18,
           "end_line": 94
+        },
+        {
+          "name": "rule_matches",
+          "kind": "function",
+          "signature": "pub fn rule_matches(rule: &RepoPathRule, file: &str) -> bool",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 96,
+          "end_line": 107
         },
         {
           "name": "set_field",
@@ -748,32 +816,32 @@
           "kind": "module",
           "signature": "pub mod types",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 22,
-          "end_line": 22
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "ArtefactSet",
           "kind": "struct",
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
-          "line": 289,
-          "end_line": 306
+          "line": 316,
+          "end_line": 333
         },
         {
           "name": "ChangeRecord",
           "kind": "struct",
           "signature": "pub struct ChangeRecord",
           "file": "src/artefacts/registry/types.rs",
-          "line": 273,
-          "end_line": 285
+          "line": 300,
+          "end_line": 312
         },
         {
           "name": "Claims",
           "kind": "struct",
           "signature": "pub struct Claims",
           "file": "src/artefacts/registry/types.rs",
-          "line": 118,
-          "end_line": 125
+          "line": 127,
+          "end_line": 134
         },
         {
           "name": "Contract",
@@ -796,8 +864,8 @@
           "kind": "struct",
           "signature": "pub struct Decision",
           "file": "src/artefacts/registry/types.rs",
-          "line": 129,
-          "end_line": 164
+          "line": 138,
+          "end_line": 185
         },
         {
           "name": "DefersRef",
@@ -816,28 +884,36 @@
           "end_line": 14
         },
         {
+          "name": "ManifestError",
+          "kind": "struct",
+          "signature": "pub struct ManifestError",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 111,
+          "end_line": 114
+        },
+        {
           "name": "Research",
           "kind": "struct",
           "signature": "pub struct Research",
           "file": "src/artefacts/registry/types.rs",
-          "line": 198,
-          "end_line": 215
+          "line": 225,
+          "end_line": 242
         },
         {
           "name": "Review",
           "kind": "struct",
           "signature": "pub struct Review",
           "file": "src/artefacts/registry/types.rs",
-          "line": 179,
-          "end_line": 194
+          "line": 200,
+          "end_line": 221
         },
         {
           "name": "Source",
           "kind": "struct",
           "signature": "pub struct Source",
           "file": "src/artefacts/registry/types.rs",
-          "line": 243,
-          "end_line": 264
+          "line": 270,
+          "end_line": 291
         },
         {
           "name": "TaskProgress",
@@ -856,60 +932,84 @@
           "end_line": 92
         },
         {
+          "name": "compute_decision_subject_hash",
+          "kind": "function",
+          "signature": "pub(crate) fn compute_decision_subject_hash( root: &Path, decision: &super::Decision, ) -> Result<String, ManifestError>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 202,
+          "end_line": 215
+        },
+        {
+          "name": "contained_file_sha256",
+          "kind": "function",
+          "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 438,
+          "end_line": 448
+        },
+        {
           "name": "load_decisions",
           "kind": "function",
           "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 54,
-          "end_line": 56
+          "line": 55,
+          "end_line": 57
+        },
+        {
+          "name": "manifest",
+          "kind": "module",
+          "signature": "pub(crate) mod manifest",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "ARTEFACT_KINDS",
           "kind": "const",
           "signature": "pub(super) const ARTEFACT_KINDS",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 30,
-          "end_line": 51
+          "line": 31,
+          "end_line": 52
         },
         {
           "name": "decisions_kind",
           "kind": "function",
           "signature": "pub(super) fn decisions_kind() -> &'static ArtefactKind",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 54,
-          "end_line": 58
+          "line": 55,
+          "end_line": 59
         },
         {
           "name": "load_kind",
           "kind": "function",
           "signature": "pub(super) fn load_kind(root: &Path, ast: &Ast, kind: &ArtefactKind, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 68,
-          "end_line": 76
+          "line": 69,
+          "end_line": 77
         },
         {
           "name": "load_kinds",
           "kind": "function",
           "signature": "pub(super) fn load_kinds(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 61,
-          "end_line": 65
+          "line": 62,
+          "end_line": 66
         },
         {
           "name": "parse_claims",
           "kind": "function",
           "signature": "pub(super) fn parse_claims( values: &std::collections::BTreeMap<String, String>, lists: &std::collections::BTreeMap<String, Vec<String>>, _path: &Path, ) -> Option<crate::artefacts::Claims>",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 143,
-          "end_line": 160
+          "line": 181,
+          "end_line": 198
         },
         {
           "name": "ArtefactKind",
           "kind": "struct",
           "signature": "pub(super) struct ArtefactKind",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 20,
-          "end_line": 25
+          "line": 21,
+          "end_line": 26
         }
       ]
     },
@@ -1824,6 +1924,8 @@
       "files": [
         "src/hooks/architecture.rs",
         "src/hooks/mod.rs",
+        "src/hooks/ratification.rs",
+        "src/hooks/ratification_tests.rs",
         "src/hooks/render.rs",
         "src/hooks/tests.rs"
       ],
@@ -1836,24 +1938,32 @@
           "kind": "function",
           "signature": "pub const fn exit_code(&self) -> u8",
           "file": "src/hooks/mod.rs",
-          "line": 65,
-          "end_line": 70
+          "line": 67,
+          "end_line": 72
         },
         {
           "name": "ExitDecision",
           "kind": "enum",
           "signature": "pub enum ExitDecision",
           "file": "src/hooks/mod.rs",
-          "line": 38,
-          "end_line": 43
+          "line": 40,
+          "end_line": 45
         },
         {
           "name": "HookKind",
           "kind": "enum",
           "signature": "pub enum HookKind",
           "file": "src/hooks/mod.rs",
-          "line": 23,
-          "end_line": 34
+          "line": 25,
+          "end_line": 36
+        },
+        {
+          "name": "RatificationMode",
+          "kind": "enum",
+          "signature": "pub enum RatificationMode",
+          "file": "src/hooks/ratification.rs",
+          "line": 20,
+          "end_line": 25
         },
         {
           "name": "architecture_findings",
@@ -1876,8 +1986,16 @@
           "kind": "function",
           "signature": "pub fn detect_active_change_conflicts(changes_dir: &Path) -> Vec<Finding>",
           "file": "src/hooks/mod.rs",
-          "line": 134,
-          "end_line": 171
+          "line": 159,
+          "end_line": 196
+        },
+        {
+          "name": "ratification_findings",
+          "kind": "function",
+          "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
+          "file": "src/hooks/ratification.rs",
+          "line": 29,
+          "end_line": 80
         },
         {
           "name": "render_human",
@@ -1900,16 +2018,16 @@
           "kind": "function",
           "signature": "pub fn run( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> HookReport",
           "file": "src/hooks/mod.rs",
-          "line": 75,
-          "end_line": 130
+          "line": 77,
+          "end_line": 90
         },
         {
           "name": "HookReport",
           "kind": "struct",
           "signature": "pub struct HookReport",
           "file": "src/hooks/mod.rs",
-          "line": 47,
-          "end_line": 60
+          "line": 49,
+          "end_line": 62
         },
         {
           "name": "render_human_verbose",
@@ -1918,6 +2036,14 @@
           "file": "src/hooks/render.rs",
           "line": 14,
           "end_line": 28
+        },
+        {
+          "name": "run_with_ratification_mode",
+          "kind": "function",
+          "signature": "pub(crate) fn run_with_ratification_mode( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ratification_mode: RatificationMode, ) -> HookReport",
+          "file": "src/hooks/mod.rs",
+          "line": 94,
+          "end_line": 155
         }
       ]
     },
@@ -2345,6 +2471,14 @@
           "end_line": 239
         },
         {
+          "name": "PendingTier",
+          "kind": "enum",
+          "signature": "pub enum PendingTier",
+          "file": "src/query_api/handlers/pending.rs",
+          "line": 19,
+          "end_line": 24
+        },
+        {
           "name": "QueryFlag",
           "kind": "enum",
           "signature": "pub enum QueryFlag",
@@ -2367,6 +2501,14 @@
           "file": "src/query_api/handlers/work_item.rs",
           "line": 13,
           "end_line": 20
+        },
+        {
+          "name": "as_str",
+          "kind": "function",
+          "signature": "pub fn as_str(self) -> &'static str",
+          "file": "src/query_api/handlers/pending.rs",
+          "line": 29,
+          "end_line": 34
         },
         {
           "name": "envelope_json",
@@ -2421,16 +2563,16 @@
           "kind": "struct",
           "signature": "pub struct PendingDecision",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 21,
-          "end_line": 31
+          "line": 48,
+          "end_line": 63
         },
         {
           "name": "PendingResponse",
           "kind": "struct",
           "signature": "pub struct PendingResponse",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 35,
-          "end_line": 39
+          "line": 67,
+          "end_line": 71
         },
         {
           "name": "QueryError",
@@ -2587,18 +2729,18 @@
         {
           "name": "pending_json",
           "kind": "function",
-          "signature": "pub(crate) fn pending_json(scan_result: &scanner::ScanResult) -> Result<Value, QueryError>",
+          "signature": "pub(crate) fn pending_json( root: &std::path::Path, scan_result: &scanner::ScanResult, ) -> Result<Value, QueryError>",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 42,
-          "end_line": 45
+          "line": 74,
+          "end_line": 80
         },
         {
           "name": "pending_rows",
           "kind": "function",
-          "signature": "pub(crate) fn pending_rows( scan_result: &scanner::ScanResult, ) -> Result<Vec<PendingDecision>, QueryError>",
+          "signature": "pub(crate) fn pending_rows( root: &std::path::Path, scan_result: &scanner::ScanResult, ) -> Result<Vec<PendingDecision>, QueryError>",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 48,
-          "end_line": 52
+          "line": 83,
+          "end_line": 88
         },
         {
           "name": "remediate_actions_raw",
@@ -2655,6 +2797,10 @@
         "src/scanner/inference_tests.rs",
         "src/scanner/mod.rs",
         "src/scanner/outputs.rs",
+        "src/scanner/ratification.rs",
+        "src/scanner/ratification/convergence.rs",
+        "src/scanner/ratification/tests/checks.rs",
+        "src/scanner/ratification/tests/mod.rs",
         "src/scanner/snapshot.rs",
         "src/scanner/state.rs",
         "src/scanner/tests.rs",
@@ -2741,8 +2887,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 454,
-          "end_line": 547
+          "line": 455,
+          "end_line": 549
         },
         {
           "name": "matches",
@@ -2813,8 +2959,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 554,
-          "end_line": 590
+          "line": 556,
+          "end_line": 592
         },
         {
           "name": "select_gate_recipe",
@@ -2893,16 +3039,16 @@
           "kind": "module",
           "signature": "pub mod snapshot",
           "file": "src/scanner/mod.rs",
-          "line": 14,
-          "end_line": 14
+          "line": 15,
+          "end_line": 15
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/scanner/mod.rs",
-          "line": 15,
-          "end_line": 15
+          "line": 16,
+          "end_line": 16
         },
         {
           "name": "BlueprintSnapshot",
@@ -2989,8 +3135,8 @@
           "kind": "struct",
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
-          "line": 62,
-          "end_line": 77
+          "line": 63,
+          "end_line": 78
         },
         {
           "name": "SnapshotEdge",
@@ -3021,8 +3167,8 @@
           "kind": "struct",
           "signature": "pub struct TargetReport",
           "file": "src/scanner/mod.rs",
-          "line": 43,
-          "end_line": 58
+          "line": 44,
+          "end_line": 59
         },
         {
           "name": "TargetHashes",
@@ -3037,8 +3183,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 623,
-          "end_line": 638
+          "line": 625,
+          "end_line": 640
         },
         {
           "name": "cache",
@@ -3093,8 +3239,8 @@
           "kind": "module",
           "signature": "pub(crate) mod todo_defers",
           "file": "src/scanner/mod.rs",
-          "line": 18,
-          "end_line": 18
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "DEFAULT_DECISION_ACCUMULATION_THRESHOLD",

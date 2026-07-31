@@ -43,6 +43,8 @@ jobs:
     needs: check
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -53,6 +55,10 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: validate hook config
         run: prek validate-config .pre-commit-config.yaml
+      - name: ratification gate
+        run: |
+          cargo build --locked --bin cairn
+          ./target/debug/cairn hook all --head
 
   webui:
     runs-on: ubuntu-latest

@@ -16,6 +16,7 @@ use super::{contract::ContractSet, frontmatter};
 mod changes;
 mod io;
 mod kinds;
+pub(crate) mod manifest;
 mod parse;
 mod sha256;
 /// Artefact type definitions.

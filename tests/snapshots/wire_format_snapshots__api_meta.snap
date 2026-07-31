@@ -270,6 +270,6 @@ expression: value
     }
   ],
   "last_reconciled": "[timestamp]",
-  "schema_version": 7,
+  "schema_version": 8,
   "version": "[version]"
 }

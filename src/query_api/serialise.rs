@@ -57,6 +57,8 @@ pub(super) fn decision_json(decision: &Decision) -> Value {
         "supersedes": decision.supersedes,
         "refines": decision.refines,
         "related": decision.related,
+        "ratification": ratification_tier(decision.ratification),
+        "ratified_by": ratified_by_wire(decision),
     })
 }
 
@@ -307,6 +309,30 @@ pub(crate) const fn todo_status(status: TodoStatus) -> &'static str {
         TodoStatus::InProgress => "in_progress",
         TodoStatus::Done => "done",
         TodoStatus::Blocked => "blocked",
+    }
+}
+
+/// Wire spelling for decision ratification tiers.
+pub(crate) const fn ratification_tier(
+    tier: crate::artefacts::registry::RatificationTier,
+) -> &'static str {
+    match tier {
+        crate::artefacts::registry::RatificationTier::Local => "local",
+        crate::artefacts::registry::RatificationTier::Binding => "binding",
+    }
+}
+
+/// Wire value for who signed a decision: `machine` whenever the marker is
+/// present (a recorded fact at any status), `maintainer` only once accepted
+/// without the marker, and absent otherwise: a proposed decision has no
+/// signer yet (`todo.decision-ratification-tiers`).
+pub(crate) fn ratified_by_wire(decision: &Decision) -> Option<&'static str> {
+    if decision.ratified_by_machine {
+        Some("machine")
+    } else if decision.status == DecisionStatus::Accepted {
+        Some("maintainer")
+    } else {
+        None
     }
 }
 

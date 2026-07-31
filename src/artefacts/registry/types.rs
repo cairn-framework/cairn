@@ -103,6 +103,15 @@ pub enum DecisionStatus {
     /// Superseded decision.
     Superseded,
 }
+/// Decision ratification tier (`todo.decision-ratification-tiers`).
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RatificationTier {
+    /// A decision whose scope permits machine ratification.
+    Local,
+    /// A maintainer-only decision, and the default for existing artefacts.
+    Binding,
+}
 
 /// Claims mode for folder enumeration in decision artefacts.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -135,6 +144,18 @@ pub struct Decision {
     pub nodes: Vec<String>,
     /// Status.
     pub status: DecisionStatus,
+    /// Ratification tier (`todo.decision-ratification-tiers`).
+    pub ratification: RatificationTier,
+    /// Repository-relative paths governed by this decision
+    /// (`todo.decision-ratification-tiers`).
+    pub affects: Vec<String>,
+    /// Whether a machine ratified this decision
+    /// (`todo.decision-ratification-tiers`).
+    pub ratified_by_machine: bool,
+    /// Review artefact stems evidencing ratification
+    /// (`todo.decision-ratification-tiers`).
+    pub receipts: Vec<String>,
+
     /// Decision date.
     pub date: String,
     /// Last revisited date.
@@ -187,6 +208,12 @@ pub struct Review {
     pub date: String,
     /// Reviewer identifier.
     pub reviewer: String,
+    /// Canonical manifest hash of the reviewed subject
+    /// (`todo.decision-ratification-tiers`).
+    pub subject_hash: Option<String>,
+    /// Committed lens prompt hash for a receipt-grade review
+    /// (`todo.decision-ratification-tiers`).
+    pub lens_prompt_hash: Option<String>,
     /// Optional related change.
     pub related_change: Option<String>,
     /// Markdown body.

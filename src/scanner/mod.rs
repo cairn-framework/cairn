@@ -11,6 +11,7 @@ pub(crate) mod gate_recipe;
 #[cfg(test)]
 mod inference_tests;
 pub mod outputs;
+mod ratification;
 pub mod snapshot;
 pub mod state;
 #[cfg(test)]
@@ -533,6 +534,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         &baselines,
         &current_snapshot,
     );
+    ratification::check_ratification(&mut graph, &artefacts, root);
     // Last: parked classification must see the complete finding set.
     todo_defers::check_todo_defers(&mut graph, &artefacts, root);
     Ok(ScanResult {

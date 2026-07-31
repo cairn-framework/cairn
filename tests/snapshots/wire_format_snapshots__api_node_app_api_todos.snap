@@ -4,7 +4,7 @@ expression: value
 ---
 {
   "node": "app.api",
-  "schema_version": 7,
+  "schema_version": 8,
   "todos": [
     {
       "body": "# API Todo\nShip the endpoint.",

@@ -83,8 +83,11 @@ author the superseding decision now: restate the target's surviving obligations
 inside it, set it `status: accepted` only if that is yours to do, mark the
 target `status: superseded`, and link both. `refines` is informational and never
 overrides a ruling. If acceptance is the maintainer's call, land the proposed
-decision plus a blocked todo and say so plainly. Do not self-ratify, and do not
-leave the contradiction unrecorded.
+decision plus a blocked todo and say so plainly. Never self-ratify a binding
+decision. A local-tier decision may be accepted only through the receipt protocol:
+two independent lens receipts bound to the subject hash and a `ratified_by: machine`
+marker when the loop signs (`todo.decision-ratification-tiers`). Do not leave the
+contradiction unrecorded.
 
 ## 5. Hand the edits to Land
 

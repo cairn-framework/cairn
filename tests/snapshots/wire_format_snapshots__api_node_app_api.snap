@@ -22,7 +22,7 @@ expression: value
   "paths": [
     "./src/api"
   ],
-  "schema_version": 7,
+  "schema_version": 8,
   "span": {
     "column": 5,
     "end_column": 14,
