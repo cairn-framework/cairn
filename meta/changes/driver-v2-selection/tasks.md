@@ -11,5 +11,9 @@
   acceptance run needs it): mission constructor, unit-id ledger, and
   `--dry-run`.
 - [ ] 4. Evidence: the dry-run equivalence transcript against a live loop
-  session's Orient at the same commit, plus a terminal-state run on a drained
-  backlog exiting zero without dispatching.
+  session's Orient at the same commit; a terminal-state run on a drained
+  backlog exiting zero without dispatching; and one negative run per
+  version-one fail-closed condition (dirty park, HEAD off `origin/main`,
+  surviving loop branch, open loop PR, nonzero session exit, non-token final
+  line, EXHAUSTED without the todo `done`, COMPLETE with the todo `blocked`)
+  proving each still stops the driver.
