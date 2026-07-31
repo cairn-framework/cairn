@@ -1,67 +1,98 @@
-# Session Handoff: 2026-06-29 (cairn-loop)
+# Session Handoff: 2026-07-31 (cairn-loop)
 
-Branch: `main`, working tree clean. Local `main` == `origin/main`.
+Working tree clean, parked at `origin/main`. `cairn scan --strict` exit 0,
+`cairn hook all` exit 0.
 
-## What Was Done (this session)
+## What was done (this session)
 
-Two units shipped through the full loop (branch -> gates -> two-lens presubmit
-review -> PR -> CI -> squash-merge -> close -> log):
+Five PRs merged, in order:
 
-1. **PR #191 merged (`cairn-bss`)**: reconciled `AGENTS.md` task-tracking
-   guidance. The `bd setup`-generated blocks asserted a universal "use bd for
-   ALL task tracking / do NOT use TodoWrite" mandate that contradicted the
-   ratified model. Resolution (grounded, not memory):
-   - `docs/spec.md` §8.2 "Todo (authority)" makes native Todo a kernel artefact;
-     §5 says project workflow conventions belong in AGENTS.md, not the framework.
-   - `dec.no-orchestrator`: Beads = optional Layer-1 storage. `dec.bd-upgrade-plan`:
-     "this repo tracks work in beads". `dec.native-task-state-and-agent-guidance`
-     ruling 2 directed this reconciliation.
-   - Added a hand-authored "## Task tracking" section outside the `bd setup`
-     markers and reconciled the two in-marker Rules lines in place (the "pin"
-     half of ruling 2's pin-or-regenerate). Node-linked beads surface via
-     `cairn backlog <node>` (not `--include-todos`, which renders native Todo).
+| PR | What | Merged |
+|---|---|---|
+| #544 | `todo.decision-ratification-tiers` implemented: the ratification tier machinery | `d0d1296` |
+| #545 | `dec.parked-deferral-composition` accepted on the maintainer's signature | `ee1550e` |
+| #547 | Two false claims corrected in `dec.bootstrap-fixture-corpus-split` | `a004b11` |
+| #548 | `todo.portfolio-hygiene` authored | `37f0b3a` |
+| #549 | `driver-v2-selection` change proposed | `725f7fe` |
+| #550 | `todo.release-next-milestone` authored | `cb62620` |
 
-2. **PR #192 merged (`cairn-9ey`, P2 bug)**: the pre-push dogfood gate could
-   false-green on a stale PATH binary. `scripts/dogfood.sh` invoked bare `cairn`,
-   resolving via PATH to `~/.cargo/bin/cairn` instead of the working tree's
-   build. Fixed to run cairn via `cargo run --release --bin cairn` (builds and
-   runs exactly that binary; respects `CARGO_TARGET_DIR`). Regression guard:
-   `tests/dogfood_gate.rs`. Verified: the pre-push hook now surfaces the repo
-   binary's findings where the stale global hid them.
+### The tiers unit (#544)
 
-## Decision-model note (no code change)
+A decision declares `ratification: local` or `binding`; absent means
+`binding`, so nothing existing changed protection. A `local` decision may be
+accepted only under the receipt protocol: two committed Review receipts from
+independent lenses, bound by `subject_hash` to a canonical manifest of
+everything the decision governs, plus `ratified_by: machine` and a
+For/Against/Verdict record when the loop signs.
 
-Native Todo (spec §8.2) is the artefact authority; bd is this repo's optional
-Layer-1 tracker (opted in for its richer workflow state). The per-node beads
-view (`src/state/backlog.rs`, `cairn backlog <node>`) already surfaces
-`cairn-node:`-labelled beads without minting Todo files, so 0 native todos is
-the design working as decided, not a gap.
+Surfaces: schema fields and CA045-CA057; the manifest hasher (governed-content
+stripping that mirrors `frontmatter::parse`, identity-based receipt exclusion,
+directory expansion, symlink containment); scanner checks (span via structural
+parent links, supersession, binding-surface allowlist with both sides
+canonicalised, convergence with committed lens-prompt hash binding); the
+range-based commit hook (merge-base to index in pre-commit, to HEAD under
+`--head` in CI, NUL-delimited paths, rename-safe, untracked and unstaged
+governed refusal, binding-surface classification against the MERGE-BASE
+allowlist); wire `schema_version` 8 with tri-state `ratified_by` and the
+candidate `subject_hash`; and the tier-aware never-self-ratify rule in both
+skill copies with committed lens prompts at `docs/agent/lenses/`.
 
-## Open backlog (3 ready, all design/decision-gated)
+The two-lens review ran twice in sequence and found **13 blockers** across
+both rounds, plus a third focused pass on the post-review delta that found the
+trigger still trusting the worktree. Every one was fixed at its source with a
+regression test: rename riders, untracked governed files, C-quoted paths, a
+range rewriting its own allowlist, nested symlink aliases into a binding
+surface, and a staged acceptance reverted in the worktree.
 
-Filed this session from a gap audit. None is a clean surgical fix; each needs a
-maintainer steer before code:
+## The protocol's first live exercise, and what it caught (#547)
 
-- **cairn-1me** (P3): wire `meta/changes` into the scan `ArtefactSet`/reconcile
-  graph. Substantial, and **overlaps the deferred `cairn-9w9`** (this is the
-  correlator substrate). Do NOT auto-build: it pre-builds deferred work.
-  Change-loading infra already exists (`src/changes/discover()` / `load_change()`).
-- **cairn-tzi** (P3): `Decision.revisited` is parsed/rendered but never written
-  (0/38 populated). It is a **spec field** (spec §8.3), so removal deviates from
-  spec; wiring needs a design call (set-on-archive when a change touches a
-  decision, or a `cairn decision revisit <id>` command). Recommend: wire it.
-- **cairn-b96** (P4): spec-rules registry has no "feasible-but-deliberately-
-  deferred" status (only enforced/pending/declared); also verify the 634
-  (`pending`) vs 635/636 (`declared`) tiering is principled. Registry-model
-  decision + a quick investigation.
+Accepting `dec.bootstrap-fixture-corpus-split` (the one `local`-tier decision)
+was attempted under the real protocol. Two independent receipt-grade lens
+reviews both returned **BLOCKING** on the same claim: the decision asserted
+that every declared node in the fixture carries an anchoring decision, but
+`check_provenance_coverage` requires one only for leaf nodes and the fixture's
+System node `cairn` has none. A second finding corrected wording that
+conflated who signs with which checks run.
 
-## Deferred (unchanged)
+Both were fixed and the decision **stays `proposed`**. The maintainer's
+signature covered the previous wording; correcting governed content after a
+signature means the corrected text needs its own word. Re-wording moved the
+candidate hash from `sha256:4ab84fee` to `sha256:5552edec`, so no receipt
+bound to the old text could bind, which is the protocol behaving as ratified.
 
-- **cairn-9w9** (P3, deferred until 2026-07-11): revisit-trigger relevance
-  correlator (spec:634). Maintainer chose honest deferral; the signal is
-  lagging/redundant at current scale. Resume only on maintainer go.
+## Waiting on the maintainer
 
-## Agent Entry Points
+1. **`dec.bootstrap-fixture-corpus-split`**: sign the CORRECTED text, or
+   reject. It is the only entry in `cairn pending`. On signature, acceptance
+   needs two fresh receipts against `sha256:5552edec` (the hash
+   `cairn pending --json` prints) landing in one range whose whole diff sits
+   inside its `affects:` list.
+2. **Folding item 3 (accumulation threshold)**: the approved "kind-scaled
+   thresholds" option rested on a false effect claim of mine. Blueprint-verified
+   facts: `cairn.root` is the System node, `cairn.kernel` is the ONLY Container,
+   and `cairn.kernel.cli` and `cairn.ui` are Modules. So 10/15/20 clears the
+   `cairn.root` Info only; `cairn.kernel.cli` (12 > 10) stays firing. It is
+   non-selecting anyway under the strict-green fold. Nothing was landed;
+   `local://folding3-spec.md` holds the corrected spec.
 
-- `cairn context` / `cairn next` / `cairn backlog <node>` / `cairn rationale <id>`.
-- Dev loop: `/cairn-loop` (command is normative; `docs/agent/cairn-dev-workflow.md` is a descriptive overview).
+## Standing findings (all Info, strict green)
+
+Two `CAIRN_RESEARCH_ORPHAN`, three `CAIRN_SOURCE_UNVERIFIED`, the spec:634
+deferred footnote, and two `CAIRN_DECISION_ACCUMULATION` (`cairn.kernel.cli`
+and `cairn.root`, both at 12 against a flat 10), owned by
+`todo.lint-selection-folding` item 3.
+
+## Next work
+
+1. Sign or reject the corrected corpus-split decision (above).
+2. Decide folding item 3 under the corrected facts (above).
+3. `todo.ratification-candidate-pointer`: candidate discovery in the
+   ratification hook hardcodes `meta/decisions` rather than resolving the
+   configured pointer, so an adopter with a non-default pointer gets a silent
+   gate. Filed from the post-merge review of #544.
+4. `todo.portfolio-hygiene`: the 32-todo mission sweep, driver-scheduled.
+5. `driver-v2-selection`: the proposal awaits a word; task 1 is a read-surface
+   audit that decides whether the mission line can be built from the JSON.
+6. `todo.release-next-milestone`: cut when the gate in it is satisfied.
+7. Cut 1b of `todo.lint-selection-folding` (decision-side `defers:`) remains
+   unratified.
