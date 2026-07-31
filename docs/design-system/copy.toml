@@ -545,6 +545,7 @@ strict = "  --strict                       Exit 1 on Warning findings (scan/lint
 verbose = "  --verbose                      Show full finding detail"
 brief = "  --brief                        Compact status summary"
 dry-run = "  --dry-run                      Preview the gate steps without running them"
+head = "  --head                         Compare the merge base with HEAD instead of the index (hook all, CI)"
 node = "  --node <id>                    Restrict findings to one node (lint)"
 node-flag = "  --node <id>                    Attach the artefact to a graph node (repeatable)"
 symbols = "  --symbols                      Include public symbols (get)"

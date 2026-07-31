@@ -31,26 +31,28 @@ pub fn ratification_findings(
     artefacts: &ArtefactSet,
     mode: RatificationMode,
 ) -> Vec<Finding> {
+    // The ratified trigger is a range flip to ACCEPTED at tier local, so only
+    // an accepted local decision can put anything through this gate. Merely
+    // proposing one must not make a checkout without `origin/main` fail
+    // closed: there is nothing to validate until acceptance.
     let local_decisions = artefacts
         .decisions
         .iter()
-        .filter(|decision| decision.ratification == RatificationTier::Local)
+        .filter(|decision| {
+            decision.ratification == RatificationTier::Local
+                && decision.status == DecisionStatus::Accepted
+        })
         .collect::<Vec<_>>();
     if local_decisions.is_empty() {
         return Vec::new();
     }
 
     let Some(base) = git_output(root, ["merge-base", "origin/main", "HEAD"]) else {
-        return (!local_decisions.is_empty())
-            .then(|| {
-                finding(
-                    "CAIRN_HOOK_AFFECTS_SUBSET",
-                    "cannot resolve merge-base for required ref `origin/main`",
-                    None,
-                )
-            })
-            .into_iter()
-            .collect();
+        return vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot resolve merge-base for required ref `origin/main`",
+            None,
+        )];
     };
     let Some(changed) = changed_paths(root, base.trim(), mode) else {
         return vec![finding(
