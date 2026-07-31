@@ -2,7 +2,8 @@
 node: cairn.root
 status: blocked
 created: 2026-07-15
-related: [dec.github-todo-issue-body-fidelity, todo.github-todo-full-issue-body]
+related: [dec.github-todo-issue-body-fidelity, todo.github-todo-full-issue-body, dec.todo-relationship-model]
+blocked_by: [todo.todo-relationship-schema-implementation]
 ---
 
 # Typed todo relationships and deterministic GitHub issue links
@@ -24,21 +25,19 @@ This work is larger than full-body fidelity (`dec.github-todo-issue-body-fidelit
 
 ## Status note
 
-BLOCKED on the prerequisite schema decision. This todo is not buildable until a
-typed relationship schema is accepted and the schema + CLI + scanner surfaces
-exist. Do not start projector link work against free-text frontmatter.
+BLOCKED on the implementation prerequisite. The schema decision is
+accepted (`dec.todo-relationship-model`, 2026-07-31); the schema, CLI,
+scanner, and wire surfaces it rules are owned by
+`todo.todo-relationship-schema-implementation` (the `blocked_by:` entry
+above). This todo is not buildable until that unit lands. Do not start
+projector link work against free-text frontmatter.
 
 ## Prerequisite
 
-A typed relationship schema decision (suggested `dec.todo-relationship-model`)
-plus:
-
-- schema support for typed todo dependencies, subtasks, and parent-child links;
-- a CLI verb to author and inspect those links;
-- scanner support so invalid or dangling relationships surface as findings.
-
-None of these exist today. Free-text `related` / `informed_by` on todos must not
-be treated as the schema.
+Owned end to end by `todo.todo-relationship-schema-implementation`;
+field and finding semantics live in `dec.todo-relationship-model` and
+are not restated here. Free-text `related` / `informed_by` on todos must
+not be treated as the schema until that unit lands.
 
 ## Task (after the prerequisite lands)
 
