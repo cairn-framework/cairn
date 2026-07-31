@@ -3,6 +3,7 @@ id: dec.parked-deferral-composition
 nodes:
   - cairn.kernel.scanner
 status: proposed
+ratification: binding
 date: 2026-07-29
 informed_by: [res.lint-selection-folding.parked-classification]
 related: [dec.loop-selection-deferred-findings, dec.loop-selection-strict-green-fold]

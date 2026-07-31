@@ -77,6 +77,10 @@ fn test_enriched_artefact_wires_include_title_and_body() {
         gap: false,
         claims: None,
         body: "# API Decision\nUse stable JSON.".to_owned(),
+        ratification: crate::artefacts::registry::RatificationTier::Local,
+        affects: Vec::new(),
+        ratified_by_machine: true,
+        receipts: Vec::new(),
     };
     let value = decision_enriched_json(&decision, root);
     assert_eq!(value["path"], "meta/decisions/api.md");
@@ -85,6 +89,26 @@ fn test_enriched_artefact_wires_include_title_and_body() {
     assert_eq!(value["date"], "2026-04-01");
     assert_eq!(value["revisited"], "2026-05-01");
     assert_eq!(value["revisit_triggers"], json!(["trigger-a"]));
+    assert_eq!(value["ratification"], "local");
+    assert_eq!(value["ratified_by"], "machine");
+
+    let mut maintainer_signed = decision.clone();
+    maintainer_signed.ratified_by_machine = false;
+    let value = decision_enriched_json(&maintainer_signed, root);
+    assert_eq!(
+        value["ratified_by"], "maintainer",
+        "accepted without the marker is maintainer-signed"
+    );
+
+    let mut unsigned = decision.clone();
+    unsigned.ratified_by_machine = false;
+    unsigned.status = DecisionStatus::Proposed;
+    let value = decision_enriched_json(&unsigned, root);
+    assert_eq!(
+        value["ratified_by"],
+        json!(null),
+        "a proposed decision has no signer yet"
+    );
 
     let research = Research {
         id: "res.api".to_owned(),

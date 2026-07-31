@@ -21,8 +21,26 @@
           "type": "array"
         },
         "ratification": {
-          "description": "Ratification tier; `binding` when the artefact declares none.",
-          "type": "string"
+          "allOf": [
+            {
+              "$ref": "#/definitions/PendingTier"
+            }
+          ],
+          "description": "Parsed ratification tier; absent frontmatter defaults to `binding`."
+        },
+        "subject_hash": {
+          "description": "Current subject manifest for local-tier decisions, when it can be computed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subject_hash_error": {
+          "description": "Manifest construction failure for local-tier decisions, when one occurs.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
@@ -32,6 +50,25 @@
         "ratification"
       ],
       "type": "object"
+    },
+    "PendingTier": {
+      "description": "Wire form of the ratification tier, constrained in the committed schema.",
+      "oneOf": [
+        {
+          "description": "Machine-acceptable under the receipt protocol.",
+          "enum": [
+            "local"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "Maintainer-only, permanently.",
+          "enum": [
+            "binding"
+          ],
+          "type": "string"
+        }
+      ]
     }
   },
   "description": "Wire shape of the `pending` query response.",

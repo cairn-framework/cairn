@@ -3,7 +3,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::util::esc;
-use crate::query_api::{decision_status, todo_status};
+use crate::query_api::{decision_status, ratification_tier, ratified_by_wire, todo_status};
 
 pub(crate) fn node_json(node: &NodeRecord) -> String {
     format!(
@@ -53,7 +53,7 @@ pub(crate) fn decisions_json(decisions: &[Decision]) -> String {
             .iter()
             .map(|decision| {
                 format!(
-                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"related\":{},\"revisited\":{}}}",
+                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"related\":{},\"revisited\":{},\"ratification\":\"{}\",\"ratified_by\":{}}}",
                     esc(&decision.id),
                     decision_status(decision.status),
                     string_array_json(&decision.nodes),
@@ -64,7 +64,10 @@ pub(crate) fn decisions_json(decisions: &[Decision]) -> String {
                     decision
                         .revisited
                         .as_deref()
-                        .map_or_else(|| "null".to_owned(), |value| format!("\"{}\"", esc(value)))
+                        .map_or_else(|| "null".to_owned(), |value| format!("\"{}\"", esc(value))),
+                    ratification_tier(decision.ratification),
+                    ratified_by_wire(decision)
+                        .map_or_else(|| "null".to_owned(), |value| format!("\"{value}\""))
                 )
             })
             .collect::<Vec<_>>()
@@ -246,6 +249,10 @@ mod tests {
             gap: false,
             claims: None,
             body: String::new(),
+            ratification: crate::artefacts::registry::RatificationTier::Binding,
+            affects: Vec::new(),
+            ratified_by_machine: false,
+            receipts: Vec::new(),
         };
         let json = decisions_json(&[decision]);
         assert!(json.contains("\"id\":\"adopt-rust\""));
@@ -256,6 +263,8 @@ mod tests {
             json.contains("\"revisited\":null"),
             "absent revisited serializes as null: {json}"
         );
+        assert!(json.contains("\"ratification\":\"binding\""));
+        assert!(json.contains("\"ratified_by\":\"maintainer\""));
     }
 
     #[test]
@@ -277,6 +286,10 @@ mod tests {
             gap: false,
             claims: None,
             body: String::new(),
+            ratification: crate::artefacts::registry::RatificationTier::Binding,
+            affects: Vec::new(),
+            ratified_by_machine: false,
+            receipts: Vec::new(),
         };
         let json = decisions_json(&[decision]);
         assert!(

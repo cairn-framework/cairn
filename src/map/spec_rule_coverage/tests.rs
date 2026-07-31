@@ -45,6 +45,10 @@ fn decision(id: &str, status: DecisionStatus) -> Decision {
         gap: false,
         claims: None,
         body: String::new(),
+        ratification: crate::artefacts::registry::RatificationTier::Binding,
+        affects: Vec::new(),
+        ratified_by_machine: false,
+        receipts: Vec::new(),
     }
 }
 
@@ -320,6 +324,36 @@ fn error_finding_wrapper_counts_as_emission() {
         "fn f() { io::error_finding(\"CAIRN_FOO\", m, None); }",
     );
     assert!(g.findings.is_empty(), "{:?}", codes(&g));
+}
+
+#[test]
+fn finding_wrapper_counts_as_emission() {
+    let (_d, g) = run(
+        "| R | spec:1 | `CAIRN_FOO` | enforced |\n",
+        "src/check.rs",
+        "fn f() { graph.findings.push(finding(\"CAIRN_FOO\", m, None)); }",
+    );
+    assert!(g.findings.is_empty(), "{:?}", codes(&g));
+}
+
+#[test]
+fn copy_finding_wrapper_counts_as_emission() {
+    let (_d, g) = run(
+        "| R | spec:1 | `CAIRN_FOO` | enforced |\n",
+        "src/check.rs",
+        "fn f() { graph.findings.push(copy_finding(\"CAIRN_FOO\", decision, None)); }",
+    );
+    assert!(g.findings.is_empty(), "{:?}", codes(&g));
+}
+
+#[test]
+fn identifier_prefixed_finding_wrapper_is_not_an_emission() {
+    let (_d, g) = run(
+        "| R | spec:1 | `CAIRN_FOO` | enforced |\n",
+        "src/check.rs",
+        "fn f() { push(my_finding(\"CAIRN_FOO\")); }",
+    );
+    assert_eq!(codes(&g), vec!["CAIRN_SPEC_RULE_UNIMPLEMENTED"]);
 }
 
 #[test]

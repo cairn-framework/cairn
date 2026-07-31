@@ -10,8 +10,9 @@ expression: value
       "nodes": [
         "app.core"
       ],
-      "ratification": "binding"
+      "ratification": "binding",
+      "subject_hash": null
     }
   ],
-  "schema_version": 7
+  "schema_version": 8
 }

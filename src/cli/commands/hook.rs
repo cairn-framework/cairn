@@ -29,8 +29,12 @@ pub(crate) fn run_hook_command(
     else {
         return err(2, copy::lookup("hooks.usage"));
     };
+    let Some(ratification_mode) = ratification_mode(&parsed.command_args) else {
+        return err(2, copy::lookup("hooks.usage"));
+    };
     let changes_dir = root.join(&parsed.changes_dir);
-    let report = hooks::run(kind, root, &changes_dir, scan_result);
+    let report =
+        hooks::run_with_ratification_mode(kind, root, &changes_dir, scan_result, ratification_mode);
     CliResult {
         code: report.exit_code(),
         stdout: if parsed.json {
@@ -40,6 +44,26 @@ pub(crate) fn run_hook_command(
         },
         stderr: legacy_warning,
     }
+}
+
+/// Selects the ratification comparison tree, ignoring Git pre-push transport arguments.
+fn ratification_mode(args: &[String]) -> Option<hooks::RatificationMode> {
+    let [_, kind, tail @ ..] = args else {
+        return None;
+    };
+    if kind != "all" {
+        return tail.is_empty().then_some(hooks::RatificationMode::Index);
+    }
+
+    let mut mode = hooks::RatificationMode::Index;
+    for argument in tail {
+        match argument.as_str() {
+            "--head" => mode = hooks::RatificationMode::Head,
+            flag if flag.starts_with('-') => return None,
+            _ => {}
+        }
+    }
+    Some(mode)
 }
 
 pub(crate) fn run_hook_lifecycle_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
@@ -212,6 +236,24 @@ mod tests {
         assert!(parse_hook_kind("unknown").is_none());
         assert!(parse_hook_kind("Structural").is_none());
         assert!(parse_hook_kind("").is_none());
+    }
+
+    #[test]
+    fn test_ratification_mode_accepts_git_transport_arguments() {
+        let transport = ["hook", "all", "origin", "https://example"].map(str::to_owned);
+        assert_eq!(
+            ratification_mode(&transport),
+            Some(hooks::RatificationMode::Index)
+        );
+        let head = ["hook", "all", "--head", "origin", "url"].map(str::to_owned);
+        assert_eq!(
+            ratification_mode(&head),
+            Some(hooks::RatificationMode::Head)
+        );
+        let invalid = ["hook", "all", "--unknown"].map(str::to_owned);
+        assert_eq!(ratification_mode(&invalid), None);
+        let structural = ["hook", "structural", "--head"].map(str::to_owned);
+        assert_eq!(ratification_mode(&structural), None);
     }
 
     #[test]

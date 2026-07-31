@@ -2,19 +2,46 @@
 //!
 //! Typed data only (`todo.maintainer-pending-queue` v1): every decision at
 //! `status: proposed`, with its signed age in whole days, its nodes, and its
-//! ratification tier. The `ratification:` frontmatter field does not exist in
-//! the artefact schema yet (`todo.decision-ratification-tiers` owns it), so
-//! every row renders that todo's documented default, `binding`.
+//! ratification tier. Local-tier rows also expose the manifest hash a receipt
+//! must cover; unavailable manifests render as `null` with an error message.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 
-/// Ratification tier rendered while the artefact schema has no
-/// `ratification:` field: absent means `binding`.
-const RATIFICATION_DEFAULT: &str = "binding";
-
 /// Seconds per civil day.
 const SECS_PER_DAY: i64 = 86_400;
+
+/// Wire form of the ratification tier, constrained in the committed schema.
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum PendingTier {
+    /// Machine-acceptable under the receipt protocol.
+    Local,
+    /// Maintainer-only, permanently.
+    Binding,
+}
+
+impl PendingTier {
+    /// Lowercase wire text, for the human renderer.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Local => "local",
+            Self::Binding => "binding",
+        }
+    }
+}
+
+impl From<crate::artefacts::registry::RatificationTier> for PendingTier {
+    fn from(tier: crate::artefacts::registry::RatificationTier) -> Self {
+        match tier {
+            crate::artefacts::registry::RatificationTier::Local => Self::Local,
+            crate::artefacts::registry::RatificationTier::Binding => Self::Binding,
+        }
+    }
+}
 
 /// One row of the maintainer pending queue: a decision at `status: proposed`.
 #[derive(Clone, Debug, serde::Serialize, schemars::JsonSchema)]
@@ -26,8 +53,13 @@ pub struct PendingDecision {
     pub age_days: i64,
     /// Node ids the decision references.
     pub nodes: Vec<String>,
-    /// Ratification tier; `binding` when the artefact declares none.
-    pub ratification: String,
+    /// Parsed ratification tier; absent frontmatter defaults to `binding`.
+    pub ratification: PendingTier,
+    /// Current subject manifest for local-tier decisions, when it can be computed.
+    pub subject_hash: Option<String>,
+    /// Manifest construction failure for local-tier decisions, when one occurs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_hash_error: Option<String>,
 }
 
 /// Wire shape of the `pending` query response.
@@ -39,31 +71,42 @@ pub struct PendingResponse {
 }
 
 /// Dispatch shim: builds the pending queue against the wall clock.
-pub(crate) fn pending_json(scan_result: &scanner::ScanResult) -> Result<Value, QueryError> {
-    let response = pending_response(&scan_result.artefacts.decisions, today_days())?;
+pub(crate) fn pending_json(
+    root: &std::path::Path,
+    scan_result: &scanner::ScanResult,
+) -> Result<Value, QueryError> {
+    let response = pending_response(root, &scan_result.artefacts.decisions, today_days())?;
     Ok(serde_json::to_value(response).expect("PendingResponse serialises"))
 }
 
 /// Rows for the CLI human renderer; same computation the JSON wire carries.
 pub(crate) fn pending_rows(
+    root: &std::path::Path,
     scan_result: &scanner::ScanResult,
 ) -> Result<Vec<PendingDecision>, QueryError> {
-    pending_response(&scan_result.artefacts.decisions, today_days()).map(|r| r.pending)
+    pending_response(root, &scan_result.artefacts.decisions, today_days()).map(|r| r.pending)
 }
 
 /// Builds the queue from the decision set alone, against an injected `today`
 /// (days since the Unix epoch) so the arithmetic is testable.
-fn pending_response(decisions: &[Decision], today: i64) -> Result<PendingResponse, QueryError> {
+fn pending_response(
+    root: &std::path::Path,
+    decisions: &[Decision],
+    today: i64,
+) -> Result<PendingResponse, QueryError> {
     let mut pending = decisions
         .iter()
         .filter(|decision| decision.status == DecisionStatus::Proposed)
         .map(|decision| {
             let days = date_to_days(&decision.date).ok_or_else(|| invalid_date(decision))?;
+            let (subject_hash, subject_hash_error) = decision_subject_hash(root, decision);
             Ok(PendingDecision {
                 id: decision.id.clone(),
                 age_days: today - days,
                 nodes: decision.nodes.clone(),
-                ratification: RATIFICATION_DEFAULT.to_owned(),
+                ratification: decision.ratification.into(),
+                subject_hash,
+                subject_hash_error,
             })
         })
         .collect::<Result<Vec<_>, QueryError>>()?;
@@ -71,6 +114,18 @@ fn pending_response(decisions: &[Decision], today: i64) -> Result<PendingRespons
     Ok(PendingResponse { pending })
 }
 
+fn decision_subject_hash(
+    root: &std::path::Path,
+    decision: &Decision,
+) -> (Option<String>, Option<String>) {
+    if decision.ratification != crate::artefacts::registry::RatificationTier::Local {
+        return (None, None);
+    }
+    match crate::artefacts::registry::manifest::compute_decision_subject_hash(root, decision) {
+        Ok(hash) => (Some(hash), None),
+        Err(error) => (None, Some(error.message)),
+    }
+}
 fn invalid_date(decision: &Decision) -> QueryError {
     QueryError {
         code: "CAIRN_PENDING_INVALID_DATE".to_owned(),
@@ -154,7 +209,7 @@ mod tests {
         Decision {
             id: id.to_owned(),
             path: format!("meta/decisions/{id}.md"),
-            nodes: nodes.iter().map(|n| (*n).to_owned()).collect(),
+            nodes: nodes.iter().map(|node| (*node).to_owned()).collect(),
             status,
             date: date.to_owned(),
             revisited: None,
@@ -168,6 +223,10 @@ mod tests {
             gap: false,
             claims: None,
             body: String::new(),
+            ratification: crate::artefacts::registry::RatificationTier::Binding,
+            affects: Vec::new(),
+            ratified_by_machine: false,
+            receipts: Vec::new(),
         }
     }
 
@@ -232,15 +291,20 @@ mod tests {
                 &["a"],
             ),
         ];
-        let response = pending_response(&decisions, today).unwrap();
+        let response = pending_response(std::path::Path::new("/"), &decisions, today).unwrap();
         let ids: Vec<&str> = response.pending.iter().map(|row| row.id.as_str()).collect();
         assert_eq!(ids, ["dec.older", "dec.newer"]);
         assert_eq!(response.pending[0].age_days, 29);
         assert_eq!(response.pending[0].nodes, ["a", "b"]);
         assert_eq!(response.pending[1].age_days, 10);
         for row in &response.pending {
-            assert_eq!(row.ratification, "binding");
+            assert_eq!(row.ratification, PendingTier::Binding);
+            assert_eq!(row.subject_hash, None);
+            assert_eq!(row.subject_hash_error, None);
         }
+        let wire = serde_json::to_value(&response).unwrap();
+        assert_eq!(wire["pending"][0]["subject_hash"], serde_json::Value::Null);
+        assert!(wire["pending"][0].get("subject_hash_error").is_none());
     }
 
     #[test]
@@ -250,7 +314,7 @@ mod tests {
             decision("dec.zeta", DecisionStatus::Proposed, "2026-07-10", &["a"]),
             decision("dec.alpha", DecisionStatus::Proposed, "2026-07-10", &["a"]),
         ];
-        let response = pending_response(&decisions, today).unwrap();
+        let response = pending_response(std::path::Path::new("/"), &decisions, today).unwrap();
         let ids: Vec<&str> = response.pending.iter().map(|row| row.id.as_str()).collect();
         assert_eq!(ids, ["dec.alpha", "dec.zeta"]);
     }
@@ -262,7 +326,7 @@ mod tests {
             decision("dec.future", DecisionStatus::Proposed, "2026-08-04", &["a"]),
             decision("dec.past", DecisionStatus::Proposed, "2026-07-25", &["a"]),
         ];
-        let response = pending_response(&decisions, today).unwrap();
+        let response = pending_response(std::path::Path::new("/"), &decisions, today).unwrap();
         let ids: Vec<&str> = response.pending.iter().map(|row| row.id.as_str()).collect();
         assert_eq!(ids, ["dec.past", "dec.future"]);
         assert_eq!(response.pending[1].age_days, -5);
@@ -276,7 +340,7 @@ mod tests {
             "not-a-date!",
             &["a"],
         )];
-        let error = pending_response(&decisions, 0).unwrap_err();
+        let error = pending_response(std::path::Path::new("/"), &decisions, 0).unwrap_err();
         assert_eq!(error.code, "CAIRN_PENDING_INVALID_DATE");
         assert!(error.message.contains("dec.bad"), "{}", error.message);
         assert!(error.message.contains("not-a-date!"), "{}", error.message);
@@ -289,8 +353,68 @@ mod tests {
             decision("dec.done", DecisionStatus::Accepted, "garbage-date", &["a"]),
             decision("dec.live", DecisionStatus::Proposed, "2026-07-01", &["a"]),
         ];
-        let response = pending_response(&decisions, days_from_civil(2026, 7, 30)).unwrap();
+        let response = pending_response(
+            std::path::Path::new("/"),
+            &decisions,
+            days_from_civil(2026, 7, 30),
+        )
+        .unwrap();
         assert_eq!(response.pending.len(), 1);
         assert_eq!(response.pending[0].id, "dec.live");
+    }
+
+    #[test]
+    fn test_pending_local_tier_includes_subject_hash() {
+        let directory = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(directory.path().join("meta/decisions")).unwrap();
+        let raw = "---\nid: dec.local\nstatus: proposed\nratification: local\ndate: 2026-07-01\n---\n# Local\n";
+        std::fs::write(directory.path().join("meta/decisions/dec.local.md"), raw).unwrap();
+        let mut local = decision("dec.local", DecisionStatus::Proposed, "2026-07-01", &["a"]);
+        local.ratification = crate::artefacts::registry::RatificationTier::Local;
+        let response =
+            pending_response(directory.path(), &[local], days_from_civil(2026, 7, 30)).unwrap();
+        assert_eq!(response.pending[0].ratification, PendingTier::Local);
+        assert_eq!(
+            response.pending[0].subject_hash,
+            crate::artefacts::registry::manifest::compute_subject_hash(
+                directory.path(),
+                "meta/decisions/dec.local.md",
+                raw,
+                &[],
+            )
+            .ok()
+        );
+        assert_eq!(response.pending[0].subject_hash_error, None);
+    }
+
+    #[test]
+    fn test_pending_local_tier_manifest_error_includes_message() {
+        let directory = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(directory.path().join("meta/decisions")).unwrap();
+        std::fs::write(
+            directory.path().join("meta/decisions/dec.local.md"),
+            "---\nid: dec.local\nstatus: proposed\nratification: local\ndate: 2026-07-01\n---\n# Local\n",
+        )
+        .unwrap();
+        let mut local = decision("dec.local", DecisionStatus::Proposed, "2026-07-01", &["a"]);
+        local.ratification = crate::artefacts::registry::RatificationTier::Local;
+        local.affects = vec!["src/missing.rs".to_owned()];
+        let response =
+            pending_response(directory.path(), &[local], days_from_civil(2026, 7, 30)).unwrap();
+        assert_eq!(response.pending[0].subject_hash, None);
+        assert!(
+            response.pending[0]
+                .subject_hash_error
+                .as_deref()
+                .is_some_and(|message| message.contains("src/missing.rs"))
+        );
+        let wire = serde_json::to_value(&response).unwrap();
+        assert_eq!(wire["pending"][0]["subject_hash"], serde_json::Value::Null);
+        assert!(
+            wire["pending"][0]
+                .get("subject_hash_error")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|message| message.contains("src/missing.rs"))
+        );
     }
 }

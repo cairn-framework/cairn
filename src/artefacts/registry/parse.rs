@@ -79,6 +79,151 @@ pub(super) fn parse_decision_status(
     }
 }
 
+pub(super) fn parse_ratification_tier(
+    value: &str,
+    path: &Path,
+    set: &mut ArtefactSet,
+) -> Option<RatificationTier> {
+    match value {
+        "local" => Some(RatificationTier::Local),
+        "binding" => Some(RatificationTier::Binding),
+        _ => {
+            set.findings.push(error_finding(
+                "CAIRN_DECISION_RATIFICATION_INVALID",
+                format!(
+                    "decision `{}` has invalid ratification `{value}`",
+                    path.display()
+                ),
+                Some(path_string(path)),
+            ));
+            None
+        }
+    }
+}
+
+pub(super) fn parse_ratified_by(value: &str, path: &Path, set: &mut ArtefactSet) -> Option<bool> {
+    if value == "machine" {
+        Some(true)
+    } else {
+        set.findings.push(error_finding(
+            "CAIRN_DECISION_RATIFIED_BY_INVALID",
+            format!(
+                "decision `{}` has invalid ratified_by `{value}`",
+                path.display()
+            ),
+            Some(path_string(path)),
+        ));
+        None
+    }
+}
+
+pub(super) fn parse_affects_path(
+    value: &str,
+    path: &Path,
+    set: &mut ArtefactSet,
+) -> Option<String> {
+    if super::manifest::normalise_repo_entry(value).is_some() {
+        Some(value.to_owned())
+    } else {
+        set.findings.push(error_finding(
+            "CAIRN_DECISION_AFFECTS_INVALID",
+            format!(
+                "decision `{}` has invalid affects entry `{value}`",
+                path.display()
+            ),
+            Some(path_string(path)),
+        ));
+        None
+    }
+}
+
+pub(super) fn parse_subject_hash(
+    value: &str,
+    path: &Path,
+    set: &mut ArtefactSet,
+) -> Option<String> {
+    if valid_sha256(value) {
+        Some(value.to_owned())
+    } else {
+        set.findings.push(error_finding(
+            "CAIRN_REVIEW_SUBJECT_HASH_INVALID",
+            format!(
+                "review `{}` has invalid subject_hash `{value}`",
+                path.display()
+            ),
+            Some(path_string(path)),
+        ));
+        None
+    }
+}
+
+pub(super) fn parse_receipt_reviewer(
+    value: &str,
+    receipt_grade: bool,
+    path: &Path,
+    set: &mut ArtefactSet,
+) -> bool {
+    // The model id is the provider's exact string and may itself contain
+    // separators (`provider/model`), so the lens id is everything after the
+    // FINAL slash and must be a single non-empty component.
+    let valid = value
+        .rsplit_once('/')
+        .is_some_and(|(model, lens)| !model.is_empty() && !lens.is_empty());
+    if !receipt_grade || valid {
+        true
+    } else {
+        set.findings.push(error_finding(
+            "CAIRN_REVIEW_REVIEWER_INVALID",
+            format!(
+                "review `{}` has invalid receipt reviewer `{value}`",
+                path.display()
+            ),
+            Some(path_string(path)),
+        ));
+        false
+    }
+}
+
+pub(super) fn parse_lens_prompt_hash(
+    value: Option<String>,
+    receipt_grade: bool,
+    path: &Path,
+    set: &mut ArtefactSet,
+) -> Option<String> {
+    match value {
+        Some(value) if valid_sha256(&value) => Some(value),
+        Some(value) if receipt_grade => {
+            set.findings.push(error_finding(
+                "CAIRN_REVIEW_LENS_PROMPT_HASH_INVALID",
+                format!(
+                    "review `{}` has invalid lens_prompt_hash `{value}`",
+                    path.display()
+                ),
+                Some(path_string(path)),
+            ));
+            None
+        }
+        None if receipt_grade => {
+            set.findings.push(error_finding(
+                "CAIRN_REVIEW_LENS_PROMPT_HASH_INVALID",
+                format!("review `{}` lacks lens_prompt_hash", path.display()),
+                Some(path_string(path)),
+            ));
+            None
+        }
+        None => None,
+        Some(value) => Some(value),
+    }
+}
+
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 71
+        && value.starts_with("sha256:")
+        && value[7..]
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+}
+
 pub(super) fn parse_review_type(
     value: &str,
     path: &Path,

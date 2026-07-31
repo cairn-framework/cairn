@@ -241,13 +241,21 @@ fn parse_code(cell: &str) -> Option<String> {
 
 /// True when `code` appears as a string literal at an emission site in the
 /// corpus: the `"code"` literal is immediately preceded (ignoring whitespace) by
-/// a finding-emitting call (`error(`, `warning(`, `info(`, `error_finding(`) or
-/// a `code:` struct field, with an identifier boundary so `my_error(` does not
-/// match. Line comments are stripped before scanning, so a commented-out emit
-/// and a bare reference (match arm, remediation handler, doc comment) do not
-/// count.
+/// a finding-emitting call (`error(`, `warning(`, `info(`, `error_finding(`,
+/// `finding(`, `copy_finding(`) or a `code:` struct field, with an identifier
+/// boundary so `my_error(` does not match. Line comments are stripped before
+/// scanning, so a commented-out emit and a bare reference (match arm,
+/// remediation handler, doc comment) do not count.
 fn is_emitted(corpus: &str, code: &str) -> bool {
-    const ANCHORS: [&str; 5] = ["error(", "warning(", "info(", "error_finding(", "code:"];
+    const ANCHORS: [&str; 7] = [
+        "error(",
+        "warning(",
+        "info(",
+        "error_finding(",
+        "finding(",
+        "copy_finding(",
+        "code:",
+    ];
     let needle = format!("\"{code}\"");
     let mut from = 0;
     while let Some(rel) = corpus[from..].find(&needle) {

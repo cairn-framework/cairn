@@ -126,6 +126,19 @@ All codes follow the pattern **`CXNNN`**:
 - CA042 -- todo `defers:` reference targets an Error or Warning finding (CAIRN_TODO_DEFERS_BLOCKING) -- todo.lint-selection-folding
 - CA043 -- todo `defers:` frontmatter entry is malformed (CAIRN_TODO_DEFERS_INVALID) -- todo.lint-selection-folding
 - CA044 -- source's `file:` resolves to the source artefact itself, under any verification value (CAIRN_SOURCE_SELF_REFERENCE) -- todo.source-self-reference-finding
+- CA045 -- decision `ratification:` is not `local` or `binding` (CAIRN_DECISION_RATIFICATION_INVALID) -- todo.decision-ratification-tiers
+- CA046 -- decision `ratified_by:` is present but not `machine` (CAIRN_DECISION_RATIFIED_BY_INVALID) -- todo.decision-ratification-tiers
+- CA047 -- decision `affects:` entry is not a normalised repository-relative path (CAIRN_DECISION_AFFECTS_INVALID) -- todo.decision-ratification-tiers
+- CA048 -- review `subject_hash:` is present but malformed (CAIRN_REVIEW_SUBJECT_HASH_INVALID) -- todo.decision-ratification-tiers
+- CA049 -- receipt-grade review `reviewer:` is not `<model-id>/<lens-id>` (CAIRN_REVIEW_REVIEWER_INVALID) -- todo.decision-ratification-tiers
+- CA050 -- receipt-grade review lacks a valid `lens_prompt_hash:` (CAIRN_REVIEW_LENS_PROMPT_HASH_INVALID) -- todo.decision-ratification-tiers
+- CA051 -- local decision nodes resolve to more than one container (CAIRN_DECISION_TIER_SPAN) -- todo.decision-ratification-tiers
+- CA052 -- local decision supersedes another decision (CAIRN_DECISION_TIER_SUPERSEDES) -- todo.decision-ratification-tiers
+- CA053 -- local decision affects a binding-surface path (CAIRN_DECISION_TIER_BINDING_PATH) -- todo.decision-ratification-tiers
+- CA054 -- accepted local decision receipts do not converge (CAIRN_DECISION_CONVERGENCE_UNMET) -- todo.decision-ratification-tiers
+- CA055 -- decision receipt reference resolves to no loaded review (CAIRN_DECISION_RECEIPT_UNKNOWN) -- todo.decision-ratification-tiers
+- CA056 -- receipt-grade review's subject hash matches no local-tier decision's recomputed manifest (CAIRN_REVIEW_SUBJECT_UNMATCHED) -- todo.decision-ratification-tiers
+- CA057 -- binding decision carries `ratified_by: machine` (CAIRN_DECISION_MACHINE_BINDING) -- todo.decision-ratification-tiers
 
 ## CC -- Changes
 
@@ -148,6 +161,8 @@ All codes follow the pattern **`CXNNN`**:
 - CH001 -- blueprint architectural mutation lacks paired decision artefact -- issue #68
 - CH002 -- synced module lacks test coverage (CAIRN_TEST_COVERAGE_MISSING) -- change `cairn-test-coverage-gate`
 - CH003 -- recorded interface hash differs from the interface's current state (CAIRN_INTERFACE_HASH_CHANGED) -- pre-registry provenance unknown -- audited 2026-07-16
+- CH004 -- commit accepting a local decision touches a path outside its `affects:` list (CAIRN_HOOK_AFFECTS_SUBSET) -- todo.decision-ratification-tiers
+- CH005 -- recomputed decision manifest differs from receipt `subject_hash` (CAIRN_HOOK_MANIFEST_MISMATCH) -- todo.decision-ratification-tiers
 
 ## CE -- Edges
 

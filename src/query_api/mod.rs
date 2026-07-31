@@ -60,7 +60,7 @@ use util::{finding_error, findings_error, load_for, required};
 /// Both the CLI `--json` surface (which prints `data` directly) and the MCP
 /// envelope (which wraps `data`) carry this version on the top-level data
 /// object so consumers can branch on the output contract uniformly.
-pub const SCHEMA_VERSION: u32 = 7;
+pub const SCHEMA_VERSION: u32 = 8;
 
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -246,7 +246,7 @@ pub const fn registry() -> &'static [ToolMetadata] {
 pub(crate) use gates::format_gates;
 pub(crate) use serialise::{
     accepted_decision_ids, decision_status, neighbourhood_ids, parse_decision_status_filter,
-    requires_valid_map, research_for_nodes, todo_status,
+    ratification_tier, ratified_by_wire, requires_valid_map, research_for_nodes, todo_status,
 };
 
 /// Returns tools visible for a server configuration.
@@ -522,7 +522,7 @@ fn execute_data_with_scan(
             }))
         }
         "status" => Ok(status_json(root, changes_dir, scan_result)),
-        "pending" => pending_json(scan_result),
+        "pending" => pending_json(root, scan_result),
         "context" => Ok(context_json(root, scan_result, loaded_config)),
         "rationale" => rationale_json(
             root,

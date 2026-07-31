@@ -176,6 +176,21 @@ CAIRN_CHANGE_TASKS_COMPLETE = { heading = "Change tasks complete", body = "Chang
 CAIRN_ARTEFACT_FILENAME_DRIFT = { heading = "Artefact filename drift", body = "The artefact at `{path}` is not named after its id.", cta = "Rename the file to its id without the typed prefix; todos keep `todo.<slug>.md`." }
 CAIRN_CONTRACT_NODE_SHAPE_DRIFT = { heading = "Contract not reviewed against current node shape", body = "The baseline for `{node}` was recorded against a different node shape; `{target}` changed.", cta = "Re-read the contract against the current declaration, then re-record its baseline." }
 CAIRN_DECISION_ACCUMULATION = { heading = "Accepted decisions accumulating", body = "Node `{node}` carries {count} accepted decisions (threshold {threshold}).", cta = "Author one consolidating decision listing the stale set in its `supersedes` field (the parser never reads `superseded_by`), and set each of those targets to `status: superseded`. Both halves are required: a target left accepted keeps counting here and also raises CAIRN_DECISION_SUPERSEDES_STATUS. Superseded decisions keep their provenance and drop out of default payloads." }
+CAIRN_DECISION_RATIFICATION_INVALID = { heading = "Invalid ratification tier", body = "Decision `{path}` declares `{value}` for `ratification:`, but only `local` and `binding` are valid.", cta = "Set `ratification:` to `local` or `binding`, or omit it for the binding default." }
+CAIRN_DECISION_RATIFIED_BY_INVALID = { heading = "Invalid ratification signer", body = "Decision `{path}` declares `{value}` for `ratified_by:`, but only `machine` is valid.", cta = "Use `ratified_by: machine` only when the loop signs the decision, or remove the field for a maintainer signature." }
+CAIRN_DECISION_AFFECTS_INVALID = { heading = "Invalid affected path", body = "Decision `{path}` lists an invalid `affects:` entry `{value}`.", cta = "Use a normalised repository-relative path without backslashes, absolute paths, or `.` and `..` segments." }
+CAIRN_REVIEW_SUBJECT_HASH_INVALID = { heading = "Invalid review subject hash", body = "Review `{path}` has an invalid `subject_hash:` value.", cta = "Use `sha256:` followed by 64 lowercase hexadecimal characters." }
+CAIRN_REVIEW_REVIEWER_INVALID = { heading = "Invalid receipt reviewer", body = "Receipt-grade review `{path}` has a reviewer identifier that is not `<model-id>/<lens-id>`.", cta = "Use the provider model id, one slash, and the committed lens prompt file stem." }
+CAIRN_REVIEW_LENS_PROMPT_HASH_INVALID = { heading = "Invalid lens prompt hash", body = "Receipt-grade review `{path}` lacks a valid `lens_prompt_hash:`.", cta = "Record `sha256:` followed by the 64 lowercase hexadecimal characters of the committed prompt file." }
+CAIRN_DECISION_TIER_SPAN = { heading = "Local decision spans containers", body = "Local decision `{decision}` names nodes in more than one container.", cta = "Keep a local decision within one container, or declare it binding." }
+CAIRN_DECISION_TIER_SUPERSEDES = { heading = "Local decision supersedes", body = "Local decision `{decision}` names superseded decisions.", cta = "Remove `supersedes:` or declare the decision binding." }
+CAIRN_DECISION_TIER_BINDING_PATH = { heading = "Local decision affects a binding surface", body = "Local decision `{decision}` lists binding-surface path `{path}` in `affects:`.", cta = "Declare the decision binding for changes to this path." }
+CAIRN_DECISION_CONVERGENCE_UNMET = { heading = "Decision receipts do not converge", body = "Accepted local decision `{decision}` has receipts that fail the required convergence leg: {leg}.", cta = "Provide two independent, clean, receipt-grade reviews bound to the current subject manifest." }
+CAIRN_DECISION_RECEIPT_UNKNOWN = { heading = "Unknown decision receipt", body = "Decision `{decision}` names receipt `{receipt}`, but no loaded review has that file stem.", cta = "Add the review artefact or correct the `receipts:` entry." }
+CAIRN_REVIEW_SUBJECT_UNMATCHED = { heading = "Stale review receipt", body = "Receipt-grade review `{path}` carries a `subject_hash` matching no local-tier decision's recomputed manifest.", cta = "Keep it as audit-only evidence of an earlier round, or refresh the review against the current subject." }
+CAIRN_DECISION_MACHINE_BINDING = { heading = "Machine-signed binding decision", body = "Binding decision `{decision}` declares `ratified_by: machine`.", cta = "Use the machine marker only for a converged local decision, or remove it for a maintainer signature." }
+CAIRN_HOOK_AFFECTS_SUBSET = { heading = "Changed path outside decision affects", body = "The commit accepts local decision `{decision}` but changes `{path}`, which is absent from `affects:`.", cta = "Add the path before review and refresh the receipt manifest, or remove the acceptance." }
+CAIRN_HOOK_MANIFEST_MISMATCH = { heading = "Decision receipt manifest changed", body = "Local decision `{decision}` has receipts for a different subject manifest.", cta = "Restore the reviewed files or obtain fresh converged receipts for the current manifest." }
 
 
 CT001 = { heading = "Interface contradiction", body = "Targets for `{node}` with the same contract role have divergent interfaces.", cta = "Review the contract and reconcile the interface shapes." }
@@ -306,7 +321,7 @@ unsupported-flag = "{command} does not support {flag}"
 migrate-dsl = "No blueprint file was found. Rename `cairn.dsl` to `cairn.blueprint`."
 
 [hooks]
-usage = "usage: cairn hook <structural|interface|tension|architecture-decision|all> or cairn hook <install|status|uninstall> [--pre-push]"
+usage = "usage: cairn hook <structural|interface|tension|architecture-decision|all> [--head only with all] or cairn hook <install|status|uninstall> [--pre-push]"
 existing = "refusing to replace an existing non-Cairn hook"
 pre-commit-conflict = "pre-commit configuration owns Git hooks. Add Cairn to that configuration instead of installing a raw hook."
 git-error = "unable to locate the Git hooks directory"
@@ -530,6 +545,7 @@ strict = "  --strict                       Exit 1 on Warning findings (scan/lint
 verbose = "  --verbose                      Show full finding detail"
 brief = "  --brief                        Compact status summary"
 dry-run = "  --dry-run                      Preview the gate steps without running them"
+head = "  --head                         Compare the merge base with HEAD instead of the index (hook all, CI)"
 node = "  --node <id>                    Restrict findings to one node (lint)"
 node-flag = "  --node <id>                    Attach the artefact to a graph node (repeatable)"
 symbols = "  --symbols                      Include public symbols (get)"
@@ -662,7 +678,7 @@ usage = "cairn health [options]"
 
 [help.commands.hook]
 usage = "cairn hook <structural|interface|tension|architecture-decision|all|install|status|uninstall> [options]"
-args = "  <kind|lifecycle>  Hook kind to run, or install/status/uninstall"
+args = "  <kind|lifecycle>  Hook kind to run, or install/status/uninstall\n  --head  Compare origin/main to HEAD for CI (only with all)"
 
 [help.commands.import-openspec]
 usage = "cairn import-openspec [options]"

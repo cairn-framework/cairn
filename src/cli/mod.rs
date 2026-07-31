@@ -842,7 +842,7 @@ fn render_loaded_project_command(
             }
             Err(findings) => return findings_output(parsed.json, parsed.verbose, &findings),
         },
-        "pending" => match crate::query_api::pending_rows(scan_result) {
+        "pending" => match crate::query_api::pending_rows(root, scan_result) {
             Ok(rows) => {
                 let mut out = format!("{}\n", copy::lookup("pending.header"));
                 if rows.is_empty() {
@@ -855,7 +855,7 @@ fn render_loaded_project_command(
                             copy::lookup("pending.row")
                                 .replace("{id}", &row.id)
                                 .replace("{age}", &row.age_days.to_string())
-                                .replace("{ratification}", &row.ratification)
+                                .replace("{ratification}", row.ratification.as_str())
                                 .replace("{nodes}", &row.nodes.join(", "))
                         );
                     }

@@ -3,6 +3,14 @@ id: dec.bootstrap-fixture-corpus-split
 nodes:
   - cairn.tests
 status: proposed
+ratification: local
+affects:
+  - meta/decisions/bootstrap-fixture-corpus-split.md
+  - tests/fixtures/cairn-bootstrap/
+  - tests/fixtures_smoke.rs
+  - tests/examples_gate.rs
+  - meta/reviews/rev.bootstrap-fixture-corpus-split-correctness.md
+  - meta/reviews/rev.bootstrap-fixture-corpus-split-simplicity.md
 date: 2026-07-30
 informed_by: [res.bootstrap-fixture-repair, src.pr-528-w10-ratification]
 ---
@@ -51,10 +59,9 @@ proposed.
   `tests/examples_gate.rs`) sits under `cairn.tests`, outside the
   binding-surface allowlist `todo.decision-ratification-tiers` defines: no
   spec, registry, artefact-schema, or shipped-pack path. `cairn pending`
-  renders it `binding` only because v1 defaults the absent `ratification:`
-  field; under the ratified tier boundary this is the self-serve class,
-  signed by the maintainer today because the tiers machinery is not yet
-  implemented.
+  renders the declared `local` tier and prints the candidate subject hash;
+  this is the self-serve class under the ratified boundary, awaiting the
+  maintainer's signature through the receipt protocol.
 - **Unblocks**: nothing mechanically: no todo blocks on this signature and
   no finding names it. Signing converts the standing corpus split from a
   repair-local implementation choice into a ratified rule future fixture

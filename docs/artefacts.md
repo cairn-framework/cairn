@@ -34,7 +34,7 @@ satisfies: login
 ```markdown
 ---
 id: dec.auth-storage
-nodes: [app.auth, app.store]
+nodes: [app.auth]
 status: accepted
 date: 2026-04-17
 revisited: 2026-04-17
@@ -45,8 +45,15 @@ informed_by:
     id: res.auth-storage
   - type: source
     id: src.auth-notes
-supersedes: [dec.old-auth-storage]
+supersedes: []
 refines: []
+ratification: local
+affects:
+  - meta/decisions/auth-storage.md
+  - meta/reviews/rev.auth-storage-correctness.md
+  - meta/reviews/rev.auth-storage-simplicity.md
+ratified_by: machine
+receipts: [rev.auth-storage-correctness, rev.auth-storage-simplicity]
 related: []
 ---
 
@@ -55,21 +62,31 @@ related: []
 
 `status` is one of `proposed`, `accepted`, `deprecated`, or `superseded`. A decision must reference at least one node unless it is explicitly marked `orphaned: true` with a non-empty `orphan_reason`.
 
+`ratification` is `local` or `binding`; when absent, it means `binding`. `affects` lists normalised repository-relative paths (exact files, or directory rules ending in `/`). `ratified_by: machine` marks a loop signature at any status; an absent marker means maintainer-signed only once the decision is `accepted`, and a proposed decision has no signer yet. `receipts` lists review file stems. A machine-signed accepted local decision's body must additionally carry `## For`, `## Against`, and `## Verdict` headings in that order, each section non-empty: the debate record is a condition of loop acceptance, not optional prose.
+
 ## Review
 
 ```markdown
 ---
 node: app.auth
-review_type: human
+review_type: agent_cross_model
 date: 2026-04-17
-reviewer: george
+reviewer: <model-id>/<lens-id>
 related_change: commit:abc123
+subject_hash: sha256:<64 lowercase hex characters>
+lens_prompt_hash: sha256:<64 lowercase hex characters>
 ---
 
 # Review notes
+
+## Verdict
+
+PASS
 ```
 
+
 `review_type` defaults to `human` and may also be `agent_introspective` or `agent_cross_model`.
+A receipt-grade review has `subject_hash`, `review_type: agent_cross_model`, `reviewer: <model-id>/<lens-id>`, and `lens_prompt_hash`, the sha256 of the committed prompt file at `docs/agent/lenses/<lens-id>.md`. The model id is the provider's exact string and may itself contain `/`; the lens id is everything after the final slash. The first body line matching exactly `## Verdict` opens the verdict section. Its first non-blank line must start at column zero with `PASS` or `BLOCKING`; `PASS` is clean. A missing heading, empty section, or any other first token is not clean.
 
 ## Research
 

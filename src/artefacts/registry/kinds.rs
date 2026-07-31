@@ -9,8 +9,9 @@
 use super::super::frontmatter::Frontmatter;
 use super::io::{list, markdown_paths, optional, parse_file, path_string, pointers, required};
 use super::parse::{
-    parse_decision_status, parse_defers_reference, parse_research_method, parse_review_type,
-    parse_source_verification, parse_todo_status,
+    parse_affects_path, parse_decision_status, parse_defers_reference, parse_lens_prompt_hash,
+    parse_ratification_tier, parse_ratified_by, parse_receipt_reviewer, parse_research_method,
+    parse_review_type, parse_source_verification, parse_subject_hash, parse_todo_status,
 };
 use super::*;
 use crate::blueprint::Ast;
@@ -120,11 +121,48 @@ fn load_one_decision(path: &Path, parsed: &Frontmatter, set: &mut ArtefactSet) {
     let Some(date) = required(&parsed.values, "date", path_string(path), set) else {
         return;
     };
+    // A key parsed into the LIST map is present but scalar-shaped wrong; it
+    // must raise its invalid-value finding rather than silently defaulting
+    // (`ratification:` with block items would otherwise gate as `binding`).
+    if parsed.lists.contains_key("ratification") {
+        parse_ratification_tier("", path, set);
+        return;
+    }
+    if parsed.lists.contains_key("ratified_by") {
+        parse_ratified_by("", path, set);
+        return;
+    }
+    let ratification = parsed.values.get("ratification").cloned().map_or(
+        Some(crate::artefacts::registry::RatificationTier::Binding),
+        |value| parse_ratification_tier(&value, path, set),
+    );
+    let Some(ratification) = ratification else {
+        return;
+    };
+    let ratified_by_machine = parsed
+        .values
+        .get("ratified_by")
+        .cloned()
+        .map_or(Some(false), |value| parse_ratified_by(&value, path, set));
+    let Some(ratified_by_machine) = ratified_by_machine else {
+        return;
+    };
+    if parsed.values.contains_key("affects") && !parsed.lists.contains_key("affects") {
+        parse_affects_path("", path, set);
+    }
+    let affects = list(parsed, "affects")
+        .iter()
+        .filter_map(|value| parse_affects_path(value, path, set))
+        .collect();
     set.decisions.push(Decision {
         id,
         path: path_string(path),
         nodes: list(parsed, "nodes"),
         status,
+        ratification,
+        affects,
+        ratified_by_machine,
+        receipts: list(parsed, "receipts"),
         date,
         revisited: optional(&parsed.values, "revisited"),
         revisit_triggers: list(parsed, "revisit_triggers"),
@@ -176,12 +214,38 @@ fn load_one_review(path: &Path, parsed: &Frontmatter, set: &mut ArtefactSet) {
     let Some(review_type) = review_type else {
         return;
     };
+    if parsed.lists.contains_key("subject_hash") {
+        parse_subject_hash("", path, set);
+        return;
+    }
+    if parsed.lists.contains_key("lens_prompt_hash") {
+        parse_lens_prompt_hash(Some(String::new()), true, path, set);
+        return;
+    }
+    let subject_hash_raw = parsed.values.get("subject_hash").cloned();
+    let receipt_grade = subject_hash_raw.is_some();
+    let subject_hash = subject_hash_raw
+        .as_deref()
+        .and_then(|value| parse_subject_hash(value, path, set));
+    let reviewer_valid = parse_receipt_reviewer(&reviewer, receipt_grade, path, set);
+    let lens_prompt_hash = parse_lens_prompt_hash(
+        parsed.values.get("lens_prompt_hash").cloned(),
+        receipt_grade,
+        path,
+        set,
+    );
+    if (receipt_grade && (subject_hash.is_none() || lens_prompt_hash.is_none())) || !reviewer_valid
+    {
+        return;
+    }
     set.reviews.push(Review {
         path: path_string(path),
         node,
         review_type,
         date,
         reviewer,
+        subject_hash,
+        lens_prompt_hash,
         related_change: optional(&parsed.values, "related_change"),
         body: parsed.body.clone(),
     });
@@ -242,45 +306,4 @@ fn load_one_source(path: &Path, parsed: &Frontmatter, set: &mut ArtefactSet) {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn artefact_kinds_cover_five_pointer_fields() {
-        let pointers: Vec<&str> = ARTEFACT_KINDS.iter().map(|k| k.pointer).collect();
-        assert_eq!(
-            pointers,
-            vec!["todos", "decisions", "reviews", "research", "sources"]
-        );
-    }
-
-    #[test]
-    fn load_one_todo_scalar_defers_is_malformed_not_silent() {
-        // A scalar `defers: CODE path` reaches only frontmatter `values`, so
-        // without the guard it would be a silent no-op instead of CA043.
-        let parsed = crate::artefacts::frontmatter::parse(
-            "---\nnode: app.api\nstatus: blocked\ncreated: 2026-07-29\ndefers: CAIRN_TEST src/lib.rs\n---\nbody\n",
-        );
-        let mut set = ArtefactSet::default();
-        load_one_todo(Path::new("meta/todos/todo.scalar.md"), &parsed, &mut set);
-        assert_eq!(set.todos.len(), 1);
-        assert!(set.todos[0].defers.is_empty());
-        assert_eq!(set.findings.len(), 1);
-        assert_eq!(set.findings[0].code, "CAIRN_TODO_DEFERS_INVALID");
-    }
-
-    #[test]
-    fn load_one_todo_inline_list_defers_parses() {
-        // The inline `[..]` form populates both frontmatter maps and must not
-        // trip the scalar guard.
-        let parsed = crate::artefacts::frontmatter::parse(
-            "---\nnode: app.api\nstatus: blocked\ncreated: 2026-07-29\ndefers: [CAIRN_TEST src/lib.rs]\n---\nbody\n",
-        );
-        let mut set = ArtefactSet::default();
-        load_one_todo(Path::new("meta/todos/todo.inline.md"), &parsed, &mut set);
-        assert_eq!(set.findings.len(), 0, "{:?}", set.findings);
-        assert_eq!(set.todos[0].defers.len(), 1);
-        assert_eq!(set.todos[0].defers[0].code, "CAIRN_TEST");
-        assert_eq!(set.todos[0].defers[0].location, "src/lib.rs");
-    }
-}
+mod tests;

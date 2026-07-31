@@ -39,6 +39,8 @@ fn make_review(node: &str) -> Review {
         review_type: ReviewType::Human,
         date: "2024-01-01".to_owned(),
         reviewer: "alice".to_owned(),
+        subject_hash: None,
+        lens_prompt_hash: None,
         related_change: None,
         body: String::new(),
     }
@@ -75,6 +77,10 @@ fn make_decision(id: &str, nodes: &[&str], status: DecisionStatus) -> Decision {
         gap: false,
         claims: None,
         body: String::new(),
+        ratification: crate::artefacts::registry::RatificationTier::Binding,
+        affects: Vec::new(),
+        ratified_by_machine: false,
+        receipts: Vec::new(),
     }
 }
 
@@ -1158,4 +1164,14 @@ fn test_todo_without_prefix_emits_drift_warning_and_prefixed_todo_is_clean() {
     clean.todos = vec![todo];
     filenames::validate_filenames(&mut clean);
     assert!(clean.findings.is_empty(), "got: {:?}", clean.findings);
+}
+
+#[test]
+fn test_receipt_link_unknown_receipt_emits_ca055() {
+    let mut set = ArtefactSet::default();
+    let mut decision = make_decision("dec.test", &["app"], DecisionStatus::Proposed);
+    decision.receipts = vec!["rev.missing".to_owned()];
+    set.decisions.push(decision);
+    validate_receipt_links(&mut set);
+    assert!(finding_codes(&set).contains(&"CAIRN_DECISION_RECEIPT_UNKNOWN"));
 }

@@ -82,6 +82,12 @@ does not count.
 | Tracked source path must resolve | spec:515 | `CAIRN_SOURCE_READ_FAILED` | enforced |
 | Tracked source canonical path must stay under the repository root | spec:515 | `CAIRN_SOURCE_READ_FAILED` | enforced |
 | Tracked source must not declare a sha256 | spec:515 | `CAIRN_SOURCE_SHA256_UNEXPECTED` | enforced |
+| Local decision nodes stay within one container | - | `CAIRN_DECISION_TIER_SPAN` | enforced |
+| Local decision does not supersede another decision | - | `CAIRN_DECISION_TIER_SUPERSEDES` | enforced |
+| Local decision affects no binding-surface path | - | `CAIRN_DECISION_TIER_BINDING_PATH` | enforced |
+| Accepted local decision receipts converge | - | `CAIRN_DECISION_CONVERGENCE_UNMET` | enforced |
+| Commit accepting a local decision changes only its affected paths | - | `CAIRN_HOOK_AFFECTS_SUBSET` | enforced |
+| Receipt subject hash equals the recomputed decision manifest | - | `CAIRN_HOOK_MANIFEST_MISMATCH` | enforced |
 
 ## Pending rules
 

@@ -8,6 +8,7 @@ use std::{
 };
 
 mod architecture;
+mod ratification;
 mod render;
 
 pub(crate) use render::render_human_verbose;
@@ -17,6 +18,7 @@ use crate::{
     map::{FindingSeverity, graph::Finding, query},
     scanner,
 };
+pub(crate) use ratification::RatificationMode;
 
 /// Hook enforcement class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -78,6 +80,24 @@ pub fn run(
     changes_dir: &Path,
     scan_result: &scanner::ScanResult,
 ) -> HookReport {
+    run_with_ratification_mode(
+        kind,
+        root,
+        changes_dir,
+        scan_result,
+        RatificationMode::Index,
+    )
+}
+
+/// Runs a hook using the selected ratification comparison tree.
+#[must_use]
+pub(crate) fn run_with_ratification_mode(
+    kind: HookKind,
+    root: &Path,
+    changes_dir: &Path,
+    scan_result: &scanner::ScanResult,
+    ratification_mode: RatificationMode,
+) -> HookReport {
     let started = Instant::now();
     let lint_findings = query::lint(&scan_result.graph).findings;
     let structural = structural_findings(&lint_findings);
@@ -85,34 +105,39 @@ pub fn run(
     let tensions = tension_findings(&lint_findings);
     let conflict_findings = detect_active_change_conflicts(changes_dir);
     let architecture = architecture::architecture_findings_from_project(root);
-    let findings = match kind {
-        HookKind::Structural => structural
-            .iter()
-            .cloned()
-            .chain(conflict_findings.iter().cloned())
-            .collect(),
-        HookKind::Interface => interface.clone(),
-        HookKind::Tension => tensions.clone(),
-        HookKind::ArchitectureDecision => architecture.clone(),
-        HookKind::All => structural
-            .iter()
-            .cloned()
-            .chain(interface.iter().cloned())
-            .chain(tensions.iter().cloned())
-            .chain(conflict_findings.iter().cloned())
-            .chain(architecture.iter().cloned())
-            .collect(),
-    };
-    let blocks = match kind {
-        HookKind::Structural => !structural.is_empty() || !conflict_findings.is_empty(),
-        HookKind::Interface => !interface.is_empty(),
-        HookKind::Tension => false,
-        HookKind::ArchitectureDecision => !architecture.is_empty(),
+    let (findings, blocks) = match kind {
+        HookKind::Structural => (
+            structural
+                .iter()
+                .cloned()
+                .chain(conflict_findings.iter().cloned())
+                .collect(),
+            !structural.is_empty() || !conflict_findings.is_empty(),
+        ),
+        HookKind::Interface => (interface.clone(), !interface.is_empty()),
+        HookKind::Tension => (tensions.clone(), false),
+        HookKind::ArchitectureDecision => (architecture.clone(), !architecture.is_empty()),
         HookKind::All => {
-            !structural.is_empty()
+            let ratification = ratification::ratification_findings(
+                root,
+                &scan_result.artefacts,
+                ratification_mode,
+            );
+            let blocks = !structural.is_empty()
                 || !interface.is_empty()
                 || !conflict_findings.is_empty()
                 || !architecture.is_empty()
+                || !ratification.is_empty();
+            let findings = structural
+                .iter()
+                .cloned()
+                .chain(interface.iter().cloned())
+                .chain(tensions.iter().cloned())
+                .chain(conflict_findings.iter().cloned())
+                .chain(architecture.iter().cloned())
+                .chain(ratification)
+                .collect();
+            (findings, blocks)
         }
     };
     HookReport {
@@ -456,5 +481,7 @@ fn path_string(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
 
+#[cfg(test)]
+mod ratification_tests;
 #[cfg(test)]
 mod tests;

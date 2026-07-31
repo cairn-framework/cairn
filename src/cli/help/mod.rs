@@ -123,7 +123,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("get", "get", &["symbols", "json", "file", "help"]),
     spec("graph", "graph", FLAGS_BASIC),
     spec("health", "health", FLAGS_BASIC),
-    spec("hook", "hook", &["verbose", "json", "file", "help"]),
+    spec("hook", "hook", &["verbose", "json", "file", "head", "help"]),
     spec("import-openspec", "import-openspec", FLAGS_BASIC),
     spec(
         "init",

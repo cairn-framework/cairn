@@ -320,6 +320,10 @@ fn decision(id: &str, status: DecisionStatus) -> Decision {
         gap: false,
         claims: None,
         body: String::new(),
+        ratification: crate::artefacts::registry::RatificationTier::Binding,
+        affects: Vec::new(),
+        ratified_by_machine: false,
+        receipts: Vec::new(),
     }
 }
 

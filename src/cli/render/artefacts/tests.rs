@@ -45,6 +45,10 @@ fn decision(id: &str, nodes: &[&str], body: &str, status: DecisionStatus) -> Dec
         gap: false,
         claims: None,
         body: body.to_owned(),
+        ratification: crate::artefacts::registry::RatificationTier::Binding,
+        affects: Vec::new(),
+        ratified_by_machine: false,
+        receipts: Vec::new(),
     }
 }
 
