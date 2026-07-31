@@ -36,7 +36,11 @@ The bootstrap fixture splits its artefact corpora. The evidence corpus
 (`meta/sources/`, `meta/research/`) stays unclaimed by both fixture
 blueprints and is cited in prose only. The authority corpus (decisions,
 contracts, todos, reviews) stays loaded and machine-verified, and every
-declared node carries an anchoring decision.
+declared leaf node carries an anchoring decision. Leaf is the operative
+word: `check_provenance_coverage` (`src/scanner/checks.rs`) requires a
+decision only for nodes with no children, and the fixture's own System node
+`cairn` carries none, so a claim about every declared node would be false
+against the tree this decision governs.
 
 ## Rationale
 
@@ -59,9 +63,11 @@ proposed.
   `tests/examples_gate.rs`) sits under `cairn.tests`, outside the
   binding-surface allowlist `todo.decision-ratification-tiers` defines: no
   spec, registry, artefact-schema, or shipped-pack path. `cairn pending`
-  renders the declared `local` tier and prints the candidate subject hash;
-  this is the self-serve class under the ratified boundary, awaiting the
-  maintainer's signature through the receipt protocol.
+  renders the declared `local` tier and prints the candidate subject hash.
+  This is the self-serve class under the ratified boundary, and its
+  acceptance needs converged receipts whoever signs, because the receipt
+  protocol applies to every `local` acceptance and `ratified_by` records
+  only who signed, never which checks ran.
 - **Unblocks**: nothing mechanically: no todo blocks on this signature and
   no finding names it. Signing converts the standing corpus split from a
   repair-local implementation choice into a ratified rule future fixture
