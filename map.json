@@ -7138,6 +7138,7 @@
         "src/ui_assets/app.js",
         "src/ui_assets/canvas-nav.js",
         "src/ui_assets/channel-bar.js",
+        "src/ui_assets/console.js",
         "src/ui_assets/evidence-rail.js",
         "src/ui_assets/graph-layout.js",
         "src/ui_assets/graph-workspace.js",
@@ -7161,72 +7162,72 @@
           "kind": "function",
           "signature": "pub const fn address(&self) -> SocketAddr",
           "file": "src/ui/mod.rs",
-          "line": 188,
-          "end_line": 190
+          "line": 189,
+          "end_line": 191
         },
         {
           "name": "UiError",
           "kind": "enum",
           "signature": "pub enum UiError",
           "file": "src/ui/mod.rs",
-          "line": 134,
-          "end_line": 148
+          "line": 135,
+          "end_line": 149
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/ui/mod.rs",
-          "line": 111,
-          "end_line": 129
+          "line": 112,
+          "end_line": 130
         },
         {
           "name": "serve_current_thread",
           "kind": "function",
           "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 207,
-          "end_line": 220
+          "line": 208,
+          "end_line": 221
         },
         {
           "name": "start_background",
           "kind": "function",
           "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 227,
-          "end_line": 240
+          "line": 228,
+          "end_line": 241
         },
         {
           "name": "stop",
           "kind": "function",
           "signature": "pub fn stop(mut self)",
           "file": "src/ui/mod.rs",
-          "line": 193,
-          "end_line": 199
+          "line": 194,
+          "end_line": 200
         },
         {
           "name": "url",
           "kind": "function",
           "signature": "pub fn url(&self) -> String",
           "file": "src/ui/mod.rs",
-          "line": 182,
-          "end_line": 184
+          "line": 183,
+          "end_line": 185
         },
         {
           "name": "ServerHandle",
           "kind": "struct",
           "signature": "pub struct ServerHandle",
           "file": "src/ui/mod.rs",
-          "line": 173,
-          "end_line": 177
+          "line": 174,
+          "end_line": 178
         },
         {
           "name": "UiOptions",
           "kind": "struct",
           "signature": "pub struct UiOptions",
           "file": "src/ui/mod.rs",
-          "line": 86,
-          "end_line": 93
+          "line": 87,
+          "end_line": 94
         }
       ]
     },

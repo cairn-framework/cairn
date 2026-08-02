@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: blocked
+status: in_progress
 created: 2026-07-31
 blocked_by: [todo.roadmap-derived-view]
 related: [res.inversion-convergence-minutes, res.overharness-design-threads, todo.pending-queue-briefing]

@@ -64,6 +64,34 @@ fn test_ui_status_and_lint_endpoints_return_two_hundred() -> Result<(), Box<dyn 
 }
 
 #[test]
+fn test_ui_frontier_endpoint_returns_ready_shape() -> Result<(), Box<dyn std::error::Error>> {
+    // A dedicated acyclic fixture: a ghost module whose only dependency is
+    // synced is buildable now, so the happy frontier wire shape carries it.
+    let root = temp_root("ui-frontier")?;
+    fs::create_dir_all(root.join("src/core"))?;
+    fs::write(root.join("src/core/lib.rs"), "pub fn core() {}\n")?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        "System App \"d\" id \"app\" @product {\n    Module Core \"c\" id \"app.core\" @backend {\n        path \"./src/core\"\n    }\n    Module Api \"a\" id \"app.api\" @backend {\n        path \"./src/api\"\n    }\n}\napp.api -> app.core \"calls\"\n",
+    )?;
+    let server = ui::start_background(UiOptions {
+        port: 0,
+        no_open: true,
+        blueprint_path: root.join("cairn.blueprint"),
+    })?;
+    let frontier = get(server.address(), "/api/frontier")?;
+    server.stop();
+    assert!(frontier.contains("\"schema_version\":9"), "{frontier}");
+    assert!(frontier.contains("\"ready\""), "{frontier}");
+    assert!(frontier.contains("\"blocked\""), "{frontier}");
+    assert!(
+        frontier.contains("\"node\":\"app.api\""),
+        "the ghost module with a synced dependency is buildable now: {frontier}"
+    );
+    Ok(())
+}
+
+#[test]
 fn test_ui_pending_endpoint_serves_proposed_decisions() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("ui-pending")?;
     write_project(&root)?;

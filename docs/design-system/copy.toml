@@ -489,6 +489,8 @@ bootstrap-lint-failed = "Lint summary failed to load."
 bootstrap-blueprint-failed = "Blueprint failed to load."
 bootstrap-pending-failed = "Pending queue failed to load."
 bootstrap-roadmap-failed = "Backlog projection failed to load."
+bootstrap-frontier-failed = "Frontier failed to load."
+view-label = "View"
 retry = "Retry"
 [webui.severity]
 error = "Error"
@@ -528,6 +530,7 @@ findings = "Findings"
 drift = "Drift"
 pending = "Pending"
 pending-meta = "{age}d · {ratification}"
+pending-hash-error = "hash unavailable"
 tier-header = "Tier {tier}"
 group-header = "parent {parent}"
 changes = "Changes"
@@ -535,12 +538,28 @@ backlog = "Backlog"
 collapse = "Collapse"
 expand = "Expand"
 
+[webui.view]
+map = "Map"
+console = "Console"
+
+[webui.console]
+label = "Over-harness console"
+pending = "Signature queue"
+frontier = "Frontier"
+roadmap = "Work DAG"
+tier = "tier {tier}"
+frontier-ready = "ready"
+blocked-by = "blocked by {nodes}"
+frontier-blocked = "blocked"
+
 [webui.empty]
 findings = "No findings"
 drift = "No drift warnings"
 pending = "No proposed decisions"
 changes = "No active changes"
 backlog = "No backlog items"
+frontier = "Nothing is declared as buildable yet"
+frontier-detail = "No ghost nodes exist, so the graph has no structural future to build toward. Declare ghost nodes when planning new structure and they appear here."
 
 
 # -- Per-command help -----------------------------------------------------

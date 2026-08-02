@@ -177,6 +177,10 @@ async function fetchRoadmap() {
   return (await fetchJson("/api/roadmap")) || {};
 }
 
+async function fetchFrontier() {
+  return (await fetchJson("/api/frontier")) || {};
+}
+
 async function fetchBlueprint() {
   return (await fetchJson("/api/blueprint")) || {};
 }
@@ -362,6 +366,7 @@ export {
   fetchStatus,
   fetchLint,
   fetchPending,
+  fetchFrontier,
   fetchRoadmap,
   fetchBlueprint,
   fetchNodeArtefacts,

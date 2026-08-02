@@ -1,0 +1,12 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: value
+---
+{
+  "code": "CAIRN_ORDER_CYCLE",
+  "message": "CAIRN_ORDER_CYCLE: dependency cycle: app.api -> app.core -> app.api",
+  "node": null,
+  "path": null,
+  "schema_version": 9,
+  "severity": "error"
+}

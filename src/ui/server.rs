@@ -124,6 +124,7 @@ impl Server {
             "/assets/graph-workspace.js" => js(GRAPH_WORKSPACE_JS),
             "/assets/evidence-rail.js" => js(EVIDENCE_RAIL_JS),
             "/assets/channel-bar.js" => js(CHANNEL_BAR_JS),
+            "/assets/console.js" => js(CONSOLE_JS),
             "/assets/node-module.js" => js(NODE_MODULE_JS),
             "/assets/copy.json" => asset("application/json; charset=utf-8", COPY_JSON.as_str()),
             "/vendor/preact.min.js" => js(VENDOR_PREACT_JS),
@@ -162,6 +163,14 @@ impl Server {
         }
         if path == "/api/roadmap" {
             return self.spine(&project, "roadmap", None, std::collections::BTreeSet::new());
+        }
+        if path == "/api/frontier" {
+            return self.spine(
+                &project,
+                "frontier",
+                None,
+                std::collections::BTreeSet::new(),
+            );
         }
         if let Some(node) = path.strip_prefix("/api/node/") {
             return self.node_api(&project, node);

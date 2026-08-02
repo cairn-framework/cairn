@@ -263,6 +263,10 @@ export function auditPage(opts) {
     channelItems: document.querySelectorAll(".channel-item").length,
     backlogTierSections: document.querySelectorAll(".channel-tier").length,
     backlogParentGroup: !!document.querySelector(".channel-group.has-parent .channel-group-header"),
+    consoleLanes: document.querySelectorAll(".console-lane").length,
+    consolePendingRows: document.querySelectorAll(".console-lane-pending .channel-item .channel-code").length,
+    consoleFrontierEmpty: !!document.querySelector(".console-frontier-empty"),
+    consoleRoadmapTier: !!document.querySelector(".console-lane-roadmap .channel-tier"),
   };
 
   return {
