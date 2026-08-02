@@ -34,3 +34,7 @@ the guidance edit lands with maintainer signature; enqueue via
   reference the router points at for todo authoring.
 - The next new-capability todo authored after the rule lands cites a
   ghost node, and `cairn frontier` shows it.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves investigable. It fills the empty frontier lane with guidance for declaring future structure.

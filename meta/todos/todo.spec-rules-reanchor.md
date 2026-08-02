@@ -46,3 +46,7 @@ drifted.
 - `cargo test --test finding_code_coverage` and the spec-rule coverage tests
   still pass; no row's Code or Status cell changes.
 - `cairn scan --strict` exits 0.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves investigable. It keeps specification rules anchored to the surfaces that implement them.

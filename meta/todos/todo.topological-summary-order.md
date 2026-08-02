@@ -1,6 +1,6 @@
 ---
 node: cairn.summariser
-status: open
+status: done
 created: 2026-07-11
 ---
 
@@ -21,3 +21,7 @@ Acceptance: summarising a node whose dependencies have summaries demonstrably in
 DEFER (low priority). This is a summary-quality nicety borrowed from AutoDocs with
 no user complaint driving it. Worthwhile but not ahead of first-run, terminology,
 or positioning work. Keep the design; schedule opportunistically.
+
+## Mission disposition
+
+2026-08-02: close against dec.cairn-mission. Serves none. It is a deferred nicety with no driving user feedback.

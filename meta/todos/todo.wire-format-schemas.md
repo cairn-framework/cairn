@@ -83,3 +83,7 @@ finding, or null); query and webui envelopes are now `schema_version` 7, and
 `LintResponse` / `ScanResponse` labels in the burn-down must model the query
 findings entry with both required nullable fields; the serde-derived component
 shape (`schemas/finding.schema.json`) still omits both by design.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It preserves the wire-format contract while campaign units serialise against it.

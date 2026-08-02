@@ -202,3 +202,7 @@ about 5% of elapsed time, while confirming that all 14 iterations re-litigated i
 that finding-selected iterations spent 22% of the day on bookkeeping. The measured
 numbers above supersede the original framing, and the accumulation item survives on
 the at-threshold fragility rather than on regeneration.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps backlog selection aligned with declared findings and mission work.

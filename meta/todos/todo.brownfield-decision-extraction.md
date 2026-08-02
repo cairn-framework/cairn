@@ -37,3 +37,7 @@ Design and land the extraction path for an existing codebase:
   the user did not annotate for cairn.
 - `cairn init`/`onboard` output points at the flow.
 - The value story is demonstrable in the first session after install.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It gives brownfield users a concrete path from code to accepted decisions.

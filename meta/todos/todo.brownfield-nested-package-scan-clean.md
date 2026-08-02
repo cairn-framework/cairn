@@ -99,3 +99,7 @@ is the natural first half.
   unchanged when the blueprint's declaration order is permuted.
 - A test pins that both observed edge directions survive discovery unmodified, so
   a future edge-suppression shortcut fails loudly.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps brownfield scanning reliable for real repositories.

@@ -123,3 +123,7 @@ faster, in a way that meets a standard and can offer proof, Nix based, so the Gi
 run can be skipped. The measurement above narrows that to pinning first and keeps
 the attestation as a conditional second phase. Cost and pinning audit run the same
 day; its run IDs are quoted inline above so the numbers stand without the transcript.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It preserves local evidence that changes satisfy the repository gates.

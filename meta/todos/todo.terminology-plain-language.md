@@ -44,3 +44,7 @@ Use these as the shape test for the ratified wording: if a chosen plain term
 cannot carry one of these three explanations, it is the wrong term. Treat the
 infographic as reference only; it predates the terminology rename and still
 says `cairn.dsl`, so do not copy its identifiers.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It makes Cairn's user-facing language easier to understand.

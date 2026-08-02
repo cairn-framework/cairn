@@ -41,3 +41,7 @@ extractor plus version, observed_at, freshness, completeness.
   leaves the graph exactly as it was.
 - An explicit recommendation: promote to a reconciler domain, keep as
   an overlay, or kill; recorded as a decision either way.
+
+## Mission disposition
+
+2026-08-02: blocked against dec.cairn-mission. Serves extendable. Its dependency-gated horizon has declared blockers, so it remains parked without false readiness.

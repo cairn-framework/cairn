@@ -139,3 +139,7 @@ greenfield-to-completion A/B, agent as the human, scored on end state, tokens,
 iterations, and post-hoc tech debt, run before release rather than per commit. The
 apparatus inventory above was gathered the same day from the archived strongholds
 and research artefacts it cites, which are the durable record.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It demonstrates that a new repository can reach a clean completion state.

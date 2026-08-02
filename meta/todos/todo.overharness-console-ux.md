@@ -2,8 +2,8 @@
 node: cairn.ui
 status: blocked
 created: 2026-07-31
-blocked_by: [todo.roadmap-derived-view, todo.pending-queue-briefing]
-related: [res.inversion-convergence-minutes, res.overharness-design-threads]
+blocked_by: [todo.roadmap-derived-view]
+related: [res.inversion-convergence-minutes, res.overharness-design-threads, todo.pending-queue-briefing]
 ---
 
 # Over-harness console: the human steering surface
@@ -53,3 +53,7 @@ make humans aware of these and help steer the agents").
 - A maintainer can answer "what is waiting on me, what is buildable,
   what runs next and why" from one screen, each answer traceable to the
   CLI command that produces it.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign step 4 for the console composition.

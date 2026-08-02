@@ -40,3 +40,7 @@ in this unit; if the comparison argues for one, enqueue a decision via
   external specs as sources with verification stated honestly.
 - Any recommended change lands as an enqueued proposed decision, not an
   edit in this unit.
+
+## Mission disposition
+
+2026-08-02: blocked against dec.cairn-mission. Serves investigable. It remains maintainer-triage-gated with no declared blocker by design.

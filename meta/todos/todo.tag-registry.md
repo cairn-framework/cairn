@@ -35,3 +35,7 @@ Motivation: `res.a2ui-analysis` finding 6 (a2ui's catalog makes typos
 fail fast; the closed-vocabulary part was deliberately not imported).
 Also fix the cairn-dev skill line while landing this. No change proposal
 needed for the Info-tier core.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves investigable. It keeps tag coverage discoverable for future graph investigations.

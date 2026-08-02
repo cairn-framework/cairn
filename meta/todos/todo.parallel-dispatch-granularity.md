@@ -51,3 +51,7 @@ enqueued decision, not code.
 - The rung vocabulary above appears verbatim, so no consumer mistakes
   rung 2 for rung 3.
 - Follow-up implementation todos filed with `blocked_by` edges.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves extendable. It designs safer fan-out as the driver grows.

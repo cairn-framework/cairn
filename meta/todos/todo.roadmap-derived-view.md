@@ -37,3 +37,7 @@ forward-declared in the new syntax and becomes typed when that unit lands.
   conventions; wire snapshots regenerated if versions bump.
 - Webui backlog channel shows tiers and parents; token gate and biome
   pass.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign step 3 for the live work projection.

@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-31
 ---
 
@@ -53,3 +53,11 @@ decisions).
 
 Maintainer conversation, 2026-07-30: ranked list items 3 and 4 (hygiene todo
 approved in principle in the session handoff, authoring approved in-session).
+
+## Sweep record
+
+2026-08-02: Swept 42 live todos (31 open, 2 in_progress, 9 blocked at inventory); 34 keep dispositions include autodocs-head-to-head and portfolio-hygiene, three unbuilt closes were herdr-cairn-tool-attribution, incremental-scan-hash-diff, and topological-summary-order, and five blocked dispositions include webui-design-quality, with one re-block applied.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. Campaign step 2b, this sweep itself; status set done by its own landing per the approved campaign spec, not a mission close.

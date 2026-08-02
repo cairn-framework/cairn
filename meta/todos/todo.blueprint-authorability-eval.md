@@ -70,3 +70,7 @@ pointer while `meta/sources/` stays unreached breaks the clean baseline
 `CAIRN_RESEARCH_UNKNOWN_SOURCE` at Warning when the research cites the
 unloaded sources). Keep eval prompts inside the loaded authority corpus
 (modules, contracts, decisions, todos, reviews).
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps authorability coverage in the quality gate.
