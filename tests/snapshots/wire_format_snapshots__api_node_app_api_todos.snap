@@ -4,13 +4,21 @@ expression: value
 ---
 {
   "node": "app.api",
-  "schema_version": 8,
+  "relation_statuses": {
+    "dec.api": "accepted"
+  },
+  "schema_version": 9,
   "todos": [
     {
+      "blocked_by": [],
       "body": "# API Todo\nShip the endpoint.",
       "created": "2026-04-01",
       "node": "app.api",
+      "parent": null,
       "path": "meta/todos/todo.api.md",
+      "related": [
+        "dec.api"
+      ],
       "satisfies": "status.contract",
       "status": "open",
       "title": "API Todo"

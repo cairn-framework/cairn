@@ -242,3 +242,44 @@ fn todos_text_renders_filtered_todos() {
     assert!(rendered.contains("[done]"));
     assert!(!rendered.contains("[open]"));
 }
+
+#[test]
+fn test_todos_text_renders_edges_with_and_without_status() {
+    let data = serde_json::json!({
+        "node": "app.core",
+        "todos": [{
+            "node": "app.core",
+            "status": "blocked",
+            "path": "meta/todos/todo.core.md",
+            "blocked_by": ["todo.api"],
+            "parent": "todo.epic",
+            "related": ["res.study"],
+        }],
+        "relation_statuses": { "todo.api": "open" },
+    });
+    assert_eq!(
+        todos_text(&data),
+        "Todos for app.core:\n- app.core [blocked] meta/todos/todo.core.md\n  blocked_by: todo.api (open)\n  parent: todo.epic\n  related: res.study\n",
+        "edges render as indented continuation lines, never peer bullets"
+    );
+}
+
+#[test]
+fn test_todos_text_without_edges_matches_flat_shape() {
+    let data = serde_json::json!({
+        "node": null,
+        "todos": [{
+            "node": "app",
+            "status": "open",
+            "path": "meta/todos/todo.a.md",
+            "blocked_by": [],
+            "parent": null,
+            "related": [],
+        }],
+        "relation_statuses": {},
+    });
+    assert_eq!(
+        todos_text(&data),
+        "Todos (project-wide):\n- app [open] meta/todos/todo.a.md\n"
+    );
+}

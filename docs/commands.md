@@ -72,6 +72,8 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn decision new <slug>` | Scaffold a new decision artefact |
 | `cairn todo new <slug> --node <id>` | Scaffold a new todo artefact |
 | `cairn todo set <slug> <open\|in_progress\|done\|blocked>` | Set a todo's status via a surgical frontmatter edit (`dec.cli-agent-workflow-consolidation`) |
+| `cairn todo link <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]...` | Add relationship links to a todo (`dec.todo-relationship-model`) via a surgical frontmatter edit |
+| `cairn todo unlink <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]...` | Remove relationship links from a todo; same flags as `link` |
 | `cairn gap <node> --question "<text>"` | Log an unresolved question as a proposed decision artefact |
 | `cairn baseline <record\|drop> <node>` | Record, re-record, or prune a node's contract baseline in `.cairn/state/contract-baselines.json`. Needs no summariser backend; drop is restricted to inert entries |
 

@@ -824,6 +824,9 @@ fn defers_todo(
         status,
         created: "2026-07-29".to_owned(),
         satisfies: None,
+        blocked_by: Vec::new(),
+        parent: None,
+        related: Vec::new(),
         defers: refs
             .iter()
             .map(|(code, location)| crate::artefacts::registry::DefersRef {

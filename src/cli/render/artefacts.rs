@@ -37,26 +37,62 @@ pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, F
     Ok(todos_text(&data))
 }
 /// Renders the canonical `todos_response_json` data as human text. A null
-/// `node` marks a project-wide listing.
+/// `node` marks a project-wide listing. Each todo's relationship edges
+/// render one per line beneath it, naming edge kind and target with the
+/// target's current status when the response resolves one.
 fn todos_text(data: &Value) -> String {
     let heading = data["node"].as_str().map_or_else(
         || "Todos (project-wide):".to_owned(),
         |node_id| format!("Todos for {node_id}:"),
     );
-    let todo_lines: Vec<String> = data["todos"]
+    let statuses = &data["relation_statuses"];
+    let mut todo_lines: Vec<String> = Vec::new();
+    for value in data["todos"]
         .as_array()
         .map_or(&[][..], std::ops::Deref::deref)
-        .iter()
-        .map(|value| {
-            format!(
-                "{} [{}] {}",
-                value["node"].as_str().unwrap_or_default(),
-                value["status"].as_str().unwrap_or_default(),
-                value["path"].as_str().unwrap_or_default(),
-            )
-        })
-        .collect();
+    {
+        // Edges join their todo's element so the bullet renderer treats
+        // them as indented continuation lines, not peer todos.
+        let mut block = format!(
+            "{} [{}] {}",
+            value["node"].as_str().unwrap_or_default(),
+            value["status"].as_str().unwrap_or_default(),
+            value["path"].as_str().unwrap_or_default(),
+        );
+        for (kind, target) in edge_entries(value) {
+            let _ = match statuses.get(&target).and_then(Value::as_str) {
+                Some(status) => write!(block, "\n  {kind}: {target} ({status})"),
+                None => write!(block, "\n  {kind}: {target}"),
+            };
+        }
+        todo_lines.push(block);
+    }
     format!("{heading}\n{}\n", lines(&todo_lines))
+}
+
+/// Ordered relationship edges on one todo wire object: `blocked_by`
+/// entries, then `parent`, then `related`.
+fn edge_entries(todo: &Value) -> Vec<(&'static str, String)> {
+    let mut edges = Vec::new();
+    let list = |value: &Value| -> Vec<String> {
+        value
+            .as_array()
+            .map_or(&[][..], std::ops::Deref::deref)
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect()
+    };
+    for target in list(&todo["blocked_by"]) {
+        edges.push(("blocked_by", target));
+    }
+    if let Some(parent) = todo["parent"].as_str() {
+        edges.push(("parent", parent.to_owned()));
+    }
+    for target in list(&todo["related"]) {
+        edges.push(("related", target));
+    }
+    edges
 }
 
 pub(crate) fn render_decisions(

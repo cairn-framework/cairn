@@ -45,6 +45,9 @@ pub(super) fn todo_json(todo: &Todo) -> Value {
         "status": todo_status(todo.status),
         "created": todo.created,
         "satisfies": todo.satisfies,
+        "blocked_by": todo.blocked_by,
+        "parent": todo.parent,
+        "related": todo.related,
     })
 }
 

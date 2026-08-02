@@ -202,6 +202,16 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("baseline drop", "baseline-drop", FLAGS_BASIC),
     spec("todo new", "todo-new", &["node-flag", "file", "help"]),
     spec("todo set", "todo-set", FLAGS_BASIC),
+    spec(
+        "todo link",
+        "todo-link",
+        &["blocked-by", "parent", "related", "json", "file", "help"],
+    ),
+    spec(
+        "todo unlink",
+        "todo-unlink",
+        &["blocked-by", "parent", "related", "json", "file", "help"],
+    ),
     spec("workspace status", "workspace-status", FLAGS_BASIC),
     spec("workspace lint", "workspace-lint", FLAGS_SCAN),
     spec("workspace frontier", "workspace-frontier", FLAGS_BASIC),
@@ -296,7 +306,7 @@ fn command_tokens(args: &[String]) -> Vec<&str> {
             "--file" | "--changes-dir" | "--depth" | "--scope" | "--port" | "--status"
             | "--language" | "--direction" | "--interval" | "--format" | "--output" | "--node"
             | "--grep" | "--question" | "--informed-by" | "--wire" | "--area" | "--severity"
-            | "--harness" => {
+            | "--harness" | "--blocked-by" | "--parent" | "--related" => {
                 let _ = iter.next();
             }
             s if s.starts_with('-') => {}

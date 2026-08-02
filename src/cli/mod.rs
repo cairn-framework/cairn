@@ -1019,7 +1019,7 @@ const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
     },
     CliOnlyCommand {
         name: "todo",
-        description: "Scaffold a new todo artefact",
+        description: "Scaffold todo artefacts and edit their status and relationship links",
     },
     CliOnlyCommand {
         name: "workspace",

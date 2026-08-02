@@ -157,7 +157,11 @@ pub(crate) fn remediate_actions_raw(
                     accumulation_nodes.push(node.clone());
                 }
             }
-            "CAIRN_TODO_ORPHAN_NODE" | "CAIRN_TODO_STATUS_INVALID" => {
+            "CAIRN_TODO_ORPHAN_NODE"
+            | "CAIRN_TODO_STATUS_INVALID"
+            | "CAIRN_TODO_RELATION_UNKNOWN"
+            | "CAIRN_TODO_RELATION_CYCLE"
+            | "CAIRN_TODO_STATUS_CONTRADICTION" => {
                 has_todo_issues = true;
             }
             "CAIRN_SOURCE_ORPHAN"

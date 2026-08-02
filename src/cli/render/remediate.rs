@@ -623,6 +623,9 @@ mod tests {
             status: TodoStatus::Open,
             created: created.to_owned(),
             satisfies: None,
+            blocked_by: Vec::new(),
+            parent: None,
+            related: Vec::new(),
             defers: Vec::new(),
             body: body.to_owned(),
         }

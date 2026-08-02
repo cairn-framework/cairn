@@ -82,6 +82,23 @@ fn test_architecture_decision_hook_is_documented() {
 }
 
 #[test]
+fn test_todo_link_verbs_are_documented() {
+    // `todo link`/`unlink` are noun-subcommands, invisible to the top-level
+    // registry extraction above; pin their reference rows directly
+    // (`todo.todo-relationship-schema-implementation`).
+    let content =
+        fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/docs/commands.md")).unwrap();
+    assert!(
+        content.contains("`cairn todo link <slug>"),
+        "docs/commands.md should document `cairn todo link`"
+    );
+    assert!(
+        content.contains("`cairn todo unlink <slug>"),
+        "docs/commands.md should document `cairn todo unlink`"
+    );
+}
+
+#[test]
 fn test_architecture_decision_hook_in_integration_contract() {
     let content = fs::read_to_string(concat!(
         env!("CARGO_MANIFEST_DIR"),

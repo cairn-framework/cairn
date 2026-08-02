@@ -1,19 +1,23 @@
-//! CLI todo-artefact scaffolding command.
+//! CLI todo-artefact scaffolding, status, and relationship-link commands.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::decision::{flag_values, is_kebab_slug, title_from_slug, today_utc, write_new_artefact};
-use crate::artefacts::frontmatter::{SetFieldError, set_field};
+use crate::artefacts::frontmatter::{
+    SetFieldError, parse as parse_frontmatter, remove_field, set_field, upsert_field,
+};
 use crate::artefacts::registry::types::TodoStatus;
 use crate::persist;
 use std::fs;
+
+mod link;
 
 /// Dispatches `cairn todo <subcommand>`.
 pub(crate) fn run_todo_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
     match parsed.command_args.get(1).map(String::as_str) {
         Some("new") => {
             let Some(slug) = parsed.command_args.get(2) else {
-                return err(1, copy::lookup("todo.usage"));
+                return err(1, copy::lookup("todo.new-usage"));
             };
             let nodes = flag_values(&parsed.command_args, "--node");
             run_todo_new(root, slug, &nodes)
@@ -26,6 +30,24 @@ pub(crate) fn run_todo_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
                 return err(1, copy::lookup("todo.set-usage"));
             };
             run_todo_set(root, slug, status, parsed.json)
+        }
+        Some("link") => {
+            let Some(slug) = parsed.command_args.get(2) else {
+                return err(1, copy::lookup("todo.link-usage"));
+            };
+            match link::Args::from_cli(parsed) {
+                Ok(args) => link::run(root, slug, &args, link::Mode::Link),
+                Err(error) => error,
+            }
+        }
+        Some("unlink") => {
+            let Some(slug) = parsed.command_args.get(2) else {
+                return err(1, copy::lookup("todo.unlink-usage"));
+            };
+            match link::Args::from_cli(parsed) {
+                Ok(args) => link::run(root, slug, &args, link::Mode::Unlink),
+                Err(error) => error,
+            }
         }
         _ => err(1, copy::lookup("todo.usage")),
     }

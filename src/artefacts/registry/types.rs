@@ -84,6 +84,15 @@ pub struct Todo {
     pub created: String,
     /// Optional satisfied contract clause.
     pub satisfies: Option<String>,
+    /// Todo stems this todo is blocked by (`dec.todo-relationship-model`
+    /// ruling 1: directed dependency, authored on the downstream todo).
+    pub blocked_by: Vec<String>,
+    /// Containing todo stem (`dec.todo-relationship-model` ruling 1: the
+    /// milestone/epic edge; grouping only, never order).
+    pub parent: Option<String>,
+    /// Weak, non-directional references: `dec.`/`res.`/`src.` ids or todo
+    /// stems (`dec.todo-relationship-model` rulings 1 to 3).
+    pub related: Vec<String>,
     /// Parsed `defers:` references. While the todo is `blocked`, each
     /// reference parks the matching Info finding out of loop selection.
     pub defers: Vec<DefersRef>,

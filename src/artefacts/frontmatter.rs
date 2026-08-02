@@ -145,38 +145,11 @@ pub enum SetFieldError {
 /// top-level `key` (a nested/indented key does not count).
 pub fn set_field(source: &str, key: &str, value: &str) -> Result<String, SetFieldError> {
     let lines: Vec<&str> = source.split('\n').collect();
-    let is_fence = |l: &&str| l.strip_suffix('\r').unwrap_or(*l) == "---";
-    if !lines.first().is_some_and(is_fence) {
-        return Err(SetFieldError::NoFrontmatter);
-    }
-    let open = 0;
-    let close = match lines[open + 1..].iter().position(is_fence) {
-        Some(c) => open + 1 + c,
-        None => return Err(SetFieldError::NoFrontmatter),
-    };
-    let mut target: Option<usize> = None;
-    for (i, line) in lines[open + 1..close].iter().enumerate() {
-        let stripped = line.strip_suffix('\r').unwrap_or(*line);
-        if stripped.starts_with(char::is_whitespace) {
-            continue; // only top-level keys are eligible
-        }
-        let Some((k, _)) = stripped.split_once(':') else {
-            continue;
-        };
-        if k == key {
-            target = Some(open + 1 + i);
-            break;
-        }
-    }
-    let Some(target) = target else {
+    let close = closing_fence(&lines)?;
+    let Some(target) = find_top_level_key(&lines, close, key) else {
         return Err(SetFieldError::KeyNotFound);
     };
-    let target_line = lines[target];
-    let indent = target_line.len() - target_line.trim_start().len();
-    let mut new_line = format!("{}{key}: {value}", &target_line[..indent]);
-    if target_line.ends_with('\r') {
-        new_line.push('\r');
-    }
+    let new_line = match_line_ending(&format!("{key}: {value}"), lines[target]);
     let mut out: Vec<&str> = Vec::with_capacity(lines.len());
     for (i, line) in lines.iter().enumerate() {
         if i == target {
@@ -186,4 +159,125 @@ pub fn set_field(source: &str, key: &str, value: &str) -> Result<String, SetFiel
         }
     }
     Ok(out.join("\n"))
+}
+
+/// Returns `source` with the frontmatter field `key` set to `value`,
+/// inserting `key: value` as the last frontmatter line when the key is
+/// absent. A present key is replaced together with any indented block-list
+/// lines beneath it, so a YAML block list collapses to the single inline
+/// value rather than leaving orphaned `- item` lines. Every other byte is
+/// preserved ([`set_field`] semantics).
+///
+/// # Errors
+///
+/// Returns `Err(NoFrontmatter)` when the document is not a valid
+/// frontmatter block.
+pub fn upsert_field(source: &str, key: &str, value: &str) -> Result<String, SetFieldError> {
+    let lines: Vec<&str> = source.split('\n').collect();
+    let close = closing_fence(&lines)?;
+    // A replaced key keeps its own line ending; an inserted line borrows
+    // the last frontmatter line's (the fence element carries no `\r` when
+    // the document ends at the fence without a trailing newline).
+    let (replace_from, replace_to, template) = match find_top_level_key(&lines, close, key) {
+        Some(target) => (target, block_extent(&lines, target, close), lines[target]),
+        None => (close, close, lines[close - 1]),
+    };
+    let new_line = match_line_ending(&format!("{key}: {value}"), template);
+    let mut out: Vec<&str> = Vec::with_capacity(lines.len() + 1);
+    for (i, line) in lines.iter().enumerate() {
+        if i == replace_from {
+            out.push(new_line.as_str());
+        }
+        if i < replace_from || i >= replace_to {
+            out.push(line);
+        }
+    }
+    Ok(out.join("\n"))
+}
+
+/// Returns `source` with the top-level frontmatter field `key` removed,
+/// together with any indented block-list lines beneath it, leaving every
+/// other byte untouched.
+///
+/// # Errors
+///
+/// Returns `Err(NoFrontmatter)` when the document is not a valid
+/// frontmatter block, and `Err(KeyNotFound)` when no top-level `key`
+/// exists in it.
+pub fn remove_field(source: &str, key: &str) -> Result<String, SetFieldError> {
+    let lines: Vec<&str> = source.split('\n').collect();
+    let close = closing_fence(&lines)?;
+    let Some(target) = find_top_level_key(&lines, close, key) else {
+        return Err(SetFieldError::KeyNotFound);
+    };
+    let end = block_extent(&lines, target, close);
+    let mut out: Vec<&str> = Vec::with_capacity(lines.len());
+    for (i, line) in lines.iter().enumerate() {
+        if i < target || i >= end {
+            out.push(line);
+        }
+    }
+    Ok(out.join("\n"))
+}
+
+/// Index of the closing `---` fence, or `NoFrontmatter` when either fence
+/// is missing.
+fn closing_fence(lines: &[&str]) -> Result<usize, SetFieldError> {
+    let is_fence = |l: &&str| l.strip_suffix('\r').unwrap_or(*l) == "---";
+    if !lines.first().is_some_and(is_fence) {
+        return Err(SetFieldError::NoFrontmatter);
+    }
+    match lines[1..].iter().position(is_fence) {
+        Some(c) => Ok(1 + c),
+        None => Err(SetFieldError::NoFrontmatter),
+    }
+}
+
+/// Index of the top-level `key:` line inside the frontmatter block, if any.
+fn find_top_level_key(lines: &[&str], close: usize, key: &str) -> Option<usize> {
+    for (i, line) in lines[1..close].iter().enumerate() {
+        let stripped = line.strip_suffix('\r').unwrap_or(*line);
+        if stripped.starts_with(char::is_whitespace) {
+            continue; // only top-level keys are eligible
+        }
+        let Some((k, _)) = stripped.split_once(':') else {
+            continue;
+        };
+        if k == key {
+            return Some(1 + i);
+        }
+    }
+    None
+}
+
+/// One past the last line belonging to the key at `target`: the key line
+/// plus every following indented line (a YAML block list or nested map)
+/// up to the next top-level key or the closing fence.
+fn block_extent(lines: &[&str], target: usize, close: usize) -> usize {
+    let mut end = target + 1;
+    let mut last_member = target;
+    while end < close {
+        let stripped = lines[end].strip_suffix('\r').unwrap_or(lines[end]);
+        if stripped.trim().is_empty() {
+            end += 1; // provisional separator: kept only if a member follows
+        } else if stripped.starts_with(char::is_whitespace) {
+            end += 1;
+            last_member = end - 1;
+        } else {
+            break;
+        }
+    }
+    // Trailing blank lines are separators, not block members; leave them.
+    last_member + 1
+}
+
+/// Copies the line ending of `template` onto `line` (a `\r` when the
+/// template line ends in one, else nothing; the `\n` separator is owned by
+/// the caller's join).
+fn match_line_ending(line: &str, template: &str) -> String {
+    if template.ends_with('\r') {
+        format!("{line}\r")
+    } else {
+        line.to_owned()
+    }
 }
