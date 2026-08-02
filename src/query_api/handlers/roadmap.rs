@@ -62,13 +62,10 @@ pub(crate) fn roadmap_json(root: &std::path::Path, scan_result: &scanner::ScanRe
 
 /// Builds the projection from the loaded todo set alone.
 pub(crate) fn roadmap_response(root: &std::path::Path, todos: &[Todo]) -> RoadmapResponse {
-    let live: Vec<&Todo> = todos
+    let stems: BTreeMap<String, &Todo> = todos
         .iter()
         .filter(|todo| todo.status != TodoStatus::Done)
-        .collect();
-    let stems: BTreeMap<String, &Todo> = live
-        .iter()
-        .filter_map(|todo| stem_of(&todo.path).map(|stem| (stem, *todo)))
+        .filter_map(|todo| stem_of(&todo.path).map(|stem| (stem, todo)))
         .collect();
     let tier_of = tier_numbers(&stems);
     let mut tiers: BTreeMap<u32, Vec<RoadmapItem>> = BTreeMap::new();
@@ -81,7 +78,7 @@ pub(crate) fn roadmap_response(root: &std::path::Path, todos: &[Todo]) -> Roadma
             path: relative_path(&todo.path, root),
             parent: todo.parent.clone(),
             blocked_by: todo.blocked_by.clone(),
-            rank: WorkItem::from_todo(todo).rank,
+            rank: WorkItem::TODO_RANK,
         };
         tiers.entry(tier_of[stem.as_str()]).or_default().push(item);
     }

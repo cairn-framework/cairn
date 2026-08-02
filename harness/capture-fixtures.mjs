@@ -36,7 +36,7 @@ async function capture(path) {
   return text;
 }
 
-const TOP = ["/assets/copy.json", "/api/meta", "/api/status", "/api/graph", "/api/lint", "/api/pending", "/api/blueprint"];
+const TOP = ["/assets/copy.json", "/api/meta", "/api/status", "/api/graph", "/api/lint", "/api/pending", "/api/roadmap", "/api/blueprint"];
 const NODE_SUFFIXES = ["/contract", "/decisions", "/todos", "/research", "/sources", "/beads", "/rationale"];
 
 let count = 0;
