@@ -19,23 +19,7 @@ make humans aware of these and help steer the agents").
 
 ## Task
 
-1. Author the programme decision this unit needs before implementation.
-   It must explicitly separate three ownerships rather than blur them:
-   policy and control (cairn: selection truth, dependencies, readiness,
-   leases, dispatch policy), dispatch (the driver: when work starts,
-   retries, supervision), and execution (the harness: how work runs).
-   If cairn owns the first set it is the declarative control plane by
-   construction; the decision says so plainly and declares `refines:`
-   (or, at the maintainer's signing call, `supersedes:`) against the
-   current authorities `dec.product-perimeter` and
-   `dec.north-star-continuous-loop` (`dec.no-orchestrator` is their
-   ancestry). No containment by rewording. Unratified candidate framing
-   from the slate's post-ratification intake
-   (res.inversion-convergence-minutes): "build/delivery/runtime FACTS
-   sit inside cairn's investigation boundary; scheduling, execution,
-   supervision stay outside its actuation boundary". The decision
-   author weighs it; the maintainer's signature makes any wording
-   binding. Binding tier; enqueue via `cairn pending`.
+1. Implement under the signed control-plane programme decision authored by `todo.control-plane-programme-decision`. That decision assigns policy and control, dispatch, and execution ownership, and governs what this console may write or dispatch. Do not re-author it here; if it is unsigned when this unit reaches implementation, ship the read-only console described in Task 3 and stop.
 2. Compose, do not re-own: `todo.pending-queue-briefing` owns the
    pending queue's presentation (chat-first briefing vocabulary), and
    `todo.roadmap-derived-view` owns the backlog projection. This todo
