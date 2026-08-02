@@ -135,6 +135,9 @@ function sortChannelItems(items, kind) {
 
 // Groups flattened roadmap items into tier sections holding parent groups
 // (`dec.todo-relationship-model` ruling 5: tiers order, parents only group).
+// The group key is the effective parent (declared parent, else own stem) so
+// a parent todo sits adjacent to its children, in first-seen wire order; a
+// header renders only for groups carrying a declared parent edge.
 function backlogSections(items) {
   const tiers = new Map();
   for (const item of Array.isArray(items) ? items : []) {
@@ -147,11 +150,13 @@ function backlogSections(items) {
     .map(([tier, rows]) => {
       const groups = new Map();
       for (const row of rows) {
-        const parent = row?.parent || "";
-        if (!groups.has(parent)) groups.set(parent, []);
-        groups.get(parent).push(row);
+        const key = row?.parent || row?.stem || "";
+        if (!groups.has(key)) groups.set(key, { parent: "", members: [] });
+        const group = groups.get(key);
+        group.members.push(row);
+        if (row?.parent) group.parent = row.parent;
       }
-      return { tier, groups: [...groups.entries()].map(([parent, members]) => ({ parent, members })) };
+      return { tier, groups: [...groups.values()] };
     });
 }
 

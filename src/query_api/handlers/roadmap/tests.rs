@@ -103,7 +103,9 @@ fn test_roadmap_parent_groups_within_tier_without_ordering() {
 }
 
 #[test]
-fn test_roadmap_cycle_members_share_final_tier() {
+fn test_roadmap_cycle_members_share_one_tier_as_a_unit() {
+    // A cyclic component has no order among its members; it occupies one
+    // tier as a unit at the depth of its external blockers (none here).
     let mut a = todo("a", TodoStatus::Open);
     a.blocked_by = vec!["todo.b".to_owned()];
     let mut b = todo("b", TodoStatus::Open);
@@ -112,8 +114,40 @@ fn test_roadmap_cycle_members_share_final_tier() {
     let response = roadmap_response(std::path::Path::new("/project"), &[a, b, free]);
     assert_eq!(
         stems(&response),
-        vec![(1, vec!["todo.free"]), (2, vec!["todo.a", "todo.b"])],
-        "cycle members lump one past the deepest settled tier"
+        vec![(1, vec!["todo.a", "todo.b", "todo.free"])],
+        "an unblocked cycle sits in tier 1 beside unblocked todos"
+    );
+}
+
+#[test]
+fn test_roadmap_cycle_dependant_tiers_after_the_cycle() {
+    // A todo blocked by a cycle member is not part of the knot; it tiers
+    // strictly after the whole component.
+    let mut a = todo("a", TodoStatus::Open);
+    a.blocked_by = vec!["todo.b".to_owned()];
+    let mut b = todo("b", TodoStatus::Open);
+    b.blocked_by = vec!["todo.a".to_owned()];
+    let mut c = todo("c", TodoStatus::Open);
+    c.blocked_by = vec!["todo.a".to_owned()];
+    let response = roadmap_response(std::path::Path::new("/project"), &[a, b, c]);
+    assert_eq!(
+        stems(&response),
+        vec![(1, vec!["todo.a", "todo.b"]), (2, vec!["todo.c"])],
+        "cycle dependants keep topological depth over the condensation"
+    );
+}
+
+#[test]
+fn test_roadmap_self_loop_occupies_its_own_tier_unit() {
+    let mut a = todo("a", TodoStatus::Open);
+    a.blocked_by = vec!["todo.a".to_owned()];
+    let mut c = todo("c", TodoStatus::Open);
+    c.blocked_by = vec!["todo.a".to_owned()];
+    let response = roadmap_response(std::path::Path::new("/project"), &[a, c]);
+    assert_eq!(
+        stems(&response),
+        vec![(1, vec!["todo.a"]), (2, vec!["todo.c"])],
+        "a self-loop is a one-member component; dependants tier after it"
     );
 }
 
