@@ -53,9 +53,15 @@ function itemLabel(item, kind) {
   }
 
   if (kind === "backlog") {
+    const parent = item?.parent
+      ? copy("webui.channel.backlog-parent").replace("{parent}", item.parent)
+      : "";
+    const meta = copy("webui.channel.backlog-meta")
+      .replace("{tier}", String(item?.tier ?? ""))
+      .replace("{status}", item?.status || copy("webui.none"));
     return {
-      title: slugFromPath(item?.path) || copy("webui.channel.backlog"),
-      meta: `${item?.node || copy("webui.none")} · ${item?.status || copy("webui.none")}`,
+      title: item?.stem || slugFromPath(item?.path) || copy("webui.channel.backlog"),
+      meta: `${meta}${parent}`,
       body: item?.path || "",
     };
   }

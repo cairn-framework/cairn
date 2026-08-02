@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "RoadmapItem": {
+      "description": "One live todo inside a roadmap tier.",
+      "properties": {
+        "blocked_by": {
+          "description": "Declared blockers (todo stems).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "node": {
+          "description": "Referenced node.",
+          "type": "string"
+        },
+        "parent": {
+          "description": "Containing todo stem; grouping only, never order.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Root-relative source path.",
+          "type": "string"
+        },
+        "rank": {
+          "description": "Cross-source `WorkItem` rank; lower is more urgent.",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "status": {
+          "description": "Todo status token.",
+          "type": "string"
+        },
+        "stem": {
+          "description": "Canonical todo reference: the filename stem, `todo.<slug>`.",
+          "type": "string"
+        },
+        "title": {
+          "description": "First level-one heading of the body, or a fallback.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "blocked_by",
+        "node",
+        "path",
+        "rank",
+        "status",
+        "stem",
+        "title"
+      ],
+      "type": "object"
+    },
+    "RoadmapTier": {
+      "description": "One dependency tier: every member's live blockers sit in earlier tiers.",
+      "properties": {
+        "items": {
+          "description": "Members ordered by rank, then parent group, then stem.",
+          "items": {
+            "$ref": "#/definitions/RoadmapItem"
+          },
+          "type": "array"
+        },
+        "tier": {
+          "description": "1-based tier number; tier 1 has no live blockers.",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "items",
+        "tier"
+      ],
+      "type": "object"
+    }
+  },
+  "description": "Wire shape of the `roadmap` query response.",
+  "properties": {
+    "tiers": {
+      "description": "Tiers ordered shallowest first.",
+      "items": {
+        "$ref": "#/definitions/RoadmapTier"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "tiers"
+  ],
+  "title": "RoadmapResponse",
+  "type": "object"
+}

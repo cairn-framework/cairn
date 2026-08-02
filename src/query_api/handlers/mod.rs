@@ -9,6 +9,7 @@ mod node;
 mod pending;
 mod project;
 mod remediate;
+mod roadmap;
 pub(super) mod spine;
 mod work_item;
 
@@ -33,6 +34,9 @@ pub(super) use project::{context_json, status_json};
 pub use remediate::RemediateResponse;
 pub(super) use remediate::hook_json;
 pub(crate) use remediate::{health_json, remediate_actions_raw, remediate_json};
+pub(super) use roadmap::roadmap_json;
+pub(crate) use roadmap::roadmap_response;
+pub use roadmap::{RoadmapItem, RoadmapResponse, RoadmapTier};
 pub(super) use spine::{beads_json, blueprint_json, ui_meta_json};
 pub(crate) use work_item::from_finding_action;
 pub use work_item::{WorkItem, WorkItemSource};

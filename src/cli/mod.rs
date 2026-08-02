@@ -842,6 +842,34 @@ fn render_loaded_project_command(
             }
             Err(findings) => return findings_output(parsed.json, parsed.verbose, &findings),
         },
+        "roadmap" => {
+            let response =
+                crate::query_api::roadmap_response(root, &scan_result.artefacts.todos);
+            let mut out = String::new();
+            if response.tiers.is_empty() {
+                let _ = writeln!(out, "{}", copy::lookup("roadmap.empty"));
+            }
+            for tier in &response.tiers {
+                let _ = writeln!(
+                    out,
+                    "{}",
+                    copy::lookup("roadmap.tier-header").replace("{tier}", &tier.tier.to_string())
+                );
+                for item in &tier.items {
+                    let parent = item
+                        .parent
+                        .as_deref()
+                        .map(|parent| format!(" [{parent}]"))
+                        .unwrap_or_default();
+                    let _ = writeln!(
+                        out,
+                        "  {} ({}){parent} {}",
+                        item.stem, item.status, item.path
+                    );
+                }
+            }
+            Ok(out)
+        }
         "pending" => match crate::query_api::pending_rows(root, scan_result) {
             Ok(rows) => {
                 let mut out = format!("{}\n", copy::lookup("pending.header"));
@@ -1155,6 +1183,7 @@ fn uses_shared_json(command: &str) -> bool {
             | "scan"
             | "status"
             | "pending"
+            | "roadmap"
             | "rationale"
             | "todos"
             | "decisions"

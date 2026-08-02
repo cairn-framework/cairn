@@ -173,6 +173,10 @@ async function fetchPending() {
   return (await fetchJson("/api/pending")) || {};
 }
 
+async function fetchRoadmap() {
+  return (await fetchJson("/api/roadmap")) || {};
+}
+
 async function fetchBlueprint() {
   return (await fetchJson("/api/blueprint")) || {};
 }
@@ -358,6 +362,7 @@ export {
   fetchStatus,
   fetchLint,
   fetchPending,
+  fetchRoadmap,
   fetchBlueprint,
   fetchNodeArtefacts,
   fetchNodeEvidence,

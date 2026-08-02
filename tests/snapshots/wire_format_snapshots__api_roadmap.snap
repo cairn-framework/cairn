@@ -1,0 +1,40 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: value
+---
+{
+  "schema_version": 9,
+  "tiers": [
+    {
+      "items": [
+        {
+          "blocked_by": [],
+          "node": "app.api",
+          "path": "meta/todos/todo.api.md",
+          "rank": 100,
+          "status": "open",
+          "stem": "todo.api",
+          "title": "API Todo"
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "items": [
+        {
+          "blocked_by": [
+            "todo.api"
+          ],
+          "node": "app.core",
+          "parent": "todo.api",
+          "path": "meta/todos/todo.core.md",
+          "rank": 100,
+          "status": "blocked",
+          "stem": "todo.core",
+          "title": "Core Todo"
+        }
+      ],
+      "tier": 2
+    }
+  ]
+}

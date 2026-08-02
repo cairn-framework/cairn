@@ -20,6 +20,7 @@ const ENDPOINTS: &[(&str, &str)] = &[
     ("api_graph", "/api/graph"),
     ("api_lint", "/api/lint"),
     ("api_pending", "/api/pending"),
+    ("api_roadmap", "/api/roadmap"),
     ("api_blueprint", "/api/blueprint"),
     ("api_node_app_api", "/api/node/app.api"),
     ("api_node_app_api_contract", "/api/node/app.api/contract"),

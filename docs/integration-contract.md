@@ -59,6 +59,7 @@ Error responses from the MCP/query path:
 | `order` | `cairn_order` | Topological sort of all nodes |
 | `islands` | `cairn_islands` | Disconnected graph components |
 | `frontier` | `cairn_frontier` | Buildable-now (ready) and blocked ghost nodes, tiered by dependency depth |
+| `roadmap` | `cairn_roadmap` | Live todos in dependency tiers from `blocked_by`, grouped by `parent` |
 | `graph` | `cairn_graph` | Full structural graph: nodes and edges |
 | `lint` | `cairn_lint` | All findings (errors + warnings + info) |
 | `health` | `cairn_health` | Comprehensive health assessment (clean flag, counts, findings) |

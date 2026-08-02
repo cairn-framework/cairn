@@ -417,6 +417,10 @@ row = "  {id} (age {age}d, {ratification}) nodes: {nodes}"
 err-invalid-date = "decision `{id}` has an unparseable `date:` value `{value}`; expected YYYY-MM-DD"
 remediation-invalid-date = "Fix the `date:` frontmatter in the decision file, then rerun `cairn pending`."
 
+[roadmap]
+tier-header = "Tier {tier}:"
+empty = "No live todos. The roadmap is empty."
+
 # -- Context (default agent entry point) ----------------------------------
 
 [context]
@@ -484,6 +488,7 @@ bootstrap-status-failed = "Status panel failed to load."
 bootstrap-lint-failed = "Lint summary failed to load."
 bootstrap-blueprint-failed = "Blueprint failed to load."
 bootstrap-pending-failed = "Pending queue failed to load."
+bootstrap-roadmap-failed = "Backlog projection failed to load."
 retry = "Retry"
 [webui.severity]
 error = "Error"
@@ -523,6 +528,8 @@ findings = "Findings"
 drift = "Drift"
 pending = "Pending"
 pending-meta = "{age}d · {ratification}"
+backlog-meta = "tier {tier} · {status}"
+backlog-parent = " · parent {parent}"
 changes = "Changes"
 backlog = "Backlog"
 collapse = "Collapse"
@@ -726,6 +733,9 @@ usage = "cairn pending [options]"
 [help.commands.rationale]
 usage = "cairn rationale <node> [options]"
 args = "  <node>  Node id whose rationale chain to show"
+
+[help.commands.roadmap]
+usage = "cairn roadmap [options]"
 
 [help.commands.refine]
 usage = "cairn refine [options]"

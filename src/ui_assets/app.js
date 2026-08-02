@@ -20,6 +20,7 @@ function App() {
   const [status, setStatus] = useState({});
   const [lint, setLint] = useState({});
   const [pending, setPending] = useState({});
+  const [roadmap, setRoadmap] = useState({});
   const [blueprint, setBlueprint] = useState({ path: "", source: "" });
   const [notices, setNotices] = useState([]);
 
@@ -64,7 +65,7 @@ function App() {
           return;
         }
 
-        const { graph, status, lint, pending, blueprint, notices: nextNotices } = bootstrap;
+        const { graph, status, lint, pending, roadmap, blueprint, notices: nextNotices } = bootstrap;
         if (!active) {
           return;
         }
@@ -73,6 +74,7 @@ function App() {
         setStatus(status);
         setLint(lint);
         setPending(pending);
+        setRoadmap(roadmap);
         setBlueprint(blueprint);
         setNotices(nextNotices);
 
@@ -223,7 +225,10 @@ function App() {
   const findings = Array.isArray(lint.findings) ? lint.findings : [];
   const drift = findings.filter((item) => item?.severity === "error" || item?.severity === "warning");
   const changes = Array.isArray(status.active_changes) ? status.active_changes : [];
-  const backlog = Array.isArray(status.open_todos) ? status.open_todos : [];
+  const roadmapTiers = Array.isArray(roadmap.tiers) ? roadmap.tiers : [];
+  const backlog = roadmapTiers.flatMap((tier) =>
+    (Array.isArray(tier?.items) ? tier.items : []).map((item) => ({ ...item, tier: tier?.tier })),
+  );
   const pendingRows = Array.isArray(pending.pending) ? pending.pending : [];
 
   const selectionArtefacts = useMemo(() => artefactsByNode[selectionId] || {}, [artefactsByNode, selectionId]);

@@ -71,6 +71,12 @@ expression: value
       "safety": "ReadOnly"
     },
     {
+      "name": "roadmap",
+      "request": "RoadmapRequest",
+      "response": "RoadmapResponse",
+      "safety": "ReadOnly"
+    },
+    {
       "name": "graph",
       "request": "GraphRequest",
       "response": "GraphResponse",
