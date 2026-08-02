@@ -41,3 +41,7 @@ default-pointer tests must keep passing unchanged.
 
 Adversarial review of PR #544 (`dec.decision-ratification-tiers`
 implementation), recorded 2026-07-31 immediately after that merge.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps pending ratification work discoverable and actionable.

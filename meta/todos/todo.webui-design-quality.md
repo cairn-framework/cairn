@@ -57,3 +57,7 @@ scorer) is still unbuilt and still gated on the visual harness, and
 `done` status misrepresented the plan. Bets A, B, and C are finished; this todo
 covers bet D only. Unblock by setting it `open` when the visual harness can host
 the scorer.
+
+## Mission disposition
+
+2026-08-02: blocked against dec.cairn-mission. Serves fit-for-purpose. Bet D design-quality scorer tracker per dec.webui-design-authority clause 3, gated on the visual harness; bet A alone was superseded by dec.webui-design-direction.

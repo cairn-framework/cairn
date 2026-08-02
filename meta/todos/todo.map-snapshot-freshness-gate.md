@@ -49,3 +49,7 @@ notice, which is how `todo.map-snapshot-resync` came to exist.
 - A tree whose `map.json` matches the regenerated snapshot passes.
 - Reverting the `map.json` half of the `todo.map-snapshot-resync` commit and
   running the gate reproduces the failure, which is the regression evidence.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps generated map evidence fresh enough for maintainers to trust.

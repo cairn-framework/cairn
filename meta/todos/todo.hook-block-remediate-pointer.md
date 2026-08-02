@@ -25,3 +25,7 @@ has the engine but the gate surface does not advertise it.
 
 Adjacent: `todo.remediate-copy-centralisation` (the footer should use the
 copy registry from day one). Small enough to not need a change proposal.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps hook failures pointed at actionable remediation.

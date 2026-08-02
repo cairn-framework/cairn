@@ -90,3 +90,7 @@ Maintainer, 2026-07-31: "why do I have to dig up decisions?", then "my UI
 interface right now is this chat", after being sent to a decision file to rule
 on a correction the queue could not show. Feeds the over-harness UI thread
 (`res.overharness-design-threads`).
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign step 5 for briefing the pending signature queue.

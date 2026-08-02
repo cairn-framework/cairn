@@ -15,3 +15,7 @@ actual tree after a stack lands). Related: dec.loop-resolves-knowable-gaps.
 
 Re-minted from GitHub issue #86 by todo.github-issues-cleanup
 (2026-07-12); the issue is closed pointing at this artefact.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It protects the merge path that keeps maintenance work safe.

@@ -63,3 +63,7 @@ Cut when all of these hold on a clean checkout of `main`:
 
 Maintainer request, 2026-07-30: add a todo for performing a new release at a
 good milestone.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps releases tied to an explicit milestone.

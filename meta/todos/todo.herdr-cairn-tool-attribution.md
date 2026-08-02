@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: done
 created: 2026-07-17
 ---
 
@@ -45,3 +45,7 @@ is not evaluable.
 Either a documented decision not to build it, or a wrapper/shim that surfaces
 the most recent cairn-calling tool name on the dashboard pane without adding
 material latency to cairn MCP/CLI calls and without leaking child processes.
+
+## Mission disposition
+
+2026-08-02: close against dec.cairn-mission. Serves none. No session has recorded a concrete attribution cost after todo.herdr-live-dashboard completed, so this speculative task closes with its evidence trigger unmet.

@@ -52,3 +52,7 @@ decision is the ruling; this todo owns the surfaces.
   this unit, leaving that todo blocked on nothing else.
 - `cairn scan` on this repository stays at zero non-Info findings; gates
   in `scripts/pre-archive-rust-gates.sh` pass.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign step 1 for declaring todo relationships.

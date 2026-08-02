@@ -32,3 +32,7 @@ Files are truth; the graph reconciles. Use cairn to find the mess rather than wa
 
 - No ad-hoc mass deletion.
 - Nothing that loses git history or provenance.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps repository organisation legible as the project grows.

@@ -1,7 +1,8 @@
 ---
 node: cairn.ui
-status: in_progress
+status: blocked
 created: 2026-07-18
+blocked_by: [todo.overharness-console-ux]
 ---
 
 # UI Asset Refresh
@@ -58,3 +59,7 @@ no longer exists, on surfaces that are the project's first impression
   green against the redesigned webui.
 
 dec:dec.webui-design-authority
+
+## Mission disposition
+
+2026-08-02: blocked against dec.cairn-mission. Serves fit-for-purpose. The console changes the webui again, so recording now would guarantee recording twice.

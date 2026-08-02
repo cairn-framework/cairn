@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.scanner
-status: open
+status: done
 created: 2026-07-11
 ---
 
@@ -22,3 +22,7 @@ DEFER until there is a real driver. This is a performance optimisation borrowed
 from a competitor; cairn has no large repos yet and full re-scan is not a reported
 pain (scans run in well under a second). Keep the design, but do not schedule
 ahead of user-facing work; revisit when a real repo makes scan latency felt.
+
+## Mission disposition
+
+2026-08-02: close against dec.cairn-mission. Serves none. A full re-scan is under a second and there is no large-repository evidence for this optimisation.

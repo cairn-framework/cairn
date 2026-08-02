@@ -46,3 +46,7 @@ the selected update action.
 This is separate from the pack lifecycle in `todo.agent-guidance-program`, whose `pack update`
 refreshes Cairn's installed agent guidance and skills rather than the Cairn
 binary itself.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It lets users know when a new Cairn binary release exists and guides the selected update action.

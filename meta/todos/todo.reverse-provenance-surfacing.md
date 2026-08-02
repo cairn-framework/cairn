@@ -48,3 +48,7 @@ than widening this one.
   silent when the newer decision is proposed.
 - Command-reference consistency tests pass; wire snapshots regenerated if
   bumped.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign step 6 for surfacing decision lineage in the console.

@@ -59,3 +59,7 @@ The first rules on how brownfield models mutual imports between a package root
 and its subpackages and carries the evidence for that ruling. The second
 implements the chosen rule and pins the round-trip. This todo flips to `done`
 when the second lands.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps the parent-package cycle gate explicit while its prerequisite remains unresolved.

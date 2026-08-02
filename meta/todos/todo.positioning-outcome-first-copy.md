@@ -38,3 +38,9 @@ calls for already has a working precedent: reuse its progressive layer-stepping
 shape instead of designing a new one. Sequencing is unchanged (land after
 `todo.terminology-plain-language`), and the infographic's pre-rename vocabulary
 must not be copied forward.
+
+This todo owns the README-overhaul work and the outward README story.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It makes the outward story answer what users get first.

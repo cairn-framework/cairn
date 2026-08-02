@@ -68,3 +68,7 @@ coverage gap rather than a counter-example to it.
   is measured on the corpus that surfaced the gap.
 
 Informed by: res.loop-efficiency-observations
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves investigable. It improves investigation when symbols need precise graph coverage.

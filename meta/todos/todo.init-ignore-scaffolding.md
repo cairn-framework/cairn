@@ -18,3 +18,7 @@ shared source of truth rather than introducing a second hardcoded list.
 Scan-time merging of .gitignore and .cairnignore is already correct and
 root-resolved (`src/scanner/config/mod.rs`); this todo is only about the
 init-time proposal step.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign filler A on a disjoint surface and keeps adoption work moving.

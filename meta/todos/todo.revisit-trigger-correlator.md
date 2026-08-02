@@ -63,3 +63,7 @@ this todo `open` if a maintainer sanctions one.
 - `spec:634` moves to `enforced` and `CAIRN_SPEC_RULE_UNIMPLEMENTED` stops firing
   for it.
 - A superseding decision records the capability that made the ruling change.
+
+## Mission disposition
+
+2026-08-02: blocked against dec.cairn-mission. Serves investigable. It remains deferred under the accepted revisit-trigger decision.

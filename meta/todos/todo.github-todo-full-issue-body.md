@@ -74,3 +74,7 @@ is tracked separately by `todo.todo-relationship-model-and-issue-links`.
 - No relationship, subtask, parent-child, or blocked-by link emission.
 - No schema or CLI changes for typed relationships.
 - No change to the inward unmapped-issue flagger behaviour.
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves investigable. It improves fidelity when todo work is carried into GitHub issues.

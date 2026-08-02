@@ -22,3 +22,7 @@ Shares the StateBackend seam with `todo.unified-todo-write-surface` and
 `todo.github-todo-sync`. Design that seam once and coherently across the three;
 this is a soft ordering, not a hard blocker (this query reads committed state and
 can ship on the file baseline first).
+
+## Mission disposition
+
+2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps query results honest when graph nodes overlap.
