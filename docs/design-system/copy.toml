@@ -154,6 +154,9 @@ rationale-tension = "An intentional asymmetry was detected; review the rationale
 CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID = { heading = "Invalid spec-rule deferral", body = "Spec rule `{rule}` ({spec}) defers to `{decision}`, which is not an accepted decision.", cta = "Update the Deferred-by cell to name an accepted decision artefact." }
 CAIRN_TODO_DEFERS_UNMATCHED = { heading = "Stale defers reference", body = "Todo `{todo}` defers `{code}` at `{location}`, but no emitted finding matches that reference.", cta = "Remove the stale `defers:` entry, or correct its code and path or node to match a standing finding." }
 CAIRN_TODO_DEFERS_BLOCKING = { heading = "Defers reference targets a blocking finding", body = "Todo `{todo}` defers `{code}` at `{location}`, which is a {severity} finding; only Info findings can be parked.", cta = "Fix the finding instead: an Error or Warning stays selecting whatever any artefact declares about it." }
+CAIRN_TODO_RELATION_UNKNOWN = { heading = "Todo points at something that is not there", body = "This todo names a related item that does not exist. Fix the name or remove the link.", cta = "Correct the `blocked_by`, `parent`, or `related` entry, or remove it." }
+CAIRN_TODO_RELATION_CYCLE = { heading = "Todos block each other in a loop", body = "Following these links leads back to where it started, so nothing in the loop can ever start. Break one link.", cta = "Remove one `blocked_by` or `parent` entry from the loop." }
+CAIRN_TODO_STATUS_CONTRADICTION = { heading = "Todo status disagrees with its links", body = "Either this todo is marked blocked with nothing left blocking it, or it is open while something it depends on is unfinished.", cta = "Update the status with `cairn todo set`, or fix the links with `cairn todo link`." }
 CAIRN_TODO_DEFERS_INVALID = { heading = "Malformed defers reference", body = "Todo `{todo}` has a malformed defers entry `{value}`; expected `<FINDING_CODE> <path-or-node>`.", cta = "Rewrite the entry as a finding code, one space, then the path or node the finding was raised against." }
 CAIRN_RECONCILE_ORPHANED_FILE = { heading = "Orphaned file", body = "The file `{path}` exists on disk but no blueprint node claims its path.", cta = "Add a `path` entry to an existing node, or declare a new node." }
 CAIRN_INTEGRITY_DUPLICATE_ID = { heading = "Duplicate node ID", body = "The ID `{node}` appears more than once in the blueprint.", cta = "Rename one of the duplicates to make every ID unique." }
@@ -344,7 +347,8 @@ created = "created meta/decisions/{slug}.md; add the governing node id(s) and fi
 # -- Todo scaffold --------------------------------------------------------
 
 [todo]
-usage = "usage: cairn todo new <slug> --node <id>"
+usage = "usage: cairn todo <new|set|link|unlink>"
+new-usage = "usage: cairn todo new <slug> --node <id>"
 invalid-slug = "todo slug must be kebab-case: lowercase letters and digits separated by single hyphens"
 missing-node = "cairn todo new requires exactly one --node <id>"
 exists = "a todo already exists at meta/todos/todo.{slug}.md"
@@ -355,6 +359,14 @@ not-found = "no todo found at meta/todos/todo.{slug}.md"
 missing-status-field = "todo at meta/todos/todo.{slug}.md has no `status:` field to update"
 malformed-frontmatter = "todo at meta/todos/todo.{slug}.md has no valid frontmatter block (missing or unterminated `---` fence)"
 set-success = "set meta/todos/todo.{slug}.md status -> {status}"
+link-usage = "usage: cairn todo link <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]..."
+unlink-usage = "usage: cairn todo unlink <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]..."
+parent-single = "--parent may be given once"
+flag-needs-value = "{flag} requires a value"
+invalid-ref = "invalid reference `{value}`: --blocked-by and --parent take a todo.<slug> stem; --related takes a todo.<slug> stem or a dec./res./src. id"
+unlink-missing = "todo.{slug} has no {field} entry `{value}`"
+link-success = "updated relationship links on meta/todos/todo.{slug}.md"
+unlink-success = "removed relationship links on meta/todos/todo.{slug}.md"
 io-read-error = "failed to read {path}: {error}"
 io-write-error = "failed to write {path}: {error}"
 
@@ -580,6 +592,9 @@ port = "  --port <n>                     Port for the web UI (default 7474)"
 no-open = "  --no-open                      Do not open a browser"
 interval = "  --interval <secs>              Poll interval in seconds (default 5)"
 once = "  --once                         Run a single scan then exit"
+blocked-by = "  --blocked-by <todo.slug>       Todo stem this todo is blocked by (repeatable)"
+parent = "  --parent <todo.slug>           Containing todo stem (single; link replaces it)"
+related = "  --related <id>                 Related todo stem or dec./res./src. id (repeatable)"
 
 [help.commands.backlog]
 usage = "cairn backlog [node] [options]"
@@ -739,9 +754,11 @@ args = "  <node>  Node id whose sources to list"
 usage = "cairn status [options]"
 
 [help.commands.todo]
-usage = "cairn todo <new|set> [args] [options]"
+usage = "cairn todo <new|set|link|unlink> [args] [options]"
 args = """  new <slug> --node <id>                              Scaffold a todo
-  set <slug> <open|in_progress|done|blocked>          Update todo status"""
+  set <slug> <open|in_progress|done|blocked>          Update todo status
+  link <slug> [--blocked-by|--parent|--related]...    Add relationship links
+  unlink <slug> [--blocked-by|--parent|--related]...  Remove relationship links"""
 
 [help.commands.todos]
 usage = "cairn todos [node] [options]"
@@ -866,6 +883,16 @@ description = "Update the status of a todo artefact"
 usage = "cairn todo set <slug> <open|in_progress|done|blocked> [options]"
 args = """  <slug>    Todo slug
   <status>  One of open, in_progress, done, blocked"""
+
+[help.commands.todo-link]
+description = "Add relationship links to a todo artefact"
+usage = "cairn todo link <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]... [options]"
+args = "  <slug>  Todo slug whose frontmatter gains the links"
+
+[help.commands.todo-unlink]
+description = "Remove relationship links from a todo artefact"
+usage = "cairn todo unlink <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]... [options]"
+args = "  <slug>  Todo slug whose frontmatter loses the links"
 
 [help.commands.workspace-status]
 description = "Aggregate status across a cairn.workspace"

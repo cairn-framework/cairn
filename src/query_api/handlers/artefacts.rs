@@ -24,7 +24,7 @@ pub(crate) fn todos_response_json(
         }
         None => (Value::Null, None),
     };
-    let todos = scan_result
+    let selected: Vec<&Todo> = scan_result
         .artefacts
         .todos
         .iter()
@@ -32,9 +32,17 @@ pub(crate) fn todos_response_json(
             scope.as_ref().is_none_or(|ids| ids.contains(&todo.node))
                 && status.is_none_or(|filter| todo.status == filter)
         })
+        .collect();
+    let relation_statuses = relation_statuses(&scan_result.artefacts, &selected);
+    let todos = selected
+        .into_iter()
         .map(|todo| todo_enriched_json(todo, root))
         .collect::<Vec<_>>();
-    Ok(json!({ "node": node_id, "todos": todos }))
+    Ok(json!({
+        "node": node_id,
+        "todos": todos,
+        "relation_statuses": relation_statuses,
+    }))
 }
 
 /// Collects `id` plus every descendant reachable through the graph's
@@ -50,6 +58,52 @@ fn containment_scope(graph: &crate::map::Graph, id: &str) -> BTreeSet<String> {
         }
     }
     ids
+}
+
+/// Status token for every resolvable relationship target named by the
+/// selected todos: todo stems map to todo status, decision ids to decision
+/// status (`dec.todo-relationship-model` ruling 2's resolvable set, less
+/// research and sources, which carry no status). Lets renderers annotate
+/// edges without a second scan.
+fn relation_statuses(
+    artefacts: &crate::artefacts::registry::ArtefactSet,
+    selected: &[&Todo],
+) -> BTreeMap<String, String> {
+    let todo_statuses: BTreeMap<&str, &'static str> = artefacts
+        .todos
+        .iter()
+        .filter_map(|todo| {
+            std::path::Path::new(&todo.path)
+                .file_stem()
+                .and_then(std::ffi::OsStr::to_str)
+                .map(|stem| (stem, todo_status(todo.status)))
+        })
+        .collect();
+    let decision_statuses: BTreeMap<&str, &'static str> = artefacts
+        .decisions
+        .iter()
+        .map(|decision| (decision.id.as_str(), decision_status(decision.status)))
+        .collect();
+    let mut out = BTreeMap::new();
+    for todo in selected {
+        for target in todo
+            .blocked_by
+            .iter()
+            .chain(todo.parent.iter())
+            .chain(todo.related.iter())
+        {
+            if out.contains_key(target) {
+                continue;
+            }
+            if let Some(status) = todo_statuses
+                .get(target.as_str())
+                .or_else(|| decision_statuses.get(target.as_str()))
+            {
+                out.insert(target.clone(), (*status).to_owned());
+            }
+        }
+    }
+    out
 }
 
 pub(crate) fn decisions_response_json(
@@ -146,6 +200,9 @@ mod tests {
             status,
             created: "2026-07-16".to_owned(),
             satisfies: None,
+            blocked_by: Vec::new(),
+            parent: None,
+            related: Vec::new(),
             defers: Vec::new(),
             body: "# Todo".to_owned(),
         }

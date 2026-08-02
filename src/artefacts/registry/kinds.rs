@@ -104,6 +104,9 @@ fn load_one_todo(path: &Path, parsed: &Frontmatter, set: &mut ArtefactSet) {
         status,
         created,
         satisfies: optional(&parsed.values, "satisfies"),
+        blocked_by: list(parsed, "blocked_by"),
+        parent: optional(&parsed.values, "parent"),
+        related: list(parsed, "related"),
         defers,
         body: parsed.body.clone(),
     });

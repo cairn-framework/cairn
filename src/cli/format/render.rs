@@ -186,6 +186,9 @@ mod tests {
             status,
             created: "2026-01-01".to_owned(),
             satisfies: None,
+            blocked_by: Vec::new(),
+            parent: None,
+            related: Vec::new(),
             defers: Vec::new(),
             body: String::new(),
         }

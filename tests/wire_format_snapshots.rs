@@ -78,7 +78,7 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
             .and_then(Value::as_u64)
             .unwrap_or_else(|| panic!("{snapshot_name} response missing numeric schema_version"));
         assert_eq!(
-            version, 8,
+            version, 9,
             "{snapshot_name} must use the pinned wire schema version"
         );
 
@@ -146,7 +146,11 @@ app.core -> app.api "serves"
     )?;
     fs::write(
         root.join("meta/todos/todo.api.md"),
-        "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\nsatisfies: status.contract\n---\n# API Todo\nShip the endpoint.\n",
+        "---\nnode: app.api\nstatus: open\ncreated: 2026-04-01\nsatisfies: status.contract\nrelated: [dec.api]\n---\n# API Todo\nShip the endpoint.\n",
+    )?;
+    fs::write(
+        root.join("meta/todos/todo.core.md"),
+        "---\nnode: app.core\nstatus: blocked\ncreated: 2026-04-02\nblocked_by: [todo.api]\nparent: todo.api\n---\n# Core Todo\nWire the core.\n",
     )?;
     fs::write(
         root.join("meta/decisions/api.md"),

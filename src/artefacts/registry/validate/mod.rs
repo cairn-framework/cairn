@@ -7,6 +7,7 @@ use io::{error, info, warning};
 use std::collections::BTreeMap;
 
 mod filenames;
+mod relations;
 mod sources;
 
 pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
@@ -28,6 +29,7 @@ pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: 
     validate_nodes(node_ids, set);
     validate_decision_refs(&decisions, set);
     validate_receipt_links(set);
+    relations::validate_todo_relations(set);
 
     validate_provenance_refs(&research_ids, &source_ids, set);
     sources::validate_sources(root, &source_ids, set);

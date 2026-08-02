@@ -41,6 +41,35 @@ fn load_one_todo_inline_list_defers_parses() {
     assert_eq!(set.todos[0].defers[0].location, "src/lib.rs");
 }
 
+#[test]
+fn test_load_one_todo_relationship_fields_parse() {
+    // The three `dec.todo-relationship-model` fields load exactly the way
+    // `Decision.supersedes/refines/related` do: inline lists plus a scalar.
+    let parsed = crate::artefacts::frontmatter::parse(
+        "---\nnode: app.api\nstatus: open\ncreated: 2026-08-01\nblocked_by: [todo.a, todo.b]\nparent: todo.epic\nrelated: [dec.rule, todo.c]\n---\nbody\n",
+    );
+    let mut set = ArtefactSet::default();
+    load_one_todo(Path::new("meta/todos/todo.linked.md"), &parsed, &mut set);
+    assert_eq!(set.findings.len(), 0, "{:?}", set.findings);
+    let todo = &set.todos[0];
+    assert_eq!(todo.blocked_by, vec!["todo.a", "todo.b"]);
+    assert_eq!(todo.parent.as_deref(), Some("todo.epic"));
+    assert_eq!(todo.related, vec!["dec.rule", "todo.c"]);
+}
+
+#[test]
+fn test_load_one_todo_absent_relationship_fields_default_empty() {
+    let parsed = crate::artefacts::frontmatter::parse(
+        "---\nnode: app.api\nstatus: open\ncreated: 2026-08-01\n---\nbody\n",
+    );
+    let mut set = ArtefactSet::default();
+    load_one_todo(Path::new("meta/todos/todo.plain.md"), &parsed, &mut set);
+    let todo = &set.todos[0];
+    assert!(todo.blocked_by.is_empty());
+    assert!(todo.parent.is_none());
+    assert!(todo.related.is_empty());
+}
+
 fn decision(extra: &str) -> crate::artefacts::frontmatter::Frontmatter {
     crate::artefacts::frontmatter::parse(&format!(
         "---\nid: dec.test\nstatus: proposed\ndate: 2026-07-30\nnodes: [app.api]\n{extra}---\nbody\n"

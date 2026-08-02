@@ -51,6 +51,9 @@ fn test_enriched_artefact_wires_include_title_and_body() {
         status: TodoStatus::Open,
         created: "2026-04-01".to_owned(),
         satisfies: Some("status.contract".to_owned()),
+        blocked_by: Vec::new(),
+        parent: None,
+        related: Vec::new(),
         defers: Vec::new(),
         body: "# Ship the endpoint\n\nDetails.".to_owned(),
     };

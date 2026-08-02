@@ -4,6 +4,6 @@ expression: value
 ---
 {
   "path": "<blueprint>",
-  "schema_version": 8,
+  "schema_version": 9,
   "source": "System App \"desc\" id \"app\" @product {\n    Module Core \"core\" id \"app.core\" @backend {\n        path \"./src/core\"\n        contract \"./meta/contracts/core.md\"\n    }\n    Container Api \"api\" id \"app.api\" @backend {\n        path \"./src/api\"\n        contract \"./meta/contracts/api.md\"\n        todos \"./meta/todos\"\n        decisions \"./meta/decisions\"\n        research \"./meta/research\"\n        sources \"./meta/sources\"\n    }\n}\napp.api -> app.core \"reports\"\napp.core -> app.api \"serves\"\n"
 }

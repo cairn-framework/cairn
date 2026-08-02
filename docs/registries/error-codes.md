@@ -139,6 +139,9 @@ All codes follow the pattern **`CXNNN`**:
 - CA055 -- decision receipt reference resolves to no loaded review (CAIRN_DECISION_RECEIPT_UNKNOWN) -- todo.decision-ratification-tiers
 - CA056 -- receipt-grade review's subject hash matches no local-tier decision's recomputed manifest (CAIRN_REVIEW_SUBJECT_UNMATCHED) -- todo.decision-ratification-tiers
 - CA057 -- binding decision carries `ratified_by: machine` (CAIRN_DECISION_MACHINE_BINDING) -- todo.decision-ratification-tiers
+- CA058 -- todo relationship reference resolves to no loaded artefact (CAIRN_TODO_RELATION_UNKNOWN) -- todo.todo-relationship-schema-implementation
+- CA059 -- todos form a cycle through `blocked_by` or through `parent` (CAIRN_TODO_RELATION_CYCLE) -- todo.todo-relationship-schema-implementation
+- CA060 -- todo status contradicts its declared blockers (CAIRN_TODO_STATUS_CONTRADICTION) -- todo.todo-relationship-schema-implementation
 
 ## CC -- Changes
 

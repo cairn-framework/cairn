@@ -100,3 +100,32 @@ fn sha256_unexpected_yields_fix_sources_action() {
         "CAIRN_SOURCE_SHA256_UNEXPECTED must yield the fix_sources action; got: {actions:?}"
     );
 }
+
+#[test]
+fn todo_relation_findings_yield_fix_todos_action() {
+    // The three `dec.todo-relationship-model` codes must route into the
+    // todo-issue arm rather than falling through the dispatch silently.
+    for code in [
+        "CAIRN_TODO_RELATION_UNKNOWN",
+        "CAIRN_TODO_RELATION_CYCLE",
+        "CAIRN_TODO_STATUS_CONTRADICTION",
+    ] {
+        let mut scan_result = empty_scan_result();
+        scan_result.graph.findings.push(crate::map::Finding {
+            code: code.to_owned(),
+            severity: crate::map::FindingSeverity::Warning,
+            message: "relation issue".to_owned(),
+            node: None,
+            target: None,
+            path: None,
+            deferred_by: None,
+            parked_by: None,
+        });
+        let actions =
+            remediate_actions_raw(Path::new("."), Path::new("meta/changes"), &scan_result);
+        assert!(
+            actions.iter().any(|action| action["action"] == "fix_todos"),
+            "{code} must yield the fix_todos action; got: {actions:?}"
+        );
+    }
+}

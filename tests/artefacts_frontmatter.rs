@@ -265,3 +265,130 @@ fn test_frontmatter_equality_and_clone() {
     let b = a.clone();
     assert_eq!(a, b);
 }
+
+// ── Surgical field edits (upsert/remove) ──────────────────────────────────────
+
+#[test]
+fn test_upsert_field_inserts_before_closing_fence() {
+    let source = "---\nnode: app\nstatus: open\n---\n\n# T\n\nBody.\n";
+    let updated = frontmatter::upsert_field(source, "blocked_by", "[todo.a]").unwrap();
+    assert_eq!(
+        updated,
+        "---\nnode: app\nstatus: open\nblocked_by: [todo.a]\n---\n\n# T\n\nBody.\n"
+    );
+}
+
+#[test]
+fn test_upsert_field_replaces_existing_value() {
+    let source = "---\nnode: app\nparent: todo.old\nstatus: open\n---\nBody\n";
+    let updated = frontmatter::upsert_field(source, "parent", "todo.new").unwrap();
+    assert_eq!(
+        updated,
+        "---\nnode: app\nparent: todo.new\nstatus: open\n---\nBody\n"
+    );
+}
+
+#[test]
+fn test_upsert_field_collapses_block_list_without_orphans() {
+    let source = "---\nnode: app\nblocked_by:\n  - todo.a\n  - todo.b\nstatus: open\n---\nBody\n";
+    let updated = frontmatter::upsert_field(source, "blocked_by", "[todo.c]").unwrap();
+    assert_eq!(
+        updated, "---\nnode: app\nblocked_by: [todo.c]\nstatus: open\n---\nBody\n",
+        "block-list items must not survive as orphans"
+    );
+}
+
+#[test]
+fn test_upsert_field_preserves_crlf_line_endings() {
+    let source = "---\r\nnode: app\r\nstatus: open\r\n---\r\nBody\r\n";
+    let updated = frontmatter::upsert_field(source, "parent", "todo.x").unwrap();
+    assert_eq!(
+        updated,
+        "---\r\nnode: app\r\nstatus: open\r\nparent: todo.x\r\n---\r\nBody\r\n"
+    );
+}
+
+#[test]
+fn test_upsert_field_no_frontmatter_errors() {
+    let result = frontmatter::upsert_field("# Just a body\n", "parent", "todo.x");
+    assert_eq!(result, Err(frontmatter::SetFieldError::NoFrontmatter));
+}
+
+#[test]
+fn test_remove_field_drops_scalar_line_only() {
+    let source = "---\nnode: app\nparent: todo.x\nstatus: open\n---\nBody\n";
+    let updated = frontmatter::remove_field(source, "parent").unwrap();
+    assert_eq!(updated, "---\nnode: app\nstatus: open\n---\nBody\n");
+}
+
+#[test]
+fn test_remove_field_drops_block_list_extent() {
+    let source = "---\nnode: app\nblocked_by:\n  - todo.a\n  - todo.b\nstatus: open\n---\nBody\n";
+    let updated = frontmatter::remove_field(source, "blocked_by").unwrap();
+    assert_eq!(updated, "---\nnode: app\nstatus: open\n---\nBody\n");
+}
+
+#[test]
+fn test_remove_field_missing_key_errors() {
+    let source = "---\nnode: app\n---\nBody\n";
+    assert_eq!(
+        frontmatter::remove_field(source, "parent"),
+        Err(frontmatter::SetFieldError::KeyNotFound)
+    );
+}
+
+#[test]
+fn test_remove_field_ignores_nested_key() {
+    let source = "---\nnode: app\ndetails:\n  parent: nested\n---\nBody\n";
+    assert_eq!(
+        frontmatter::remove_field(source, "parent"),
+        Err(frontmatter::SetFieldError::KeyNotFound),
+        "an indented key is not a top-level match"
+    );
+}
+
+#[test]
+fn test_remove_field_keeps_trailing_blank_separator() {
+    // A blank line after a block list separates it from the next key; it
+    // is not a member and must survive the removal.
+    let source = "---\nnode: app\nblocked_by:\n  - todo.a\n\nstatus: open\n---\nBody\n";
+    let updated = frontmatter::remove_field(source, "blocked_by").unwrap();
+    assert_eq!(updated, "---\nnode: app\n\nstatus: open\n---\nBody\n");
+}
+
+#[test]
+fn test_remove_field_consumes_blank_inside_block() {
+    // A blank line followed by another indented member belongs to the
+    // block and goes with it.
+    let source = "---\nnode: app\nblocked_by:\n  - todo.a\n\n  - todo.b\nstatus: open\n---\nBody\n";
+    let updated = frontmatter::remove_field(source, "blocked_by").unwrap();
+    assert_eq!(updated, "---\nnode: app\nstatus: open\n---\nBody\n");
+}
+
+#[test]
+fn test_upsert_field_replacement_keeps_own_line_ending() {
+    // Mixed-ending document: the replaced line keeps ITS ending, not the
+    // closing fence's.
+    let source = "---\nnode: app\r\nstatus: open\n---\nBody\n";
+    let updated = frontmatter::upsert_field(source, "node", "other").unwrap();
+    assert_eq!(updated, "---\nnode: other\r\nstatus: open\n---\nBody\n");
+    let updated = frontmatter::upsert_field(source, "status", "done").unwrap();
+    assert_eq!(updated, "---\nnode: app\r\nstatus: done\n---\nBody\n");
+}
+
+#[test]
+fn test_upsert_field_insert_keeps_crlf_without_trailing_newline() {
+    // The closing-fence element carries no \r when the document ends at
+    // the fence; the inserted line must still follow the document style.
+    let source = "---\r\nnode: app\r\n---";
+    let updated = frontmatter::upsert_field(source, "parent", "todo.x").unwrap();
+    assert_eq!(updated, "---\r\nnode: app\r\nparent: todo.x\r\n---");
+}
+
+#[test]
+fn test_remove_field_keeps_whitespace_only_separator() {
+    // A separator holding only spaces is a separator, not a block member.
+    let source = "---\nnode: app\nblocked_by:\n  - todo.a\n   \nstatus: open\n---\nBody\n";
+    let updated = frontmatter::remove_field(source, "blocked_by").unwrap();
+    assert_eq!(updated, "---\nnode: app\n   \nstatus: open\n---\nBody\n");
+}
