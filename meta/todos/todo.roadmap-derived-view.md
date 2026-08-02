@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: blocked
+status: in_progress
 created: 2026-07-31
 blocked_by: [todo.todo-relationship-schema-implementation]
 related: [dec.todo-relationship-model]

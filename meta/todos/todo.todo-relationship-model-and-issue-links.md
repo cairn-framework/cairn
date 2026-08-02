@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: open
 created: 2026-07-15
 related: [dec.github-todo-issue-body-fidelity, todo.github-todo-full-issue-body, dec.todo-relationship-model]
 blocked_by: [todo.todo-relationship-schema-implementation]
