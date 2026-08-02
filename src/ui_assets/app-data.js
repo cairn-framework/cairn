@@ -1,5 +1,5 @@
 import { mapEdgeRows } from "./search.js";
-import { copy, fetchBlueprint, fetchGraph, fetchLint, fetchNodeEvidence, fetchPending, fetchStatus, loadCopy, remapNeighbours } from "./utils.js";
+import { copy, fetchBlueprint, fetchGraph, fetchLint, fetchNodeEvidence, fetchPending, fetchRoadmap, fetchStatus, loadCopy, remapNeighbours } from "./utils.js";
 
 async function loadBootstrapData(isActive) {
   await loadCopy();
@@ -8,12 +8,13 @@ async function loadBootstrapData(isActive) {
     return { cancelled: true };
   }
 
-  const optional = await Promise.allSettled([fetchStatus(), fetchLint(), fetchBlueprint(), fetchPending()]);
+  const optional = await Promise.allSettled([fetchStatus(), fetchLint(), fetchBlueprint(), fetchPending(), fetchRoadmap()]);
 
   const statusPayload = optional[0].status === "fulfilled" ? optional[0].value || {} : {};
   const lintPayload = optional[1].status === "fulfilled" ? optional[1].value || {} : {};
   const blueprintPayload = optional[2].status === "fulfilled" ? optional[2].value || { path: "", source: "" } : { path: "", source: "" };
   const pendingPayload = optional[3].status === "fulfilled" ? optional[3].value || {} : {};
+  const roadmapPayload = optional[4].status === "fulfilled" ? optional[4].value || {} : {};
 
   const notices = [];
   if (optional[0].status === "rejected") {
@@ -28,6 +29,9 @@ async function loadBootstrapData(isActive) {
   if (optional[3].status === "rejected") {
     notices.push(copy("webui.bootstrap-pending-failed"));
   }
+  if (optional[4].status === "rejected") {
+    notices.push(copy("webui.bootstrap-roadmap-failed"));
+  }
 
   return {
     cancelled: false,
@@ -38,6 +42,7 @@ async function loadBootstrapData(isActive) {
     status: statusPayload,
     lint: lintPayload,
     pending: pendingPayload,
+    roadmap: roadmapPayload,
     blueprint: blueprintPayload,
     notices,
   };

@@ -147,6 +147,10 @@ fn committed_schemas_match_rust_types() {
             "PendingResponse",
             serde_json::to_value(schemars::schema_for!(cairn::query_api::PendingResponse)).unwrap(),
         ),
+        (
+            "RoadmapResponse",
+            serde_json::to_value(schemars::schema_for!(cairn::query_api::RoadmapResponse)).unwrap(),
+        ),
     ];
     for (name, value) in generated {
         let path = format!("schemas/{name}.schema.json");

@@ -60,6 +60,7 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn order` | Topological order of all nodes |
 | `cairn islands` | Show connected components of the map graph |
 | `cairn frontier` | Show buildable-now (ready) and blocked ghost nodes |
+| `cairn roadmap` | Show live todos in dependency tiers grouped by parent (`dec.todo-relationship-model` ruling 5) |
 
 ### Artefacts
 

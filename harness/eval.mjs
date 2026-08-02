@@ -55,6 +55,7 @@ const SCENARIOS = [
   { name: "tablet-portrait", width: 834, height: 1112, mobile: true, checkTap: true },
   { name: "mobile-portrait", width: 390, height: 844, mobile: true, checkTap: true },
   { name: "command-palette", width: 1440, height: 900, mobile: false, action: "openPalette" },
+  { name: "backlog-tiers", width: 1440, height: 900, mobile: false, server: "demo", action: "openBacklog", requireBacklog: true, requireParent: true },
   { name: "blueprint-mode", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openBlueprint" },
   // Functional-state coverage: paths the clean self-scan never produces. The
   // "demo" server serves harness/fixtures-demo (findings + ghost/orphaned).
@@ -94,6 +95,11 @@ const ACTIONS = {
     fire: "(function(){var expected=String(window.__evalExpectedFindingNode||'').trim();var rows=[...document.querySelectorAll('.channel-item')];if(!expected||!rows.length){return false;}var target=rows.find((n)=>String(n.textContent||'').includes(expected));if(!target){return false;}var action=target.querySelector('.query-action');if(!action){return false;}action.click();return true;})()",
     settled: "(function(){var expected=String(window.__evalExpectedFindingNode||'');var selected=document.querySelector('.node-module.selected');return !!expected&&!!selected&&selected.getAttribute('title')===expected;})()",
   },
+  openBacklog: {
+    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var backlog=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('backlog'));if(!backlog){return false;}backlog.click();return true;})()",
+    settled:
+      "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var backlog=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('backlog'));if(!backlog||!backlog.classList.contains('active')){return false;}return document.querySelectorAll('.channel-tier').length>0&&document.querySelectorAll('.channel-item').length>0;})()",
+  },
   openBlueprint: {
     fire: "(function(){var rail=document.querySelector('.evidence-rail');if(!rail){return false;}var t=[...rail.querySelectorAll('.rail-tab')].find((n)=>String(n.textContent||'').toLowerCase().includes('blueprint'));if(!t){return false;}t.click();return true;})()",
     settled: "(function(){return !!document.querySelector('.evidence-rail .blueprint-plate');})()",
@@ -117,6 +123,11 @@ function missingLandmarks(scenario, lm) {
   if (scenario.action === "openFindings" || scenario.action === "openFinding") {
     if (!lm.channelBar) miss.push("channelBar");
     if (scenario.requireFindings && !(lm.channelItems > 0)) miss.push("channelItems");
+  }
+  if (scenario.action === "openBacklog") {
+    if (!lm.channelBar) miss.push("channelBar");
+    if (scenario.requireBacklog && !(lm.backlogTierSections > 0)) miss.push("backlogTierSections");
+    if (scenario.requireParent && !lm.backlogParentGroup) miss.push("backlogParentGroup");
   }
   if (scenario.action === "openPalette") {
     if (!lm.queryRail) miss.push("queryRail");
@@ -161,7 +172,7 @@ async function main() {
   // scenarios (findings populated, ghost/orphaned) run against this server.
   const DEMO_FIXTURES = join(OUT, "demo-fixtures");
   cpSync(FIXTURES, DEMO_FIXTURES, { recursive: true });
-  for (const f of ["graph", "status", "lint"]) {
+  for (const f of ["graph", "status", "lint", "roadmap"]) {
     copyFileSync(join(ROOT, "harness/fixtures-demo/api", f), join(DEMO_FIXTURES, "api", f));
   }
   const demoReplay = await startReplayServer({ root: ROOT, fixturesDir: DEMO_FIXTURES, port: 0 });

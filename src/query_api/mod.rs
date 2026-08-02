@@ -37,19 +37,19 @@ mod util;
 use change_queries::dispatch_change_tool;
 pub(crate) use handlers::{
     CleanItem, NextSelection, decision_summary, from_finding_action, health_json,
-    open_native_todos, pending_rows, remediate_actions_raw, remediate_json, select_next,
-    work_item_for_selection,
+    open_native_todos, pending_rows, remediate_actions_raw, remediate_json, roadmap_response,
+    select_next, work_item_for_selection,
 };
 pub use handlers::{
-    PendingDecision, PendingResponse, RemediateResponse, StatusActiveChange, StatusResponse,
-    StatusTodo, WorkItem, WorkItemSource,
+    PendingDecision, PendingResponse, RemediateResponse, RoadmapItem, RoadmapResponse, RoadmapTier,
+    StatusActiveChange, StatusResponse, StatusTodo, WorkItem, WorkItemSource,
 };
 use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
     bundle_json, context_json, contract_json, decisions_response_json, dependency_json,
     docstring_json, files_json, frontier_json, graph_response_json, hook_json, islands_json,
     locate_json, neighbourhood_json, pending_json, rationale_json, research_response_json,
-    sources_response_json, status_json, todos_response_json,
+    roadmap_json, sources_response_json, status_json, todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{backlog_item_detail_json, findings_json, node_json, relevant_rules};
@@ -523,6 +523,7 @@ fn execute_data_with_scan(
         }
         "status" => Ok(status_json(root, changes_dir, scan_result)),
         "pending" => pending_json(root, scan_result),
+        "roadmap" => Ok(roadmap_json(root, scan_result)),
         "context" => Ok(context_json(root, scan_result, loaded_config)),
         "rationale" => rationale_json(
             root,

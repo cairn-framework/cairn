@@ -54,8 +54,8 @@ function itemLabel(item, kind) {
 
   if (kind === "backlog") {
     return {
-      title: slugFromPath(item?.path) || copy("webui.channel.backlog"),
-      meta: `${item?.node || copy("webui.none")} · ${item?.status || copy("webui.none")}`,
+      title: item?.stem || slugFromPath(item?.path) || copy("webui.channel.backlog"),
+      meta: item?.status || copy("webui.none"),
       body: item?.path || "",
     };
   }
@@ -133,6 +133,51 @@ function sortChannelItems(items, kind) {
     .map(({ item }) => item);
 }
 
+// Groups flattened roadmap items into tier sections holding parent groups
+// (`dec.todo-relationship-model` ruling 5: tiers order, parents only group).
+// The group key is the effective parent (declared parent, else own stem) so
+// a parent todo sits adjacent to its children, in first-seen wire order; a
+// header renders only for groups carrying a declared parent edge.
+function backlogSections(items) {
+  const tiers = new Map();
+  for (const item of Array.isArray(items) ? items : []) {
+    const tier = Number.isFinite(item?.tier) ? item.tier : 0;
+    if (!tiers.has(tier)) tiers.set(tier, []);
+    tiers.get(tier).push(item);
+  }
+  return [...tiers.entries()]
+    .sort((left, right) => left[0] - right[0])
+    .map(([tier, rows]) => {
+      const groups = new Map();
+      for (const row of rows) {
+        const key = row?.parent || row?.stem || "";
+        if (!groups.has(key)) groups.set(key, { parent: "", members: [] });
+        const group = groups.get(key);
+        group.members.push(row);
+        if (row?.parent) group.parent = row.parent;
+      }
+      return { tier, groups: [...groups.values()] };
+    });
+}
+
+function BacklogSections({ items, onItem }) {
+  return backlogSections(items).map(
+    ({ tier, groups }) => html`
+      <div class="channel-tier" data-tier=${tier}>
+        <p class="channel-code channel-tier-header">${copy("webui.channel.tier-header").replace("{tier}", String(tier))}</p>
+        ${groups.map(
+          ({ parent, members }) => html`
+            <div class=${clsx("channel-group", parent && "has-parent")}>
+              ${parent ? html`<p class="plate-meta channel-inline-meta channel-group-header">${copy("webui.channel.group-header").replace("{parent}", parent)}</p>` : null}
+              ${members.map((item) => html`<${ChannelItem} item=${item} kind="backlog" onFocus=${onItem} />`)}
+            </div>
+          `,
+        )}
+      </div>
+    `,
+  );
+}
+
 function ChannelBar({ active, findings, drift, pending, changes, backlog, onChannel, onItem, defaultCollapsed = false }) {
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const buckets = {
@@ -171,7 +216,7 @@ function ChannelBar({ active, findings, drift, pending, changes, backlog, onChan
         </button>
       </div>
       <div id=${channelBodyId} class="channel-body" hidden=${collapsed}>
-        ${!items.length ? html`<p class="channel-empty">${copy(`webui.empty.${active}`)}</p>` : items.map((item) => html`<${ChannelItem} item=${item} kind=${active} onFocus=${onItem} />`)}
+        ${!items.length ? html`<p class="channel-empty">${copy(`webui.empty.${active}`)}</p>` : active === "backlog" ? html`<${BacklogSections} items=${items} onItem=${onItem} />` : items.map((item) => html`<${ChannelItem} item=${item} kind=${active} onFocus=${onItem} />`)}
       </div>
     </section>
   `;

@@ -5,7 +5,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 44] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 45] = [
     tool(
         "get",
         "cairn_get",
@@ -93,6 +93,14 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 44] = [
         "FrontierResponse",
         SafetyClass::ReadOnly,
         "Show buildable-now and blocked ghost nodes",
+    ),
+    tool(
+        "roadmap",
+        "cairn_roadmap",
+        "RoadmapRequest",
+        "RoadmapResponse",
+        SafetyClass::ReadOnly,
+        "Show live todos in dependency tiers grouped by parent",
     ),
     tool(
         "graph",
@@ -477,7 +485,7 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 44);
+        assert_eq!(TOOL_REGISTRY.len(), 45);
     }
 
     #[test]

@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: blocked
+status: in_progress
 created: 2026-07-31
 blocked_by: [todo.todo-relationship-schema-implementation]
 related: [dec.todo-relationship-model]
@@ -37,6 +37,19 @@ forward-declared in the new syntax and becomes typed when that unit lands.
   conventions; wire snapshots regenerated if versions bump.
 - Webui backlog channel shows tiers and parents; token gate and biome
   pass.
+
+## Task 4 gap (2026-08-02)
+
+The pending unblock sort cannot ship from typed edges: `blocked_by`
+resolves todo stems only (ruling 2) and `related:` is weak and
+non-directional (rulings 1 and 3), so no typed edge expresses "this
+pending decision unblocks that todo". Counting `related:` would fabricate
+unblock semantics and score the live case (dec.control-plane-programme
+gating the console) at zero. This is the relationship kind the trio
+cannot express; reopening condition is revisit trigger 2 of
+`dec.todo-relationship-model` (a schema amendment, not a stretch of
+`related:`). The pending queue keeps its age sort;
+`todo.pending-queue-briefing` owns the queue surface.
 
 ## Mission disposition
 

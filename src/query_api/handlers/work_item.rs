@@ -41,13 +41,16 @@ fn nullable_string_schema(generator: &mut SchemaGenerator) -> Schema {
 }
 
 impl WorkItem {
+    /// Queue rank shared by every native-todo work item.
+    pub(crate) const TODO_RANK: u32 = 100;
+
     pub(crate) fn from_todo(todo: &Todo) -> Self {
         Self {
             source: WorkItemSource::Todo,
             title: decision_summary(&todo.body),
             node: Some(todo.node.clone()),
             command: Some(format!("cairn todos {}", todo.node)),
-            rank: 100,
+            rank: Self::TODO_RANK,
         }
     }
 

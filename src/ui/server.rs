@@ -160,6 +160,9 @@ impl Server {
         if path == "/api/pending" {
             return self.spine(&project, "pending", None, std::collections::BTreeSet::new());
         }
+        if path == "/api/roadmap" {
+            return self.spine(&project, "roadmap", None, std::collections::BTreeSet::new());
+        }
         if let Some(node) = path.strip_prefix("/api/node/") {
             return self.node_api(&project, node);
         }

@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.artefacts
-status: open
+status: done
 created: 2026-07-31
 related: [dec.todo-relationship-model]
 ---
