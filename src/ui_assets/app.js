@@ -226,9 +226,7 @@ function App() {
   const drift = findings.filter((item) => item?.severity === "error" || item?.severity === "warning");
   const changes = Array.isArray(status.active_changes) ? status.active_changes : [];
   const roadmapTiers = Array.isArray(roadmap.tiers) ? roadmap.tiers : [];
-  const backlog = roadmapTiers.flatMap((tier) =>
-    (Array.isArray(tier?.items) ? tier.items : []).map((item) => ({ ...item, tier: tier?.tier })),
-  );
+  const backlog = roadmapTiers.flatMap((tier) => (Array.isArray(tier?.items) ? tier.items : []).map((item) => ({ ...item, tier: tier?.tier })));
   const pendingRows = Array.isArray(pending.pending) ? pending.pending : [];
 
   const selectionArtefacts = useMemo(() => artefactsByNode[selectionId] || {}, [artefactsByNode, selectionId]);

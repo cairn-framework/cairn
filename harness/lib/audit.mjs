@@ -261,9 +261,8 @@ export function auditPage(opts) {
     channelBar: !!document.querySelector(".channel-bar"),
     activeFindings: !!document.querySelector('.channel-tab.active'),
     channelItems: document.querySelectorAll(".channel-item").length,
-    backlogTierRow: [...document.querySelectorAll(".channel-item")].some(function (n) {
-      return String(n.textContent || "").includes("tier ");
-    }),
+    backlogTierSections: document.querySelectorAll(".channel-tier").length,
+    backlogParentGroup: !!document.querySelector(".channel-group.has-parent .channel-group-header"),
   };
 
   return {
