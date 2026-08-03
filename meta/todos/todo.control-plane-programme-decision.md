@@ -12,4 +12,4 @@ Author and enqueue the binding control-plane programme decision for the over-har
 
 ## Provenance
 
-`dec.control-plane-programme` is authored and enqueued with `status: proposed` and `ratification: binding`; it carries the ownership boundary and required queue rubric. This todo remains open while the decision awaits maintainer signature.
+`dec.control-plane-programme` was authored and enqueued with `ratification: binding`, carrying the ownership boundary and required queue rubric. The maintainer signed it on 2026-08-03 (PR #585), which is what this todo tracked; it closed with that signature.
