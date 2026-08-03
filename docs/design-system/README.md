@@ -360,3 +360,7 @@ The following tokens were added in `tokens.css`:
 
 Reduced-motion mode has explicit zero-motion overrides.
 Default mode uses calm, restrained transitions with no scale jumps.
+
+## 2026-08-02: over-harness console lanes
+
+- Added `.console-workspace` and `.console-lane` (with `-head`, `-title`, `-source`, `-body`) in `components.css`: the read-only over-harness console composition (signature queue, frontier, work DAG) inside the bounded workspace. No new tokens; lane bodies scroll internally per the bounded-workspace rule. Reference markup in `index.html` section 22.

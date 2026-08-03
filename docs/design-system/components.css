@@ -850,8 +850,11 @@ marker path {
   align-items: center;
 }
 
-/* Narrow viewports: tabs wrap into a grid instead of scrolling offscreen. */
-@media (max-width: 640px) {
+/* Narrow viewports: tabs wrap into a grid instead of scrolling offscreen.
+   700px rather than 640px: six tabs no longer fit on one row below 700,
+   and the grid must arrive together with the relaxed collapsed height or
+   wrapped labels clip inside the fixed-height bar. */
+@media (max-width: 700px) {
   .channel-bar .channel-tab-scroll {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -932,7 +935,7 @@ marker path {
   font-size: var(--t-small);
 }
 
-.channel-bar .channel-item {
+.channel-item {
   border: var(--line-1) solid var(--seam-faint);
   border-radius: var(--r-stone);
   padding: 0 var(--s-2);
@@ -2665,3 +2668,102 @@ marker path {
 
 .mk-card-foot { display: flex; align-items: baseline; gap: var(--s-4); }
 .mk-card-foot .mk-rec { margin-left: auto; }
+
+/* -- Over-harness console (todo.overharness-console-ux) ------------------
+   One-screen read-only composition of the three steering lanes. The grid
+   fills the bounded workspace; each lane body scrolls internally so the
+   page frame never grows. */
+
+.console-workspace {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.4fr);
+  gap: var(--s-3);
+  padding: var(--s-3);
+  width: 100%;
+  min-height: 0;
+}
+
+.console-lane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: var(--line-1) solid var(--seam-faint);
+  border-radius: var(--r-stone);
+  background: var(--stone-2);
+}
+
+.console-lane-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-bottom: var(--line-1) solid var(--seam-faint);
+}
+
+.console-lane-title {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--ink-char);
+}
+
+.console-lane-source {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--ink-faded);
+  white-space: nowrap;
+}
+
+.console-lane-body {
+  overflow: auto;
+  min-height: 0;
+  padding: var(--s-2) var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.console-frontier-empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+/* Rows reuse the channel item vocabulary; the lane adds only the
+   containment that lets long mono stems shrink instead of escaping. */
+
+.console-lane .channel-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.console-lane .channel-row > * {
+  min-width: 0;
+}
+
+.console-lane .channel-code {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console-lane .channel-body-text {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console-lane .channel-focus {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+
+@media (max-width: 900px) {
+  .console-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

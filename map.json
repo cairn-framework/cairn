@@ -571,6 +571,8 @@
         "src/artefacts/registry/types.rs",
         "src/artefacts/registry/validate/filenames.rs",
         "src/artefacts/registry/validate/mod.rs",
+        "src/artefacts/registry/validate/relations.rs",
+        "src/artefacts/registry/validate/relations/tests.rs",
         "src/artefacts/registry/validate/sources.rs",
         "src/artefacts/registry/validate/tests.rs",
         "src/artefacts/tasks.rs"
@@ -616,24 +618,24 @@
           "kind": "enum",
           "signature": "pub enum ClaimsMode",
           "file": "src/artefacts/registry/types.rs",
-          "line": 118,
-          "end_line": 123
+          "line": 127,
+          "end_line": 132
         },
         {
           "name": "DecisionStatus",
           "kind": "enum",
           "signature": "pub enum DecisionStatus",
           "file": "src/artefacts/registry/types.rs",
-          "line": 96,
-          "end_line": 105
+          "line": 105,
+          "end_line": 114
         },
         {
           "name": "RatificationTier",
           "kind": "enum",
           "signature": "pub enum RatificationTier",
           "file": "src/artefacts/registry/types.rs",
-          "line": 109,
-          "end_line": 114
+          "line": 118,
+          "end_line": 123
         },
         {
           "name": "RepoPathRule",
@@ -648,16 +650,16 @@
           "kind": "enum",
           "signature": "pub enum ResearchMethod",
           "file": "src/artefacts/registry/types.rs",
-          "line": 246,
-          "end_line": 252
+          "line": 255,
+          "end_line": 261
         },
         {
           "name": "ReviewType",
           "kind": "enum",
           "signature": "pub enum ReviewType",
           "file": "src/artefacts/registry/types.rs",
-          "line": 189,
-          "end_line": 196
+          "line": 198,
+          "end_line": 205
         },
         {
           "name": "SetFieldError",
@@ -672,8 +674,8 @@
           "kind": "enum",
           "signature": "pub enum SourceVerification",
           "file": "src/artefacts/registry/types.rs",
-          "line": 256,
-          "end_line": 266
+          "line": 265,
+          "end_line": 275
         },
         {
           "name": "TodoStatus",
@@ -764,6 +766,14 @@
           "end_line": 94
         },
         {
+          "name": "remove_field",
+          "kind": "function",
+          "signature": "pub fn remove_field(source: &str, key: &str) -> Result<String, SetFieldError>",
+          "file": "src/artefacts/frontmatter.rs",
+          "line": 207,
+          "end_line": 221
+        },
+        {
           "name": "rule_matches",
           "kind": "function",
           "signature": "pub fn rule_matches(rule: &RepoPathRule, file: &str) -> bool",
@@ -777,7 +787,15 @@
           "signature": "pub fn set_field(source: &str, key: &str, value: &str) -> Result<String, SetFieldError>",
           "file": "src/artefacts/frontmatter.rs",
           "line": 146,
-          "end_line": 189
+          "end_line": 162
+        },
+        {
+          "name": "upsert_field",
+          "kind": "function",
+          "signature": "pub fn upsert_field(source: &str, key: &str, value: &str) -> Result<String, SetFieldError>",
+          "file": "src/artefacts/frontmatter.rs",
+          "line": 175,
+          "end_line": 196
         },
         {
           "name": "contract",
@@ -824,24 +842,24 @@
           "kind": "struct",
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
-          "line": 316,
-          "end_line": 333
+          "line": 325,
+          "end_line": 342
         },
         {
           "name": "ChangeRecord",
           "kind": "struct",
           "signature": "pub struct ChangeRecord",
           "file": "src/artefacts/registry/types.rs",
-          "line": 300,
-          "end_line": 312
+          "line": 309,
+          "end_line": 321
         },
         {
           "name": "Claims",
           "kind": "struct",
           "signature": "pub struct Claims",
           "file": "src/artefacts/registry/types.rs",
-          "line": 127,
-          "end_line": 134
+          "line": 136,
+          "end_line": 143
         },
         {
           "name": "Contract",
@@ -864,8 +882,8 @@
           "kind": "struct",
           "signature": "pub struct Decision",
           "file": "src/artefacts/registry/types.rs",
-          "line": 138,
-          "end_line": 185
+          "line": 147,
+          "end_line": 194
         },
         {
           "name": "DefersRef",
@@ -896,24 +914,24 @@
           "kind": "struct",
           "signature": "pub struct Research",
           "file": "src/artefacts/registry/types.rs",
-          "line": 225,
-          "end_line": 242
+          "line": 234,
+          "end_line": 251
         },
         {
           "name": "Review",
           "kind": "struct",
           "signature": "pub struct Review",
           "file": "src/artefacts/registry/types.rs",
-          "line": 200,
-          "end_line": 221
+          "line": 209,
+          "end_line": 230
         },
         {
           "name": "Source",
           "kind": "struct",
           "signature": "pub struct Source",
           "file": "src/artefacts/registry/types.rs",
-          "line": 270,
-          "end_line": 291
+          "line": 279,
+          "end_line": 300
         },
         {
           "name": "TaskProgress",
@@ -929,7 +947,7 @@
           "signature": "pub struct Todo",
           "file": "src/artefacts/registry/types.rs",
           "line": 76,
-          "end_line": 92
+          "end_line": 101
         },
         {
           "name": "compute_decision_subject_hash",
@@ -1000,8 +1018,8 @@
           "kind": "function",
           "signature": "pub(super) fn parse_claims( values: &std::collections::BTreeMap<String, String>, lists: &std::collections::BTreeMap<String, Vec<String>>, _path: &Path, ) -> Option<crate::artefacts::Claims>",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 181,
-          "end_line": 198
+          "line": 184,
+          "end_line": 201
         },
         {
           "name": "ArtefactKind",
@@ -1510,6 +1528,8 @@
         "src/cli/commands/pack_report.rs",
         "src/cli/commands/project.rs",
         "src/cli/commands/todo.rs",
+        "src/cli/commands/todo/link.rs",
+        "src/cli/commands/todo/link/tests.rs",
         "src/cli/commands/watch.rs",
         "src/cli/commands/wire.rs",
         "src/cli/commands/workspace.rs",
@@ -1620,8 +1640,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1040,
-          "end_line": 1058
+          "line": 1068,
+          "end_line": 1086
         },
         {
           "name": "blank_command_failure_detail",
@@ -1804,8 +1824,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1035,
-          "end_line": 1035
+          "line": 1063,
+          "end_line": 1063
         },
         {
           "name": "blueprint_root",
@@ -1820,8 +1840,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1066,
-          "end_line": 1074
+          "line": 1094,
+          "end_line": 1102
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -2441,6 +2461,8 @@
         "src/query_api/handlers/project.rs",
         "src/query_api/handlers/remediate.rs",
         "src/query_api/handlers/remediate/tests.rs",
+        "src/query_api/handlers/roadmap.rs",
+        "src/query_api/handlers/roadmap/tests.rs",
         "src/query_api/handlers/spine.rs",
         "src/query_api/handlers/work_item.rs",
         "src/query_api/mod.rs",
@@ -2604,8 +2626,8 @@
           "kind": "struct",
           "signature": "pub struct RemediateResponse",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 417,
-          "end_line": 424
+          "line": 421,
+          "end_line": 428
         },
         {
           "name": "ResponseEnvelopeSchema",
@@ -2614,6 +2636,30 @@
           "file": "src/query_api/mod.rs",
           "line": 197,
           "end_line": 206
+        },
+        {
+          "name": "RoadmapItem",
+          "kind": "struct",
+          "signature": "pub struct RoadmapItem",
+          "file": "src/query_api/handlers/roadmap.rs",
+          "line": 22,
+          "end_line": 40
+        },
+        {
+          "name": "RoadmapResponse",
+          "kind": "struct",
+          "signature": "pub struct RoadmapResponse",
+          "file": "src/query_api/handlers/roadmap.rs",
+          "line": 53,
+          "end_line": 56
+        },
+        {
+          "name": "RoadmapTier",
+          "kind": "struct",
+          "signature": "pub struct RoadmapTier",
+          "file": "src/query_api/handlers/roadmap.rs",
+          "line": 44,
+          "end_line": 49
         },
         {
           "name": "StatusActiveChange",
@@ -2664,6 +2710,14 @@
           "end_line": 37
         },
         {
+          "name": "TODO_RANK",
+          "kind": "const",
+          "signature": "pub(crate) const TODO_RANK u32",
+          "file": "src/query_api/handlers/work_item.rs",
+          "line": 45,
+          "end_line": 45
+        },
+        {
           "name": "bundle_json",
           "kind": "function",
           "signature": "pub(crate) fn bundle_json( root: &Path, scan_result: &scanner::ScanResult, node: &str, ) -> Result<Value, QueryError>",
@@ -2684,24 +2738,24 @@
           "kind": "function",
           "signature": "pub(crate) fn from_bead(bead: &BacklogItem) -> Self",
           "file": "src/query_api/handlers/work_item.rs",
-          "line": 54,
-          "end_line": 62
+          "line": 57,
+          "end_line": 65
         },
         {
           "name": "from_finding_action",
           "kind": "function",
           "signature": "pub(crate) fn from_finding_action(action: &Value) -> Option<WorkItem>",
           "file": "src/query_api/handlers/work_item.rs",
-          "line": 67,
-          "end_line": 94
+          "line": 70,
+          "end_line": 97
         },
         {
           "name": "from_todo",
           "kind": "function",
           "signature": "pub(crate) fn from_todo(todo: &Todo) -> Self",
           "file": "src/query_api/handlers/work_item.rs",
-          "line": 44,
-          "end_line": 52
+          "line": 47,
+          "end_line": 55
         },
         {
           "name": "health_json",
@@ -2749,15 +2803,31 @@
           "signature": "pub(crate) fn remediate_actions_raw( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Vec<Value>",
           "file": "src/query_api/handlers/remediate.rs",
           "line": 95,
-          "end_line": 408
+          "end_line": 412
         },
         {
           "name": "remediate_json",
           "kind": "function",
           "signature": "pub(crate) fn remediate_json( root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> Value",
           "file": "src/query_api/handlers/remediate.rs",
-          "line": 427,
-          "end_line": 443
+          "line": 431,
+          "end_line": 447
+        },
+        {
+          "name": "roadmap_json",
+          "kind": "function",
+          "signature": "pub(crate) fn roadmap_json(root: &std::path::Path, scan_result: &scanner::ScanResult) -> Value",
+          "file": "src/query_api/handlers/roadmap.rs",
+          "line": 59,
+          "end_line": 62
+        },
+        {
+          "name": "roadmap_response",
+          "kind": "function",
+          "signature": "pub(crate) fn roadmap_response(root: &std::path::Path, todos: &[Todo]) -> RoadmapResponse",
+          "file": "src/query_api/handlers/roadmap.rs",
+          "line": 65,
+          "end_line": 101
         },
         {
           "name": "status_json",
@@ -2772,8 +2842,8 @@
           "kind": "module",
           "signature": "pub(super) mod spine",
           "file": "src/query_api/handlers/mod.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         }
       ]
     },
@@ -7068,6 +7138,7 @@
         "src/ui_assets/app.js",
         "src/ui_assets/canvas-nav.js",
         "src/ui_assets/channel-bar.js",
+        "src/ui_assets/console.js",
         "src/ui_assets/evidence-rail.js",
         "src/ui_assets/graph-layout.js",
         "src/ui_assets/graph-workspace.js",
@@ -7091,72 +7162,72 @@
           "kind": "function",
           "signature": "pub const fn address(&self) -> SocketAddr",
           "file": "src/ui/mod.rs",
-          "line": 188,
-          "end_line": 190
+          "line": 189,
+          "end_line": 191
         },
         {
           "name": "UiError",
           "kind": "enum",
           "signature": "pub enum UiError",
           "file": "src/ui/mod.rs",
-          "line": 134,
-          "end_line": 148
+          "line": 135,
+          "end_line": 149
         },
         {
           "name": "from_args",
           "kind": "function",
           "signature": "pub fn from_args(args: &[String]) -> Result<Self, String>",
           "file": "src/ui/mod.rs",
-          "line": 111,
-          "end_line": 129
+          "line": 112,
+          "end_line": 130
         },
         {
           "name": "serve_current_thread",
           "kind": "function",
           "signature": "pub fn serve_current_thread(options: UiOptions) -> Result<String, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 207,
-          "end_line": 220
+          "line": 208,
+          "end_line": 221
         },
         {
           "name": "start_background",
           "kind": "function",
           "signature": "pub fn start_background(options: UiOptions) -> Result<ServerHandle, UiError>",
           "file": "src/ui/mod.rs",
-          "line": 227,
-          "end_line": 240
+          "line": 228,
+          "end_line": 241
         },
         {
           "name": "stop",
           "kind": "function",
           "signature": "pub fn stop(mut self)",
           "file": "src/ui/mod.rs",
-          "line": 193,
-          "end_line": 199
+          "line": 194,
+          "end_line": 200
         },
         {
           "name": "url",
           "kind": "function",
           "signature": "pub fn url(&self) -> String",
           "file": "src/ui/mod.rs",
-          "line": 182,
-          "end_line": 184
+          "line": 183,
+          "end_line": 185
         },
         {
           "name": "ServerHandle",
           "kind": "struct",
           "signature": "pub struct ServerHandle",
           "file": "src/ui/mod.rs",
-          "line": 173,
-          "end_line": 177
+          "line": 174,
+          "end_line": 178
         },
         {
           "name": "UiOptions",
           "kind": "struct",
           "signature": "pub struct UiOptions",
           "file": "src/ui/mod.rs",
-          "line": 86,
-          "end_line": 93
+          "line": 87,
+          "end_line": 94
         }
       ]
     },
@@ -7501,6 +7572,13 @@
       "severity": "info",
       "message": "Node `cairn.kernel.cli` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.kernel.cli",
+      "path": null
+    },
+    {
+      "code": "CAIRN_DECISION_ACCUMULATION",
+      "severity": "info",
+      "message": "Node `cairn.kernel.scanner` carries 11 accepted decisions (threshold 10).",
+      "node": "cairn.kernel.scanner",
       "path": null
     },
     {

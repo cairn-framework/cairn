@@ -21,6 +21,11 @@ const ENDPOINTS: &[(&str, &str)] = &[
     ("api_lint", "/api/lint"),
     ("api_pending", "/api/pending"),
     ("api_roadmap", "/api/roadmap"),
+    // `/api/frontier` is pinned separately in `frontier_cycle_error_snapshot`:
+    // this fixture graph carries a deliberate two-node dependency cycle (both
+    // edge directions are exercised below), so frontier propagates the
+    // structural cycle error by design instead of a 200 payload. The happy
+    // 200 shape is asserted in tests/graph_explorer.rs on its acyclic fixture.
     ("api_blueprint", "/api/blueprint"),
     ("api_node_app_api", "/api/node/app.api"),
     ("api_node_app_api_contract", "/api/node/app.api/contract"),
@@ -199,6 +204,15 @@ fn get(address: SocketAddr, path: &str) -> Result<String, Box<dyn std::error::Er
 }
 
 fn get_once(address: SocketAddr, path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let (head, body) = get_raw(address, path)?;
+    assert!(head.contains("200 OK"), "{head}");
+    Ok(body)
+}
+
+fn get_raw(
+    address: SocketAddr,
+    path: &str,
+) -> Result<(String, String), Box<dyn std::error::Error>> {
     let mut stream = TcpStream::connect(address)?;
     write!(
         stream,
@@ -209,8 +223,27 @@ fn get_once(address: SocketAddr, path: &str) -> Result<String, Box<dyn std::erro
     let Some((head, body)) = response.split_once("\r\n\r\n") else {
         return Err("missing http response body".into());
     };
-    assert!(head.contains("200 OK"), "{head}");
-    Ok(body.to_owned())
+    Ok((head.to_owned(), body.to_owned()))
+}
+
+/// The fixture graph is deliberately cyclic, so `/api/frontier` returns the
+/// structural cycle error; this pins that error contract (status and JSON
+/// body) rather than leaving the endpoint uncovered on the wire.
+#[test]
+fn frontier_cycle_error_snapshot() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("api_frontier_cycle")?;
+    write_project(&root)?;
+    let server = ui::start_background(UiOptions {
+        port: 0,
+        no_open: true,
+        blueprint_path: root.join("cairn.blueprint"),
+    })?;
+    let (head, body) = get_raw(server.address(), "/api/frontier")?;
+    server.stop();
+    assert!(head.contains("500"), "{head}");
+    let value: Value = serde_json::from_str(&body)?;
+    assert_json_snapshot!("api_frontier_cycle_error", value);
+    Ok(())
 }
 
 fn temp_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {

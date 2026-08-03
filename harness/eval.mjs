@@ -56,6 +56,9 @@ const SCENARIOS = [
   { name: "mobile-portrait", width: 390, height: 844, mobile: true, checkTap: true },
   { name: "command-palette", width: 1440, height: 900, mobile: false, action: "openPalette" },
   { name: "backlog-tiers", width: 1440, height: 900, mobile: false, server: "demo", action: "openBacklog", requireBacklog: true, requireParent: true },
+  { name: "console-desktop", width: 1440, height: 900, mobile: false, action: "openConsole", requireConsole: true },
+  { name: "console-narrow", width: 683, height: 1024, mobile: true, action: "openConsole", requireConsole: true },
+  { name: "console-mobile", width: 390, height: 844, mobile: true, action: "openConsole", requireConsole: true },
   { name: "blueprint-mode", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openBlueprint" },
   // Functional-state coverage: paths the clean self-scan never produces. The
   // "demo" server serves harness/fixtures-demo (findings + ghost/orphaned).
@@ -100,6 +103,11 @@ const ACTIONS = {
     settled:
       "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var backlog=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('backlog'));if(!backlog||!backlog.classList.contains('active')){return false;}return document.querySelectorAll('.channel-tier').length>0&&document.querySelectorAll('.channel-item').length>0;})()",
   },
+  openConsole: {
+    fire: "(function(){var seg=[...document.querySelectorAll('.query-rail button')].find((n)=>String(n.textContent||'').trim().toLowerCase()==='console');if(!seg){return false;}seg.click();return true;})()",
+    settled:
+      "(function(){var lanes=document.querySelectorAll('.console-lane');if(lanes.length!==3){return false;}var pendingRow=document.querySelector('.console-lane-pending .channel-item .channel-code');var frontierEmpty=document.querySelector('.console-frontier-empty');var tier=document.querySelector('.console-lane-roadmap .channel-tier');return !!pendingRow&&!!frontierEmpty&&!!tier;})()",
+  },
   openBlueprint: {
     fire: "(function(){var rail=document.querySelector('.evidence-rail');if(!rail){return false;}var t=[...rail.querySelectorAll('.rail-tab')].find((n)=>String(n.textContent||'').toLowerCase().includes('blueprint'));if(!t){return false;}t.click();return true;})()",
     settled: "(function(){return !!document.querySelector('.evidence-rail .blueprint-plate');})()",
@@ -113,10 +121,14 @@ const ACTIONS = {
 function missingLandmarks(scenario, lm) {
   const miss = [];
   if (!lm.shell) miss.push("shell");
-  if (!lm.graphCanvas) miss.push("graphCanvas");
-  if (!lm.graphSvg) miss.push("graphSvg");
   if (!lm.queryRail) miss.push("queryRail");
-  if (!lm.nodeModules) miss.push("nodeModules");
+  // Console mode replaces the graph workspace; map landmarks apply only
+  // when the map is the active view.
+  if (scenario.action !== "openConsole") {
+    if (!lm.graphCanvas) miss.push("graphCanvas");
+    if (!lm.graphSvg) miss.push("graphSvg");
+    if (!lm.nodeModules) miss.push("nodeModules");
+  }
   if (scenario.action === "selectNode" || scenario.select) {
     if (!lm.selectedNode) miss.push("selectedNode");
   }
@@ -133,6 +145,12 @@ function missingLandmarks(scenario, lm) {
     if (!lm.queryRail) miss.push("queryRail");
     if (!lm.queryInput) miss.push("queryInput");
     if (!lm.queryInputValue) miss.push("queryInputValue");
+  }
+  if (scenario.action === "openConsole" && scenario.requireConsole) {
+    if (!(lm.consoleLanes === 3)) miss.push("consoleLanes");
+    if (!(lm.consolePendingRows > 0)) miss.push("consolePendingRows");
+    if (!lm.consoleFrontierEmpty) miss.push("consoleFrontierEmpty");
+    if (!lm.consoleRoadmapTier) miss.push("consoleRoadmapTier");
   }
   if (scenario.action === "openBlueprint") {
     if (!lm.evidenceRail) miss.push("evidenceRail");

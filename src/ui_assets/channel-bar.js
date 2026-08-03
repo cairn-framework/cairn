@@ -61,11 +61,18 @@ function itemLabel(item, kind) {
   }
 
   if (kind === "pending") {
+    const raw = item?.subject_hash ? String(item.subject_hash) : "";
+    const hex = raw.startsWith("sha256:") ? raw.slice(7) : raw;
+    const short = raw ? ` · ${raw.startsWith("sha256:") ? "sha256:" : ""}${hex.slice(0, 8)}` : "";
+    const hash = raw ? short : item?.subject_hash_error ? ` · ${copy("webui.channel.pending-hash-error")}` : "";
+    const meta =
+      copy("webui.channel.pending-meta")
+        .replace("{age}", String(item?.age_days))
+        .replace("{ratification}", item?.ratification || copy("webui.none")) + hash;
     return {
       title: item?.id || copy("webui.channel.pending"),
-      meta: copy("webui.channel.pending-meta")
-        .replace("{age}", String(item?.age_days))
-        .replace("{ratification}", item?.ratification || copy("webui.none")),
+      meta,
+      metaTitle: raw ? `${meta} (${raw})` : meta,
       body: Array.isArray(item?.nodes) ? item.nodes.join(", ") : "",
     };
   }
@@ -94,8 +101,8 @@ function itemLabel(item, kind) {
 
 function ChannelItem({ item, kind, onFocus }) {
   const label = itemLabel(item, kind);
-  const showFocus = Boolean(item?.node);
-  const nodeId = item?.node;
+  const nodeId = item?.node || (Array.isArray(item?.nodes) ? item.nodes[0] : undefined);
+  const showFocus = Boolean(nodeId);
   const fullText = [label.title, label.body, label.meta].filter(Boolean).join(" · ");
 
   return html`
@@ -104,7 +111,7 @@ function ChannelItem({ item, kind, onFocus }) {
         ${label.badge ? html`<span class=${clsx("channel-severity", label.badge.tone)}>${label.badge.text}</span>` : null}
         <span class="channel-code" title=${label.title}>${label.title}</span>
         <span class="plate-meta channel-body-text" title=${label.body}>${label.body}</span>
-        ${label.meta ? html`<span class="plate-meta channel-inline-meta" title=${label.meta}>${label.meta}</span>` : null}
+        ${label.meta ? html`<span class="plate-meta channel-inline-meta" title=${label.metaTitle || label.meta}>${label.meta}</span>` : null}
         ${
           showFocus
             ? html`<button
@@ -222,4 +229,4 @@ function ChannelBar({ active, findings, drift, pending, changes, backlog, onChan
   `;
 }
 
-export { ChannelBar, ChannelItem };
+export { BacklogSections, ChannelBar, ChannelItem };

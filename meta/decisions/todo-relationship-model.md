@@ -6,6 +6,7 @@ nodes:
 status: accepted
 ratification: binding
 date: 2026-07-31
+revisited: 2026-08-02
 informed_by: [res.inversion-convergence-minutes]
 related: [dec.native-todos-first, dec.north-star-continuous-loop]
 revisit_triggers:

@@ -36,6 +36,7 @@ const GRAPH_WORKSPACE_JS: &str = include_str!("../ui_assets/graph-workspace.js")
 const EVIDENCE_RAIL_JS: &str = include_str!("../ui_assets/evidence-rail.js");
 const NODE_MODULE_JS: &str = include_str!("../ui_assets/node-module.js");
 const CHANNEL_BAR_JS: &str = include_str!("../ui_assets/channel-bar.js");
+const CONSOLE_JS: &str = include_str!("../ui_assets/console.js");
 /// Canonical design-system tokens; single source of truth.
 const DESIGN_TOKENS_CSS: &str = include_str!("../../docs/design-system/tokens.css");
 /// Canonical design-system component primitives.

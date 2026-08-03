@@ -1,6 +1,7 @@
 import { loadBootstrapData, loadNodeArtefacts } from "./app-data.js";
 import { pickCanvasTarget } from "./canvas-nav.js";
 import { ChannelBar } from "./channel-bar.js";
+import { Console } from "./console.js";
 import { EvidenceRail, StateLegend } from "./evidence-rail.js";
 import { GraphWorkspace } from "./graph-workspace.js";
 import { QueryRail } from "./query-rail.js";
@@ -21,6 +22,7 @@ function App() {
   const [lint, setLint] = useState({});
   const [pending, setPending] = useState({});
   const [roadmap, setRoadmap] = useState({});
+  const [frontier, setFrontier] = useState({});
   const [blueprint, setBlueprint] = useState({ path: "", source: "" });
   const [notices, setNotices] = useState([]);
 
@@ -31,6 +33,7 @@ function App() {
   const [selectionIndex, setSelectionIndex] = useState(-1);
   const [evidenceMode, setEvidenceMode] = useState("depth");
   const [channel, setChannel] = useState(DEFAULT_CHANNEL);
+  const [view, setView] = useState("map");
 
   const [artefactsByNode, setArtefactsByNode] = useState({});
   const [depends, setDepends] = useState({ in: [], out: [] });
@@ -65,7 +68,7 @@ function App() {
           return;
         }
 
-        const { graph, status, lint, pending, roadmap, blueprint, notices: nextNotices } = bootstrap;
+        const { graph, status, lint, pending, roadmap, frontier, blueprint, notices: nextNotices } = bootstrap;
         if (!active) {
           return;
         }
@@ -75,6 +78,7 @@ function App() {
         setLint(lint);
         setPending(pending);
         setRoadmap(roadmap);
+        setFrontier(frontier);
         setBlueprint(blueprint);
         setNotices(nextNotices);
 
@@ -252,6 +256,16 @@ function App() {
     [query, kindFilter, stateFilter, visibleIds],
   );
 
+  // One navigation vocabulary for lane and channel actions: showing a node
+  // always lands on the map view, even from the console.
+  const navigateToNode = useCallback(
+    (nodeId) => {
+      setView("map");
+      onSelect(nodeId, { clearFilters: true });
+    },
+    [onSelect],
+  );
+
   const onQueryKey = useCallback(
     (event) => {
       if (!visibleIds.length) {
@@ -390,6 +404,8 @@ function App() {
       }
       <${QueryRail}
         query=${query}
+        view=${view}
+        onView=${setView}
         parsed=${parsedQuery}
         visibleCount=${visibleCardCount}
         kindFilter=${kindFilter}
@@ -405,27 +421,37 @@ function App() {
         }}
       />
       <div class="instrument-workspace" data-evidence-state=${selectionId ? "expanded" : "collapsed"}>
-        <${GraphWorkspace}
-          nodes=${visibleNodes}
-          edges=${edges}
-          compact=${compact}
-          selectionId=${selectionId}
-          onSelect=${onSelect}
-          onCanvasKeyNavigate=${onCanvasKeyNavigate}
-        />
-        <${EvidenceRail}
-          mode=${evidenceMode}
-          onMode=${onMode}
-          selection=${selection}
-          inRows=${depends.in}
-          outRows=${depends.out}
-          onNeighbourSelect=${(nodeId) => onSelect(nodeId, { clearFilters: true })}
-          artefacts=${selectionArtefacts}
-          blueprint=${blueprint.source}
-          blueprintPath=${blueprint.path}
-          onLineageOpen=${onLineageSelect}
-          selectedLineageItem=${selectedLineageItem}
-        />
+        ${
+          view === "console"
+            ? html`<${Console}
+                pendingRows=${pendingRows}
+                frontier=${frontier}
+                backlog=${backlog}
+                onSelect=${navigateToNode}
+              />`
+            : html`
+              <${GraphWorkspace}
+                nodes=${visibleNodes}
+                edges=${edges}
+                compact=${compact}
+                selectionId=${selectionId}
+                onSelect=${onSelect}
+                onCanvasKeyNavigate=${onCanvasKeyNavigate}
+              />
+              <${EvidenceRail}
+                mode=${evidenceMode}
+                onMode=${onMode}
+                selection=${selection}
+                inRows=${depends.in}
+                outRows=${depends.out}
+                onNeighbourSelect=${(nodeId) => onSelect(nodeId, { clearFilters: true })}
+                artefacts=${selectionArtefacts}
+                blueprint=${blueprint.source}
+                blueprintPath=${blueprint.path}
+                onLineageOpen=${onLineageSelect}
+                selectedLineageItem=${selectedLineageItem}
+              />`
+        }
       </div>
       <${StateLegend} />
       <${ChannelBar}
@@ -436,7 +462,7 @@ function App() {
         changes=${changes}
         backlog=${backlog}
         onChannel=${setChannel}
-        onItem=${(nodeId) => onSelect(nodeId, { clearFilters: true })}
+        onItem=${navigateToNode}
         defaultCollapsed=${compact}
       />
     </main>
