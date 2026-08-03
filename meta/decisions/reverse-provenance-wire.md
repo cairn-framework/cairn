@@ -1,7 +1,7 @@
 ---
 id: dec.reverse-provenance-wire
 nodes: [cairn.kernel.artefacts, cairn.kernel.query]
-status: proposed
+status: accepted
 ratification: binding
 date: 2026-08-02
 informed_by: [res.inversion-convergence-minutes]
@@ -11,7 +11,7 @@ related: [dec.todo-relationship-model]
 
 ## Decision
 
-Decision artefacts carry computed reverse provenance edges, `refined_by` and `superseded_by`, on the JSON contract at `SCHEMA_VERSION` 11. The edges are derived once at load from forward `refines:` and `supersedes:` references and are never authored frontmatter fields. This record is proposed for maintainer signature and does not grant machine ratification.
+Decision artefacts carry computed reverse provenance edges, `refined_by` and `superseded_by`, on the JSON contract at `SCHEMA_VERSION` 11. The edges are derived once at load from forward `refines:` and `supersedes:` references and are never authored frontmatter fields. Maintainer-signed; machine ratification is not granted. Accepted 2026-08-03 by maintainer ratification in session.
 
 ## Rubric
 

@@ -3,7 +3,7 @@ id: dec.user-surfaces
 nodes:
   - cairn.ui
   - cairn.mcp
-status: accepted
+status: superseded
 date: 2026-06-16
 ---
 
