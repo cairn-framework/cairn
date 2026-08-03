@@ -2,7 +2,7 @@
 id: dec.bootstrap-fixture-corpus-split
 nodes:
   - cairn.tests
-status: proposed
+status: accepted
 ratification: local
 affects:
   - meta/decisions/bootstrap-fixture-corpus-split.md
@@ -12,6 +12,9 @@ affects:
   - meta/reviews/rev.bootstrap-fixture-corpus-split-correctness.md
   - meta/reviews/rev.bootstrap-fixture-corpus-split-simplicity.md
 date: 2026-07-30
+receipts:
+  - rev.bootstrap-fixture-corpus-split-correctness
+  - rev.bootstrap-fixture-corpus-split-simplicity
 informed_by: [res.bootstrap-fixture-repair, src.pr-528-w10-ratification]
 ---
 # Bootstrap fixture corpus split
