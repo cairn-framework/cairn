@@ -155,3 +155,112 @@ fn unparseable_date_on_a_proposed_decision_fails_deterministically() {
         assert!(all.contains("dec.older"), "{all}");
     }
 }
+
+#[test]
+fn pending_id_filters_json_and_human_to_one_row() {
+    let dir = tempfile::tempdir().unwrap();
+    write_fixture(dir.path());
+    let output = pending(dir.path(), &["pending", "dec.older", "--json"]);
+    assert!(output.status.success(), "id-filtered json must succeed");
+    let value: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let rows = value["pending"].as_array().expect("pending array");
+    assert_eq!(rows.len(), 1, "one row for the requested id: {value}");
+    assert_eq!(rows[0]["id"], "dec.older");
+
+    let output = pending(dir.path(), &["pending", "dec.older"]);
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("dec.older"), "{stdout}");
+    assert!(
+        !stdout.contains("dec.newer"),
+        "detail is single-row: {stdout}"
+    );
+}
+
+#[test]
+fn pending_unknown_id_fails_on_both_paths() {
+    let dir = tempfile::tempdir().unwrap();
+    write_fixture(dir.path());
+    for args in [
+        &["pending", "dec.absent"][..],
+        &["pending", "dec.absent", "--json"][..],
+    ] {
+        let output = pending(dir.path(), args);
+        assert!(!output.status.success(), "unknown id must fail: {args:?}");
+        let all = format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(all.contains("dec.absent"), "{all}");
+    }
+}
+
+#[test]
+fn context_surfaces_a_pending_error_instead_of_an_empty_queue() {
+    let dir = tempfile::tempdir().unwrap();
+    write_fixture(dir.path());
+    write_decision(dir.path(), "older", "dec.older", "proposed", "2020-99-99");
+    for args in [&["context"][..], &["context", "--json"][..]] {
+        let output = pending(dir.path(), args);
+        assert!(
+            !output.status.success(),
+            "context must fail on an unreadable queue: {args:?}"
+        );
+        let all = format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(all.contains("CAIRN_PENDING_INVALID_DATE"), "{all}");
+        assert!(
+            !all.contains("Nothing is waiting"),
+            "must not render an honest-empty state: {all}"
+        );
+    }
+}
+
+#[test]
+fn context_opens_with_where_work_was_left_on_both_surfaces() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(dir.path().join("meta/decisions")).unwrap();
+    std::fs::create_dir_all(dir.path().join("meta/todos")).unwrap();
+    std::fs::create_dir_all(dir.path().join("meta/changes/live-change")).unwrap();
+    std::fs::write(
+        dir.path().join("cairn.blueprint"),
+        "System Test \"T\" id \"t\" {\n    decisions \"./meta/decisions\"\n    Container Work \"work\" id \"t.work\" {\n        path \"./meta/todos\"\n        todos \"./meta/todos\"\n    }\n}\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("meta/todos/todo.live-unit.md"),
+        "---\nnode: t.work\nstatus: in_progress\ncreated: 2026-01-01\n---\n# Live unit\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("meta/changes/live-change/proposal.md"),
+        "# Live change\n\n## Why\n\nKeep going.\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(dir.path().join(".beads")).unwrap();
+    std::fs::write(
+        dir.path().join(".beads/issues.jsonl"),
+        "{\"id\":\"cairn-live\",\"title\":\"Live bead\",\"status\":\"in_progress\",\"priority\":1}\n",
+    )
+    .unwrap();
+
+    let output = pending(dir.path(), &["context"]);
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Where work was left:"), "{stdout}");
+    assert!(stdout.contains("todo.live-unit"), "{stdout}");
+    assert!(stdout.contains("live-change"), "{stdout}");
+    assert!(stdout.contains("bead cairn-live"), "{stdout}");
+
+    let output = pending(dir.path(), &["context", "--json"]);
+    assert!(output.status.success());
+    let value: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let left = &value["waiting_on_you"]["where_left"];
+    assert_eq!(left["in_progress"][0]["stem"], "todo.live-unit");
+    assert_eq!(left["active_changes"][0]["id"], "live-change");
+    assert_eq!(left["in_progress_backlog"][0]["id"], "cairn-live");
+}

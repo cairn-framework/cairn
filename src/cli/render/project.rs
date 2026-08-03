@@ -1,4 +1,4 @@
-//! Project-wide query renderers (context, status, dependencies).
+//! Project-wide query renderers: status, backlog, and dependencies.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::format::{flag_value, lines, node_arg, string_array_json, todos_json};
@@ -6,80 +6,6 @@ use super::super::*;
 use super::{scan_error_count, scan_info_count, scan_warning_count};
 use crate::query_api::{QueryFlag, QueryRequest};
 use std::collections::BTreeSet;
-
-// NOTE: render_context has no Config access, so it cannot show project_context
-// (the context_json endpoint includes it). The backlog summary is text-only too.
-pub(crate) fn render_context(
-    parsed: &ParsedArgs,
-    root: &Path,
-    scan_result: &scanner::ScanResult,
-) -> String {
-    use std::fmt::Write as _;
-
-    let system = scan_result
-        .graph
-        .nodes
-        .values()
-        .find(|n| n.kind == crate::blueprint::ast::NodeKind::System);
-    let system_name = system.map_or("unknown", |n| n.name.as_str());
-    let system_desc = system.map_or("", |n| n.description.as_str());
-
-    let edge_count: usize = scan_result.graph.outbound.values().map(Vec::len).sum();
-    let errors = scan_error_count(scan_result);
-    let warnings = scan_warning_count(scan_result);
-    let infos = scan_info_count(scan_result);
-
-    let pending_signatures = scan_result
-        .artefacts
-        .decisions
-        .iter()
-        .filter(|decision| decision.status == DecisionStatus::Proposed)
-        .count();
-
-    let mut out = format!(
-        "{} ({} nodes, {} edges)\n{}\n\nFindings: {} errors, {} warnings, {} info\n{}\n\nStructure:\n",
-        system_name,
-        scan_result.graph.nodes.len(),
-        edge_count,
-        system_desc,
-        errors,
-        warnings,
-        infos,
-        copy::lookup("context.pending-signatures")
-            .replace("{count}", &pending_signatures.to_string()),
-    );
-
-    let prefix = system.map(|s| format!("{}.", s.id)).unwrap_or_default();
-    let opts = super::context_view::ContextOpts::parse(&parsed.command_args);
-    let structure = if opts.mermaid {
-        super::context_view::render_mermaid(&scan_result.graph, &opts, &prefix)
-    } else {
-        super::context_view::render_structure(&scan_result.graph, &opts, &prefix)
-    };
-    out.push_str(&structure);
-
-    let ac = &scan_result.artefacts;
-    write!(
-        out,
-        "\nArtefacts: {} contracts, {} decisions, {} todos, {} research, {} reviews, {} sources\n",
-        ac.contracts.contracts.len(),
-        ac.decisions.len(),
-        ac.todos.len(),
-        ac.research.len(),
-        ac.reviews.len(),
-        ac.sources.len(),
-    )
-    .unwrap();
-
-    let backlog = crate::state::backlog::read(root);
-    let ready = crate::state::backlog::ready(&backlog);
-    let _ = write!(out, "\nBacklog: {} ready\n", ready.len());
-    for item in ready.iter().take(5) {
-        let _ = writeln!(out, "  {} [P{}] {}", item.id, item.priority, item.title);
-    }
-
-    out
-}
 
 /// Renders the beads (issues) linked to a node via their `cairn-node:<id>`
 /// label, the CLI counterpart of the webui inspector's beads panel.
@@ -288,4 +214,4 @@ pub(crate) fn render_dependencies(parsed: &ParsedArgs, root: &Path) -> Result<St
 }
 
 #[cfg(test)]
-mod tests;
+pub(in crate::cli::render) mod tests;

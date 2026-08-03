@@ -84,7 +84,7 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
             .and_then(Value::as_u64)
             .unwrap_or_else(|| panic!("{snapshot_name} response missing numeric schema_version"));
         assert_eq!(
-            version, 9,
+            version, 10,
             "{snapshot_name} must use the pinned wire schema version"
         );
 

@@ -38,11 +38,12 @@ use change_queries::dispatch_change_tool;
 pub(crate) use handlers::{
     CleanItem, NextSelection, decision_summary, from_finding_action, health_json,
     open_native_todos, pending_rows, remediate_actions_raw, remediate_json, roadmap_response,
-    select_next, work_item_for_selection,
+    select_next, where_left, work_item_for_selection,
 };
 pub use handlers::{
-    PendingDecision, PendingResponse, RemediateResponse, RoadmapItem, RoadmapResponse, RoadmapTier,
-    StatusActiveChange, StatusResponse, StatusTodo, WorkItem, WorkItemSource,
+    PendingDecision, PendingEvidence, PendingReceipt, PendingResponse, PendingRubric, PendingTier,
+    RemediateResponse, RoadmapItem, RoadmapResponse, RoadmapTier, StatusActiveChange,
+    StatusResponse, StatusTodo, WorkItem, WorkItemSource,
 };
 use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
@@ -60,7 +61,7 @@ use util::{finding_error, findings_error, load_for, required};
 /// Both the CLI `--json` surface (which prints `data` directly) and the MCP
 /// envelope (which wraps `data`) carry this version on the top-level data
 /// object so consumers can branch on the output contract uniformly.
-pub const SCHEMA_VERSION: u32 = 9;
+pub const SCHEMA_VERSION: u32 = 10;
 
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -522,9 +523,9 @@ fn execute_data_with_scan(
             }))
         }
         "status" => Ok(status_json(root, changes_dir, scan_result)),
-        "pending" => pending_json(root, scan_result),
+        "pending" => pending_json(root, scan_result, request),
         "roadmap" => Ok(roadmap_json(root, scan_result)),
-        "context" => Ok(context_json(root, scan_result, loaded_config)),
+        "context" => context_json(root, changes_dir, scan_result, loaded_config),
         "rationale" => rationale_json(
             root,
             scan_result,

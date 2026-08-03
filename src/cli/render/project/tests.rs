@@ -1,4 +1,4 @@
-//! Tests for project-wide query renderers (context, status, dependencies, backlog).
+//! Tests for the status, backlog, and dependency renderers.
 
 use super::*;
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
 };
 use std::collections::BTreeMap;
 
-fn node_record(id: &str) -> NodeRecord {
+pub(in crate::cli::render) fn node_record(id: &str) -> NodeRecord {
     NodeRecord {
         kind: NodeKind::Module,
         id: id.to_owned(),
@@ -28,7 +28,7 @@ fn node_record(id: &str) -> NodeRecord {
     }
 }
 
-fn system(id: &str, name: &str, desc: &str) -> NodeRecord {
+pub(in crate::cli::render) fn system(id: &str, name: &str, desc: &str) -> NodeRecord {
     NodeRecord {
         kind: NodeKind::System,
         id: id.to_owned(),
@@ -47,7 +47,7 @@ fn system(id: &str, name: &str, desc: &str) -> NodeRecord {
     }
 }
 
-fn scan_with_nodes(nodes: Vec<NodeRecord>) -> ScanResult {
+pub(in crate::cli::render) fn scan_with_nodes(nodes: Vec<NodeRecord>) -> ScanResult {
     let graph_nodes: BTreeMap<String, NodeRecord> =
         nodes.into_iter().map(|n| (n.id.clone(), n)).collect();
     ScanResult {
@@ -90,7 +90,7 @@ fn scan_with_todos(todos: Vec<Todo>) -> ScanResult {
     }
 }
 
-fn parsed(json: bool) -> ParsedArgs {
+pub(in crate::cli::render) fn parsed(json: bool) -> ParsedArgs {
     ParsedArgs {
         json,
         strict: false,
@@ -251,67 +251,7 @@ fn render_status_json_next_recommended_null_when_clean() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn render_context_shows_system_name_and_counts() {
-    let scan = scan_with_nodes(vec![
-        system("sys", "MySystem", "A test system"),
-        node_record("app"),
-    ]);
-    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
-    assert!(rendered.contains("MySystem (2 nodes, 0 edges)"));
-    assert!(rendered.contains("A test system"));
-    assert!(rendered.contains("Findings: 0 errors, 0 warnings, 0 info"));
-    assert!(rendered.contains(
-        "Artefacts: 0 contracts, 0 decisions, 0 todos, 0 research, 0 reviews, 0 sources"
-    ));
-}
-
-#[test]
-fn render_context_node_line_omits_path_and_synced_state() {
-    let mut app = node_record("app");
-    app.paths = vec!["./src".to_owned()];
-    let scan = scan_with_nodes(vec![system("sys", "Sys", ""), app]);
-    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
-    assert!(
-        rendered.contains("Structure:\n  app\n"),
-        "node line: {rendered}"
-    );
-    assert!(
-        !rendered.contains("./src"),
-        "path must be dropped: {rendered}"
-    );
-}
-
-#[test]
-fn render_context_lists_labeled_dependencies() {
-    let mut scan = scan_with_nodes(vec![
-        system("sys", "Sys", ""),
-        node_record("app.a"),
-        node_record("app.b"),
-    ]);
-    scan.graph.outbound.insert(
-        "app.a".to_owned(),
-        vec![crate::map::graph::EdgeRef {
-            from: "app.a".to_owned(),
-            to: "app.b".to_owned(),
-            description: "calls".to_owned(),
-        }],
-    );
-    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
-    assert!(
-        rendered.contains("  app.a\n    -> app.b  # calls"),
-        "missing labeled edge under source: {rendered}"
-    );
-}
-
-#[test]
-fn render_context_defaults_when_no_system() {
-    let scan = scan_with_nodes(vec![node_record("app")]);
-    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
-    assert!(rendered.contains("unknown (1 nodes, 0 edges)"));
-}
-
-fn decision(id: &str, status: DecisionStatus) -> Decision {
+pub(in crate::cli::render) fn decision(id: &str, status: DecisionStatus) -> Decision {
     Decision {
         id: id.to_owned(),
         path: format!("meta/decisions/{id}.md"),
@@ -334,48 +274,6 @@ fn decision(id: &str, status: DecisionStatus) -> Decision {
         ratified_by_machine: false,
         receipts: Vec::new(),
     }
-}
-
-#[test]
-fn render_context_counts_pending_signatures() {
-    let mut scan = scan_with_nodes(vec![system("sys", "Sys", "Mission headline")]);
-    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
-    assert!(
-        rendered.contains("Pending signatures: 0"),
-        "zero proposed decisions: {rendered}"
-    );
-
-    scan.artefacts.decisions = vec![
-        decision("dec.signed", DecisionStatus::Accepted),
-        decision("dec.waiting", DecisionStatus::Proposed),
-        decision("dec.also-waiting", DecisionStatus::Proposed),
-    ];
-    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
-    assert!(
-        rendered.contains("Mission headline\n"),
-        "system description is the mission headline: {rendered}"
-    );
-    assert!(
-        rendered.contains("Pending signatures: 2"),
-        "proposed decisions only: {rendered}"
-    );
-}
-
-#[test]
-fn render_context_includes_backlog_section() {
-    let dir = std::env::temp_dir().join(format!("cairn-ctx-backlog-{}", std::process::id()));
-    let beads = dir.join(".beads");
-    std::fs::create_dir_all(&beads).unwrap();
-    std::fs::write(
-        beads.join("issues.jsonl"),
-        r#"{"id":"cairn-aaa","title":"Do thing","status":"open","priority":2,"issue_type":"task"}"#,
-    )
-    .unwrap();
-    let scan = scan_with_nodes(vec![node_record("app")]);
-    let rendered = render_context(&parsed(false), &dir, &scan);
-    assert!(rendered.contains("Backlog: 1 ready"));
-    assert!(rendered.contains("cairn-aaa [P2] Do thing"));
-    let _ = std::fs::remove_dir_all(&dir);
 }
 
 fn backlog_args(node: &str, json: bool) -> ParsedArgs {
@@ -449,25 +347,4 @@ fn render_backlog_unknown_node_errs() {
     let scan = scan_with_nodes(vec![node_record("app")]);
     assert!(render_backlog(&backlog_args("missing", false), &dir, &scan).is_err());
     let _ = std::fs::remove_dir_all(&dir);
-}
-
-#[test]
-fn render_context_shows_ghost_suffix_for_ghost_node() {
-    // Empty scaffolding (and any Ghost) must be visible in context output.
-    let mut empty = node_record("app.empty");
-    empty.state = NodeState::Ghost;
-    empty.paths = vec!["./src/empty".to_owned()];
-    let mut real = node_record("app.real");
-    real.state = NodeState::Synced;
-    real.paths = vec!["./src/real".to_owned()];
-    let scan = scan_with_nodes(vec![system("app", "App", "Smoke"), empty, real]);
-    let rendered = render_context(&parsed(false), std::path::Path::new("/nonexistent"), &scan);
-    assert!(
-        rendered.contains("empty [Ghost]"),
-        "context must show [Ghost] suffix for empty scaffolding: {rendered}"
-    );
-    assert!(
-        !rendered.contains("real [Ghost]") && !rendered.contains("real [Synced]"),
-        "Synced nodes must not carry a state suffix: {rendered}"
-    );
 }

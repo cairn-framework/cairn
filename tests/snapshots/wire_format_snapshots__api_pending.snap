@@ -6,13 +6,17 @@ expression: value
   "pending": [
     {
       "age_days": "[age]",
+      "changed_since_review": false,
       "id": "dec.queue",
       "nodes": [
         "app.core"
       ],
       "ratification": "binding",
+      "reopen_command": "cairn pending dec.queue",
+      "ruling_prompt": "Say your ruling in this session (accept, reject, or ask); the options above carry the recommendation.",
+      "ruling_summary": "Awaiting ratification.",
       "subject_hash": null
     }
   ],
-  "schema_version": 9
+  "schema_version": 10
 }

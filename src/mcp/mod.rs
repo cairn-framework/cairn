@@ -289,7 +289,7 @@ fn input_schema(schema: &str) -> Value {
         "RefineRequest" => json!({
             "mutating": { "type": "boolean" },
         }),
-        "DraftShowRequest" => json!({
+        "DraftShowRequest" | "PendingRequest" => json!({
             "id": { "type": "string" },
         }),
         "DraftDiscardRequest" | "DraftEditRequest" => json!({
