@@ -2,7 +2,7 @@
 node: cairn.kernel.query
 status: open
 created: 2026-07-31
-related: [res.inversion-convergence-minutes]
+related: [res.inversion-convergence-minutes, dec.reverse-provenance-wire]
 ---
 
 # Surface reverse provenance edges on decisions

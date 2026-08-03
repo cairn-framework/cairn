@@ -12,11 +12,13 @@ expression: value
         "app.core"
       ],
       "ratification": "binding",
+      "refined_by": [],
       "reopen_command": "cairn pending dec.queue",
       "ruling_prompt": "Say your ruling in this session (accept, reject, or ask); the options above carry the recommendation.",
       "ruling_summary": "Awaiting ratification.",
-      "subject_hash": null
+      "subject_hash": null,
+      "superseded_by": []
     }
   ],
-  "schema_version": 10
+  "schema_version": 11
 }

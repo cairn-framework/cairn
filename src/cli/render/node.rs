@@ -1,12 +1,12 @@
 //! Node-level query renderers.
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
-use super::super::format::{lines, node_arg, render_node};
+use super::super::format::{
+    decision_index, decision_line_with_index, decisions_json, lines, node_arg, render_node,
+};
 use super::super::*;
 use super::{scan_error_count, scan_error_warning};
-use crate::query_api::{
-    QueryRequest, accepted_decision_ids, neighbourhood_ids, research_for_nodes,
-};
+use crate::query_api::{QueryRequest, accepted_decisions, neighbourhood_ids, research_for_nodes};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
@@ -19,12 +19,28 @@ pub(crate) fn render_get(
         match query::get(&scan_result.graph, node) {
             Ok(response) => {
                 let mut output = render_node(&response.node, parsed.json);
-                if !parsed.json {
+                let decisions = accepted_decisions(scan_result, &response.node.id);
+                let records = decisions
+                    .iter()
+                    .map(|decision| (*decision).clone())
+                    .collect::<Vec<_>>();
+                if parsed.json {
+                    let decision_json = decisions_json(&records);
+                    if let Some(prefix) = output.strip_suffix("}\n") {
+                        output = format!("{prefix},\"decisions\":{decision_json}}}\n");
+                    }
+                } else {
                     use std::fmt::Write;
+                    let index = decision_index(&scan_result.artefacts.decisions);
                     let _ = write!(
                         output,
                         "Accepted decisions:\n{}\n",
-                        lines(&accepted_decision_ids(scan_result, &response.node.id))
+                        lines(
+                            &decisions
+                                .iter()
+                                .map(|decision| decision_line_with_index(decision, &index))
+                                .collect::<Vec<_>>(),
+                        )
                     );
                 }
                 if parsed.command_args.iter().any(|arg| arg == "--symbols") {
@@ -99,6 +115,7 @@ pub(crate) fn render_neighbourhood(
                 })
                 .cloned()
                 .collect::<Vec<_>>();
+            let index = decision_index(&scan_result.artefacts.decisions);
             let todos = if include_todos {
                 scan_result
                     .artefacts
@@ -148,7 +165,12 @@ pub(crate) fn render_neighbourhood(
                 lines(&response.inbound),
                 lines(&response.outbound),
                 lines(&response.node.contracts),
-                lines(&decisions.iter().map(super::super::format::decision_line).collect::<Vec<_>>()),
+                lines(
+                    &decisions
+                        .iter()
+                        .map(|decision| decision_line_with_index(decision, &index))
+                        .collect::<Vec<_>>(),
+                ),
                 lines(&todos.iter().map(super::super::format::todo_line).collect::<Vec<_>>()),
                 lines(&research.iter().map(super::super::format::research_line).collect::<Vec<_>>()),
                 lines(&reviews.iter().map(super::super::format::review_line).collect::<Vec<_>>())
@@ -337,6 +359,8 @@ mod tests {
             informed_by: Vec::new(),
             supersedes: Vec::new(),
             refines: Vec::new(),
+            refined_by: Vec::new(),
+            superseded_by: Vec::new(),
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,

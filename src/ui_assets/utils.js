@@ -262,14 +262,26 @@ async function fetchDepends(nodeId) {
   return response.nodes;
 }
 
+async function fetchNodeDecisions(nodeId) {
+  const response = await fetchJson(`/api/node/${cleanId(nodeId)}/decisions`);
+  if (!response || typeof response !== "object") {
+    return { decisions: [], decisionIndex: {} };
+  }
+  const decisionIndex = response.decision_index && typeof response.decision_index === "object" && !Array.isArray(response.decision_index) ? response.decision_index : {};
+  return {
+    decisions: normaliseArtefactEntries(response.decisions),
+    decisionIndex,
+  };
+}
+
 /**
  * Fetch every evidence surface for one node in parallel. Individual request
  * failures degrade to empty lists so one bad endpoint cannot blank the rail.
  */
 async function fetchNodeEvidence(nodeId) {
-  const [contracts, decisions, sources, rationale, depends, dependents] = await Promise.all([
+  const [contracts, decisionData, sources, rationale, depends, dependents] = await Promise.all([
     fetchNodeArtefacts(nodeId, "contract").catch(() => []),
-    fetchNodeArtefacts(nodeId, "decisions").catch(() => []),
+    fetchNodeDecisions(nodeId).catch(() => ({ decisions: [], decisionIndex: {} })),
     fetchNodeArtefacts(nodeId, "sources").catch(() => []),
     fetchNodeArtefacts(nodeId, "rationale").catch(() => []),
     fetchDepends(nodeId).catch(() => []),
@@ -279,7 +291,8 @@ async function fetchNodeEvidence(nodeId) {
   const list = (value) => (Array.isArray(value) ? value : []);
   return {
     contracts: list(contracts),
-    decisions: list(decisions),
+    decisions: list(decisionData.decisions),
+    decisionIndex: decisionData.decisionIndex,
     sources: list(sources),
     rationale: list(rationale),
     symbols: [],

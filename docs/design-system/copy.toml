@@ -157,6 +157,7 @@ CAIRN_TODO_DEFERS_BLOCKING = { heading = "Defers reference targets a blocking fi
 CAIRN_TODO_RELATION_UNKNOWN = { heading = "Todo points at something that is not there", body = "This todo names a related item that does not exist. Fix the name or remove the link.", cta = "Correct the `blocked_by`, `parent`, or `related` entry, or remove it." }
 CAIRN_TODO_RELATION_CYCLE = { heading = "Todos block each other in a loop", body = "Following these links leads back to where it started, so nothing in the loop can ever start. Break one link.", cta = "Remove one `blocked_by` or `parent` entry from the loop." }
 CAIRN_TODO_STATUS_CONTRADICTION = { heading = "Todo status disagrees with its links", body = "Either this todo is marked blocked with nothing left blocking it, or it is open while something it depends on is unfinished.", cta = "Update the status with `cairn todo set`, or fix the links with `cairn todo link`." }
+CAIRN_DECISION_REFINED_AUTHORITY = { heading = "Accepted decision has an accepted refinement", body = "Decision `{node}` is refined by accepted decision `{target}`. Check the refinement before treating the original as the only authority.", cta = "Read the accepted refinement and cite the current decision chain." }
 CAIRN_TODO_DEFERS_INVALID = { heading = "Malformed defers reference", body = "Todo `{todo}` has a malformed defers entry `{value}`; expected `<FINDING_CODE> <path-or-node>`.", cta = "Rewrite the entry as a finding code, one space, then the path or node the finding was raised against." }
 CAIRN_RECONCILE_ORPHANED_FILE = { heading = "Orphaned file", body = "The file `{path}` exists on disk but no blueprint node claims its path.", cta = "Add a `path` entry to an existing node, or declare a new node." }
 CAIRN_INTEGRITY_DUPLICATE_ID = { heading = "Duplicate node ID", body = "The ID `{node}` appears more than once in the blueprint.", cta = "Rename one of the duplicates to make every ID unique." }
@@ -343,6 +344,8 @@ invalid-slug = "decision slug must be kebab-case: lowercase letters and digits s
 exists = "a decision already exists at meta/decisions/{slug}.md"
 exists-legacy = "a legacy decision already exists at meta/decisions/dec.{slug}.md with id dec.{slug}; creating {slug}.md beside it would duplicate the id"
 created = "created meta/decisions/{slug}.md; add the governing node id(s) and fill the sections, then run `cairn scan`"
+refined-by = "  refined by {id}, {status} {date}"
+superseded-by = "  superseded by {id}, {status} {date}"
 
 # -- Todo scaffold --------------------------------------------------------
 
@@ -416,6 +419,8 @@ none = "  (none)"
 row = "  {id} (age {age}d, {ratification}) nodes: {nodes}"
 row-changed = "  {id} (age {age}d, {ratification}) nodes: {nodes} · reviewed material changed since review"
 detail-header = "Pending decision: {id} (age {age}d)"
+refined-by = "  refined by {id}, {status} {date}"
+superseded-by = "  superseded by {id}, {status} {date}"
 ruling = "Ruling: {summary}"
 briefing = "Briefing:"
 rubric-tier = "  Tier: {value}"
@@ -508,6 +513,8 @@ lineage-decisions = "Decisions"
 lineage-authority = "Authority chain"
 lineage-empty = "No lineage found."
 decision-empty = "No decisions"
+decision-refined-by = "refined by {id}, {status} {date}"
+decision-superseded-by = "superseded by {id}, {status} {date}"
 legend-label = "Canvas state key"
 metrics = "Map metrics"
 findings-errors = "errors"

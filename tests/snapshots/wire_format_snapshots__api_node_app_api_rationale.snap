@@ -3,6 +3,16 @@ source: tests/wire_format_snapshots.rs
 expression: value
 ---
 {
+  "decision_index": {
+    "dec.api": {
+      "date": "2026-04-01",
+      "status": "accepted"
+    },
+    "dec.queue": {
+      "date": "2026-04-02",
+      "status": "proposed"
+    }
+  },
   "decisions": [
     {
       "body": "# API Decision\nUse stable JSON payloads.",
@@ -17,11 +27,13 @@ expression: value
       "path": "meta/decisions/api.md",
       "ratification": "binding",
       "ratified_by": "maintainer",
+      "refined_by": [],
       "refines": [],
       "related": [],
       "revisit_triggers": [],
       "revisited": null,
       "status": "accepted",
+      "superseded_by": [],
       "supersedes": [],
       "title": "API Decision"
     }
@@ -42,7 +54,7 @@ expression: value
       "title": "API Research"
     }
   ],
-  "schema_version": 10,
+  "schema_version": 11,
   "sources": [
     {
       "body": "# API Source\nBootstrap evidence.",

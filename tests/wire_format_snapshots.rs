@@ -75,17 +75,16 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
                 node["span"]["file"] = json!("<blueprint>");
             }
         }
-
-        // Every `/api/*` envelope carries a uniform top-level `schema_version`
-        // (stamped at the single `json()` choke point). The literal tracks the
-        // private `ui::SCHEMA_VERSION`; the snapshots pin the exact byte layout.
+        // Every `/api/*` envelope carries a numeric schema version.
         let version = value
             .get("schema_version")
             .and_then(Value::as_u64)
             .unwrap_or_else(|| panic!("{snapshot_name} response missing numeric schema_version"));
+
+        // Webui envelopes have an independent schema lifecycle from query_api.
         assert_eq!(
-            version, 10,
-            "{snapshot_name} must use the pinned wire schema version"
+            version, 11,
+            "{snapshot_name} must use the pinned webui wire schema version"
         );
 
         if *snapshot_name == "api_meta" {

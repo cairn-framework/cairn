@@ -2,12 +2,13 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::format::{
-    decision_line, decisions_json, flag_value, lines, node_arg, positional_node,
+    decision_index, decision_line_with_index, decisions_json, flag_value, lines, node_arg,
+    positional_node, reverse_provenance_lines,
 };
 use super::super::*;
 use crate::query_api::{QueryRequest, parse_decision_status_filter};
 use serde_json::Value;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
     // The node is optional: bare `cairn todos` (with or without leading
@@ -116,6 +117,7 @@ pub(crate) fn render_decisions(
             })
             .cloned()
             .collect::<Vec<_>>();
+        let index = decision_index(&scan_result.artefacts.decisions);
         Ok(if parsed.json {
             format!(
                 "{{\"node\":\"{}\",\"decisions\":{}}}\n",
@@ -126,7 +128,12 @@ pub(crate) fn render_decisions(
             format!(
                 "Decisions for {}:\n{}\n",
                 node.id,
-                lines(&decisions.iter().map(decision_line).collect::<Vec<_>>())
+                lines(
+                    &decisions
+                        .iter()
+                        .map(|decision| decision_line_with_index(decision, &index))
+                        .collect::<Vec<_>>(),
+                )
             )
         })
     })
@@ -155,6 +162,7 @@ fn render_decisions_grep(
         })
         .cloned()
         .collect::<Vec<_>>();
+    let index = decision_index(&scan_result.artefacts.decisions);
     if parsed.json {
         format!(
             "{{\"query\":\"{}\",\"decisions\":{}}}\n",
@@ -165,7 +173,12 @@ fn render_decisions_grep(
         format!(
             "Decisions matching \"{}\":\n{}\n",
             query,
-            lines(&matches.iter().map(decision_line).collect::<Vec<_>>())
+            lines(
+                &matches
+                    .iter()
+                    .map(|decision| decision_line_with_index(decision, &index))
+                    .collect::<Vec<_>>(),
+            )
         )
     }
 }
@@ -288,6 +301,22 @@ pub(crate) fn render_rationale(parsed: &ParsedArgs, root: &Path) -> Result<Strin
 fn rationale_text(data: &Value) -> String {
     let node_id = data["node"].as_str().unwrap_or_default();
 
+    let index = data["decision_index"]
+        .as_object()
+        .map_or_else(BTreeMap::new, |entries| {
+            entries
+                .iter()
+                .filter_map(|(id, value)| {
+                    Some((
+                        id.clone(),
+                        (
+                            value["status"].as_str()?.to_owned(),
+                            value["date"].as_str()?.to_owned(),
+                        ),
+                    ))
+                })
+                .collect::<BTreeMap<_, _>>()
+        });
     let decisions_lines: Vec<String> = data["decisions"]
         .as_array()
         .map_or(&[][..], std::ops::Deref::deref)
@@ -304,15 +333,34 @@ fn rationale_text(data: &Value) -> String {
             } else {
                 format!(" (via {})", via.join(", "))
             };
-            format!(
+            let mut line = format!(
                 "{} [{}] {}{via_suffix}",
                 value["id"].as_str().unwrap_or_default(),
                 value["status"].as_str().unwrap_or_default(),
                 value["path"].as_str().unwrap_or_default()
-            )
+            );
+            let refined_by = value["refined_by"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<Vec<_>>();
+            let superseded_by = value["superseded_by"]
+                .as_array()
+                .map_or(&[][..], std::ops::Deref::deref)
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<Vec<_>>();
+            line.push_str(&reverse_provenance_lines(
+                &refined_by,
+                &superseded_by,
+                &index,
+            ));
+            line
         })
         .collect();
-
     let research_lines: Vec<String> = data["research"]
         .as_array()
         .map_or(&[][..], std::ops::Deref::deref)

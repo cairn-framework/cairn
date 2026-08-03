@@ -221,6 +221,8 @@ fn decision(id: &str, nodes: &[&str], status: DecisionStatus) -> Decision {
         informed_by: Vec::new(),
         supersedes: Vec::new(),
         refines: Vec::new(),
+        refined_by: Vec::new(),
+        superseded_by: Vec::new(),
         related: Vec::new(),
         orphaned: false,
         orphan_reason: None,

@@ -1,6 +1,7 @@
 //! Tests for the pending queue handler.
 
 use super::*;
+use crate::artefacts::registry::dates::days_from_civil;
 
 fn decision(id: &str, status: DecisionStatus, date: &str, nodes: &[&str]) -> Decision {
     Decision {
@@ -14,6 +15,8 @@ fn decision(id: &str, status: DecisionStatus, date: &str, nodes: &[&str]) -> Dec
         informed_by: Vec::new(),
         supersedes: Vec::new(),
         refines: Vec::new(),
+        refined_by: Vec::new(),
+        superseded_by: Vec::new(),
         related: Vec::new(),
         orphaned: false,
         orphan_reason: None,
@@ -25,37 +28,6 @@ fn decision(id: &str, status: DecisionStatus, date: &str, nodes: &[&str]) -> Dec
         ratified_by_machine: false,
         receipts: Vec::new(),
     }
-}
-
-#[test]
-fn test_days_from_civil_known_values() {
-    assert_eq!(days_from_civil(1970, 1, 1), 0);
-    assert_eq!(days_from_civil(1970, 1, 2), 1);
-    assert_eq!(days_from_civil(2000, 3, 1), 11_017);
-    assert_eq!(days_from_civil(2026, 7, 30), 20_664);
-    assert_eq!(days_from_civil(1969, 12, 31), -1);
-}
-
-#[test]
-fn test_date_to_days_rejects_malformed_values() {
-    for value in [
-        "2026-7-30",
-        "2026/07/30",
-        "2026-13-01",
-        "2026-00-10",
-        "2026-02-30",
-        "2025-02-29",
-        "+026-01-01",
-        "yesterday!!",
-        "2026-07-30T00:00:00Z",
-        "",
-    ] {
-        assert!(date_to_days(value).is_none(), "{value:?} must not parse");
-    }
-    assert_eq!(
-        date_to_days("2024-02-29"),
-        Some(days_from_civil(2024, 2, 29))
-    );
 }
 
 #[test]

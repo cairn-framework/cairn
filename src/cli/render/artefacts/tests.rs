@@ -39,6 +39,8 @@ fn decision(id: &str, nodes: &[&str], body: &str, status: DecisionStatus) -> Dec
         informed_by: Vec::new(),
         supersedes: Vec::new(),
         refines: Vec::new(),
+        refined_by: Vec::new(),
+        superseded_by: Vec::new(),
         related: Vec::new(),
         orphaned: false,
         orphan_reason: None,

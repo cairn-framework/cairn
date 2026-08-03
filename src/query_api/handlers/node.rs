@@ -171,6 +171,7 @@ pub(crate) fn rationale_json(
     Ok(json!({
         "node": node.id,
         "decisions": decisions,
+        "decision_index": decision_index_json(&scan_result.artefacts.decisions),
         "research": research,
         "sources": sources,
     }))
@@ -223,6 +224,8 @@ mod tests {
             informed_by: Vec::new(),
             supersedes: Vec::new(),
             refines: Vec::new(),
+            refined_by: Vec::new(),
+            superseded_by: Vec::new(),
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,

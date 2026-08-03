@@ -68,6 +68,7 @@ async function loadNodeArtefacts(selectionId, nodesById, edges) {
     artefacts: {
       contracts: evidence.contracts,
       decisions: evidence.decisions,
+      decisionIndex: evidence.decisionIndex,
       sources: evidence.sources,
       evidence: evidence.rationale,
       symbols: evidence.symbols.length ? evidence.symbols : selectedNode?.symbols || [],

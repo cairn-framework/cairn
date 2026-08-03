@@ -4,7 +4,7 @@
 use super::super::*;
 use super::json::node_json;
 use super::util::esc;
-use crate::query_api::{decision_status, todo_status};
+use crate::query_api::todo_status;
 
 pub(crate) fn render_node(node: &NodeRecord, json: bool) -> String {
     if json {
@@ -125,15 +125,6 @@ pub(crate) fn todo_line(todo: &Todo) -> String {
     format!("{} [{}] {}", todo.node, todo_status(todo.status), todo.path)
 }
 
-pub(crate) fn decision_line(decision: &Decision) -> String {
-    format!(
-        "{} [{}] {}",
-        decision.id,
-        decision_status(decision.status),
-        decision.nodes.join(", ")
-    )
-}
-
 pub(crate) fn research_line(research: &Research) -> String {
     format!("{} sources: {}", research.id, research.sources.join(", "))
 }
@@ -159,7 +150,7 @@ pub(crate) const fn review_type(review_type: ReviewType) -> &'static str {
 mod tests {
     use super::*;
     use crate::{
-        artefacts::registry::{DecisionStatus, ResearchMethod, TodoStatus},
+        artefacts::registry::{ResearchMethod, TodoStatus},
         blueprint::{NodeKind, Span},
         map::{FindingSeverity, NodeRecord, NodeState},
     };
@@ -201,33 +192,6 @@ mod tests {
             todo_line(&todo(TodoStatus::InProgress)),
             "app [in_progress] ./todo.md"
         );
-    }
-
-    #[test]
-    fn test_decision_line_format() {
-        let decision = Decision {
-            path: "./decision.md".to_owned(),
-            id: "adopt-rust".to_owned(),
-            status: DecisionStatus::Accepted,
-            nodes: vec!["app".to_owned(), "lib".to_owned()],
-            date: String::new(),
-            revisited: None,
-            revisit_triggers: Vec::new(),
-            informed_by: Vec::new(),
-            supersedes: Vec::new(),
-            refines: Vec::new(),
-            related: Vec::new(),
-            orphaned: false,
-            orphan_reason: None,
-            gap: false,
-            claims: None,
-            body: String::new(),
-            ratification: crate::artefacts::registry::RatificationTier::Binding,
-            affects: Vec::new(),
-            ratified_by_machine: false,
-            receipts: Vec::new(),
-        };
-        assert_eq!(decision_line(&decision), "adopt-rust [accepted] app, lib");
     }
 
     #[test]

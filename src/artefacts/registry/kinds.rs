@@ -172,6 +172,8 @@ fn load_one_decision(path: &Path, parsed: &Frontmatter, set: &mut ArtefactSet) {
         informed_by: list(parsed, "informed_by"),
         supersedes: list(parsed, "supersedes"),
         refines: list(parsed, "refines"),
+        refined_by: Vec::new(),
+        superseded_by: Vec::new(),
         related: list(parsed, "related"),
         orphaned: optional(&parsed.values, "orphaned").is_some_and(|value| value == "true"),
         orphan_reason: optional(&parsed.values, "orphan_reason"),

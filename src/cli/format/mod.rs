@@ -2,14 +2,15 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 
+mod decision;
 mod json;
 mod render;
 mod util;
 
+pub(crate) use decision::{decision_index, decision_line_with_index, reverse_provenance_lines};
 pub(crate) use json::{decisions_json, finding_json, string_array_json, todos_json};
 pub(crate) use render::{
-    decision_line, render_finding_lines, render_findings, render_node, research_line, review_line,
-    todo_line,
+    render_finding_lines, render_findings, render_node, research_line, review_line, todo_line,
 };
 pub(crate) use util::{
     err, error_output, esc, finding_output, findings_output, flag_value, lines, node_arg, ok,

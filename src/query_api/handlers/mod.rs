@@ -9,6 +9,7 @@ mod next_selection;
 mod node;
 mod pending;
 mod pending_brief;
+mod pending_edges;
 mod pending_evidence;
 mod pending_rubric;
 mod project;
@@ -34,7 +35,7 @@ pub(crate) use next_selection::{
 pub(super) use node::{contract_json, docstring_json, files_json, rationale_json};
 pub(super) use pending::pending_json;
 pub(crate) use pending::pending_rows;
-pub use pending::{PendingDecision, PendingResponse, PendingTier};
+pub use pending::{PendingDecision, PendingDecisionEdge, PendingResponse, PendingTier};
 pub use pending_evidence::{PendingEvidence, PendingReceipt};
 pub use pending_rubric::PendingRubric;
 pub(super) use project::status_json;

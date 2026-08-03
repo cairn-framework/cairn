@@ -53,13 +53,15 @@ pub(crate) fn decisions_json(decisions: &[Decision]) -> String {
             .iter()
             .map(|decision| {
                 format!(
-                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"related\":{},\"revisited\":{},\"ratification\":\"{}\",\"ratified_by\":{}}}",
+                    "{{\"id\":\"{}\",\"status\":\"{}\",\"nodes\":{},\"informed_by\":{},\"supersedes\":{},\"refines\":{},\"refined_by\":{},\"superseded_by\":{},\"related\":{},\"revisited\":{},\"ratification\":\"{}\",\"ratified_by\":{}}}",
                     esc(&decision.id),
                     decision_status(decision.status),
                     string_array_json(&decision.nodes),
                     string_array_json(&decision.informed_by),
                     string_array_json(&decision.supersedes),
                     string_array_json(&decision.refines),
+                    string_array_json(&decision.refined_by),
+                    string_array_json(&decision.superseded_by),
                     string_array_json(&decision.related),
                     decision
                         .revisited
@@ -246,6 +248,8 @@ mod tests {
             informed_by: Vec::new(),
             supersedes: vec!["old".to_owned()],
             refines: Vec::new(),
+            refined_by: Vec::new(),
+            superseded_by: Vec::new(),
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,
@@ -283,6 +287,8 @@ mod tests {
             informed_by: Vec::new(),
             supersedes: Vec::new(),
             refines: Vec::new(),
+            refined_by: Vec::new(),
+            superseded_by: Vec::new(),
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,

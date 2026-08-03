@@ -133,7 +133,11 @@ pub(crate) fn decisions_response_json(
         })
         .map(|decision| decision_enriched_json(decision, root))
         .collect::<Vec<_>>();
-    Ok(json!({ "node": node.id, "decisions": decisions }))
+    Ok(json!({
+        "node": node.id,
+        "decisions": decisions,
+        "decision_index": decision_index_json(&scan_result.artefacts.decisions),
+    }))
 }
 
 pub(crate) fn research_response_json(

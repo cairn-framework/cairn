@@ -41,9 +41,9 @@ pub(crate) use handlers::{
     select_next, where_left, work_item_for_selection,
 };
 pub use handlers::{
-    PendingDecision, PendingEvidence, PendingReceipt, PendingResponse, PendingRubric, PendingTier,
-    RemediateResponse, RoadmapItem, RoadmapResponse, RoadmapTier, StatusActiveChange,
-    StatusResponse, StatusTodo, WorkItem, WorkItemSource,
+    PendingDecision, PendingDecisionEdge, PendingEvidence, PendingReceipt, PendingResponse,
+    PendingRubric, PendingTier, RemediateResponse, RoadmapItem, RoadmapResponse, RoadmapTier,
+    StatusActiveChange, StatusResponse, StatusTodo, WorkItem, WorkItemSource,
 };
 use handlers::{beads_json, blueprint_json, ui_meta_json};
 use handlers::{
@@ -53,15 +53,15 @@ use handlers::{
     roadmap_json, sources_response_json, status_json, todos_response_json,
 };
 use registry::{metadata_for_tool, registry_slice};
-use serialise::{backlog_item_detail_json, findings_json, node_json, relevant_rules};
+use serialise::{
+    backlog_item_detail_json, decision_json, findings_json, node_json, relevant_rules,
+};
 use util::{finding_error, findings_error, load_for, required};
-
-/// Schema version stamped on every query-API JSON `data` payload.
 ///
 /// Both the CLI `--json` surface (which prints `data` directly) and the MCP
 /// envelope (which wraps `data`) carry this version on the top-level data
 /// object so consumers can branch on the output contract uniformly.
-pub const SCHEMA_VERSION: u32 = 10;
+pub const SCHEMA_VERSION: u32 = 11;
 
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -239,14 +239,15 @@ pub const fn registry() -> &'static [ToolMetadata] {
     registry_slice()
 }
 
+/// Formats configured project gates for CLI and query bundle responses.
+pub(crate) use gates::format_gates;
+
 /// Canonical implementations live in `serialise`; these re-exports make
 /// them accessible as `crate::query_api::<name>` so the CLI render layer
 /// shares them instead of keeping copies (todo.simplify-dedup-format-util).
 /// `requires_valid_map` is additionally used by both the CLI dispatch loop
-/// and the MCP query-API path to gate commands on a clean graph.
-pub(crate) use gates::format_gates;
 pub(crate) use serialise::{
-    accepted_decision_ids, decision_status, neighbourhood_ids, parse_decision_status_filter,
+    accepted_decisions, decision_status, neighbourhood_ids, parse_decision_status_filter,
     ratification_tier, ratified_by_wire, requires_valid_map, research_for_nodes, todo_status,
 };
 
@@ -474,7 +475,12 @@ fn execute_data_with_scan(
                 |node| {
                     let mut value =
                         node_json(&node.node, request.flags.contains(&QueryFlag::Symbols));
-                    value["decisions"] = json!(accepted_decision_ids(scan_result, &node.node.id));
+                    value["decisions"] = Value::Array(
+                        accepted_decisions(scan_result, &node.node.id)
+                            .into_iter()
+                            .map(decision_json)
+                            .collect(),
+                    );
                     Ok(value)
                 },
             )
