@@ -7,8 +7,8 @@ status: proposed
 ratification: binding
 date: 2026-08-03
 informed_by: [res.inversion-convergence-minutes]
-refines: [dec.product-perimeter]
-related: [dec.control-plane-programme, dec.north-star-continuous-loop, dec.no-orchestrator]
+refines: [dec.no-orchestrator, dec.product-perimeter]
+related: [dec.control-plane-programme, dec.north-star-continuous-loop]
 revisit_triggers:
   - "the driver's first in-repo implementation needs a capability the core graph must actively provide (would move orchestration logic into the substrate, which this record forbids)"
   - "declarative workflow definitions prove unexpressible as cairn artefacts and demand an imperative engine (reopens the layer boundary)"
@@ -31,11 +31,13 @@ signed.
 
 ## What this refines, and what it does not touch
 
-The lineage ruled that the core is a graph other orchestrators traverse
-and that moving the driver in-repo requires a new binding decision
-(`dec.no-orchestrator`, now historical: `dec.product-perimeter`
-superseded it and carries the rule). This is that decision, for the
-placement clause of the live authority only: the
+`dec.no-orchestrator` ruled that the core is a graph other orchestrators
+traverse and that moving the driver in-repo requires a new binding
+decision; `dec.product-perimeter` superseded it and carries that rule
+forward as the live authority. This record refines both: the superseded
+lineage for the exact clause it revisits, and the live authority that
+enforces it today. This is the required new binding decision, for the
+placement clause only: the
 core-is-not-a-loop-engine ruling stands untouched; the
 driver-outside-the-repo clause is refined so the repository may host the
 driver as a separate layer above the core. Build, delivery, and runtime
@@ -65,7 +67,7 @@ the repository.
 
 ## The rubric
 
-- **Tier**: `binding`. It refines the live accepted orchestration authority and
+- **Tier**: `binding`. It refines the orchestration authority lineage (the live `dec.product-perimeter`, and `dec.no-orchestrator` for the superseded clause it revisits) and
   moves a repository boundary; only the maintainer can sign it.
 - **Unblocks**: the driver todo and the widened console scope; both are
   recorded now and start only after this signature.
