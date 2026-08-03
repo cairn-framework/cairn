@@ -1,32 +1,36 @@
 ---
 node: cairn.kernel.scanner
-status: done
+status: open
 created: 2026-07-16
 ---
 
 # Contract Blueprint Staleness
 
-Two of three staleness directions have coverage: code-vs-contract partially, by
-the opt-in `interface:` block check (`CAIRN_CONTRACT_INTERFACE_DRIFT`), and
-blueprint-vs-decision by `CAIRN_BLUEPRINT_CHANGE_NO_DECISION`. The uncovered
-direction: a contract can stay marked current after its recorded review baseline
-no longer matches the node's declared shape.
+Two of three staleness directions are covered: code-vs-contract by the
+interface hash freshness rule (docs/spec.md:342), blueprint-vs-decision by
+CAIRN_BLUEPRINT_CHANGE_NO_DECISION backed by BlueprintSnapshot and
+NodeFingerprint (`src/scanner/state.rs`, `src/scanner/checks.rs`). The
+uncovered direction: contract prose authored against an old node shape
+stays silently current after the node's declaration changes.
 
-Build the check against
-`meta/changes/contract-node-shape-drift/specs/contract-node-shape-drift.md`,
-which is the binding contract for this unit. Its `design.md` holds the
-rationale, including the two premises in this todo's original wording that the
-proposal disproved.
+Fix with existing machinery, no git and no contract frontmatter (both
+were proposed and refuted; contracts are purely human-authored per
+docs/spec.md:338 and the scanner is deliberately git-free): record the
+node's NodeFingerprint as a baseline in a versioned
+`.cairn/state/contract-baselines.json` when the contract's interface hash
+is recorded or re-recorded (`src/summariser/accept.rs` already re-records
+there), then add a Warning-tier check comparing the current
+NodeFingerprint against the baseline, naming the changed fields (parent,
+kind, edges). Content-based, so formatting-only blueprint edits cannot
+false-positive.
 
-Motivation: `res.a2ui-analysis` finding 3 (a2ui pins codebase blueprints to
-module-blueprint commits; the adaptation keeps the kernel, drops git).
+Motivation: `res.a2ui-analysis` finding 3 (a2ui pins codebase blueprints
+to module-blueprint commits; the adaptation keeps the kernel, drops git).
+Warning tier interacts with `scan --strict`, so wording and tier should
+get a change proposal before implementation.
 
-## Depends on
-
-`todo.contract-baseline-rerecord-surface` (node `cairn.summariser`). Without a
-non-generative way to re-record a baseline, this check can emit a Warning that a
-repository with the summariser disabled cannot clear. The proposal's evidence is
-in `meta/changes/contract-node-shape-drift/design.md`, under "Prerequisite".
-
-`todo.contract-node-shape-drift-proposal` (node `cairn.kernel.scanner`),
-delivered by `meta/changes/contract-node-shape-drift/`.
+blocked on: todo.contract-node-shape-drift-proposal (node cairn.kernel.scanner),
+which settles the finding tier, code, message wording, and the
+`.cairn/state/contract-baselines.json` schema in a change proposal. The
+"Motivation" paragraph above already requires that proposal before
+implementation; this line names the unit that produces it.
