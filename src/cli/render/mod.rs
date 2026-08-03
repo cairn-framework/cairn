@@ -11,8 +11,10 @@ mod context_view;
 mod health;
 mod locate;
 mod node;
+mod pending;
 mod project;
 mod remediate;
+mod session;
 
 pub(crate) use artefacts::{
     render_decisions, render_rationale, render_research, render_sources, render_todos,
@@ -22,8 +24,10 @@ pub(crate) use changes_view::{render_changes, render_show};
 pub(crate) use health::render_health;
 pub(crate) use locate::render_locate;
 pub(crate) use node::{render_files, render_get, render_neighbourhood};
-pub(crate) use project::{render_backlog, render_context, render_dependencies, render_status};
+pub(crate) use pending::render_pending_detail;
+pub(crate) use project::{render_backlog, render_dependencies, render_status};
 pub(crate) use remediate::{render_brief, render_next, render_remediate};
+pub(crate) use session::render_context;
 
 pub(crate) fn scan_error_count(scan_result: &scanner::ScanResult) -> usize {
     scan_result

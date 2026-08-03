@@ -10,6 +10,9 @@ use std::{
 use super::sha256::sha256_hex;
 
 mod governed;
+mod review_coverage;
+
+pub(crate) use review_coverage::review_path_covered;
 
 pub(crate) use governed::{governed_canonical_files, parse_allowlist};
 
@@ -17,7 +20,7 @@ pub(crate) use governed::{governed_canonical_files, parse_allowlist};
 pub const RATIFICATION_KEYS: &[&str] = &["status", "ratification", "ratified_by", "receipts"];
 
 /// Review artefact directory, as declared by the registry kind table.
-const REVIEWS_DIR: &str = "meta/reviews";
+pub(crate) const REVIEWS_DIR: &str = "meta/reviews";
 
 /// A normalised repository entry used as either an exact file or directory rule.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]

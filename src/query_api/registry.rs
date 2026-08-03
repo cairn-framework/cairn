@@ -132,7 +132,7 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 45] = [
         "PendingRequest",
         "PendingResponse",
         SafetyClass::ReadOnly,
-        "List proposed decisions awaiting ratification, oldest first",
+        "List proposed decisions awaiting ratification, oldest first, or show one decision's full briefing by id",
     ),
     tool(
         "rationale",

@@ -1,12 +1,19 @@
 //! Maintainer pending queue: decisions awaiting ratification.
 //!
-//! Typed data only (`todo.maintainer-pending-queue` v1): every decision at
-//! `status: proposed`, with its signed age in whole days, its nodes, and its
-//! ratification tier. Local-tier rows also expose the manifest hash a receipt
-//! must cover; unavailable manifests render as `null` with an error message.
-// Reason: child module imports re-exported public surface from parent via use super::*
-#![allow(clippy::wildcard_imports)]
-use super::super::*;
+//! Every decision at `status: proposed`, oldest first, with its signed age,
+//! nodes, and ratification tier, plus the parsed briefing surfaces: ruling
+//! summary, rubric, local review evidence with tri-state hash comparison,
+//! the changed-since-review marker, the ruling prompt, and the exact reopen
+//! command. Local-tier rows expose the manifest hash a receipt must cover;
+//! unavailable manifests render as `null` with an error message.
+use super::pending_brief::{PendingRubric, parse_pending_brief};
+use super::pending_evidence::PendingEvidence;
+use crate::{
+    artefacts::registry::{Decision, DecisionStatus},
+    query_api::QueryError,
+    scanner,
+};
+use serde_json::Value;
 
 /// Seconds per civil day.
 const SECS_PER_DAY: i64 = 86_400;
@@ -60,6 +67,22 @@ pub struct PendingDecision {
     /// Manifest construction failure for local-tier decisions, when one occurs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_hash_error: Option<String>,
+    /// Plain summary of the ruling.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ruling_summary: Option<String>,
+    /// Decision rubric, when the body carries a rubric heading.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rubric: Option<PendingRubric>,
+    /// Review evidence for a local-tier decision.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<PendingEvidence>,
+    /// True when any comparable review receipt hash differs from the current
+    /// subject hash; receipts without a comparable hash never set it.
+    pub changed_since_review: bool,
+    /// Plain instruction for ruling on this decision in the session.
+    pub ruling_prompt: String,
+    /// Exact command that reproduces this briefing in full.
+    pub reopen_command: String,
 }
 
 /// Wire shape of the `pending` query response.
@@ -74,8 +97,25 @@ pub struct PendingResponse {
 pub(crate) fn pending_json(
     root: &std::path::Path,
     scan_result: &scanner::ScanResult,
+    request: &super::super::QueryRequest,
 ) -> Result<Value, QueryError> {
-    let response = pending_response(root, &scan_result.artefacts.decisions, today_days())?;
+    let mut response = pending_response(
+        root,
+        &scan_result.artefacts.decisions,
+        &scan_result.artefacts.reviews,
+        today_days(),
+    )?;
+    if let Some(id) = request.node.as_deref() {
+        response.pending.retain(|row| row.id == id);
+        if response.pending.is_empty() {
+            return Err(QueryError {
+                code: "CAIRN_COMMAND_FAILED".to_owned(),
+                message: crate::copy::lookup("pending.not-found").replace("{id}", id),
+                source_span: None,
+                remediation: None,
+            });
+        }
+    }
     Ok(serde_json::to_value(response).expect("PendingResponse serialises"))
 }
 
@@ -84,14 +124,21 @@ pub(crate) fn pending_rows(
     root: &std::path::Path,
     scan_result: &scanner::ScanResult,
 ) -> Result<Vec<PendingDecision>, QueryError> {
-    pending_response(root, &scan_result.artefacts.decisions, today_days()).map(|r| r.pending)
+    pending_response(
+        root,
+        &scan_result.artefacts.decisions,
+        &scan_result.artefacts.reviews,
+        today_days(),
+    )
+    .map(|r| r.pending)
 }
 
-/// Builds the queue from the decision set alone, against an injected `today`
-/// (days since the Unix epoch) so the arithmetic is testable.
+/// Builds the queue from the decision and review sets, against an injected
+/// `today` (days since the Unix epoch) so the arithmetic is testable.
 fn pending_response(
     root: &std::path::Path,
     decisions: &[Decision],
+    reviews: &[crate::artefacts::registry::Review],
     today: i64,
 ) -> Result<PendingResponse, QueryError> {
     let mut pending = decisions
@@ -100,6 +147,10 @@ fn pending_response(
         .map(|decision| {
             let days = date_to_days(&decision.date).ok_or_else(|| invalid_date(decision))?;
             let (subject_hash, subject_hash_error) = decision_subject_hash(root, decision);
+            let local_tier =
+                decision.ratification == crate::artefacts::registry::RatificationTier::Local;
+            let brief =
+                parse_pending_brief(root, decision, reviews, subject_hash.as_deref(), local_tier);
             Ok(PendingDecision {
                 id: decision.id.clone(),
                 age_days: today - days,
@@ -107,11 +158,24 @@ fn pending_response(
                 ratification: decision.ratification.into(),
                 subject_hash,
                 subject_hash_error,
+                ruling_summary: brief.ruling_summary,
+                rubric: brief.rubric,
+                evidence: brief.evidence,
+                changed_since_review: brief.changed_since_review,
+                ruling_prompt: crate::copy::lookup("pending.ruling-prompt").to_owned(),
+                reopen_command: reopen_command(decision),
             })
         })
         .collect::<Result<Vec<_>, QueryError>>()?;
     pending.sort_by(|a, b| b.age_days.cmp(&a.age_days).then_with(|| a.id.cmp(&b.id)));
     Ok(PendingResponse { pending })
+}
+
+fn reopen_command(decision: &Decision) -> String {
+    // The briefing is the ruling surface: from any list this drills into the
+    // full detail, while `cairn decisions <node>` (a bare id/status list)
+    // recreates the search break the queue exists to remove.
+    format!("cairn pending {}", decision.id)
 }
 
 fn decision_subject_hash(
@@ -202,219 +266,5 @@ const fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn decision(id: &str, status: DecisionStatus, date: &str, nodes: &[&str]) -> Decision {
-        Decision {
-            id: id.to_owned(),
-            path: format!("meta/decisions/{id}.md"),
-            nodes: nodes.iter().map(|node| (*node).to_owned()).collect(),
-            status,
-            date: date.to_owned(),
-            revisited: None,
-            revisit_triggers: Vec::new(),
-            informed_by: Vec::new(),
-            supersedes: Vec::new(),
-            refines: Vec::new(),
-            related: Vec::new(),
-            orphaned: false,
-            orphan_reason: None,
-            gap: false,
-            claims: None,
-            body: String::new(),
-            ratification: crate::artefacts::registry::RatificationTier::Binding,
-            affects: Vec::new(),
-            ratified_by_machine: false,
-            receipts: Vec::new(),
-        }
-    }
-
-    #[test]
-    fn test_days_from_civil_known_values() {
-        assert_eq!(days_from_civil(1970, 1, 1), 0);
-        assert_eq!(days_from_civil(1970, 1, 2), 1);
-        assert_eq!(days_from_civil(2000, 3, 1), 11_017);
-        assert_eq!(days_from_civil(2026, 7, 30), 20_664);
-        assert_eq!(days_from_civil(1969, 12, 31), -1);
-    }
-
-    #[test]
-    fn test_date_to_days_rejects_malformed_values() {
-        for value in [
-            "2026-7-30",
-            "2026/07/30",
-            "2026-13-01",
-            "2026-00-10",
-            "2026-02-30",
-            "2025-02-29",
-            "+026-01-01",
-            "yesterday!!",
-            "2026-07-30T00:00:00Z",
-            "",
-        ] {
-            assert!(date_to_days(value).is_none(), "{value:?} must not parse");
-        }
-        assert_eq!(
-            date_to_days("2024-02-29"),
-            Some(days_from_civil(2024, 2, 29))
-        );
-    }
-
-    #[test]
-    fn test_pending_lists_only_proposed_oldest_first() {
-        let today = days_from_civil(2026, 7, 30);
-        let decisions = [
-            decision("dec.newer", DecisionStatus::Proposed, "2026-07-20", &["a"]),
-            decision(
-                "dec.accepted",
-                DecisionStatus::Accepted,
-                "2026-01-01",
-                &["a"],
-            ),
-            decision(
-                "dec.older",
-                DecisionStatus::Proposed,
-                "2026-07-01",
-                &["a", "b"],
-            ),
-            decision(
-                "dec.superseded",
-                DecisionStatus::Superseded,
-                "2026-01-01",
-                &["a"],
-            ),
-            decision(
-                "dec.deprecated",
-                DecisionStatus::Deprecated,
-                "2026-01-01",
-                &["a"],
-            ),
-        ];
-        let response = pending_response(std::path::Path::new("/"), &decisions, today).unwrap();
-        let ids: Vec<&str> = response.pending.iter().map(|row| row.id.as_str()).collect();
-        assert_eq!(ids, ["dec.older", "dec.newer"]);
-        assert_eq!(response.pending[0].age_days, 29);
-        assert_eq!(response.pending[0].nodes, ["a", "b"]);
-        assert_eq!(response.pending[1].age_days, 10);
-        for row in &response.pending {
-            assert_eq!(row.ratification, PendingTier::Binding);
-            assert_eq!(row.subject_hash, None);
-            assert_eq!(row.subject_hash_error, None);
-        }
-        let wire = serde_json::to_value(&response).unwrap();
-        assert_eq!(wire["pending"][0]["subject_hash"], serde_json::Value::Null);
-        assert!(wire["pending"][0].get("subject_hash_error").is_none());
-    }
-
-    #[test]
-    fn test_pending_age_ties_break_by_id_ascending() {
-        let today = days_from_civil(2026, 7, 30);
-        let decisions = [
-            decision("dec.zeta", DecisionStatus::Proposed, "2026-07-10", &["a"]),
-            decision("dec.alpha", DecisionStatus::Proposed, "2026-07-10", &["a"]),
-        ];
-        let response = pending_response(std::path::Path::new("/"), &decisions, today).unwrap();
-        let ids: Vec<&str> = response.pending.iter().map(|row| row.id.as_str()).collect();
-        assert_eq!(ids, ["dec.alpha", "dec.zeta"]);
-    }
-
-    #[test]
-    fn test_pending_future_date_yields_negative_age_and_sorts_last() {
-        let today = days_from_civil(2026, 7, 30);
-        let decisions = [
-            decision("dec.future", DecisionStatus::Proposed, "2026-08-04", &["a"]),
-            decision("dec.past", DecisionStatus::Proposed, "2026-07-25", &["a"]),
-        ];
-        let response = pending_response(std::path::Path::new("/"), &decisions, today).unwrap();
-        let ids: Vec<&str> = response.pending.iter().map(|row| row.id.as_str()).collect();
-        assert_eq!(ids, ["dec.past", "dec.future"]);
-        assert_eq!(response.pending[1].age_days, -5);
-    }
-
-    #[test]
-    fn test_pending_invalid_date_is_a_deterministic_error() {
-        let decisions = [decision(
-            "dec.bad",
-            DecisionStatus::Proposed,
-            "not-a-date!",
-            &["a"],
-        )];
-        let error = pending_response(std::path::Path::new("/"), &decisions, 0).unwrap_err();
-        assert_eq!(error.code, "CAIRN_PENDING_INVALID_DATE");
-        assert!(error.message.contains("dec.bad"), "{}", error.message);
-        assert!(error.message.contains("not-a-date!"), "{}", error.message);
-        assert!(error.remediation.is_some());
-    }
-
-    #[test]
-    fn test_pending_ignores_invalid_dates_on_non_proposed_decisions() {
-        let decisions = [
-            decision("dec.done", DecisionStatus::Accepted, "garbage-date", &["a"]),
-            decision("dec.live", DecisionStatus::Proposed, "2026-07-01", &["a"]),
-        ];
-        let response = pending_response(
-            std::path::Path::new("/"),
-            &decisions,
-            days_from_civil(2026, 7, 30),
-        )
-        .unwrap();
-        assert_eq!(response.pending.len(), 1);
-        assert_eq!(response.pending[0].id, "dec.live");
-    }
-
-    #[test]
-    fn test_pending_local_tier_includes_subject_hash() {
-        let directory = tempfile::tempdir().unwrap();
-        std::fs::create_dir_all(directory.path().join("meta/decisions")).unwrap();
-        let raw = "---\nid: dec.local\nstatus: proposed\nratification: local\ndate: 2026-07-01\n---\n# Local\n";
-        std::fs::write(directory.path().join("meta/decisions/dec.local.md"), raw).unwrap();
-        let mut local = decision("dec.local", DecisionStatus::Proposed, "2026-07-01", &["a"]);
-        local.ratification = crate::artefacts::registry::RatificationTier::Local;
-        let response =
-            pending_response(directory.path(), &[local], days_from_civil(2026, 7, 30)).unwrap();
-        assert_eq!(response.pending[0].ratification, PendingTier::Local);
-        assert_eq!(
-            response.pending[0].subject_hash,
-            crate::artefacts::registry::manifest::compute_subject_hash(
-                directory.path(),
-                "meta/decisions/dec.local.md",
-                raw,
-                &[],
-            )
-            .ok()
-        );
-        assert_eq!(response.pending[0].subject_hash_error, None);
-    }
-
-    #[test]
-    fn test_pending_local_tier_manifest_error_includes_message() {
-        let directory = tempfile::tempdir().unwrap();
-        std::fs::create_dir_all(directory.path().join("meta/decisions")).unwrap();
-        std::fs::write(
-            directory.path().join("meta/decisions/dec.local.md"),
-            "---\nid: dec.local\nstatus: proposed\nratification: local\ndate: 2026-07-01\n---\n# Local\n",
-        )
-        .unwrap();
-        let mut local = decision("dec.local", DecisionStatus::Proposed, "2026-07-01", &["a"]);
-        local.ratification = crate::artefacts::registry::RatificationTier::Local;
-        local.affects = vec!["src/missing.rs".to_owned()];
-        let response =
-            pending_response(directory.path(), &[local], days_from_civil(2026, 7, 30)).unwrap();
-        assert_eq!(response.pending[0].subject_hash, None);
-        assert!(
-            response.pending[0]
-                .subject_hash_error
-                .as_deref()
-                .is_some_and(|message| message.contains("src/missing.rs"))
-        );
-        let wire = serde_json::to_value(&response).unwrap();
-        assert_eq!(wire["pending"][0]["subject_hash"], serde_json::Value::Null);
-        assert!(
-            wire["pending"][0]
-                .get("subject_hash_error")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|message| message.contains("src/missing.rs"))
-        );
-    }
-}
+#[path = "pending_tests.rs"]
+mod tests;

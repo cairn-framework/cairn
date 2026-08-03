@@ -9,6 +9,21 @@
           "format": "int64",
           "type": "integer"
         },
+        "changed_since_review": {
+          "description": "True when any comparable review receipt hash differs from the current subject hash; receipts without a comparable hash never set it.",
+          "type": "boolean"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PendingEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Review evidence for a local-tier decision."
+        },
         "id": {
           "description": "Decision id.",
           "type": "string"
@@ -28,6 +43,32 @@
           ],
           "description": "Parsed ratification tier; absent frontmatter defaults to `binding`."
         },
+        "reopen_command": {
+          "description": "Exact command that reproduces this briefing in full.",
+          "type": "string"
+        },
+        "rubric": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PendingRubric"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Decision rubric, when the body carries a rubric heading."
+        },
+        "ruling_prompt": {
+          "description": "Plain instruction for ruling on this decision in the session.",
+          "type": "string"
+        },
+        "ruling_summary": {
+          "description": "Plain summary of the ruling.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "subject_hash": {
           "description": "Current subject manifest for local-tier decisions, when it can be computed.",
           "type": [
@@ -45,10 +86,107 @@
       },
       "required": [
         "age_days",
+        "changed_since_review",
         "id",
         "nodes",
-        "ratification"
+        "ratification",
+        "reopen_command",
+        "ruling_prompt"
       ],
+      "type": "object"
+    },
+    "PendingEvidence": {
+      "description": "Evidence state for a local-tier pending decision.",
+      "properties": {
+        "receipts": {
+          "description": "Review stems named by the decision or linked through `affects:`.",
+          "items": {
+            "$ref": "#/definitions/PendingReceipt"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "receipts"
+      ],
+      "type": "object"
+    },
+    "PendingReceipt": {
+      "description": "One review receipt attached to a local-tier pending decision.",
+      "properties": {
+        "reviewer": {
+          "description": "Reviewer name, when the review artefact is present.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stem": {
+          "description": "Review stem from the decision's `receipts:` list or an `affects:` rule (exact review files even when absent; directories via loaded reviews).",
+          "type": "string"
+        },
+        "subject_hash_matches": {
+          "description": "Whether this review covered the decision's current subject manifest; null when either hash is unavailable, so no comparison was made.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "verdict": {
+          "description": "First line under the review's Verdict heading, when present.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "stem",
+        "subject_hash_matches"
+      ],
+      "type": "object"
+    },
+    "PendingRubric": {
+      "description": "The four named parts of a decision rubric.",
+      "properties": {
+        "alignment": {
+          "description": "How the decision fits the project mission.",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "options": {
+          "description": "Choices considered by the author.",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "tier": {
+          "description": "Decision tier and its supporting facts.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unblocks": {
+          "description": "What signing the decision unblocks.",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
       "type": "object"
     },
     "PendingTier": {

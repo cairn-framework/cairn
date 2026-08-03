@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: in_progress
+status: done
 created: 2026-07-31
 blocked_by: [todo.roadmap-derived-view]
 related: [res.inversion-convergence-minutes, res.overharness-design-threads, todo.pending-queue-briefing]
@@ -57,3 +57,10 @@ make humans aware of these and help steer the agents").
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign step 4 for the console composition.
+
+## Completed as the Task 1 fallback (2026-08-02)
+
+The read-only three-lane console shipped in PR #572 with the programme
+decision unsigned, which Task 1 defines as this unit's stop line. The
+post-signature widening and the intake lane moved to
+`todo.console-signed-widening`, gated on the maintainer signature.

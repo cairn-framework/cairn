@@ -267,6 +267,12 @@ export function auditPage(opts) {
     consolePendingRows: document.querySelectorAll(".console-lane-pending .channel-item .channel-code").length,
     consoleFrontierEmpty: !!document.querySelector(".console-frontier-empty"),
     consoleRoadmapTier: !!document.querySelector(".console-lane-roadmap .channel-tier"),
+    pendingRows: document.querySelectorAll(".channel-bar .pending-item").length,
+    pendingDetail: !!document.querySelector(".channel-bar .pending-detail"),
+    pendingPrompt: !!document.querySelector(".channel-bar .pending-detail-prompt"),
+    pendingRubric: !!document.querySelector(".channel-bar .pending-detail-tier"),
+    pendingEvidence: !!document.querySelector(".channel-bar .pending-detail-evidence"),
+    pendingReopen: !!document.querySelector(".channel-bar .pending-detail-reopen code"),
   };
 
   return {

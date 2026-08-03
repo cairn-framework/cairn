@@ -52,8 +52,8 @@ use format::{
 use render::{
     render_backlog, render_brief, render_bundle, render_changes, render_context, render_decisions,
     render_dependencies, render_files, render_get, render_health, render_locate,
-    render_neighbourhood, render_next, render_rationale, render_remediate, render_research,
-    render_show, render_sources, render_status, render_todos,
+    render_neighbourhood, render_next, render_pending_detail, render_rationale, render_remediate,
+    render_research, render_show, render_sources, render_status, render_todos,
 };
 
 /// Shared CLI command metadata.
@@ -775,7 +775,7 @@ fn render_loaded_project_command(
         "sources" => render_sources(parsed, root),
         "rationale" => render_rationale(parsed, root),
         "status" => Ok(render_status(parsed, scan_result, root)),
-        "context" => Ok(render_context(parsed, root, scan_result)),
+        "context" => render_context(parsed, root, scan_result),
         "backlog" => render_backlog(parsed, root, scan_result),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "health" => Ok(render_health(parsed, root, scan_result)),
@@ -872,23 +872,46 @@ fn render_loaded_project_command(
         }
         "pending" => match crate::query_api::pending_rows(root, scan_result) {
             Ok(rows) => {
-                let mut out = format!("{}\n", copy::lookup("pending.header"));
-                if rows.is_empty() {
-                    let _ = writeln!(out, "{}", copy::lookup("pending.none"));
+                if let Some(id) = parsed.command_args.get(1) {
+                    rows.iter().find(|row| row.id == *id).map_or_else(
+                        || {
+                            Err(Finding {
+                                code: "CAIRN_COMMAND_FAILED".to_owned(),
+                                severity: FindingSeverity::Error,
+                                message: copy::lookup("pending.not-found").replace("{id}", id),
+                                node: None,
+                                target: None,
+                                path: None,
+                                deferred_by: None,
+                                parked_by: None,
+                            })
+                        },
+                        |row| Ok(render_pending_detail(row)),
+                    )
                 } else {
-                    for row in &rows {
-                        let _ = writeln!(
-                            out,
-                            "{}",
-                            copy::lookup("pending.row")
-                                .replace("{id}", &row.id)
-                                .replace("{age}", &row.age_days.to_string())
-                                .replace("{ratification}", row.ratification.as_str())
-                                .replace("{nodes}", &row.nodes.join(", "))
-                        );
+                    let mut out = format!("{}\n", copy::lookup("pending.header"));
+                    if rows.is_empty() {
+                        let _ = writeln!(out, "{}", copy::lookup("pending.none"));
+                    } else {
+                        for row in &rows {
+                            let key = if row.changed_since_review {
+                                "pending.row-changed"
+                            } else {
+                                "pending.row"
+                            };
+                            let _ = writeln!(
+                                out,
+                                "{}",
+                                copy::lookup(key)
+                                    .replace("{id}", &row.id)
+                                    .replace("{age}", &row.age_days.to_string())
+                                    .replace("{ratification}", row.ratification.as_str())
+                                    .replace("{nodes}", &row.nodes.join(", "))
+                            );
+                        }
                     }
+                    Ok(out)
                 }
-                Ok(out)
             }
             Err(error) => return error_output(parsed.json, &error.code, &error.message),
         },

@@ -59,6 +59,7 @@ const SCENARIOS = [
   { name: "console-desktop", width: 1440, height: 900, mobile: false, action: "openConsole", requireConsole: true },
   { name: "console-narrow", width: 683, height: 1024, mobile: true, action: "openConsole", requireConsole: true },
   { name: "console-mobile", width: 390, height: 844, mobile: true, action: "openConsole", requireConsole: true },
+  { name: "pending-inbox", width: 1440, height: 900, mobile: false, action: "openPending", requirePending: true },
   { name: "blueprint-mode", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openBlueprint" },
   // Functional-state coverage: paths the clean self-scan never produces. The
   // "demo" server serves harness/fixtures-demo (findings + ghost/orphaned).
@@ -108,6 +109,11 @@ const ACTIONS = {
     settled:
       "(function(){var lanes=document.querySelectorAll('.console-lane');if(lanes.length!==3){return false;}var pendingRow=document.querySelector('.console-lane-pending .channel-item .channel-code');var frontierEmpty=document.querySelector('.console-frontier-empty');var tier=document.querySelector('.console-lane-roadmap .channel-tier');return !!pendingRow&&!!frontierEmpty&&!!tier;})()",
   },
+  openPending: {
+    fire: "(function(){var tabs=[...document.querySelectorAll('.channel-bar .channel-tab')];var pending=tabs.find((n)=>String(n.textContent||'').toLowerCase().includes('pending'));if(!pending){return false;}window.__evalPendingPhase=1;pending.click();return true;})()",
+    settled:
+      "(function(){var pending=[...document.querySelectorAll('.channel-bar .channel-tab')].find((n)=>String(n.textContent||'').toLowerCase().includes('pending'));if(!pending||!pending.classList.contains('active')){return false;}var row=document.querySelector('.channel-bar .channel-item.pending-item');if(Number(window.__evalPendingPhase||0)===1){if(!row){return false;}window.__evalPendingPhase=2;row.click();return false;}return !!document.querySelector('.channel-bar .pending-detail')&&!!document.querySelector('.channel-bar .pending-detail-summary')&&!!document.querySelector('.channel-bar .pending-detail-prompt')&&!!document.querySelector('.channel-bar .pending-detail-tier')&&!!document.querySelector('.channel-bar .pending-detail-evidence')&&!!document.querySelector('.channel-bar .pending-detail-reopen code');})()",
+  },
   openBlueprint: {
     fire: "(function(){var rail=document.querySelector('.evidence-rail');if(!rail){return false;}var t=[...rail.querySelectorAll('.rail-tab')].find((n)=>String(n.textContent||'').toLowerCase().includes('blueprint'));if(!t){return false;}t.click();return true;})()",
     settled: "(function(){return !!document.querySelector('.evidence-rail .blueprint-plate');})()",
@@ -151,6 +157,15 @@ function missingLandmarks(scenario, lm) {
     if (!(lm.consolePendingRows > 0)) miss.push("consolePendingRows");
     if (!lm.consoleFrontierEmpty) miss.push("consoleFrontierEmpty");
     if (!lm.consoleRoadmapTier) miss.push("consoleRoadmapTier");
+  }
+  if (scenario.action === "openPending" && scenario.requirePending) {
+    if (!lm.channelBar) miss.push("channelBar");
+    if (!(lm.pendingRows > 0)) miss.push("pendingRows");
+    if (!lm.pendingDetail) miss.push("pendingDetail");
+    if (!lm.pendingPrompt) miss.push("pendingPrompt");
+    if (!lm.pendingRubric) miss.push("pendingRubric");
+    if (!lm.pendingEvidence) miss.push("pendingEvidence");
+    if (!lm.pendingReopen) miss.push("pendingReopen");
   }
   if (scenario.action === "openBlueprint") {
     if (!lm.evidenceRail) miss.push("evidenceRail");

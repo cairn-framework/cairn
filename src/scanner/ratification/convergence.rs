@@ -66,7 +66,7 @@ pub(super) fn convergence_leg(
     }
     if reviews
         .iter()
-        .any(|review| !review_path_covered(root, decision, review))
+        .any(|review| !manifest::review_path_covered(root, decision, review))
     {
         return Some("receipt path is not covered by affects".to_owned());
     }
@@ -83,22 +83,6 @@ fn lens_prompt_hash(root: &Path, reviewer: &str) -> Result<(String, String), Str
     manifest::contained_file_sha256(root, &path)
         .map(|hash| (path.clone(), hash))
         .map_err(|_| format!("lens prompt file `{path}` is missing for reviewer `{reviewer}`"))
-}
-
-fn review_path_covered(root: &Path, decision: &Decision, review: &Review) -> bool {
-    let review_path = Path::new(&review.path);
-    let canonical_path = review_path.canonicalize().ok();
-    let path = canonical_path
-        .as_deref()
-        .and_then(|path| path.strip_prefix(root).ok())
-        .or_else(|| review_path.strip_prefix(root).ok())
-        .unwrap_or(review_path);
-    let path = path.to_string_lossy();
-    decision
-        .affects
-        .iter()
-        .filter_map(|entry| manifest::normalise_repo_entry(entry))
-        .any(|rule| manifest::rule_matches(&rule, &path))
 }
 
 fn review_stem(review: &Review) -> Option<&str> {

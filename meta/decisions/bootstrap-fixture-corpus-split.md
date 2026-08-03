@@ -32,6 +32,10 @@ unloaded sources).
 
 ## Decision
 
+The bootstrap test fixture keeps two kinds of files apart: rule files
+that cairn loads and checks, and evidence files it only points at. This
+record makes that split a rule.
+
 The bootstrap fixture splits its artefact corpora. The evidence corpus
 (`meta/sources/`, `meta/research/`) stays unclaimed by both fixture
 blueprints and is cited in prose only. The authority corpus (decisions,
@@ -56,45 +60,34 @@ proposed.
 
 ## The rubric, applied to this decision
 
-- **Tier**: `local`. Mechanical facts: one node (`cairn.tests`, a module
-  directly under the system node, so there is no cross-container span); it
-  supersedes nothing; and every affected path
-  (`tests/fixtures/cairn-bootstrap/`, `tests/fixtures_smoke.rs`,
-  `tests/examples_gate.rs`) sits under `cairn.tests`, outside the
-  binding-surface allowlist `todo.decision-ratification-tiers` defines: no
-  spec, registry, artefact-schema, or shipped-pack path. `cairn pending`
-  renders the declared `local` tier and prints the candidate subject hash.
-  This is the self-serve class under the ratified boundary, and its
-  acceptance needs converged receipts whoever signs, because the receipt
-  protocol applies to every `local` acceptance and `ratified_by` records
-  only who signed, never which checks ran.
-- **Unblocks**: nothing mechanically: no todo blocks on this signature and
-  no finding names it. Signing converts the standing corpus split from a
-  repair-local implementation choice into a ratified rule future fixture
-  work cites instead of re-deriving from the coupling evidence.
-- **Alignment**: against `dec.cairn-mission`, the split keeps the fixture
-  fit for both recorded purposes (clean-scan gate and reconciler-free
-  source corpus) without falsifying citations, so fixture behaviour stays
-  investigable against recorded intent. Against
-  `dec.north-star-continuous-loop` as its operational strategy: goal 1,
-  the repair landed and work continued without waiting on this signature.
-  Goal 2, the record ties the split to the verified coupling evidence, so
-  a later session re-derives the constraint instead of "fixing" it away.
-  Goal 3, it sits in the self-serve class under the ratified boundary and
-  waits for a signature only until the tiers machinery makes machine
-  acceptance auditable. Goal 4, the choice was enqueued as this proposed
-  record the moment the repair shipped it, not relabelled as settled.
-  Goal 5, this entry now carries the rubric, so the queue triages in one
-  read.
-- **Options**: (a) split the corpora, evidence unclaimed and cited in
-  prose, authority loaded and machine-verified (this decision, shipped);
-  (b) trim citation frontmatter from loaded research, hollowing the
-  artefacts (rejected in Rationale); (c) also load the evidence corpus
-  (`meta/sources/`, `meta/research/`), unexercised, and foreclosed
-  because the smoke-test premise (`todo.artefact-filename-test-fixtures`)
-  requires `meta/sources/` to stay unreached. Recommendation: (a). Cost
-  of no: hollowed citations, or the reversal of a landed premise plus
-  the unexercised clean-scan verification.
+- **Tier**: `local`. It touches one test area (`cairn.tests`), replaces
+  nothing, and changes none of the files that need the maintainer's own
+  signature: no spec, no registry, no schema, and nothing that ships to
+  users. Anyone may sign it once the reviews recorded on it agree, and
+  the record keeps who signed separate from which checks ran.
+- **Unblocks**: nothing is waiting on it. Signing turns a shipped
+  implementation choice into a rule future fixture work can cite instead
+  of working the reasoning out again.
+- **Alignment**: against `dec.cairn-mission` first, the split keeps the
+  fixture doing both of its recorded jobs (the test that requires a
+  clean scan, and a set of files kept as untouched evidence) without
+  faking citations, so its behaviour stays checkable against what was
+  intended. Against
+  `dec.north-star-continuous-loop`: goal 1, the repair landed and work
+  never waited on this signature. Goal 2, the record ties the split to
+  measured evidence, so a later session cannot quietly "fix" it away.
+  Goal 3, anyone may sign it, and it waits only until acceptance checks
+  run without a person. Goal 4, the choice was put in
+  this queue the moment it shipped, not relabelled as settled. Goal 5, this entry
+  carries the rubric, so the queue reads it in one pass.
+- **Options**: (a) keep the two sets of files split, evidence files
+  cited in prose but never loaded, rule files loaded and checked
+  automatically, which is what shipped and the recommendation; (b) strip the citations
+  from loaded research, leaving files that no longer say where their
+  claims came from (rejected in Rationale); (c) also load the evidence files, which an
+  earlier test already rules out. The cost of rejecting (a) is research that
+  hides its sources, or reversing a premise an earlier test already
+  landed.
 
 ## Consequences
 

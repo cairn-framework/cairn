@@ -2,7 +2,7 @@
 node: cairn.ui
 status: blocked
 created: 2026-07-18
-blocked_by: [todo.overharness-console-ux]
+blocked_by: [todo.pending-queue-briefing, todo.reverse-provenance-surfacing]
 ---
 
 # UI Asset Refresh
@@ -63,3 +63,9 @@ dec:dec.webui-design-authority
 ## Mission disposition
 
 2026-08-02: blocked against dec.cairn-mission. Serves fit-for-purpose. The console changes the webui again, so recording now would guarantee recording twice.
+
+## Blocker update (2026-08-02)
+
+The console landed read-only in PR #572, but the pending briefing and
+reverse provenance units still change the webui; recording before they
+land means recording twice. The blockers now name those two units.

@@ -65,10 +65,13 @@ function itemLabel(item, kind) {
     const hex = raw.startsWith("sha256:") ? raw.slice(7) : raw;
     const short = raw ? ` · ${raw.startsWith("sha256:") ? "sha256:" : ""}${hex.slice(0, 8)}` : "";
     const hash = raw ? short : item?.subject_hash_error ? ` · ${copy("webui.channel.pending-hash-error")}` : "";
+    const changed = item?.changed_since_review ? ` · ${copy("pending.changed")}` : "";
     const meta =
       copy("webui.channel.pending-meta")
         .replace("{age}", String(item?.age_days))
-        .replace("{ratification}", item?.ratification || copy("webui.none")) + hash;
+        .replace("{ratification}", item?.ratification || copy("webui.none")) +
+      hash +
+      changed;
     return {
       title: item?.id || copy("webui.channel.pending"),
       meta,
@@ -99,14 +102,79 @@ function itemLabel(item, kind) {
   };
 }
 
+function pendingList(labelKey, values) {
+  if (!Array.isArray(values) || !values.length) {
+    return null;
+  }
+  return html`
+    <section class="pending-detail-section">
+      <p class="plate-meta pending-detail-label">${copy(labelKey)}</p>
+      <ul class="pending-detail-list">${values.map((value) => html`<li>${value}</li>`)}</ul>
+    </section>`;
+}
+
+function PendingDetail({ item }) {
+  const evidence = item?.evidence;
+  const receipts = Array.isArray(evidence?.receipts) ? evidence.receipts : [];
+  return html`
+    <div class="pending-detail" data-pending-detail="true">
+      <p class="plate-meta pending-detail-label">${copy("webui.channel.pending-ruling")}</p>
+      <p class="pending-detail-summary">${item?.ruling_summary || copy("webui.channel.pending-no-summary")}</p>
+      ${
+        item?.rubric
+          ? html`
+              <p class="plate-meta pending-detail-label">${copy("webui.channel.pending-briefing")}</p>
+              ${item.rubric.tier ? html`<p class="pending-detail-tier">${copy("webui.channel.pending-tier")}: ${item.rubric.tier}</p>` : null}
+              ${pendingList("webui.channel.pending-unblocks", item.rubric.unblocks)}
+              ${pendingList("webui.channel.pending-alignment", item.rubric.alignment)}
+              ${pendingList("webui.channel.pending-options", item.rubric.options)}
+            `
+          : html`<p class="plate-meta">${copy("webui.channel.pending-no-briefing")}</p>`
+      }
+      ${
+        evidence
+          ? html`<section class="pending-detail-section pending-detail-evidence">
+              <p class="plate-meta pending-detail-label">${copy("webui.channel.pending-evidence")}</p>
+              ${
+                receipts.length
+                  ? html`<ul class="pending-detail-list">
+                      ${receipts.map(
+                        (receipt) => html`
+                          <li>
+                            <span>${receipt.stem}</span>
+                            <span>${copy("webui.channel.pending-reviewer")}: ${receipt.reviewer || copy("pending.evidence-reviewer-unknown")}</span>
+                            <span>${copy("webui.channel.pending-verdict")}: ${receipt.verdict || copy("pending.evidence-verdict-unknown")}</span>
+                            <span>${receipt.subject_hash_matches === true ? copy("pending.evidence-match") : receipt.subject_hash_matches === false ? copy("pending.evidence-mismatch") : copy("pending.evidence-unverified")}</span>
+                          </li>
+                        `,
+                      )}
+                    </ul>`
+                  : html`<p class="plate-meta">${copy("webui.channel.pending-no-evidence")}</p>`
+              }
+            </section>`
+          : null
+      }
+      ${item?.changed_since_review ? html`<p class="pending-detail-changed">${copy("pending.changed")}</p>` : null}
+      <p class="pending-detail-prompt">${copy("webui.channel.pending-next")} ${item?.ruling_prompt || ""}</p>
+      <p class="pending-detail-reopen">${copy("webui.channel.pending-reopen")} <code>${item?.reopen_command || ""}</code></p>
+    </div>`;
+}
+
 function ChannelItem({ item, kind, onFocus }) {
   const label = itemLabel(item, kind);
   const nodeId = item?.node || (Array.isArray(item?.nodes) ? item.nodes[0] : undefined);
   const showFocus = Boolean(nodeId);
+  const pending = kind === "pending";
+  const [expanded, setExpanded] = useState(false);
+  const toggle = () => setExpanded((value) => !value);
   const fullText = [label.title, label.body, label.meta].filter(Boolean).join(" · ");
 
   return html`
-    <article class=${clsx("channel-item", label.badge && `tone-${label.badge.tone}`)} title=${fullText}>
+    <article
+      class=${clsx("channel-item", label.badge && `tone-${label.badge.tone}`, pending && "pending-item")}
+      title=${fullText}
+      onClick=${pending ? toggle : undefined}
+    >
       <div class="channel-row">
         ${label.badge ? html`<span class=${clsx("channel-severity", label.badge.tone)}>${label.badge.text}</span>` : null}
         <span class="channel-code" title=${label.title}>${label.title}</span>
@@ -118,13 +186,32 @@ function ChannelItem({ item, kind, onFocus }) {
                 class="query-action channel-focus"
                 type="button"
                 title=${copy("webui.focus-node")}
-                onClick=${() => onFocus(nodeId)}
+                  onClick=${(event) => {
+                    event.stopPropagation();
+                    onFocus(nodeId);
+                  }}
               >
                 ${copy("webui.focus-node")}
               </button>`
             : null
         }
+        ${
+          pending
+            ? html`<button
+                class="query-action pending-toggle"
+                type="button"
+                aria-expanded=${expanded}
+                onClick=${(event) => {
+                  event.stopPropagation();
+                  toggle();
+                }}
+              >
+                ${copy(expanded ? "webui.channel.pending-close" : "webui.channel.pending-open")}
+              </button>`
+            : null
+        }
       </div>
+      ${pending && expanded ? html`<${PendingDetail} item=${item} />` : null}
     </article>`;
 }
 

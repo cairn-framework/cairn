@@ -26,6 +26,10 @@ The adopted framing for that boundary is:
 
 ## Decision
 
+Cairn decides what work exists and what is ready; a separate driver
+starts that work; the console only shows state and records rulings.
+The maintainer signs this split of jobs.
+
 1. **Ownership.** Cairn owns policy and control: selection truth, dependencies, readiness, leases as declarative truth, declarative lease policy, lease facts, and dispatch policy. The driver owns assignment, lease acquisition, lease renewal, active lease state, and dispatch scheduling: when work starts, retries, and supervision. The harness owns execution: how work runs.
 2. **Declarative control plane.** If cairn owns selection truth, dependencies, readiness, leases as declarative truth, declarative lease policy, lease facts, and dispatch policy, it is the declarative control plane by construction. This is declarative policy and record, not assignment, lease acquisition, renewal, active lease state, scheduling, execution, or supervision.
 3. **Console write authority.** Once this proposed binding decision is signed and its required supersession lands, the control-plane console alone may write through sanctioned surfaces: `cairn todo set` and `cairn feedback` today, plus the paired `cairn todo link` and `cairn todo unlink` relationship verbs when `todo.todo-relationship-schema-implementation` lands. The general UI and MCP surfaces receive no part of this grant. `dec.cli-agent-workflow-consolidation` carries the live todo and feedback obligations; `dec.todo-relationship-model` governs the relationship semantics.
@@ -42,15 +46,15 @@ Accepting this is not a status flip alone. This proposal narrows the accepted `d
 
 ## The rubric
 
-- **Tier**: `binding`. `nodes: [cairn.root, cairn.ui, cairn.mcp]` spans the system root, UI, and MCP nodes, this decision supersedes nothing while proposed, and its authored surface is `meta/decisions/control-plane-programme.md`; its boundary refines two accepted authorities and requires maintainer-only ratification.
-- **Unblocks**: `todo.overharness-console-ux` Task 1's programme-decision prerequisite and the console unit's eventual signed write and dispatch ruling. This todo tracks the maintainer signature rather than closing at enqueue.
+- **Tier**: `binding`. It rules the system root, the UI, and the MCP surface at once, refines two accepted decisions, and only the maintainer can sign it. The mechanical detail lives in Rationale.
+- **Unblocks**: the console's signed write and dispatch ruling. The read-only console already shipped as the fallback; this signature is the only thing the wider console waits on.
 - **Alignment**: Against `dec.cairn-mission` first, this decision protects the maintainable, investigable, extendable, and fit-for-purpose properties by making the console boundary explicit and queryable.
-  - Goal 1: Agents keep working while selectable work exists because the proposed binding item is visible in the signature queue and the console can proceed with read-only composition while it waits.
-  - Goal 2: Guardrails keep the result aligned because ownership, write authority, and dispatch authority are recorded in the graph rather than left to session memory.
-  - Goal 3: The maintainer signs only the binding boundary, while sanctioned writes and external dispatch keep ordinary console work outside that signature.
+  - Goal 1: Agents keep working while selectable work exists because this decision is visible in the signature queue and the console keeps its read-only view while it waits.
+  - Goal 2: Guardrails keep the result aligned because who owns the rules, who may write, and who starts work are recorded in the graph rather than left to session memory.
+  - Goal 3: The maintainer signs only this split of jobs; the console's approved write commands and the driver's work keep day-to-day activity outside that signature.
   - Goal 4: The decision is enqueued before implementation, so a late signature is visible and the console can reroute to read-only work instead of creating a surprise signature.
-  - Goal 5: The target is recorded in this artefact and becomes queue-visible when `todo.pending-queue-briefing` lands, rather than being claimed as a field that `cairn pending` already renders.
-- **Options considered**: (a) keep authorship inside the console unit, which leaves the signature on the campaign tail; (b) let the console own policy, control, and dispatch, which collapses the boundary; (c) adopt the three-owner boundary, grant this console sanctioned writes only, and leave dispatch to the driver, which is the recommendation. The cost of rejecting option (c) is a stalled signature or an unauthorised orchestration surface.
+  - Goal 5: This record names the target, and the signature queue now shows it.
+- **Options considered**: (a) keep authorship inside the console unit, which leaves the signature on the campaign tail; (b) let the console own policy, control, and dispatch, which collapses the boundary; (c) split the jobs three ways: cairn holds the rules, the console writes only through the approved commands, and the driver starts work. This is the recommendation. The cost of rejecting option (c) is a stalled signature or a console that starts work nobody authorised.
 
 ## Rationale
 

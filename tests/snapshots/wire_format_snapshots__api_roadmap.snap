@@ -3,7 +3,7 @@ source: tests/wire_format_snapshots.rs
 expression: value
 ---
 {
-  "schema_version": 9,
+  "schema_version": 10,
   "tiers": [
     {
       "items": [
