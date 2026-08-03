@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.scanner
-status: open
+status: done
 created: 2026-07-16
 ---
 
@@ -34,3 +34,11 @@ cairn.kernel.scanner) is done; its change proposal settles the finding
 tier, code, message wording, and the
 `.cairn/state/contract-baselines.json` schema. Implement against that
 proposal.
+
+## Delivered (status restored 2026-08-03)
+
+The unit shipped: `src/scanner/contract_shape.rs` emits
+`CAIRN_CONTRACT_NODE_SHAPE_DRIFT` on every scan and
+`src/summariser/accept.rs` records the baseline. A stray pre-landing
+edit had reopened this record; it is closed against the shipped code,
+not re-enqueued.

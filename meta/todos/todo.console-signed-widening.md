@@ -1,8 +1,8 @@
 ---
 node: cairn.ui
-status: open
+status: blocked
 created: 2026-08-03
-related: [dec.control-plane-programme, todo.overharness-console-ux]
+related: [dec.control-plane-programme, todo.overharness-console-ux, dec.orchestration-placement]
 ---
 
 # Console Signed Widening
@@ -42,3 +42,10 @@ means: sanctioned todo verbs and the feedback intake seam under the
 signed ownership split, wired so the driver (todo.driver-in-repo)
 dispatches and the console shows and records. Build after the placement
 decision is signed, alongside the driver unit.
+
+## Active gate (2026-08-03)
+
+Blocked on the maintainer signing `dec.orchestration-placement`; that
+gate is external, so no `blocked_by:` entry is declarable (ruling 4 of
+`dec.todo-relationship-model`). The earlier control-plane gate cleared
+with its signature; this later gate arrived with the placement record.
