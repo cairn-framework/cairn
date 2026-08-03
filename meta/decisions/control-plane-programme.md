@@ -4,17 +4,18 @@ nodes:
   - cairn.root
   - cairn.ui
   - cairn.mcp
-status: proposed
+status: accepted
 ratification: binding
 date: 2026-08-02
 informed_by:
   - res.inversion-convergence-minutes
 refines: [dec.product-perimeter, dec.north-star-continuous-loop]
+supersedes: [dec.user-surfaces]
 ---
 
 # Control-plane programme boundary
 
-`status: proposed` is intentional: this binding decision is enqueued for maintainer signature and is not self-ratified.
+Accepted 2026-08-03 by maintainer ratification in session; the ratification protocol below was executed in the acceptance commit.
 
 ## Context
 

@@ -21,10 +21,13 @@ hardcoded `const` (`src/map/module_size.rs:44`), deliberately mirrored
 byte-for-byte with `scripts/check-file-sizes.sh`. The documented escape is
 per-file: a `cairn:allow-large-module reason: <reason>` marker on the first
 non-blank line (`src/map/module_size.rs:3-8`, `:41-43`). What does not exist is a
-project-level knob: `scanner::config::Config`
-(`src/scanner/config/mod.rs:49`) carries only `ignores` and context, so an adopter
-cannot raise the threshold, cannot lower the severity of one finding code, and
-cannot declare a baseline.
+project-level knob for THIS check: `scanner::config::Config`
+(`src/scanner/config/mod.rs:49`) already carries generic surfaces
+(ignores, context, rules, artefact types, targets, intentional
+asymmetries, gates, a decision-accumulation threshold), but nothing for
+module size: no threshold override, no per-code severity control, and no
+recorded baseline. Any design should extend those existing generic
+patterns rather than invent a parallel config.
 
 Measured on the MAG repository (onboarded with the released 0.9.0 installer
 binary; the scan reported here was run with a `main` build at `00c212a`, and the
@@ -47,7 +50,9 @@ a large existing codebase meeting it for the first time.
 ## Scope
 
 - Rule on where the module-size guideline belongs for an adopter project. Options,
-  not a decision: make the threshold configurable in `.cairn/config` with 500 as
+  not a decision: make the threshold configurable in root-level `cairn.config.yaml` (the
+  scanner's only recognised config surface; today it lacks any
+  module-size or severity fields) with 500 as
   the default; let a project opt a finding code down to Info or off; accept a
   recorded baseline so pre-existing violations are acknowledged once and only new
   ones warn; or scope the check to opt-in projects, with this repository as an
