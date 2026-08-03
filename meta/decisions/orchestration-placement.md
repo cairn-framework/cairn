@@ -7,8 +7,8 @@ status: proposed
 ratification: binding
 date: 2026-08-03
 informed_by: [res.inversion-convergence-minutes]
-refines: [dec.no-orchestrator, dec.product-perimeter]
-related: [dec.control-plane-programme, dec.north-star-continuous-loop]
+refines: [dec.product-perimeter]
+related: [dec.control-plane-programme, dec.north-star-continuous-loop, dec.no-orchestrator]
 revisit_triggers:
   - "the driver's first in-repo implementation needs a capability the core graph must actively provide (would move orchestration logic into the substrate, which this record forbids)"
   - "declarative workflow definitions prove unexpressible as cairn artefacts and demand an imperative engine (reopens the layer boundary)"
@@ -20,8 +20,9 @@ revisit_triggers:
 
 This record is about where orchestration logic sits, not whether cairn
 orchestrates. The core graph remains a passive substrate: it never
-schedules, dispatches, or supervises, exactly as `dec.no-orchestrator`
-rules today. What changes is the home of the layer above it: the driver
+schedules, dispatches, or supervises, exactly as the live orchestration
+rule in `dec.product-perimeter` (which superseded `dec.no-orchestrator`
+and carries its boundary forward) requires today. What changes is the home of the layer above it: the driver
 may live in this repository as a distinct layer on top of the core, the
 webui fronts that driver as its steering surface, and declarative
 cairn-based workflows are in scope for that layer. Recorded as intent
@@ -30,15 +31,16 @@ signed.
 
 ## What this refines, and what it does not touch
 
-`dec.no-orchestrator` ruled that the core is a graph other orchestrators
-traverse, and that moving the driver in-repo requires a new binding
-decision. This is that decision, for the placement clause only: the
+The lineage ruled that the core is a graph other orchestrators traverse
+and that moving the driver in-repo requires a new binding decision
+(`dec.no-orchestrator`, now historical: `dec.product-perimeter`
+superseded it and carries the rule). This is that decision, for the
+placement clause of the live authority only: the
 core-is-not-a-loop-engine ruling stands untouched; the
 driver-outside-the-repo clause is refined so the repository may host the
-driver as a separate layer above the core. `dec.product-perimeter`'s
-boundary is refined the same way: build, delivery, and runtime facts
-stay inside cairn's investigation boundary; scheduling, execution, and
-supervision stay outside the CORE's actuation boundary while living
+driver as a separate layer above the core. Build, delivery, and runtime
+facts stay inside cairn's investigation boundary; scheduling, execution,
+and supervision stay outside the CORE's actuation boundary while living
 inside this monorepo as their own layer.
 
 A reader matching this against "no orchestration" should read the
@@ -63,7 +65,7 @@ the repository.
 
 ## The rubric
 
-- **Tier**: `binding`. It refines two accepted binding decisions and
+- **Tier**: `binding`. It refines the live accepted orchestration authority and
   moves a repository boundary; only the maintainer can sign it.
 - **Unblocks**: the driver todo and the widened console scope; both are
   recorded now and start only after this signature.
@@ -89,8 +91,9 @@ the repository.
 
 ## Rationale
 
-The maintainer ratified on 2026-07-01 that cairn is a causal steering
-force rather than a passive map, and the 2026-08-02 campaign shipped the
+The maintainer ratified the inversion programme framing on 2026-07-31
+(`res.inversion-convergence-minutes`, row R5: cairn steers rather than
+passively maps), and the 2026-08-02 campaign shipped the
 read-only console under `dec.control-plane-programme`'s three-owner
 split. The remaining ambiguity was never whether orchestration exists;
 it was which layer owns it and which repository hosts that layer. This

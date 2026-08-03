@@ -51,9 +51,9 @@ Three concrete gaps, all in the same code path:
 3. **The generated proposal does not warn against treating confidence as
    correctness.** `write_change` in `src/brownfield/mod.rs:83-96` writes a heading
    and a candidate list of the form ``- `src.alpha` (alpha) at `src/alpha`
-   (confidence 0.70)``. Confidence is a file-count/coupling bucket
-   (`src/brownfield/heuristics.rs`), pure filesystem evidence, but reads as an
-   architectural claim. `docs/brownfield.md` states the limits correctly; the
+   (confidence 0.70)``. Confidence is a source-file-count score
+   (`compute_confidence` in `src/brownfield/discovery.rs`), pure
+   filesystem evidence, but reads as an architectural claim. `docs/brownfield.md` states the limits correctly; the
    artefact the reviewer actually opens does not.
 
 Runtime repro above used a `main` build at `00c212a`. The branch source is

@@ -47,7 +47,9 @@ a large existing codebase meeting it for the first time.
 ## Scope
 
 - Rule on where the module-size guideline belongs for an adopter project. Options,
-  not a decision: make the threshold configurable in `.cairn/config` with 500 as
+  not a decision: make the threshold configurable in root-level `cairn.config.yaml` (the
+  scanner's only recognised config surface; today it lacks any
+  module-size or severity fields) with 500 as
   the default; let a project opt a finding code down to Info or off; accept a
   recorded baseline so pre-existing violations are acknowledged once and only new
   ones warn; or scope the check to opt-in projects, with this repository as an

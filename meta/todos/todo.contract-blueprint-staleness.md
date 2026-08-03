@@ -29,8 +29,8 @@ to module-blueprint commits; the adaptation keeps the kernel, drops git).
 Warning tier interacts with `scan --strict`, so wording and tier should
 get a change proposal before implementation.
 
-blocked on: todo.contract-node-shape-drift-proposal (node cairn.kernel.scanner),
-which settles the finding tier, code, message wording, and the
-`.cairn/state/contract-baselines.json` schema in a change proposal. The
-"Motivation" paragraph above already requires that proposal before
-implementation; this line names the unit that produces it.
+Prerequisite delivered: todo.contract-node-shape-drift-proposal (node
+cairn.kernel.scanner) is done; its change proposal settles the finding
+tier, code, message wording, and the
+`.cairn/state/contract-baselines.json` schema. Implement against that
+proposal.
