@@ -213,6 +213,7 @@ function App() {
         [selectionId]: {
           contracts: [],
           decisions: [],
+          decisionIndex: {},
           sources: [],
           evidence: [],
           symbols: Array.isArray(fallback?.symbols) ? fallback.symbols : [],

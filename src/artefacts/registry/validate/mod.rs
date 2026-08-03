@@ -7,9 +7,9 @@ use io::{error, info, warning};
 use std::collections::BTreeMap;
 
 mod filenames;
+mod provenance;
 mod relations;
 mod sources;
-
 pub(super) fn validate_integrity(root: &Path, node_ids: &BTreeSet<String>, set: &mut ArtefactSet) {
     let research_ids = set
         .research
@@ -171,6 +171,7 @@ pub(super) fn validate_decision_refs(
             }
         }
     }
+    provenance::validate_refined_authority(set);
 }
 
 /// Ensures each decision receipt names a loaded Review artefact file stem.

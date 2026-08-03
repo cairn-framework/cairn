@@ -185,6 +185,8 @@ fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> Artefact
             informed_by: Vec::new(),
             supersedes: Vec::new(),
             refines: Vec::new(),
+            refined_by: Vec::new(),
+            superseded_by: Vec::new(),
             related: Vec::new(),
             orphaned: false,
             orphan_reason: None,

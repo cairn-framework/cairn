@@ -12,6 +12,26 @@ pub(crate) fn render_pending_detail(row: &PendingDecision) -> String {
             .replace("{id}", &row.id)
             .replace("{age}", &row.age_days.to_string())
     );
+    for edge in &row.refined_by {
+        let _ = writeln!(
+            out,
+            "{}",
+            copy::lookup("pending.refined-by")
+                .replace("{id}", &edge.id)
+                .replace("{status}", &edge.status)
+                .replace("{date}", &edge.date)
+        );
+    }
+    for edge in &row.superseded_by {
+        let _ = writeln!(
+            out,
+            "{}",
+            copy::lookup("pending.superseded-by")
+                .replace("{id}", &edge.id)
+                .replace("{status}", &edge.status)
+                .replace("{date}", &edge.date)
+        );
+    }
     if let Some(summary) = row.ruling_summary.as_deref() {
         let _ = writeln!(
             out,
@@ -127,7 +147,7 @@ fn render_pending_evidence(out: &mut String, row: &PendingDecision) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::query_api::{PendingEvidence, PendingReceipt, PendingTier};
+    use crate::query_api::{PendingDecisionEdge, PendingEvidence, PendingReceipt, PendingTier};
 
     #[test]
     fn unknown_hash_receipt_renders_the_unverified_label() {
@@ -136,6 +156,12 @@ mod tests {
             age_days: 1,
             nodes: vec!["app".to_owned()],
             ratification: PendingTier::Local,
+            refined_by: vec![PendingDecisionEdge {
+                id: "dec.refiner".to_owned(),
+                status: "accepted".to_owned(),
+                date: "2026-08-03".to_owned(),
+            }],
+            superseded_by: Vec::new(),
             subject_hash: Some("sha256:aaa".to_owned()),
             subject_hash_error: None,
             ruling_summary: None,
@@ -160,6 +186,10 @@ mod tests {
         assert!(
             !rendered.contains("does not match current reviewed material"),
             "unknown must not claim a mismatch: {rendered}"
+        );
+        assert!(
+            rendered.contains("refined by dec.refiner, accepted 2026-08-03"),
+            "reverse provenance renders in the briefing: {rendered}"
         );
     }
 }

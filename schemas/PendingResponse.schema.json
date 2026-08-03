@@ -43,6 +43,13 @@
           ],
           "description": "Parsed ratification tier; absent frontmatter defaults to `binding`."
         },
+        "refined_by": {
+          "description": "Decisions that refine this pending decision.",
+          "items": {
+            "$ref": "#/definitions/PendingDecisionEdge"
+          },
+          "type": "array"
+        },
         "reopen_command": {
           "description": "Exact command that reproduces this briefing in full.",
           "type": "string"
@@ -82,6 +89,13 @@
             "string",
             "null"
           ]
+        },
+        "superseded_by": {
+          "description": "Decisions that supersede this pending decision.",
+          "items": {
+            "$ref": "#/definitions/PendingDecisionEdge"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -90,8 +104,33 @@
         "id",
         "nodes",
         "ratification",
+        "refined_by",
         "reopen_command",
-        "ruling_prompt"
+        "ruling_prompt",
+        "superseded_by"
+      ],
+      "type": "object"
+    },
+    "PendingDecisionEdge": {
+      "description": "One reverse provenance edge carried by a pending decision briefing.",
+      "properties": {
+        "date": {
+          "description": "Referenced decision date.",
+          "type": "string"
+        },
+        "id": {
+          "description": "Referenced decision ID.",
+          "type": "string"
+        },
+        "status": {
+          "description": "Referenced decision status.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "date",
+        "id",
+        "status"
       ],
       "type": "object"
     },

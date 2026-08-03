@@ -177,6 +177,12 @@ pub struct Decision {
     pub supersedes: Vec<String>,
     /// Refined decision IDs.
     pub refines: Vec<String>,
+    /// Computed IDs of decisions that refine this decision at load time.
+    /// This is never parsed from decision frontmatter.
+    pub refined_by: Vec<String>,
+    /// Computed IDs of decisions that supersede this decision at load time.
+    /// This is never parsed from decision frontmatter.
+    pub superseded_by: Vec<String>,
     /// Related decision IDs.
     pub related: Vec<String>,
     /// Whether all node references are intentionally orphaned.

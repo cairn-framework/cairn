@@ -59,6 +59,8 @@ pub(super) fn decision_json(decision: &Decision) -> Value {
         "informed_by": decision.informed_by,
         "supersedes": decision.supersedes,
         "refines": decision.refines,
+        "refined_by": decision.refined_by,
+        "superseded_by": decision.superseded_by,
         "related": decision.related,
         "ratification": ratification_tier(decision.ratification),
         "ratified_by": ratified_by_wire(decision),
@@ -140,6 +142,25 @@ pub(super) fn decision_enriched_json(decision: &Decision, root: &std::path::Path
     value
 }
 
+/// Status and date for every loaded decision, including records omitted from a
+/// node-scoped decision list but named by a reverse provenance edge.
+pub(super) fn decision_index_json(decisions: &[Decision]) -> Value {
+    Value::Object(
+        decisions
+            .iter()
+            .map(|decision| {
+                (
+                    decision.id.clone(),
+                    json!({
+                        "status": decision_status(decision.status),
+                        "date": decision.date,
+                    }),
+                )
+            })
+            .collect(),
+    )
+}
+
 /// Enriched research wire. Keeps the shared `research_json` fields and adds
 /// `path`, `title`, and `body`.
 pub(super) fn research_enriched_json(research: &Research, root: &std::path::Path) -> Value {
@@ -177,13 +198,13 @@ pub(super) fn findings_json(findings: &[Finding]) -> Vec<Value> {
         .collect()
 }
 
-/// IDs of accepted decisions that reference the node directly. Shared by the
-/// `get` JSON payload and the human `cairn get` rendering so both surfaces
-/// carry the same accepted-decision pointers.
-pub(crate) fn accepted_decision_ids(
-    scan_result: &scanner::ScanResult,
+/// Accepted decisions that reference the node directly. Shared by the `get`
+/// JSON payload and the human `cairn get` rendering so both surfaces carry
+/// the same accepted decision records.
+pub(crate) fn accepted_decisions<'a>(
+    scan_result: &'a scanner::ScanResult,
     node_id: &str,
-) -> Vec<String> {
+) -> Vec<&'a Decision> {
     scan_result
         .artefacts
         .decisions
@@ -192,7 +213,6 @@ pub(crate) fn accepted_decision_ids(
             decision.status == DecisionStatus::Accepted
                 && decision.nodes.iter().any(|node| node == node_id)
         })
-        .map(|decision| decision.id.clone())
         .collect()
 }
 

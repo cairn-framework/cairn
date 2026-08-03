@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: in_progress
+status: done
 created: 2026-07-31
 ---
 

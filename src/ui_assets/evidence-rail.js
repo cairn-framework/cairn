@@ -108,16 +108,38 @@ const lineKindLabels = {
   },
 };
 
-function LineageRow({ item, kindLabel, onOpen }) {
+function LineageRow({ item, kindLabel, onOpen, decisionIndex }) {
   const title = item?.title || item?.id || item?.path || copy("webui.artefact");
   const kind = lineKindLabels[kindLabel] || lineKindLabels["lineage-rationale"];
+  const reverseLines =
+    kindLabel === "lineage-decisions"
+      ? [
+          ...(Array.isArray(item?.refined_by) ? item.refined_by : []).map((id) => ({
+            id,
+            copyKey: "webui.decision-refined-by",
+          })),
+          ...(Array.isArray(item?.superseded_by) ? item.superseded_by : []).map((id) => ({
+            id,
+            copyKey: "webui.decision-superseded-by",
+          })),
+        ].map(({ id, copyKey }) => {
+          const target = decisionIndex?.get(id) || {};
+          return copy(copyKey)
+            .replace("{id}", id)
+            .replace("{status}", target.status || "")
+            .replace("{date}", target.date || "");
+        })
+      : [];
 
   return html`
     <button class="lineage-row" type="button" onClick=${() => onOpen(item)}>
       <span class="lineage-row-kind" title=${copy(`webui.${kind.label}`)}>
         ${kind.short}
       </span>
-      <span class="lineage-row-title" title=${title}>${title}</span>
+      <span class="lineage-row-details">
+        <span class="lineage-row-title" title=${title}>${title}</span>
+        ${reverseLines.map((line) => html`<span class="plate-meta">${line}</span>`)}
+      </span>
     </button>
   `;
 }
@@ -126,6 +148,11 @@ function LineagePlate({ artefacts = {}, onOpen, selectedItem }) {
   const evidence = Array.isArray(artefacts.evidence) ? artefacts.evidence : [];
   const decisions = Array.isArray(artefacts.decisions) ? artefacts.decisions : [];
   const authority = Array.isArray(artefacts.sources) ? artefacts.sources : [];
+  const responseIndex = artefacts?.decisionIndex;
+  const decisionIndex = new Map(responseIndex && typeof responseIndex === "object" && !Array.isArray(responseIndex) ? Object.entries(responseIndex) : []);
+  decisions.forEach((item) => {
+    decisionIndex.set(item?.id, item);
+  });
   const selected = selectedItem && typeof selectedItem === "object" ? selectedItem : null;
 
   return html`
@@ -133,15 +160,15 @@ function LineagePlate({ artefacts = {}, onOpen, selectedItem }) {
       <h3 class="plate-title">${copy("webui.lineage")}</h3>
       <section class="lineage-stage">
         <p class="lineage-kind">${copy("webui.lineage-rationale")}</p>
-        ${evidence.length ? evidence.map((item) => html`<${LineageRow} item=${item} kindLabel="lineage-rationale" onOpen=${onOpen} />`) : html`<p class="plate-meta">${copy("webui.lineage-empty")}</p>`}
+        ${evidence.length ? evidence.map((item) => html`<${LineageRow} item=${item} kindLabel="lineage-rationale" onOpen=${onOpen} decisionIndex=${decisionIndex} />`) : html`<p class="plate-meta">${copy("webui.lineage-empty")}</p>`}
       </section>
       <section class="lineage-stage">
         <p class="lineage-kind">${copy("webui.lineage-decisions")}</p>
-        ${decisions.length ? decisions.map((item) => html`<${LineageRow} item=${item} kindLabel="lineage-decisions" onOpen=${onOpen} />`) : html`<p class="plate-meta">${copy("webui.decision-empty")}</p>`}
+        ${decisions.length ? decisions.map((item) => html`<${LineageRow} item=${item} kindLabel="lineage-decisions" onOpen=${onOpen} decisionIndex=${decisionIndex} />`) : html`<p class="plate-meta">${copy("webui.decision-empty")}</p>`}
       </section>
       <section class="lineage-stage">
         <p class="lineage-kind">${copy("webui.lineage-authority")}</p>
-        ${authority.length ? authority.map((item) => html`<${LineageRow} item=${item} kindLabel="authority" onOpen=${onOpen} />`) : html`<p class="plate-meta">${copy("webui.authority-empty")}</p>`}
+        ${authority.length ? authority.map((item) => html`<${LineageRow} item=${item} kindLabel="authority" onOpen=${onOpen} decisionIndex=${decisionIndex} />`) : html`<p class="plate-meta">${copy("webui.authority-empty")}</p>`}
       </section>
       ${selected ? html`<${EvidenceItemPreview} artefact=${selected} onBack=${() => onOpen(null)} />` : null}
     </article>

@@ -559,6 +559,7 @@
         "src/artefacts/frontmatter.rs",
         "src/artefacts/mod.rs",
         "src/artefacts/registry/changes.rs",
+        "src/artefacts/registry/dates.rs",
         "src/artefacts/registry/io.rs",
         "src/artefacts/registry/kinds.rs",
         "src/artefacts/registry/kinds/tests.rs",
@@ -569,9 +570,11 @@
         "src/artefacts/registry/mod.rs",
         "src/artefacts/registry/parse.rs",
         "src/artefacts/registry/sha256.rs",
+        "src/artefacts/registry/tests.rs",
         "src/artefacts/registry/types.rs",
         "src/artefacts/registry/validate/filenames.rs",
         "src/artefacts/registry/validate/mod.rs",
+        "src/artefacts/registry/validate/provenance.rs",
         "src/artefacts/registry/validate/relations.rs",
         "src/artefacts/registry/validate/relations/tests.rs",
         "src/artefacts/registry/validate/sources.rs",
@@ -651,16 +654,16 @@
           "kind": "enum",
           "signature": "pub enum ResearchMethod",
           "file": "src/artefacts/registry/types.rs",
-          "line": 255,
-          "end_line": 261
+          "line": 261,
+          "end_line": 267
         },
         {
           "name": "ReviewType",
           "kind": "enum",
           "signature": "pub enum ReviewType",
           "file": "src/artefacts/registry/types.rs",
-          "line": 198,
-          "end_line": 205
+          "line": 204,
+          "end_line": 211
         },
         {
           "name": "SetFieldError",
@@ -675,8 +678,8 @@
           "kind": "enum",
           "signature": "pub enum SourceVerification",
           "file": "src/artefacts/registry/types.rs",
-          "line": 265,
-          "end_line": 275
+          "line": 271,
+          "end_line": 281
         },
         {
           "name": "TodoStatus",
@@ -731,8 +734,8 @@
           "kind": "function",
           "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 39,
-          "end_line": 49
+          "line": 42,
+          "end_line": 53
         },
         {
           "name": "load_contracts",
@@ -835,24 +838,24 @@
           "kind": "module",
           "signature": "pub mod types",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 26,
+          "end_line": 26
         },
         {
           "name": "ArtefactSet",
           "kind": "struct",
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
-          "line": 325,
-          "end_line": 342
+          "line": 331,
+          "end_line": 348
         },
         {
           "name": "ChangeRecord",
           "kind": "struct",
           "signature": "pub struct ChangeRecord",
           "file": "src/artefacts/registry/types.rs",
-          "line": 309,
-          "end_line": 321
+          "line": 315,
+          "end_line": 327
         },
         {
           "name": "Claims",
@@ -884,7 +887,7 @@
           "signature": "pub struct Decision",
           "file": "src/artefacts/registry/types.rs",
           "line": 147,
-          "end_line": 194
+          "end_line": 200
         },
         {
           "name": "DefersRef",
@@ -915,24 +918,24 @@
           "kind": "struct",
           "signature": "pub struct Research",
           "file": "src/artefacts/registry/types.rs",
-          "line": 234,
-          "end_line": 251
+          "line": 240,
+          "end_line": 257
         },
         {
           "name": "Review",
           "kind": "struct",
           "signature": "pub struct Review",
           "file": "src/artefacts/registry/types.rs",
-          "line": 209,
-          "end_line": 230
+          "line": 215,
+          "end_line": 236
         },
         {
           "name": "Source",
           "kind": "struct",
           "signature": "pub struct Source",
           "file": "src/artefacts/registry/types.rs",
-          "line": 279,
-          "end_line": 300
+          "line": 285,
+          "end_line": 306
         },
         {
           "name": "TaskProgress",
@@ -967,6 +970,14 @@
           "end_line": 218
         },
         {
+          "name": "compute_reverse_provenance",
+          "kind": "function",
+          "signature": "pub(crate) fn compute_reverse_provenance(decisions: &mut [Decision])",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 67,
+          "end_line": 100
+        },
+        {
           "name": "contained_file_sha256",
           "kind": "function",
           "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
@@ -979,16 +990,24 @@
           "kind": "function",
           "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 55,
-          "end_line": 57
+          "line": 59,
+          "end_line": 62
+        },
+        {
+          "name": "dates",
+          "kind": "module",
+          "signature": "pub(crate) mod dates",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 17,
+          "end_line": 17
         },
         {
           "name": "manifest",
           "kind": "module",
           "signature": "pub(crate) mod manifest",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 20,
+          "end_line": 20
         },
         {
           "name": "ARTEFACT_KINDS",
@@ -1027,8 +1046,8 @@
           "kind": "function",
           "signature": "pub(super) fn parse_claims( values: &std::collections::BTreeMap<String, String>, lists: &std::collections::BTreeMap<String, Vec<String>>, _path: &Path, ) -> Option<crate::artefacts::Claims>",
           "file": "src/artefacts/registry/kinds.rs",
-          "line": 184,
-          "end_line": 201
+          "line": 186,
+          "end_line": 203
         },
         {
           "name": "ArtefactKind",
@@ -1548,6 +1567,7 @@
         "src/cli/export/mermaid.rs",
         "src/cli/export/mod.rs",
         "src/cli/export/runner.rs",
+        "src/cli/format/decision.rs",
         "src/cli/format/json.rs",
         "src/cli/format/mod.rs",
         "src/cli/format/render.rs",
@@ -2474,6 +2494,7 @@
         "src/query_api/handlers/pending_brief.rs",
         "src/query_api/handlers/pending_brief_live_tests.rs",
         "src/query_api/handlers/pending_brief_tests.rs",
+        "src/query_api/handlers/pending_edges.rs",
         "src/query_api/handlers/pending_evidence.rs",
         "src/query_api/handlers/pending_evidence_tests.rs",
         "src/query_api/handlers/pending_rubric.rs",
@@ -2518,8 +2539,8 @@
           "kind": "enum",
           "signature": "pub enum PendingTier",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 26,
-          "end_line": 31
+          "line": 29,
+          "end_line": 34
         },
         {
           "name": "QueryFlag",
@@ -2550,48 +2571,48 @@
           "kind": "function",
           "signature": "pub fn as_str(self) -> &'static str",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 36,
-          "end_line": 41
+          "line": 39,
+          "end_line": 44
         },
         {
           "name": "envelope_json",
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 405,
-          "end_line": 412
+          "line": 406,
+          "end_line": 413
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 416,
-          "end_line": 423
+          "line": 417,
+          "end_line": 424
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 268,
-          "end_line": 326
+          "line": 269,
+          "end_line": 327
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 334,
-          "end_line": 385
+          "line": 335,
+          "end_line": 386
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 255,
-          "end_line": 261
+          "line": 256,
+          "end_line": 262
         },
         {
           "name": "EnvelopeFinding",
@@ -2614,8 +2635,16 @@
           "kind": "struct",
           "signature": "pub struct PendingDecision",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 55,
-          "end_line": 86
+          "line": 58,
+          "end_line": 93
+        },
+        {
+          "name": "PendingDecisionEdge",
+          "kind": "struct",
+          "signature": "pub struct PendingDecisionEdge",
+          "file": "src/query_api/handlers/pending_edges.rs",
+          "line": 9,
+          "end_line": 16
         },
         {
           "name": "PendingEvidence",
@@ -2638,8 +2667,8 @@
           "kind": "struct",
           "signature": "pub struct PendingResponse",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 90,
-          "end_line": 94
+          "line": 97,
+          "end_line": 101
         },
         {
           "name": "PendingRubric",
@@ -2830,8 +2859,8 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 395,
-          "end_line": 401
+          "line": 396,
+          "end_line": 402
         },
         {
           "name": "parse_pending_brief",
@@ -2846,16 +2875,16 @@
           "kind": "function",
           "signature": "pub(crate) fn pending_json( root: &std::path::Path, scan_result: &scanner::ScanResult, request: &super::super::QueryRequest, ) -> Result<Value, QueryError>",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 97,
-          "end_line": 120
+          "line": 104,
+          "end_line": 127
         },
         {
           "name": "pending_rows",
           "kind": "function",
           "signature": "pub(crate) fn pending_rows( root: &std::path::Path, scan_result: &scanner::ScanResult, ) -> Result<Vec<PendingDecision>, QueryError>",
           "file": "src/query_api/handlers/pending.rs",
-          "line": 123,
-          "end_line": 134
+          "line": 130,
+          "end_line": 141
         },
         {
           "name": "remediate_actions_raw",
@@ -2904,6 +2933,14 @@
           "file": "src/query_api/handlers/pending_brief.rs",
           "line": 164,
           "end_line": 172
+        },
+        {
+          "name": "edge_rows",
+          "kind": "function",
+          "signature": "pub(super) fn edge_rows( ids: &[String], decision_index: &BTreeMap<&str, &Decision>, ) -> Vec<PendingDecisionEdge>",
+          "file": "src/query_api/handlers/pending_edges.rs",
+          "line": 19,
+          "end_line": 31
         },
         {
           "name": "find_section",
@@ -2966,8 +3003,8 @@
           "kind": "module",
           "signature": "pub(super) mod spine",
           "file": "src/query_api/handlers/mod.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 18,
+          "end_line": 18
         }
       ]
     },
@@ -7648,6 +7685,54 @@
     }
   ],
   "findings": [
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-command-harness-model`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.loop-command-harness-model",
+      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-resolves-knowable-gaps`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.loop-resolves-knowable-gaps",
+      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.agent-pack-packaging` is refined by accepted decision `dec.pack-adapter-roots`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.pack-adapter-roots",
+      "path": "././meta/decisions/agent-pack-packaging.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.init-emits-agent-skills` is refined by accepted decision `dec.agent-pack-packaging`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.agent-pack-packaging",
+      "path": "././meta/decisions/init-emits-agent-skills.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.loop-reconcile-step`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.loop-reconcile-step",
+      "path": "././meta/decisions/loop-command-harness-model.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.unified-cairn-dev-entry`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.unified-cairn-dev-entry",
+      "path": "././meta/decisions/loop-command-harness-model.md"
+    },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",

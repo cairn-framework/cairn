@@ -438,11 +438,13 @@ fn test_execute_get_includes_accepted_decision_pointers() {
         &request,
     )
     .expect("get must succeed");
-    assert_eq!(
-        result.data.get("decisions"),
-        Some(&json!(["dec.keep"])),
-        "get must list accepted-decision pointers and omit non-accepted ones"
-    );
+    let decisions = result.data["decisions"]
+        .as_array()
+        .expect("decisions must be decision records");
+    assert_eq!(decisions.len(), 1);
+    assert_eq!(decisions[0]["id"], "dec.keep");
+    assert_eq!(decisions[0]["status"], "accepted");
+    assert_eq!(decisions[0]["refined_by"], json!([]));
     let _ = std::fs::remove_dir_all(&tmp);
 }
 

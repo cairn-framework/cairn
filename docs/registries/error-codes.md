@@ -142,6 +142,7 @@ All codes follow the pattern **`CXNNN`**:
 - CA058 -- todo relationship reference resolves to no loaded artefact (CAIRN_TODO_RELATION_UNKNOWN) -- todo.todo-relationship-schema-implementation
 - CA059 -- todos form a cycle through `blocked_by` or through `parent` (CAIRN_TODO_RELATION_CYCLE) -- todo.todo-relationship-schema-implementation
 - CA060 -- todo status contradicts its declared blockers (CAIRN_TODO_STATUS_CONTRADICTION) -- todo.todo-relationship-schema-implementation
+- CA061 -- accepted decision is refined by another accepted decision (CAIRN_DECISION_REFINED_AUTHORITY) -- todo.reverse-provenance-surfacing
 
 ## CC -- Changes
 

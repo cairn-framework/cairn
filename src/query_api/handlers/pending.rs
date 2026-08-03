@@ -7,7 +7,10 @@
 //! command. Local-tier rows expose the manifest hash a receipt must cover;
 //! unavailable manifests render as `null` with an error message.
 use super::pending_brief::{PendingRubric, parse_pending_brief};
+pub use super::pending_edges::PendingDecisionEdge;
+use super::pending_edges::edge_rows;
 use super::pending_evidence::PendingEvidence;
+use crate::artefacts::registry::dates::date_to_days;
 use crate::{
     artefacts::registry::{Decision, DecisionStatus},
     query_api::QueryError,
@@ -62,6 +65,10 @@ pub struct PendingDecision {
     pub nodes: Vec<String>,
     /// Parsed ratification tier; absent frontmatter defaults to `binding`.
     pub ratification: PendingTier,
+    /// Decisions that refine this pending decision.
+    pub refined_by: Vec<PendingDecisionEdge>,
+    /// Decisions that supersede this pending decision.
+    pub superseded_by: Vec<PendingDecisionEdge>,
     /// Current subject manifest for local-tier decisions, when it can be computed.
     pub subject_hash: Option<String>,
     /// Manifest construction failure for local-tier decisions, when one occurs.
@@ -141,6 +148,10 @@ fn pending_response(
     reviews: &[crate::artefacts::registry::Review],
     today: i64,
 ) -> Result<PendingResponse, QueryError> {
+    let decision_index = decisions
+        .iter()
+        .map(|decision| (decision.id.as_str(), decision))
+        .collect::<std::collections::BTreeMap<_, _>>();
     let mut pending = decisions
         .iter()
         .filter(|decision| decision.status == DecisionStatus::Proposed)
@@ -156,6 +167,8 @@ fn pending_response(
                 age_days: today - days,
                 nodes: decision.nodes.clone(),
                 ratification: decision.ratification.into(),
+                refined_by: edge_rows(&decision.refined_by, &decision_index),
+                superseded_by: edge_rows(&decision.superseded_by, &decision_index),
                 subject_hash,
                 subject_hash_error,
                 ruling_summary: brief.ruling_summary,
@@ -211,58 +224,6 @@ fn today_days() -> i64 {
     #[allow(clippy::cast_possible_wrap)]
     let days = (secs / SECS_PER_DAY as u64) as i64;
     days
-}
-
-/// Strict `YYYY-MM-DD` to whole days since the Unix epoch. Rejects malformed
-/// shapes and out-of-range calendar components.
-fn date_to_days(value: &str) -> Option<i64> {
-    let bytes = value.as_bytes();
-    if bytes.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
-        return None;
-    }
-    if !bytes
-        .iter()
-        .enumerate()
-        .all(|(i, b)| matches!(i, 4 | 7) || b.is_ascii_digit())
-    {
-        return None;
-    }
-    let year: i64 = value[0..4].parse().ok()?;
-    let month: i64 = value[5..7].parse().ok()?;
-    let day: i64 = value[8..10].parse().ok()?;
-    if !(1..=12).contains(&month) {
-        return None;
-    }
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-    let month_len = [
-        31,
-        if leap { 29 } else { 28 },
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31,
-    ][usize::try_from(month - 1).ok()?];
-    if !(1..=month_len).contains(&day) {
-        return None;
-    }
-    Some(days_from_civil(year, month, day))
-}
-
-/// Days from 1970-01-01 for a proleptic-Gregorian civil date (Howard
-/// Hinnant's `days_from_civil`).
-const fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
-    let y = if m <= 2 { y - 1 } else { y };
-    let era = y.div_euclid(400);
-    let yoe = y - era * 400;
-    let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + d - 1;
-    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era * 146_097 + doe - 719_468
 }
 
 #[cfg(test)]

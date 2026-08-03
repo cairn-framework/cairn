@@ -1,1 +1,1 @@
-{"schema_version":7,"node":"cairn.ui","nodes":["cairn.kernel.map","cairn.kernel.scanner","cairn.state"]}
+{"schema_version":11,"node":"cairn.ui","nodes":["cairn.kernel.map","cairn.kernel.scanner","cairn.state"]}

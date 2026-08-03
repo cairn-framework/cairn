@@ -8,7 +8,23 @@ expression: value
     "./meta/contracts/api.md"
   ],
   "decisions": [
-    "dec.api"
+    {
+      "id": "dec.api",
+      "informed_by": [
+        "res.api"
+      ],
+      "nodes": [
+        "app.api"
+      ],
+      "ratification": "binding",
+      "ratified_by": "maintainer",
+      "refined_by": [],
+      "refines": [],
+      "related": [],
+      "status": "accepted",
+      "superseded_by": [],
+      "supersedes": []
+    }
   ],
   "description": "api",
   "files": [
@@ -22,7 +38,7 @@ expression: value
   "paths": [
     "./src/api"
   ],
-  "schema_version": 10,
+  "schema_version": 11,
   "span": {
     "column": 5,
     "end_column": 14,

@@ -263,6 +263,8 @@ pub(in crate::cli::render) fn decision(id: &str, status: DecisionStatus) -> Deci
         informed_by: Vec::new(),
         supersedes: Vec::new(),
         refines: Vec::new(),
+        refined_by: Vec::new(),
+        superseded_by: Vec::new(),
         related: Vec::new(),
         orphaned: false,
         orphan_reason: None,

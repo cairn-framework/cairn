@@ -466,3 +466,15 @@ marker path {
   min-height: 0;
   height: 100%;
 }
+
+.lineage-row-details {
+  display: grid;
+  min-width: 0;
+  gap: var(--s-1);
+}
+
+.lineage-row-details .plate-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

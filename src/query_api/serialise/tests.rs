@@ -74,6 +74,8 @@ fn test_enriched_artefact_wires_include_title_and_body() {
         informed_by: vec!["res.api".to_owned()],
         supersedes: vec!["dec.old".to_owned()],
         refines: vec!["dec.parent".to_owned()],
+        refined_by: Vec::new(),
+        superseded_by: Vec::new(),
         related: vec!["dec.cousin".to_owned()],
         orphaned: false,
         orphan_reason: None,
