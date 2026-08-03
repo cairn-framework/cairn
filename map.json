@@ -7734,6 +7734,29 @@
       "path": "././meta/decisions/loop-command-harness-model.md"
     },
     {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.north-star-continuous-loop` is refined by accepted decision `dec.control-plane-programme`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.control-plane-programme",
+      "path": "././meta/decisions/north-star-continuous-loop.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.product-perimeter` is refined by accepted decision `dec.control-plane-programme`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.control-plane-programme",
+      "path": "././meta/decisions/product-perimeter.md"
+    },
+    {
+      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
+      "severity": "info",
+      "message": "todo `todo.ui-asset-refresh` is blocked while every declared blocker is done",
+      "node": null,
+      "path": "././meta/todos/todo.ui-asset-refresh.md"
+    },
+    {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.overharness-design-threads` is not linked from any decision",
@@ -7779,6 +7802,13 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
+      "message": "Node `cairn.kernel.artefacts` carries 11 accepted decisions (threshold 10).",
+      "node": "cairn.kernel.artefacts",
+      "path": null
+    },
+    {
+      "code": "CAIRN_DECISION_ACCUMULATION",
+      "severity": "info",
       "message": "Node `cairn.kernel.cli` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.kernel.cli",
       "path": null
@@ -7793,7 +7823,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.root` carries 12 accepted decisions (threshold 10).",
+      "message": "Node `cairn.root` carries 13 accepted decisions (threshold 10).",
       "node": "cairn.root",
       "path": null
     }

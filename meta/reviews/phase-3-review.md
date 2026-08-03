@@ -1,3 +1,10 @@
+---
+node: cairn.root
+date: 2026-04-15
+reviewer: historical/unattributed
+provenance_note: "frontmatter recovered 2026-08-03 from the file's git introduction date so the review corpus loads; body unchanged, reviewer identity not recorded at the time"
+---
+
 # Phase 3 Review
 
 ## Scope
