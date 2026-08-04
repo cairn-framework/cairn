@@ -49,9 +49,14 @@ without dispatching.
 
 ## Out of scope (exclusions)
 
-- Moving the driver into this repository. `dec.product-perimeter` binds and its
-  revisit trigger has not fired; `res.overharness-design-threads` thread d
-  leaves the question open for a future decision, not for this change.
+- Moving the driver into this repository. Reconciled 2026-08-03: the
+  future decision `res.overharness-design-threads` thread d was waiting
+  for now exists as `dec.orchestration-placement`, but it is proposed, so
+  `dec.product-perimeter` still binds and the external driver remains the
+  live plan. If that record is signed, the in-repo successor is
+  `todo.driver-in-repo`, and this change's task 1 audit is the direct
+  input to its selector-wire task. Either way, moving the driver is out
+  of scope here.
 - Machine verification that the review gate ran: owned by
   `todo.review-gate-machine-check`. This change only records what the driver
   dispatched and why.

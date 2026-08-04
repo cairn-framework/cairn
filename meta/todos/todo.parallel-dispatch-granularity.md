@@ -2,7 +2,7 @@
 node: cairn.root
 status: open
 created: 2026-07-31
-related: [res.inversion-convergence-minutes, todo.node-overlap-conflicts-query]
+related: [res.inversion-convergence-minutes, todo.node-overlap-conflicts-query, todo.console-orchestration-ux-design]
 ---
 
 # Parallel dispatch granularity: name the three rungs, design the third
@@ -42,6 +42,16 @@ every derived fact carries source, extractor plus version, observed_at,
 freshness, and completeness; deterministic, attested, and observed are
 distinct evidence classes and never blur. Output is a design plus an
 enqueued decision, not code.
+
+Added 2026-08-03, from the console's needs: rung 3's lease model must
+also answer what the steering surface has to render. What is a claim held
+on, a node or a work item, when one unit touches several nodes? What is a
+claim's identity, its expiry, and its renewal? What does a stale claim
+look like to a reader, and how does it differ from no claim at all? The
+word `lease` appears in no Rust source today, so this is genuinely open.
+`todo.console-orchestration-ux-design` contributes mockup evidence for
+these questions and consumes the ruling; it does not author a competing
+one.
 
 ## Acceptance
 

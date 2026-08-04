@@ -67,3 +67,45 @@ good milestone.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps releases tied to an explicit milestone.
+
+## Gate check (2026-08-03): NOT MET, gates 1 and 2 fail
+
+Checked against `main` at `b9d7c8c` with a freshly built binary. Rebuilding
+matters: a stale `target/release/cairn` reports the same tree as clean, so a
+stale binary can hide the blocker below; how it landed is that todo's open
+question.
+
+1. **Gate 1: FAIL.** `cairn scan --strict` exits 1 and `cairn hook all`
+   exits 1 on one Error finding,
+   `CAIRN_DECISION_CONVERGENCE_UNMET` against
+   `dec.bootstrap-fixture-corpus-split`. `cargo test --locked --workspace`
+   fails two tests in `tests/schema_validation.rs` for the same cause.
+   Filed as `todo.convergence-receipt-hash-drift`, which is now the
+   blocking prerequisite for this cut.
+2. **Gate 2: FAIL.** `cairn pending` lists one proposed decision,
+   `dec.orchestration-placement`. It is a binding record that supersedes
+   `dec.product-perimeter`, so only the maintainer can sign it, and it is
+   not parked: `todo.driver-in-repo` waits on it. Gate 2 clears when it is
+   signed or deliberately parked with that stated in its rubric.
+3. **Gate 3: PASS.** The ratification-tiers programme landed (PR #544,
+   archived as `2026-07-31-decision-ratification-tiers`). The one active
+   change, `driver-v2-selection`, touches no artefact schema and no
+   shipped pack: its declared delta is a single research artefact and
+   nothing under `src/`.
+4. **Gate 4: OUTSTANDING.** Maintainer confirmation of the bump. The
+   surface count since v0.9.0 is a minor bump under the 0.x policy.
+
+Other gate work still owed at cut time, unchanged by this check: the
+version bump, the changelog section derived from merged artefacts, the
+README status and roadmap refresh, and the full post-tag verification of
+GitHub Release, crates.io, and the Homebrew formula. The public asset
+staleness in `todo.ui-asset-refresh` is deliberately still blocked: the
+webui changes again under `todo.console-state-legibility` and
+`todo.console-signed-widening`, so re-recording now means recording
+twice.
+
+Add to the changelog scope, landed since the list above was written:
+`dec.control-plane-programme` and the read-only three-lane console
+(#572), and `dec.reverse-provenance-wire` with computed `refined_by` and
+`superseded_by` on schema version 11. `dec.orchestration-placement` joins
+that list only if it is signed before the cut.

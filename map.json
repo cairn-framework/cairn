@@ -7750,20 +7750,6 @@
       "path": "././meta/decisions/product-perimeter.md"
     },
     {
-      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
-      "severity": "info",
-      "message": "todo `todo.ui-asset-refresh` is blocked while every declared blocker is done",
-      "node": null,
-      "path": "././meta/todos/todo.ui-asset-refresh.md"
-    },
-    {
-      "code": "CAIRN_RESEARCH_ORPHAN",
-      "severity": "info",
-      "message": "research `res.overharness-design-threads` is not linked from any decision",
-      "node": null,
-      "path": "././meta/research/overharness-design-threads.md"
-    },
-    {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
@@ -7826,6 +7812,27 @@
       "message": "Node `cairn.root` carries 13 accepted decisions (threshold 10).",
       "node": "cairn.root",
       "path": null
+    },
+    {
+      "code": "CAIRN_DECISION_CONVERGENCE_UNMET",
+      "severity": "error",
+      "message": "Accepted local decision `dec.bootstrap-fixture-corpus-split` has receipts that fail the required convergence leg: receipt subject_hash does not equal the recomputed manifest.",
+      "node": "cairn.tests",
+      "path": "././meta/decisions/bootstrap-fixture-corpus-split.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.bootstrap-fixture-corpus-split-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.tests",
+      "path": "././meta/reviews/rev.bootstrap-fixture-corpus-split-correctness.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.bootstrap-fixture-corpus-split-simplicity.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.tests",
+      "path": "././meta/reviews/rev.bootstrap-fixture-corpus-split-simplicity.md"
     }
   ]
 }
