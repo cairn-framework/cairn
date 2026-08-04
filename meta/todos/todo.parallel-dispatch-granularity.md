@@ -53,6 +53,50 @@ word `lease` appears in no Rust source today, so this is genuinely open.
 these questions and consumes the ruling; it does not author a competing
 one.
 
+## Grill rulings (2026-08-04, maintainer in session)
+
+The orchestration grill (`studio/orchestration-grill-brief.md`) put Q1
+and Q2 to the maintainer. Both answers are ratified constraints on rung
+3's design document; the document itself still gets authored here.
+
+- **Q1, dispatch unit: the todo (work item).** Confirms the ratified
+  slate constraint unchanged: write-set derived as node-closure over
+  committed state, promoted to declared write-sets only on measured
+  false-overlap evidence. Dispatch is set-valued, not serial: the
+  driver takes the ready set (rung 1 waves), filters it to
+  pairwise-disjoint write-sets (rung 3), and dispatches one wave of
+  units to parallel worktrees. Units whose closures overlap queue
+  behind the lease, and the serialisation hotspots named in the task
+  keep explicit ownership.
+- **Q2, lease shape: lease facts are cairn truth.** Held on the
+  dispatch unit, never the node. This is the reading
+  `dec.control-plane-programme` clause 1 already signed: cairn owns
+  leases as declarative truth, declarative lease policy, and lease
+  facts; the driver owns acquisition, renewal, and active state as
+  actions. A lease fact carries unit id, holder (harness kind plus
+  session), commit at grant, granted_at, and expires_at. Renewal is a
+  driver-performed fact update to expires_at (rare, session-scale TTL
+  set by driver policy, never a heartbeat stream). Staleness is a
+  side-effect-free projection at query time: unit in_progress with an
+  expired lease. Stale is first-class and distinct from no claim: it
+  carries who held it, when it expired, and the recoverable residue
+  (surviving branch, worktree, open PR) that recovery policy acts on.
+  The core evaluates no expiry and starts nothing on any lease
+  transition.
+
+Required core seams this ruling implies (feeds the grill's Q8 and
+`todo.driver-in-repo` task 4): sanctioned lease verbs (grant, renew,
+release) written only by the driver, a lease-facts read surface the
+console and driver re-read, and one shared coordination store visible
+across parallel worktrees.
+
+The store is greenfield: the pluggable `StateBackend` (filesystem claim
+storage) was deleted by `dec.change-format-only` on the ground that
+claiming and sequencing are workflow. No atomic claim path exists to
+extend. Rung 3's decision must name that lineage explicitly: the ledger
+stores and serves driver-recorded facts, and cairn still runs no
+claiming, sequencing, or workflow logic.
+
 ## Acceptance
 
 - A design document (research artefact) covering derivation, grant,

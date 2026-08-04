@@ -83,9 +83,14 @@ outcome; it never selects or dispatches its successor.
 - A harness outcome is a message returned to the driver. It becomes a
   graph fact only when an authorised caller records it through a
   sanctioned verb.
-- Assignment, live lease state, and active, waiting, or blocked
-  execution state belong to the driver. They are not cairn truth and the
-  core does not infer them.
+- Recorded lease facts (unit, holder, commit at grant, expiry, renewal)
+  are cairn truth, written only by the driver through sanctioned verbs;
+  staleness is a side-effect-free projection over those facts at query
+  time (grill ruling 2026-08-04, aligning this clause with
+  `dec.control-plane-programme` clause 1). Assignment, lease
+  acquisition and renewal as actions, live session liveness, and
+  active, waiting, or blocked execution state belong to the driver. The
+  core evaluates no expiry and starts nothing on any lease transition.
 - Polling and subscription belong to the driver. A cairn change
   notification, where one exists, is an invalidation hint only: never
   canonical state, never a transition, never a dispatch command. The

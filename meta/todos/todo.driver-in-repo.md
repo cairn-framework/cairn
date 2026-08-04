@@ -71,6 +71,52 @@ executes one assigned action and returns its outcome.
   exactly a terminal token, `LOOP EXHAUSTED` without the unit's todo
   `done` on main, and a completion where the todo went `blocked`.
 
+## Grill rulings (2026-08-04, maintainer in session)
+
+The orchestration grill (`studio/orchestration-grill-brief.md`) put Q3
+to the maintainer; the answer below is a ratified constraint on task 3.
+
+- **Q3, outcome vocabulary: the harness emits only the three ratified
+  terminal tokens** (`ITERATION COMPLETE`, `LOOP EXHAUSTED`,
+  `LOOP HALTED`) as the exact final line. The driver derives the real
+  classification from verifiable repo state and records it as an
+  outcome fact keyed by unit id and commit. Derived classes: complete
+  and verified (todo `done` on refreshed main); complete but parked
+  (todo went `blocked`; never advances, the persisted recommendation
+  enters the signature queue); claim failed verification (token without
+  the landed flip; fail-closed, human moment); exhausted (driver
+  cross-checks its own selector read, two readers must agree); halted
+  (fail-closed, human attention); aborted (no token). `LOOP HALTED`
+  gains no source-side split: finer routing keys on repo evidence, not
+  on new tokens.
+- **Stall and no-return handling.** Abort reasons are driver-observed,
+  never agent claims: `crashed` (session exit without a token, seen by
+  supervision immediately), `stalled` (renewal is driver-performed and
+  conditional on observed progress, output or commits on the unit
+  branch; no progress means renewal withheld, TTL expiry, supervised
+  kill, residue quarantined, bounded retry then human moment). A driver
+  restart re-reads lease facts and classifies orphaned leases as stale.
+  Invariant, stated honestly: lease expiry bounds ambiguity, not driver
+  availability. While a driver supervises, every dispatched unit
+  reaches a recorded terminal outcome within one lease TTL regardless
+  of agent behaviour. With no live driver, an expired lease renders as
+  stale and unclassified until a driver returns and classifies it; the
+  console never promises a terminal fact that has not been recorded,
+  and a driver outage is itself a rendered state (no driver attached).
+- **Q4, workflow definition: an inert typed cairn artefact, evaluated
+  only by the driver** (task 2, confirming clause 3 of the placement
+  decision). Shape: a match predicate over dispatch units, a harness
+  route with context (skills, briefing), limits (wave size, TTL), and
+  an outcome-class routing table over Q3's derived classes. All slots
+  are closed vocabularies cairn validates at scan time; a workflow
+  never carries executable logic inline. Workflows name gates as rules
+  of engagement: a `require:` list of registered deterministic checks
+  (rust gates, scan strict, review receipts) bound to a named moment;
+  the driver enforces them on driver-observed evidence before the
+  routed action fires. Policy updates are ordinary artefact edits
+  landing through PR gates with provenance; the driver re-reads policy
+  each cycle, so a landed change binds at the next dispatch decision.
+
 ## Lease shape
 
 Do not freeze the lease and claim schema before
