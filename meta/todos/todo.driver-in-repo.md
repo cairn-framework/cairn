@@ -1,22 +1,20 @@
 ---
 node: cairn.root
-status: blocked
+status: open
 created: 2026-08-03
 related: [dec.orchestration-placement, dec.control-plane-programme, todo.console-orchestration-ux-design, todo.console-signed-widening, todo.parallel-dispatch-granularity, todo.review-gate-machine-check]
 ---
 
 # Driver In Repo
 
-`dec.orchestration-placement` (proposed, binding) would let the driver
-live in this repository as a distinct layer beside the passive core,
-fronted by the webui. This unit builds that layer once the record is
-signed.
+`dec.orchestration-placement` (accepted 2026-08-04, binding) lets the
+driver live in this repository as a distinct layer beside the passive
+core, fronted by the webui. This unit builds that layer.
 
-Blocked on the maintainer signing `dec.orchestration-placement`; that
-gate is external, so no `blocked_by:` entry is declarable (ruling 4 of
-`dec.todo-relationship-model`). The signature is not a formality here: it
-supersedes `dec.product-perimeter`, whose clause 4 keeps the driver
-outside the repository until then.
+The blocking gate cleared on 2026-08-04: the maintainer signed the
+placement decision at the close of the orchestration grill, superseding
+`dec.product-perimeter`, and this unit went `open` in the acceptance
+commit.
 
 The boundary is clauses 1 to 3 of that decision and it is not negotiable
 here: the core answers queries and applies sanctioned mutations and
@@ -134,11 +132,15 @@ to the maintainer; the answer below is a ratified constraint on task 3.
   suffices until measurably painful.
 - **Q9, surfaced gaps.** Four gaps no question owned, ruled by the
   maintainer. (1) Driver singleton: exactly one driver runs per
-  repository, enforced with the same lease machinery ruled in Q2: the
-  driver holds a lease fact on the driver singleton itself, and a
-  second claimant is a first-class rendered conflict, never a silent
-  split of the fleet; multi-device handoff later becomes a
-  driver-lease transfer. (2) Budget: the workflow `limits:` slot
+  repository. Within the shared coordination store of one checkout
+  family (the Q2 seam), the singleton grant is atomic and enforced; the
+  driver holds a lease fact on the driver singleton itself. Across
+  independent clones, repo-synced facts cannot mutually exclude, so a
+  second claimant is detected at sync and rendered as a first-class
+  conflict, never a silent split of the fleet; true cross-device
+  exclusion is deferred until a shared coordination authority exists,
+  when multi-device handoff becomes a driver-lease transfer. (2)
+  Budget: the workflow `limits:` slot
   carries per-unit and per-wave spend caps beside wave size and TTL;
   the driver refuses dispatch past a cap and queues a budget-exhausted
   human moment. (3) Authorised-caller trust model: deferred with a

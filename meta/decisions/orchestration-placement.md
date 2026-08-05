@@ -5,7 +5,7 @@ nodes:
   - cairn.reconcile
   - cairn.sse
   - cairn.ui
-status: proposed
+status: accepted
 ratification: binding
 date: 2026-08-03
 informed_by:
@@ -18,6 +18,7 @@ informed_by:
   - res.herdr-plugin-feasibility
   - res.cairn-domain-expandability
 refines: [dec.no-orchestrator]
+supersedes: [dec.product-perimeter]
 related:
   - dec.product-perimeter
   - dec.control-plane-programme
@@ -41,6 +42,10 @@ revisit_triggers:
 ---
 
 # Orchestration placement: the core stays passive, the driver moves in beside it
+
+Accepted 2026-08-04 by maintainer ratification in the orchestration
+grill session; the ratification protocol below was executed in the
+acceptance commit.
 
 ## Decision
 
