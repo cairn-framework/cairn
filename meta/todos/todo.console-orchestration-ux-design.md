@@ -162,3 +162,16 @@ amends through its owning artefact, never as an untracked tweak).
   driver-crashed stay distinct rendered states, and an expired lease
   with no live driver renders as stale and unclassified rather than
   promising a terminal outcome fact that was never recorded.
+
+## Mockup rounds (scheduled 2026-08-04)
+
+Agreed at the close of the orchestration grill. The interviewer renders
+static screens; the maintainer accepts or rejects each; a rejection
+routes back through the owning artefact per the brief's ratification
+proviso. Round 1: the state-source matrix and the journeys (tasks 1 and
+2), settling the planned, ghost, declared, buildable vocabulary (task
+4). Round 2: the required mockup scenarios (task 3), including the
+lease and granularity screens handed to
+`todo.parallel-dispatch-granularity` as evidence (task 5). Round 3:
+rejections reworked and the webui write-authority decision authored
+(task 6).

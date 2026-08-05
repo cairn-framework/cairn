@@ -40,8 +40,9 @@ plans the migrations it implies.
 
 ## Task
 
-1. Author the proposed decision from this ruling (binding: it touches
-   the pack surface and the workflow schema's context slot).
+1. Done in session (2026-08-04): `dec.orchestrator-skills-layering` is
+   authored and enqueued in `cairn pending`; the signature itself stays
+   the maintainer's.
 2. Define the capability descriptor shape with `todo.driver-in-repo`
    task 2 (workflow artefacts) so route declarations can carry it.
 3. Plan the skill-shrink migrations for the loop skills the driver
