@@ -19,9 +19,10 @@ questions, and how the product decomposes is itself under test. Only the
 ## Settled: the grill must not relitigate these
 
 - `dec.control-plane-programme` (signed): cairn owns policy and
-  selection truth; the driver owns assignment, leases, dispatch,
-  retries, supervision; the harness owns execution; the console shows
-  and records only.
+  selection truth, declarative lease policy, and recorded lease facts;
+  the driver owns assignment, lease acquisition and renewal, active
+  lease state, dispatch, retries, supervision; the harness owns
+  execution; the console shows and records only.
 - An agent inside a harness never orchestrates. It writes through
   sanctioned verbs and returns an outcome. The next action happens
   because the driver observed the recorded change or outcome.
@@ -42,21 +43,29 @@ refining decision once one is accepted), never as an untracked tweak or
 a silent relitigation. The settled section above stays fixed ground;
 this proviso covers the question-tree answers only.
 
-## Waiting on one signature
+## Signed at the close of the grill (2026-08-04)
 
-`dec.orchestration-placement` (proposed, binding, in `cairn pending`):
-hosts the driver in this repository as a layer beside the passive core,
-superseding `dec.product-perimeter` on acceptance with all surviving
-obligations carried forward. Recommendation: sign it at the END of the
-grill, not before. Design work proceeds now regardless;
-`todo.driver-in-repo` and the orchestration-facing console
-implementation inside `todo.console-signed-widening` both wait on
-acceptance, and signing after the vision session costs nothing.
+`dec.orchestration-placement` (binding) was accepted at the end of the
+session, as this brief recommended: the driver lives in this repository
+as a layer beside the passive core, `dec.product-perimeter` is
+superseded with all surviving obligations carried forward, and
+`todo.driver-in-repo` is open. The orchestration-facing console
+implementation inside `todo.console-signed-widening` still waits on the
+design unit and the webui write-authority resolution. One signature
+remains open from the session: `dec.orchestrator-skills-layering`
+(proposed, binding, in `cairn pending`), the Q6 ruling.
 
 ## The question tree, dependency order
 
 Each question names its downstream dependents, the artefact that owns
 the answer, and the current recommended answer.
+
+All eight interviewable answers were recorded on 2026-08-04 into the
+owning artefacts each question names, under the proviso above. The
+per-question text below is the pre-session hypothesis, kept as history;
+where it disagrees with a recorded ruling (for example Q3's structured
+outcome, which the ruling assigns to the driver, with the harness
+returning only a terminal token), the owning artefact wins.
 
 **Q1. What is the unit of dispatch?** Node, todo, bead, or run, when one
 unit touches several nodes. Depends on nothing; almost everything below
@@ -97,10 +106,12 @@ why) and add triage; no free-form command surface.
 **Q6. Where do skills live once an orchestrator exists?** In-session
 skills stay in the pack; do orchestrator-level workflows subsume any of
 them, and does the pack teach the driver's workflows to harness agents?
-Depends on Q4. Owner: none yet. If resolved, recording the answer starts
-by filing the owning todo against `cairn.root`, then the proposed
-decision from it. Recommended: workflows reference skills, never
-duplicate them; the pack stays the in-session delivery vehicle.
+Depends on Q4. Answered and recorded: the owning todo is
+`todo.orchestrator-skills-layering` (filed against `cairn.root`) and
+the proposed decision is `dec.orchestrator-skills-layering`, enqueued
+in `cairn pending`. The ruling: workflows reference skills;
+provisioning is mechanical and capability-aware; subsumption only ever
+derived from the single source.
 
 **Q7. Does the visual grammar hold?** Declared intent, observed
 actuality, and execution state, each on at least two non-colour
@@ -120,7 +131,12 @@ Recommended: selector wire first; everything else on demand.
 guardrail is settled above; this slot exists for whatever the answers
 upstream surfaced that no question anticipated.
 
-## Protocol for the session
+## Protocol for the session (executed 2026-08-04)
+
+Kept as the record of the procedure the session ran. Do not replay it:
+the answers are recorded in the owning artefacts, the placement
+signature landed, and a future session starts from those artefacts and
+the open `cairn pending` queue, not from this brief.
 
 1. Load this brief, `cairn pending dec.orchestration-placement`, and the
    three console todos. Explore the repo before asking anything it can

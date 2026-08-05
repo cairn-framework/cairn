@@ -81,10 +81,11 @@ templates. The workflow mentions skills by name, and the dispatch
 programmatically makes exactly those skills available to the session,
 depending on the capabilities of the harness being delegated to. This
 resolves the reference-against-subsume tension without picking a side:
-the artefact never duplicates, only the delivery adapts. Manual parity
-is the load-bearing property: a human session without any driver loads
-identical procedure, which keeps the orchestrator optional and cairn
-without a driver a complete product.
+the artefact never duplicates, only the delivery adapts. Procedural
+parity is the load-bearing property: a manual session and a dispatched
+session receive the same referenced skill content and the same
+contract, which keeps the orchestrator optional and cairn without a
+driver a complete product.
 
 ## Consequences
 
@@ -94,5 +95,6 @@ without a driver a complete product.
   pack source; a second authored copy of any skill is a defect.
 - The loop skills the driver absorbs shrink to their in-session halves
   through owning todos filed when the driver lands.
-- Manual and dispatched sessions stay behaviourally identical for the
-  same unit.
+- Manual and dispatched sessions receive the same referenced skill
+  content and contract for the same unit. Delivery mechanics may differ
+  by harness capability; behavioural identity is not claimed.

@@ -130,14 +130,15 @@ owns every line of orchestration console implementation the mockups
 specify. `todo.console-state-legibility` is independent and can run first
 or in parallel: it fixes the shipped read-only surface and makes the
 mockup comparison honest by removing "the console showed nothing useful"
-as a confound. `todo.driver-in-repo` waits on the placement signature
-rather than on this unit, but its lease shape should not be frozen before
-`todo.parallel-dispatch-granularity` rules.
+as a confound. `todo.driver-in-repo` is open (the placement decision
+was accepted 2026-08-04) and does not wait on this unit; the lease
+ruling is recorded in `todo.parallel-dispatch-granularity`, whose rung
+3 design document still owns the remaining schema details.
 
 ## Grill rulings (2026-08-04, maintainer in session)
 
 The orchestration grill (`studio/orchestration-grill-brief.md`) put Q5
-to the maintainer; the answer below is the ratified starting spine for
+to the maintainer; the answer below is provisional grill direction for
 task 2's journeys, under the brief's ratification proviso (mockup
 rounds and early driver UX are the falsifier; a contradicted ruling
 amends through its owning artefact, never as an untracked tweak).
@@ -147,21 +148,30 @@ amends through its owning artefact, never as an untracked tweak).
   including parked-blocked recommendations from Q3), retry approval
   (with residue: branch, attempt history, last activity), quarantine
   release (claim failed verification, never auto-retried), feedback
-  triage (the intake lane), and park/unpark. Park and unpark are
-  recorded rulings the driver obeys (graph facts through sanctioned
-  verbs), never console actions on the driver, so a pause survives
-  restarts and appears in history. Tier split: binding-tier items
-  interrupt by queueing; local-tier decisions land agent-side with
-  receipts and never block a wave. No free-form command surface exists
-  anywhere in the console.
+  triage (the intake lane), budget approval (a unit or wave hit its
+  spend cap; the Q9 budget-exhausted moment), and park/unpark. Each
+  type names its write path: signature entries are display-only routing
+  to the maintainer's own signing flow; feedback triage promotes
+  through the already-sanctioned verbs; retry, quarantine, park/unpark,
+  and budget rulings are recorded facts the driver obeys, whose
+  sanctioned verbs do not exist yet and must be specified by the
+  write-authority decision task 6 enqueues before
+  `todo.console-signed-widening` implements them. Nothing here is a
+  console action on the driver, so a ruling survives restarts and
+  appears in history. Tier split: binding-tier items interrupt by
+  queueing; local-tier decisions land agent-side with receipts and
+  never block a wave. No free-form command surface exists anywhere in
+  the console.
 - **Correction to task 1's assumption, from the Q2 ruling.** Lease
   facts (holder, grant, expiry, renewal) are cairn truth: their matrix
   rows name cairn queries, not a proposed driver contract. Only live
   execution state (session liveness, driver presence, run activity)
   names the versioned driver contract. Driver-absent, driver-idle, and
-  driver-crashed stay distinct rendered states, and an expired lease
-  with no live driver renders as stale and unclassified rather than
-  promising a terminal outcome fact that was never recorded.
+  driver-crashed stay distinct rendered states, and for an expired
+  lease with no live driver the console derives staleness from the raw
+  facts and an explicit observation time and renders it as stale and
+  unclassified, never promising a terminal outcome fact that was not
+  recorded.
 
 ## Mockup rounds (scheduled 2026-08-04)
 

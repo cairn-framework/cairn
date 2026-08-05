@@ -30,11 +30,14 @@ current gate is in the last section.
    specifies, to its state-source matrix: declared intent, observed
    actuality, and execution state each carried by at least two
    non-colour channels, with the vocabulary that unit settled.
-4. Implement the execution-state surface those mockups specify: runs and
-   leases against the driver contract, the dispatch preview rendered as a
-   readable declaration rather than a form, and the three distinct empty
-   states (no driver attached, attached and idle, crashed). The preview
-   is a document; nothing in this console fires it.
+4. Implement the execution-state surface those mockups specify: lease
+   facts read from the sanctioned cairn lease-facts query, live
+   execution state (session liveness, driver presence, run activity)
+   read from the versioned driver contract, the dispatch preview
+   rendered as a readable declaration rather than a form, and the three
+   distinct empty states (no driver attached, attached and idle,
+   crashed). The preview is a document; nothing in this console fires
+   it.
 5. Implement the decision-to-consequence path: opening a ruling shows
    what signing it moves, stated as a sentence rather than a badge.
 
@@ -51,20 +54,19 @@ current gate is in the last section.
   instead of rendering a blank lane.
 - Visual harness gates pass with `ux_defect_score` zero.
 
-## Active gate (2026-08-03)
+## Active gate (updated 2026-08-04)
 
-`dec.control-plane-programme` is signed, so the original write-authority
-gate cleared. Three prerequisites remain:
+`dec.control-plane-programme` is signed and
+`dec.orchestration-placement` was accepted on 2026-08-04 (superseding
+`dec.product-perimeter`), so this console is the driver's steering
+surface. Two prerequisites remain:
 
-1. `dec.orchestration-placement` (proposed, binding) is what makes this
-   console the driver's steering surface at all. It supersedes
-   `dec.product-perimeter` on acceptance. External signature, so no
-   `blocked_by:` entry is declarable (ruling 4 of
-   `dec.todo-relationship-model`).
-2. `todo.console-orchestration-ux-design`, recorded in `blocked_by:`: the
-   journeys, the state-source matrix, and the evaluated mockups that
-   tasks 3 to 5 above implement.
-3. The decision resolving `dec.webui-design-authority` clause 4's
+1. `todo.console-orchestration-ux-design`, recorded in `blocked_by:`:
+   the journeys, the state-source matrix, and the evaluated mockups
+   that tasks 3 to 5 above implement.
+2. The decision resolving `dec.webui-design-authority` clause 4's
    read-only rule, authored by task 6 of that design unit. Its line 28
    revisit trigger has fired and the resolution must be signed before
-   this unit's write surface ships.
+   this unit's write surface ships. It must also specify the sanctioned
+   verbs for the typed queue rulings (retry approval, quarantine
+   release, park/unpark, budget) that do not exist yet.

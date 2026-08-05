@@ -45,7 +45,8 @@ revisit_triggers:
 
 Accepted 2026-08-04 by maintainer ratification in the orchestration
 grill session; the ratification protocol below was executed in the
-acceptance commit.
+acceptance commit, and the text was finalised in the same session's
+pre-submit review before first publication.
 
 ## Decision
 
@@ -89,13 +90,15 @@ outcome; it never selects or dispatches its successor.
   graph fact only when an authorised caller records it through a
   sanctioned verb.
 - Recorded lease facts (unit, holder, commit at grant, expiry, renewal)
-  are cairn truth, written only by the driver through sanctioned verbs;
-  staleness is a side-effect-free projection over those facts at query
-  time (grill ruling 2026-08-04, aligning this clause with
-  `dec.control-plane-programme` clause 1). Assignment, lease
-  acquisition and renewal as actions, live session liveness, and
-  active, waiting, or blocked execution state belong to the driver. The
-  core evaluates no expiry and starts nothing on any lease transition.
+  are cairn truth, written only by the driver through sanctioned verbs
+  (grill ruling 2026-08-04, aligning this clause with
+  `dec.control-plane-programme` clause 1). The core stores and serves
+  those facts and evaluates no expiry: staleness is derived by the
+  reader, driver or console, from the raw facts and an explicit
+  observation time. Assignment, lease acquisition and renewal as
+  actions, live session liveness, and active, waiting, or blocked
+  execution state belong to the driver. The core starts nothing on any
+  lease transition.
 - Polling and subscription belong to the driver. A cairn change
   notification, where one exists, is an invalidation hint only: never
   canonical state, never a transition, never a dispatch command. The
@@ -228,22 +231,22 @@ nothing. Clauses 1 and 3 above state that more precisely than clause 4
 did. What changes is that the repository may host the layer that does
 those things.
 
-## What ratification must do
+## What ratification did (executed 2026-08-04)
 
-Accepting this is not a status flip alone. It narrows an accepted
-authority, so ratification must resolve that contradiction in the graph,
+Accepting this was not a status flip alone. It narrowed an accepted
+authority, so ratification resolved that contradiction in the graph,
 following the precedent `dec.control-plane-programme` set:
 
-- Mark `dec.product-perimeter` `status: superseded` and add
-  `supersedes: [dec.product-perimeter]` here. Clause 5 carries every
-  surviving obligation forward. The two edits land together in the
-  acceptance commit, because `supersedes` only validates once the target
-  is already marked.
-- Until that commit, `dec.product-perimeter` stands and the driver stays
-  outside the repository. `todo.driver-in-repo` stays blocked on this
-  signature, and `meta/changes/driver-v2-selection` remains the live
-  external-driver plan.
-- Set `todo.driver-in-repo` to `open` on acceptance.
+- `dec.product-perimeter` is marked `status: superseded` and
+  `supersedes: [dec.product-perimeter]` is recorded here. Clause 5
+  carries every surviving obligation forward. The two edits landed
+  together in the acceptance commit, because `supersedes` only
+  validates once the target is already marked.
+- `todo.driver-in-repo` was set to `open` in the same commit, and
+  `meta/changes/driver-v2-selection` stopped being the live
+  external-driver plan: it remains as the record of the external v1
+  supervisor and the read-surface audit that feeds task 4 of the
+  in-repo successor.
 
 ## The rubric
 
@@ -301,12 +304,11 @@ from authorising a surface nobody has designed yet.
 
 ## Consequences
 
-- On acceptance, `dec.product-perimeter` is `superseded`, keeping its
-  provenance and its coverage of the nodes it names. Clauses 1, 2, 3,
-  and 5 live on in clause 5 above; clause 4 is replaced by clauses 1 to
-  3 above.
-- `dec.control-plane-programme` would then refine a superseded decision,
-  the same lineage shape this record has with `dec.no-orchestrator`. Its
+- `dec.product-perimeter` is `superseded`, keeping its provenance and
+  its coverage of the nodes it names. Clauses 1, 2, 3, and 5 live on in
+  clause 5 above; clause 4 is replaced by clauses 1 to 3 above.
+- `dec.control-plane-programme` now refines a superseded decision, the
+  same lineage shape this record has with `dec.no-orchestrator`. Its
   three-owner split is untouched and stays the live ownership authority.
 - `dec.webui-design-authority` clause 4's read-only rule is not
   overridden here. Its revisit trigger has fired and its resolution is a

@@ -49,14 +49,13 @@ without dispatching.
 
 ## Out of scope (exclusions)
 
-- Moving the driver into this repository. Reconciled 2026-08-03: the
-  future decision `res.overharness-design-threads` thread d was waiting
-  for now exists as `dec.orchestration-placement`, but it is proposed, so
-  `dec.product-perimeter` still binds and the external driver remains the
-  live plan. If that record is signed, the in-repo successor is
-  `todo.driver-in-repo`, and this change's task 1 audit is the direct
-  input to its selector-wire task. Either way, moving the driver is out
-  of scope here.
+- Moving the driver into this repository. Reconciled 2026-08-04:
+  `dec.orchestration-placement` is accepted and supersedes
+  `dec.product-perimeter`, so the in-repo successor is the open
+  `todo.driver-in-repo`. This change stays what it is: the record of
+  the external v1 supervisor, whose task 1 audit is the direct input to
+  that successor's selector-wire task. Moving the driver is out of
+  scope here.
 - Machine verification that the review gate ran: owned by
   `todo.review-gate-machine-check`. This change only records what the driver
   dispatched and why.

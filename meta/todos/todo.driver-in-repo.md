@@ -31,13 +31,16 @@ executes one assigned action and returns its outcome.
    harness or destination. These are inert policy under clause 3. Cairn
    parses, validates, stores, and exposes them and evaluates none of
    them.
-3. The reaction loop, stated explicitly rather than implied. The harness
-   returns a structured outcome keyed by unit and commit; the driver
-   verifies that refreshed `main` carries the landed work and reconciles
-   it; the driver records lease and outcome state through a declared
-   driver-owned surface or a sanctioned verb; the driver re-queries the
-   canonical selector; the driver dispatches the next unit. Nothing in
-   that sequence is a core behaviour.
+3. The reaction loop, stated explicitly rather than implied. The
+   harness ends its session with one exact terminal token; the driver
+   combines its own assignment metadata (unit id, lease, commit at
+   grant) with repository verification on refreshed `main` into the
+   structured outcome fact. Graph facts (lease and outcome records) are
+   written only through sanctioned verbs; ephemeral live execution
+   state (session liveness, run activity) stays on the driver's own
+   declared surface. The driver then re-queries the canonical selector
+   and dispatches the next unit. Nothing in that sequence is a core
+   behaviour.
 4. The selector wire the loop needs. `cairn next` today exposes no
    stable unit id and no reproducible selection evidence, groups findings
    into remediation actions, and orders todos by creation date and path
@@ -58,9 +61,11 @@ executes one assigned action and returns its outcome.
   structure: the driver has its own node or nodes, the core has no
   dependency into it, and the substrate gained no orchestration
   behaviour.
-- A dry run prints the mission it would dispatch, with unit id, selection
-  ground, and evidence lines, and that mission equals what a loop
-  session's Orient step selects at the same commit.
+- A dry run prints the wave it would dispatch, each unit with id,
+  selection ground, and evidence lines; the wave's first member equals
+  what a loop session's Orient step selects at the same commit, and
+  every additional member satisfies the same eligibility evidence plus
+  pairwise write-set disjointness.
 - The outcome-to-next-dispatch sequence in task 3 is exercised end to
   end, including a harness outcome that must not advance the loop.
 - Every fail-closed condition the external v1 driver enforced still stops
@@ -71,8 +76,13 @@ executes one assigned action and returns its outcome.
 
 ## Grill rulings (2026-08-04, maintainer in session)
 
-The orchestration grill (`studio/orchestration-grill-brief.md`) put Q3
-to the maintainer; the answer below is a ratified constraint on task 3.
+The orchestration grill (`studio/orchestration-grill-brief.md`) put its
+questions to the maintainer. The answers below are provisional grill
+direction for tasks 2 to 4, under the brief's ratification proviso
+(mockup rounds and first driver experience are the falsifier); only an
+accepted owning decision makes any of them binding. Independently
+accepted ground cited inside them (the three terminal tokens, the Q1
+slate constraint) keeps its own authority.
 
 - **Q3, outcome vocabulary: the harness emits only the three ratified
   terminal tokens** (`ITERATION COMPLETE`, `LOOP EXHAUSTED`,
@@ -93,14 +103,17 @@ to the maintainer; the answer below is a ratified constraint on task 3.
   conditional on observed progress, output or commits on the unit
   branch; no progress means renewal withheld, TTL expiry, supervised
   kill, residue quarantined, bounded retry then human moment). A driver
-  restart re-reads lease facts and classifies orphaned leases as stale.
-  Invariant, stated honestly: lease expiry bounds ambiguity, not driver
-  availability. While a driver supervises, every dispatched unit
-  reaches a recorded terminal outcome within one lease TTL regardless
-  of agent behaviour. With no live driver, an expired lease renders as
-  stale and unclassified until a driver returns and classifies it; the
-  console never promises a terminal fact that has not been recorded,
-  and a driver outage is itself a rendered state (no driver attached).
+  restart re-reads lease facts and derives, from an explicit
+  observation time, which leases expired while it was away. Invariant,
+  stated honestly: lease expiry bounds ambiguity, not completion, and
+  not driver availability. Renewal can extend a productive unit
+  indefinitely, so the enforceable bound is this: while a driver
+  supervises, once renewal is withheld the unit reaches a recorded
+  terminal outcome within its final lease term plus the supervised-kill
+  grace. With no live driver, an expired lease renders as stale and
+  unclassified until a driver returns and classifies it; the console
+  never promises a terminal fact that has not been recorded, and a
+  driver outage is itself a rendered state (no driver attached).
 - **Q4, workflow definition: an inert typed cairn artefact, evaluated
   only by the driver** (task 2, confirming clause 3 of the placement
   decision). Shape: a match predicate over dispatch units, a harness
@@ -120,8 +133,11 @@ to the maintainer; the answer below is a ratified constraint on task 3.
   single recommendation to a ready-set query: every dispatchable unit
   at this commit with unit id, node closure, selection ground, and
   reproducible evidence lines; its first milestone is the dry-run
-  driver whose printed wave provably equals a manual Orient selection
-  at the same commit. The lease surface (sanctioned grant, renew, and
+  driver: the printed wave's first member provably equals the one-unit
+  selection a manual Orient step makes at the same commit, and every
+  additional member satisfies the same eligibility evidence plus
+  pairwise write-set disjointness. The lease surface (sanctioned grant,
+  renew, and
   release verbs, the lease-facts read query, one shared store across
   worktrees) is promoted from on-demand to required by the Q2 ruling.
   The findings blast radius fix (one Error finding must not disable
@@ -131,33 +147,41 @@ to the maintainer; the answer below is a ratified constraint on task 3.
   driver re-reads authoritative queries before acting, and polling
   suffices until measurably painful.
 - **Q9, surfaced gaps.** Four gaps no question owned, ruled by the
-  maintainer. (1) Driver singleton: exactly one driver runs per
-  repository. Within the shared coordination store of one checkout
-  family (the Q2 seam), the singleton grant is atomic and enforced; the
-  driver holds a lease fact on the driver singleton itself. Across
-  independent clones, repo-synced facts cannot mutually exclude, so a
-  second claimant is detected at sync and rendered as a first-class
-  conflict, never a silent split of the fleet; true cross-device
-  exclusion is deferred until a shared coordination authority exists,
-  when multi-device handoff becomes a driver-lease transfer. (2)
+  maintainer. (1) Driver singleton: one driver per coordination store,
+  detected everywhere else. Within the shared coordination store of one
+  checkout family (the Q2 seam), the singleton grant is atomic and
+  enforced. It is a distinct singleton grant record with the same fact
+  discipline as leases, never a unit lease: Q2's lease facts are held
+  only on dispatch units. Across independent clones, repo-synced facts
+  cannot mutually exclude: two drivers may both dispatch until their
+  stores synchronise, so the guarantee there is detection after sync,
+  rendered as a first-class conflict, never an undetected split. True
+  cross-device exclusion is deferred until a shared coordination
+  authority exists, when multi-device handoff becomes a singleton-grant
+  transfer. (2)
   Budget: the workflow `limits:` slot
   carries per-unit and per-wave spend caps beside wave size and TTL;
   the driver refuses dispatch past a cap and queues a budget-exhausted
-  human moment. (3) Authorised-caller trust model: deferred with a
-  named revisit trigger (first observed verb abuse, or any
-  multi-tenant use); Q3 verification already quarantines the
-  consequence of a false status flip. (4) Outcome-fact retention and
+  human moment. (3) Authorised-caller trust model: deferred as an
+  unmitigated risk with a named revisit trigger (first observed verb
+  abuse, or any multi-tenant use). Q3 verification catches a token
+  without a landed flip; it does not catch an authorised caller falsely
+  flipping a todo `done`, and no current machinery does. The future
+  mitigation shape is independent landed-PR or acceptance evidence
+  checked beyond todo status. (4) Outcome-fact retention and
   compaction: deferred into task 3's design as a storage detail.
 
 ## Lease shape
 
-Do not freeze the lease and claim schema before
-`todo.parallel-dispatch-granularity` rules on what a claim is held on,
-its identity, expiry, and renewal, and what execution granularity means
-when one unit touches several nodes. That unit owns the ruling;
-`todo.console-orchestration-ux-design` contributes the mockup evidence
-it is made against. `lease` currently appears in no Rust source, so the
-shape is genuinely open.
+The grill's Q2 ruling (recorded in
+`todo.parallel-dispatch-granularity`) fixes what a lease is held on
+(the dispatch unit), its identity fields, expiry, renewal, staleness,
+and the fact-versus-action ownership split. What stays open for that
+unit's rung 3 design document: the concrete schema and store layout,
+the sanctioned verb shapes, hotspot ownership, and the promotion
+trigger mechanics. Do not freeze those details here; that unit owns
+them, and `todo.console-orchestration-ux-design` contributes the mockup
+evidence they are made against.
 
 ## Relationship to the driver v2 change
 
