@@ -54,3 +54,9 @@ __pycache__/
 # Autoresearch webui visual-eval run outputs (screenshots + report, regenerated each run).
 # harness/fixtures/ IS committed (the frozen workload); only outputs are ignored.
 harness/out/
+
+# Impeccable design tooling: machine-local install and generated context (npx impeccable install; /impeccable init + document). Never vendored, never authoritative.
+.claude/skills/impeccable/
+/.impeccable/
+/PRODUCT.md
+/DESIGN.md

@@ -20,10 +20,8 @@ must not start on an unratified record.
 ## The ruling
 
 Owned by `dec.orchestrator-skills-layering`; this todo does not restate
-it. In one line for orientation: workflows reference skills by name,
-the driver provisions the named set mechanically and capability-aware,
-and any inline delivery is derived from the single pack source, never a
-second authored copy.
+it, in any form; read the decision. Tasks 2 and 3 below implement the
+ruling once it is signed.
 
 ## Task
 

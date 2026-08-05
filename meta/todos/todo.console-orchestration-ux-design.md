@@ -193,24 +193,37 @@ machine-local: `npx impeccable install --scope=project
 --providers=claude` writes `.claude/skills/impeccable/` (kept out of
 git by the local exclude; rerun that one command on a fresh machine),
 and the guarded hook wiring in `.claude/settings.local.json` is
-tracked. Vendoring the pack into the repo was deliberately rejected:
-its third-party reference prose carries em-dashes the pre-commit hook
-bans repo-wide, and a documented one-command reinstall is enough for
-the design phase.
+tracked. Vendoring the pack into the repo was deliberately rejected on
+different grounds than first recorded: the payload is 147 third-party
+files that update upstream (`npx impeccable update`), the repo's
+skills directory is machine-managed by convention, and a tracked
+`.gitignore` entry for `.claude/skills/impeccable/` keeps the
+one-command reinstall clean on any clone. (An earlier claim that the
+pack's markdown trips the repo's em-dash hook was checked and is
+false: that hook matches only `*.md` files, and the pack's markdown
+carries none.)
 
 Round mapping, subordinate to repo authority (`docs/design-system/`
 tokens and components stay canonical; any DESIGN.md impeccable writes
 defers to them; the console is product lane per
 `dec.marketing-visual-world`):
 
-- First, once: `/impeccable document` to derive DESIGN.md from the
-  existing design system, then `/impeccable init` only to fill gaps.
+- Setup, once per machine: `/impeccable init` (product context:
+  audience, voice, anti-references) then `/impeccable document` (derive
+  design context from the incumbent system). Both outputs (PRODUCT.md,
+  DESIGN.md, `.impeccable/`) are generated, gitignored, and
+  non-authoritative: token and font values derive from
+  `docs/design-system/`, any conflict resolves toward it by
+  regenerating, and durable vision content graduates into the tracked
+  brief under `studio/` (task 2), never into these files.
 - Round 1 (matrix, journeys, vocabulary): `shape` for the journeys,
   `distill` for the state grammar, `clarify` for the settled
   vocabulary.
-- Round 2 (scenario mockups): `craft` for the static screens, `onboard`
-  for the three driver empty states, `harden` for edge and error
-  states, then `critique` and `audit` before each maintainer review.
+- Round 2 (scenario mockups): explicit static-screen requests per
+  required scenario (`craft` is a deprecated alias in the pack and adds
+  nothing), `onboard` for the three driver empty states, `harden` for
+  edge and error states, then `critique` and `audit` before each
+  maintainer review.
 - Round 3 (rework and polish): `polish`, with `quieter` whenever a
   screen drifts toward stock SaaS boldness; `typeset` and `layout` only
   within the token and font authority.

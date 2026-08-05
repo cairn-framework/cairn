@@ -1,5 +1,10 @@
 # Design: driver-v2-selection
 
+> Scope reduced 2026-08-04: the external driver implementation
+> described below is retired (`dec.orchestration-placement` accepted;
+> `todo.driver-in-repo` is the in-repo successor). Kept as context for
+> the surviving read-surface audit.
+
 ## Approach
 
 The driver becomes a thin read-and-dispatch loop with the fail-closed checks

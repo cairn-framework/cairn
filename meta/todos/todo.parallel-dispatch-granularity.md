@@ -70,11 +70,16 @@ authority, and the document itself still gets authored here.
   units to parallel worktrees. Units whose closures overlap queue
   behind the lease, and the serialisation hotspots named in the task
   keep explicit ownership.
-  Units are the only dispatchable identity: work sources that are not
-  todos (a selectable finding, in today's loop precedence) materialise
-  deterministically into a todo before dispatch, so every dispatched
-  unit has a todo id for its lease and Q3's terminal verification. The
-  selector's ready set carries only materialised units.
+  Units are the only dispatchable identity, and the transition is
+  shared, owned by the selector wire (`todo.driver-in-repo` task 4):
+  when a non-todo work source (a selectable finding, first in today's
+  loop precedence) materialises into a todo, the todo cites the
+  finding, the finding stops being independently selectable on every
+  selection surface (a manual Orient and the driver alike), and both
+  consume the todo, so every dispatched unit has a todo id for its
+  lease and Q3's terminal verification. Until that wire lands, the
+  manual loop's finding-first precedence stands unchanged and the
+  first-member equality contract binds only todo-sourced units.
 - **Q2, lease shape: lease facts are cairn truth.** Held on the
   dispatch unit, never the node. This is the reading
   `dec.control-plane-programme` clause 1 already signed: cairn owns

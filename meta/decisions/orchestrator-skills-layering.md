@@ -22,9 +22,9 @@ The 2026-08-04 orchestration grill (`studio/orchestration-grill-brief.md`,
 Q6) asked where skills live once the driver exists. Q4 of the same
 session ruled that workflow definitions are inert typed cairn artefacts
 with a context slot naming the skills a dispatched session receives. The
-maintainer answered Q6 in session; the ruling is recorded in
-`todo.orchestrator-skills-layering` and this record enqueues it for
-signature.
+maintainer answered Q6 in session. This record owns the ruling;
+`todo.orchestrator-skills-layering` carries only a pointer and the
+implementation tasks, and stays blocked on this signature.
 
 ## Decision
 

@@ -41,15 +41,18 @@ executes one assigned action and returns its outcome.
    declared surface. The driver then re-queries the canonical selector
    and dispatches the next unit. Nothing in that sequence is a core
    behaviour.
-4. The selector wire the loop needs. `cairn next` today exposes no
-   stable unit id and no reproducible selection evidence, groups findings
-   into remediation actions, and orders todos by creation date and path
-   rather than the loop's own precedence. Establish what the driver needs
-   (commit and schema version, unit id, node, selection ground,
+4. The selector wire the loop needs: a ready-set query, per the Q1 and
+   Q8 rulings below. `cairn next` today exposes no stable unit id and
+   no reproducible selection evidence, groups findings into remediation
+   actions, and orders todos by creation date and path rather than the
+   loop's own precedence. Establish the ready-set contract (commit and
+   schema version; per unit: unit id, node closure, selection ground,
    reproducible evidence) and land it as a passive query, or file the
-   exact missing field against the owning node. This is the prerequisite
-   for proving that a dispatched mission equals what a loop session's
-   Orient step would select at the same commit.
+   exact missing field against the owning node. This is the
+   prerequisite for the acceptance contract: the wave's first member
+   equals a manual Orient selection at the same commit, and every
+   additional member carries the same eligibility evidence plus
+   pairwise write-set disjointness.
 5. Steering surface: `todo.console-signed-widening` wires the console to
    this driver under `dec.control-plane-programme`'s ownership split. It
    is blocked on `todo.console-orchestration-ux-design` and does not gate
