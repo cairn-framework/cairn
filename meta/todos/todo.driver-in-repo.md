@@ -53,6 +53,12 @@ executes one assigned action and returns its outcome.
    equals a manual Orient selection at the same commit, and every
    additional member carries the same eligibility evidence plus
    pairwise write-set disjointness.
+   The wire's design must also settle how finding-first states become
+   dispatchable, under the four constraints recorded in
+   `todo.parallel-dispatch-granularity`'s Q1 ruling (the ephemeral
+   -findings resolution, the Info-only parked fold, the passive query,
+   and first-member equality); until it does, the driver dispatches
+   todo-sourced units only.
 5. Steering surface: `todo.console-signed-widening` wires the console to
    this driver under `dec.control-plane-programme`'s ownership split. It
    is blocked on `todo.console-orchestration-ux-design` and does not gate
@@ -69,6 +75,9 @@ executes one assigned action and returns its outcome.
   what a loop session's Orient step selects at the same commit, and
   every additional member satisfies the same eligibility evidence plus
   pairwise write-set disjointness.
+- With nothing selectable, a run prints the terminal state and exits
+  zero without dispatching: the drained-backlog case, carried over
+  from the retired external v2 acceptance.
 - The outcome-to-next-dispatch sequence in task 3 is exercised end to
   end, including a harness outcome that must not advance the loop.
 - Every fail-closed condition the external v1 driver enforced still stops
@@ -188,7 +197,9 @@ evidence they are made against.
 
 ## Relationship to the driver v2 change
 
-`meta/changes/driver-v2-selection` remains as authored: it audits the
-read surface and hardens the external v1 supervisor. Its read-surface
-audit is the direct input to task 4 here. This unit is the in-repo
-successor that change deliberately did not become.
+`meta/changes/driver-v2-selection` began as the external v2 selection
+change. Its external implementation is retired
+(`dec.orchestration-placement` accepted); what survives there is the
+read-surface audit (task 1, still to run) and gap filing, the direct
+input to task 4 here. This unit is the in-repo successor that change
+deliberately did not become.

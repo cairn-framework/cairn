@@ -189,28 +189,30 @@ rejections reworked and the webui write-authority decision authored
 ### Tooling (impeccable, installed 2026-08-05)
 
 The impeccable skill pack (github.com/pbakaus/impeccable) is installed
-machine-local: `npx impeccable install --scope=project
---providers=claude` writes `.claude/skills/impeccable/` (kept out of
-git by the local exclude; rerun that one command on a fresh machine),
-and the guarded hook wiring in `.claude/settings.local.json` is
-tracked. Vendoring the pack into the repo was deliberately rejected on
+checkout-local: `npx impeccable install --scope=project
+--providers=claude` writes `.claude/skills/impeccable/` (gitignored by
+a tracked entry; rerun that one command in each fresh checkout), and
+the guarded hook wiring in `.claude/settings.local.json` is tracked.
+The checkout-local exception to the tracked-skills policy is recorded
+in `.claude/skills/README.md`. Vendoring was deliberately rejected on
 different grounds than first recorded: the payload is 147 third-party
-files that update upstream (`npx impeccable update`), the repo's
-skills directory is machine-managed by convention, and a tracked
-`.gitignore` entry for `.claude/skills/impeccable/` keeps the
-one-command reinstall clean on any clone. (An earlier claim that the
-pack's markdown trips the repo's em-dash hook was checked and is
-false: that hook matches only `*.md` files, and the pack's markdown
-carries none.)
+files that update upstream (`npx impeccable update`), and the repo's
+skills policy tracks first-party operational assets, not third-party
+payload, so the pack stays a recorded checkout-local exception. (An
+earlier claim that the pack's markdown trips the repo's em-dash hook
+was checked and is false: that hook matches only `*.md` files, and the
+pack's markdown carries none.)
 
 Round mapping, subordinate to repo authority (`docs/design-system/`
 tokens and components stay canonical; any DESIGN.md impeccable writes
 defers to them; the console is product lane per
 `dec.marketing-visual-world`):
 
-- Setup, once per machine: `/impeccable init` (product context:
-  audience, voice, anti-references) then `/impeccable document` (derive
-  design context from the incumbent system). Both outputs (PRODUCT.md,
+- Setup, once per checkout: `/impeccable init` (product context:
+  audience and confirmed voice; init does not ask for visual
+  direction) then `/impeccable document` (derive design context from
+  the incumbent system; confirmed visual anti-references belong
+  here). Both outputs (PRODUCT.md,
   DESIGN.md, `.impeccable/`) are generated, gitignored, and
   non-authoritative: token and font values derive from
   `docs/design-system/`, any conflict resolves toward it by

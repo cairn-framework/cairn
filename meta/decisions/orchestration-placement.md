@@ -244,8 +244,8 @@ following the precedent `dec.control-plane-programme` set:
   validates once the target is already marked.
 - `todo.driver-in-repo` was set to `open` in the same commit, and
   `meta/changes/driver-v2-selection` stopped being the live
-  external-driver plan: it remains as the record of the external v1
-  supervisor and the read-surface audit that feeds task 4 of the
+  external-driver plan: it survives reduced to its read-surface audit
+  (task 1 there, still to run), the direct input to task 4 of the
   in-repo successor.
 
 ## The rubric

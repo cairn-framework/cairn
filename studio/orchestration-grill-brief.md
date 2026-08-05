@@ -7,9 +7,9 @@ product manager; the maintainer is the customer. Output feeds
 `todo.console-orchestration-ux-design` task 2 (journeys); the decisions
 it seeds stay with their owners: the webui write-authority resolution
 (that unit's task 6), the lease ruling
-(`todo.parallel-dispatch-granularity`), and, if Q6 resolves, a
-skills-layering ruling whose owning todo is filed against `cairn.root`
-as the first step of recording that answer.
+(`todo.parallel-dispatch-granularity`), and the skills-layering ruling,
+owned since the session by `dec.orchestrator-skills-layering` with the
+implementation tasks in its todo.
 
 The question tree below is a starting hypothesis, not a script. Grilling
 branches: an early answer can reshape, reorder, or delete later
@@ -106,12 +106,11 @@ why) and add triage; no free-form command surface.
 **Q6. Where do skills live once an orchestrator exists?** In-session
 skills stay in the pack; do orchestrator-level workflows subsume any of
 them, and does the pack teach the driver's workflows to harness agents?
-Depends on Q4. Answered and recorded: the owning todo is
-`todo.orchestrator-skills-layering` (filed against `cairn.root`) and
-the proposed decision is `dec.orchestrator-skills-layering`, enqueued
-in `cairn pending`. The ruling: workflows reference skills;
-provisioning is mechanical and capability-aware; subsumption only ever
-derived from the single source.
+Depends on Q4. Answered and recorded: the ruling is owned by
+`dec.orchestrator-skills-layering` (proposed, binding, in
+`cairn pending`); `todo.orchestrator-skills-layering` (filed against
+`cairn.root`) carries only the pointer and the implementation tasks.
+Read the decision for the ruling; this brief keeps provenance only.
 
 **Q7. Does the visual grammar hold?** Declared intent, observed
 actuality, and execution state, each on at least two non-colour
