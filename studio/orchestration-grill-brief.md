@@ -31,6 +31,17 @@ questions, and how the product decomposes is itself under test. Only the
 - Scope: single repository now; multi-repo aggregation stays parked
   (`dec.workspace-aggregation`).
 
+## Ratification proviso (recorded mid-grill, 2026-08-04)
+
+Every grill ruling from this session is direction with a named
+falsifier, at the maintainer's request: the mockup rounds and the first
+driver experience test all of it. When a rendered screen or early
+orchestrator UX contradicts a ruling, the amendment routes through the
+owning artefact (a todo amendment while the ruling is pre-decision, a
+refining decision once one is accepted), never as an untracked tweak or
+a silent relitigation. The settled section above stays fixed ground;
+this proviso covers the question-tree answers only.
+
 ## Waiting on one signature
 
 `dec.orchestration-placement` (proposed, binding, in `cairn pending`):

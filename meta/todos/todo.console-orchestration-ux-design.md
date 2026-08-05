@@ -133,3 +133,32 @@ mockup comparison honest by removing "the console showed nothing useful"
 as a confound. `todo.driver-in-repo` waits on the placement signature
 rather than on this unit, but its lease shape should not be frozen before
 `todo.parallel-dispatch-granularity` rules.
+
+## Grill rulings (2026-08-04, maintainer in session)
+
+The orchestration grill (`studio/orchestration-grill-brief.md`) put Q5
+to the maintainer; the answer below is the ratified starting spine for
+task 2's journeys, under the brief's ratification proviso (mockup
+rounds and early driver UX are the falsifier; a contradicted ruling
+amends through its owning artefact, never as an untracked tweak).
+
+- **Q5, human moments: one typed "waiting on you" queue, drained on the
+  maintainer's schedule.** Entry types: signature (binding decisions,
+  including parked-blocked recommendations from Q3), retry approval
+  (with residue: branch, attempt history, last activity), quarantine
+  release (claim failed verification, never auto-retried), feedback
+  triage (the intake lane), and park/unpark. Park and unpark are
+  recorded rulings the driver obeys (graph facts through sanctioned
+  verbs), never console actions on the driver, so a pause survives
+  restarts and appears in history. Tier split: binding-tier items
+  interrupt by queueing; local-tier decisions land agent-side with
+  receipts and never block a wave. No free-form command surface exists
+  anywhere in the console.
+- **Correction to task 1's assumption, from the Q2 ruling.** Lease
+  facts (holder, grant, expiry, renewal) are cairn truth: their matrix
+  rows name cairn queries, not a proposed driver contract. Only live
+  execution state (session liveness, driver presence, run activity)
+  names the versioned driver contract. Driver-absent, driver-idle, and
+  driver-crashed stay distinct rendered states, and an expired lease
+  with no live driver renders as stale and unclassified rather than
+  promising a terminal outcome fact that was never recorded.

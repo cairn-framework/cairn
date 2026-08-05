@@ -116,6 +116,36 @@ to the maintainer; the answer below is a ratified constraint on task 3.
   routed action fires. Policy updates are ordinary artefact edits
   landing through PR gates with provenance; the driver re-reads policy
   each cycle, so a landed change binds at the next dispatch decision.
+- **Q8, core seam order: selector wire, then lease surface, then
+  findings blast radius; `cairn watch` widening deferred indefinitely**
+  (task 4). The selector wire is upgraded by the Q1 ruling from a
+  single recommendation to a ready-set query: every dispatchable unit
+  at this commit with unit id, node closure, selection ground, and
+  reproducible evidence lines; its first milestone is the dry-run
+  driver whose printed wave provably equals a manual Orient selection
+  at the same commit. The lease surface (sanctioned grant, renew, and
+  release verbs, the lease-facts read query, one shared store across
+  worktrees) is promoted from on-demand to required by the Q2 ruling.
+  The findings blast radius fix (one Error finding must not disable
+  unrelated read queries) lands before unattended operation, since a
+  red finding must never blind the driver. Watch stays finding-change
+  only: placement clause 3 makes notifications invalidation hints, the
+  driver re-reads authoritative queries before acting, and polling
+  suffices until measurably painful.
+- **Q9, surfaced gaps.** Four gaps no question owned, ruled by the
+  maintainer. (1) Driver singleton: exactly one driver runs per
+  repository, enforced with the same lease machinery ruled in Q2: the
+  driver holds a lease fact on the driver singleton itself, and a
+  second claimant is a first-class rendered conflict, never a silent
+  split of the fleet; multi-device handoff later becomes a
+  driver-lease transfer. (2) Budget: the workflow `limits:` slot
+  carries per-unit and per-wave spend caps beside wave size and TTL;
+  the driver refuses dispatch past a cap and queues a budget-exhausted
+  human moment. (3) Authorised-caller trust model: deferred with a
+  named revisit trigger (first observed verb abuse, or any
+  multi-tenant use); Q3 verification already quarantines the
+  consequence of a false status flip. (4) Outcome-fact retention and
+  compaction: deferred into task 3's design as a storage detail.
 
 ## Lease shape
 
