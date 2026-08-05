@@ -185,3 +185,41 @@ lease and granularity screens handed to
 `todo.parallel-dispatch-granularity` as evidence (task 5). Round 3:
 rejections reworked and the webui write-authority decision authored
 (task 6).
+
+### Tooling (impeccable, installed 2026-08-05)
+
+The impeccable skill pack (github.com/pbakaus/impeccable) is installed
+machine-local: `npx impeccable install --scope=project
+--providers=claude` writes `.claude/skills/impeccable/` (kept out of
+git by the local exclude; rerun that one command on a fresh machine),
+and the guarded hook wiring in `.claude/settings.local.json` is
+tracked. Vendoring the pack into the repo was deliberately rejected:
+its third-party reference prose carries em-dashes the pre-commit hook
+bans repo-wide, and a documented one-command reinstall is enough for
+the design phase.
+
+Round mapping, subordinate to repo authority (`docs/design-system/`
+tokens and components stay canonical; any DESIGN.md impeccable writes
+defers to them; the console is product lane per
+`dec.marketing-visual-world`):
+
+- First, once: `/impeccable document` to derive DESIGN.md from the
+  existing design system, then `/impeccable init` only to fill gaps.
+- Round 1 (matrix, journeys, vocabulary): `shape` for the journeys,
+  `distill` for the state grammar, `clarify` for the settled
+  vocabulary.
+- Round 2 (scenario mockups): `craft` for the static screens, `onboard`
+  for the three driver empty states, `harden` for edge and error
+  states, then `critique` and `audit` before each maintainer review.
+- Round 3 (rework and polish): `polish`, with `quieter` whenever a
+  screen drifts toward stock SaaS boldness; `typeset` and `layout` only
+  within the token and font authority.
+- Off-limits on the product lane: `bolder`, `overdrive`, `delight`
+  (Calibrated Instrument: neutral chassis, signal colour only where a
+  move is needed). `live` mode waits for implementation in
+  `todo.console-signed-widening` and must respect
+  `dec.webui-design-authority` clause 5.
+- The pack's deterministic detector rules complement
+  `scripts/check-design-tokens.sh` and `scripts/check-a11y.sh`; run
+  them on mockup HTML only, not on `src/ui_assets`, until
+  implementation starts.
