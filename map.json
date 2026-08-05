@@ -7742,14 +7742,6 @@
       "path": "././meta/decisions/north-star-continuous-loop.md"
     },
     {
-      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
-      "severity": "info",
-      "message": "Decision `dec.product-perimeter` is refined by accepted decision `dec.control-plane-programme`. Check the refinement before treating the original as the only authority.",
-      "node": null,
-      "target": "dec.control-plane-programme",
-      "path": "././meta/decisions/product-perimeter.md"
-    },
-    {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
@@ -7814,25 +7806,11 @@
       "path": null
     },
     {
-      "code": "CAIRN_DECISION_CONVERGENCE_UNMET",
-      "severity": "error",
-      "message": "Accepted local decision `dec.bootstrap-fixture-corpus-split` has receipts that fail the required convergence leg: receipt subject_hash does not equal the recomputed manifest.",
-      "node": "cairn.tests",
-      "path": "././meta/decisions/bootstrap-fixture-corpus-split.md"
-    },
-    {
-      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.bootstrap-fixture-corpus-split-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
-      "node": "cairn.tests",
-      "path": "././meta/reviews/rev.bootstrap-fixture-corpus-split-correctness.md"
-    },
-    {
-      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
-      "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.bootstrap-fixture-corpus-split-simplicity.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
-      "node": "cairn.tests",
-      "path": "././meta/reviews/rev.bootstrap-fixture-corpus-split-simplicity.md"
+      "message": "Node `cairn.ui` carries 11 accepted decisions (threshold 10).",
+      "node": "cairn.ui",
+      "path": null
     }
   ]
 }
