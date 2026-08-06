@@ -2,7 +2,7 @@
 id: dec.orchestrator-skills-layering
 nodes:
   - cairn.root
-status: proposed
+status: accepted
 ratification: binding
 date: 2026-08-04
 related:

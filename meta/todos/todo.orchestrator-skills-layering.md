@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: open
 created: 2026-08-04
 related: [todo.driver-in-repo, dec.orchestration-placement]
 ---
@@ -10,12 +10,20 @@ related: [todo.driver-in-repo, dec.orchestration-placement]
 Filed by the orchestration grill (`studio/orchestration-grill-brief.md`,
 Q6, 2026-08-04), under the brief's ratification proviso. The maintainer
 ruled the layering in session; `dec.orchestrator-skills-layering`
-(proposed, binding, in `cairn pending`) owns the ruling itself.
+(accepted 2026-08-06, binding) owns the ruling itself.
 
-Blocked on the maintainer signing that decision; the gate is external,
-so no `blocked_by:` entry is declarable (ruling 4 of
-`dec.todo-relationship-model`). Tasks 2 and 3 implement the ruling and
-must not start on an unratified record.
+The signature gate is met, so tasks 2 and 3 are startable. Task 2 lands
+with the workflow schema in `todo.driver-in-repo`, which is where the
+capability descriptor is declared, so that unit paces this one.
+
+One gap the ruling leaves to implementation, recorded here rather than
+read back into the decision: clause 3 does not say what a driver does
+with a harness it has no capability descriptor for. Rendering the
+referenced skills inline is the safe default, because it degrades to
+delivery every harness can accept and never silently drops a skill a unit
+was promised. Task 2 settles it against the schema; if it needs ruling
+rather than deciding, it arrives as a refining decision, never an in-place
+amendment.
 
 ## The ruling
 
@@ -25,9 +33,8 @@ ruling once it is signed.
 
 ## Task
 
-1. Done in session (2026-08-04): `dec.orchestrator-skills-layering` is
-   authored and enqueued in `cairn pending`; the signature itself stays
-   the maintainer's.
+1. Done: `dec.orchestrator-skills-layering` was authored and enqueued in
+   session (2026-08-04) and signed on 2026-08-06.
 2. Define the capability descriptor shape with `todo.driver-in-repo`
    task 2 (workflow artefacts) so route declarations can carry it.
 3. Plan the skill-shrink migrations for the loop skills the driver

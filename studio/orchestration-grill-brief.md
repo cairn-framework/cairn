@@ -51,9 +51,10 @@ as a layer beside the passive core, `dec.product-perimeter` is
 superseded with all surviving obligations carried forward, and
 `todo.driver-in-repo` is open. The orchestration-facing console
 implementation inside `todo.console-signed-widening` still waits on the
-design unit and the webui write-authority resolution. One signature
-remains open from the session: `dec.orchestrator-skills-layering`
-(proposed, binding, in `cairn pending`), the Q6 ruling.
+design unit; the webui write-authority resolution was accepted on
+2026-08-06. Both signatures from this session are now closed: the Q6
+ruling, `dec.orchestrator-skills-layering`, was accepted on the same
+day.
 
 ## The question tree, dependency order
 
@@ -107,8 +108,8 @@ why) and add triage; no free-form command surface.
 skills stay in the pack; do orchestrator-level workflows subsume any of
 them, and does the pack teach the driver's workflows to harness agents?
 Depends on Q4. Answered and recorded: the ruling is owned by
-`dec.orchestrator-skills-layering` (proposed, binding, in
-`cairn pending`); `todo.orchestrator-skills-layering` (filed against
+`dec.orchestrator-skills-layering` (accepted 2026-08-06, binding);
+`todo.orchestrator-skills-layering` (filed against
 `cairn.root`) carries only the pointer and the implementation tasks.
 Read the decision for the ruling; this brief keeps provenance only.
 
