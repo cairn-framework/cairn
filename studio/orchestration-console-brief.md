@@ -1,9 +1,9 @@
 # Console orchestration brief: journeys and vocabulary
 
 Round 1 output of `todo.console-orchestration-ux-design` tasks 2 and 4,
-authored 2026-08-05; being worked through with the maintainer in session
-(alignment in progress). The round is done when the maintainer says it is
-aligned; a disagreement
+authored 2026-08-05 and aligned with the maintainer in session the same
+day (recorded answers: ghost vocabulary, quiet synced, quadrant legend,
+four driver lamps, six-type queue). A disagreement
 amends this file in session or routes through the owning artefact per
 the ratification proviso in `studio/orchestration-grill-brief.md`.
 This brief

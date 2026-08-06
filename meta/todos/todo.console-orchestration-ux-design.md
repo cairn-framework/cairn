@@ -175,10 +175,14 @@ amends through its owning artefact, never as an untracked tweak).
 
 ## Mockup rounds (scheduled 2026-08-04)
 
-Agreed at the close of the orchestration grill. The interviewer renders
-static screens; the maintainer accepts or rejects each; a rejection
-routes back through the owning artefact per the brief's ratification
-proviso. Round 1: the state-source matrix and the journeys (tasks 1 and
+Agreed at the close of the orchestration grill; protocol amended in
+session on 2026-08-05 at the maintainer's direction: a round is worked
+through with the maintainer rather than rendered for a verdict.
+Alignment happens in the session, a disagreement amends the material
+there or routes through the owning artefact per the brief's
+ratification proviso, and the round is done when the maintainer says
+it is aligned. No separate accept or reject step exists.
+Round 1: the state-source matrix and the journeys (tasks 1 and
 2), settling the planned, ghost, declared, buildable vocabulary (task
 4). Round 2: the required mockup scenarios (task 3), including the
 lease and granularity screens handed to
