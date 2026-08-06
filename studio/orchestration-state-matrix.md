@@ -22,9 +22,15 @@ Each of the four families owns a carrier surface, and a state never leaves
 its family's carrier. Declared intent and observed fact meet on the node
 chassis (the map). Projections live in bands, chips, and readouts that always
 carry a derivation mark. Execution state lives on run cards and annunciator
-lamps, and is never painted onto a node. The first channel of any cross-family
-pair is therefore the carrier itself; the channels listed per row keep every
-within-family pair at two or more non-colour differences as well.
+lamps, and is never painted onto a node. Carriers therefore separate
+projection and execution states from everything else on sight. Intent and
+fact share only the node chassis, where the axis encoding (dashed and
+hollow for not-yet-observed, solid and filled for recorded) does the
+separating; their row carriers split by surface (backlog and queue
+against unit detail and history) and by treatment (chip and glyph
+against mono and timestamp), and the channels listed per row keep every
+within-family pair at two or more non-colour differences as well. The
+pairwise proof section carries the full argument.
 
 ## The 2x2 the legend must render
 
@@ -110,8 +116,8 @@ never claims to be a recorded fact.
 
 | State | Clause 3 kind | Source of truth (today) | Non-colour channels | Colour |
 |---|---|---|---|---|
-| ready (frontier) | projection | `GET /api/frontier` `ready[]` `{node, name, tier, has_contract, blocking: []}`; `cairn frontier --json` (`src/query_api/handlers/graph.rs:146-158`) | ready-band membership; tier ordinal readout; derivation mark | neutral; band title carries no signal |
-| blocked (frontier) | projection | `GET /api/frontier` `blocked[]` with `blocking` ids | blocked-band membership; `blocked by N` count with mono ids; derivation mark | neutral |
+| ready (frontier) | projection | `GET /api/frontier` `ready[]` `{node, name, tier, has_contract, blocking: []}`; `cairn frontier --json` (`src/query_api/handlers/graph.rs:146-158`) | ready-band membership; tier ordinal readout; derivation mark on the band header (`derived · observed HH:MM`) | neutral; band title carries no signal |
+| blocked (frontier) | projection | `GET /api/frontier` `blocked[]` with `blocking` ids | blocked-band membership; `blocked by N` count with mono ids; derivation mark on the band header (`derived · observed HH:MM`) | neutral |
 | stale lease | projection | **console-derived** from the proposed cairn lease-facts read surface (`expires_at` and renewal fields, row above) plus an explicit observation time (clause 3: the core evaluates no expiry) | `stale` chip with `observed HH:MM`; residue rows (branch, attempt history, last activity); explicit `no outcome recorded` line | `--drift` accent on chip edge |
 | next recommended | projection | `GET /api/status` `next_recommended`; `cairn status --json` | single `next` slot position; source attribution line (`from cairn status`); derivation mark with observation time; empty slot states that no recommendation exists | neutral |
 | dependency tier | projection | `GET /api/roadmap` `tiers[]`; frontier `tier` field | stratum band position; tier ordinal label; derivation mark on the band header | neutral |
