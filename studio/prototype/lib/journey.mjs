@@ -19,16 +19,20 @@ import { describePrompt, grillPrompt, settlePrompt } from "./prompts.mjs";
 /**
  * Why run is not wired.
  *
- * `dec.webui-write-authority` clause 4 rules run in as a recorded ruling the
- * driver obeys (`cairn ruling run <plan>`), but that record is proposed, not
- * signed. Until the maintainer signs it the verb does not exist, so this
- * console records no ruling and dispatches nothing. Wiring it is not this
- * constant: the route, the click handler, and a dispatch path that does not
- * exist yet have to move together, after the verb ships.
+ * The permission question is settled: `dec.webui-write-authority` clause 4 is
+ * accepted (2026-08-06) and rules run in as a recorded ruling the driver
+ * obeys. What is missing is the verb itself. `cairn ruling` is not a command
+ * in this binary, the fact store it would append to is rung 3 design
+ * (`todo.parallel-dispatch-granularity`), and the plan identity it takes as
+ * its argument has a described content but no encoding, which clause 2 left
+ * to that design deliberately. So the refusal stands on a different footing
+ * than it did before the signature, and says so rather than keeping the
+ * easier sentence. Wiring it is still not this constant: the route, the click
+ * handler, and a dispatch path have to move together, once the verb ships.
  */
 const RUN_NOT_WIRED = {
-  caveat: "not wired yet · run needs a ruling this console is not yet allowed to record",
-  reason: "Run would record a ruling (`cairn ruling run`) that the driver then obeys. That verb is proposed in `dec.webui-write-authority` clause 4 and is not signed yet, so nothing is dispatched and no ruling is written.",
+  caveat: "not wired yet · this ruling is allowed now, but the verb it needs does not exist",
+  reason: "Run would record a ruling (`cairn ruling run`) that the driver then obeys. `dec.webui-write-authority` clause 4 is accepted, so recording it is sanctioned, but `cairn ruling` is not a command yet: the store it appends to and the plan identity it names are still being designed. Nothing is dispatched and no ruling is written.",
 };
 
 const MAX_ACTIVITY = 8;
