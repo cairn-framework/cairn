@@ -289,7 +289,7 @@ function workingDrawer() {
       strip.append(workingItem(GLYPH.decisions, [document.createTextNode(`${plural(map.counts.decisions, "decision", "decisions")} recorded`)]));
     }
   }
-  strip.append(workingItem(GLYPH.pending, [node("span", "mono", "cairn ruling run"), document.createTextNode(" not signed off yet")]));
+  strip.append(workingItem(GLYPH.pending, [node("span", "mono", "cairn ruling run"), document.createTextNode(" sanctioned, not built yet")]));
   // Harness and project are one fact, where this is running, so they are one
   // item. The register reference strips this drawer to four.
   strip.append(workingItem(GLYPH.wiring, [node("span", "mono", state.wiring.harness), document.createTextNode(" · "), node("span", "mono", state.wiring.project)]));

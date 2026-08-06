@@ -102,12 +102,15 @@ docker compose -f studio/prototype/compose.yaml exec console omp
 ## What is not wired, and why
 
 The run plate refuses, and says so on its face. Run would record a ruling
-(`cairn ruling run <plan>`) that the driver then observes and obeys. That verb
-is proposed in `dec.webui-write-authority` clause 4 and is not signed yet, so
-this console records no ruling and dispatches nothing. The refusal is stated in
-one place, `RUN_NOT_WIRED` in `lib/journey.mjs`, but wiring run is not one edit:
-the route, the click handler, and a dispatch path that does not exist yet all
-have to move together, after the verb ships.
+(`cairn ruling run <plan>`) that the driver then observes and obeys.
+`dec.webui-write-authority` clause 4 was accepted on 2026-08-06, so recording
+that ruling is sanctioned. What is missing is the verb: `cairn ruling` is not a
+command in this binary, the fact store it appends to is rung 3 design
+(`todo.parallel-dispatch-granularity`), and the plan identity it takes as its
+argument has a described content but no encoding, which clause 2 left to that
+design deliberately. The refusal is stated in one place, `RUN_NOT_WIRED` in
+`lib/journey.mjs`, but wiring run is not one edit: the route, the click handler,
+and a dispatch path all have to move together, once the verb ships.
 
 The console does write, and that is not a contradiction. It writes the target
 project's own blueprint and decision artefacts, because turning your words into
