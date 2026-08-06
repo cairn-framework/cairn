@@ -58,7 +58,7 @@ no longer exists, on surfaces that are the project's first impression
 - Visual harness selectors/scenarios updated; CI ux_defect_score gate
   green against the redesigned webui.
 
-dec:dec.webui-design-authority
+dec:dec.webui-write-authority
 
 ## Mission disposition
 

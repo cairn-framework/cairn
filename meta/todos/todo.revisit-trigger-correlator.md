@@ -49,7 +49,7 @@ commit `7e49981`) and is what emits this very finding, so it tracks a
 Designed-but-unbuilt rule without judging whether a trigger fired. The
 remaining candidate is a maintainer-sanctioned semantic or vision gate, which
 would also supersede the vision-loop foreclosure now carried by
-`dec.webui-design-authority`.
+`dec.webui-write-authority`.
 
 Blocked on that gate. It does not exist, no todo proposes it, and the accepted
 decision forbids shipping a proximity proxy in its place. Unblock by setting

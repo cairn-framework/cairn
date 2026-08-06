@@ -6,7 +6,7 @@ The system runs **two lanes**. They share the scales and the file layout; they d
 
 | Lane | Surfaces | World | Prefix |
 |---|---|---|---|
-| Product | webui (`src/ui_assets/`), consoles, anything a user operates | Calibrated instrument. Warm dark stone, geological state vocabulary as motif. `dec.webui-design-authority` | unprefixed and `--ci-*` / `--ui-*` |
+| Product | webui (`src/ui_assets/`), consoles, anything a user operates | Calibrated instrument. Warm dark stone, geological state vocabulary as motif. `dec.webui-write-authority` | unprefixed and `--ci-*` / `--ui-*` |
 | Marketing | `docs/index.html` and every outward page | The airworthiness record: the paperwork that makes an aircraft legal to fly. `dec.marketing-visual-world` | `--mk-*` / `.mk-*` |
 
 The marketing lane is additive. It renames and removes nothing, and every selector it adds is `.mk-*` scoped, so a change to it cannot change how the product lane renders. It is not weightless: `src/ui/mod.rs` embeds `tokens.css` and `components.css` wholesale, so the web UI serves roughly 38 KB it does not use. That is accepted in exchange for one authority (`dec.marketing-visual-world`). Section 23 of `index.html` renders the lane live.

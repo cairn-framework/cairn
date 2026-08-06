@@ -2,14 +2,14 @@
 node: cairn.ui
 status: open
 created: 2026-08-03
-related: [dec.webui-design-authority, dec.webui-design-token-gate, dec.webui-a11y-static-audit-gate, todo.console-orchestration-ux-design]
+related: [dec.webui-write-authority, dec.webui-design-token-gate, dec.webui-a11y-static-audit-gate, todo.console-orchestration-ux-design]
 ---
 
 # Console state legibility: render what the wire says, fix what the gate cannot see
 
 Two rounds of defect fixes on the shipped read-only surfaces, measured in
 this session against the live webui. Both sit inside the read-only grant
-`dec.webui-design-authority` clause 4 already gives, so neither needs a
+`dec.webui-write-authority` clause 1 already gives, so neither needs a
 signature and neither is orchestration-facing. Evidence and measurements
 live in `todo.console-orchestration-ux-design`; this unit is the
 implementation half.

@@ -64,9 +64,12 @@ surface. Two prerequisites remain:
 1. `todo.console-orchestration-ux-design`, recorded in `blocked_by:`:
    the journeys, the state-source matrix, and the evaluated mockups
    that tasks 3 to 5 above implement.
-2. The decision resolving `dec.webui-design-authority` clause 4's
-   read-only rule, authored by task 6 of that design unit. Its line 28
-   revisit trigger has fired and the resolution must be signed before
-   this unit's write surface ships. It must also specify the sanctioned
-   verbs for the typed queue rulings (retry approval, quarantine
-   release, park/unpark, budget) that do not exist yet.
+2. `dec.webui-write-authority`, accepted 2026-08-06, authored by task 6
+   of that design unit. It retired the read-only rule and named the
+   sanctioned verbs this unit implements: `cairn ruling retry`,
+   `release`, `park`, `unpark`, `budget`, and `run`, each an append-only
+   recorded fact the driver observes. What still gates the write surface
+   is not another signature but the fact store those verbs write to,
+   which is rung 3 design under `todo.parallel-dispatch-granularity`,
+   and the plan identity `cairn ruling run` takes as its argument, which
+   clause 2 deliberately left to that design.

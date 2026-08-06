@@ -2,7 +2,7 @@
 node: cairn.ui
 status: open
 created: 2026-08-03
-related: [dec.orchestration-placement, dec.control-plane-programme, dec.webui-design-authority, todo.console-signed-widening, todo.console-state-legibility, todo.driver-in-repo, todo.parallel-dispatch-granularity]
+related: [dec.orchestration-placement, dec.control-plane-programme, dec.webui-write-authority, todo.console-signed-widening, todo.console-state-legibility, todo.driver-in-repo, todo.parallel-dispatch-granularity]
 ---
 
 # Console orchestration UX: journeys and mockups before implementation
@@ -82,7 +82,7 @@ of it was observed against the live webui and the journey mockup.
    with runs, leases, and a dispatch preview; driver not connected,
    distinguishing no driver attached from attached and idle from crashed;
    and the narrow layout. Static mockups under manual review sit outside
-   `dec.webui-design-authority` clause 5's foreclosed vision-patch loop.
+   `dec.webui-write-authority` clause 5's foreclosed vision-patch loop.
 4. **Settle the vocabulary as a design output.** `planned`, `ghost`,
    `declared`, and `buildable` are four words for one state today. Pick
    one and record it in the brief. The rename itself belongs to
@@ -97,9 +97,10 @@ of it was observed against the live webui and the journey mockup.
    ruling. It renders those questions as screens so the ruling is made
    against something a reader can see, and it consumes the answer.
 6. **Enqueue the webui write-authority resolution.**
-   `dec.webui-design-authority` clause 4 says the webui stays read-only
+   `dec.webui-design-authority` clause 4 said the webui stays read-only
    and its line 28 revisit trigger fires when scope grows beyond
-   read-only exploration. That trigger has fired:
+   read-only exploration. That trigger fired, and
+   `dec.webui-write-authority` retired the rule on 2026-08-06:
    `dec.control-plane-programme` clause 3 granted the console sanctioned
    writes and `dec.orchestration-placement` clause 4 makes it the
    driver's steering surface. Author the decision that resolves the
@@ -237,7 +238,7 @@ Provisional under the ratification proviso until the maintainer closes
 the round as aligned:
 
 - Task 6 discharged by enqueue: `dec.webui-write-authority` is authored
-  and sits in `cairn pending` (proposed, binding, nodes `cairn.ui` and
+  and was accepted on 2026-08-06 (binding, nodes `cairn.ui` and
   `cairn.root`). It follows the `dec.control-plane-programme`
   supersession precedent against `dec.webui-design-authority`, carries
   every surviving obligation in its clause 5, legislates the four J6 gap
@@ -317,7 +318,7 @@ defers to them; the console is product lane per
   (Calibrated Instrument: neutral chassis, signal colour only where a
   move is needed). `live` mode waits for implementation in
   `todo.console-signed-widening` and must respect
-  `dec.webui-design-authority` clause 5.
+  `dec.webui-write-authority` clause 5.
 - The pack's deterministic detector rules complement
   `scripts/check-design-tokens.sh` and `scripts/check-a11y.sh`; run
   them on mockup HTML only, not on `src/ui_assets`, until

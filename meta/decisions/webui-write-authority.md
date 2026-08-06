@@ -3,14 +3,15 @@ id: dec.webui-write-authority
 nodes:
   - cairn.ui
   - cairn.root
-status: proposed
+status: accepted
 ratification: binding
 date: 2026-08-06
 informed_by:
   - res.inversion-convergence-minutes
 refines: [dec.control-plane-programme, dec.orchestration-placement]
-related:
+supersedes:
   - dec.webui-design-authority
+related:
   - dec.cli-agent-workflow-consolidation
 revisit_triggers:
   - "the maintainer sanctions both a Node/Playwright toolchain and a vision provider, which reverses the vision-loop foreclosure and requires superseding this decision"
@@ -69,8 +70,10 @@ record refines rather than supersedes and therefore leaves in force:
 link` and `cairn todo unlink` relationship verbs when
 `todo.todo-relationship-schema-implementation` lands, with
 `dec.cli-agent-workflow-consolidation` and `dec.todo-relationship-model`
-keeping their live obligations over them. Second, the `ruling` family
-this record adds in clauses 3 and 4 below. No free-form command surface
+keeping their live obligations over them. Second, `cairn todo new`, which
+ratification confirms into the union as the feedback-promotion verb
+(clause 3). Third, the `ruling` family this record adds in clauses 3 and 4
+below. No free-form command surface
 exists anywhere in the console. The general graph explorer and the MCP
 surface keep their read-only obligations and receive no part of either
 set (`dec.control-plane-programme` clauses 3 and 6, unchanged).
@@ -110,13 +113,19 @@ the maintainer's own terminal, never a parallel console-only channel.
   spend cap for the named unit or wave (the Q9 budget-exhausted moment).
 
 Signature entries stay display-only routing to the maintainer's own
-signing flow. Feedback triage stays on the `cairn feedback` intake, whose
-promotion step the J6 table routes through `cairn todo new`. That verb is
-not in `dec.control-plane-programme` clause 3's list, so ratification
-settles whether it joins the clause 1 union or promotion routes through
-an already-granted verb; the console implements neither reading until it
-does. That completes the J6 table: six typed entries, six named write
-paths, none of them a console action on the driver.
+signing flow. Feedback triage stays on the `cairn feedback` intake, and
+acceptance settles its promotion step by confirming `cairn todo new` into
+the clause 1 union. The other reading the question offered, routing
+promotion through an already-granted verb, is not available: `cairn todo
+set` changes an existing todo's status and creates nothing, so a triage
+entry routed through it would be decoration. Creating a todo fits the
+shape this record is built on anyway. It is a recorded fact, it starts
+nothing, it acts on no driver, and feeding native todos is what the
+feedback lane exists for (`dec.native-todos-first`). The signature is the
+authority for that one widening, which is exactly why the question was
+left to ratification instead of taken on this record's own. That completes the J6 table:
+six typed entries, six named write paths, none of them a console action on
+the driver.
 
 ### 4. Run is ruled in, as a recorded ruling the driver obeys
 
@@ -273,10 +282,15 @@ graph, following the `dec.control-plane-programme` precedent:
   aesthetic citation, the design-system README lane table and its
   showcase lineage, `dec.marketing-visual-world`'s related edge, the
   standing-trigger citation in `dec.revisit-trigger-correlator-deferred`,
-  the aesthetic line in `studio/orchestration-grill-brief.md`, and the
-  `related` edges and clause 4 references in `todo.ui-asset-refresh`,
+  the aesthetic lines in `studio/orchestration-grill-brief.md` and
+  `studio/orchestration-console-brief.md`, and the
+  `related` edges and clause references in `todo.ui-asset-refresh`,
   `todo.webui-design-quality`, `todo.revisit-trigger-correlator`,
-  `todo.console-signed-widening`, and `todo.console-state-legibility` all
+  `todo.console-signed-widening`, `todo.console-state-legibility`,
+  `todo.console-orchestration-ux-design` (a `related` edge and the clause
+  4 and clause 5 citations in its round records), and
+  `todo.guided-console-prototype`, whose design-authority paragraph
+  asserts that the superseded record is accepted and binding, all
   name this record instead. Accepted decisions and archived narrative keep
   naming the superseded id: they describe what was authoritative when they
   were written, which is history and not a stale pointer.

@@ -53,10 +53,12 @@ by the same ruling.
 
 Design-system tokens and components only (`docs/design-system/`),
 product lane per `dec.marketing-visual-world`. The guided journey mock
-is the register reference. `dec.webui-design-authority` is accepted, so
-its obligations bind this prototype's surfaces now; if
-`dec.webui-write-authority` is signed, the same obligations continue
-through its clause 5 and the run verb becomes available.
+is the register reference. `dec.webui-write-authority` is accepted
+(2026-08-06), so its clause 5 carries those obligations and they bind
+this prototype's surfaces. The run verb is sanctioned by its clause 4 but
+not yet implementable: the fact store and the plan identity it takes are
+rung 3 design (`todo.parallel-dispatch-granularity`), so the run plate
+stays not wired and says so on its face.
 
 ## Session 1: what exists now (2026-08-06)
 

@@ -26,7 +26,7 @@ questions, and how the product decomposes is itself under test. Only the
 - An agent inside a harness never orchestrates. It writes through
   sanctioned verbs and returns an outcome. The next action happens
   because the driver observed the recorded change or outcome.
-- Aesthetic: Calibrated Instrument (`dec.webui-design-authority`); the
+- Aesthetic: Calibrated Instrument (`dec.webui-write-authority`); the
   read-only legibility fixes (`todo.console-state-legibility`) proceed
   regardless of any answer below.
 - Scope: single repository now; multi-repo aggregation stays parked

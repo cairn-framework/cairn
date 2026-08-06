@@ -30,7 +30,7 @@ trust, not triage speed.
 
 ## Direction
 
-Calibrated Instrument, unchanged (`dec.webui-design-authority`; settled
+Calibrated Instrument, unchanged (`dec.webui-write-authority` clause 5; settled
 ground). Three moves define the orchestration console against the shipped
 read-only instrument:
 
@@ -47,10 +47,17 @@ read-only instrument:
    waiting-on-you queue (the only interrupt surface, Q5), and the
    consequence sentence (what signing a ruling moves, stated in words).
 
-Non-goals, permanent for this design: no dispatch button, no lease
-acquisition, no retry trigger, no free-form command surface, no execution
-from any console affordance. The console shows, and records rulings through
-sanctioned verbs only.
+Non-goals, standing for this design: no lease acquisition, no execution,
+no supervision, no free-form command surface, and no act on the driver
+from any console affordance. Amended on acceptance of
+`dec.webui-write-authority` (2026-08-06), through this brief's own
+ratification proviso: the earlier form read "no dispatch button", "no
+retry trigger", and "no dispatch from any console affordance", which
+clauses 3 and 4 settle. The act and record distinction is what moved, not
+the boundary. The console records rulings through sanctioned verbs (retry,
+release, park, unpark, budget, and run), and the driver alone acts on
+them, re-reading state first and declining a plan that no longer holds.
+The console shows, and it records.
 
 ## Surface inventory
 
@@ -159,11 +166,12 @@ the design todo):
 | Entry type | Write path today | Write path when built |
 |---|---|---|
 | signature | display-only routing to the maintainer's signing flow | unchanged |
-| feedback triage | `cairn feedback` intake exists; promotion via `cairn todo new` | unchanged (already-sanctioned verbs) |
-| retry approval | none: renders display-only | recorded fact the driver obeys; verb specified by the write-authority decision (task 6) before `todo.console-signed-widening` implements |
-| quarantine release | none: display-only; never auto-retried | same as retry |
-| park and unpark | none: display-only | same as retry |
-| budget approval | none: display-only (Q9 budget-exhausted moment) | same as retry |
+| feedback triage | `cairn feedback` intake exists; promotion via `cairn todo new` | unchanged, and now sanctioned explicitly: `cairn todo new` was confirmed into the console's write set on acceptance (`dec.webui-write-authority` clauses 1 and 3) |
+| retry approval | none: renders display-only | `cairn ruling retry <todo-id>`, a recorded fact the driver obeys (`dec.webui-write-authority` clause 3), implemented by `todo.console-signed-widening` |
+| quarantine release | none: display-only; never auto-retried | `cairn ruling release <todo-id>` |
+| park and unpark | none: display-only | `cairn ruling park` and `cairn ruling unpark <todo-id>` |
+| budget approval | none: display-only (Q9 budget-exhausted moment) | `cairn ruling budget <todo-id or wave-id> --cap <value>` |
+| run | none: every specimen labels it not wired | `cairn ruling run <plan>`, consent to one composed plan the driver re-reads before acting (clause 4) |
 
 Tier split: binding-tier items interrupt by queueing; local-tier decisions
 land agent-side and appear as receipts in history, never as interrupts. A
