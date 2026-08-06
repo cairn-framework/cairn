@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cairn Console: mixed repository scenario (round 2 mock)</title>
+    <link rel="stylesheet" href="../../docs/design-system/fonts.css" />
+    <link rel="stylesheet" href="../../docs/design-system/tokens.css" />
+    <style>
+      /* ==============================================================
+         Mixed repository scenario, round 2 of
+         todo.console-orchestration-ux-design. Static specimen, no JS.
+         Every colour, face, size, radius, and duration rides
+         docs/design-system/tokens.css (semantic aliases first; the
+         canonical seeds --ci-signal, --ci-keel, --ci-size-counter are
+         used where the matrix names them or no alias exists). Raw px
+         appears only as micro-geometry with no token equivalent.
+         This sheet adds scenario components only (run card, queue
+         entry, lamp strip, derivation mark, quadrant legend): the
+         components the design system does not have yet (todo evidence
+         item 5).
+         ============================================================== */
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-ui);
+        font-size: var(--t-body);
+        line-height: 1.45;
+        color: var(--ink-1);
+        background: var(--stone-3);
+        overflow: hidden;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .micro {
+        text-transform: uppercase;
+        letter-spacing: var(--track-micro);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .mono {
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-weight: 500;
+        margin: 0;
+      }
+
+      /* ---------- bezel ------------------------------------------- */
+
+      .bezel {
+        height: 56px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-4);
+        padding: 0 var(--s-4);
+        background: var(--stone-3);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+      }
+
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        font-family: var(--font-serif);
+        font-size: var(--t-title);
+        letter-spacing: 0.02em;
+      }
+
+      .mark svg {
+        display: block;
+      }
+
+      .scenario-chip {
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        padding: 3px var(--s-2);
+        color: var(--ink-3);
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        letter-spacing: 0.06em;
+      }
+
+      .counters {
+        display: flex;
+        gap: var(--s-3);
+      }
+
+      .counter {
+        border-left: var(--line-1) solid var(--seam-faint);
+        padding-left: var(--s-3);
+        min-width: 72px;
+      }
+
+      .counter b {
+        display: block;
+        font-size: var(--ci-size-counter);
+        font-weight: 500;
+        line-height: 1.05;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .counter .mono {
+        font-size: var(--t-micro);
+      }
+
+      .counter span {
+        display: block;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        text-transform: uppercase;
+        letter-spacing: var(--track-micro);
+      }
+
+      .bezel-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-3);
+      }
+
+      .annunciator {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        color: var(--ink-2);
+        padding: 5px var(--s-3);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        white-space: nowrap;
+      }
+
+      .annunciator::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--ink-4);
+      }
+
+      .queue-badge {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        border: var(--line-1) solid var(--prov-2);
+        border-radius: var(--r-edge);
+        color: var(--prov-1);
+        background: var(--prov-wash);
+        padding: 5px var(--s-3);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        white-space: nowrap;
+      }
+
+      .queue-badge b {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+
+      /* ---------- query rail --------------------------------------- */
+
+      .rail {
+        height: 42px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-3);
+        padding: 0 var(--s-4);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+        background: var(--stone-3);
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        border: var(--line-1) solid var(--seam-faint);
+        border-radius: var(--r-edge);
+        background: var(--stone-1);
+        padding: var(--s-1) var(--s-2);
+        flex: 0 1 320px;
+      }
+
+      .search input {
+        border: 0;
+        background: transparent;
+        outline: none;
+        color: var(--ink-1);
+        flex: 1;
+        font: inherit;
+        min-width: 0;
+      }
+
+      .search input::placeholder {
+        color: var(--ink-3);
+      }
+
+      .toggles {
+        display: flex;
+        border: var(--line-1) solid var(--seam-faint);
+        border-radius: var(--r-stone);
+        overflow: hidden;
+      }
+
+      .toggle {
+        border: 0;
+        padding: 5px var(--s-3);
+        color: var(--ink-2);
+        background: var(--stone-3);
+        font: inherit;
+        font-size: var(--t-small);
+        cursor: pointer;
+      }
+
+      .toggle + .toggle {
+        border-left: var(--line-1) solid var(--seam-faint);
+      }
+
+      .rail-meta {
+        margin-left: auto;
+        color: var(--ink-3);
+        font-size: var(--t-small);
+        white-space: nowrap;
+      }
+
+      .rail-meta .mono {
+        color: var(--ink-2);
+      }
+
+      /* ---------- workbench ----------------------------------------- */
+
+      .workbench {
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px 360px;
+        min-height: 0;
+      }
+
+      .panel {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel + .panel {
+        border-left: var(--line-1) solid var(--seam-faint);
+      }
+
+      .panel-head {
+        flex: 0 0 auto;
+        padding: var(--s-2) var(--s-4);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        min-height: 34px;
+      }
+
+      .panel-head h2 {
+        font-family: var(--font-serif);
+        font-size: var(--t-title);
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+
+      .panel-head .meta {
+        color: var(--ink-3);
+        font-size: var(--t-small);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ---------- derivation mark ----------------------------------- */
+
+      .derived-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+      }
+
+      .derived-mark svg {
+        display: block;
+      }
+
+      /* ---------- map ------------------------------------------------ */
+
+      .map-panel {
+        background: var(--stone-1);
+      }
+
+      .map-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        padding: var(--s-2) var(--s-3) var(--s-1);
+      }
+
+      .bands {
+        position: relative;
+        flex: 0 0 auto;
+      }
+
+      .edge-layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .edge-layer path {
+        fill: none;
+        stroke: var(--stroke-2);
+        stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+      }
+
+      .edge-layer path.edge-strong {
+        stroke: var(--stroke-strong);
+      }
+
+      .edge-label {
+        position: absolute;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        background: var(--stone-1);
+        padding: 0 var(--s-1);
+        letter-spacing: 0.04em;
+      }
+
+      .band {
+        position: relative;
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        padding: 3px 6px 6px;
+        margin-bottom: 4px;
+      }
+
+      .band:last-of-type {
+        margin-bottom: 0;
+      }
+
+      .band-head {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        padding: 0 var(--s-1) 2px;
+      }
+
+      .band-head .tier {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        letter-spacing: 0.06em;
+      }
+
+      .band-head .count {
+        color: var(--ink-4);
+        font-size: var(--t-micro);
+      }
+
+      .band-head .derived-mark {
+        margin-left: auto;
+      }
+
+      .node-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 5px;
+      }
+
+      .node-module.span-2 {
+        grid-column: span 2;
+      }
+
+      /* ---------- node module (chassis: intent and fact only) ------- */
+
+      .node-module {
+        position: relative;
+        height: 38px;
+        border: var(--line-1) solid var(--stroke-1);
+        border-left: var(--ci-keel) solid var(--seam-carved);
+        border-radius: var(--r-stone);
+        background: var(--stone-2);
+        padding: 3px 7px 3px var(--s-2);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1px;
+        min-width: 0;
+      }
+
+      .node-module .name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--t-small);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .node-module .state-word {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        line-height: 1.2;
+      }
+
+      .state-dot {
+        flex: 0 0 auto;
+        width: 7px;
+        height: 7px;
+        border-radius: var(--r-full);
+        background: var(--ink-2);
+      }
+
+      /* ghost: dashed border, hollow keel and dot (not yet observed) */
+      .node-module.is-ghost {
+        border: var(--line-1) dashed var(--ghost);
+        border-left: var(--ci-keel) dashed var(--ghost);
+        background: var(--ghost-wash);
+      }
+
+      .node-module.is-ghost .name {
+        color: var(--ink-2);
+      }
+
+      .node-module.is-ghost .state-dot {
+        background: transparent;
+        border: var(--line-1) solid var(--ink-2);
+      }
+
+      /* orphaned: tilt, solid amber keel, filled dot (not declared) */
+      .node-module.is-orphaned {
+        transform: rotate(var(--ui-orphan-tilt));
+        border-left-color: var(--orphaned);
+        background: var(--orphan-wash);
+      }
+
+      .node-module.is-orphaned .state-dot {
+        background: var(--orphaned);
+      }
+
+      /* drift: finding overlay on a synced chassis, thick keel + badge */
+      .node-module.has-drift {
+        border-left: 5px solid var(--drift);
+        background: var(--drift-wash);
+      }
+
+      .drift-badge {
+        position: absolute;
+        top: -6px;
+        right: -5px;
+        min-width: 15px;
+        height: 15px;
+        border-radius: var(--r-edge);
+        border: var(--line-1) solid var(--drift);
+        background: var(--stone-1);
+        color: var(--drift);
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        line-height: 13px;
+        text-align: center;
+        padding: 0 3px;
+      }
+
+      /* ---------- frontier strip + quadrant legend ------------------- */
+
+      .map-foot {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 5px;
+        margin-top: 2px;
+      }
+
+      .proj-band {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        padding: 3px var(--s-2) 5px;
+      }
+
+      .proj-band + .proj-band {
+        margin-top: 4px;
+      }
+
+      .proj-band .band-head .tier {
+        font-family: var(--font-ui);
+        color: var(--ink-2);
+        font-size: var(--t-small);
+      }
+
+      .proj-band .gloss {
+        color: var(--ink-4);
+        font-size: var(--t-micro);
+      }
+
+      .proj-row {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        padding: 3px var(--s-1);
+        font-size: var(--t-small);
+        color: var(--ink-2);
+      }
+
+      .proj-row .mono {
+        color: var(--ink-1);
+      }
+
+      .proj-row .why {
+        color: var(--ink-3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* quadrant legend */
+
+      .legend {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        padding: 6px var(--s-2);
+        background: var(--stone-1);
+      }
+
+      .legend .legend-title {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: 4px;
+      }
+
+      .quadrant {
+        display: grid;
+        grid-template-columns: 74px 1fr 1fr;
+        gap: 3px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .quadrant .axis {
+        display: flex;
+        align-items: center;
+        line-height: 1.2;
+      }
+
+      .quadrant .axis.col {
+        justify-content: center;
+        text-align: center;
+      }
+
+      .q-cell {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-edge);
+        padding: 2px 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 24px;
+      }
+
+      .q-cell .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-1);
+      }
+
+      .q-cell.q-void {
+        border-style: dashed;
+        color: var(--ink-4);
+        justify-content: center;
+      }
+
+      .state-key {
+        flex: 0 0 auto;
+        width: 16px;
+        height: 12px;
+        border: var(--line-1) solid var(--stroke-2);
+        border-left: var(--ci-keel) solid var(--seam-carved);
+        background: var(--stone-2);
+      }
+
+      .state-key.k-ghost {
+        border: var(--line-1) dashed var(--ghost);
+        border-left: var(--ci-keel) dashed var(--ghost);
+        background: var(--ghost-wash);
+      }
+
+      .state-key.k-orphaned {
+        border-left-color: var(--orphaned);
+        background: var(--orphan-wash);
+        transform: rotate(-4deg);
+      }
+
+      .state-key.k-drift {
+        border-left: var(--ci-keel) solid var(--drift);
+        background: var(--drift-wash);
+      }
+
+      .legend-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        line-height: 1.3;
+      }
+
+      /* ---------- waiting-on-you queue ------------------------------- */
+
+      .queue-panel {
+        background: var(--stone-2);
+      }
+
+      .queue-count {
+        font-variant-numeric: tabular-nums;
+        color: var(--prov-1);
+        border: var(--line-1) solid var(--prov-2);
+        background: var(--prov-wash);
+        border-radius: var(--r-edge);
+        font-size: var(--t-small);
+        padding: 0 6px;
+        line-height: 18px;
+      }
+
+      .queue-list {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        list-style: none;
+        margin: 0;
+        padding: 6px var(--s-2);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .q-entry {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        background: var(--stone-3);
+        padding: 4px var(--s-2);
+      }
+
+      .queue-note {
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 3px var(--s-3) 5px;
+        border-top: var(--line-1) solid var(--stroke-1);
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        line-height: 1.4;
+      }
+
+      .q-entry.is-head {
+        border-left: var(--ci-keel) solid var(--prov-1);
+        padding-left: 6px;
+      }
+
+      .q-entry.is-signature {
+        background: var(--hinge-wash);
+      }
+
+      .q-top {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+      }
+
+      .q-type {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+
+      .q-age {
+        margin-left: auto;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .q-subject {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .q-subject svg {
+        flex: 0 0 auto;
+      }
+
+      .q-state {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        flex: 0 0 auto;
+      }
+
+      .q-sum {
+        margin-top: 2px;
+        color: var(--ink-2);
+        font-size: var(--t-small);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.35;
+      }
+
+      .q-residue {
+        margin-top: 2px;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: var(--font-mono);
+        line-height: 1.5;
+      }
+
+      .q-path {
+        margin-top: 3px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .q-path .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      .verb-chip {
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        padding: 0 5px;
+        line-height: 15px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+
+      .verb-chip.is-live {
+        border-color: var(--prov-3);
+        color: var(--prov-1);
+      }
+
+      /* ---------- in-flight rail ------------------------------------- */
+
+      .flight-panel {
+        background: var(--stone-2);
+      }
+
+      .flight-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 5px var(--s-2);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .next-slot {
+        border: var(--line-1) dashed var(--stroke-2);
+        border-radius: var(--r-stone);
+        padding: var(--s-1) var(--s-2);
+      }
+
+      .next-slot .n-top {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+      }
+
+      .next-slot .n-label {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+
+      .next-slot .derived-mark {
+        margin-left: auto;
+      }
+
+      .next-slot .n-unit {
+        margin-top: 2px;
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+      }
+
+      .next-slot .n-src {
+        margin-top: 1px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .run-card {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        background: var(--stone-3);
+        padding: 3px var(--s-2);
+      }
+
+      .r-top {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        min-width: 0;
+      }
+
+      .lamp {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .lamp i {
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--ink-2);
+      }
+
+      .lamp.l-active {
+        color: var(--ci-signal);
+      }
+
+      .lamp.l-active i {
+        background: var(--ci-signal);
+      }
+
+      .lamp.l-waiting i {
+        background: transparent;
+        border: var(--line-1) solid var(--ink-2);
+      }
+
+      .lamp.l-blocked {
+        border-bottom: var(--line-1) solid var(--drift);
+        padding-bottom: 1px;
+      }
+
+      .lamp.l-blocked i {
+        background: transparent;
+        border-left: var(--line-2) solid var(--ink-2);
+        border-right: var(--line-2) solid var(--ink-2);
+        border-radius: 0;
+        width: 8px;
+      }
+
+      .r-unit {
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .r-clock {
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-2);
+        font-size: var(--t-small);
+        white-space: nowrap;
+      }
+
+      .r-meta {
+        margin-top: 2px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .r-meta .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      .claim-tag {
+        border: var(--line-1) solid var(--stroke-2);
+        border-radius: var(--r-edge);
+        padding: 0 5px;
+        line-height: 15px;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .flight-divider {
+        margin-top: 0;
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-4);
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+      }
+
+      .flight-divider::after {
+        content: "";
+        flex: 1;
+        border-top: var(--line-1) solid var(--stroke-1);
+      }
+
+      .stale-card {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        background: var(--stone-3);
+        padding: var(--s-1) var(--s-2);
+      }
+
+      .stale-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: var(--line-1) solid var(--drift);
+        border-radius: var(--r-edge);
+        color: var(--ink-1);
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        padding: 0 6px;
+        line-height: 16px;
+      }
+
+      .stale-facts {
+        margin-top: 3px;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        line-height: 1.45;
+      }
+
+      .stale-facts .dim {
+        color: var(--ink-3);
+      }
+
+      .no-outcome {
+        margin-top: 2px;
+        font-size: var(--t-small);
+        color: var(--ink-2);
+      }
+
+      /* driver lamp vocabulary strip */
+
+      .lamp-strip {
+        margin-top: auto;
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        padding: var(--s-1) var(--s-2) var(--s-1);
+        background: var(--stone-1);
+      }
+
+      .lamp-strip .ls-title {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+
+      .lamp-strip .ls-note {
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        margin: 1px 0 4px;
+      }
+
+      .ls-row {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        padding: 1px 0;
+      }
+
+      .ls-lamp {
+        flex: 0 0 150px;
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        color: var(--ink-2);
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        text-align: center;
+        padding: 1px var(--s-1);
+        white-space: nowrap;
+      }
+
+      .ls-lamp.l-warn {
+        border-color: var(--drift);
+      }
+
+      .ls-lamp.l-error {
+        border-color: var(--error);
+      }
+
+      .ls-evidence {
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        line-height: 1.35;
+      }
+
+      .ls-evidence .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      /* ---------- channel -------------------------------------------- */
+
+      .channel {
+        height: var(--ui-channel-height);
+        flex: 0 0 auto;
+        border-top: var(--line-1) solid var(--seam-faint);
+        background: var(--stone-2);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        min-height: 0;
+      }
+
+      .well {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .well + .well {
+        border-left: var(--line-1) solid var(--seam-faint);
+      }
+
+      .well-head {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        padding: 5px var(--s-3) var(--s-1);
+        border-bottom: var(--line-1) solid var(--stroke-1);
+      }
+
+      .well-head h3 {
+        font-family: var(--font-serif);
+        font-size: var(--t-lede);
+        white-space: nowrap;
+      }
+
+      .well-head .meta {
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .well-list {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        list-style: none;
+        margin: 0;
+        padding: var(--s-1) var(--s-3) var(--s-2);
+      }
+
+      .well-list li {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        padding: 3px 0;
+        border-bottom: var(--line-1) solid var(--stroke-1);
+        font-size: var(--t-small);
+        color: var(--ink-2);
+        min-width: 0;
+      }
+
+      .well-list li:last-child {
+        border-bottom: 0;
+      }
+
+      .sev {
+        flex: 0 0 64px;
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        text-align: center;
+        border: var(--line-1) solid transparent;
+        border-radius: var(--r-edge);
+        line-height: 15px;
+      }
+
+      .sev.s-error {
+        color: var(--stone-1);
+        background: var(--error);
+        font-weight: 600;
+      }
+
+      .sev.s-warning {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+
+      .sev.s-info {
+        color: var(--ink-3);
+      }
+
+      .f-code {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-1);
+        white-space: nowrap;
+      }
+
+      .f-node {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+
+      .f-msg {
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .h-time {
+        flex: 0 0 78px;
+        font-variant-numeric: tabular-nums;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+
+      .h-token {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-1);
+        white-space: nowrap;
+      }
+
+      .h-what {
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .h-what .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      .struck {
+        text-decoration: line-through;
+        text-decoration-thickness: 1px;
+      }
+
+      .seal {
+        flex: 0 0 auto;
+        display: inline-block;
+      }
+
+      .marker {
+        flex: 0 0 12px;
+        width: 10px;
+        height: 10px;
+        border-radius: var(--r-full);
+        border: var(--line-1) solid var(--ink-2);
+        background: transparent;
+        align-self: center;
+      }
+
+      .marker.m-progress {
+        background: linear-gradient(
+          90deg,
+          var(--ink-2) 0 50%,
+          transparent 50% 100%
+        );
+      }
+
+      .marker.m-blocked {
+        border-radius: 0;
+        border: 0;
+        border-left: var(--line-2) solid var(--ink-2);
+        border-right: var(--line-2) solid var(--ink-2);
+        width: 8px;
+        height: 10px;
+      }
+
+      .marker.m-done {
+        border: 0;
+        background: transparent;
+      }
+
+      .b-unit {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-1);
+        white-space: nowrap;
+      }
+
+      .b-status {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .b-check {
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .b-check .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      ::selection {
+        background: var(--prov-wash);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      DIRECTION CONTRACT (round 2, mixed repository scenario)
+      THESIS: one screen where all four kinds of truth coexist without a
+      terminal: intent and fact on node chassis, projections in marked
+      bands, execution on cards and lamps. Refuses the category default
+      (uniform status dashboard where every state is a coloured badge).
+      OWN-WORLD: Calibrated Instrument, inherited. Graphite chassis,
+      chalk ink, serif titles, mono machine identity, one teal verb.
+      SYNTHETIC: every unit id, run, claim, finding and count below is
+      authored scenario data ("cairn, three weeks out"), labelled in the
+      bezel. Real artefact ids appear only as recorded history
+      (dec.orchestration-placement, dec.user-surfaces supersession).
+      PROVISIONAL CALLS for in-session alignment: (1) no fifth lamp:
+      healthy active driver renders no bezel lamp, liveness lives in the
+      rail header, vocabulary strip documents all four lamps; (2) teal
+      spend: queue badge, queue-head keel, live-verb chip, ACTIVE lamps,
+      nothing else; (3) reconciled annunciator goes neutral (was teal);
+      (4) orphan sits in an untiered shelf; (5) 7 of 27 edges drawn, the
+      frontier-placing subset; (6) channel tabs spread into three
+      simultaneous wells so the specimen proves coexistence; (7) the
+      queue-position wait flavour is deferred to the driver-connected
+      scenario.
+    -->
+    <header class="bezel">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <rect x="5" y="2" width="8" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="3" y="7" width="12" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="1" y="12" width="16" height="4" rx="1" fill="var(--ink-2)" />
+        </svg>
+        Cairn
+      </span>
+      <span class="scenario-chip">synthetic scenario · mixed repository · 2026-08-06</span>
+      <div class="counters">
+        <div class="counter"><b>22</b><span>nodes</span></div>
+        <div class="counter"><b>27</b><span>edges</span></div>
+        <div class="counter"><b>4</b><span>findings</span></div>
+        <div class="counter">
+          <b class="mono">4c1f9a27</b><span>interface hash</span>
+        </div>
+      </div>
+      <div class="bezel-right">
+        <span class="annunciator">Reconciled 09:41</span>
+        <span class="queue-badge">Waiting on you <b>6</b></span>
+      </div>
+    </header>
+
+    <div class="rail">
+      <div class="search">
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <circle cx="5" cy="5" r="3.4" fill="none" stroke="var(--ink-3)" />
+          <path d="M8 8l3 3" stroke="var(--ink-3)" stroke-linecap="round" />
+        </svg>
+        <input type="search" placeholder="id, name, path, or state" aria-label="Search the graph" />
+      </div>
+      <div class="toggles" role="group" aria-label="State filters">
+        <button class="toggle" type="button" aria-pressed="false">ghost</button>
+        <button class="toggle" type="button" aria-pressed="false">synced</button>
+        <button class="toggle" type="button" aria-pressed="false">orphaned</button>
+        <button class="toggle" type="button" aria-pressed="false">drift</button>
+      </div>
+      <span class="rail-meta">observed <span class="mono">09:41</span> · every derived readout carries this time</span>
+    </div>
+
+    <main class="workbench">
+      <!-- ================= map ================= -->
+      <section class="panel map-panel" aria-label="Dependency map">
+        <div class="panel-head">
+          <h2>Dependency map</h2>
+          <span class="meta">22 nodes · 27 edges, 7 drawn · edges read downward: dependent above, dependency below</span>
+        </div>
+        <div class="map-body">
+          <div class="bands">
+            <svg class="edge-layer" viewBox="0 0 100 392" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M10.5,90 L10.5,58" />
+              <path d="M30.2,90 L30.2,58" />
+              <path d="M89.5,202 L89.5,128" />
+              <path d="M10.5,272 C16,220 80,200 89.5,128" />
+              <path d="M10.5,202 C14,172 62,162 69.8,128" />
+              <path d="M69.8,202 C67,176 52,160 50,128" />
+              <path class="edge-strong" d="M89.5,272 L89.5,240" />
+            </svg>
+            <span class="edge-label" style="left: 79%; top: 246px">depends on</span>
+
+            <section class="band" aria-label="Tier 0">
+              <div class="band-head">
+                <span class="tier">tier 0</span>
+                <span class="count">4 nodes</span>
+                <span class="derived-mark">
+                  <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                  derived · observed 09:41
+                </span>
+              </div>
+              <div class="node-grid">
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Root</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Persist</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Macros</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>State</span>
+                  <span class="state-word">synced</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="band" aria-label="Tier 1">
+              <div class="band-head">
+                <span class="tier">tier 1</span>
+                <span class="count">7 nodes</span>
+                <span class="derived-mark">
+                  <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                  derived · observed 09:41
+                </span>
+              </div>
+              <div class="node-grid">
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Blueprint</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Artefacts</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Map</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module has-drift">
+                  <span class="drift-badge">2</span>
+                  <span class="name"><span class="state-dot"></span>Scanner</span>
+                  <span class="state-word">synced · drift</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Query</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Changes</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Hooks</span>
+                  <span class="state-word">synced</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="band" aria-label="Tier 2">
+              <div class="band-head">
+                <span class="tier">tier 2</span>
+                <span class="count">5 nodes</span>
+                <span class="derived-mark">
+                  <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                  derived · observed 09:41
+                </span>
+              </div>
+              <div class="node-grid">
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Reconcile</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Provenance</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Watch</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module has-drift">
+                  <span class="drift-badge">1</span>
+                  <span class="name"><span class="state-dot"></span>Summariser</span>
+                  <span class="state-word">synced · drift</span>
+                </div>
+                <div class="node-module is-ghost">
+                  <span class="name"><span class="state-dot"></span>Driver</span>
+                  <span class="state-word">ghost</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="band" aria-label="Tier 3">
+              <div class="band-head">
+                <span class="tier">tier 3</span>
+                <span class="count">5 nodes</span>
+                <span class="derived-mark">
+                  <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                  derived · observed 09:41
+                </span>
+              </div>
+              <div class="node-grid">
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>Web UI</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>MCP</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>LSP</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module">
+                  <span class="name"><span class="state-dot"></span>CLI</span>
+                  <span class="state-word">synced</span>
+                </div>
+                <div class="node-module is-ghost">
+                  <span class="name"><span class="state-dot"></span>Leases</span>
+                  <span class="state-word">ghost</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="band" aria-label="Untiered">
+              <div class="band-head">
+                <span class="tier">untiered</span>
+                <span class="count">1 node · no declaration to tier</span>
+                <span class="derived-mark">
+                  <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                  derived · observed 09:41
+                </span>
+              </div>
+              <div class="node-grid">
+                <div class="node-module is-orphaned span-2">
+                  <span class="name"><span class="state-dot"></span><span class="mono">src/telemetry/</span></span>
+                  <span class="state-word">orphaned · no declaration</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="map-foot">
+            <div>
+              <section class="proj-band" aria-label="Ready frontier">
+                <div class="band-head">
+                  <span class="tier">Ready</span>
+                  <span class="gloss">buildable now</span>
+                  <span class="count">1</span>
+                  <span class="derived-mark">
+                    <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                    derived · observed 09:41
+                  </span>
+                </div>
+                <div class="proj-row">
+                  <span class="mono">cairn.driver</span>
+                  <span class="why">tier 2 · contract present</span>
+                </div>
+              </section>
+              <section class="proj-band" aria-label="Blocked frontier">
+                <div class="band-head">
+                  <span class="tier">Blocked</span>
+                  <span class="count">1</span>
+                  <span class="derived-mark">
+                    <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                    derived · observed 09:41
+                  </span>
+                </div>
+                <div class="proj-row">
+                  <span class="mono">cairn.driver.leases</span>
+                  <span class="why">tier 3 · blocked by 1: <span class="mono">cairn.driver</span></span>
+                </div>
+              </section>
+            </div>
+
+            <div class="legend" aria-label="State legend">
+              <div class="legend-title">declared against observed</div>
+              <div class="quadrant">
+                <span class="axis" aria-hidden="true"></span>
+                <span class="axis col">observed</span>
+                <span class="axis col">not yet observed</span>
+                <span class="axis">declared</span>
+                <span class="q-cell"><span class="state-key"></span><span class="mono">synced</span></span>
+                <span class="q-cell"><span class="state-key k-ghost"></span><span class="mono">ghost</span></span>
+                <span class="axis">not declared</span>
+                <span class="q-cell"><span class="state-key k-orphaned"></span><span class="mono">orphaned</span></span>
+                <span class="q-cell q-void">not a state</span>
+              </div>
+              <div class="legend-row">
+                <span class="state-key k-drift"></span>
+                <span>drift: finding overlay on a synced chassis, from <span class="mono">cairn lint</span>, never a fourth peer state</span>
+              </div>
+              <div class="legend-row">
+                <span>hollow: not yet observed · tilt: not declared · <span class="mono">ghost</span>: declared, not yet observed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= waiting-on-you queue ================= -->
+      <section class="panel queue-panel" aria-label="Waiting on you">
+        <div class="panel-head">
+          <h2>Waiting on you</h2>
+          <span class="queue-count">6</span>
+          <span class="meta">oldest first</span>
+        </div>
+        <ol class="queue-list">
+          <li class="q-entry is-head">
+            <div class="q-top">
+              <span class="q-type">Feedback triage</span>
+              <span class="q-age">waiting 3 d</span>
+            </div>
+            <div class="q-subject">fb-0142</div>
+            <div class="q-sum">Scan output truncates long paths in narrow terminals.</div>
+            <div class="q-path">
+              <span class="verb-chip is-live">sanctioned today</span>
+              <span>promote: <span class="mono">cairn todo new scan-path-truncation</span></span>
+            </div>
+          </li>
+          <li class="q-entry is-signature">
+            <div class="q-top">
+              <span class="q-type">Signature</span>
+              <span class="q-age">waiting 2 d</span>
+            </div>
+            <div class="q-subject">
+              <svg class="seal" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--ink-2)" /></svg>
+              dec.lease-schema
+              <span class="q-state">proposed</span>
+            </div>
+            <div class="q-sum">Claim identity, expiry, and renewal for unit leases.</div>
+            <div class="q-residue">nodes: cairn.driver.leases +1</div>
+            <div class="q-path">
+              <span class="verb-chip">routes to your signing flow</span>
+              <span>reopen: <span class="mono">cairn pending</span></span>
+            </div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Park / unpark</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 2 d</span>
+            </div>
+            <div class="q-subject">todo.workspace-aggregation</div>
+            <div class="q-sum">Unpark requested. Parked 2026-08-04 by <span class="mono">dec.workspace-aggregation</span>.</div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Quarantine release</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 4 h</span>
+            </div>
+            <div class="q-subject">todo.macro-hygiene</div>
+            <div class="q-sum">Failed verification at gate <span class="mono">rust-gates</span>. Never auto-retried.</div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Retry approval</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 1 h</span>
+            </div>
+            <div class="q-subject">todo.watch-debounce</div>
+            <div class="q-sum">Attempt 2: <span class="mono">LOOP HALTED</span> 08:31. Proposes attempt 3.</div>
+            <div class="q-residue">cairn/watch-debounce · attempts 2 · last 08:31</div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Budget approval</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 44 m</span>
+            </div>
+            <div class="q-subject">wave-12</div>
+            <div class="q-sum">Cap reached. 3 halted: <span class="mono">todo.error-code-registry</span> +2.</div>
+          </li>
+        </ol>
+        <p class="queue-note">verb pending: recorded facts the driver obeys; sanctioned verbs await the write-authority decision (round 3). Display-only until then.</p>
+      </section>
+
+      <!-- ================= in-flight rail ================= -->
+      <section class="panel flight-panel" aria-label="In flight">
+        <div class="panel-head">
+          <h2>In flight</h2>
+          <span class="meta">4 units · driver contract v1 · polled <span class="mono">09:41</span></span>
+        </div>
+        <div class="flight-body">
+          <div class="next-slot">
+            <div class="n-top">
+              <span class="n-label">Next</span>
+              <span class="derived-mark">
+                <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                derived · observed 09:41
+              </span>
+            </div>
+            <div class="n-unit">todo.driver-in-repo</div>
+            <div class="n-src">from <span class="mono">cairn status</span> · a driver evaluates workflow policy</div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-active"><i></i>Active</span>
+              <span class="r-unit">todo.console-state-legibility</span>
+              <span class="r-clock">14:09</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-052 · omp/sess-7c2</span>
+              <span>expires <span class="mono">10:15</span></span>
+            </div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-active"><i></i>Active</span>
+              <span class="r-unit">todo.reconcile-perf-pass</span>
+              <span class="r-clock">03:11</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-057 · omp/sess-9a1</span>
+              <span>expires <span class="mono">10:30</span></span>
+            </div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-waiting"><i></i>Waiting</span>
+              <span class="r-unit">todo.blueprint-doc-sync</span>
+              <span class="r-clock">02:40</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-055 · omp/sess-2be</span>
+              <span>gate: <span class="mono">pre-archive-rust-gates</span></span>
+            </div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-blocked"><i></i>Blocked</span>
+              <span class="r-unit">todo.error-code-registry</span>
+              <span class="r-clock">44:00</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-049 · omp/sess-88f</span>
+              <span>waiting on you: budget approval · <span class="mono">wave-12</span></span>
+            </div>
+          </div>
+
+          <div class="flight-divider">Claims without a live session</div>
+
+          <div class="stale-card">
+            <div class="r-top">
+              <span class="stale-chip">stale</span>
+              <span class="r-unit">todo.flaky-fixture-repair</span>
+              <span class="derived-mark" style="margin-left: auto">
+                <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                derived · observed 09:41
+              </span>
+            </div>
+            <div class="stale-facts">
+              r-041 · omp/sess-4f8 · granted <span class="dim">07:02</span><br />
+              expired <span class="dim">08:32</span> · renewal none recorded<br />
+              cairn/flaky-fixture-repair · attempts 2 · last <span class="dim">08:19</span>
+            </div>
+            <div class="no-outcome">No outcome recorded. Stale, unclassified.</div>
+          </div>
+
+          <div class="lamp-strip">
+            <div class="ls-title">Driver lamp vocabulary</div>
+            <div class="ls-note">one at a time · now: none (non-empty rail implies active)</div>
+            <div class="ls-row">
+              <span class="ls-lamp">No driver</span>
+              <span class="ls-evidence">no contract registered · no timestamps · rail names the attach step</span>
+            </div>
+            <div class="ls-row">
+              <span class="ls-lamp">Driver idle</span>
+              <span class="ls-evidence">contract answers · polled <span class="mono">09:41</span> · zero runs, stated as a fact</span>
+            </div>
+            <div class="ls-row">
+              <span class="ls-lamp l-warn">Driver unresponsive</span>
+              <span class="ls-evidence">heartbeat <span class="mono">08:12</span>, stale · no termination record, stated · cards demote to as-of</span>
+            </div>
+            <div class="ls-row">
+              <span class="ls-lamp l-error">Driver crashed</span>
+              <span class="ls-evidence">recorded: exited <span class="mono">137</span> at <span class="mono">08:57</span> · last-known cards under crash notice</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= channel ================= -->
+    <footer class="channel">
+      <section class="well" aria-label="Findings">
+        <div class="well-head">
+          <h3>Findings</h3>
+          <span class="meta">4 · from <span class="mono">cairn lint</span> · errors first</span>
+        </div>
+        <ul class="well-list">
+          <li>
+            <span class="sev s-error">Error</span>
+            <span class="f-code">CAIRN_CONTRACT_INTERFACE_DRIFT</span>
+            <span class="f-node">cairn.kernel.scanner</span>
+            <span class="f-msg">Contract interface hash disagrees with observed exports.</span>
+          </li>
+          <li>
+            <span class="sev s-warning">Warning</span>
+            <span class="f-code">CAIRN_CONTRACT_NODE_SHAPE_DRIFT</span>
+            <span class="f-node">cairn.kernel.scanner</span>
+            <span class="f-msg">Declared node shape drifted from the observed tree.</span>
+          </li>
+          <li>
+            <span class="sev s-warning">Warning</span>
+            <span class="f-code">CAIRN_CONTRACT_LEAF_UNCOVERED</span>
+            <span class="f-node">cairn.summariser</span>
+            <span class="f-msg">Leaf node declares no contract.</span>
+          </li>
+          <li>
+            <span class="sev s-info">Info</span>
+            <span class="f-code">CAIRN_DECISION_ACCUMULATION</span>
+            <span class="f-node">cairn.ui</span>
+            <span class="f-msg">Node carries 9 accepted decisions (threshold 8).</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="well" aria-label="History">
+        <div class="well-head">
+          <h3>History</h3>
+          <span class="meta">recorded outcomes, receipts, and superseded records · newest first</span>
+        </div>
+        <ul class="well-list">
+          <li>
+            <span class="h-time">09:12</span>
+            <span class="h-token">ITERATION COMPLETE</span>
+            <span class="h-what"><span class="mono">todo.channel-copy-pass</span> · commit <span class="mono">3f0a9c2</span></span>
+          </li>
+          <li>
+            <span class="h-time">08:47</span>
+            <span class="h-token">LOOP EXHAUSTED</span>
+            <span class="h-what"><span class="mono">todo.copy-lint-sweep</span> · no commit recorded</span>
+          </li>
+          <li>
+            <span class="h-time">08:31</span>
+            <span class="h-token">LOOP HALTED</span>
+            <span class="h-what"><span class="mono">todo.watch-debounce</span> · no commit recorded · raised retry approval</span>
+          </li>
+          <li>
+            <span class="h-time">08:22</span>
+            <span class="h-token">receipt</span>
+            <span class="h-what">local ruling applied agent-side · <span class="mono">todo.reconcile-perf-pass</span> · retry backoff to 3</span>
+          </li>
+          <li>
+            <span class="h-time">08-04</span>
+            <svg class="seal" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="var(--ink-2)" /></svg>
+            <span class="h-what"><span class="mono">dec.orchestration-placement</span> · accepted 2026-08-04</span>
+          </li>
+          <li>
+            <span class="h-time">08-02</span>
+            <svg class="seal" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--ink-3)" /><path d="M2 10L10 2" stroke="var(--ink-3)" /></svg>
+            <span class="h-what"><span class="mono struck">dec.user-surfaces</span> · superseded by <span class="mono">dec.control-plane-programme</span></span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="well" aria-label="Backlog">
+        <div class="well-head">
+          <h3>Backlog</h3>
+          <span class="meta">5 shown · intent · from <span class="mono">cairn todos</span></span>
+        </div>
+        <ul class="well-list">
+          <li>
+            <span class="marker" aria-hidden="true"></span>
+            <span class="b-unit">todo.driver-in-repo</span>
+            <span class="b-status">open</span>
+          </li>
+          <li>
+            <span class="marker m-progress" aria-hidden="true"></span>
+            <span class="b-unit">todo.console-state-legibility</span>
+            <span class="b-status">in_progress</span>
+            <span class="b-check">backed by lease <span class="mono">r-052</span></span>
+          </li>
+          <li>
+            <span class="marker m-progress" aria-hidden="true"></span>
+            <span class="b-unit">todo.wire-evidence-panel</span>
+            <span class="b-status">in_progress</span>
+            <span class="b-check">no lease recorded</span>
+          </li>
+          <li>
+            <span class="marker m-blocked" aria-hidden="true"></span>
+            <span class="b-unit">todo.lease-read-surface</span>
+            <span class="b-status">blocked</span>
+            <span class="b-check">blocked by <span class="mono">dec.lease-schema</span></span>
+          </li>
+          <li>
+            <span class="marker m-done" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 5.5l2.5 2.5 4.5-6" fill="none" stroke="var(--ink-2)" stroke-width="1.6" /></svg>
+            </span>
+            <span class="b-unit">todo.channel-copy-pass</span>
+            <span class="b-status">done</span>
+            <span class="b-check">09:12 · <span class="mono">ITERATION COMPLETE</span></span>
+          </li>
+        </ul>
+      </section>
+    </footer>
+  </body>
+</html>

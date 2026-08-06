@@ -262,3 +262,80 @@ overlap so the rung 3 ruling is made against pixels. The webui
 write-authority decision (task 6) is authored in round 3, following the
 `dec.control-plane-programme` supersession precedent; the sanctioned-verb
 gaps J6 names are its input.
+
+## Amendment: the guided journey and the layered graph (2026-08-06, in session)
+
+Recorded from the maintainer's vision statements during round 2 and aligned
+in session the same day; provisional under the ratification proviso in
+`studio/orchestration-grill-brief.md`. Where this section touches an
+accepted decision or a round-1 non-goal, it changes nothing by itself: the
+owning artefact rules, and the collisions are routed below.
+
+### The primary register is plain language
+
+The console's end user may not be technical; they must be able to trust
+that developing with cairn yields quality software without reading the
+machine layer. Outcomes and guided next steps are primary; the technical
+working (ids, rules, leases, contract paths) is progressively disclosed,
+never the front door, and even the disclosure layer prefers intuitive
+visual representations over text. The aligned reference rendering is
+`studio/mocks/orchestration-guided-journey.html` (aligned 2026-08-06):
+conversation rail, grill questions in plain words, one run action, waves
+as sentences beside a ghost mini-map, a glyph-strip working drawer.
+
+### The talking rail is the spine
+
+The journey is conversational: the maintainer describes UX and outcomes,
+and that decodes into the blueprint. Doubts drain through a grill
+workflow surfaced as plain questions with selectable answers: cairn
+agentic workflows baked into the UI layer, extrapolating from
+requirements and user stories and orchestrating stress-testing until the
+map of what is to be done exists visually. Then, and only then, run.
+
+### Run, and its collision
+
+The vision names a run moment: after every question is answered, one
+action starts the orchestrated waves, and layers unlock as dependencies
+land. This collides with this brief's non-goal line (no dispatch from any
+console affordance) and with `dec.orchestration-placement` clause 4. The
+candidate reconciliation, pending ruling: run is a recorded ruling the
+driver obeys, the same verb shape as retry and park. The write-authority
+decision (todo task 6, round 3) owns this verb; until it rules, every
+specimen labels run as not wired.
+
+### The layered graph
+
+The workflow and execution layers are a separate graph from the
+architecture graph, and cairn's UI connects the layers rather than
+forcing one graph to be everything: architecture visualised from
+blueprint to actual, execution visualised as real progress (ghost
+structures visibly filling in, elegant readouts of how many processes and
+agents run), and the temporal axis alongside (the maintainer's phrase: a
+4D graph). Workflow tuning surfaces (strong defaults, visually tunable)
+are explicitly deferred. AutoGPT's execution graphs are noted as
+reference material for the execution layer, to be reviewed when that
+layer is designed.
+
+### Prototype first, no deep hypotheticals
+
+Designing for universal harness compatibility as we go was adding
+complexity and stops. The target deployment is the maintainer's own:
+self-hosted in Docker on a cloud server (later possibly several), long
+running. The path: settle this first phase (the creation journey), build
+a prototype the maintainer can run against a demo project (for instance a
+calculator app), then design against their real user feedback. Remaining
+round-2 scenario mocks beyond the aligned screens are deferred in favour
+of that loop; the reconciliation of task 3's required-scenario list
+happens with the round-3 close-out.
+
+### Screen ledger as of 2026-08-06
+
+- `orchestration-guided-journey.html`: aligned; the creation-phase
+  primary view and the register reference.
+- `orchestration-return-orient.html`: called good as the reactive
+  catch-up layer, with the density critique standing; retrofit pending
+  under the plain-primary register.
+- `orchestration-plan-dispatch.html`: called right direction, not
+  aligned; its jargon moves behind disclosure in the prototype.
+- `orchestration-mixed-repository.html`: grammar and lease evidence
+  appendix; not a composition reference.

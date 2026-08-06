@@ -190,6 +190,86 @@ lease and granularity screens handed to
 rejections reworked and the webui write-authority decision authored
 (task 6).
 
+### Round 2 ruling: prototype first (2026-08-06, maintainer in session)
+
+The maintainer redirected round 2 in session (recorded with the full
+vision in the brief's dated amendment, `studio/orchestration-console-brief.md`):
+the primary register is plain language with progressive disclosure, the
+guided creation journey is the flagship, and the path runs to a
+prototype the maintainer tests as a user on a demo project rather than
+through further hypothetical scenario mocks. This subsection is
+provisional under the ratification proviso; the maintainer ratifies the
+amended scope at the round-3 close-out. Consequences for this unit's
+task list, recorded here as the owning artefact:
+
+- Task 3's scenario list is amended, provisionally. Built and put
+  before the maintainer in session, each with its exact standing: the
+  guided creation journey (`orchestration-guided-journey.html`, the
+  only screen the maintainer called aligned); driver connected with
+  runs, leases, and a dispatch preview
+  (`orchestration-plan-dispatch.html`, called right direction, not
+  aligned); return and orient (`orchestration-return-orient.html`,
+  called good as the reactive layer, density critique standing); mixed
+  repository (`orchestration-mixed-repository.html`, not individually
+  ruled on, kept as grammar evidence). Deferred to
+  design-against-prototype-feedback rather than mocked:
+  decision-to-consequence as its own screen (its consequence sentence
+  is rendered inside the dispatch preview's held list), the
+  driver-states four-up, and the narrow layout.
+- Task 5 is partially served and stays open: claim identity, holder,
+  expiry, and renewal render on the mixed and return screens as an
+  expired held claim (`r-041`, residue rows, no outcome recorded,
+  stale and unclassified), and the no-claim contrast is carried by the
+  backlog's `no lease recorded` cross-check line; write-set
+  disjointness is stated in the dispatch preview, but an overlap case
+  is not yet rendered and stays owed to
+  `todo.parallel-dispatch-granularity` with the round-3 close-out.
+- Task 6 grows one input: the write-authority decision must also rule
+  the run verb (run as a recorded ruling the driver obeys, or not at
+  all); the brief amendment carries the collision.
+- Acceptance is read against this ruling: the driver-states
+  distinction remains demonstrated (the lamp vocabulary strip on the
+  mixed and return screens), not as a dedicated four-up screen.
+
+### Round 3 record (2026-08-06, worked through in session)
+
+Provisional under the ratification proviso until the maintainer closes
+the round as aligned:
+
+- Task 6 discharged by enqueue: `dec.webui-write-authority` is authored
+  and sits in `cairn pending` (proposed, binding, nodes `cairn.ui` and
+  `cairn.root`). It follows the `dec.control-plane-programme`
+  supersession precedent against `dec.webui-design-authority`, carries
+  every surviving obligation in its clause 5, legislates the four J6 gap
+  verbs as recorded facts under one CLI noun (`cairn ruling
+  retry|release|park|unpark|budget`), and rules run in: a recorded
+  ruling the driver obeys, commit-pinned plan identity, stale plans
+  declined and never dispatched, no console execution. The `ruling`
+  family is additive: `dec.control-plane-programme` clause 3's existing
+  grant (`cairn todo set`, `cairn feedback`, and the paired `cairn todo
+  link` and `cairn todo unlink` when their schema lands) stays in force,
+  because this record refines that decision rather than superseding it.
+  The signature itself stays a separate maintainer act in the queue;
+  until it lands the console keeps exactly that clause 3 grant, records
+  no ruling, and every specimen labels run as not wired.
+- Task 5 residue discharged: the write-set overlap case renders in
+  `orchestration-plan-dispatch.html`'s held list (a unit queuing behind
+  a wave member's claim because both would change
+  `docs/registries/declared-items.md`, plain register, no new scenario
+  mock), and the handoff is recorded in
+  `todo.parallel-dispatch-granularity` under "Mockup evidence received".
+- Task 3 under the prototype-first ruling:
+  `todo.guided-console-prototype` is scaffolded on `cairn.ui`, scoped to
+  the creation journey only (describe, the map forms visually, the
+  grill drains doubts, run), targeting Docker on the maintainer's cloud
+  server with the maintainer's own harness; acceptance is the
+  maintainer testing a demo calculator project as a user and the
+  recorded feedback driving the next design round.
+
+Remaining for the round-3 close-out: the maintainer ratifies the
+amended round 2 scope (the provisional subsection above) and this
+round's record, and says aligned.
+
 ### Tooling (impeccable, installed 2026-08-05)
 
 The impeccable skill pack (github.com/pbakaus/impeccable) is installed

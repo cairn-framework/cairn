@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cairn Console: plan and dispatch (round 2 mock)</title>
+    <link rel="stylesheet" href="../../docs/design-system/fonts.css" />
+    <link rel="stylesheet" href="../../docs/design-system/tokens.css" />
+    <style>
+      /* ==============================================================
+         Plan and dispatch: the proactive screen of round 2, composed
+         per the maintainer's journey mockup grammar (tmp/Cairn Journey
+         (standalone).html): nodes wear their next move, the bezel
+         counts moves, the dispatch preview quotes the rule that routed
+         each unit. Calm register: built parts collapse to quiet chips,
+         sentences over chips, one derivation statement per screen.
+         Static specimen, no JS. Tokens only; px only where no token
+         equivalent exists.
+         ============================================================== */
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-ui);
+        font-size: var(--t-body);
+        line-height: 1.5;
+        color: var(--ink-1);
+        background: var(--stone-3);
+        overflow: hidden;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mono {
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-weight: 500;
+        margin: 0;
+      }
+
+      /* ---------- bezel: the move counters ------------------------- */
+
+      .bezel {
+        height: 56px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-4);
+        padding: 0 var(--s-4);
+        background: var(--stone-3);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+      }
+
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        font-family: var(--font-serif);
+        font-size: var(--t-title);
+        letter-spacing: 0.02em;
+      }
+
+      .mark svg {
+        display: block;
+      }
+
+      .scenario-chip {
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        padding: 3px var(--s-2);
+        color: var(--ink-3);
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        letter-spacing: 0.06em;
+      }
+
+      .moves {
+        display: flex;
+        align-items: center;
+        gap: var(--s-4);
+      }
+
+      .move-counter {
+        display: inline-flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        font-size: var(--t-small);
+        color: var(--ink-2);
+      }
+
+      .move-counter .glyph {
+        font-family: var(--font-mono);
+        color: var(--ink-2);
+        font-size: var(--t-body);
+      }
+
+      .move-counter b {
+        font-weight: 500;
+        color: var(--ink-1);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .move-counter .word {
+        text-transform: uppercase;
+        letter-spacing: var(--track-micro);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .bezel-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-3);
+      }
+
+      .annunciator {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        color: var(--ink-2);
+        padding: 5px var(--s-3);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        white-space: nowrap;
+      }
+
+      .annunciator::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--ink-4);
+      }
+
+      .queue-badge {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        border: var(--line-1) solid var(--prov-2);
+        border-radius: var(--r-edge);
+        color: var(--prov-1);
+        background: var(--prov-wash);
+        padding: 5px var(--s-3);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        white-space: nowrap;
+      }
+
+      .queue-badge b {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+
+      /* ---------- session strip -------------------------------------- */
+
+      .session-strip {
+        height: 32px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-3);
+        padding: 0 var(--s-4);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+        background: var(--stone-3);
+        color: var(--ink-3);
+        font-size: var(--t-small);
+      }
+
+      .session-strip .mono {
+        color: var(--ink-2);
+      }
+
+      .session-strip .right {
+        margin-left: auto;
+        white-space: nowrap;
+      }
+
+      /* ---------- workbench ------------------------------------------ */
+
+      .workbench {
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        min-height: 0;
+      }
+
+      .panel {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel + .panel {
+        border-left: var(--line-1) solid var(--seam-faint);
+      }
+
+      .panel-head {
+        flex: 0 0 auto;
+        padding: var(--s-2) var(--s-4);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-3);
+        min-height: 36px;
+      }
+
+      .panel-head h2 {
+        font-family: var(--font-serif);
+        font-size: var(--t-title);
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+
+      .panel-head .meta {
+        color: var(--ink-3);
+        font-size: var(--t-small);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .derived-glyph {
+        color: var(--ink-3);
+      }
+
+      /* ---------- plan strata ----------------------------------------- */
+
+      .plan-panel {
+        background: var(--stone-1);
+      }
+
+      .plan-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: var(--s-2) var(--s-5) var(--s-3);
+      }
+
+      .stratum {
+        padding: var(--s-2) 0 var(--s-3);
+        border-bottom: var(--line-1) solid var(--stroke-1);
+      }
+
+      .stratum:last-of-type {
+        border-bottom: 0;
+      }
+
+      .stratum-head {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-3);
+        margin-bottom: var(--s-2);
+      }
+
+      .stratum-head h3 {
+        font-family: var(--font-serif);
+        font-size: var(--t-lede);
+      }
+
+      .stratum-head .gloss {
+        color: var(--ink-3);
+        font-size: var(--t-small);
+      }
+
+      .stratum-head .tier {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+      }
+
+      .plates {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s-3);
+        margin-bottom: var(--s-2);
+      }
+
+      .plates:last-child {
+        margin-bottom: 0;
+      }
+
+      /* a plate: a part that has a next move */
+
+      .plate {
+        flex: 0 1 300px;
+        min-width: 240px;
+        border: var(--line-1) solid var(--stroke-2);
+        border-radius: var(--r-stone);
+        background: var(--stone-2);
+        padding: var(--s-2) var(--s-3);
+        display: flex;
+        gap: var(--s-3);
+      }
+
+      .plate.is-ghost {
+        border-style: dashed;
+        border-color: var(--ghost);
+        background: var(--ghost-wash);
+      }
+
+      .plate.is-orphaned {
+        transform: rotate(var(--ui-orphan-tilt));
+        border-left: var(--ci-keel) solid var(--orphaned);
+      }
+
+      .verb-slot {
+        flex: 0 0 auto;
+        width: 26px;
+        height: 26px;
+        border: var(--line-1) solid var(--stroke-3);
+        border-radius: var(--r-edge);
+        background: var(--stone-1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-mono);
+        font-size: var(--t-body);
+        color: var(--ink-1);
+      }
+
+      .plate-main {
+        min-width: 0;
+      }
+
+      .plate-name {
+        font-size: var(--t-body);
+        font-weight: 500;
+        line-height: 1.3;
+      }
+
+      .plate-id {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        margin-top: 1px;
+      }
+
+      .plate-verb {
+        margin-top: var(--s-1);
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-2);
+        display: flex;
+        gap: var(--s-3);
+        flex-wrap: wrap;
+      }
+
+      .plate-sub {
+        margin-top: 3px;
+        font-size: var(--t-small);
+        color: var(--ink-3);
+        line-height: 1.4;
+      }
+
+      .plate-sub .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      /* quiet chips: built parts */
+
+      .built-row {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        flex-wrap: wrap;
+      }
+
+      .built-label {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-4);
+        margin-right: var(--s-1);
+      }
+
+      .chip {
+        position: relative;
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-edge);
+        background: var(--stone-2);
+        padding: 2px var(--s-2);
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .chip .drift-mini {
+        display: inline-block;
+        margin-left: 5px;
+        color: var(--drift);
+        border: var(--line-1) solid var(--drift);
+        border-radius: var(--r-edge);
+        padding: 0 4px;
+        line-height: 13px;
+        font-size: var(--t-micro);
+      }
+
+      /* ---------- dispatch preview ------------------------------------ */
+
+      .preview-panel {
+        background: var(--stone-2);
+      }
+
+      .preview-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: var(--s-3) var(--s-4) var(--s-3);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s-3);
+      }
+
+      .wave {
+        border: var(--line-1) solid var(--stroke-2);
+        border-radius: var(--r-stone);
+        background: var(--stone-1);
+        padding: var(--s-3) var(--s-3) var(--s-2);
+      }
+
+      .wave-head {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        margin-bottom: var(--s-2);
+      }
+
+      .wave-head .wave-title {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+
+      .wave-head .meta {
+        margin-left: auto;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .wave-unit {
+        padding: var(--s-2) 0;
+        border-top: var(--line-1) solid var(--stroke-1);
+      }
+
+      .wave-unit-top {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        min-width: 0;
+      }
+
+      .wave-unit-top .unit {
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .wave-unit-top .arrow {
+        color: var(--ink-4);
+      }
+
+      .wave-unit-top .target {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .wave-rule {
+        margin-top: 3px;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+
+      .wave-rule .rule-label {
+        color: var(--ink-4);
+      }
+
+      .wave-meta {
+        margin-top: 2px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .wave-meta .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      /* held: the why-not sentences */
+
+      .held {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        padding: var(--s-3);
+      }
+
+      .held-title {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: var(--s-1);
+      }
+
+      .held p {
+        margin: 0;
+        padding: 5px 0;
+        font-size: var(--t-small);
+        color: var(--ink-2);
+        line-height: 1.5;
+        border-bottom: var(--line-1) solid var(--stroke-1);
+      }
+
+      .held p:last-child {
+        border-bottom: 0;
+      }
+
+      .held .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-1);
+      }
+
+      /* in flight, compact */
+
+      .inflight {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        padding: var(--s-2) var(--s-3);
+      }
+
+      .inflight-title {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: 2px;
+      }
+
+      .fl-row {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        padding: 3px 0;
+        min-width: 0;
+      }
+
+      .fl-lamp {
+        flex: 0 0 auto;
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--ci-signal);
+        align-self: center;
+      }
+
+      .fl-lamp.l-waiting {
+        background: transparent;
+        border: var(--line-1) solid var(--ink-2);
+      }
+
+      .fl-lamp.l-blocked {
+        background: transparent;
+        border-left: var(--line-2) solid var(--ink-2);
+        border-right: var(--line-2) solid var(--ink-2);
+        border-radius: 0;
+        width: 8px;
+      }
+
+      .fl-lamp.l-stale {
+        background: transparent;
+        border: var(--line-1) solid var(--drift);
+      }
+
+      .fl-row .unit {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .fl-row .note {
+        margin-left: auto;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+
+      .preview-foot {
+        margin-top: auto;
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        line-height: 1.5;
+      }
+
+      /* ---------- digest strip ---------------------------------------- */
+
+      .digest {
+        flex: 0 0 auto;
+        border-top: var(--line-1) solid var(--seam-faint);
+        background: var(--stone-2);
+        display: flex;
+        align-items: center;
+        gap: var(--s-4);
+        padding: 0 var(--s-4);
+        height: 64px;
+        overflow: hidden;
+      }
+
+      .digest .digest-title {
+        font-family: var(--font-serif);
+        font-size: var(--t-lede);
+        white-space: nowrap;
+      }
+
+      .digest .digest-sub {
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        white-space: nowrap;
+      }
+
+      .digest-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--t-small);
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .digest-item .mono {
+        color: var(--ink-1);
+        font-size: var(--t-micro);
+      }
+
+      .digest-item .dim {
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+      }
+
+      .state-key {
+        flex: 0 0 auto;
+        width: 16px;
+        height: 12px;
+        border: var(--line-1) solid var(--stroke-2);
+        border-left: var(--ci-keel) solid var(--seam-carved);
+        background: var(--stone-2);
+      }
+
+      .state-key.k-ghost {
+        border: var(--line-1) dashed var(--ghost);
+        border-left: var(--ci-keel) dashed var(--ghost);
+        background: var(--ghost-wash);
+      }
+
+      .state-key.k-drift {
+        border-left: var(--ci-keel) solid var(--drift);
+        background: var(--drift-wash);
+      }
+
+      ::selection {
+        background: var(--prov-wash);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      DIRECTION CONTRACT (round 2, plan and dispatch)
+      THESIS: the map as next moves. Every undone part wears its verb
+      (+ build, ? decide, ~ research, waits on N); built parts recede to
+      quiet chips; the dispatch preview names the next wave and quotes
+      the rule that routed each unit. Refuses the state-adjective map
+      and the dense specimen register.
+      GRAMMAR SOURCE: the maintainer's journey mockup
+      (tmp/Cairn Journey (standalone).html): verb slots, move counters,
+      rests-on/carries vocabulary, consequence sentences.
+      OWN-WORLD: Calibrated Instrument, inherited. Teal only on the
+      queue badge; verbs are chalk.
+      SYNTHETIC: all ids, waves, and rules are authored scenario data
+      ("cairn, three weeks out"), labelled in the bezel; wf.default is
+      the proposed inert workflow artefact (grill Q4), driver-evaluated,
+      console read-only.
+      NON-GOAL: nothing here dispatches. The preview is a readable
+      declaration of what the driver would do, never a trigger.
+    -->
+    <header class="bezel">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <rect x="5" y="2" width="8" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="3" y="7" width="12" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="1" y="12" width="16" height="4" rx="1" fill="var(--ink-2)" />
+        </svg>
+        Cairn
+      </span>
+      <span class="scenario-chip">synthetic scenario · plan and dispatch · 2026-08-06</span>
+      <div class="moves" aria-label="Available moves">
+        <span class="move-counter"><span class="glyph">+</span><b>2</b><span class="word">build</span></span>
+        <span class="move-counter"><span class="glyph">?</span><b>1</b><span class="word">decide</span></span>
+        <span class="move-counter"><span class="glyph">~</span><b>1</b><span class="word">research</span></span>
+        <span class="move-counter"><span class="glyph">·</span><b>1</b><span class="word">waits</span></span>
+      </div>
+      <div class="bezel-right">
+        <span class="annunciator">Reconciled 09:41</span>
+        <span class="queue-badge">Waiting on you <b>6</b></span>
+      </div>
+    </header>
+
+    <div class="session-strip">
+      <span>plan view · the map as next moves · built parts stay quiet</span>
+      <span class="right">observed <span class="mono">09:41</span> · marked <span class="derived-glyph">△</span> when derived</span>
+    </div>
+
+    <main class="workbench">
+      <!-- ================= plan strata ================= -->
+      <section class="panel plan-panel" aria-label="Plan">
+        <div class="panel-head">
+          <h2>The plan</h2>
+          <span class="meta">23 parts · 5 carry a move · read downward: each layer rests on the one below <span class="derived-glyph">△</span></span>
+        </div>
+        <div class="plan-body">
+          <section class="stratum" aria-label="Surfaces">
+            <div class="stratum-head">
+              <h3>Surfaces</h3>
+              <span class="gloss">what a person touches</span>
+              <span class="tier">tier 3</span>
+            </div>
+            <div class="plates">
+              <div class="plate is-ghost">
+                <span class="verb-slot">·</span>
+                <div class="plate-main">
+                  <div class="plate-name">Leases</div>
+                  <div class="plate-id">cairn.driver.leases</div>
+                  <div class="plate-verb"><span>waits on 2</span></div>
+                  <div class="plate-sub">Rests on <span class="mono">cairn.driver</span>, and on your ruling <span class="mono">dec.lease-schema</span> in the queue.</div>
+                </div>
+              </div>
+            </div>
+            <div class="built-row">
+              <span class="built-label">built, quiet</span>
+              <span class="chip">ui</span>
+              <span class="chip">mcp</span>
+              <span class="chip">lsp</span>
+              <span class="chip">cli</span>
+            </div>
+          </section>
+
+          <section class="stratum" aria-label="Operations">
+            <div class="stratum-head">
+              <h3>Operations</h3>
+              <span class="gloss">keep the map true</span>
+              <span class="tier">tier 2</span>
+            </div>
+            <div class="plates">
+              <div class="plate is-ghost">
+                <span class="verb-slot">+</span>
+                <div class="plate-main">
+                  <div class="plate-name">Driver</div>
+                  <div class="plate-id">cairn.driver</div>
+                  <div class="plate-verb"><span>build</span><span>carries 1</span></div>
+                  <div class="plate-sub">Ready. Contract present. <span class="mono">todo.driver-in-repo</span> targets this.</div>
+                </div>
+              </div>
+              <div class="plate is-ghost">
+                <span class="verb-slot">+</span>
+                <div class="plate-main">
+                  <div class="plate-name">Selector wire</div>
+                  <div class="plate-id">cairn.driver.selector</div>
+                  <div class="plate-verb"><span>build</span></div>
+                  <div class="plate-sub">Ready. Needs no other seam; can land before the driver.</div>
+                </div>
+              </div>
+              <div class="plate">
+                <span class="verb-slot">~</span>
+                <div class="plate-main">
+                  <div class="plate-name">Watch</div>
+                  <div class="plate-id">cairn.watch</div>
+                  <div class="plate-verb"><span>research 1</span></div>
+                  <div class="plate-sub"><span class="mono">res.watch-debounce-strategy</span>: why attempt 2 halted, before attempt 3 is approved.</div>
+                </div>
+              </div>
+            </div>
+            <div class="built-row">
+              <span class="built-label">built, quiet</span>
+              <span class="chip">reconcile</span>
+              <span class="chip">provenance</span>
+              <span class="chip">summariser<span class="drift-mini">1</span></span>
+            </div>
+          </section>
+
+          <section class="stratum" aria-label="Kernel">
+            <div class="stratum-head">
+              <h3>Kernel</h3>
+              <span class="gloss">parse, reconcile, answer</span>
+              <span class="tier">tier 1</span>
+            </div>
+            <div class="built-row">
+              <span class="built-label">built, quiet</span>
+              <span class="chip">blueprint</span>
+              <span class="chip">artefacts</span>
+              <span class="chip">map</span>
+              <span class="chip">scanner<span class="drift-mini">2</span></span>
+              <span class="chip">query</span>
+              <span class="chip">changes</span>
+              <span class="chip">hooks</span>
+            </div>
+          </section>
+
+          <section class="stratum" aria-label="Foundations">
+            <div class="stratum-head">
+              <h3>Foundations</h3>
+              <span class="gloss">bedrock, everything above rests here</span>
+              <span class="tier">tier 0</span>
+            </div>
+            <div class="built-row">
+              <span class="built-label">built, quiet</span>
+              <span class="chip">root</span>
+              <span class="chip">persist</span>
+              <span class="chip">macros</span>
+              <span class="chip">state</span>
+            </div>
+          </section>
+
+          <section class="stratum" aria-label="Undeclared">
+            <div class="stratum-head">
+              <h3>Undeclared</h3>
+              <span class="gloss">found on disk, not on the map</span>
+              <span class="tier">no tier</span>
+            </div>
+            <div class="plates">
+              <div class="plate is-orphaned">
+                <span class="verb-slot">?</span>
+                <div class="plate-main">
+                  <div class="plate-name">Telemetry</div>
+                  <div class="plate-id">src/telemetry/</div>
+                  <div class="plate-verb"><span>decide 1</span></div>
+                  <div class="plate-sub">Adopt it into the blueprint, or ignore it. <span class="mono">cairn onboard</span> drafts both.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ================= dispatch preview ================= -->
+      <section class="panel preview-panel" aria-label="Dispatch preview">
+        <div class="panel-head">
+          <h2>Dispatch preview</h2>
+          <span class="meta">what the driver would send next <span class="derived-glyph">△</span> · read-only</span>
+        </div>
+        <div class="preview-body">
+          <div class="wave">
+            <div class="wave-head">
+              <span class="wave-title">Next wave · 2 units</span>
+              <span class="meta">write-sets disjoint · parallel worktrees</span>
+            </div>
+            <div class="wave-unit">
+              <div class="wave-unit-top">
+                <span class="unit">todo.driver-in-repo</span>
+                <span class="arrow">→</span>
+                <span class="target">cairn.driver</span>
+              </div>
+              <div class="wave-rule"><span class="rule-label">rule</span> wf.default 3: ready · contract present · write-sets disjoint</div>
+              <div class="wave-meta">worktree <span class="mono">../cairn-wt/driver</span> · lease on grant</div>
+            </div>
+            <div class="wave-unit">
+              <div class="wave-unit-top">
+                <span class="unit">todo.selector-wire</span>
+                <span class="arrow">→</span>
+                <span class="target">cairn.driver.selector</span>
+              </div>
+              <div class="wave-rule"><span class="rule-label">rule</span> wf.default 3: ready · contract present · write-sets disjoint</div>
+              <div class="wave-meta">worktree <span class="mono">../cairn-wt/selector</span> · lease on grant</div>
+            </div>
+          </div>
+
+          <div class="held">
+            <div class="held-title">Held, and why</div>
+            <p><span class="mono">todo.watch-debounce</span> is held: attempt 3 needs your retry approval.</p>
+            <p><span class="mono">cairn.driver.leases</span> is not dispatchable: it rests on <span class="mono">cairn.driver</span>, and your ruling on <span class="mono">dec.lease-schema</span> is still in the queue.</p>
+            <p><span class="mono">wave-12</span> stays halted: its spend cap needs your budget ruling. 3 units wait.</p>
+            <p><span class="mono">src/telemetry/</span> is not a unit yet: it needs your adopt-or-ignore call first.</p>
+            <p><span class="mono">todo.lease-read-surface</span> waits for this wave: it would change <span class="mono">docs/registries/declared-items.md</span>, and so would <span class="mono">todo.driver-in-repo</span>. Same files, one at a time: it queues behind that claim and joins the next wave.</p>
+          </div>
+
+          <div class="inflight">
+            <div class="inflight-title">In flight now · 4 · 1 stale claim</div>
+            <div class="fl-row"><span class="fl-lamp"></span><span class="unit">todo.console-state-legibility</span><span class="note">expires 10:15</span></div>
+            <div class="fl-row"><span class="fl-lamp"></span><span class="unit">todo.reconcile-perf-pass</span><span class="note">expires 10:30</span></div>
+            <div class="fl-row"><span class="fl-lamp l-waiting"></span><span class="unit">todo.blueprint-doc-sync</span><span class="note">at gate</span></div>
+            <div class="fl-row"><span class="fl-lamp l-blocked"></span><span class="unit">todo.error-code-registry</span><span class="note">waits on your budget ruling</span></div>
+            <div class="fl-row"><span class="fl-lamp l-stale"></span><span class="unit">todo.flaky-fixture-repair</span><span class="note">stale, unclassified <span class="derived-glyph">△</span></span></div>
+            <div class="fl-row"><span class="note" style="margin-left: 0">claim identity, holder, and renewal live on the lease screen</span></div>
+          </div>
+
+          <p class="preview-foot">The console shows this plan; only the driver dispatches, and only after your queue is drained of what blocks it. Nothing here is a button.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= digest ================= -->
+    <footer class="digest" aria-label="Map digest">
+      <div>
+        <div class="digest-title">Map digest</div>
+        <div class="digest-sub">the full map is one view away</div>
+      </div>
+      <span class="digest-item"><span class="state-key"></span><span class="mono">19 built</span><span class="dim">quiet</span></span>
+      <span class="digest-item"><span class="state-key k-ghost"></span><span class="mono">3 ghost</span><span class="dim">2 ready · 1 waits</span></span>
+      <span class="digest-item"><span class="state-key k-drift"></span><span class="mono">scanner 2 · summariser 1</span><span class="dim">drift findings</span></span>
+      <span class="digest-item"><span class="dim">1 undeclared · 4 findings · from</span><span class="mono">cairn lint</span></span>
+    </footer>
+  </body>
+</html>

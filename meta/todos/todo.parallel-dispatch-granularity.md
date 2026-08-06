@@ -123,6 +123,22 @@ atomic claim path exists to extend. Rung 3's decision must name that
 lineage explicitly: the ledger stores and serves driver-recorded facts,
 and cairn still runs no claiming, sequencing, or workflow logic.
 
+## Mockup evidence received (2026-08-06, console unit round 3)
+
+`todo.console-orchestration-ux-design` handed the rendered evidence its
+task 5 owed. Claim identity, holder, expiry, and renewal render on
+`studio/mocks/orchestration-mixed-repository.html` and
+`studio/mocks/orchestration-return-orient.html` as an expired held claim
+(`r-041`, residue rows, no outcome recorded, stale and unclassified); the
+no-claim contrast is the backlog's `no lease recorded` cross-check line;
+and the write-set overlap case renders in the dispatch preview's held
+list (`studio/mocks/orchestration-plan-dispatch.html`): a unit queuing
+behind a wave member's claim because both would change
+`docs/registries/declared-items.md`, one of this task's named
+serialisation hotspots, stated in the plain register (same files, one at
+a time). Rung 3's design document consumes these screens as its evidence
+base; the 2026-08-03 addendum's questions are now answered in pixels.
+
 ## Acceptance
 
 - A design document (research artefact) covering derivation, grant,
