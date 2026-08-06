@@ -95,6 +95,17 @@ Filenames are slug-only; the typed prefix lives only in the `id:` frontmatter
 namespacing for grouping (id `res.gas-city.analysis`, filename
 `gas-city.analysis.md`, not `research/gas-city/analysis.md`).
 
+## Put decisions to the maintainer in-session
+
+When you author or enqueue a decision that needs the maintainer's signature, put
+it to them in the session rather than leaving it to be discovered: the ruling in
+one or two sentences, your recommendation, what accepting changes, and what
+rejecting costs. They accept or reject from that summary, so opening
+`meta/decisions/<slug>.md` is optional rather than the price of signing. This
+holds in any in-harness session (OMP, Claude Code, or a successor). `cairn
+pending` stays the queue of record and the artefact stays the authority for
+detail; state the recommendation as a forced choice, never a hedge.
+
 ## UI and visual work: use the design system
 
 Any UI change (the webui at `src/ui_assets/`, any landing or marketing page, any new surface) pulls from the canonical design system at `docs/design-system/`. Do not re-invent styling.
