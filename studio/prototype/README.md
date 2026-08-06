@@ -29,8 +29,10 @@ across harnesses.
 
 | On screen | Where it comes from |
 |---|---|
-| Layers, parts, plain glosses | `cairn context --json`, `cairn get <id> --json` |
+| Layers and parts | `cairn context --json`, `cairn get <id> --json` |
+| Band glosses | the container's declared description, cut to its leading clause, and dropped when even that is too long to read as a label |
 | Dashed chips (not built yet) | node `state: ghost` from `cairn context` |
+| Solid chips, and "3 of 7 built" | every other node state from `cairn context` |
 | Wave numbers, wave order | `cairn frontier --json` tier, plus one |
 | What a wave waits for | `frontier` `blocking`, mapped to plain names |
 | Part and edge counts | `cairn context` |
@@ -38,7 +40,8 @@ across harnesses.
 
 The layer order is derived, not declared: the layer whose parts are built last
 sits at the top. The wave notes are generated from the graph, so they cannot
-drift from it.
+drift from it. When the first wave is not 1, the panel says why: no unbuilt
+part sits at that depth, which is only true when a built one does.
 
 ## Running it locally
 
@@ -60,6 +63,21 @@ node studio/prototype/server.mjs
 
 `GET /api/state` returns the same payload the console renders, which is the
 quickest way to see what it believes without reading the screen.
+
+## Checking copy against a part-built map
+
+A map where everything is a ghost hides a whole class of wrong sentence: a
+plan can open at wave 2, built parts carry no wave at all, and a legend that
+only explains dashed chips leaves the solid ones unexplained. So any change to
+what the console says is checked twice, once against a map the harness has
+just written and once against `fixtures/part-built`, where three of seven
+parts exist on disk. It needs no harness and no model spend.
+
+```sh
+# copy it out first: "Start again" clears the target project it is pointed at
+cp -R studio/prototype/fixtures/part-built /tmp/part-built
+PORT=4401 CAIRN_PROTOTYPE_DATA=/tmp/part-built node studio/prototype/server.mjs
+```
 
 ## Running it on the server
 

@@ -1,0 +1,9 @@
+{
+  "stage": "ready",
+  "description": "I want a little ledger. I type what I spent, it keeps a running total, and I can see past entries.",
+  "summary": "You get three layers. The screen you type on and read, the working out that turns your entries into a total, and the foundations that hold the rules and remember your entries.",
+  "questions": [],
+  "answers": {},
+  "settleNote": null,
+  "settleWarning": null
+}

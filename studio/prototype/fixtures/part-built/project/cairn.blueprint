@@ -1,0 +1,42 @@
+System Ledger "Keeps a running note of what you spend." id "ledger" {
+    decisions "./meta/decisions"
+    research "./meta/research"
+    todos "./meta/todos"
+
+    Container Screen "Everything you see and touch: the entry box, the running total, and the list of past entries." id "ledger.screen" {
+        Module EntryBox "Where you type an amount." id "ledger.screen.entrybox" {
+            path "./src/screen/entrybox.ts"
+        }
+        Module TotalLine "Shows the running total." id "ledger.screen.totalline" {
+            path "./src/screen/totalline.ts"
+        }
+    }
+
+    Container WorkingOut "The middle that turns what you type into a number, and notices when an entry is unfinished." id "ledger.middle" {
+        Module EntryReader "Reads what you typed." id "ledger.middle.entryreader" {
+            path "./src/middle/entryreader.ts"
+        }
+        Module Tally "Adds the entries up." id "ledger.middle.tally" {
+            path "./src/middle/tally.ts"
+        }
+    }
+
+    Container Foundations "The groundwork both of those stand on" id "ledger.foundations" {
+        Module MoneyRules "The rules of adding money." id "ledger.foundations.moneyrules" {
+            path "./src/foundations/moneyrules.ts"
+        }
+        Module LocalSave "Keeps your entries for next time." id "ledger.foundations.localsave" {
+            path "./src/foundations/localsave.ts"
+        }
+    }
+
+    Module Settings "What you chose last time." id "ledger.settings" {
+        path "./src/settings.ts"
+    }
+}
+
+ledger.screen.entrybox -> ledger.middle.entryreader "the box hands what you typed on"
+ledger.screen.totalline -> ledger.middle.tally "the line shows what the tally worked out"
+ledger.middle.entryreader -> ledger.foundations.moneyrules "reading an amount needs the rules"
+ledger.middle.tally -> ledger.foundations.moneyrules "adding up needs the rules"
+ledger.middle.tally -> ledger.foundations.localsave "the tally keeps what it added"
