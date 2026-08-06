@@ -1,10 +1,13 @@
 # Console state-source matrix
 
 Round 1 output of `todo.console-orchestration-ux-design` task 1, authored
-2026-08-05. Status: presented for maintainer acceptance under the
-ratification proviso in `studio/orchestration-grill-brief.md`. A rejection
-routes back through the owning artefact; implementation of every row belongs
-to `todo.console-signed-widening`, not this unit.
+2026-08-05; being worked through with the maintainer in session
+(alignment in progress). The round
+is done when the maintainer says it is aligned; a disagreement amends
+this file in session or routes through the owning artefact per the
+ratification proviso in `studio/orchestration-grill-brief.md`.
+Implementation of every row belongs to `todo.console-signed-widening`,
+not this unit.
 
 Authority: `dec.orchestration-placement` clause 3 (the four kinds of truth),
 as corrected by the Q2 grill ruling recorded in

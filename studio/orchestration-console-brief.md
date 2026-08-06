@@ -1,8 +1,12 @@
 # Console orchestration brief: journeys and vocabulary
 
 Round 1 output of `todo.console-orchestration-ux-design` tasks 2 and 4,
-authored 2026-08-05. Status: presented for maintainer acceptance under the
-ratification proviso in `studio/orchestration-grill-brief.md`. This brief
+authored 2026-08-05; being worked through with the maintainer in session
+(alignment in progress). The round is done when the maintainer says it is
+aligned; a disagreement
+amends this file in session or routes through the owning artefact per
+the ratification proviso in `studio/orchestration-grill-brief.md`.
+This brief
 extends `studio/ux-brief.md` (the accepted read-only instrument design) and
 does not replace it: every region, component, and interaction there survives
 unless a line here names it. The state grammar this brief renders is
