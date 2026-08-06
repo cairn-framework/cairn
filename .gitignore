@@ -60,3 +60,8 @@ harness/out/
 /.impeccable/
 /PRODUCT.md
 /DESIGN.md
+
+# Guided-console prototype (studio/prototype): the target project it builds and
+# the journey state, plus the harness credentials compose reads at run time.
+studio/prototype/.data/
+studio/prototype/.env

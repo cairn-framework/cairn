@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cairn: build something</title>
+    <link rel="stylesheet" href="/design-system/fonts.css" />
+    <link rel="stylesheet" href="/design-system/tokens.css" />
+    <link rel="stylesheet" href="/console.css" />
+  </head>
+  <body>
+    <header class="bezel">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <rect x="5" y="2" width="8" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="3" y="7" width="12" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="1" y="12" width="16" height="4" rx="1" fill="var(--ink-2)" />
+        </svg>
+        Cairn
+      </span>
+      <span class="scenario-chip" id="project-chip">prototype</span>
+      <nav class="stage" id="stage" aria-label="Where you are"></nav>
+      <div class="bezel-right">
+        <span class="host-chip">on your server · keeps going when you close this</span>
+        <button type="button" class="quiet-btn" id="reset">Start again</button>
+      </div>
+    </header>
+
+    <main class="frame">
+      <section class="talk" aria-label="Conversation">
+        <div class="talk-scroll" id="talk"></div>
+        <form class="composer" id="composer">
+          <textarea id="say" rows="3" aria-label="Describe what you want built" placeholder="Describe what you want built, in your own words."></textarea>
+          <div class="hint">enter sends · your words become the blueprint, never the other way round</div>
+        </form>
+      </section>
+
+      <section class="outcome" aria-label="What happens next" id="outcome" aria-live="polite"></section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

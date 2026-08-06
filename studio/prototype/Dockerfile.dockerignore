@@ -1,0 +1,27 @@
+# Scoped to studio/prototype/Dockerfile, so the repository root keeps no
+# ignore file of its own. The cairn build stage takes the whole checkout, so
+# everything excluded here is either rebuilt, regenerated, or never read.
+.git
+.jj
+target
+node_modules
+archive
+harness/out
+tmp
+# The build stage copies the whole checkout, so the harness credentials and the
+# target project must never reach it. compose passes .env in at run time.
+studio/prototype/.data
+studio/prototype/.env
+**/.env
+.beads
+.dolt
+.cairn
+.claude/references
+.claude/stronghold
+.claude/worktrees
+.claude/skills/impeccable
+.agents
+docs/assets
+**/*.mp4
+**/*.gif
+**/*.pdf
