@@ -265,9 +265,26 @@ graph, following the `dec.control-plane-programme` precedent:
   promotion through `cairn todo set` and correct the brief's J6 row. This
   record deliberately does not widen `dec.control-plane-programme` clause
   3's list on its own authority.
-- Until that acceptance commit, this proposal retires nothing and grants
-  nothing new: the console keeps `dec.control-plane-programme` clause 3's
-  existing grant with no ruling verbs, which is the fallback.
+- Move every live pointer off the superseded record, correcting the ones
+  acceptance falsifies rather than merely repointing them. The set is
+  wider than the consequences note below first suggested, and was
+  enumerated against the tree: `PRODUCT.md` states that the webui is
+  declared read-only, which acceptance makes false; `DESIGN.md`'s
+  aesthetic citation, the design-system README lane table and its
+  showcase lineage, `dec.marketing-visual-world`'s related edge, the
+  standing-trigger citation in `dec.revisit-trigger-correlator-deferred`,
+  the aesthetic line in `studio/orchestration-grill-brief.md`, and the
+  `related` edges and clause 4 references in `todo.ui-asset-refresh`,
+  `todo.webui-design-quality`, `todo.revisit-trigger-correlator`,
+  `todo.console-signed-widening`, and `todo.console-state-legibility` all
+  name this record instead. Accepted decisions and archived narrative keep
+  naming the superseded id: they describe what was authoritative when they
+  were written, which is history and not a stale pointer.
+
+Until an acceptance commit carries all four, this proposal retires nothing
+and grants nothing new: the console keeps `dec.control-plane-programme`
+clause 3's existing grant with no ruling verbs, which is the fallback
+clause 6 states.
 
 ## The rubric
 
@@ -346,13 +363,10 @@ the brief's candidate reconciliation proposed.
 - `todo.guided-console-prototype` tests run end-to-end on the demo
   project once the signature and the driver seams exist; until then its
   run plate stays honestly not wired.
-- Live pointers that name the superseded record (the design-system README
-  lane table and showcase lineage, `dec.marketing-visual-world`'s
-  related edge, the standing-trigger citation in
-  `dec.revisit-trigger-correlator-deferred`, and the
-  `todo.ui-asset-refresh`, `todo.webui-design-quality`, and
-  `todo.revisit-trigger-correlator` trackers) move to this record in the
-  acceptance commit.
+- Live pointers that name the superseded record move to this one in the
+  acceptance commit. The inventory is the fourth ratification action
+  above, kept in one place because two lists of it drift and the shorter
+  one wins by being read first.
 - Future changes to webui design or write authority amend or supersede
   this summary instead of adding another narrow accepted record beside
   it.
