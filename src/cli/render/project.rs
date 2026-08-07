@@ -232,6 +232,7 @@ pub(crate) fn render_wave(
     let request = QueryRequest {
         tool: if stats { "wave stats" } else { "wave" }.to_owned(),
         at: flag_value(&parsed.command_args, "--at").map(ToOwned::to_owned),
+        since: flag_value(&parsed.command_args, "--since").map(ToOwned::to_owned),
         ..QueryRequest::default()
     };
     let changes_dir = root.join(&parsed.changes_dir);

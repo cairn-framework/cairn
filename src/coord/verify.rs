@@ -143,7 +143,7 @@ pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String> {
 
     let mut moving: BTreeSet<String> = live
         .iter()
-        .filter(|f| f.name.len() >= 8 && f.name[..8] < cutoff[..])
+        .filter(|f| f.name.get(..8).is_some_and(|day| day < cutoff.as_str()))
         .map(|f| f.name.clone())
         .collect();
 

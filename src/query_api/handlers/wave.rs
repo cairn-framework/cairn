@@ -126,6 +126,12 @@ pub(in crate::query_api) fn wave_stats_json(
     let mut evidenced: Vec<(&str, bool)> = facts
         .iter()
         .filter(|named| named.fact.kind == "outcome.touched_files")
+        .filter(|named| {
+            request
+                .since
+                .as_deref()
+                .is_none_or(|since| named.fact.recorded_at.as_str() >= since)
+        })
         .filter_map(|named| {
             let prefixes = named.fact.payload.get("excluded_by_prefixes")?.as_array()?;
             let files = named.fact.payload.get("files")?.as_array()?;

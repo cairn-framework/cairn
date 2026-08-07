@@ -340,6 +340,10 @@ mod tests {
             dir.path(),
             "plan-xyz",
         );
+        assert_eq!(
+            result.stderr.trim(),
+            copy::lookup("ruling.run-invalid-digest")
+        );
         assert_eq!(result.code, 1);
         assert!(
             !dir.path().join(".git/cairn").exists(),
