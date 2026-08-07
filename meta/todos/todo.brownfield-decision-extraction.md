@@ -1,8 +1,9 @@
 ---
 node: cairn.brownfield
-status: open
+status: blocked
 created: 2026-07-31
 related: [src.reddit-gregerw-first-user-test]
+blocked_by: [todo.brownfield-extraction-mechanism, todo.brownfield-extraction-flow, todo.brownfield-extraction-pointer]
 ---
 
 # Brownfield decision extraction: mine existing invariants into the graph
@@ -37,6 +38,24 @@ Design and land the extraction path for an existing codebase:
   the user did not annotate for cairn.
 - `cairn init`/`onboard` output points at the flow.
 - The value story is demonstrable in the first session after install.
+
+## Decomposition (2026-08-07)
+
+Too large for one small reviewable PR: item 1 is an unresolved mechanism fork
+(skill, new command, or onboard extension) whose answer decides the ratification
+tier, item 2 is copy and wiring that only makes sense once a flow exists, and
+the acceptance criteria require validation against an external repository.
+
+blocked on sub-todos: todo.brownfield-extraction-mechanism, todo.brownfield-extraction-flow, todo.brownfield-extraction-pointer
+
+The first rules which mechanism drafts the decisions and carries the evidence
+for that ruling. The second implements the chosen mechanism and validates it on
+an external repository. The third points post-install output at the result. This
+todo flips to `done` when the third lands.
+
+Acceptance bullet 1 above is corrected here: `dec.decision-ratification-tiers`
+forbids the flow from accepting anything, so the deliverable is a draft the
+maintainer accepts, not an accepted decision the tool produced.
 
 ## Mission disposition
 
