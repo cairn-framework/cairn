@@ -129,3 +129,5 @@ day; its run IDs are quoted inline above so the numbers stand without the transc
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It preserves local evidence that changes satisfy the repository gates.
 
 cairn.root anchor justified (2026-08-07): rust-toolchain.toml, workflows, and scripts/ own no node.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): premise refuted by its own measurements (a perfect receipt saves ~45s against ~159s CI, per res.chatgpt-issue-audit). Recommend closing in favour of todo.hermetic-gate-parity (filed this session); maintainer confirmation before the close.

@@ -83,3 +83,5 @@ not be treated as the schema until that unit lands.
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It unblocks when todo-relationship-schema-implementation lands.
 
 cairn.root anchor justified (2026-08-07): remaining work is the GitHub projector in unowned scripts/.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): schema shipped (PR #570); narrow to the GitHub projection remainder.

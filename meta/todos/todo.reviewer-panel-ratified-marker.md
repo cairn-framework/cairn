@@ -28,3 +28,5 @@ accepted on panel receipts, with acceptance provenance carried in prose.
 - A binding decision with `ratified_by: reviewer-panel` and valid receipts
   scans clean with its receipts matched.
 - An invalid value still emits CA046.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; no stale assumptions found this pass.

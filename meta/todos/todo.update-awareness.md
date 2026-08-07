@@ -50,3 +50,5 @@ binary itself.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It lets users know when a new Cairn binary release exists and guides the selected update action.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): res.chatgpt-issue-audit recommends closure (no recorded user failure); keep until the maintainer confirms, and build nothing without a recorded failure.

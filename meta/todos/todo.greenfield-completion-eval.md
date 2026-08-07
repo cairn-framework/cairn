@@ -145,3 +145,5 @@ and research artefacts it cites, which are the durable record.
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It demonstrates that a new repository can reach a clean completion state.
 
 cairn.root anchor justified (2026-08-07): reuses archived stronghold apparatus and writes research; no owned source files.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; tied to release cadence.

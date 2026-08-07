@@ -41,3 +41,5 @@ Design and land the extraction path for an existing codebase:
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It gives brownfield users a concrete path from code to accepted decisions.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep as written; adopter queue after todo.init-ignore-scaffolding.

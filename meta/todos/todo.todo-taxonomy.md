@@ -28,3 +28,5 @@ both.
 
 - A reader can tell a todo's kind from `cairn todos` output without
   opening the file; existing todos migrate or are exempted explicitly.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; derive kinds from the cleaned corpus now that this audit has amended it.

@@ -331,3 +331,5 @@ specify; this unit is the prototype vehicle the round 2 ruling ordered,
 and its findings feed that unit rather than replacing it. The design
 unit (`todo.console-orchestration-ux-design`) ships no prototype code;
 implementation lives here.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; downstream of console UX design work.

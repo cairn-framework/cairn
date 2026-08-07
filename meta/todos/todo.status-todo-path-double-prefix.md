@@ -66,3 +66,5 @@ not fixture-specific.
 - No path field anywhere emits a `././` prefix.
 
 Surfaced while checking a brownfield onboarding report against this repository.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): confirmed live 2026-08-07: cairn status printed ././meta/todos/... paths in this session's own output.

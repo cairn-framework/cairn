@@ -48,3 +48,5 @@ says `cairn.dsl`, so do not copy its identifiers.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It makes Cairn's user-facing language easier to understand.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; ruling first.

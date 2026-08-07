@@ -19,3 +19,5 @@ Re-minted from GitHub issue #86 by todo.github-issues-cleanup
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It protects the merge path that keeps maintenance work safe.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): re-scope per res.chatgpt-issue-audit: rewrite as exact-head verification of the merge candidate rather than a Graphite-specific guard.

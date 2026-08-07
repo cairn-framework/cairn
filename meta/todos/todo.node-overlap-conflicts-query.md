@@ -26,3 +26,5 @@ can ship on the file baseline first).
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps query results honest when graph nodes overlap.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): re-scope against the shipped rung-3 wave composer and lease read surface before any build; the original framing predates the substrate.

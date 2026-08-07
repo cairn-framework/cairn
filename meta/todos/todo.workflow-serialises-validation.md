@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.artefacts
-status: open
+status: blocked
 created: 2026-08-07
 blocked_by: [todo.driver-in-repo]
 related: [dec.rung-three-coordination-substrate]
@@ -25,3 +25,5 @@ that each prefix exists and evaluates nothing further, per
 - A test asserts an unknown `serialises:` prefix is a validation finding and
   that a valid one is stored and never evaluated by the core.
 - No per-unit authoring is introduced anywhere.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): status set blocked this session: declared blocker todo.driver-in-repo is not done, and lint confirmed the contradiction.

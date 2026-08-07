@@ -76,3 +76,5 @@ a spend ruling.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. Accepted dec.autodocs-head-to-head-arm-b reopened this as the one-sided Arm A stress test that still delivers its highest-value goal and unblocks the deferred large-brownfield measurement.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep as written; deferred behind the adopter-defect queue (res.chatgpt-issue-audit keeps #280).

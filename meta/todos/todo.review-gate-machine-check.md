@@ -52,3 +52,5 @@ Maintainer conversation, 2026-07-30
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It makes the review gate repeatable and observable.
 
 cairn.root anchor justified (2026-08-07): design todo; output is a decision, not owned source.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; subordinate to declarative workflows per res.chatgpt-issue-audit.

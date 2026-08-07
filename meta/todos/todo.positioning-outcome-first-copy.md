@@ -46,3 +46,5 @@ This todo owns the README-overhaul work and the outward README story.
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It makes the outward story answer what users get first.
 
 cairn.root anchor justified (2026-08-07): README and docs/landing own no node.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): res.chatgpt-issue-audit says delivered; verify the landing copy against this todo's acceptance, then close. Not verified this session.

@@ -1,6 +1,6 @@
 ---
 node: cairn.reconcile
-status: blocked
+status: open
 created: 2026-07-31
 related: [src.reddit-ontology-pointers, dec.domain-expandability]
 blocked_by: [todo.todo-relationship-schema-implementation, todo.parallel-dispatch-granularity]
@@ -45,3 +45,5 @@ extractor plus version, observed_at, freshness, completeness.
 ## Mission disposition
 
 2026-08-02: blocked against dec.cairn-mission. Serves extendable. Its dependency-gated horizon has declared blockers, so it remains parked without false readiness.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): status set open this session: both declared blockers (todo.todo-relationship-schema-implementation, todo.parallel-dispatch-granularity) are done, and lint confirmed the contradiction. Scope itself still reads current.

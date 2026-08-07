@@ -75,3 +75,5 @@ a large existing codebase meeting it for the first time.
 
 Measured while checking a brownfield onboarding report (MAG) against this
 repository.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; adopter order after todo.ratification-candidate-pointer. Health pass: see res.roadmap-audit-health; the adopter-scope question is unchanged.

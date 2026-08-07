@@ -48,3 +48,5 @@ Terminology section stays, justified as the ubiquitous-language cache.
   or demonstrably answerable from the tree.
 - `scripts/check-voice-markers.sh` runs clean (zero FAIL) over every file
   the pass touches, so absorbed guidance lands in the repo voice.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; no stale assumptions found this pass.

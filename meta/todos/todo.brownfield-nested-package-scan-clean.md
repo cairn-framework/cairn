@@ -103,3 +103,5 @@ is the natural first half.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps brownfield scanning reliable for real repositories.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; owns the remaining parent-package-cycle scope.

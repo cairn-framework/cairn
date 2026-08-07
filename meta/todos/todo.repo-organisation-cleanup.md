@@ -38,3 +38,5 @@ Files are truth; the graph reconciles. Use cairn to find the mess rather than wa
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps repository organisation legible as the project grows.
 
 cairn.root anchor justified (2026-08-07): repo-wide meta hygiene by definition.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): res.chatgpt-issue-audit calls this an unbounded umbrella; narrow to enumerable items or close. Maintainer confirmation before the close.
