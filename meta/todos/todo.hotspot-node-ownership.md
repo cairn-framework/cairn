@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.artefacts
-status: open
+status: done
 created: 2026-08-07
 blocked_by: [todo.parallel-dispatch-granularity]
 related: [dec.rung-three-coordination-substrate, res.parallel-dispatch-rung-3]
@@ -38,6 +38,11 @@ fact does not exist in committed state at composition time.
 ## Acceptance
 
 - `cairn scan --strict` stays green after the three nodes are declared.
-- A test asserts an unknown `serialises:` prefix is a validation finding and
-  that a valid one is stored and never evaluated by the core.
 - No per-unit authoring is introduced anywhere.
+
+Note (2026-08-07): task 1 landed via `dec.rung-three-node-declarations`; the
+three owner nodes are declared and the scanner effect is gate-asserted by
+`tests/rung3_node_declarations.rs`. Task 2 (`serialises:`) is carved out to
+`todo.workflow-serialises-validation`, blocked on `todo.driver-in-repo`,
+because no workflow artefact type exists yet; acceptance above shrank to
+task 1's clauses accordingly.

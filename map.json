@@ -13,6 +13,20 @@
       "symbols": []
     },
     {
+      "id": "cairn.blueprint-source",
+      "kind": "module",
+      "name": "BlueprintSource",
+      "state": "synced",
+      "paths": [
+        "./cairn.blueprint"
+      ],
+      "files": [
+        "cairn.blueprint"
+      ],
+      "contracts": [],
+      "symbols": []
+    },
+    {
       "id": "cairn.brownfield",
       "kind": "module",
       "name": "Brownfield",
@@ -537,6 +551,30 @@
       ]
     },
     {
+      "id": "cairn.coord",
+      "kind": "module",
+      "name": "Coordination",
+      "state": "synced",
+      "paths": [],
+      "files": [],
+      "contracts": [],
+      "symbols": []
+    },
+    {
+      "id": "cairn.design-copy",
+      "kind": "module",
+      "name": "DesignCopy",
+      "state": "synced",
+      "paths": [
+        "./docs/design-system/copy.toml"
+      ],
+      "files": [
+        "docs/design-system/copy.toml"
+      ],
+      "contracts": [],
+      "symbols": []
+    },
+    {
       "id": "cairn.kernel",
       "kind": "container",
       "name": "Kernel",
@@ -982,8 +1020,8 @@
           "kind": "function",
           "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 441,
-          "end_line": 451
+          "line": 447,
+          "end_line": 457
         },
         {
           "name": "load_decisions",
@@ -4013,16 +4051,16 @@
           "kind": "const",
           "signature": "pub const SUPPORTED_LANGUAGES",
           "file": "src/reconcile/target.rs",
-          "line": 264,
-          "end_line": 264
+          "line": 277,
+          "end_line": 277
         },
         {
           "name": "VALID_CONFIG_LANGUAGES",
           "kind": "const",
           "signature": "pub const VALID_CONFIG_LANGUAGES",
           "file": "src/reconcile/target.rs",
-          "line": 267,
-          "end_line": 267
+          "line": 280,
+          "end_line": 280
         },
         {
           "name": "new",
@@ -4069,8 +4107,8 @@
           "kind": "function",
           "signature": "pub fn claim_assets_files( root: &Path, target_path: &Path, ignores: &[String], ) -> Result<Vec<String>, ReconcileError>",
           "file": "src/reconcile/target.rs",
-          "line": 215,
-          "end_line": 225
+          "line": 220,
+          "end_line": 238
         },
         {
           "name": "from_extension",
@@ -4117,8 +4155,8 @@
           "kind": "function",
           "signature": "pub fn language_error_message() -> String",
           "file": "src/reconcile/target.rs",
-          "line": 271,
-          "end_line": 276
+          "line": 284,
+          "end_line": 289
         },
         {
           "name": "new",
@@ -4401,6 +4439,23 @@
           "end_line": 82
         }
       ]
+    },
+    {
+      "id": "cairn.registries",
+      "kind": "module",
+      "name": "Registries",
+      "state": "synced",
+      "paths": [
+        "./docs/registries"
+      ],
+      "files": [
+        "docs/registries/binding-surface.md",
+        "docs/registries/declared-items.md",
+        "docs/registries/error-codes.md",
+        "docs/registries/spec-rules.md"
+      ],
+      "contracts": [],
+      "symbols": []
     },
     {
       "id": "cairn.root",
@@ -7268,6 +7323,7 @@
         "tests/reconcile_rust.rs",
         "tests/reconcile_target_fingerprint.rs",
         "tests/reconcile_typescript.rs",
+        "tests/rung3_node_declarations.rs",
         "tests/scanner_interface_hash.rs",
         "tests/schema_validation.rs",
         "tests/summariser_accept_baseline.rs",
@@ -7795,6 +7851,13 @@
       "message": "todo `todo.build-ci-observation-overlay` is blocked while every declared blocker is done",
       "node": null,
       "path": "././meta/todos/todo.build-ci-observation-overlay.md"
+    },
+    {
+      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
+      "severity": "info",
+      "message": "todo `todo.workflow-serialises-validation` is open while declared blocker `todo.driver-in-repo` is not done",
+      "node": null,
+      "path": "././meta/todos/todo.workflow-serialises-validation.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",

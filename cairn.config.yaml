@@ -5,3 +5,12 @@ targets:
   - node: cairn.kernel.cli
     path: ./tools/agent-pack
     language: assets
+  - node: cairn.registries
+    path: ./docs/registries
+    language: assets
+  - node: cairn.blueprint-source
+    path: ./cairn.blueprint
+    language: assets
+  - node: cairn.design-copy
+    path: ./docs/design-system/copy.toml
+    language: assets

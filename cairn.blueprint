@@ -30,6 +30,9 @@ System Cairn "Graph, decisions, and gates keeping extreme AI-agent software deve
         contract "./meta/contracts/state.md"
     }
 
+    Module Coordination "Family-local coordination fact store: append-only facts, epoch tokens, read fold" id "cairn.coord" @no-contract {
+    }
+
     Module Watch "Watch mode: periodic scan with finding-change events" id "cairn.watch" {
         path "./src/watch.rs"
         contract "./meta/contracts/watch.md"
@@ -135,6 +138,21 @@ System Cairn "Graph, decisions, and gates keeping extreme AI-agent software deve
     Module Tests "Integration and smoke tests" id "cairn.tests" @test @no-test-coverage {
         path "./tests"
         contract "./meta/contracts/tests.md"
+    }
+
+    Module Registries "Declared-item, error-code, and binding-surface registries" id "cairn.registries" @hotspot @no-contract {
+        path "./docs/registries"
+        owns-files: true
+    }
+
+    Module BlueprintSource "The root blueprint file itself" id "cairn.blueprint-source" @hotspot @no-contract {
+        path "./cairn.blueprint"
+        owns-files: true
+    }
+
+    Module DesignCopy "Compile-time CLI and webui copy strings" id "cairn.design-copy" @hotspot @no-contract {
+        path "./docs/design-system/copy.toml"
+        owns-files: true
     }
 }
 

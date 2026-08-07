@@ -1,5 +1,5 @@
 ---
-node: cairn.root
+node: cairn.coord
 status: open
 created: 2026-08-07
 blocked_by: [todo.parallel-dispatch-granularity]

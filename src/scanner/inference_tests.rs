@@ -329,6 +329,16 @@ fn scan_assets_target_claims_files_without_warnings() {
 }
 
 #[test]
+fn assets_target_file_path_claims_exactly_itself() {
+    let dir = temp_dir("assets-file-target");
+    std::fs::write(dir.join("copy.toml"), "x = 1\n").unwrap();
+    let files =
+        crate::reconcile::target::claim_assets_files(&dir, Path::new("./copy.toml"), &[]).unwrap();
+    assert_eq!(files, vec!["copy.toml".to_owned()]);
+    cleanup(&dir);
+}
+
+#[test]
 fn scan_empty_assets_target_warns_empty_target() {
     let dir = temp_dir("scan-empty-assets-dir");
     let assets_dir = dir.join("src/ui_assets");

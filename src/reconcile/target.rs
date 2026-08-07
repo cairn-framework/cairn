@@ -201,10 +201,15 @@ impl Target {
     }
 }
 
-/// Claims every non-ignored file under a claim-only assets target.
+/// Claims the files of a claim-only assets target.
 ///
-/// Explicit-config only: no language inference, no symbol extraction. Mirrors
-/// the ignore-aware walk idiom used by [`Language::infer_from_directory`].
+/// A directory target claims every non-ignored file beneath it; a file
+/// target claims exactly itself, so file-grain owner nodes (a registry
+/// table, the root blueprint) work without a wrapping directory.
+///
+/// Explicit-config only: no language inference, no symbol extraction. The
+/// directory walk mirrors the ignore-aware idiom used by
+/// [`Language::infer_from_directory`].
 ///
 /// # Errors
 ///
@@ -218,6 +223,14 @@ pub fn claim_assets_files(
     ignores: &[String],
 ) -> Result<Vec<String>, ReconcileError> {
     let abs_dir = root.join(target_path);
+    if abs_dir.is_file() {
+        let rel = target_path
+            .to_string_lossy()
+            .replace('\\', "/")
+            .trim_start_matches("./")
+            .to_owned();
+        return Ok(vec![rel]);
+    }
     let mut files = Vec::new();
     assets_walk(root, &abs_dir, ignores, &mut files)?;
     files.sort();
