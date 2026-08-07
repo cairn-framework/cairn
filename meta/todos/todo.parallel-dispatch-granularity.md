@@ -1,8 +1,8 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-31
-related: [res.inversion-convergence-minutes, todo.node-overlap-conflicts-query, todo.console-orchestration-ux-design]
+related: [res.inversion-convergence-minutes, todo.node-overlap-conflicts-query, todo.console-orchestration-ux-design, res.parallel-dispatch-rung-3, dec.rung-three-coordination-substrate]
 ---
 
 # Parallel dispatch granularity: name the three rungs, design the third
@@ -147,6 +147,36 @@ base; the 2026-08-03 addendum's questions are now answered in pixels.
 - The rung vocabulary above appears verbatim, so no consumer mistakes
   rung 2 for rung 3.
 - Follow-up implementation todos filed with `blocked_by` edges.
+
+## Design delivered (2026-08-07)
+
+The design document is `res.parallel-dispatch-rung-3`. It covers derivation,
+grant, observation, and hotspot ownership, states the derived-first ruling and
+its promotion trigger, reproduces the rung vocabulary verbatim, names the
+`dec.change-format-only` lineage explicitly, and answers the 2026-08-03
+addendum in full: a claim is held on the dispatch unit, its identity is unit id
+plus epoch, expiry and renewal are recorded facts, and a stale claim renders
+with holder, expiry, and residue where no claim renders as absence.
+
+One correction the design owes back to the mockup evidence above: in the
+derived-first phase the preview cannot assert that a named unit would change a
+named hotspot file, because that fact does not exist in committed state.
+`dec.rung-three-coordination-substrate` clause 5 records the renderable
+phase-0 sentence, which keeps "same files, one at a time" verbatim.
+
+The rulings needing a signature are enqueued as
+`dec.rung-three-coordination-substrate`: recompute-equality replacing
+commit-pinning, a family-local store with cross-clone coordination declared out
+of scope, hotspot serialisation as workflow policy with derived write-sets
+stamped partial, `evidence_class` required from format 1, the console barred
+from saying "claim" without a lease fact, and the CLI noun union widening.
+
+Follow-up implementation todos, filed with `blocked_by` edges:
+`todo.coord-common-dir-helper`, `todo.coord-fact-store`,
+`todo.coord-read-surface`, `todo.write-set-derivation`,
+`todo.hotspot-node-ownership`, and `todo.plan-identity-wave-composer`.
+
+This unit closes when that decision is signed; the todos above carry the work.
 
 ## Mission disposition
 

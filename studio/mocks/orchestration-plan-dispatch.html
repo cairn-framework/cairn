@@ -914,7 +914,7 @@
             <p><span class="mono">cairn.driver.leases</span> is not dispatchable: it rests on <span class="mono">cairn.driver</span>, and your ruling on <span class="mono">dec.lease-schema</span> is still in the queue.</p>
             <p><span class="mono">wave-12</span> stays halted: its spend cap needs your budget ruling. 3 units wait.</p>
             <p><span class="mono">src/telemetry/</span> is not a unit yet: it needs your adopt-or-ignore call first.</p>
-            <p><span class="mono">todo.lease-read-surface</span> waits for this wave: it would change <span class="mono">docs/registries/declared-items.md</span>, and so would <span class="mono">todo.driver-in-repo</span>. Same files, one at a time: it queues behind that claim and joins the next wave.</p>
+            <p><span class="mono">todo.lease-read-surface</span> waits for this wave: only one unit at a time may change <span class="mono">docs/registries/</span>, and <span class="mono">todo.driver-in-repo</span> holds that permission. Same files, one at a time: it queues behind that unit and joins the next wave.</p>
           </div>
 
           <div class="inflight">
