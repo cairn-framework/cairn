@@ -35,3 +35,5 @@ not delete the worktree before this triage lands its disposition.
 
 - Every changed file in the experiment carries a disposition with
   grounds; anything cherry-picked lands through the normal PR gates.
+
+cairn.root anchor justified (2026-08-07): triages an external experiment branch into meta/ artefacts only.

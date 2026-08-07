@@ -78,3 +78,5 @@ is tracked separately by `todo.todo-relationship-model-and-issue-links`.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves investigable. It improves fidelity when todo work is carried into GitHub issues.
+
+cairn.root anchor justified (2026-08-07): scripts/ and .github/ own no node.

@@ -1,5 +1,5 @@
 ---
-node: cairn.root
+node: cairn.kernel.cli
 status: open
 created: 2026-07-31
 related: [res.inversion-convergence-minutes]

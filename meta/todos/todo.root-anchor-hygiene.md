@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-08-07
 related: [res.parallel-dispatch-rung-3]
 ---
@@ -27,3 +27,5 @@ raises achievable wave width without any new authoring contract.
 - Every open todo anchored to `cairn.root` either moved to a truer node or
   carries a stated justification.
 - `cairn scan --strict` stays green.
+
+cairn.root anchor justified (2026-08-07): the hygiene unit itself; edits meta/todos frontmatter only.

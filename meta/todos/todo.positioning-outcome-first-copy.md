@@ -44,3 +44,5 @@ This todo owns the README-overhaul work and the outward README story.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It makes the outward story answer what users get first.
+
+cairn.root anchor justified (2026-08-07): README and docs/landing own no node.

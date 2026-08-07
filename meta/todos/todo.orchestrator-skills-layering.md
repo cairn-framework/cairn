@@ -1,5 +1,5 @@
 ---
-node: cairn.root
+node: cairn.kernel.artefacts
 status: open
 created: 2026-08-04
 related: [todo.driver-in-repo, dec.orchestration-placement]

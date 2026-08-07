@@ -26,3 +26,5 @@ audit/codebase health pass, rather than building features.
 
 - Every open todo carries either a current-state note or a status
   change; the health findings are enumerated with owners.
+
+cairn.root anchor justified (2026-08-07): amends meta/todos across the portfolio.

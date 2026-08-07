@@ -203,3 +203,5 @@ change. Its external implementation is retired
 read-surface audit (task 1, still to run) and gap filing, the direct
 input to task 4 here. This unit is the in-repo successor that change
 deliberately did not become.
+
+cairn.root anchor justified (2026-08-07): declares its own driver nodes in task 1; re-anchor when they exist.

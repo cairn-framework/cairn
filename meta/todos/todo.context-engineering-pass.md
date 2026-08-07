@@ -1,5 +1,5 @@
 ---
-node: cairn.root
+node: cairn.kernel.cli
 status: open
 created: 2026-08-07
 related: [res.skill-absorption]

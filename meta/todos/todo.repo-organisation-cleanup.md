@@ -36,3 +36,5 @@ Files are truth; the graph reconciles. Use cairn to find the mess rather than wa
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps repository organisation legible as the project grows.
+
+cairn.root anchor justified (2026-08-07): repo-wide meta hygiene by definition.

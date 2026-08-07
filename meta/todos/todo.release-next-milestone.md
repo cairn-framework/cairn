@@ -109,3 +109,5 @@ Add to the changelog scope, landed since the list above was written:
 (#572), and `dec.reverse-provenance-wire` with computed `refined_by` and
 `superseded_by` on schema version 11. `dec.orchestration-placement` joins
 that list only if it is signed before the cut.
+
+cairn.root anchor justified (2026-08-07): release cut is crate-wide process (Cargo.toml, CHANGELOG).
