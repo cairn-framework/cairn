@@ -169,18 +169,11 @@ pub fn architecture_findings_from_project(root: &Path) -> Vec<Finding> {
     )
 }
 
-fn current_head_hash(root: &Path) -> Option<String> {
-    let head_ref = std::fs::read_to_string(root.join(".git/HEAD")).ok()?;
-    let ref_path = head_ref.trim().strip_prefix("ref: ")?;
-    let hash = std::fs::read_to_string(root.join(".git").join(ref_path)).ok()?;
-    Some(hash.trim().to_owned())
-}
-
 fn read_head_blueprint(root: &Path) -> Option<Ast> {
     // Fast path: if a cached copy exists for the current HEAD, use it.
     let cache_path = root.join(".cairn/state/head-blueprint.cache");
     if let (Some(head), Ok(cache)) = (
-        current_head_hash(root),
+        crate::coord::git::head_hash(root),
         std::fs::read_to_string(&cache_path),
     ) {
         let mut lines = cache.lines();
@@ -204,7 +197,7 @@ fn read_head_blueprint(root: &Path) -> Option<Ast> {
     let ast = crate::blueprint::parser::parse_str("HEAD:cairn.blueprint", &source).ok()?;
 
     // Write cache for subsequent runs.
-    if let Some(head) = current_head_hash(root) {
+    if let Some(head) = crate::coord::git::head_hash(root) {
         let cache_dir = root.join(".cairn/state");
         let _ = std::fs::create_dir_all(&cache_dir);
         let cache_content = format!("{head}\n{source}");

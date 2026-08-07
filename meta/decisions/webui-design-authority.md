@@ -2,7 +2,7 @@
 id: dec.webui-design-authority
 nodes:
   - cairn.ui
-status: accepted
+status: superseded
 date: 2026-07-28
 informed_by:
   - res.design-studio-greenfield

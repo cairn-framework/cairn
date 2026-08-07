@@ -393,7 +393,7 @@ fn collect_owner(node: &Node, owners: &mut Vec<(String, String)>) {
     let is_internal = !node.children.is_empty();
     if !is_internal || node.owns_files {
         for path in &node.paths {
-            owners.push((node.id.clone(), trim_dot(path)));
+            owners.push((node.id.clone(), crate::map::paths::trim_dot(path)));
         }
     }
     for child in &node.children {
@@ -404,20 +404,11 @@ fn collect_owner(node: &Node, owners: &mut Vec<(String, String)>) {
 /// Returns the most-specific owning node for `file`, if any.
 fn most_specific_owner(owners: &[(String, String)], file: &str) -> Option<String> {
     for (id, path) in owners {
-        if path.is_empty()
-            || path == "."
-            || file == path
-            || (file.starts_with(path) && file.as_bytes().get(path.len()) == Some(&b'/'))
-        {
+        if crate::map::paths::is_component_prefix(path, file) {
             return Some(id.clone());
         }
     }
     None
-}
-
-/// Strips a leading `./` from a path segment.
-fn trim_dot(path: &str) -> String {
-    path.trim_start_matches("./").to_owned()
 }
 
 /// Normalises a path to forward slashes for stable comparison.
@@ -436,12 +427,12 @@ mod tests {
 
     #[test]
     fn trim_dot_strips_leading_dot_slash() {
-        assert_eq!(trim_dot("./src/main.rs"), "src/main.rs");
+        assert_eq!(crate::map::paths::trim_dot("./src/main.rs"), "src/main.rs");
     }
 
     #[test]
     fn trim_dot_leaves_unchanged_when_no_leading_dot_slash() {
-        assert_eq!(trim_dot("src/main.rs"), "src/main.rs");
+        assert_eq!(crate::map::paths::trim_dot("src/main.rs"), "src/main.rs");
     }
 
     #[test]

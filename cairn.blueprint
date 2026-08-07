@@ -30,6 +30,10 @@ System Cairn "Graph, decisions, and gates keeping extreme AI-agent software deve
         contract "./meta/contracts/state.md"
     }
 
+    Module Coordination "Family-local coordination fact store: append-only facts, epoch tokens, read fold" id "cairn.coord" @no-contract {
+        path "./src/coord"
+    }
+
     Module Watch "Watch mode: periodic scan with finding-change events" id "cairn.watch" {
         path "./src/watch.rs"
         contract "./meta/contracts/watch.md"
@@ -136,6 +140,21 @@ System Cairn "Graph, decisions, and gates keeping extreme AI-agent software deve
         path "./tests"
         contract "./meta/contracts/tests.md"
     }
+
+    Module Registries "Declared-item, error-code, and binding-surface registries" id "cairn.registries" @hotspot @no-contract {
+        path "./docs/registries"
+        owns-files: true
+    }
+
+    Module BlueprintSource "The root blueprint file itself" id "cairn.blueprint-source" @hotspot @no-contract {
+        path "./cairn.blueprint"
+        owns-files: true
+    }
+
+    Module DesignCopy "Compile-time CLI and webui copy strings" id "cairn.design-copy" @hotspot @no-contract {
+        path "./docs/design-system/copy.toml"
+        owns-files: true
+    }
 }
 
 # Core data flow: scanner is the orchestration hub
@@ -152,6 +171,7 @@ cairn.kernel.map        -> cairn.kernel.artefacts   "Validates contracts against
 # Enforcement gates
 cairn.kernel.hooks      -> cairn.kernel.scanner     "Gates commits on scan integrity"
 cairn.kernel.hooks      -> cairn.kernel.map         "Reads findings"
+cairn.kernel.hooks      -> cairn.coord             "Resolves the shared git dir"
 cairn.kernel.changes    -> cairn.kernel.scanner     "Validates deltas before archive"
 cairn.kernel.changes    -> cairn.kernel.blueprint   "Parses blueprint deltas"
 cairn.kernel.changes    -> cairn.kernel.map         "Reads graph state"
@@ -161,6 +181,8 @@ cairn.kernel.cli        -> cairn.kernel.query       "Exposes queries as CLI comm
 cairn.kernel.cli        -> cairn.kernel.scanner     "Orchestrates scan runs"
 cairn.kernel.cli        -> cairn.kernel.hooks       "Runs hook checks"
 cairn.kernel.cli        -> cairn.ui                 "Launches graph explorer"
+cairn.kernel.cli        -> cairn.coord              "Runs store admin verbs"
+cairn.kernel.query      -> cairn.coord              "Reads coordination facts"
 cairn.kernel.query      -> cairn.kernel.scanner     "Reads scan state"
 cairn.kernel.query      -> cairn.kernel.map         "Traverses graph"
 cairn.kernel.query      -> cairn.kernel.changes     "Reads change state"

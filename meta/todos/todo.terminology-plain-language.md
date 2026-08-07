@@ -1,5 +1,5 @@
 ---
-node: cairn.root
+node: cairn.ui
 status: open
 created: 2026-07-11
 ---

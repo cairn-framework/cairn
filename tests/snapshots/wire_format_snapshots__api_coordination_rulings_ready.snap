@@ -1,0 +1,31 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: rulings.data
+---
+{
+  "conflicts": [],
+  "cursor": "20260807T034512Z-ruling.run-b0b518970962.json",
+  "observed_at": "2026-08-07T04:00:00Z",
+  "rulings": [
+    {
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "evidence_class": "attested",
+      "fact_id": "b0b518970962",
+      "format": 1,
+      "kind": "ruling.run",
+      "name": "20260807T034512Z-ruling.run-b0b518970962.json",
+      "payload": {
+        "target": "plan-0123456789abcdef"
+      },
+      "recorded_at": "2026-08-07T03:45:12Z",
+      "recorded_by": {
+        "id": "wire",
+        "kind": "driver"
+      },
+      "supersedes": null
+    }
+  ],
+  "schema_version": 11,
+  "store_state": "ready",
+  "truncated": false
+}

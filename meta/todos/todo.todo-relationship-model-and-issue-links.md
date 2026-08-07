@@ -81,3 +81,5 @@ not be treated as the schema until that unit lands.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It unblocks when todo-relationship-schema-implementation lands.
+
+cairn.root anchor justified (2026-08-07): remaining work is the GitHub projector in unowned scripts/.

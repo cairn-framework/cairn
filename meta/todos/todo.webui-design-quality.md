@@ -13,7 +13,7 @@ set by `docs/design-system/`: tokens-only styling, no hardcoded hex/rem,
 consistent component reuse across the graph explorer, inspector, and
 command palette.
 
-dec:dec.webui-design-authority
+dec:dec.webui-write-authority
 
 ## Status (2026-07-08)
 
@@ -53,11 +53,11 @@ Bet A (graph canvas state legibility) implementation has started under `dec.webu
 
 Reopened as `blocked`, not `done`. Bet D (the deterministic design-quality
 scorer) is still unbuilt and still gated on the visual harness, and
-`dec.webui-design-authority` clause 3 names this todo as its tracker, so a
+`dec.webui-write-authority` clause 5 names this todo as its tracker, so a
 `done` status misrepresented the plan. Bets A, B, and C are finished; this todo
 covers bet D only. Unblock by setting it `open` when the visual harness can host
 the scorer.
 
 ## Mission disposition
 
-2026-08-02: blocked against dec.cairn-mission. Serves fit-for-purpose. Bet D design-quality scorer tracker per dec.webui-design-authority clause 3, gated on the visual harness; bet A alone was superseded by dec.webui-design-direction.
+2026-08-02: blocked against dec.cairn-mission. Serves fit-for-purpose. Bet D design-quality scorer tracker per dec.webui-write-authority clause 5, gated on the visual harness; bet A alone was superseded by dec.webui-design-direction.

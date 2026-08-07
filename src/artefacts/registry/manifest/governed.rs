@@ -120,6 +120,11 @@ fn collect_canonical_files(
                 message: format!("governed path under {label} is not valid UTF-8"),
             });
         };
+        // Cairn's own state directory is derived output, never governed
+        // content, mirroring the manifest hasher's exclusion.
+        if name == ".cairn" {
+            continue;
+        }
         let child_label = format!("{label}/{name}");
         let child_path = child.path();
         if is_review_path(&child_label) || resolves_into_reviews(canonical_root, &child_path) {

@@ -4,7 +4,7 @@ nodes:
   - cairn.root
   - cairn.reconcile
   - cairn.sse
-status: accepted
+status: superseded
 date: 2026-07-28
 informed_by:
   - res.decision-accumulation-cairn-root

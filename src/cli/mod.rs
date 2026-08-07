@@ -40,10 +40,11 @@ pub(crate) use format::render_finding_lines;
 use commands::{
     atomic_write, init_project, install_default_pack, legacy_blueprint_warning,
     preflight_wire_check, run_archive_command, run_archive_command_with_path, run_baseline_command,
-    run_change_new, run_decision_command, run_draft_command, run_feedback_command, run_gap_command,
-    run_hook_command, run_hook_lifecycle_command, run_import_openspec, run_onboard_command,
-    run_pack_command, run_shared_json_command, run_todo_command, run_ui_command, run_watch_command,
-    run_workspace_command, wire_agent_guide,
+    run_change_new, run_coord_command, run_decision_command, run_draft_command,
+    run_feedback_command, run_gap_command, run_hook_command, run_hook_lifecycle_command,
+    run_import_openspec, run_lease_command, run_onboard_command, run_pack_command,
+    run_ruling_command, run_shared_json_command, run_todo_command, run_ui_command,
+    run_watch_command, run_workspace_command, wire_agent_guide,
 };
 use format::{
     err, error_output, esc, finding_json, finding_output, findings_output, flag_value, lines,
@@ -53,7 +54,7 @@ use render::{
     render_backlog, render_brief, render_bundle, render_changes, render_context, render_decisions,
     render_dependencies, render_files, render_get, render_health, render_locate,
     render_neighbourhood, render_next, render_pending_detail, render_rationale, render_remediate,
-    render_research, render_show, render_sources, render_status, render_todos,
+    render_research, render_show, render_sources, render_status, render_todos, render_wave,
 };
 
 /// Shared CLI command metadata.
@@ -384,6 +385,15 @@ pub fn run(args: &[String]) -> CliResult {
     if parsed.command == "todo" {
         return run_todo_command(&parsed, project_root);
     }
+    if parsed.command == "coord" {
+        return run_coord_command(&parsed, project_root);
+    }
+    if parsed.command == "ruling" {
+        return run_ruling_command(&parsed, project_root);
+    }
+    if parsed.command == "lease" {
+        return run_lease_command(&parsed, project_root);
+    }
     if parsed.command == "baseline" {
         return run_baseline_command(&parsed, project_root);
     }
@@ -479,6 +489,8 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
                 let root = project_root;
                 let legacy_warning = legacy_blueprint_warning(root);
                 let request = crate::query_api::QueryRequest {
+                    at: None,
+                    since: None,
                     tool: "changes".to_owned(),
                     node: None,
                     symbol: None,
@@ -508,6 +520,8 @@ fn run_change_command(parsed: &ParsedArgs, project_root: &Path) -> CliResult {
                 let root = project_root;
                 let legacy_warning = legacy_blueprint_warning(root);
                 let request = crate::query_api::QueryRequest {
+                    at: None,
+                    since: None,
                     tool: "show".to_owned(),
                     node: None,
                     symbol: None,
@@ -777,6 +791,7 @@ fn render_loaded_project_command(
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => render_context(parsed, root, scan_result),
         "backlog" => render_backlog(parsed, root, scan_result),
+        "wave" => render_wave(parsed, root, scan_result),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "health" => Ok(render_health(parsed, root, scan_result)),
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),
@@ -1033,6 +1048,10 @@ const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
         description: "Manage changes: new, list, show, accept, apply, archive",
     },
     CliOnlyCommand {
+        name: "coord",
+        description: "Verify or compact the family-local coordination fact store",
+    },
+    CliOnlyCommand {
         name: "decision",
         description: "Scaffold a new decision artefact",
     },
@@ -1057,6 +1076,10 @@ const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
         description: "Migrate openspec changes to meta/changes",
     },
     CliOnlyCommand {
+        name: "lease",
+        description: "Coordination lease and driver-singleton facts: lease list",
+    },
+    CliOnlyCommand {
         name: "next",
         description: "Show the next ready unit of work",
     },
@@ -1067,6 +1090,10 @@ const CLI_ONLY_COMMANDS: &[CliOnlyCommand] = &[
     CliOnlyCommand {
         name: "pack",
         description: "Install, update, inspect, or remove the agent pack",
+    },
+    CliOnlyCommand {
+        name: "ruling",
+        description: "Coordination ruling facts: ruling list, ruling show <fact-id>",
     },
     CliOnlyCommand {
         name: "todo",

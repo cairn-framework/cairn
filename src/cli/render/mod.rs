@@ -25,7 +25,7 @@ pub(crate) use health::render_health;
 pub(crate) use locate::render_locate;
 pub(crate) use node::{render_files, render_get, render_neighbourhood};
 pub(crate) use pending::render_pending_detail;
-pub(crate) use project::{render_backlog, render_dependencies, render_status};
+pub(crate) use project::{render_backlog, render_dependencies, render_status, render_wave};
 pub(crate) use remediate::{render_brief, render_next, render_remediate};
 pub(crate) use session::render_context;
 

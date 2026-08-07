@@ -86,6 +86,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         &["depth", "scope", "mermaid", "json", "file", "help"],
     ),
     spec("contract", "contract", FLAGS_BASIC),
+    spec("coord", "coord", FLAGS_HELP_ONLY),
     spec(
         "decision",
         "decision",
@@ -139,6 +140,8 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         ],
     ),
     spec("islands", "islands", FLAGS_BASIC),
+    spec("lease", "lease", FLAGS_HELP_ONLY),
+    spec("lease list", "lease-list", FLAGS_HELP_ONLY),
     spec("lint", "lint", FLAGS_LINT),
     spec("locate", "locate", FLAGS_BASIC),
     spec(
@@ -166,6 +169,9 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("remediate", "remediate", FLAGS_BASIC),
     spec("rename", "rename", &["json", "file", "help"]),
     spec("research", "research", FLAGS_BASIC),
+    spec("ruling", "ruling", FLAGS_HELP_ONLY),
+    spec("ruling list", "ruling-list", FLAGS_HELP_ONLY),
+    spec("ruling show", "ruling-show", FLAGS_HELP_ONLY),
     spec("scan", "scan", FLAGS_SCAN),
     spec("sources", "sources", FLAGS_BASIC),
     spec("status", "status", FLAGS_STATUS),
@@ -174,6 +180,8 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("ui", "ui", &["port", "no-open", "file", "help"]),
     spec("ui_meta", "ui_meta", FLAGS_BASIC),
     spec("watch", "watch", &["interval", "once", "file", "help"]),
+    spec("wave", "wave", FLAGS_HELP_ONLY),
+    spec("wave stats", "wave-stats", FLAGS_HELP_ONLY),
     spec("workspace", "workspace", FLAGS_BASIC),
     // --- compound change family --------------------------------------------
     spec("change new", "change-new", FLAGS_FILE_HELP),

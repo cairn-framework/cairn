@@ -7,6 +7,7 @@ use super::*;
 mod archive;
 mod baseline;
 mod change;
+mod coord;
 mod decision;
 mod feedback;
 mod gap;
@@ -21,6 +22,7 @@ mod pack_harness;
 mod pack_manifest;
 mod pack_report;
 mod project;
+mod ruling_run;
 mod todo;
 mod watch;
 mod wire;
@@ -29,6 +31,7 @@ mod workspace;
 pub(crate) use archive::{run_archive_command, run_archive_command_with_path};
 pub(crate) use baseline::run_baseline_command;
 pub(crate) use change::run_change_new;
+pub(crate) use coord::{run_coord_command, run_lease_command, run_ruling_command};
 pub(crate) use decision::run_decision_command;
 pub(crate) use feedback::run_feedback_command;
 pub(crate) use gap::run_gap_command;
@@ -67,6 +70,8 @@ pub(crate) fn run_draft_command(
     }
     let node = parsed.command_args.get(2).cloned();
     let request = crate::query_api::QueryRequest {
+        at: None,
+        since: None,
         tool: tool.to_owned(),
         node,
         symbol: None,
@@ -126,6 +131,8 @@ pub(crate) fn execute_json_request(
 pub(crate) fn shared_request(parsed: &ParsedArgs) -> crate::query_api::QueryRequest {
     let arg = |index: usize| parsed.command_args.get(index).cloned();
     crate::query_api::QueryRequest {
+        at: None,
+        since: None,
         tool: parsed.command.clone(),
         // Flag tokens and their values are never a node, so the node is the
         // first positional token even in a flag-first invocation (e.g.

@@ -1,0 +1,13 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: uninitialised.data
+---
+{
+  "conflicts": [],
+  "cursor": null,
+  "observed_at": null,
+  "rulings": [],
+  "schema_version": 11,
+  "store_state": "uninitialised",
+  "truncated": false
+}

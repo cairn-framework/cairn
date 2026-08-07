@@ -1,0 +1,27 @@
+---
+node: cairn.kernel.artefacts
+status: open
+created: 2026-08-07
+blocked_by: [todo.driver-in-repo]
+related: [dec.rung-three-coordination-substrate]
+---
+
+# Workflow serialises validation
+
+Carved out of `todo.hotspot-node-ownership` task 2 on 2026-08-07: no workflow
+artefact type exists yet, so the `serialises:` list has nowhere to live until
+`todo.driver-in-repo` task 1 introduces it.
+
+## Task
+
+Add `serialises:` to the workflow artefact as a list of path prefixes, not
+node ids, per `dec.rung-three-coordination-substrate` clause 3 and
+`res.parallel-dispatch-rung-3` Part 3, "The hotspot problem". Cairn validates
+that each prefix exists and evaluates nothing further, per
+`dec.orchestration-placement` clause 3.
+
+## Acceptance
+
+- A test asserts an unknown `serialises:` prefix is a validation finding and
+  that a valid one is stored and never evaluated by the core.
+- No per-unit authoring is introduced anywhere.

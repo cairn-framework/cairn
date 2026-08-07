@@ -181,6 +181,8 @@ fn request_from_arguments(
         tool: name.to_owned(),
         node: string_arg(arguments, "node").or_else(|| string_arg(arguments, "id")),
         symbol: string_arg(arguments, "symbol"),
+        at: string_arg(arguments, "at"),
+        since: string_arg(arguments, "since"),
         change: string_arg(arguments, "change").or_else(|| string_arg(arguments, "change_id")),
         old_id: string_arg(arguments, "old_id"),
         new_id: string_arg(arguments, "new_id"),
@@ -250,6 +252,14 @@ fn input_schema(schema: &str) -> Value {
     let properties = match schema {
         "NodeRequest" | "ArtefactNodeRequest" => json!({
             "node": { "type": "string" },
+        }),
+        "CoordinationRequest" => json!({
+            "at": { "type": "string" },
+            "since": { "type": "string" },
+        }),
+        "CoordinationShowRequest" => json!({
+            "node": { "type": "string" },
+            "at": { "type": "string" },
         }),
         "LocateRequest" => json!({
             "symbol": { "type": "string" },

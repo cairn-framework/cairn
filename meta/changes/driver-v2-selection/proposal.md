@@ -25,33 +25,42 @@ should READ repository truth rather than carry a second copy of it.
 
 ## Outcome
 
-Each driver session's mission is constructed at session start from repository
-reads alone: the next selectable unit under the loop's own selection rules, or
-a computed terminal state that ends the run. No static queue file exists. The
-maintainer sees exactly what the driver acts on, because both read the same
-commands.
+The repository's read surface is audited for driver sufficiency. At a
+pinned commit, the audit answers whether a mission line (unit id, node,
+selection ground, reproducible evidence) can be built from
+`cairn next --json`, `cairn pending --json`, `cairn frontier --json`,
+and `cairn lint --json` alone, landing as
+`meta/research/driver-v2-read-surface.md`; every gap is filed as its
+own todo against the owning node. The audit is the direct input to the
+in-repo successor's selector-wire task (`todo.driver-in-repo` task 4).
 
 ## Acceptance boundary
 
-A dry-run driver invocation against this repository at a known commit prints
-the mission it WOULD dispatch (unit id, selection ground, evidence lines), and
-that mission equals what a live loop session's Orient step selects at the same
-commit. With nothing selectable it prints the terminal state and exits zero
-without dispatching.
+The research artefact exists with per-command sufficiency verdicts at a
+pinned commit, and every gap it names has a filed todo. Nothing outside
+`meta/` changes under this change.
 
 ## Evidence
 
-- A dry-run transcript on this repository, pinned in the implementing PR.
-- The terminal state reproduces cairn's own stop evidence: strict scan green,
-  no selectable finding, no ready todo.
-- Ledger idempotence keyed on unit identity rather than queue-line hash:
-  rerunning after a completed unit skips it without hand editing.
+- `meta/research/driver-v2-read-surface.md`, pinned to the audited
+  commit.
+- The gap todos it filed.
+
+The former driver-side evidence (dry-run transcript, drained-backlog
+terminal run, ledger idempotence) was retired with the external
+implementation on 2026-08-04 (`dec.orchestration-placement` accepted);
+the dry-run equivalence and drained-backlog contracts now live in
+`todo.driver-in-repo`'s acceptance.
 
 ## Out of scope (exclusions)
 
-- Moving the driver into this repository. `dec.product-perimeter` binds and its
-  revisit trigger has not fired; `res.overharness-design-threads` thread d
-  leaves the question open for a future decision, not for this change.
+- Moving the driver into this repository. Reconciled 2026-08-04:
+  `dec.orchestration-placement` is accepted and supersedes
+  `dec.product-perimeter`, so the in-repo successor is the open
+  `todo.driver-in-repo`. This change stays what it is: the record of
+  the external v1 supervisor, whose read-surface audit (task 1, still
+  to run) is the direct input to that successor's selector-wire task.
+  Moving the driver is out of scope here.
 - Machine verification that the review gate ran: owned by
   `todo.review-gate-machine-check`. This change only records what the driver
   dispatched and why.

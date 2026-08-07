@@ -5,7 +5,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 45] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 50] = [
     tool(
         "get",
         "cairn_get",
@@ -366,6 +366,46 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 45] = [
         SafetyClass::ReadOnly,
         "Locate exact definitions of a public symbol across the project",
     ),
+    tool(
+        "ruling list",
+        "cairn_coordination_rulings",
+        "CoordinationRequest",
+        "CoordinationRulingsResponse",
+        SafetyClass::ReadOnly,
+        "List raw coordination ruling and run-outcome facts",
+    ),
+    tool(
+        "ruling show",
+        "cairn_coordination_ruling",
+        "CoordinationShowRequest",
+        "CoordinationRulingResponse",
+        SafetyClass::ReadOnly,
+        "Show one coordination ruling fact by fact id",
+    ),
+    tool(
+        "lease list",
+        "cairn_coordination_leases",
+        "CoordinationRequest",
+        "CoordinationLeasesResponse",
+        SafetyClass::ReadOnly,
+        "List raw coordination lease and driver-singleton facts",
+    ),
+    tool(
+        "wave",
+        "cairn_wave",
+        "CoordinationRequest",
+        "WaveResponse",
+        SafetyClass::ReadOnly,
+        "Preview the next dispatch wave and its plan digest; wave stats renders the false-overlap projection",
+    ),
+    tool(
+        "wave stats",
+        "cairn_wave_stats",
+        "CoordinationRequest",
+        "WaveStatsResponse",
+        SafetyClass::ReadOnly,
+        "Render the false-overlap projection over touched-files facts",
+    ),
 ];
 
 pub(super) const fn tool(
@@ -485,7 +525,7 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 45);
+        assert_eq!(TOOL_REGISTRY.len(), 50);
     }
 
     #[test]
@@ -548,6 +588,11 @@ mod response_schema_tests {
         "BlueprintResponse",
         "BeadsResponse",
         "LocateResponse",
+        "CoordinationRulingsResponse",
+        "CoordinationRulingResponse",
+        "CoordinationLeasesResponse",
+        "WaveResponse",
+        "WaveStatsResponse",
     ];
 
     #[test]

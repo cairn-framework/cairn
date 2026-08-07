@@ -1,0 +1,718 @@
+/* ==============================================================
+   The guided console, creation journey.
+
+   The register is the aligned round-2 specimen
+   (studio/mocks/orchestration-guided-journey.html): plain language
+   primary, the technical working behind a drawer, one run action.
+   Everything here is design-system tokens only, served from
+   docs/design-system/ rather than copied, so a token change lands
+   here without an edit.
+
+   The class vocabulary is the specimen's. When the production console
+   is built under todo.console-signed-widening, these graduate into
+   docs/design-system/components.css; until then they stay local to the
+   prototype rather than forking the component library.
+   ============================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--ink-1);
+  background: var(--stone-3);
+  overflow: hidden;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-node);
+}
+
+h1 {
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ---------- bezel ---------------------------------------------- */
+
+.bezel {
+  height: 56px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-4);
+  background: var(--stone-3);
+  border-bottom: var(--line-1) solid var(--seam-faint);
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-serif);
+  font-size: var(--t-title);
+  letter-spacing: 0.02em;
+}
+
+.mark svg {
+  display: block;
+}
+
+.scenario-chip {
+  border: var(--line-1) solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  padding: 3px var(--s-2);
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+}
+
+.stage {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.stage .now {
+  color: var(--ink-1);
+}
+
+.stage .later {
+  color: var(--ink-4);
+}
+
+.stage .sep {
+  color: var(--ink-4);
+}
+
+.bezel-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.host-chip {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  border: var(--line-1) solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  padding: 4px var(--s-3);
+  white-space: nowrap;
+}
+
+/* ---------- frame ----------------------------------------------- */
+
+.frame {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* ---------- conversation rail ------------------------------------ */
+
+.talk {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: var(--line-1) solid var(--seam-faint);
+  background: var(--stone-2);
+}
+
+.talk-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--s-4);
+}
+
+.speaker {
+  font-size: var(--t-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-4);
+  margin: var(--s-4) 0 var(--s-1);
+}
+
+.speaker:first-child {
+  margin-top: 0;
+}
+
+.talk p {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-body);
+  color: var(--ink-1);
+  line-height: 1.55;
+}
+
+.talk p.by-cairn {
+  font-family: var(--font-serif);
+  font-size: var(--t-lede);
+}
+
+.talk p .quiet {
+  color: var(--ink-2);
+}
+
+/* the grill block: a workflow surfaced as plain questions */
+
+.grill {
+  margin: var(--s-3) 0;
+  border: var(--line-1) solid var(--stroke-2);
+  border-radius: var(--r-stone);
+  background: var(--stone-1);
+  padding: var(--s-3);
+}
+
+.grill-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+
+.grill-title {
+  font-size: var(--t-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.grill-meta {
+  margin-left: auto;
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+.grill-q {
+  padding: var(--s-2) 0;
+  border-top: var(--line-1) solid var(--stroke-1);
+}
+
+.grill-q .q {
+  font-family: var(--font-serif);
+  font-size: var(--t-lede);
+  color: var(--ink-1);
+  line-height: 1.5;
+  margin: 0 0 var(--s-2);
+}
+
+.answers {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.answer {
+  border: var(--line-1) solid var(--seam-thin);
+  border-radius: var(--r-round);
+  padding: 3px var(--s-3);
+  font-family: inherit;
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  background: transparent;
+  cursor: pointer;
+}
+
+.answer:hover:not(:disabled),
+.answer:focus-visible {
+  border-color: var(--stroke-3);
+  color: var(--ink-1);
+}
+
+.answer:disabled {
+  cursor: default;
+}
+
+.answer.chosen {
+  border-color: var(--prov-2);
+  color: var(--ink-1);
+  background: var(--prov-wash);
+}
+
+.answer.chosen::after {
+  content: " ✓";
+  color: var(--prov-1);
+}
+
+.grill-why {
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+
+.grill-q.load-bearing .grill-why::before {
+  content: "The one call worth arguing with. ";
+  color: var(--ink-2);
+}
+
+/* composer */
+
+.composer {
+  flex: 0 0 auto;
+  border-top: var(--line-1) solid var(--seam-faint);
+  padding: var(--s-3) var(--s-4);
+}
+
+.composer textarea {
+  display: block;
+  width: 100%;
+  resize: none;
+  border: var(--line-1) solid var(--seam-thin);
+  border-radius: var(--r-stone);
+  background: var(--stone-1);
+  padding: var(--s-3);
+  color: var(--ink-1);
+  font-family: inherit;
+  font-size: var(--t-body);
+  line-height: 1.5;
+}
+
+.composer textarea::placeholder {
+  color: var(--ink-4);
+}
+
+.composer textarea:focus-visible {
+  outline: var(--line-1) solid var(--prov-2);
+  border-color: var(--prov-2);
+}
+
+.composer textarea:disabled {
+  color: var(--ink-4);
+}
+
+.composer .hint {
+  margin-top: var(--s-1);
+  font-size: var(--t-micro);
+  color: var(--ink-4);
+}
+
+/* ---------- outcome view ----------------------------------------- */
+
+.outcome {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--s-6) var(--s-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  background: var(--stone-1);
+}
+
+.headline {
+  font-family: var(--font-serif);
+  font-size: var(--t-h2);
+  line-height: 1.15;
+  max-width: 18em;
+}
+
+.standfirst {
+  font-size: var(--t-lede);
+  color: var(--ink-2);
+  max-width: 38em;
+  line-height: 1.5;
+}
+
+/* the one action */
+
+.run {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  border: var(--line-1) solid var(--prov-2);
+  border-left: var(--ci-keel) solid var(--prov-1);
+  border-radius: var(--r-stone);
+  background: var(--prov-wash);
+  padding: var(--s-4) var(--s-5);
+  max-width: 560px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.run-word {
+  font-family: var(--font-serif);
+  font-size: var(--t-h3);
+  color: var(--ink-1);
+  white-space: nowrap;
+}
+
+.run-sub {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.run-caveat {
+  margin-top: var(--s-1);
+  font-size: var(--t-micro);
+  color: var(--ink-4);
+}
+
+/* the plan in plain words */
+
+.plan-grid {
+  display: flex;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.waves {
+  flex: 0 1 420px;
+  min-width: 320px;
+}
+
+.mini-map {
+  flex: 0 1 460px;
+  min-width: 340px;
+  border: var(--line-1) solid var(--stroke-1);
+  border-radius: var(--r-stone);
+  background: var(--stone-2);
+  padding: var(--s-3);
+}
+
+.mm-band {
+  padding: var(--s-2) 0;
+  border-top: var(--line-1) solid var(--stroke-1);
+}
+
+.mm-band:first-of-type {
+  border-top: 0;
+}
+
+.mm-gloss {
+  display: block;
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+  margin-bottom: var(--s-1);
+}
+
+.mm-row {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.mm-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: var(--line-1) dashed var(--ghost);
+  border-radius: var(--r-edge);
+  background: var(--ghost-wash);
+  padding: 3px var(--s-2);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.mm-node.built {
+  border-style: solid;
+  border-color: var(--stroke-3);
+  background: var(--stone-1);
+  color: var(--ink-1);
+}
+
+.mm-node i {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+  width: 14px;
+  height: 14px;
+  border: var(--line-1) solid var(--stroke-3);
+  border-radius: var(--r-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mm-foot {
+  margin-top: var(--s-1);
+  font-size: var(--t-micro);
+  color: var(--ink-4);
+}
+
+.waves-title {
+  font-size: var(--t-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: var(--s-2);
+}
+
+/* Why the first row is not numbered 1. Only rendered when the graph says so. */
+.waves-lead {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  line-height: 1.45;
+  margin-bottom: var(--s-2);
+}
+
+.wave-row {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: var(--line-1) solid var(--stroke-1);
+}
+
+.wave-n {
+  flex: 0 0 24px;
+  height: 24px;
+  border: var(--line-1) solid var(--stroke-3);
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-2);
+}
+
+.wave-what {
+  min-width: 0;
+}
+
+.wave-parts {
+  font-size: var(--t-body);
+  color: var(--ink-1);
+}
+
+.wave-note {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+
+/* progressive disclosure: the working.
+   A native <details>, closed until asked for, so "open any time" is a fact
+   rather than a label on something already open. */
+
+.working {
+  margin-top: auto;
+  border: var(--line-1) solid var(--stroke-1);
+  border-radius: var(--r-stone);
+  background: var(--stone-2);
+  max-width: 720px;
+}
+
+.working-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  cursor: pointer;
+  list-style: none;
+}
+
+.working-head::-webkit-details-marker {
+  display: none;
+}
+
+.working[open] .working-head {
+  border-bottom: var(--line-1) solid var(--stroke-1);
+}
+
+.working-head::after {
+  content: "open";
+  margin-left: var(--s-2);
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+.working[open] .working-head::after {
+  content: "close";
+}
+
+.working-title {
+  font-size: var(--t-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.working-note {
+  margin-left: auto;
+  font-size: var(--t-micro);
+  color: var(--ink-4);
+}
+
+.working-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  padding: var(--s-2) var(--s-3) var(--s-3);
+}
+
+.w-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.w-item svg {
+  display: block;
+}
+
+.w-item .mono {
+  font-size: var(--t-micro);
+  color: var(--ink-1);
+}
+
+::selection {
+  background: var(--prov-wash);
+}
+
+/* ==============================================================
+   Live additions the static specimen did not need: work in flight,
+   an honest failure, and a way back to the start. Same register,
+   same tokens, no new colour.
+   ============================================================== */
+
+.quiet-btn {
+  border: var(--line-1) solid var(--seam-thin);
+  border-radius: var(--r-edge);
+  background: transparent;
+  padding: 4px var(--s-3);
+  font-family: inherit;
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.quiet-btn:hover:not(:disabled),
+.quiet-btn:focus-visible {
+  border-color: var(--stroke-3);
+  color: var(--ink-1);
+}
+
+.quiet-btn:disabled {
+  color: var(--ink-4);
+  cursor: default;
+}
+
+/* work in flight: the map is forming */
+
+.doing {
+  border: var(--line-1) solid var(--stroke-1);
+  border-left: var(--ci-keel) solid var(--stroke-3);
+  border-radius: var(--r-stone);
+  background: var(--stone-2);
+  padding: var(--s-3) var(--s-4);
+  max-width: 560px;
+}
+
+.doing-title {
+  font-family: var(--font-serif);
+  font-size: var(--t-lede);
+  color: var(--ink-1);
+}
+
+.doing-lines {
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doing-lines li {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+
+.doing-lines li:last-child {
+  color: var(--ink-1);
+}
+
+.doing-foot {
+  margin-top: var(--s-2);
+  font-size: var(--t-micro);
+  color: var(--ink-4);
+}
+
+/* an honest failure */
+
+.trouble {
+  border: var(--line-1) solid var(--stroke-2);
+  border-left: var(--ci-keel) solid var(--error);
+  border-radius: var(--r-stone);
+  background: var(--stone-2);
+  padding: var(--s-3) var(--s-4);
+  max-width: 640px;
+}
+
+.trouble-title {
+  font-family: var(--font-serif);
+  font-size: var(--t-lede);
+  color: var(--ink-1);
+}
+
+.trouble p {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+
+.trouble .detail {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* The raw detail sits behind its own disclosure: harness output, paths, and
+   command names are the working, not the message. */
+
+.trouble-more {
+  margin-top: var(--s-2);
+}
+
+.trouble-more summary {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.trouble-more summary:hover,
+.trouble-more summary:focus-visible {
+  color: var(--ink-1);
+}
+
+/* nothing described yet */
+
+.blank-note {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  max-width: 38em;
+  line-height: 1.55;
+}

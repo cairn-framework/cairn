@@ -127,3 +127,5 @@ day; its run IDs are quoted inline above so the numbers stand without the transc
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It preserves local evidence that changes satisfy the repository gates.
+
+cairn.root anchor justified (2026-08-07): rust-toolchain.toml, workflows, and scripts/ own no node.

@@ -385,6 +385,12 @@ fn walk_directory(
                 message: format!("manifest path under {repo_path} is not valid UTF-8"),
             });
         };
+        // Cairn's own state directory is derived output, never governed
+        // content: scans write it freely, so hashing it would let a scan
+        // drift a subject manifest away from its receipts.
+        if name == ".cairn" {
+            continue;
+        }
         let child_label = format!("{repo_path}/{name}");
         let child_filesystem_path = child.path();
         if is_review_path(&child_label)

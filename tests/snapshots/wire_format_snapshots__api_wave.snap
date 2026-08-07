@@ -1,0 +1,32 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: wave.data
+---
+{
+  "conflicts": [],
+  "held": [],
+  "hotspot_prefixes": [],
+  "observed_at": null,
+  "plan": "plan-db77bdcd17e9af40",
+  "preimage": "cairn-plan-v1\nrule=wf.default:1\nunit=todo.api@564e6611853d\nws=src/api\n",
+  "rule": "wf.default:1",
+  "schema_version": 11,
+  "store_state": "ready",
+  "units": [
+    {
+      "content_hash": "564e6611853d",
+      "hotspot_permission": true,
+      "id": "todo.api",
+      "write_set": {
+        "completeness": "partial",
+        "completeness_reason": "phase 0 derivation is blind to hotspot edits",
+        "excludes": [],
+        "includes": [
+          "src/api"
+        ],
+        "resolution": "derived",
+        "unresolved_reason": null
+      }
+    }
+  ]
+}

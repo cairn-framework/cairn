@@ -6,7 +6,7 @@ status: accepted
 date: 2026-07-27
 related:
   - dec.landing-design-token-conformance
-  - dec.webui-design-authority
+  - dec.webui-write-authority
   - dec.webui-design-token-gate
 ---
 

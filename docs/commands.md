@@ -77,6 +77,14 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn todo unlink <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]...` | Remove relationship links from a todo; same flags as `link` |
 | `cairn gap <node> --question "<text>"` | Log an unresolved question as a proposed decision artefact |
 | `cairn baseline <record\|drop> <node>` | Record, re-record, or prune a node's contract baseline in `.cairn/state/contract-baselines.json`. Needs no summariser backend; drop is restricted to inert entries |
+| `cairn coord verify` | Check the family-local coordination fact store: append-only held, no broken supersedes chain, no compacted unmatched park |
+| `cairn coord compact --before <YYYY-MM-DD>` | Move old coordination facts into `archive/<yyyy-mm>/`; never deletes, never moves an unmatched park or a live chain's antecedent |
+| `cairn ruling list` | List raw coordination ruling and run-outcome facts; `--at` echoes an observation instant, `--since <filename>` paginates |
+| `cairn ruling show <fact-id>` | Show one coordination ruling fact |
+| `cairn lease list` | List raw coordination lease and driver-singleton facts; no derived verdicts, staleness is reader-derived |
+| `cairn ruling run <plan-digest>` | Record maintainer consent for a previewed wave; declines with a closed-enum reason and `dispatched: []` when the composition moved |
+| `cairn wave` | Preview the next dispatch wave: units, write-sets, completeness stamps, the hotspot permission holder, held units, and the plan digest |
+| `cairn wave stats` | Render the false-overlap projection over `outcome.touched_files` facts; the promotion threshold stays unset until twenty exclusions carry merge evidence |
 
 ### Optional integrations
 

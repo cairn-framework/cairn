@@ -1,0 +1,44 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: leases.data
+---
+{
+  "conflicts": [],
+  "cursor": "20260807T034513Z-lease.grant-9655e6078fa4.json",
+  "leases": [
+    {
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "evidence_class": "attested",
+      "fact_id": "9655e6078fa4",
+      "format": 1,
+      "kind": "lease.grant",
+      "name": "20260807T034513Z-lease.grant-9655e6078fa4.json",
+      "payload": {
+        "commit_at_grant": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "epoch": 1,
+        "expires_at": "2026-08-07T05:45:13Z",
+        "granted_at": "2026-08-07T03:45:13Z",
+        "holder": {
+          "harness_kind": "omp",
+          "session": "s1"
+        },
+        "residue": {
+          "branch": "loop/example",
+          "pr": null,
+          "worktree": "../wt/example"
+        },
+        "unit_id": "todo.example"
+      },
+      "recorded_at": "2026-08-07T03:45:13Z",
+      "recorded_by": {
+        "id": "wire",
+        "kind": "driver"
+      },
+      "supersedes": null
+    }
+  ],
+  "observed_at": null,
+  "schema_version": 11,
+  "store_state": "ready",
+  "truncated": false
+}

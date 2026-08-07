@@ -1,5 +1,10 @@
 # Design: driver-v2-selection
 
+> Scope reduced 2026-08-04: the external driver implementation
+> described below is retired (`dec.orchestration-placement` accepted;
+> `todo.driver-in-repo` is the in-repo successor). Kept as context for
+> the surviving read-surface audit.
+
 ## Approach
 
 The driver becomes a thin read-and-dispatch loop with the fail-closed checks
@@ -50,12 +55,12 @@ REMOVED:
 RENAMED:
 - Nothing.
 
-## Driver-side work, recorded for completeness
+## Driver-side work, retired 2026-08-04
 
-The driver lives outside this repository (`~/repos/cairn-missions`), so the
-following is NOT part of this repository's delta and lands there:
-
-- A mission constructor replacing the `b-queue.txt` read.
-- A ledger keyed on unit identity rather than queue-line hash.
-- A `--dry-run` flag printing the constructed mission without dispatching,
-  which is what the acceptance boundary exercises.
+The external driver (`~/repos/cairn-missions`) was to gain a mission
+constructor, a unit-identity ledger, and a `--dry-run` flag. That
+implementation is retired with the external plan
+(`dec.orchestration-placement` accepted); the equivalent contracts,
+including dry-run equivalence and the drained-backlog zero-exit case,
+now live in `todo.driver-in-repo`. Recorded for history only; nothing
+lands outside this repository under this change.

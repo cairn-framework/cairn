@@ -208,6 +208,35 @@ fn test_compute_subject_hash_dir_entry_expands_sorted_recursive() {
 }
 
 #[test]
+fn test_dir_expansion_excludes_cairn_state_dir() {
+    let root = tempfile::tempdir().expect("tempdir");
+    fs::create_dir_all(root.path().join("src")).expect("source directory");
+    fs::write(root.path().join("src/z.txt"), b"z").expect("z file");
+    let raw = decision("proposed", "", "Body\n");
+    let clean = compute_subject_hash(
+        root.path(),
+        "meta/decisions/example.md",
+        &raw,
+        &["src/".to_owned()],
+    )
+    .expect("clean hash");
+
+    // A scan writing state under the governed directory must not move the
+    // manifest: state is derived output, never governed content.
+    fs::create_dir_all(root.path().join("src/.cairn/state")).expect("state directory");
+    fs::write(root.path().join("src/.cairn/state/log.json"), b"{}").expect("state file");
+    let with_state = compute_subject_hash(
+        root.path(),
+        "meta/decisions/example.md",
+        &raw,
+        &["src/".to_owned()],
+    )
+    .expect("state hash");
+
+    assert_eq!(clean, with_state);
+}
+
+#[test]
 fn test_normalise_repo_entry_preserves_dir_marker() {
     assert_eq!(
         normalise_repo_entry("src/nested/"),

@@ -1,0 +1,42 @@
+# The guided-console prototype, long running on the maintainer's server.
+#
+#   docker compose -f studio/prototype/compose.yaml up -d --build
+#   docker compose -f studio/prototype/compose.yaml logs -f
+#
+# The harness needs credentials. Put them in studio/prototype/.env (which is
+# not committed), or sign in once inside the container and let the named
+# harness-home volume keep the session:
+#
+#   docker compose -f studio/prototype/compose.yaml exec console omp
+name: cairn-guided-console
+
+services:
+  console:
+    build:
+      context: ../..
+      dockerfile: studio/prototype/Dockerfile
+    ports:
+      # CONSOLE_PORT picks the port on the host. The container always listens on
+      # 4400: .env is passed into the container, so letting PORT float there
+      # would move the listener out from under this mapping.
+      - "${CONSOLE_PORT:-4400}:4400"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PORT: "4400"
+      # The command is configurable so it can point at a different binary path
+      # inside the image. The event reader expects this harness's JSONL, so it is
+      # not a portability seam.
+      CAIRN_PROTOTYPE_HARNESS: "${CAIRN_PROTOTYPE_HARNESS:-omp}"
+      CAIRN_PROTOTYPE_HARNESS_ARGS: "${CAIRN_PROTOTYPE_HARNESS_ARGS:--p --mode json --no-session --no-skills}"
+    volumes:
+      # The target project and the journey, kept across restarts.
+      - console-data:/data
+      # The harness's own home, so a sign-in survives a restart.
+      - harness-home:/root
+    restart: unless-stopped
+
+volumes:
+  console-data:
+  harness-home:

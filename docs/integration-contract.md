@@ -72,6 +72,11 @@ Error responses from the MCP/query path:
 | `todos <node>` | `cairn_todos` | Todo artefacts linked to the node |
 | `backlog <node>` | n/a | Beads (issues) linked to the node via its `cairn-node:<id>` label |
 | `beads <node>` | `cairn_beads` | Backlog beads (issues) linked to a node |
+| `ruling list` | `cairn_coordination_rulings` | Raw coordination ruling and run-outcome facts; `store_state`, no derived verdicts |
+| `ruling show <fact-id>` | `cairn_coordination_ruling` | One coordination ruling fact by fact id |
+| `lease list` | `cairn_coordination_leases` | Raw coordination lease and driver-singleton facts |
+| `wave` | `cairn_wave` | The dispatch preview and its plan digest; completeness stamps name the hotspot prefixes |
+| `wave stats` | `cairn_wave_stats` | The false-overlap projection; threshold unset until merge evidence exists |
 | `decisions <node>` | `cairn_decisions` | Decision artefacts linked to the node |
 | `research <node>` | `cairn_research` | Research artefacts linked to the node |
 | `sources <node>` | `cairn_sources` | Source artefacts linked to the node |
@@ -103,6 +108,9 @@ Error responses from the MCP/query path:
 | `feedback "<message>"` | - | Record cairn friction in `.cairn/feedback.md`, print upstream issue link |
 | `decision new <slug>` | - | Scaffold a new decision artefact (frontmatter + sections) |
 | `gap <node> --question "<text>"` | - | Log an unresolved question as a `gap: true`, `status: proposed` decision artefact |
+| `coord verify` | n/a | Check coordination-store integrity; records an observation snapshot in the store's derived cache. CLI-only |
+| `coord compact --before <YYYY-MM-DD>` | n/a | Archive old coordination facts; deletes nothing. CLI-only |
+| `ruling run <plan-digest>` | n/a | Record maintainer consent as a ruling.run fact, or a closed-enum decline with dispatched: []. CLI-only |
 
 ### Draft lifecycle (semi-stable)
 

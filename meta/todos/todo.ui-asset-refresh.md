@@ -2,7 +2,7 @@
 node: cairn.ui
 status: blocked
 created: 2026-07-18
-blocked_by: [todo.pending-queue-briefing, todo.reverse-provenance-surfacing]
+blocked_by: [todo.console-state-legibility, todo.console-signed-widening]
 ---
 
 # UI Asset Refresh
@@ -58,14 +58,21 @@ no longer exists, on surfaces that are the project's first impression
 - Visual harness selectors/scenarios updated; CI ux_defect_score gate
   green against the redesigned webui.
 
-dec:dec.webui-design-authority
+dec:dec.webui-write-authority
 
 ## Mission disposition
 
 2026-08-02: blocked against dec.cairn-mission. Serves fit-for-purpose. The console changes the webui again, so recording now would guarantee recording twice.
 
-## Blocker update (2026-08-02)
+## Blocker update (2026-08-03)
 
-The console landed read-only in PR #572, but the pending briefing and
-reverse provenance units still change the webui; recording before they
-land means recording twice. The blockers now name those two units.
+The pending-briefing and reverse-provenance units both landed, which left
+this todo blocked with every declared blocker done. The blockers now name
+the two units that actually change the rendered webui next:
+`todo.console-state-legibility` (state grammar and the readouts the
+console currently discards) and `todo.console-signed-widening` (the
+orchestration surface, which owns the implementation the mockups
+specify). The design unit that feeds them,
+`todo.console-orchestration-ux-design`, ships no console code, so
+blocking on it alone would clear before the pixels changed and cause
+exactly the double recording this todo exists to avoid.

@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cairn Console: return and orient (round 2 mock)</title>
+    <link rel="stylesheet" href="../../docs/design-system/fonts.css" />
+    <link rel="stylesheet" href="../../docs/design-system/tokens.css" />
+    <style>
+      /* ==============================================================
+         Return and orient: the journey-first flagship of round 2
+         (todo.console-orchestration-ux-design task 3, composed per the
+         maintainer's journey-first ruling, 2026-08-06). J1 fused with
+         J7: the away-timeline is the causal story of the queue. No map
+         on this screen; a one-line digest keeps it one step away.
+         Static specimen, no JS. Tokens: docs/design-system/tokens.css
+         only (semantic aliases first; canonical seeds where the matrix
+         names them). Raw px only where no token equivalent exists.
+         ============================================================== */
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-ui);
+        font-size: var(--t-body);
+        line-height: 1.45;
+        color: var(--ink-1);
+        background: var(--stone-3);
+        overflow: hidden;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mono {
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-weight: 500;
+        margin: 0;
+      }
+
+      /* ---------- bezel ------------------------------------------- */
+
+      .bezel {
+        height: 56px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-4);
+        padding: 0 var(--s-4);
+        background: var(--stone-3);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+      }
+
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        font-family: var(--font-serif);
+        font-size: var(--t-title);
+        letter-spacing: 0.02em;
+      }
+
+      .mark svg {
+        display: block;
+      }
+
+      .scenario-chip {
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        padding: 3px var(--s-2);
+        color: var(--ink-3);
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        letter-spacing: 0.06em;
+      }
+
+      .counter {
+        border-left: var(--line-1) solid var(--seam-faint);
+        padding-left: var(--s-3);
+        min-width: 72px;
+      }
+
+      .counter b {
+        display: block;
+        font-size: var(--ci-size-counter);
+        font-weight: 500;
+        line-height: 1.05;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .counter span {
+        display: block;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        text-transform: uppercase;
+        letter-spacing: var(--track-micro);
+      }
+
+      .bezel-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-3);
+      }
+
+      .annunciator {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        color: var(--ink-2);
+        padding: 5px var(--s-3);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        white-space: nowrap;
+      }
+
+      .annunciator::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--ink-4);
+      }
+
+      .queue-badge {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        border: var(--line-1) solid var(--prov-2);
+        border-radius: var(--r-edge);
+        color: var(--prov-1);
+        background: var(--prov-wash);
+        padding: 5px var(--s-3);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        white-space: nowrap;
+      }
+
+      .queue-badge b {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+
+      /* ---------- session strip -------------------------------------- */
+
+      .session-strip {
+        height: 32px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--s-3);
+        padding: 0 var(--s-4);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+        background: var(--stone-3);
+        color: var(--ink-3);
+        font-size: var(--t-small);
+      }
+
+      .session-strip .mono {
+        color: var(--ink-2);
+      }
+
+      .session-strip .right {
+        margin-left: auto;
+        white-space: nowrap;
+      }
+
+      /* ---------- workbench ----------------------------------------- */
+
+      .workbench {
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px 360px;
+        min-height: 0;
+      }
+
+      .panel {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel + .panel {
+        border-left: var(--line-1) solid var(--seam-faint);
+      }
+
+      .panel-head {
+        flex: 0 0 auto;
+        padding: var(--s-2) var(--s-4);
+        border-bottom: var(--line-1) solid var(--seam-faint);
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        min-height: 34px;
+      }
+
+      .panel-head h2 {
+        font-family: var(--font-serif);
+        font-size: var(--t-title);
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+
+      .panel-head .meta {
+        color: var(--ink-3);
+        font-size: var(--t-small);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .derived-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+      }
+
+      .derived-mark svg {
+        display: block;
+      }
+
+      /* ---------- away timeline -------------------------------------- */
+
+      .timeline-panel {
+        background: var(--stone-1);
+      }
+
+      .tl-list {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: var(--s-2) var(--s-4) var(--s-3);
+      }
+
+      .tl-row {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-3);
+        padding: 5px 0;
+        border-bottom: var(--line-1) solid var(--stroke-1);
+      }
+
+      .tl-row:last-child {
+        border-bottom: 0;
+      }
+
+      .tl-time {
+        flex: 0 0 44px;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .tl-token {
+        flex: 0 0 auto;
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+        white-space: nowrap;
+      }
+
+      .tl-token.quiet {
+        color: var(--ink-2);
+      }
+
+      .tl-what {
+        color: var(--ink-2);
+        font-size: var(--t-small);
+        line-height: 1.4;
+        min-width: 0;
+      }
+
+      .tl-what .mono {
+        color: var(--ink-1);
+      }
+
+      .tl-what .dim {
+        color: var(--ink-3);
+      }
+
+      .tl-consequence {
+        color: var(--ink-3);
+      }
+
+      .tl-consequence .mono {
+        color: var(--ink-2);
+        font-size: var(--t-micro);
+      }
+
+      /* the autonomous chain (J7): threaded receipts */
+
+      .tl-chain {
+        margin: 6px 0;
+        border: var(--line-1) solid var(--stroke-2);
+        border-radius: var(--r-stone);
+        background: var(--hinge-wash);
+        padding: 6px var(--s-3) var(--s-2);
+      }
+
+      .tl-chain-head {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        padding-bottom: 3px;
+      }
+
+      .tl-chain-title {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+
+      .tl-chain-head .meta {
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+      }
+
+      .tl-chain .tl-row {
+        border-bottom: 0;
+        padding: 2px 0;
+        position: relative;
+        padding-left: var(--s-4);
+      }
+
+      .tl-chain .tl-row::before {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 0;
+        bottom: 0;
+        border-left: var(--line-1) solid var(--stroke-3);
+      }
+
+      .tl-chain .tl-row::after {
+        content: "";
+        position: absolute;
+        left: 3px;
+        top: 9px;
+        width: 5px;
+        height: 5px;
+        border-radius: var(--r-full);
+        background: var(--ink-2);
+      }
+
+      .tl-chain .tl-row:first-of-type::before {
+        top: 9px;
+      }
+
+      .tl-chain .tl-row:last-of-type::before {
+        bottom: auto;
+        height: 9px;
+      }
+
+      .tl-chain-foot {
+        margin-top: 3px;
+        padding-left: var(--s-4);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .tl-chain-foot .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      /* ---------- queue (grammar reused from the mixed specimen) ----- */
+
+      .queue-panel {
+        background: var(--stone-2);
+      }
+
+      .queue-count {
+        font-variant-numeric: tabular-nums;
+        color: var(--prov-1);
+        border: var(--line-1) solid var(--prov-2);
+        background: var(--prov-wash);
+        border-radius: var(--r-edge);
+        font-size: var(--t-small);
+        padding: 0 6px;
+        line-height: 18px;
+      }
+
+      .queue-list {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        list-style: none;
+        margin: 0;
+        padding: 6px var(--s-2);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .q-entry {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        background: var(--stone-3);
+        padding: 4px var(--s-2);
+      }
+
+      .q-entry.is-head {
+        border-left: var(--ci-keel) solid var(--prov-1);
+        padding-left: 6px;
+      }
+
+      .q-entry.is-signature {
+        background: var(--hinge-wash);
+      }
+
+      .q-top {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+      }
+
+      .q-type {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+
+      .q-age {
+        margin-left: auto;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .q-subject {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .q-subject svg {
+        flex: 0 0 auto;
+      }
+
+      .q-state {
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        flex: 0 0 auto;
+      }
+
+      .q-sum {
+        margin-top: 2px;
+        color: var(--ink-2);
+        font-size: var(--t-small);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.35;
+      }
+
+      .q-residue {
+        margin-top: 2px;
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: var(--font-mono);
+        line-height: 1.5;
+      }
+
+      .q-from {
+        margin-top: 2px;
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .q-from .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .q-path {
+        margin-top: 3px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .q-path .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      .verb-chip {
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        padding: 0 5px;
+        line-height: 15px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+
+      .verb-chip.is-live {
+        border-color: var(--prov-3);
+        color: var(--prov-1);
+      }
+
+      .queue-note {
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 3px var(--s-3) 5px;
+        border-top: var(--line-1) solid var(--stroke-1);
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        line-height: 1.4;
+      }
+
+      /* ---------- in-flight rail (grammar reused) --------------------- */
+
+      .flight-panel {
+        background: var(--stone-2);
+      }
+
+      .flight-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 5px var(--s-2);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .next-slot {
+        border: var(--line-1) dashed var(--stroke-2);
+        border-radius: var(--r-stone);
+        padding: var(--s-1) var(--s-2);
+      }
+
+      .next-slot .n-top {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+      }
+
+      .next-slot .n-label {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+
+      .next-slot .derived-mark {
+        margin-left: auto;
+      }
+
+      .next-slot .n-unit {
+        margin-top: 2px;
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+      }
+
+      .next-slot .n-src {
+        margin-top: 1px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+      }
+
+      .run-card {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        background: var(--stone-3);
+        padding: 3px var(--s-2);
+      }
+
+      .r-top {
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+        min-width: 0;
+      }
+
+      .lamp {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .lamp i {
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--ink-2);
+      }
+
+      .lamp.l-active {
+        color: var(--ci-signal);
+      }
+
+      .lamp.l-active i {
+        background: var(--ci-signal);
+      }
+
+      .lamp.l-waiting i {
+        background: transparent;
+        border: var(--line-1) solid var(--ink-2);
+      }
+
+      .lamp.l-blocked {
+        border-bottom: var(--line-1) solid var(--drift);
+        padding-bottom: 1px;
+      }
+
+      .lamp.l-blocked i {
+        background: transparent;
+        border-left: var(--line-2) solid var(--ink-2);
+        border-right: var(--line-2) solid var(--ink-2);
+        border-radius: 0;
+        width: 8px;
+      }
+
+      .r-unit {
+        font-family: var(--font-mono);
+        font-size: var(--t-node);
+        color: var(--ink-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .r-clock {
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-2);
+        font-size: var(--t-small);
+        white-space: nowrap;
+      }
+
+      .r-meta {
+        margin-top: 2px;
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .r-meta .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      .claim-tag {
+        border: var(--line-1) solid var(--stroke-2);
+        border-radius: var(--r-edge);
+        padding: 0 5px;
+        line-height: 15px;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .flight-divider {
+        margin-top: 0;
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-4);
+        display: flex;
+        align-items: center;
+        gap: var(--s-2);
+      }
+
+      .flight-divider::after {
+        content: "";
+        flex: 1;
+        border-top: var(--line-1) solid var(--stroke-1);
+      }
+
+      .stale-card {
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        background: var(--stone-3);
+        padding: var(--s-1) var(--s-2);
+      }
+
+      .stale-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: var(--line-1) solid var(--drift);
+        border-radius: var(--r-edge);
+        color: var(--ink-1);
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        padding: 0 6px;
+        line-height: 16px;
+      }
+
+      .stale-facts {
+        margin-top: 3px;
+        font-family: var(--font-mono);
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+        line-height: 1.45;
+      }
+
+      .stale-facts .dim {
+        color: var(--ink-3);
+      }
+
+      .no-outcome {
+        margin-top: 2px;
+        font-size: var(--t-small);
+        color: var(--ink-2);
+      }
+
+      .lamp-strip {
+        margin-top: auto;
+        border: var(--line-1) solid var(--stroke-1);
+        border-radius: var(--r-stone);
+        padding: var(--s-1) var(--s-2) var(--s-1);
+        background: var(--stone-1);
+      }
+
+      .lamp-strip .ls-title {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+
+      .lamp-strip .ls-note {
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        margin: 1px 0 4px;
+      }
+
+      .ls-row {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s-2);
+        padding: 1px 0;
+      }
+
+      .ls-lamp {
+        flex: 0 0 150px;
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-lamp);
+        text-transform: uppercase;
+        color: var(--ink-2);
+        border: var(--line-1) solid var(--seam-thin);
+        border-radius: var(--r-edge);
+        text-align: center;
+        padding: 1px var(--s-1);
+        white-space: nowrap;
+      }
+
+      .ls-lamp.l-warn {
+        border-color: var(--drift);
+      }
+
+      .ls-lamp.l-error {
+        border-color: var(--error);
+      }
+
+      .ls-evidence {
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        line-height: 1.35;
+      }
+
+      .ls-evidence .mono {
+        font-size: var(--t-micro);
+        color: var(--ink-2);
+      }
+
+      /* ---------- map digest strip ------------------------------------ */
+
+      .digest {
+        flex: 0 0 auto;
+        border-top: var(--line-1) solid var(--seam-faint);
+        background: var(--stone-2);
+        display: flex;
+        align-items: center;
+        gap: var(--s-4);
+        padding: 0 var(--s-4);
+        height: 64px;
+        overflow: hidden;
+      }
+
+      .digest .digest-title {
+        font-family: var(--font-serif);
+        font-size: var(--t-lede);
+        white-space: nowrap;
+      }
+
+      .digest .digest-sub {
+        font-size: var(--t-micro);
+        color: var(--ink-4);
+        white-space: nowrap;
+      }
+
+      .digest-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--t-small);
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      .digest-item .mono {
+        color: var(--ink-1);
+        font-size: var(--t-micro);
+      }
+
+      .digest-item .dim {
+        color: var(--ink-3);
+        font-size: var(--t-micro);
+      }
+
+      .state-key {
+        flex: 0 0 auto;
+        width: 16px;
+        height: 12px;
+        border: var(--line-1) solid var(--stroke-2);
+        border-left: var(--ci-keel) solid var(--seam-carved);
+        background: var(--stone-2);
+      }
+
+      .state-key.k-ghost {
+        border: var(--line-1) dashed var(--ghost);
+        border-left: var(--ci-keel) dashed var(--ghost);
+        background: var(--ghost-wash);
+      }
+
+      .state-key.k-orphaned {
+        border-left-color: var(--orphaned);
+        background: var(--orphan-wash);
+        transform: rotate(-4deg);
+      }
+
+      .state-key.k-drift {
+        border-left: var(--ci-keel) solid var(--drift);
+        background: var(--drift-wash);
+      }
+
+      .digest .findings-chip {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        font-size: var(--t-micro);
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+
+      .digest .findings-chip .sev-mini {
+        font-size: var(--t-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        border: var(--line-1) solid var(--warning);
+        border-radius: var(--r-edge);
+        color: var(--warning);
+        padding: 0 5px;
+        line-height: 15px;
+      }
+
+      .digest .findings-chip .sev-mini.s-error {
+        border-color: var(--error);
+        color: var(--stone-1);
+        background: var(--error);
+        font-weight: 600;
+      }
+
+      ::selection {
+        background: var(--prov-wash);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      DIRECTION CONTRACT (round 2, return and orient)
+      THESIS: the console for a fleet you left alone. The screen answers
+      the return questions in the maintainer's own order: what happened,
+      what waits on me, what is in flight. The dependency map does not
+      appear; a one-line digest keeps it one step away. Refuses the
+      category default (dashboard of charts) and the incumbent default
+      (map-first explorer with side rails).
+      OWN-WORLD: Calibrated Instrument, inherited: graphite chassis,
+      chalk ink, serif titles, mono machine identity, teal only where a
+      move is needed.
+      SYNTHETIC: all ids, times, runs, and receipts are authored
+      scenario data ("cairn, three weeks out"), labelled in the bezel;
+      dec.autonomy-boundary is scenario-only. Real artefact ids appear
+      only as recorded history.
+      SHARED GRAMMAR: queue, run cards, stale card, lamp strip, and all
+      state treatments reused verbatim from
+      orchestration-mixed-repository.html (the grammar specimen).
+      TIMELINE SOURCES: recorded rows ride cairn status
+      recent_log_entries plus the proposed outcome-facts and lease-facts
+      read surfaces; the J7 chain needs the intake receipt the driver
+      unit owns. Absent sources render absent, never invented.
+    -->
+    <header class="bezel">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <rect x="5" y="2" width="8" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="3" y="7" width="12" height="4" rx="1" fill="var(--ink-2)" />
+          <rect x="1" y="12" width="16" height="4" rx="1" fill="var(--ink-2)" />
+        </svg>
+        Cairn
+      </span>
+      <span class="scenario-chip">synthetic scenario · return and orient · 2026-08-06</span>
+      <div class="counter"><b>4</b><span>findings</span></div>
+      <div class="bezel-right">
+        <span class="annunciator">Reconciled 09:41</span>
+        <span class="queue-badge">Waiting on you <b>6</b></span>
+      </div>
+    </header>
+
+    <div class="session-strip">
+      <span>return session · away since <span class="mono">07:02</span> · <span class="mono">2 h 39 m</span></span>
+      <span class="right">observed <span class="mono">09:41</span> · every derived readout carries this time</span>
+    </div>
+
+    <main class="workbench">
+      <!-- ================= away timeline ================= -->
+      <section class="panel timeline-panel" aria-label="While you were away">
+        <div class="panel-head">
+          <h2>While you were away</h2>
+          <span class="meta">recorded · outcomes, receipts, claims, rulings · newest first</span>
+        </div>
+        <div class="tl-list">
+          <div class="tl-row">
+            <span class="tl-time">09:41</span>
+            <span class="tl-token quiet">reconciled</span>
+            <span class="tl-what">4 findings, 2 nodes drifted · interface hash <span class="mono">4c1f9a27</span></span>
+          </div>
+          <div class="tl-row">
+            <span class="tl-time">09:12</span>
+            <span class="tl-token">ITERATION COMPLETE</span>
+            <span class="tl-what"><span class="mono">todo.channel-copy-pass</span> · commit <span class="mono">3f0a9c2</span> · merged</span>
+          </div>
+
+          <div class="tl-chain" aria-label="Autonomous unit: work you never started">
+            <div class="tl-chain-head">
+              <span class="tl-chain-title">Work you never started</span>
+              <span class="meta">external event, qualified, worked, merged · receipts complete</span>
+            </div>
+            <div class="tl-row">
+              <span class="tl-time">09:03</span>
+              <span class="tl-token">ITERATION COMPLETE</span>
+              <span class="tl-what"><span class="mono">todo.pr-612-null-trace</span> · commit <span class="mono">8d21f4a</span> · merged · PR <span class="mono">612</span> closed</span>
+            </div>
+            <div class="tl-row">
+              <span class="tl-time">07:31</span>
+              <span class="tl-token quiet">claim</span>
+              <span class="tl-what"><span class="mono">r-044</span> · holder <span class="mono">omp/sess-1c9</span> · granted <span class="dim">07:31</span></span>
+            </div>
+            <div class="tl-row">
+              <span class="tl-time">07:26</span>
+              <span class="tl-token quiet">intake</span>
+              <span class="tl-what">PR <span class="mono">612</span> arrived · qualified: reproduction demonstrated, trace attached</span>
+            </div>
+            <div class="tl-chain-foot">
+              no human in the loop · every step inside the signed boundary <span class="mono">dec.autonomy-boundary</span> · nothing crossed a binding line, so no queue entry was raised
+            </div>
+          </div>
+
+          <div class="tl-row">
+            <span class="tl-time">08:57</span>
+            <span class="tl-token quiet">cap reached</span>
+            <span class="tl-what"><span class="mono">wave-12</span> spend cap · 3 units halted · <span class="tl-consequence">raised <span class="mono">budget approval</span> in the queue</span></span>
+          </div>
+          <div class="tl-row">
+            <span class="tl-time">08:47</span>
+            <span class="tl-token">LOOP EXHAUSTED</span>
+            <span class="tl-what"><span class="mono">todo.copy-lint-sweep</span> · no commit recorded</span>
+          </div>
+          <div class="tl-row">
+            <span class="tl-time">08:32</span>
+            <span class="tl-token quiet">lease expired</span>
+            <span class="tl-what"><span class="mono">r-041</span> · <span class="mono">todo.flaky-fixture-repair</span> · no renewal, no outcome · <span class="tl-consequence">now stale, unclassified in the rail</span></span>
+          </div>
+          <div class="tl-row">
+            <span class="tl-time">08:31</span>
+            <span class="tl-token">LOOP HALTED</span>
+            <span class="tl-what"><span class="mono">todo.watch-debounce</span> · no commit recorded · <span class="tl-consequence">raised <span class="mono">retry approval</span> in the queue</span></span>
+          </div>
+          <div class="tl-row">
+            <span class="tl-time">08:22</span>
+            <span class="tl-token quiet">receipt</span>
+            <span class="tl-what">local ruling applied agent-side · <span class="mono">todo.reconcile-perf-pass</span> · retry backoff to 3 · never queued</span>
+          </div>
+          <div class="tl-row">
+            <span class="tl-time">07:02</span>
+            <span class="tl-token quiet">claim</span>
+            <span class="tl-what"><span class="mono">r-041</span> · <span class="mono">todo.flaky-fixture-repair</span> · holder <span class="mono">omp/sess-4f8</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= waiting-on-you queue ================= -->
+      <section class="panel queue-panel" aria-label="Waiting on you">
+        <div class="panel-head">
+          <h2>Waiting on you</h2>
+          <span class="queue-count">6</span>
+          <span class="meta">oldest first</span>
+        </div>
+        <ol class="queue-list">
+          <li class="q-entry is-head">
+            <div class="q-top">
+              <span class="q-type">Feedback triage</span>
+              <span class="q-age">waiting 3 d</span>
+            </div>
+            <div class="q-subject">fb-0142</div>
+            <div class="q-sum">Scan output truncates long paths in narrow terminals.</div>
+            <div class="q-path">
+              <span class="verb-chip is-live">sanctioned today</span>
+              <span>promote: <span class="mono">cairn todo new scan-path-truncation</span></span>
+            </div>
+          </li>
+          <li class="q-entry is-signature">
+            <div class="q-top">
+              <span class="q-type">Signature</span>
+              <span class="q-age">waiting 2 d</span>
+            </div>
+            <div class="q-subject">
+              <svg class="seal" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--ink-2)" /></svg>
+              dec.lease-schema
+              <span class="q-state">proposed</span>
+            </div>
+            <div class="q-sum">Claim identity, expiry, and renewal for unit leases.</div>
+            <div class="q-residue">nodes: cairn.driver.leases +1</div>
+            <div class="q-path">
+              <span class="verb-chip">routes to your signing flow</span>
+              <span>reopen: <span class="mono">cairn pending</span></span>
+            </div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Park / unpark</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 2 d</span>
+            </div>
+            <div class="q-subject">todo.workspace-aggregation</div>
+            <div class="q-sum">Unpark requested. Parked 2026-08-04 by <span class="mono">dec.workspace-aggregation</span>.</div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Quarantine release</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 4 h</span>
+            </div>
+            <div class="q-subject">todo.macro-hygiene</div>
+            <div class="q-sum">Failed verification at gate <span class="mono">rust-gates</span>. Never auto-retried.</div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Retry approval</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 1 h</span>
+            </div>
+            <div class="q-subject">todo.watch-debounce</div>
+            <div class="q-sum">Attempt 2: <span class="mono">LOOP HALTED</span> 08:31. Proposes attempt 3.</div>
+            <div class="q-from">from the away timeline: <span class="mono">08:31 LOOP HALTED</span></div>
+          </li>
+          <li class="q-entry">
+            <div class="q-top">
+              <span class="q-type">Budget approval</span>
+              <span class="verb-chip">verb pending</span>
+              <span class="q-age">waiting 44 m</span>
+            </div>
+            <div class="q-subject">wave-12</div>
+            <div class="q-sum">Cap reached. 3 halted: <span class="mono">todo.error-code-registry</span> +2.</div>
+            <div class="q-from">from the away timeline: <span class="mono">08:57 cap reached</span></div>
+          </li>
+        </ol>
+        <p class="queue-note">verb pending: recorded facts the driver obeys; sanctioned verbs await the write-authority decision (round 3). Display-only until then.</p>
+      </section>
+
+      <!-- ================= in-flight rail ================= -->
+      <section class="panel flight-panel" aria-label="In flight">
+        <div class="panel-head">
+          <h2>In flight</h2>
+          <span class="meta">4 units · driver contract v1 · polled <span class="mono">09:41</span></span>
+        </div>
+        <div class="flight-body">
+          <div class="next-slot">
+            <div class="n-top">
+              <span class="n-label">Next</span>
+              <span class="derived-mark">
+                <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                derived · observed 09:41
+              </span>
+            </div>
+            <div class="n-unit">todo.driver-in-repo</div>
+            <div class="n-src">from <span class="mono">cairn status</span> · a driver evaluates workflow policy</div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-active"><i></i>Active</span>
+              <span class="r-unit">todo.console-state-legibility</span>
+              <span class="r-clock">14:09</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-052 · omp/sess-7c2</span>
+              <span>expires <span class="mono">10:15</span></span>
+            </div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-active"><i></i>Active</span>
+              <span class="r-unit">todo.reconcile-perf-pass</span>
+              <span class="r-clock">03:11</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-057 · omp/sess-9a1</span>
+              <span>expires <span class="mono">10:30</span></span>
+            </div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-waiting"><i></i>Waiting</span>
+              <span class="r-unit">todo.blueprint-doc-sync</span>
+              <span class="r-clock">02:40</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-055 · omp/sess-2be</span>
+              <span>gate: <span class="mono">pre-archive-rust-gates</span></span>
+            </div>
+          </div>
+
+          <div class="run-card">
+            <div class="r-top">
+              <span class="lamp l-blocked"><i></i>Blocked</span>
+              <span class="r-unit">todo.error-code-registry</span>
+              <span class="r-clock">44:00</span>
+            </div>
+            <div class="r-meta">
+              <span class="claim-tag">r-049 · omp/sess-88f</span>
+              <span>waiting on you: budget approval · <span class="mono">wave-12</span></span>
+            </div>
+          </div>
+
+          <div class="flight-divider">Claims without a live session</div>
+
+          <div class="stale-card">
+            <div class="r-top">
+              <span class="stale-chip">stale</span>
+              <span class="r-unit">todo.flaky-fixture-repair</span>
+              <span class="derived-mark" style="margin-left: auto">
+                <svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3 6H1z" fill="none" stroke="currentColor" /></svg>
+                derived · observed 09:41
+              </span>
+            </div>
+            <div class="stale-facts">
+              r-041 · omp/sess-4f8 · granted <span class="dim">07:02</span><br />
+              expired <span class="dim">08:32</span> · renewal none recorded<br />
+              cairn/flaky-fixture-repair · attempts 2 · last <span class="dim">08:19</span>
+            </div>
+            <div class="no-outcome">No outcome recorded. Stale, unclassified.</div>
+          </div>
+
+          <div class="lamp-strip">
+            <div class="ls-title">Driver lamp vocabulary</div>
+            <div class="ls-note">one at a time · now: none (non-empty rail implies active)</div>
+            <div class="ls-row">
+              <span class="ls-lamp">No driver</span>
+              <span class="ls-evidence">no contract registered · no timestamps · rail names the attach step</span>
+            </div>
+            <div class="ls-row">
+              <span class="ls-lamp">Driver idle</span>
+              <span class="ls-evidence">contract answers · polled <span class="mono">09:41</span> · zero runs, stated as a fact</span>
+            </div>
+            <div class="ls-row">
+              <span class="ls-lamp l-warn">Driver unresponsive</span>
+              <span class="ls-evidence">heartbeat <span class="mono">08:12</span>, stale · no termination record, stated · cards demote to as-of</span>
+            </div>
+            <div class="ls-row">
+              <span class="ls-lamp l-error">Driver crashed</span>
+              <span class="ls-evidence">recorded: exited <span class="mono">137</span> at <span class="mono">08:57</span> · last-known cards under crash notice</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= map digest ================= -->
+    <footer class="digest" aria-label="Map digest">
+      <div>
+        <div class="digest-title">Map digest</div>
+        <div class="digest-sub">the map is one view away · nothing here paints a node</div>
+      </div>
+      <span class="digest-item"><span class="state-key"></span><span class="mono">19 synced</span><span class="dim">quiet</span></span>
+      <span class="digest-item"><span class="state-key k-ghost"></span><span class="mono">cairn.driver</span><span class="dim">ghost · ready</span></span>
+      <span class="digest-item"><span class="state-key k-ghost"></span><span class="mono">cairn.driver.leases</span><span class="dim">ghost · blocked by 1</span></span>
+      <span class="digest-item"><span class="state-key k-orphaned"></span><span class="mono">src/telemetry/</span><span class="dim">orphaned</span></span>
+      <span class="digest-item"><span class="state-key k-drift"></span><span class="mono">scanner 2 · summariser 1</span><span class="dim">drift findings</span></span>
+      <span class="findings-chip"><span class="sev-mini s-error">1 error</span><span class="sev-mini">2 warnings</span><span>1 info · from <span class="mono">cairn lint</span></span></span>
+    </footer>
+  </body>
+</html>

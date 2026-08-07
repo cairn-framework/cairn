@@ -104,6 +104,90 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// The coordination read tools' wire contract, pinned in both store states:
+/// `store_state`, verbatim `observed_at` echo, `cursor`, `truncated`,
+/// `conflicts`, and raw facts with no derived verdict fields. Fact content
+/// is fully deterministic (fixed instants, fixed commit, content-addressed
+/// ids), so no redactions are needed.
+#[test]
+fn coordination_wire_snapshots() -> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("coordination")?;
+    write_project(&root)?;
+    let git = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["init", "-q"])
+        .output()?;
+    assert!(git.status.success());
+
+    let execute = |tool: &str, at: Option<&str>| {
+        cairn::query_api::execute(
+            &root,
+            &root.join("cairn.blueprint"),
+            &root.join("meta/changes"),
+            &cairn::query_api::QueryRequest {
+                tool: tool.to_owned(),
+                at: at.map(ToOwned::to_owned),
+                ..Default::default()
+            },
+        )
+    };
+
+    let uninitialised = execute("ruling list", None)?;
+    assert_json_snapshot!("api_coordination_rulings_uninitialised", uninitialised.data);
+
+    for (kind, recorded_at, payload) in [
+        (
+            "ruling.run",
+            "2026-08-07T03:45:12Z",
+            json!({ "target": "plan-0123456789abcdef" }),
+        ),
+        (
+            "lease.grant",
+            "2026-08-07T03:45:13Z",
+            json!({
+                "unit_id": "todo.example",
+                "holder": { "harness_kind": "omp", "session": "s1" },
+                "commit_at_grant": "a".repeat(40),
+                "granted_at": "2026-08-07T03:45:13Z",
+                "expires_at": "2026-08-07T05:45:13Z",
+                "epoch": 1,
+                "residue": { "branch": "loop/example", "worktree": "../wt/example", "pr": null },
+            }),
+        ),
+    ] {
+        cairn::coord::append::append_fact(
+            &root,
+            cairn::coord::append::NewFact {
+                kind: kind.to_owned(),
+                recorded_at: recorded_at.to_owned(),
+                recorded_by: cairn::coord::envelope::Actor {
+                    kind: "driver".to_owned(),
+                    id: "wire".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload,
+            },
+        )?;
+    }
+
+    let rulings = execute("ruling list", Some("2026-08-07T04:00:00Z"))?;
+    assert_json_snapshot!("api_coordination_rulings_ready", rulings.data);
+    let leases = execute("lease list", None)?;
+    assert_json_snapshot!("api_coordination_leases_ready", leases.data);
+
+    // The wave preview over the fixture pins the unit shape, the rule
+    // constant, the completeness stamp, and a digest that is stable
+    // because fixture bytes are fixed; wave stats pins the
+    // unset-threshold shape.
+    let wave = execute("wave", None)?;
+    assert_json_snapshot!("api_wave", wave.data);
+    let stats = execute("wave stats", None)?;
+    assert_json_snapshot!("api_wave_stats_ready", stats.data);
+    Ok(())
+}
+
 fn write_project(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(root.join("src/api"))?;
     fs::create_dir_all(root.join("src/core"))?;

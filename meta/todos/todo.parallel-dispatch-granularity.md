@@ -1,8 +1,8 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-07-31
-related: [res.inversion-convergence-minutes, todo.node-overlap-conflicts-query]
+related: [res.inversion-convergence-minutes, todo.node-overlap-conflicts-query, todo.console-orchestration-ux-design, res.parallel-dispatch-rung-3, dec.rung-three-coordination-substrate]
 ---
 
 # Parallel dispatch granularity: name the three rungs, design the third
@@ -43,6 +43,102 @@ freshness, and completeness; deterministic, attested, and observed are
 distinct evidence classes and never blur. Output is a design plus an
 enqueued decision, not code.
 
+Added 2026-08-03, from the console's needs: rung 3's lease model must
+also answer what the steering surface has to render. What is a claim held
+on, a node or a work item, when one unit touches several nodes? What is a
+claim's identity, its expiry, and its renewal? What does a stale claim
+look like to a reader, and how does it differ from no claim at all? The
+word `lease` appears in no Rust source today, so this is genuinely open.
+`todo.console-orchestration-ux-design` contributes mockup evidence for
+these questions and consumes the ruling; it does not author a competing
+one.
+
+## Grill rulings (2026-08-04, maintainer in session)
+
+The orchestration grill (`studio/orchestration-grill-brief.md`) put Q1
+and Q2 to the maintainer. Both answers are provisional grill direction
+for rung 3's design document, under the brief's ratification proviso;
+the pre-existing slate constraint inside Q1 keeps its own ratified
+authority, and the document itself still gets authored here.
+
+- **Q1, dispatch unit: the todo (work item).** Confirms the ratified
+  slate constraint unchanged: write-set derived as node-closure over
+  committed state, promoted to declared write-sets only on measured
+  false-overlap evidence. Dispatch is set-valued, not serial: the
+  driver takes the ready set (rung 1 waves), filters it to
+  pairwise-disjoint write-sets (rung 3), and dispatches one wave of
+  units to parallel worktrees. Units whose closures overlap queue
+  behind the lease, and the serialisation hotspots named in the task
+  keep explicit ownership.
+  Units are the only dispatchable identity for the driver: every
+  dispatched unit has a todo id for its lease and Q3's terminal
+  verification. How a finding-first state (a selectable finding
+  precedes any todo in today's loop precedence) becomes dispatchable
+  is explicitly open, owned by the selector-wire work
+  (`todo.driver-in-repo` task 4) together with rung 3's design
+  document, under four recorded constraints. First, the shipped
+  `todo.next-recommended-unification` resolution keeps findings
+  ephemeral and rejected durable materialisation for
+  desynchronisation risk, so any todo-creating transition must
+  supersede it explicitly and name its deduplication owner. Second,
+  the todo-parked fold skips Info findings only, and `defers:`
+  references to Error or Warning findings are invalid, so parking
+  alone cannot make every severity non-selectable. Third, the
+  ready-set query stays a side-effect-free projection, so any
+  transition is a sanctioned mutation by the acting party (driver or
+  human), never the query. Fourth, the wave's first member must equal
+  a manual Orient selection at the same commit, so both selectors
+  must consume the same unit. Until that design lands, the manual
+  loop's finding-first precedence stands unchanged and the driver
+  dispatches todo-sourced units only.
+- **Q2, lease shape: lease facts are cairn truth.** Held on the
+  dispatch unit, never the node. This is the reading
+  `dec.control-plane-programme` clause 1 already signed: cairn owns
+  leases as declarative truth, declarative lease policy, and lease
+  facts; the driver owns acquisition, renewal, and active state as
+  actions. A lease fact carries unit id, holder (harness kind plus
+  session), commit at grant, granted_at, and expires_at. Renewal is a
+  driver-performed fact update to expires_at (rare, session-scale TTL
+  set by driver policy, never a heartbeat stream). The core stores and
+  serves the raw facts, evaluates no expiry, and starts nothing on any
+  lease transition: staleness is derived by the reader, driver or
+  console, from those facts and an explicit observation time (unit
+  in_progress with an expired lease). Stale is first-class and distinct
+  from no lease: it carries who held it, when it expired, and the
+  recoverable residue (surviving branch, worktree, open PR) that
+  recovery policy acts on.
+
+Required core seams this ruling implies (feeds the grill's Q8 and
+`todo.driver-in-repo` task 4): sanctioned lease verbs (grant, renew,
+release) written only by the driver, a lease-facts read surface the
+console and driver re-read, and one shared coordination store visible
+across parallel worktrees.
+
+The store is greenfield, and the lineage has two distinct removals
+(`dec.change-format-only`): the generic `StateBackend` persistence
+abstraction was deleted as production-dead, and the live
+create/claim/sequence workflow methods on its beads backend were
+deleted because claiming and sequencing are workflow. Either way no
+atomic claim path exists to extend. Rung 3's decision must name that
+lineage explicitly: the ledger stores and serves driver-recorded facts,
+and cairn still runs no claiming, sequencing, or workflow logic.
+
+## Mockup evidence received (2026-08-06, console unit round 3)
+
+`todo.console-orchestration-ux-design` handed the rendered evidence its
+task 5 owed. Claim identity, holder, expiry, and renewal render on
+`studio/mocks/orchestration-mixed-repository.html` and
+`studio/mocks/orchestration-return-orient.html` as an expired held claim
+(`r-041`, residue rows, no outcome recorded, stale and unclassified); the
+no-claim contrast is the backlog's `no lease recorded` cross-check line;
+and the write-set overlap case renders in the dispatch preview's held
+list (`studio/mocks/orchestration-plan-dispatch.html`): a unit queuing
+behind a wave member's claim because both would change
+`docs/registries/declared-items.md`, one of this task's named
+serialisation hotspots, stated in the plain register (same files, one at
+a time). Rung 3's design document consumes these screens as its evidence
+base; the 2026-08-03 addendum's questions are now answered in pixels.
+
 ## Acceptance
 
 - A design document (research artefact) covering derivation, grant,
@@ -51,6 +147,36 @@ enqueued decision, not code.
 - The rung vocabulary above appears verbatim, so no consumer mistakes
   rung 2 for rung 3.
 - Follow-up implementation todos filed with `blocked_by` edges.
+
+## Design delivered (2026-08-07)
+
+The design document is `res.parallel-dispatch-rung-3`. It covers derivation,
+grant, observation, and hotspot ownership, states the derived-first ruling and
+its promotion trigger, reproduces the rung vocabulary verbatim, names the
+`dec.change-format-only` lineage explicitly, and answers the 2026-08-03
+addendum in full: a claim is held on the dispatch unit, its identity is unit id
+plus epoch, expiry and renewal are recorded facts, and a stale claim renders
+with holder, expiry, and residue where no claim renders as absence.
+
+One correction the design owes back to the mockup evidence above: in the
+derived-first phase the preview cannot assert that a named unit would change a
+named hotspot file, because that fact does not exist in committed state.
+`dec.rung-three-coordination-substrate` clause 5 records the renderable
+phase-0 sentence, which keeps "same files, one at a time" verbatim.
+
+The rulings needing a signature are enqueued as
+`dec.rung-three-coordination-substrate`: recompute-equality replacing
+commit-pinning, a family-local store with cross-clone coordination declared out
+of scope, hotspot serialisation as workflow policy with derived write-sets
+stamped partial, `evidence_class` required from format 1, the console barred
+from saying "claim" without a lease fact, and the CLI noun union widening.
+
+Follow-up implementation todos, filed with `blocked_by` edges:
+`todo.coord-common-dir-helper`, `todo.coord-fact-store`,
+`todo.coord-read-surface`, `todo.write-set-derivation`,
+`todo.hotspot-node-ownership`, and `todo.plan-identity-wave-composer`.
+
+This unit closes when that decision is signed; the todos above carry the work.
 
 ## Mission disposition
 

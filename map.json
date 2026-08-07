@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "interface_hash": "2276784711cd596d",
+  "interface_hash": "da9e21ad900f145a",
   "nodes": [
     {
       "id": "cairn",
@@ -9,6 +9,20 @@
       "state": "synced",
       "paths": [],
       "files": [],
+      "contracts": [],
+      "symbols": []
+    },
+    {
+      "id": "cairn.blueprint-source",
+      "kind": "module",
+      "name": "BlueprintSource",
+      "state": "synced",
+      "paths": [
+        "./cairn.blueprint"
+      ],
+      "files": [
+        "cairn.blueprint"
+      ],
       "contracts": [],
       "symbols": []
     },
@@ -537,6 +551,323 @@
       ]
     },
     {
+      "id": "cairn.coord",
+      "kind": "module",
+      "name": "Coordination",
+      "state": "synced",
+      "paths": [
+        "./src/coord"
+      ],
+      "files": [
+        "src/coord/append.rs",
+        "src/coord/envelope.rs",
+        "src/coord/epoch.rs",
+        "src/coord/git.rs",
+        "src/coord/mod.rs",
+        "src/coord/read.rs",
+        "src/coord/store.rs",
+        "src/coord/time.rs",
+        "src/coord/verify.rs"
+      ],
+      "contracts": [],
+      "symbols": [
+        {
+          "name": "STORE_FORMAT",
+          "kind": "const",
+          "signature": "pub const STORE_FORMAT u32",
+          "file": "src/coord/envelope.rs",
+          "line": 12,
+          "end_line": 12
+        },
+        {
+          "name": "StoreRead",
+          "kind": "enum",
+          "signature": "pub enum StoreRead",
+          "file": "src/coord/read.rs",
+          "line": 21,
+          "end_line": 26
+        },
+        {
+          "name": "acquire_epoch",
+          "kind": "function",
+          "signature": "pub fn acquire_epoch(dir: &Path) -> Result<u64, String>",
+          "file": "src/coord/epoch.rs",
+          "line": 45,
+          "end_line": 66
+        },
+        {
+          "name": "append_fact",
+          "kind": "function",
+          "signature": "pub fn append_fact(root: &Path, fact: NewFact) -> Result<PathBuf, String>",
+          "file": "src/coord/append.rs",
+          "line": 41,
+          "end_line": 99
+        },
+        {
+          "name": "compact",
+          "kind": "function",
+          "signature": "pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String>",
+          "file": "src/coord/verify.rs",
+          "line": 132,
+          "end_line": 196
+        },
+        {
+          "name": "git_common_dir",
+          "kind": "function",
+          "signature": "pub fn git_common_dir(root: &Path) -> Result<PathBuf, String>",
+          "file": "src/coord/git.rs",
+          "line": 24,
+          "end_line": 40
+        },
+        {
+          "name": "held",
+          "kind": "function",
+          "signature": "pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool",
+          "file": "src/coord/read.rs",
+          "line": 177,
+          "end_line": 184
+        },
+        {
+          "name": "is_initialised",
+          "kind": "function",
+          "signature": "pub fn is_initialised(store: &Path) -> bool",
+          "file": "src/coord/store.rs",
+          "line": 25,
+          "end_line": 27
+        },
+        {
+          "name": "lease_chain_head",
+          "kind": "function",
+          "signature": "pub fn lease_chain_head<'a>(facts: &'a [NamedFact], unit: &str) -> Option<&'a NamedFact>",
+          "file": "src/coord/read.rs",
+          "line": 135,
+          "end_line": 159
+        },
+        {
+          "name": "no_lease",
+          "kind": "function",
+          "signature": "pub fn no_lease(facts: &[NamedFact], unit: &str) -> bool",
+          "file": "src/coord/read.rs",
+          "line": 203,
+          "end_line": 205
+        },
+        {
+          "name": "read_facts",
+          "kind": "function",
+          "signature": "pub fn read_facts(root: &Path) -> Result<StoreRead, String>",
+          "file": "src/coord/read.rs",
+          "line": 60,
+          "end_line": 63
+        },
+        {
+          "name": "stale",
+          "kind": "function",
+          "signature": "pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseState<'a>>",
+          "file": "src/coord/read.rs",
+          "line": 189,
+          "end_line": 199
+        },
+        {
+          "name": "store_root",
+          "kind": "function",
+          "signature": "pub fn store_root(root: &Path) -> Result<PathBuf, String>",
+          "file": "src/coord/store.rs",
+          "line": 19,
+          "end_line": 21
+        },
+        {
+          "name": "verify",
+          "kind": "function",
+          "signature": "pub fn verify(root: &Path) -> Result<(), String>",
+          "file": "src/coord/verify.rs",
+          "line": 71,
+          "end_line": 123
+        },
+        {
+          "name": "append",
+          "kind": "module",
+          "signature": "pub mod append",
+          "file": "src/coord/mod.rs",
+          "line": 9,
+          "end_line": 9
+        },
+        {
+          "name": "envelope",
+          "kind": "module",
+          "signature": "pub mod envelope",
+          "file": "src/coord/mod.rs",
+          "line": 11,
+          "end_line": 11
+        },
+        {
+          "name": "epoch",
+          "kind": "module",
+          "signature": "pub mod epoch",
+          "file": "src/coord/mod.rs",
+          "line": 13,
+          "end_line": 13
+        },
+        {
+          "name": "git",
+          "kind": "module",
+          "signature": "pub mod git",
+          "file": "src/coord/mod.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "read",
+          "kind": "module",
+          "signature": "pub mod read",
+          "file": "src/coord/mod.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "store",
+          "kind": "module",
+          "signature": "pub mod store",
+          "file": "src/coord/mod.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "verify",
+          "kind": "module",
+          "signature": "pub mod verify",
+          "file": "src/coord/mod.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "Actor",
+          "kind": "struct",
+          "signature": "pub struct Actor",
+          "file": "src/coord/envelope.rs",
+          "line": 16,
+          "end_line": 21
+        },
+        {
+          "name": "Envelope",
+          "kind": "struct",
+          "signature": "pub struct Envelope",
+          "file": "src/coord/envelope.rs",
+          "line": 25,
+          "end_line": 44
+        },
+        {
+          "name": "LeaseState",
+          "kind": "struct",
+          "signature": "pub struct LeaseState<'a>",
+          "file": "src/coord/read.rs",
+          "line": 121,
+          "end_line": 130
+        },
+        {
+          "name": "NamedFact",
+          "kind": "struct",
+          "signature": "pub struct NamedFact",
+          "file": "src/coord/read.rs",
+          "line": 30,
+          "end_line": 35
+        },
+        {
+          "name": "NewFact",
+          "kind": "struct",
+          "signature": "pub struct NewFact",
+          "file": "src/coord/append.rs",
+          "line": 18,
+          "end_line": 31
+        },
+        {
+          "name": "check_format",
+          "kind": "function",
+          "signature": "pub(crate) fn check_format(store: &Path) -> Result<(), String>",
+          "file": "src/coord/store.rs",
+          "line": 35,
+          "end_line": 45
+        },
+        {
+          "name": "ensure_initialised",
+          "kind": "function",
+          "signature": "pub(crate) fn ensure_initialised(store: &Path) -> Result<(), String>",
+          "file": "src/coord/store.rs",
+          "line": 54,
+          "end_line": 64
+        },
+        {
+          "name": "evidence_class_for",
+          "kind": "function",
+          "signature": "pub(crate) fn evidence_class_for(kind: &str) -> Option<&'static str>",
+          "file": "src/coord/envelope.rs",
+          "line": 48,
+          "end_line": 61
+        },
+        {
+          "name": "fact_id_for",
+          "kind": "function",
+          "signature": "pub(crate) fn fact_id_for(envelope: &Envelope) -> Result<String, String>",
+          "file": "src/coord/envelope.rs",
+          "line": 70,
+          "end_line": 78
+        },
+        {
+          "name": "head_commit",
+          "kind": "function",
+          "signature": "pub(crate) fn head_commit(root: &Path) -> Result<String, String>",
+          "file": "src/coord/git.rs",
+          "line": 80,
+          "end_line": 91
+        },
+        {
+          "name": "head_hash",
+          "kind": "function",
+          "signature": "pub(crate) fn head_hash(root: &Path) -> Option<String>",
+          "file": "src/coord/git.rs",
+          "line": 65,
+          "end_line": 71
+        },
+        {
+          "name": "known_evidence_class",
+          "kind": "function",
+          "signature": "pub(crate) fn known_evidence_class(class: &str) -> bool",
+          "file": "src/coord/envelope.rs",
+          "line": 64,
+          "end_line": 66
+        },
+        {
+          "name": "read_store",
+          "kind": "function",
+          "signature": "pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String>",
+          "file": "src/coord/read.rs",
+          "line": 70,
+          "end_line": 117
+        },
+        {
+          "name": "time",
+          "kind": "module",
+          "signature": "pub(crate) mod time",
+          "file": "src/coord/mod.rs",
+          "line": 21,
+          "end_line": 21
+        }
+      ]
+    },
+    {
+      "id": "cairn.design-copy",
+      "kind": "module",
+      "name": "DesignCopy",
+      "state": "synced",
+      "paths": [
+        "./docs/design-system/copy.toml"
+      ],
+      "files": [
+        "docs/design-system/copy.toml"
+      ],
+      "contracts": [],
+      "symbols": []
+    },
+    {
       "id": "cairn.kernel",
       "kind": "container",
       "name": "Kernel",
@@ -982,8 +1313,8 @@
           "kind": "function",
           "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 441,
-          "end_line": 451
+          "line": 447,
+          "end_line": 457
         },
         {
           "name": "load_decisions",
@@ -1008,6 +1339,14 @@
           "file": "src/artefacts/registry/mod.rs",
           "line": 20,
           "end_line": 20
+        },
+        {
+          "name": "sha256",
+          "kind": "module",
+          "signature": "pub(crate) mod sha256",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 22,
+          "end_line": 22
         },
         {
           "name": "ARTEFACT_KINDS",
@@ -1540,6 +1879,7 @@
         "src/cli/commands/archive.rs",
         "src/cli/commands/baseline.rs",
         "src/cli/commands/change.rs",
+        "src/cli/commands/coord.rs",
         "src/cli/commands/decision.rs",
         "src/cli/commands/feedback.rs",
         "src/cli/commands/gap.rs",
@@ -1555,6 +1895,7 @@
         "src/cli/commands/pack_manifest.rs",
         "src/cli/commands/pack_report.rs",
         "src/cli/commands/project.rs",
+        "src/cli/commands/ruling_run.rs",
         "src/cli/commands/todo.rs",
         "src/cli/commands/todo/link.rs",
         "src/cli/commands/todo/link/tests.rs",
@@ -1648,8 +1989,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 75,
+          "end_line": 77
         },
         {
           "name": "BatterySelection",
@@ -1672,8 +2013,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1091,
-          "end_line": 1109
+          "line": 1118,
+          "end_line": 1136
         },
         {
           "name": "blank_command_failure_detail",
@@ -1720,8 +2061,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 207,
-          "end_line": 456
+          "line": 208,
+          "end_line": 466
         },
         {
           "name": "run",
@@ -1824,8 +2165,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 63,
-          "end_line": 70
+          "line": 64,
+          "end_line": 71
         },
         {
           "name": "EdgeEntry",
@@ -1848,16 +2189,16 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "RETIRED_TOP_LEVEL",
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1086,
-          "end_line": 1086
+          "line": 1113,
+          "end_line": 1113
         },
         {
           "name": "blueprint_root",
@@ -1872,8 +2213,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1117,
-          "end_line": 1125
+          "line": 1144,
+          "end_line": 1152
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -1922,6 +2263,14 @@
           "file": "src/cli/commands/gap.rs",
           "line": 13,
           "end_line": 69
+        },
+        {
+          "name": "run_ruling_run",
+          "kind": "function",
+          "signature": "pub(crate) fn run_ruling_run(parsed: &ParsedArgs, root: &Path, digest: &str) -> CliResult",
+          "file": "src/cli/commands/ruling_run.rs",
+          "line": 23,
+          "end_line": 78
         },
         {
           "name": "mermaid",
@@ -2116,6 +2465,7 @@
         "src/map/integrity.rs",
         "src/map/mod.rs",
         "src/map/module_size.rs",
+        "src/map/paths.rs",
         "src/map/query.rs",
         "src/map/spec_rule_coverage.rs",
         "src/map/spec_rule_coverage/tests.rs",
@@ -2322,8 +2672,8 @@
           "kind": "module",
           "signature": "pub mod query",
           "file": "src/map/mod.rs",
-          "line": 8,
-          "end_line": 8
+          "line": 9,
+          "end_line": 9
         },
         {
           "name": "DependencyResponse",
@@ -2468,6 +2818,14 @@
           "file": "src/map/graph.rs",
           "line": 247,
           "end_line": 254
+        },
+        {
+          "name": "paths",
+          "kind": "module",
+          "signature": "pub(crate) mod paths",
+          "file": "src/map/mod.rs",
+          "line": 8,
+          "end_line": 8
         }
       ]
     },
@@ -2485,6 +2843,7 @@
         "src/query_api/handlers/artefacts.rs",
         "src/query_api/handlers/bundle.rs",
         "src/query_api/handlers/context.rs",
+        "src/query_api/handlers/coordination.rs",
         "src/query_api/handlers/graph.rs",
         "src/query_api/handlers/locate.rs",
         "src/query_api/handlers/mod.rs",
@@ -2505,6 +2864,7 @@
         "src/query_api/handlers/roadmap.rs",
         "src/query_api/handlers/roadmap/tests.rs",
         "src/query_api/handlers/spine.rs",
+        "src/query_api/handlers/wave.rs",
         "src/query_api/handlers/work_item.rs",
         "src/query_api/mod.rs",
         "src/query_api/registry.rs",
@@ -2512,7 +2872,10 @@
         "src/query_api/serialise/tests.rs",
         "src/query_api/strict_green_tests.rs",
         "src/query_api/tests.rs",
-        "src/query_api/util.rs"
+        "src/query_api/util.rs",
+        "src/query_api/wave/compose.rs",
+        "src/query_api/wave/compose/tests.rs",
+        "src/query_api/wave/mod.rs"
       ],
       "contracts": [
         "./meta/contracts/kernel.query.md"
@@ -2523,16 +2886,16 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 238,
-          "end_line": 240
+          "line": 246,
+          "end_line": 248
         },
         {
           "name": "PendingTier",
@@ -2547,16 +2910,16 @@
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 120,
-          "end_line": 141
+          "line": 128,
+          "end_line": 149
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 68,
-          "end_line": 73
+          "line": 71,
+          "end_line": 76
         },
         {
           "name": "WorkItemSource",
@@ -2579,48 +2942,48 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 406,
-          "end_line": 413
+          "line": 414,
+          "end_line": 421
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 417,
-          "end_line": 424
+          "line": 425,
+          "end_line": 432
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 269,
-          "end_line": 327
+          "line": 277,
+          "end_line": 335
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 335,
-          "end_line": 386
+          "line": 343,
+          "end_line": 394
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 256,
-          "end_line": 262
+          "line": 264,
+          "end_line": 270
         },
         {
           "name": "EnvelopeFinding",
           "kind": "struct",
           "signature": "pub struct EnvelopeFinding",
           "file": "src/query_api/mod.rs",
-          "line": 163,
-          "end_line": 184
+          "line": 171,
+          "end_line": 192
         },
         {
           "name": "PendingBrief",
@@ -2683,24 +3046,24 @@
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 217,
-          "end_line": 226
+          "line": 225,
+          "end_line": 234
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 95,
-          "end_line": 116
+          "line": 98,
+          "end_line": 124
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 151,
-          "end_line": 160
+          "line": 159,
+          "end_line": 168
         },
         {
           "name": "RemediateResponse",
@@ -2715,8 +3078,8 @@
           "kind": "struct",
           "signature": "pub struct ResponseEnvelopeSchema",
           "file": "src/query_api/mod.rs",
-          "line": 198,
-          "end_line": 207
+          "line": 206,
+          "end_line": 215
         },
         {
           "name": "RoadmapItem",
@@ -2771,16 +3134,16 @@
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 77,
-          "end_line": 91
+          "line": 80,
+          "end_line": 94
         },
         {
           "name": "VersionedDataSchema",
           "kind": "struct",
           "signature": "pub struct VersionedDataSchema",
           "file": "src/query_api/mod.rs",
-          "line": 188,
-          "end_line": 194
+          "line": 196,
+          "end_line": 202
         },
         {
           "name": "WorkItem",
@@ -2789,6 +3152,14 @@
           "file": "src/query_api/handlers/work_item.rs",
           "line": 24,
           "end_line": 37
+        },
+        {
+          "name": "DEFAULT_RULE_ID",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_RULE_ID",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 28,
+          "end_line": 28
         },
         {
           "name": "TODO_RANK",
@@ -2813,6 +3184,38 @@
           "file": "src/query_api/handlers/bundle.rs",
           "line": 12,
           "end_line": 96
+        },
+        {
+          "name": "compose_wave",
+          "kind": "function",
+          "signature": "pub(crate) fn compose_wave( root: &Path, graph: &Graph, todos: &[Todo], at: Option<&str>, ) -> Result<Wave, String>",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 122,
+          "end_line": 228
+        },
+        {
+          "name": "concurrent_winner",
+          "kind": "function",
+          "signature": "pub(crate) fn concurrent_winner<'a>(rulings: &[&'a NamedFact]) -> Option<&'a NamedFact>",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 285,
+          "end_line": 293
+        },
+        {
+          "name": "derive_write_set",
+          "kind": "function",
+          "signature": "pub(crate) fn derive_write_set(graph: &Graph, anchor: &str) -> WriteSet",
+          "file": "src/query_api/wave/mod.rs",
+          "line": 81,
+          "end_line": 145
+        },
+        {
+          "name": "digest",
+          "kind": "function",
+          "signature": "pub(crate) fn digest(preimage: &str) -> String",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 272,
+          "end_line": 276
         },
         {
           "name": "from_bead",
@@ -2855,12 +3258,20 @@
           "end_line": 38
         },
         {
+          "name": "hotspot_prefixes",
+          "kind": "function",
+          "signature": "pub(crate) fn hotspot_prefixes(graph: &Graph) -> Vec<String>",
+          "file": "src/query_api/wave/mod.rs",
+          "line": 41,
+          "end_line": 51
+        },
+        {
           "name": "lint_findings",
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 396,
-          "end_line": 402
+          "line": 404,
+          "end_line": 410
         },
         {
           "name": "parse_pending_brief",
@@ -2885,6 +3296,14 @@
           "file": "src/query_api/handlers/pending.rs",
           "line": 130,
           "end_line": 141
+        },
+        {
+          "name": "preimage",
+          "kind": "function",
+          "signature": "pub(crate) fn preimage(rule: &str, units: &[WaveUnit]) -> String",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 254,
+          "end_line": 269
         },
         {
           "name": "remediate_actions_raw",
@@ -2925,6 +3344,62 @@
           "file": "src/query_api/handlers/project.rs",
           "line": 62,
           "end_line": 108
+        },
+        {
+          "name": "write_sets_disjoint",
+          "kind": "function",
+          "signature": "pub(crate) fn write_sets_disjoint(a: &WriteSet, b: &WriteSet) -> bool",
+          "file": "src/query_api/wave/mod.rs",
+          "line": 158,
+          "end_line": 176
+        },
+        {
+          "name": "compose",
+          "kind": "module",
+          "signature": "pub(crate) mod compose",
+          "file": "src/query_api/wave/mod.rs",
+          "line": 14,
+          "end_line": 14
+        },
+        {
+          "name": "wave",
+          "kind": "module",
+          "signature": "pub(crate) mod wave",
+          "file": "src/query_api/mod.rs",
+          "line": 38,
+          "end_line": 38
+        },
+        {
+          "name": "HeldUnit",
+          "kind": "struct",
+          "signature": "pub(crate) struct HeldUnit",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 45,
+          "end_line": 54
+        },
+        {
+          "name": "Wave",
+          "kind": "struct",
+          "signature": "pub(crate) struct Wave",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 58,
+          "end_line": 73
+        },
+        {
+          "name": "WaveUnit",
+          "kind": "struct",
+          "signature": "pub(crate) struct WaveUnit",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 32,
+          "end_line": 41
+        },
+        {
+          "name": "WriteSet",
+          "kind": "struct",
+          "signature": "pub(crate) struct WriteSet",
+          "file": "src/query_api/wave/mod.rs",
+          "line": 24,
+          "end_line": 38
         },
         {
           "name": "clean_markdown",
@@ -3003,8 +3478,8 @@
           "kind": "module",
           "signature": "pub(super) mod spine",
           "file": "src/query_api/handlers/mod.rs",
-          "line": 18,
-          "end_line": 18
+          "line": 19,
+          "end_line": 19
         }
       ]
     },
@@ -4013,16 +4488,16 @@
           "kind": "const",
           "signature": "pub const SUPPORTED_LANGUAGES",
           "file": "src/reconcile/target.rs",
-          "line": 264,
-          "end_line": 264
+          "line": 277,
+          "end_line": 277
         },
         {
           "name": "VALID_CONFIG_LANGUAGES",
           "kind": "const",
           "signature": "pub const VALID_CONFIG_LANGUAGES",
           "file": "src/reconcile/target.rs",
-          "line": 267,
-          "end_line": 267
+          "line": 280,
+          "end_line": 280
         },
         {
           "name": "new",
@@ -4069,8 +4544,8 @@
           "kind": "function",
           "signature": "pub fn claim_assets_files( root: &Path, target_path: &Path, ignores: &[String], ) -> Result<Vec<String>, ReconcileError>",
           "file": "src/reconcile/target.rs",
-          "line": 215,
-          "end_line": 225
+          "line": 220,
+          "end_line": 238
         },
         {
           "name": "from_extension",
@@ -4117,8 +4592,8 @@
           "kind": "function",
           "signature": "pub fn language_error_message() -> String",
           "file": "src/reconcile/target.rs",
-          "line": 271,
-          "end_line": 276
+          "line": 284,
+          "end_line": 289
         },
         {
           "name": "new",
@@ -4403,6 +4878,23 @@
       ]
     },
     {
+      "id": "cairn.registries",
+      "kind": "module",
+      "name": "Registries",
+      "state": "synced",
+      "paths": [
+        "./docs/registries"
+      ],
+      "files": [
+        "docs/registries/binding-surface.md",
+        "docs/registries/declared-items.md",
+        "docs/registries/error-codes.md",
+        "docs/registries/spec-rules.md"
+      ],
+      "contracts": [],
+      "symbols": []
+    },
+    {
       "id": "cairn.root",
       "kind": "module",
       "name": "Root",
@@ -4442,16 +4934,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 80,
-          "end_line": 82
+          "line": 82,
+          "end_line": 84
         },
         {
           "name": "CairnError",
@@ -4522,8 +5014,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 86,
-          "end_line": 88
+          "line": 88,
+          "end_line": 90
         },
         {
           "name": "artefacts",
@@ -4566,164 +5058,172 @@
           "end_line": 23
         },
         {
+          "name": "coord",
+          "kind": "module",
+          "signature": "pub mod coord",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 62,
-          "end_line": 62
+          "line": 64,
+          "end_line": 64
         },
         {
           "name": "ISSUE_BASE",
@@ -4738,16 +5238,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 80,
-          "end_line": 82
+          "line": 82,
+          "end_line": 84
         },
         {
           "name": "CairnError",
@@ -4818,8 +5318,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 86,
-          "end_line": 88
+          "line": 88,
+          "end_line": 90
         },
         {
           "name": "artefacts",
@@ -4862,164 +5362,172 @@
           "end_line": 23
         },
         {
+          "name": "coord",
+          "kind": "module",
+          "signature": "pub mod coord",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 62,
-          "end_line": 62
+          "line": 64,
+          "end_line": 64
         },
         {
           "name": "ISSUE_BASE",
@@ -5034,16 +5542,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 80,
-          "end_line": 82
+          "line": 82,
+          "end_line": 84
         },
         {
           "name": "CairnError",
@@ -5114,8 +5622,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 86,
-          "end_line": 88
+          "line": 88,
+          "end_line": 90
         },
         {
           "name": "artefacts",
@@ -5158,164 +5666,172 @@
           "end_line": 23
         },
         {
+          "name": "coord",
+          "kind": "module",
+          "signature": "pub mod coord",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 62,
-          "end_line": 62
+          "line": 64,
+          "end_line": 64
         },
         {
           "name": "ISSUE_BASE",
@@ -5330,16 +5846,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 80,
-          "end_line": 82
+          "line": 82,
+          "end_line": 84
         },
         {
           "name": "CairnError",
@@ -5410,8 +5926,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 86,
-          "end_line": 88
+          "line": 88,
+          "end_line": 90
         },
         {
           "name": "artefacts",
@@ -5454,164 +5970,172 @@
           "end_line": 23
         },
         {
+          "name": "coord",
+          "kind": "module",
+          "signature": "pub mod coord",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 62,
-          "end_line": 62
+          "line": 64,
+          "end_line": 64
         },
         {
           "name": "ISSUE_BASE",
@@ -5626,16 +6150,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 80,
-          "end_line": 82
+          "line": 82,
+          "end_line": 84
         },
         {
           "name": "CairnError",
@@ -5706,8 +6230,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 86,
-          "end_line": 88
+          "line": 88,
+          "end_line": 90
         },
         {
           "name": "artefacts",
@@ -5750,164 +6274,172 @@
           "end_line": 23
         },
         {
+          "name": "coord",
+          "kind": "module",
+          "signature": "pub mod coord",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 62,
-          "end_line": 62
+          "line": 64,
+          "end_line": 64
         },
         {
           "name": "ISSUE_BASE",
@@ -5922,16 +6454,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 80,
-          "end_line": 82
+          "line": 82,
+          "end_line": 84
         },
         {
           "name": "CairnError",
@@ -6002,8 +6534,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 86,
-          "end_line": 88
+          "line": 88,
+          "end_line": 90
         },
         {
           "name": "artefacts",
@@ -6046,164 +6578,172 @@
           "end_line": 23
         },
         {
+          "name": "coord",
+          "kind": "module",
+          "signature": "pub mod coord",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 62,
-          "end_line": 62
+          "line": 64,
+          "end_line": 64
         },
         {
           "name": "ISSUE_BASE",
@@ -6218,16 +6758,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 80,
-          "end_line": 82
+          "line": 82,
+          "end_line": 84
         },
         {
           "name": "CairnError",
@@ -6298,8 +6838,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 86,
-          "end_line": 88
+          "line": 88,
+          "end_line": 90
         },
         {
           "name": "artefacts",
@@ -6342,164 +6882,172 @@
           "end_line": 23
         },
         {
+          "name": "coord",
+          "kind": "module",
+          "signature": "pub mod coord",
+          "file": "src/lib.rs",
+          "line": 25,
+          "end_line": 25
+        },
+        {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 62,
-          "end_line": 62
+          "line": 64,
+          "end_line": 64
         }
       ]
     },
@@ -7268,6 +7816,7 @@
         "tests/reconcile_rust.rs",
         "tests/reconcile_target_fingerprint.rs",
         "tests/reconcile_typescript.rs",
+        "tests/rung3_node_declarations.rs",
         "tests/scanner_interface_hash.rs",
         "tests/schema_validation.rs",
         "tests/summariser_accept_baseline.rs",
@@ -7590,6 +8139,11 @@
     },
     {
       "from": "cairn.kernel.cli",
+      "to": "cairn.coord",
+      "description": "Runs store admin verbs"
+    },
+    {
+      "from": "cairn.kernel.cli",
       "to": "cairn.brownfield",
       "description": "Dispatches onboard command"
     },
@@ -7604,6 +8158,11 @@
       "description": "Reads findings"
     },
     {
+      "from": "cairn.kernel.hooks",
+      "to": "cairn.coord",
+      "description": "Resolves the shared git dir"
+    },
+    {
       "from": "cairn.kernel.map",
       "to": "cairn.kernel.blueprint",
       "description": "Consumes parsed AST"
@@ -7612,6 +8171,11 @@
       "from": "cairn.kernel.map",
       "to": "cairn.kernel.artefacts",
       "description": "Validates contracts against code"
+    },
+    {
+      "from": "cairn.kernel.query",
+      "to": "cairn.coord",
+      "description": "Reads coordination facts"
     },
     {
       "from": "cairn.kernel.query",
@@ -7712,6 +8276,30 @@
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
       "severity": "info",
+      "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.rung-three-coordination-substrate",
+      "path": "././meta/decisions/control-plane-programme.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.webui-write-authority",
+      "path": "././meta/decisions/control-plane-programme.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.decision-ratification-tiers` is refined by accepted decision `dec.reviewer-panel-ratification`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.reviewer-panel-ratification",
+      "path": "././meta/decisions/decision-ratification-tiers.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
       "message": "Decision `dec.init-emits-agent-skills` is refined by accepted decision `dec.agent-pack-packaging`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.agent-pack-packaging",
@@ -7744,24 +8332,47 @@
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
       "severity": "info",
-      "message": "Decision `dec.product-perimeter` is refined by accepted decision `dec.control-plane-programme`. Check the refinement before treating the original as the only authority.",
+      "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
       "node": null,
-      "target": "dec.control-plane-programme",
-      "path": "././meta/decisions/product-perimeter.md"
+      "target": "dec.rung-three-coordination-substrate",
+      "path": "././meta/decisions/orchestration-placement.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.webui-write-authority",
+      "path": "././meta/decisions/orchestration-placement.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.webui-write-authority` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.rung-three-coordination-substrate",
+      "path": "././meta/decisions/webui-write-authority.md"
     },
     {
       "code": "CAIRN_TODO_STATUS_CONTRADICTION",
       "severity": "info",
-      "message": "todo `todo.ui-asset-refresh` is blocked while every declared blocker is done",
+      "message": "todo `todo.build-ci-observation-overlay` is blocked while every declared blocker is done",
       "node": null,
-      "path": "././meta/todos/todo.ui-asset-refresh.md"
+      "path": "././meta/todos/todo.build-ci-observation-overlay.md"
+    },
+    {
+      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
+      "severity": "info",
+      "message": "todo `todo.workflow-serialises-validation` is open while declared blocker `todo.driver-in-repo` is not done",
+      "node": null,
+      "path": "././meta/todos/todo.workflow-serialises-validation.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
-      "message": "research `res.overharness-design-threads` is not linked from any decision",
+      "message": "research `res.skill-absorption` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/overharness-design-threads.md"
+      "path": "././meta/research/skill-absorption.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
@@ -7802,7 +8413,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.kernel.artefacts` carries 11 accepted decisions (threshold 10).",
+      "message": "Node `cairn.kernel.artefacts` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.kernel.artefacts",
       "path": null
     },
@@ -7823,9 +8434,37 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.root` carries 13 accepted decisions (threshold 10).",
+      "message": "Node `cairn.root` carries 17 accepted decisions (threshold 10).",
       "node": "cairn.root",
       "path": null
+    },
+    {
+      "code": "CAIRN_DECISION_ACCUMULATION",
+      "severity": "info",
+      "message": "Node `cairn.ui` carries 12 accepted decisions (threshold 10).",
+      "node": "cairn.ui",
+      "path": null
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.root",
+      "path": "././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.root",
+      "path": "././meta/reviews/rev.rung-three-coordination-substrate-correctness.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.root",
+      "path": "././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md"
     }
   ]
 }

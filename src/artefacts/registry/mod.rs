@@ -19,7 +19,7 @@ mod io;
 mod kinds;
 pub(crate) mod manifest;
 mod parse;
-mod sha256;
+pub(crate) mod sha256;
 #[cfg(test)]
 mod tests;
 /// Artefact type definitions.

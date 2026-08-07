@@ -80,7 +80,7 @@ pub(super) const SHA256_ROUND_CONSTANTS: [u32; 64] = [
     0xc671_78f2,
 ];
 
-pub(super) fn sha256_hex(bytes: &[u8]) -> String {
+pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
     let mut data = bytes.to_vec();
     let bit_len = (data.len() as u64) * 8;
     data.push(0x80);

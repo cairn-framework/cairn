@@ -27,6 +27,11 @@ remain hand-authored development content.
 
 - `.claude/settings.json` and `.claude/settings.local.json` are tracked (project-level Claude Code config).
 - `.claude/skills/` and `.claude/commands/` are tracked (operational workflow assets).
+- Exception: `.claude/skills/impeccable/` is a checkout-local
+  third-party install (`npx impeccable install`), gitignored by a
+  tracked entry, never tracked or vendored; its generated context
+  (`PRODUCT.md`, `DESIGN.md`, `.impeccable/`) is likewise gitignored.
+  See the Tooling section of `todo.console-orchestration-ux-design`.
 - `.claude/references/` and `.claude/stronghold/` are gitignored (session-local scratch).
 
 If you find yourself editing skills under `~/.claude/` (your user-global directory) for
