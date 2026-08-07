@@ -2,7 +2,7 @@
 node: cairn.root
 status: open
 created: 2026-08-03
-related: [dec.orchestration-placement, dec.control-plane-programme, todo.console-orchestration-ux-design, todo.console-signed-widening, todo.parallel-dispatch-granularity, todo.review-gate-machine-check]
+related: [dec.orchestration-placement, dec.control-plane-programme, todo.console-orchestration-ux-design, todo.console-signed-widening, todo.parallel-dispatch-granularity, todo.review-gate-machine-check, res.skill-absorption]
 ---
 
 # Driver In Repo
