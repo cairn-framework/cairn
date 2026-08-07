@@ -108,7 +108,8 @@ for u in sorted(READY, key=lambda x: (rank(x), x)):
     clash = None
     for v in wave:
         if WS[v]["resolution"] != "derived":
-            continue
+            clash = (v, (".", w["inc"][0] if w["inc"] else "."))
+            break
         hits = ws_overlap(WS[v], w)
         if hits:
             clash = (v, hits[0])
