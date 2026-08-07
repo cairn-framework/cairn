@@ -1,8 +1,9 @@
 ---
 node: cairn.brownfield
-status: open
+status: blocked
 created: 2026-07-27
 related: [todo.brownfield-parent-package-cycle, todo.brownfield-parent-child-edge-model]
+blocked_by: [todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance, todo.order-cycle-discovery-severity]
 ---
 
 # Make a brownfield round-trip scan non-blocking on discovery-observed cycles
@@ -24,7 +25,8 @@ this todo without code.
 Satisfied 2026-07-29 by acceptance of `dec.brownfield-discovery-cycle-severity`
 (maintainer ratification, sheet of record PR #528, row W5), option A carried
 out: `dec.order-containment-rule` marked `superseded` with the `supersedes:`
-link added in the same commit. This todo is open accordingly.
+link added in the same commit. This todo was opened accordingly, and is `blocked`
+again since the 2026-08-07 decomposition below.
 
 Also update `src/map/integrity.rs:74-76`, whose doc comment states the
 contradiction rule this changes, when the code lands.
@@ -57,14 +59,38 @@ body is stale.
   containment pass whenever any dependency component is reported, advisory or
   Error alike. Restricting it to advisory components leaves today's masking bug
   in place.
-- **Severity branch (clauses 3 and 4).** Apply per-component severity inside
-  graph cycle detection, where edge identity exists.
+- **Severity branch (clause 3, applied per component under clause 5).** Apply
+  per-component severity inside graph cycle detection, where edge identity
+  exists. Clause 4's provenance marker is its prerequisite, not part of it.
 
 The delta-pipeline work in the parent todo's verified fact 2 (`flatten_nodes`,
 `src/changes/delta.rs`) is out of scope: the chosen rule does not nest.
 
-This unit is large. Split it if it grows past one reviewable PR; edge provenance
-is the natural first half.
+This unit is large. It was split under the sizing rule on 2026-08-07; see
+Decomposition below for the seam actually taken.
+
+## Decomposition (2026-08-07)
+
+Too large for one small reviewable PR, confirmed against the code rather than
+estimated. The four bullets above span two surfaces that barely overlap: edge
+provenance is an additive blueprint grammar change threaded through the AST, the
+map builder, the change-apply writer, and `blueprint_delta`; cycle enumeration
+and the containment fall-through are a rewrite of `cycle_findings` and
+`topological_order` inside `src/map/integrity.rs` alone. The six acceptance
+bullets below split cleanly along that seam, and one of them (the hand-declared
+masking bug) fails against today's code with no provenance work at all.
+
+blocked on sub-todos: todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance, todo.order-cycle-discovery-severity
+
+The first carries clauses 5 and 7 and needs no provenance, so it lands the
+pre-existing masking fix on its own. The second carries clause 4, the marker the
+decision names as the implementation prerequisite. The third carries clause 3 and
+the severity half of clause 5, depends on both, and is `blocked` accordingly.
+This todo flips to `done` when the third lands.
+
+The body's own suggestion that "edge provenance is the natural first half" is
+superseded here: the seam runs the other way round, because enumeration is
+independently valuable and provenance is not.
 
 ## Acceptance
 
