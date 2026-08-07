@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: blocked
+status: done
 created: 2026-08-07
 blocked_by: [todo.coord-read-surface, todo.write-set-derivation]
 related: [dec.rung-three-coordination-substrate, res.parallel-dispatch-rung-3]

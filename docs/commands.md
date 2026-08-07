@@ -82,6 +82,9 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn ruling list` | List raw coordination ruling and run-outcome facts; `--at` echoes an observation instant, `--since <filename>` paginates |
 | `cairn ruling show <fact-id>` | Show one coordination ruling fact |
 | `cairn lease list` | List raw coordination lease and driver-singleton facts; no derived verdicts, staleness is reader-derived |
+| `cairn ruling run <plan-digest>` | Record maintainer consent for a previewed wave; declines with a closed-enum reason and `dispatched: []` when the composition moved |
+| `cairn wave` | Preview the next dispatch wave: units, write-sets, completeness stamps, the hotspot permission holder, held units, and the plan digest |
+| `cairn wave stats` | Render the false-overlap projection over `outcome.touched_files` facts; the promotion threshold stays unset until twenty exclusions carry merge evidence |
 
 ### Optional integrations
 

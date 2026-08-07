@@ -54,7 +54,7 @@ use handlers::{
     locate_json, neighbourhood_json, pending_json, rationale_json, research_response_json,
     roadmap_json, sources_response_json, status_json, todos_response_json,
 };
-use handlers::{coordination_leases_json, coordination_rulings_json};
+use handlers::{coordination_leases_json, coordination_rulings_json, wave_json, wave_stats_json};
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{
     backlog_item_detail_json, decision_json, findings_json, node_json, relevant_rules,
@@ -541,6 +541,8 @@ fn execute_data_with_scan(
         "roadmap" => Ok(roadmap_json(root, scan_result)),
         "ruling list" | "ruling show" => coordination_rulings_json(root, request),
         "lease list" => coordination_leases_json(root, request),
+        "wave" => wave_json(root, scan_result, request),
+        "wave stats" => wave_stats_json(root, request),
         "context" => context_json(root, changes_dir, scan_result, loaded_config),
         "rationale" => rationale_json(
             root,

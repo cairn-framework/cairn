@@ -70,6 +70,26 @@ pub(crate) fn head_hash(root: &Path) -> Option<String> {
     Some(hash.trim().to_owned())
 }
 
+/// The full 40-hex commit id at `root`'s HEAD, via `git rev-parse HEAD`
+/// under the same read-only subprocess discipline.
+///
+/// # Errors
+///
+/// Returns the shared `hooks.git-error` copy when git cannot be spawned,
+/// exits non-zero, or HEAD is unborn.
+pub(crate) fn head_commit(root: &Path) -> Result<String, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .map_err(|error| format!("{}: {error}", copy::lookup("hooks.git-error")))?;
+    if !output.status.success() {
+        return Err(copy::lookup("hooks.git-error").to_owned());
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

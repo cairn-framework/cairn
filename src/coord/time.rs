@@ -52,7 +52,6 @@ fn utc_parts(t: SystemTime) -> (i64, u8, u8, u8, u8, u8) {
 
 /// Formats an instant as RFC 3339 UTC without subseconds,
 /// e.g. `2026-08-07T03:45:12Z`.
-#[allow(dead_code)] // Reason: the wave composer's `ruling run` verb (todo.plan-identity-wave-composer) stamps `recorded_at` through this; it lands later on this branch.
 pub(crate) fn rfc3339_utc(t: SystemTime) -> String {
     let (year, month, day, hour, minute, second) = utc_parts(t);
     format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z")

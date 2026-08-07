@@ -22,6 +22,7 @@ mod pack_harness;
 mod pack_manifest;
 mod pack_report;
 mod project;
+mod ruling_run;
 mod todo;
 mod watch;
 mod wire;

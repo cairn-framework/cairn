@@ -54,7 +54,7 @@ use render::{
     render_backlog, render_brief, render_bundle, render_changes, render_context, render_decisions,
     render_dependencies, render_files, render_get, render_health, render_locate,
     render_neighbourhood, render_next, render_pending_detail, render_rationale, render_remediate,
-    render_research, render_show, render_sources, render_status, render_todos,
+    render_research, render_show, render_sources, render_status, render_todos, render_wave,
 };
 
 /// Shared CLI command metadata.
@@ -791,6 +791,7 @@ fn render_loaded_project_command(
         "status" => Ok(render_status(parsed, scan_result, root)),
         "context" => render_context(parsed, root, scan_result),
         "backlog" => render_backlog(parsed, root, scan_result),
+        "wave" => render_wave(parsed, root, scan_result),
         "hook" => return run_hook_command(parsed, root, scan_result, legacy_warning),
         "health" => Ok(render_health(parsed, root, scan_result)),
         "remediate" => Ok(render_remediate(parsed, root, scan_result)),

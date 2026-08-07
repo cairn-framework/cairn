@@ -17,6 +17,7 @@ mod project;
 mod remediate;
 mod roadmap;
 pub(super) mod spine;
+mod wave;
 mod work_item;
 
 pub(super) use artefacts::{
@@ -49,5 +50,6 @@ pub(super) use roadmap::roadmap_json;
 pub(crate) use roadmap::roadmap_response;
 pub use roadmap::{RoadmapItem, RoadmapResponse, RoadmapTier};
 pub(super) use spine::{beads_json, blueprint_json, ui_meta_json};
+pub(super) use wave::{wave_json, wave_stats_json};
 pub(crate) use work_item::from_finding_action;
 pub use work_item::{WorkItem, WorkItemSource};

@@ -291,6 +291,18 @@ expression: value
       "request": "CoordinationRequest",
       "response": "CoordinationLeasesResponse",
       "safety": "ReadOnly"
+    },
+    {
+      "name": "wave",
+      "request": "CoordinationRequest",
+      "response": "WaveResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "wave stats",
+      "request": "CoordinationRequest",
+      "response": "WaveStatsResponse",
+      "safety": "ReadOnly"
     }
   ],
   "last_reconciled": "[timestamp]",

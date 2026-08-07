@@ -812,6 +812,14 @@
           "end_line": 78
         },
         {
+          "name": "head_commit",
+          "kind": "function",
+          "signature": "pub(crate) fn head_commit(root: &Path) -> Result<String, String>",
+          "file": "src/coord/git.rs",
+          "line": 80,
+          "end_line": 91
+        },
+        {
           "name": "head_hash",
           "kind": "function",
           "signature": "pub(crate) fn head_hash(root: &Path) -> Option<String>",
@@ -1887,6 +1895,7 @@
         "src/cli/commands/pack_manifest.rs",
         "src/cli/commands/pack_report.rs",
         "src/cli/commands/project.rs",
+        "src/cli/commands/ruling_run.rs",
         "src/cli/commands/todo.rs",
         "src/cli/commands/todo/link.rs",
         "src/cli/commands/todo/link/tests.rs",
@@ -2004,8 +2013,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1117,
-          "end_line": 1135
+          "line": 1118,
+          "end_line": 1136
         },
         {
           "name": "blank_command_failure_detail",
@@ -2188,8 +2197,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1112,
-          "end_line": 1112
+          "line": 1113,
+          "end_line": 1113
         },
         {
           "name": "blueprint_root",
@@ -2204,8 +2213,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1143,
-          "end_line": 1151
+          "line": 1144,
+          "end_line": 1152
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -2254,6 +2263,14 @@
           "file": "src/cli/commands/gap.rs",
           "line": 13,
           "end_line": 69
+        },
+        {
+          "name": "run_ruling_run",
+          "kind": "function",
+          "signature": "pub(crate) fn run_ruling_run(parsed: &ParsedArgs, root: &Path, digest: &str) -> CliResult",
+          "file": "src/cli/commands/ruling_run.rs",
+          "line": 23,
+          "end_line": 78
         },
         {
           "name": "mermaid",
@@ -2847,6 +2864,7 @@
         "src/query_api/handlers/roadmap.rs",
         "src/query_api/handlers/roadmap/tests.rs",
         "src/query_api/handlers/spine.rs",
+        "src/query_api/handlers/wave.rs",
         "src/query_api/handlers/work_item.rs",
         "src/query_api/mod.rs",
         "src/query_api/registry.rs",
@@ -2855,7 +2873,9 @@
         "src/query_api/strict_green_tests.rs",
         "src/query_api/tests.rs",
         "src/query_api/util.rs",
-        "src/query_api/wave.rs"
+        "src/query_api/wave/compose.rs",
+        "src/query_api/wave/compose/tests.rs",
+        "src/query_api/wave/mod.rs"
       ],
       "contracts": [
         "./meta/contracts/kernel.query.md"
@@ -3134,6 +3154,14 @@
           "end_line": 37
         },
         {
+          "name": "DEFAULT_RULE_ID",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_RULE_ID",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 28,
+          "end_line": 28
+        },
+        {
           "name": "TODO_RANK",
           "kind": "const",
           "signature": "pub(crate) const TODO_RANK u32",
@@ -3158,12 +3186,36 @@
           "end_line": 96
         },
         {
+          "name": "compose_wave",
+          "kind": "function",
+          "signature": "pub(crate) fn compose_wave( root: &Path, graph: &Graph, todos: &[Todo], at: Option<&str>, ) -> Result<Wave, String>",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 122,
+          "end_line": 228
+        },
+        {
+          "name": "concurrent_winner",
+          "kind": "function",
+          "signature": "pub(crate) fn concurrent_winner<'a>(rulings: &[&'a NamedFact]) -> Option<&'a NamedFact>",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 285,
+          "end_line": 293
+        },
+        {
           "name": "derive_write_set",
           "kind": "function",
           "signature": "pub(crate) fn derive_write_set(graph: &Graph, anchor: &str) -> WriteSet",
-          "file": "src/query_api/wave.rs",
-          "line": 82,
-          "end_line": 146
+          "file": "src/query_api/wave/mod.rs",
+          "line": 81,
+          "end_line": 145
+        },
+        {
+          "name": "digest",
+          "kind": "function",
+          "signature": "pub(crate) fn digest(preimage: &str) -> String",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 272,
+          "end_line": 276
         },
         {
           "name": "from_bead",
@@ -3209,9 +3261,9 @@
           "name": "hotspot_prefixes",
           "kind": "function",
           "signature": "pub(crate) fn hotspot_prefixes(graph: &Graph) -> Vec<String>",
-          "file": "src/query_api/wave.rs",
-          "line": 42,
-          "end_line": 52
+          "file": "src/query_api/wave/mod.rs",
+          "line": 41,
+          "end_line": 51
         },
         {
           "name": "lint_findings",
@@ -3244,6 +3296,14 @@
           "file": "src/query_api/handlers/pending.rs",
           "line": 130,
           "end_line": 141
+        },
+        {
+          "name": "preimage",
+          "kind": "function",
+          "signature": "pub(crate) fn preimage(rule: &str, units: &[WaveUnit]) -> String",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 254,
+          "end_line": 269
         },
         {
           "name": "remediate_actions_raw",
@@ -3289,9 +3349,17 @@
           "name": "write_sets_disjoint",
           "kind": "function",
           "signature": "pub(crate) fn write_sets_disjoint(a: &WriteSet, b: &WriteSet) -> bool",
-          "file": "src/query_api/wave.rs",
-          "line": 159,
-          "end_line": 177
+          "file": "src/query_api/wave/mod.rs",
+          "line": 158,
+          "end_line": 176
+        },
+        {
+          "name": "compose",
+          "kind": "module",
+          "signature": "pub(crate) mod compose",
+          "file": "src/query_api/wave/mod.rs",
+          "line": 14,
+          "end_line": 14
         },
         {
           "name": "wave",
@@ -3302,12 +3370,36 @@
           "end_line": 38
         },
         {
+          "name": "HeldUnit",
+          "kind": "struct",
+          "signature": "pub(crate) struct HeldUnit",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 45,
+          "end_line": 54
+        },
+        {
+          "name": "Wave",
+          "kind": "struct",
+          "signature": "pub(crate) struct Wave",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 58,
+          "end_line": 73
+        },
+        {
+          "name": "WaveUnit",
+          "kind": "struct",
+          "signature": "pub(crate) struct WaveUnit",
+          "file": "src/query_api/wave/compose.rs",
+          "line": 32,
+          "end_line": 41
+        },
+        {
           "name": "WriteSet",
           "kind": "struct",
           "signature": "pub(crate) struct WriteSet",
-          "file": "src/query_api/wave.rs",
-          "line": 25,
-          "end_line": 39
+          "file": "src/query_api/wave/mod.rs",
+          "line": 24,
+          "end_line": 38
         },
         {
           "name": "clean_markdown",

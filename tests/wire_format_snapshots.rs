@@ -176,6 +176,15 @@ fn coordination_wire_snapshots() -> Result<(), Box<dyn std::error::Error>> {
     assert_json_snapshot!("api_coordination_rulings_ready", rulings.data);
     let leases = execute("lease list", None)?;
     assert_json_snapshot!("api_coordination_leases_ready", leases.data);
+
+    // The wave preview over the fixture pins the unit shape, the rule
+    // constant, the completeness stamp, and a digest that is stable
+    // because fixture bytes are fixed; wave stats pins the
+    // unset-threshold shape.
+    let wave = execute("wave", None)?;
+    assert_json_snapshot!("api_wave", wave.data);
+    let stats = execute("wave stats", None)?;
+    assert_json_snapshot!("api_wave_stats_ready", stats.data);
     Ok(())
 }
 

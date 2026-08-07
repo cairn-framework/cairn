@@ -3,6 +3,7 @@
 // Reason: child module imports re-exported public surface from parent via use super::*
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
+use super::ruling_run::run_ruling_run;
 use crate::coord::verify::{compact, verify};
 
 /// Dispatches `cairn coord <subcommand>`.
@@ -29,6 +30,12 @@ pub(crate) fn run_ruling_command(parsed: &ParsedArgs, root: &Path) -> CliResult 
                 return err(1, copy::lookup("ruling.show-usage"));
             };
             coordination_query(parsed, root, "ruling show", Some(fact_id.clone()))
+        }
+        Some("run") => {
+            let Some(digest) = parsed.command_args.get(2) else {
+                return err(1, copy::lookup("ruling.run-usage"));
+            };
+            run_ruling_run(parsed, root, digest)
         }
         _ => err(1, copy::lookup("ruling.usage")),
     }

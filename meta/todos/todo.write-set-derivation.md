@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: in_progress
+status: done
 created: 2026-08-07
 blocked_by: [todo.parallel-dispatch-granularity]
 related: [dec.rung-three-coordination-substrate, res.parallel-dispatch-rung-3]

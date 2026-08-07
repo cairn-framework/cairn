@@ -238,3 +238,12 @@ _No codes allocated yet._
 
 - CW001 -- coordination store read failed or is partially resolvable; the read fails closed (CAIRN_COORD_READ_FAILED) -- todo.coord-read-surface
 - CW002 -- ruling show found no fact with the requested id (CAIRN_COORD_FACT_NOT_FOUND) -- todo.coord-read-surface
+- CW003 -- run ruling declined with reason `readiness-moved` (CAIRN_WAVE_READINESS_MOVED) -- todo.plan-identity-wave-composer
+- CW004 -- run ruling declined with reason `write-sets-overlap` (CAIRN_WAVE_WRITE_SETS_OVERLAP) -- todo.plan-identity-wave-composer
+- CW005 -- run ruling declined with reason `unit-set-moved` (CAIRN_WAVE_UNIT_SET_MOVED) -- todo.plan-identity-wave-composer
+- CW006 -- run ruling declined with reason `parked` (CAIRN_WAVE_PARKED) -- todo.plan-identity-wave-composer
+- CW007 -- run ruling declined with reason `lease-held` (CAIRN_WAVE_LEASE_HELD) -- todo.plan-identity-wave-composer
+- CW008 -- run ruling declined with reason `ruleset-changed` (CAIRN_WAVE_RULESET_CHANGED) -- todo.plan-identity-wave-composer
+- CW009 -- run ruling declined with reason `consent-expired` (CAIRN_WAVE_CONSENT_EXPIRED) -- todo.plan-identity-wave-composer
+- CW010 -- run ruling declined with reason `already-consumed` (CAIRN_WAVE_ALREADY_CONSUMED) -- todo.plan-identity-wave-composer
+- CW011 -- run ruling declined with reason `superseded-by-concurrent-ruling` (CAIRN_WAVE_SUPERSEDED_BY_CONCURRENT_RULING) -- todo.plan-identity-wave-composer

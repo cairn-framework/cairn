@@ -180,6 +180,8 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("ui", "ui", &["port", "no-open", "file", "help"]),
     spec("ui_meta", "ui_meta", FLAGS_BASIC),
     spec("watch", "watch", &["interval", "once", "file", "help"]),
+    spec("wave", "wave", FLAGS_HELP_ONLY),
+    spec("wave stats", "wave-stats", FLAGS_HELP_ONLY),
     spec("workspace", "workspace", FLAGS_BASIC),
     // --- compound change family --------------------------------------------
     spec("change new", "change-new", FLAGS_FILE_HELP),

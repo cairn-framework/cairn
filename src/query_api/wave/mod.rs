@@ -10,9 +10,8 @@
 //! paths sit in no unit's derived set, so every derived write-set is
 //! stamped `completeness: "partial"` naming the uncovered hotspot prefixes.
 
-// Reason: the wave composer (todo.plan-identity-wave-composer) consumes this
-// module and lands next on this branch; until then only its tests call it.
-#![allow(dead_code)]
+/// The composer, the canonical preimage, and the plan digest.
+pub(crate) mod compose;
 
 use crate::map::graph::Graph;
 use crate::map::paths::{is_component_prefix, trim_dot};

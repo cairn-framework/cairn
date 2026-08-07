@@ -151,6 +151,15 @@ interface-contradiction = "Multiple contracts for the same role have divergent i
 rationale-tension = "An intentional asymmetry was detected; review the rationale."
 
 [findings.codes]
+CAIRN_WAVE_READINESS_MOVED = { heading = "Plan declined: readiness moved", body = "A unit in plan `{target}` is no longer ready, so the recomputed wave differs.", cta = "Preview `cairn wave` again and consent to the new digest." }
+CAIRN_WAVE_WRITE_SETS_OVERLAP = { heading = "Plan declined: write-sets overlap", body = "Two units in plan `{target}` no longer have disjoint write-sets.", cta = "Preview `cairn wave` again; the composer holds one of the units back." }
+CAIRN_WAVE_UNIT_SET_MOVED = { heading = "Plan declined: composition moved", body = "The recomputed wave no longer yields plan `{target}`: the unit set, a write-set, or a unit's task definition changed.", cta = "Preview `cairn wave` again and consent to the new digest." }
+CAIRN_WAVE_PARKED = { heading = "Plan declined: a unit is parked", body = "A unit in plan `{target}` is subtracted by a live ruling.park fact.", cta = "Unpark the unit or consent to the recomputed wave without it." }
+CAIRN_WAVE_LEASE_HELD = { heading = "Plan declined: a lease is held", body = "A unit in plan `{target}` carries a live lease held by another session.", cta = "Wait for the lease to release or expire, then preview again." }
+CAIRN_WAVE_RULESET_CHANGED = { heading = "Plan declined: the composer rule changed", body = "Plan `{target}` was composed under a different workflow rule.", cta = "Preview `cairn wave` under the current rule and consent to the new digest." }
+CAIRN_WAVE_CONSENT_EXPIRED = { heading = "Plan declined: consent expired", body = "The run ruling for plan `{target}` is older than the driver's consent window.", cta = "Record a fresh `cairn ruling run` after previewing again." }
+CAIRN_WAVE_ALREADY_CONSUMED = { heading = "Plan declined: already consumed", body = "Plan `{target}` already carries an outcome.run_consumed fact; consent is single-use.", cta = "Preview `cairn wave` again and consent to the new digest." }
+CAIRN_WAVE_SUPERSEDED_BY_CONCURRENT_RULING = { heading = "Plan declined: superseded by a concurrent ruling", body = "Another ruling on the same digest or a shared unit wins the (recorded_at, fact_id) tie-break.", cta = "No action needed; the winning ruling dispatches." }
 CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID = { heading = "Invalid spec-rule deferral", body = "Spec rule `{rule}` ({spec}) defers to `{decision}`, which is not an accepted decision.", cta = "Update the Deferred-by cell to name an accepted decision artefact." }
 CAIRN_TODO_DEFERS_UNMATCHED = { heading = "Stale defers reference", body = "Todo `{todo}` defers `{code}` at `{location}`, but no emitted finding matches that reference.", cta = "Remove the stale `defers:` entry, or correct its code and path or node to match a standing finding." }
 CAIRN_TODO_DEFERS_BLOCKING = { heading = "Defers reference targets a blocking finding", body = "Todo `{todo}` defers `{code}` at `{location}`, which is a {severity} finding; only Info findings can be parked.", cta = "Fix the finding instead: an Error or Warning stays selecting whatever any artefact declares about it." }
@@ -359,8 +368,12 @@ store-uninitialised = "coordination store uninitialised: no fact has ever been r
 no-facts = "no matching facts"
 
 [ruling]
-usage = "usage: cairn ruling <list|show <fact-id>> [--at <RFC3339>] [--since <filename>] [--json]"
+usage = "usage: cairn ruling <list|show <fact-id>|run <plan-digest>> [--at <RFC3339>] [--since <filename>] [--json]"
 show-usage = "usage: cairn ruling show <fact-id> [--json]"
+run-usage = "usage: cairn ruling run <plan-digest>"
+run-invalid-digest = "a plan digest is `plan-` followed by sixteen hexadecimal characters"
+run-recorded = "recorded ruling.run for {digest}; the driver dispatches on its next read"
+run-declined = "declined {digest}: {reason}; recorded outcome.run_declined, dispatched nothing"
 
 [lease]
 usage = "usage: cairn lease list [--at <RFC3339>] [--since <filename>] [--json]"
@@ -879,10 +892,21 @@ description = "List raw coordination lease and driver-singleton facts"
 usage = "cairn lease list [--at <RFC3339>] [--since <filename>] [--json] [options]"
 args = "  (no arguments)"
 
+[help.commands.wave]
+usage = "cairn wave [stats] [--at <RFC3339>] [--json] [options]"
+args = """  (no arguments)     Preview the next dispatch wave and its plan digest
+  stats              Render the false-overlap projection; threshold unset"""
+
+[help.commands.wave-stats]
+description = "Render the false-overlap projection over touched-files facts"
+usage = "cairn wave stats [--at <RFC3339>] [--json] [options]"
+args = "  (no arguments)"
+
 [help.commands.ruling]
 usage = "cairn ruling <list|show <fact-id>> [options]"
 args = """  list               List raw ruling and run-outcome facts
-  show <fact-id>     Show one ruling fact"""
+  show <fact-id>     Show one ruling fact
+  run <plan-digest>  Record maintainer consent for a previewed wave"""
 
 [help.commands.lease]
 usage = "cairn lease list [options]"

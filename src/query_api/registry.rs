@@ -5,7 +5,7 @@
 #![allow(clippy::wildcard_imports)]
 use super::*;
 
-pub(super) const TOOL_REGISTRY: [ToolMetadata; 48] = [
+pub(super) const TOOL_REGISTRY: [ToolMetadata; 50] = [
     tool(
         "get",
         "cairn_get",
@@ -390,6 +390,22 @@ pub(super) const TOOL_REGISTRY: [ToolMetadata; 48] = [
         SafetyClass::ReadOnly,
         "List raw coordination lease and driver-singleton facts",
     ),
+    tool(
+        "wave",
+        "cairn_wave",
+        "CoordinationRequest",
+        "WaveResponse",
+        SafetyClass::ReadOnly,
+        "Preview the next dispatch wave and its plan digest; wave stats renders the false-overlap projection",
+    ),
+    tool(
+        "wave stats",
+        "cairn_wave_stats",
+        "CoordinationRequest",
+        "WaveStatsResponse",
+        SafetyClass::ReadOnly,
+        "Render the false-overlap projection over touched-files facts",
+    ),
 ];
 
 pub(super) const fn tool(
@@ -509,7 +525,7 @@ mod tests {
 
     #[test]
     fn test_registry_size() {
-        assert_eq!(TOOL_REGISTRY.len(), 48);
+        assert_eq!(TOOL_REGISTRY.len(), 50);
     }
 
     #[test]
@@ -575,6 +591,8 @@ mod response_schema_tests {
         "CoordinationRulingsResponse",
         "CoordinationRulingResponse",
         "CoordinationLeasesResponse",
+        "WaveResponse",
+        "WaveStatsResponse",
     ];
 
     #[test]

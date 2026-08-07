@@ -217,3 +217,137 @@ pub(crate) fn render_dependencies(parsed: &ParsedArgs, root: &Path) -> Result<St
 
 #[cfg(test)]
 pub(in crate::cli::render) mod tests;
+
+/// Renders the wave preview (`cairn wave`) or its stats projection
+/// (`cairn wave stats`): both run the shared composer tool against the
+/// already computed scan, so the CLI, the console, and the driver see one
+/// composition. Clause 5 sentences hold: a held unit queues behind a
+/// *unit*; the word claim needs a lease fact.
+pub(crate) fn render_wave(
+    parsed: &ParsedArgs,
+    root: &Path,
+    scan_result: &scanner::ScanResult,
+) -> Result<String, Finding> {
+    let stats = parsed.command_args.get(1).map(String::as_str) == Some("stats");
+    let request = QueryRequest {
+        tool: if stats { "wave stats" } else { "wave" }.to_owned(),
+        at: flag_value(&parsed.command_args, "--at").map(ToOwned::to_owned),
+        ..QueryRequest::default()
+    };
+    let changes_dir = root.join(&parsed.changes_dir);
+    let response = crate::query_api::execute_with_scan(
+        root,
+        &parsed.file,
+        &changes_dir,
+        &request,
+        scan_result,
+    )
+    .map_err(|error| Finding {
+        code: error.code,
+        severity: FindingSeverity::Error,
+        message: error.message,
+        node: None,
+        target: None,
+        path: None,
+        deferred_by: None,
+        parked_by: None,
+    })?;
+    if parsed.json {
+        return Ok(format!("{}\n", response.data));
+    }
+    let data = &response.data;
+    if stats {
+        return Ok(format!(
+            "false-overlap rate: {} over {} of {} exclusions with merge evidence; threshold unset\n",
+            data["false_overlap_rate"]
+                .as_f64()
+                .map_or_else(|| "n/a".to_owned(), |rate| format!("{rate:.2}")),
+            data["window"]["size"],
+            data["window"]["cap"],
+        ));
+    }
+    Ok(render_wave_body(data))
+}
+
+/// Renders the human wave preview from the tool's data payload.
+fn render_wave_body(data: &serde_json::Value) -> String {
+    use std::fmt::Write as _;
+    let units = data["units"].as_array().cloned().unwrap_or_default();
+    let mut out = format!("Next wave: {} unit(s)  {}\n", units.len(), data["plan"]);
+    let _ = writeln!(
+        out,
+        "rule {}  write-sets disjoint  hotspot permission: one unit per wave",
+        data["rule"]
+    );
+    for unit in &units {
+        let includes: Vec<&str> = unit["write_set"]["includes"]
+            .as_array()
+            .map(|prefixes| {
+                prefixes
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .collect()
+            })
+            .unwrap_or_default();
+        let _ = writeln!(
+            out,
+            "  {}  writes {}  completeness: {}{}",
+            unit["id"].as_str().unwrap_or("-"),
+            includes.join(", "),
+            unit["write_set"]["completeness"].as_str().unwrap_or("-"),
+            if unit["hotspot_permission"] == true {
+                "  holds the hotspot permission"
+            } else {
+                ""
+            },
+        );
+        if unit["write_set"]["resolution"] == "unresolved" {
+            let _ = writeln!(
+                out,
+                "    runs alone: {}, so cairn treats it as touching every file",
+                unit["write_set"]["unresolved_reason"]
+                    .as_str()
+                    .unwrap_or("-"),
+            );
+        }
+    }
+    render_held(&mut out, data);
+    out
+}
+
+/// Renders the held list with clause-5 sentences: a unit queues behind a
+/// unit; the word claim appears only with a lease fact.
+fn render_held(out: &mut String, data: &serde_json::Value) {
+    use std::fmt::Write as _;
+    let held = data["held"].as_array().cloned().unwrap_or_default();
+    let _ = writeln!(out, "Held: {} unit(s)", held.len());
+    for entry in &held {
+        let id = entry["id"].as_str().unwrap_or("-");
+        match entry["reason"].as_str().unwrap_or("-") {
+            "write-sets-overlap" => {
+                let _ = writeln!(
+                    out,
+                    "  {id} waits for this wave: same files as {}, one at a time. It queues behind that unit and joins the next wave.",
+                    entry["behind"].as_str().unwrap_or("-"),
+                );
+            }
+            "lease-held" => {
+                let _ = writeln!(
+                    out,
+                    "  {id} queues behind a claim: lease fact {}.",
+                    entry["blocking_fact_id"].as_str().unwrap_or("-"),
+                );
+            }
+            "parked" => {
+                let _ = writeln!(
+                    out,
+                    "  {id} is parked by ruling fact {}.",
+                    entry["blocking_fact_id"].as_str().unwrap_or("-")
+                );
+            }
+            _ => {
+                let _ = writeln!(out, "  {id} runs alone in a later wave.");
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+---
+source: tests/wire_format_snapshots.rs
+expression: stats.data
+---
+{
+  "exclusions_with_evidence": 0,
+  "false_overlap_rate": null,
+  "observed_at": null,
+  "proven_false": 0,
+  "schema_version": 11,
+  "store_state": "ready",
+  "threshold": null,
+  "window": {
+    "cap": 20,
+    "size": 0
+  }
+}
