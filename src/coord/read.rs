@@ -116,6 +116,94 @@ pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String> {
     Ok(StoreRead::Ready(facts))
 }
 
+/// The rendered view of a lease chain head, for the stale projection.
+#[derive(Clone, Debug)]
+pub struct LeaseState<'a> {
+    /// The chain-head fact.
+    pub head: &'a NamedFact,
+    /// The holder object from the lease payload.
+    pub holder: Option<&'a serde_json::Value>,
+    /// The lease's `expires_at`, when present.
+    pub expires_at: Option<&'a str>,
+    /// The recoverable residue (branch, worktree, pr).
+    pub residue: Option<&'a serde_json::Value>,
+}
+
+/// Folds the `supersedes` chain for `unit` and returns its head: the latest
+/// lease fact no other lease fact supersedes. `None` means no chain at all.
+#[must_use]
+pub fn lease_chain_head<'a>(facts: &'a [NamedFact], unit: &str) -> Option<&'a NamedFact> {
+    let unit_facts: Vec<&NamedFact> = facts
+        .iter()
+        .filter(|named| {
+            named.fact.kind.starts_with("lease.")
+                && named
+                    .fact
+                    .payload
+                    .get("unit_id")
+                    .and_then(serde_json::Value::as_str)
+                    == Some(unit)
+        })
+        .collect();
+    let superseded: std::collections::BTreeSet<&str> = unit_facts
+        .iter()
+        .filter_map(|named| named.fact.supersedes.as_deref())
+        .collect();
+    unit_facts
+        .into_iter()
+        .filter(|named| !superseded.contains(named.fact.fact_id.as_str()))
+        .max_by(|a, b| {
+            (a.fact.recorded_at.as_str(), a.fact.fact_id.as_str())
+                .cmp(&(b.fact.recorded_at.as_str(), b.fact.fact_id.as_str()))
+        })
+}
+
+fn lease_state(head: &NamedFact) -> LeaseState<'_> {
+    LeaseState {
+        head,
+        holder: head.fact.payload.get("holder"),
+        expires_at: head
+            .fact
+            .payload
+            .get("expires_at")
+            .and_then(serde_json::Value::as_str),
+        residue: head.fact.payload.get("residue"),
+    }
+}
+
+/// True when `unit`'s folded chain has no release and `expires_at > at`.
+/// RFC 3339 UTC strings of one format compare lexicographically.
+#[must_use]
+pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool {
+    lease_chain_head(facts, unit).is_some_and(|head| {
+        head.fact.kind != "lease.release"
+            && lease_state(head)
+                .expires_at
+                .is_some_and(|expiry| expiry > at)
+    })
+}
+
+/// The same chain with `expires_at <= at`: a first-class state carrying the
+/// holder, the expiry, and the recoverable residue.
+#[must_use]
+pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseState<'a>> {
+    let head = lease_chain_head(facts, unit)?;
+    if head.fact.kind == "lease.release" {
+        return None;
+    }
+    let state = lease_state(head);
+    state
+        .expires_at
+        .is_some_and(|expiry| expiry <= at)
+        .then_some(state)
+}
+
+/// No chain at all: a different state and a different sentence.
+#[must_use]
+pub fn no_lease(facts: &[NamedFact], unit: &str) -> bool {
+    lease_chain_head(facts, unit).is_none()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -238,5 +326,71 @@ mod tests {
         let raw = std::fs::read_to_string(&path).expect("bytes");
         std::fs::write(&path, raw.replace("\"format\": 1", "\"format\": 9")).expect("mutates");
         assert!(read_facts(dir.path()).is_err());
+    }
+
+    #[test]
+    fn predicates_fold_the_supersedes_chain() {
+        let dir = repo();
+        let grant_path = append_fact(
+            dir.path(),
+            NewFact {
+                kind: "lease.grant".to_owned(),
+                recorded_at: "2026-08-07T03:00:00Z".to_owned(),
+                recorded_by: Actor {
+                    kind: "driver".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload: serde_json::json!({
+                    "unit_id": "todo.x",
+                    "holder": { "harness_kind": "omp", "session": "s1" },
+                    "expires_at": "2026-08-07T04:00:00Z",
+                    "residue": { "branch": "loop/x", "worktree": "../wt/x", "pr": null },
+                }),
+            },
+        )
+        .expect("grant");
+        let grant: Envelope =
+            serde_json::from_str(&std::fs::read_to_string(&grant_path).expect("grant bytes"))
+                .expect("grant parses");
+        append_fact(
+            dir.path(),
+            NewFact {
+                kind: "lease.renew".to_owned(),
+                recorded_at: "2026-08-07T03:30:00Z".to_owned(),
+                recorded_by: Actor {
+                    kind: "driver".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: Some(grant.fact_id),
+                payload: serde_json::json!({
+                    "unit_id": "todo.x",
+                    "holder": { "harness_kind": "omp", "session": "s1" },
+                    "expires_at": "2026-08-07T05:00:00Z",
+                    "residue": { "branch": "loop/x", "worktree": "../wt/x", "pr": 42 },
+                }),
+            },
+        )
+        .expect("renew");
+
+        let StoreRead::Ready(facts) = read_facts(dir.path()).expect("reads") else {
+            panic!("store is initialised");
+        };
+        // The chain folds to the renewal: held before its expiry, stale after.
+        assert!(held(&facts, "todo.x", "2026-08-07T04:30:00Z"));
+        assert!(stale(&facts, "todo.x", "2026-08-07T04:30:00Z").is_none());
+        let gone = stale(&facts, "todo.x", "2026-08-07T05:00:00Z").expect("stale at expiry");
+        assert_eq!(gone.expires_at, Some("2026-08-07T05:00:00Z"));
+        assert_eq!(
+            gone.residue.and_then(|residue| residue.get("pr")),
+            Some(&serde_json::json!(42)),
+            "the folded chain renders the renewed residue"
+        );
+        assert!(!held(&facts, "todo.x", "2026-08-07T05:00:00Z"));
+        // A unit with no chain at all is a different state.
+        assert!(no_lease(&facts, "todo.other"));
+        assert!(!no_lease(&facts, "todo.x"));
     }
 }

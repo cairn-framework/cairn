@@ -182,6 +182,8 @@ pub(crate) fn render_neighbourhood(
 pub(crate) fn render_files(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
     let node = node_arg(&parsed.command_args)?;
     let request = QueryRequest {
+        at: None,
+        since: None,
         tool: "files".to_owned(),
         node: Some(node.to_owned()),
         symbol: None,

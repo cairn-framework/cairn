@@ -16,6 +16,8 @@ pub(crate) fn render_todos(parsed: &ParsedArgs, root: &Path) -> Result<String, F
     let node = positional_node(&parsed.command_args).cloned();
     let status = flag_value(&parsed.command_args, "--status").map(ToOwned::to_owned);
     let request = QueryRequest {
+        at: None,
+        since: None,
         tool: "todos".to_owned(),
         node,
         symbol: None,
@@ -186,6 +188,8 @@ fn render_decisions_grep(
 pub(crate) fn render_research(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
     let node = node_arg(&parsed.command_args)?;
     let request = QueryRequest {
+        at: None,
+        since: None,
         tool: "research".to_owned(),
         node: Some(node.to_owned()),
         symbol: None,
@@ -233,6 +237,8 @@ fn research_text(data: &Value) -> String {
 pub(crate) fn render_sources(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
     let node = node_arg(&parsed.command_args)?;
     let request = QueryRequest {
+        at: None,
+        since: None,
         tool: "sources".to_owned(),
         node: Some(node.to_owned()),
         symbol: None,
@@ -276,6 +282,8 @@ fn sources_text(data: &Value) -> String {
 pub(crate) fn render_rationale(parsed: &ParsedArgs, root: &Path) -> Result<String, Finding> {
     let node = node_arg(&parsed.command_args)?;
     let request = QueryRequest {
+        at: None,
+        since: None,
         tool: "rationale".to_owned(),
         node: Some(node.to_owned()),
         symbol: None,

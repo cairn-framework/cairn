@@ -79,6 +79,9 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn baseline <record\|drop> <node>` | Record, re-record, or prune a node's contract baseline in `.cairn/state/contract-baselines.json`. Needs no summariser backend; drop is restricted to inert entries |
 | `cairn coord verify` | Check the family-local coordination fact store: append-only held, no broken supersedes chain, no compacted unmatched park |
 | `cairn coord compact --before <YYYY-MM-DD>` | Move old coordination facts into `archive/<yyyy-mm>/`; never deletes, never moves an unmatched park or a live chain's antecedent |
+| `cairn ruling list` | List raw coordination ruling and run-outcome facts; `--at` echoes an observation instant, `--since <filename>` paginates |
+| `cairn ruling show <fact-id>` | Show one coordination ruling fact |
+| `cairn lease list` | List raw coordination lease and driver-singleton facts; no derived verdicts, staleness is reader-derived |
 
 ### Optional integrations
 

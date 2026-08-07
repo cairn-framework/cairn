@@ -19,6 +19,92 @@ pub(crate) fn run_coord_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
     }
 }
 
+/// Dispatches `cairn ruling <subcommand>`: the maintainer read surface over
+/// coordination ruling facts.
+pub(crate) fn run_ruling_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
+    match parsed.command_args.get(1).map(String::as_str) {
+        Some("list") => coordination_query(parsed, root, "ruling list", None),
+        Some("show") => {
+            let Some(fact_id) = parsed.command_args.get(2) else {
+                return err(1, copy::lookup("ruling.show-usage"));
+            };
+            coordination_query(parsed, root, "ruling show", Some(fact_id.clone()))
+        }
+        _ => err(1, copy::lookup("ruling.usage")),
+    }
+}
+
+/// Dispatches `cairn lease <subcommand>`: the read surface over lease and
+/// driver-singleton facts.
+pub(crate) fn run_lease_command(parsed: &ParsedArgs, root: &Path) -> CliResult {
+    match parsed.command_args.get(1).map(String::as_str) {
+        Some("list") => coordination_query(parsed, root, "lease list", None),
+        _ => err(1, copy::lookup("lease.usage")),
+    }
+}
+
+/// Runs a coordination read tool and renders it: raw pretty JSON under
+/// `--json`, one line per fact otherwise. The wire carries no derived
+/// verdicts, so the human form prints raw facts too.
+fn coordination_query(
+    parsed: &ParsedArgs,
+    root: &Path,
+    tool: &str,
+    fact_id: Option<String>,
+) -> CliResult {
+    let request = crate::query_api::QueryRequest {
+        tool: tool.to_owned(),
+        node: fact_id,
+        at: flag_value(&parsed.command_args, "--at").map(ToOwned::to_owned),
+        since: flag_value(&parsed.command_args, "--since").map(ToOwned::to_owned),
+        ..Default::default()
+    };
+    let changes_dir = root.join(&parsed.changes_dir);
+    match crate::query_api::execute(root, &parsed.file, &changes_dir, &request) {
+        Ok(response) => {
+            if parsed.json {
+                return ok(format!("{}\n", response.data));
+            }
+            ok(render_coordination_human(&response.data))
+        }
+        Err(error) => err(1, &format!("{error}")),
+    }
+}
+
+fn render_coordination_human(data: &serde_json::Value) -> String {
+    if data["store_state"] == "uninitialised" {
+        return copy::lookup("coord.store-uninitialised").to_owned();
+    }
+    let mut lines = Vec::new();
+    let facts = ["rulings", "leases"]
+        .iter()
+        .find_map(|key| data[*key].as_array())
+        .cloned()
+        .or_else(|| {
+            data["ruling"]
+                .as_object()
+                .map(|one| vec![serde_json::Value::Object(one.clone())])
+        })
+        .unwrap_or_default();
+    for fact in &facts {
+        let target = fact["payload"]["target"]
+            .as_str()
+            .or_else(|| fact["payload"]["unit_id"].as_str())
+            .unwrap_or("-");
+        lines.push(format!(
+            "{}  {}  {}  {}",
+            fact["recorded_at"].as_str().unwrap_or("-"),
+            fact["kind"].as_str().unwrap_or("-"),
+            fact["fact_id"].as_str().unwrap_or("-"),
+            target,
+        ));
+    }
+    if lines.is_empty() {
+        lines.push(copy::lookup("coord.no-facts").to_owned());
+    }
+    lines.join("\n")
+}
+
 fn run_coord_verify(root: &Path, json: bool) -> CliResult {
     match verify(root) {
         Ok(()) => {

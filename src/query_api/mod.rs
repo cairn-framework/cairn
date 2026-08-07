@@ -52,6 +52,7 @@ use handlers::{
     locate_json, neighbourhood_json, pending_json, rationale_json, research_response_json,
     roadmap_json, sources_response_json, status_json, todos_response_json,
 };
+use handlers::{coordination_leases_json, coordination_rulings_json};
 use registry::{metadata_for_tool, registry_slice};
 use serialise::{
     backlog_item_detail_json, decision_json, findings_json, node_json, relevant_rules,
@@ -113,6 +114,11 @@ pub struct QueryRequest {
     pub flags: BTreeSet<QueryFlag>,
     /// Explicitly allow a mutating tool invocation.
     pub mutating: bool,
+    /// Optional observation instant, echoed back verbatim by coordination
+    /// reads; the core consults no clock.
+    pub at: Option<String>,
+    /// Optional coordination pagination cursor (a fact filename).
+    pub since: Option<String>,
 }
 
 /// Optional query flags.
@@ -531,6 +537,8 @@ fn execute_data_with_scan(
         "status" => Ok(status_json(root, changes_dir, scan_result)),
         "pending" => pending_json(root, scan_result, request),
         "roadmap" => Ok(roadmap_json(root, scan_result)),
+        "ruling list" | "ruling show" => coordination_rulings_json(root, request),
+        "lease list" => coordination_leases_json(root, request),
         "context" => context_json(root, changes_dir, scan_result, loaded_config),
         "rationale" => rationale_json(
             root,

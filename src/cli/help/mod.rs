@@ -140,6 +140,8 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         ],
     ),
     spec("islands", "islands", FLAGS_BASIC),
+    spec("lease", "lease", FLAGS_HELP_ONLY),
+    spec("lease list", "lease-list", FLAGS_HELP_ONLY),
     spec("lint", "lint", FLAGS_LINT),
     spec("locate", "locate", FLAGS_BASIC),
     spec(
@@ -167,6 +169,9 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
     spec("remediate", "remediate", FLAGS_BASIC),
     spec("rename", "rename", &["json", "file", "help"]),
     spec("research", "research", FLAGS_BASIC),
+    spec("ruling", "ruling", FLAGS_HELP_ONLY),
+    spec("ruling list", "ruling-list", FLAGS_HELP_ONLY),
+    spec("ruling show", "ruling-show", FLAGS_HELP_ONLY),
     spec("scan", "scan", FLAGS_SCAN),
     spec("sources", "sources", FLAGS_BASIC),
     spec("status", "status", FLAGS_STATUS),

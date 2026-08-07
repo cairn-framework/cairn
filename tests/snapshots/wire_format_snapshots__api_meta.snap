@@ -273,6 +273,24 @@ expression: value
       "request": "LocateRequest",
       "response": "LocateResponse",
       "safety": "ReadOnly"
+    },
+    {
+      "name": "ruling list",
+      "request": "CoordinationRequest",
+      "response": "CoordinationRulingsResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "ruling show",
+      "request": "CoordinationShowRequest",
+      "response": "CoordinationRulingResponse",
+      "safety": "ReadOnly"
+    },
+    {
+      "name": "lease list",
+      "request": "CoordinationRequest",
+      "response": "CoordinationLeasesResponse",
+      "safety": "ReadOnly"
     }
   ],
   "last_reconciled": "[timestamp]",

@@ -72,6 +72,9 @@ Error responses from the MCP/query path:
 | `todos <node>` | `cairn_todos` | Todo artefacts linked to the node |
 | `backlog <node>` | n/a | Beads (issues) linked to the node via its `cairn-node:<id>` label |
 | `beads <node>` | `cairn_beads` | Backlog beads (issues) linked to a node |
+| `ruling list` | `cairn_coordination_rulings` | Raw coordination ruling and run-outcome facts; `store_state`, no derived verdicts |
+| `ruling show <fact-id>` | `cairn_coordination_ruling` | One coordination ruling fact by fact id |
+| `lease list` | `cairn_coordination_leases` | Raw coordination lease and driver-singleton facts |
 | `decisions <node>` | `cairn_decisions` | Decision artefacts linked to the node |
 | `research <node>` | `cairn_research` | Research artefacts linked to the node |
 | `sources <node>` | `cairn_sources` | Source artefacts linked to the node |

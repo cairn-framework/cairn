@@ -27,6 +27,7 @@ All codes follow the pattern **`CXNNN`**:
 | D      | Distribution     |
 | O      | CLI output / I/O |
 | L      | LSP / Language Server |
+| W      | Coordination     |
 
 ## Rules
 
@@ -232,3 +233,8 @@ _No codes allocated yet._
 ## CL -- LSP / Language Server
 
 - CL001 -- LSP protocol or transport error -- cairn-d7s
+
+## CW -- Coordination
+
+- CW001 -- coordination store read failed or is partially resolvable; the read fails closed (CAIRN_COORD_READ_FAILED) -- todo.coord-read-surface
+- CW002 -- ruling show found no fact with the requested id (CAIRN_COORD_FACT_NOT_FOUND) -- todo.coord-read-surface

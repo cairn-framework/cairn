@@ -355,6 +355,15 @@ compact-usage = "usage: cairn coord compact --before <YYYY-MM-DD>"
 verify-clean = "coordination store verifies clean"
 compact-none = "nothing to compact before the given date"
 compact-moved = "archived {count} fact(s); nothing was deleted"
+store-uninitialised = "coordination store uninitialised: no fact has ever been recorded"
+no-facts = "no matching facts"
+
+[ruling]
+usage = "usage: cairn ruling <list|show <fact-id>> [--at <RFC3339>] [--since <filename>] [--json]"
+show-usage = "usage: cairn ruling show <fact-id> [--json]"
+
+[lease]
+usage = "usage: cairn lease list [--at <RFC3339>] [--since <filename>] [--json]"
 
 # -- Todo scaffold --------------------------------------------------------
 
@@ -854,6 +863,30 @@ args = """  new <slug> --node <id>                              Scaffold a todo
 usage = "cairn coord <verify|compact --before <YYYY-MM-DD>> [options]"
 args = """  verify                            Check store integrity: append-only, chains, parks
   compact --before <YYYY-MM-DD>     Archive facts recorded before the date; deletes nothing"""
+
+[help.commands.ruling-list]
+description = "List raw coordination ruling and run-outcome facts"
+usage = "cairn ruling list [--at <RFC3339>] [--since <filename>] [--json] [options]"
+args = "  (no arguments)"
+
+[help.commands.ruling-show]
+description = "Show one coordination ruling fact by fact id"
+usage = "cairn ruling show <fact-id> [--json] [options]"
+args = "  <fact-id>  The 12-hex fact id"
+
+[help.commands.lease-list]
+description = "List raw coordination lease and driver-singleton facts"
+usage = "cairn lease list [--at <RFC3339>] [--since <filename>] [--json] [options]"
+args = "  (no arguments)"
+
+[help.commands.ruling]
+usage = "cairn ruling <list|show <fact-id>> [options]"
+args = """  list               List raw ruling and run-outcome facts
+  show <fact-id>     Show one ruling fact"""
+
+[help.commands.lease]
+usage = "cairn lease list [options]"
+args = "  list  List raw lease and driver-singleton facts"
 
 [help.commands.todos]
 usage = "cairn todos [node] [options]"

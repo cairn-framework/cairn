@@ -620,6 +620,14 @@
           "end_line": 40
         },
         {
+          "name": "held",
+          "kind": "function",
+          "signature": "pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool",
+          "file": "src/coord/read.rs",
+          "line": 177,
+          "end_line": 184
+        },
+        {
           "name": "is_initialised",
           "kind": "function",
           "signature": "pub fn is_initialised(store: &Path) -> bool",
@@ -628,12 +636,36 @@
           "end_line": 27
         },
         {
+          "name": "lease_chain_head",
+          "kind": "function",
+          "signature": "pub fn lease_chain_head<'a>(facts: &'a [NamedFact], unit: &str) -> Option<&'a NamedFact>",
+          "file": "src/coord/read.rs",
+          "line": 135,
+          "end_line": 159
+        },
+        {
+          "name": "no_lease",
+          "kind": "function",
+          "signature": "pub fn no_lease(facts: &[NamedFact], unit: &str) -> bool",
+          "file": "src/coord/read.rs",
+          "line": 203,
+          "end_line": 205
+        },
+        {
           "name": "read_facts",
           "kind": "function",
           "signature": "pub fn read_facts(root: &Path) -> Result<StoreRead, String>",
           "file": "src/coord/read.rs",
           "line": 60,
           "end_line": 63
+        },
+        {
+          "name": "stale",
+          "kind": "function",
+          "signature": "pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseState<'a>>",
+          "file": "src/coord/read.rs",
+          "line": 189,
+          "end_line": 199
         },
         {
           "name": "store_root",
@@ -722,6 +754,14 @@
           "file": "src/coord/envelope.rs",
           "line": 25,
           "end_line": 44
+        },
+        {
+          "name": "LeaseState",
+          "kind": "struct",
+          "signature": "pub struct LeaseState<'a>",
+          "file": "src/coord/read.rs",
+          "line": 121,
+          "end_line": 130
         },
         {
           "name": "NamedFact",
@@ -1940,8 +1980,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 74,
-          "end_line": 76
+          "line": 75,
+          "end_line": 77
         },
         {
           "name": "BatterySelection",
@@ -1964,8 +2004,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1098,
-          "end_line": 1116
+          "line": 1117,
+          "end_line": 1135
         },
         {
           "name": "blank_command_failure_detail",
@@ -2012,8 +2052,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 207,
-          "end_line": 459
+          "line": 208,
+          "end_line": 466
         },
         {
           "name": "run",
@@ -2116,8 +2156,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 63,
-          "end_line": 70
+          "line": 64,
+          "end_line": 71
         },
         {
           "name": "EdgeEntry",
@@ -2140,16 +2180,16 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 60,
-          "end_line": 60
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "RETIRED_TOP_LEVEL",
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1093,
-          "end_line": 1093
+          "line": 1112,
+          "end_line": 1112
         },
         {
           "name": "blueprint_root",
@@ -2164,8 +2204,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1124,
-          "end_line": 1132
+          "line": 1143,
+          "end_line": 1151
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -2777,6 +2817,7 @@
         "src/query_api/handlers/artefacts.rs",
         "src/query_api/handlers/bundle.rs",
         "src/query_api/handlers/context.rs",
+        "src/query_api/handlers/coordination.rs",
         "src/query_api/handlers/graph.rs",
         "src/query_api/handlers/locate.rs",
         "src/query_api/handlers/mod.rs",
@@ -2815,16 +2856,16 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 65,
+          "end_line": 65
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 238,
-          "end_line": 240
+          "line": 244,
+          "end_line": 246
         },
         {
           "name": "PendingTier",
@@ -2839,16 +2880,16 @@
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 120,
-          "end_line": 141
+          "line": 126,
+          "end_line": 147
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 68,
-          "end_line": 73
+          "line": 69,
+          "end_line": 74
         },
         {
           "name": "WorkItemSource",
@@ -2871,48 +2912,48 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 406,
-          "end_line": 413
+          "line": 412,
+          "end_line": 419
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 417,
-          "end_line": 424
+          "line": 423,
+          "end_line": 430
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 269,
-          "end_line": 327
+          "line": 275,
+          "end_line": 333
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 335,
-          "end_line": 386
+          "line": 341,
+          "end_line": 392
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 256,
-          "end_line": 262
+          "line": 262,
+          "end_line": 268
         },
         {
           "name": "EnvelopeFinding",
           "kind": "struct",
           "signature": "pub struct EnvelopeFinding",
           "file": "src/query_api/mod.rs",
-          "line": 163,
-          "end_line": 184
+          "line": 169,
+          "end_line": 190
         },
         {
           "name": "PendingBrief",
@@ -2975,24 +3016,24 @@
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 217,
-          "end_line": 226
+          "line": 223,
+          "end_line": 232
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 95,
-          "end_line": 116
+          "line": 96,
+          "end_line": 122
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 151,
-          "end_line": 160
+          "line": 157,
+          "end_line": 166
         },
         {
           "name": "RemediateResponse",
@@ -3007,8 +3048,8 @@
           "kind": "struct",
           "signature": "pub struct ResponseEnvelopeSchema",
           "file": "src/query_api/mod.rs",
-          "line": 198,
-          "end_line": 207
+          "line": 204,
+          "end_line": 213
         },
         {
           "name": "RoadmapItem",
@@ -3063,16 +3104,16 @@
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 77,
-          "end_line": 91
+          "line": 78,
+          "end_line": 92
         },
         {
           "name": "VersionedDataSchema",
           "kind": "struct",
           "signature": "pub struct VersionedDataSchema",
           "file": "src/query_api/mod.rs",
-          "line": 188,
-          "end_line": 194
+          "line": 194,
+          "end_line": 200
         },
         {
           "name": "WorkItem",
@@ -3151,8 +3192,8 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 396,
-          "end_line": 402
+          "line": 402,
+          "end_line": 408
         },
         {
           "name": "parse_pending_brief",
@@ -3295,8 +3336,8 @@
           "kind": "module",
           "signature": "pub(super) mod spine",
           "file": "src/query_api/handlers/mod.rs",
-          "line": 18,
-          "end_line": 18
+          "line": 19,
+          "end_line": 19
         }
       ]
     },
@@ -7991,6 +8032,11 @@
     },
     {
       "from": "cairn.kernel.query",
+      "to": "cairn.coord",
+      "description": "Reads coordination facts"
+    },
+    {
+      "from": "cairn.kernel.query",
       "to": "cairn.kernel.scanner",
       "description": "Reads scan state"
     },
@@ -8171,6 +8217,13 @@
       "message": "todo `todo.build-ci-observation-overlay` is blocked while every declared blocker is done",
       "node": null,
       "path": "././meta/todos/todo.build-ci-observation-overlay.md"
+    },
+    {
+      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
+      "severity": "info",
+      "message": "todo `todo.coord-read-surface` is blocked while every declared blocker is done",
+      "node": null,
+      "path": "././meta/todos/todo.coord-read-surface.md"
     },
     {
       "code": "CAIRN_TODO_STATUS_CONTRADICTION",
