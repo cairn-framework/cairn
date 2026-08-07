@@ -97,14 +97,23 @@ namespacing for grouping (id `res.gas-city.analysis`, filename
 
 ## Put decisions to the maintainer in-session
 
-When you author or enqueue a decision that needs the maintainer's signature, put
-it to them in the session rather than leaving it to be discovered: the ruling in
-one or two sentences, your recommendation, what accepting changes, and what
-rejecting costs. They accept or reject from that summary, so opening
+When a decision does need the maintainer's signature, put it to them in the
+session rather than leaving it to be discovered: the ruling in one or two
+sentences, your recommendation, what accepting changes, and what rejecting
+costs. They accept or reject from that summary, so opening
 `meta/decisions/<slug>.md` is optional rather than the price of signing. This
 holds in any in-harness session (OMP, Claude Code, or a successor). `cairn
-pending` stays the queue of record and the artefact stays the authority for
-detail; state the recommendation as a forced choice, never a hedge.
+pending` is the queue of the four pre-hoc classes and outcome reviews, and the
+artefact stays the authority for detail; state the recommendation as a forced
+choice, never a hedge.
+
+Which decisions still need that signature is governed by
+`dec.reviewer-panel-ratification`: a convergent binding ruling is accepted on
+adversarial panel receipts, and only its four pre-hoc classes (a genuinely
+balanced fork, maintainer-external stakes, mission or regime changes, and
+reversal of a personally signed ruling) go to the maintainer before
+acceptance. Panel acceptances are put to the maintainer as outcome summaries,
+not requests; the veto stands open afterwards.
 
 ## UI and visual work: use the design system
 
