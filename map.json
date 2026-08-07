@@ -7686,6 +7686,124 @@
   ],
   "findings": [
     {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-command-harness-model`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.loop-command-harness-model",
+      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-resolves-knowable-gaps`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.loop-resolves-knowable-gaps",
+      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.agent-pack-packaging` is refined by accepted decision `dec.pack-adapter-roots`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.pack-adapter-roots",
+      "path": "././meta/decisions/agent-pack-packaging.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.rung-three-coordination-substrate",
+      "path": "././meta/decisions/control-plane-programme.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.webui-write-authority",
+      "path": "././meta/decisions/control-plane-programme.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.decision-ratification-tiers` is refined by accepted decision `dec.reviewer-panel-ratification`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.reviewer-panel-ratification",
+      "path": "././meta/decisions/decision-ratification-tiers.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.init-emits-agent-skills` is refined by accepted decision `dec.agent-pack-packaging`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.agent-pack-packaging",
+      "path": "././meta/decisions/init-emits-agent-skills.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.loop-reconcile-step`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.loop-reconcile-step",
+      "path": "././meta/decisions/loop-command-harness-model.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.unified-cairn-dev-entry`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.unified-cairn-dev-entry",
+      "path": "././meta/decisions/loop-command-harness-model.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.north-star-continuous-loop` is refined by accepted decision `dec.control-plane-programme`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.control-plane-programme",
+      "path": "././meta/decisions/north-star-continuous-loop.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.rung-three-coordination-substrate",
+      "path": "././meta/decisions/orchestration-placement.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.webui-write-authority",
+      "path": "././meta/decisions/orchestration-placement.md"
+    },
+    {
+      "code": "CAIRN_DECISION_REFINED_AUTHORITY",
+      "severity": "info",
+      "message": "Decision `dec.webui-write-authority` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
+      "node": null,
+      "target": "dec.rung-three-coordination-substrate",
+      "path": "././meta/decisions/webui-write-authority.md"
+    },
+    {
+      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
+      "severity": "info",
+      "message": "todo `todo.build-ci-observation-overlay` is blocked while every declared blocker is done",
+      "node": null,
+      "path": "././meta/todos/todo.build-ci-observation-overlay.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.skill-absorption` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/skill-absorption.md"
+    },
+    {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
@@ -7724,7 +7842,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.kernel.artefacts` carries 11 accepted decisions (threshold 10).",
+      "message": "Node `cairn.kernel.artefacts` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.kernel.artefacts",
       "path": null
     },
@@ -7745,16 +7863,37 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.root` carries 15 accepted decisions (threshold 10).",
+      "message": "Node `cairn.root` carries 17 accepted decisions (threshold 10).",
       "node": "cairn.root",
       "path": null
     },
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.ui` carries 11 accepted decisions (threshold 10).",
+      "message": "Node `cairn.ui` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.ui",
       "path": null
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.root",
+      "path": "././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.root",
+      "path": "././meta/reviews/rev.rung-three-coordination-substrate-correctness.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.root",
+      "path": "././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md"
     }
   ]
 }
