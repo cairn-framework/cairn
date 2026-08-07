@@ -274,11 +274,15 @@ pub(crate) fn render_wave(
 fn render_wave_body(data: &serde_json::Value) -> String {
     use std::fmt::Write as _;
     let units = data["units"].as_array().cloned().unwrap_or_default();
-    let mut out = format!("Next wave: {} unit(s)  {}\n", units.len(), data["plan"]);
+    let mut out = format!(
+        "Next wave: {} unit(s)  {}\n",
+        units.len(),
+        data["plan"].as_str().unwrap_or("-")
+    );
     let _ = writeln!(
         out,
         "rule {}  write-sets disjoint  hotspot permission: one unit per wave",
-        data["rule"]
+        data["rule"].as_str().unwrap_or("-")
     );
     for unit in &units {
         let includes: Vec<&str> = unit["write_set"]["includes"]
@@ -350,5 +354,26 @@ fn render_held(out: &mut String, data: &serde_json::Value) {
                 let _ = writeln!(out, "  {id} runs alone in a later wave.");
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod wave_render_tests {
+    use super::render_wave_body;
+
+    #[test]
+    fn rendered_digest_is_pasteable_into_ruling_run() {
+        let data = serde_json::json!({
+            "plan": "plan-0123456789abcdef",
+            "rule": "wf.default:1",
+            "units": [],
+            "held": [],
+        });
+        let out = render_wave_body(&data);
+        let first = out.lines().next().expect("first line");
+        // The digest must appear exactly as `cairn ruling run` accepts it:
+        // bare, no JSON quoting.
+        assert!(first.ends_with("plan-0123456789abcdef"), "{first}");
+        assert!(!out.contains('"'), "{out}");
     }
 }
