@@ -64,6 +64,25 @@ fn contract_pointer(id: &str) -> String {
     format!("./meta/contracts/{}", contract_file_name(id))
 }
 
+/// Appended to every generated brownfield proposal. Discovery is filesystem
+/// evidence, so the artefact a reviewer opens has to say what the confidence
+/// column does and does not claim, and name the curation this map still needs.
+const REVIEW_CHECKLIST: &str = "\n## Review before applying\n\n\
+Confidence is a structural signal, not a claim of architectural correctness: it \
+scores how many source files a candidate holds, nothing more. Discovery groups \
+files by where they sit on disk and cannot see how the system divides \
+responsibility. Correct this proposal before you apply it. The scoring rules and \
+their limits are described in `docs/brownfield.md`.\n\n\
+- [ ] Path ownership: no two candidates claim overlapping or nested paths.\n\
+- [ ] Grouping: each candidate is one responsibility, not one directory that \
+happens to hold several.\n\
+- [ ] Edges: every real dependency is declared, and no declared edge is invented.\n\
+- [ ] Contracts: each stub states the interface callers actually rely on.\n\
+- [ ] Currency: stale or abandoned planning material is excluded, not mapped as \
+live code.\n\
+- [ ] Hierarchy: regroup related candidates under appropriate Systems and \
+Containers.\n";
+
 /// Write a brownfield change directory with proposal, blueprint delta,
 /// and stub contracts.
 ///
@@ -93,6 +112,7 @@ pub fn write_change(
             candidate.id, candidate.name, candidate.path, candidate.confidence
         );
     }
+    proposal.push_str(REVIEW_CHECKLIST);
     write_file(&change_dir.join("proposal.md"), &proposal)?;
 
     let delta = blueprint_delta(extraction);
@@ -361,6 +381,49 @@ mod tests {
                 .join(file_name)
                 .exists(),
             "pointer target `{file_name}` must be the file write_change wrote"
+        );
+    }
+
+    #[test]
+    fn test_write_change_proposal_carries_review_checklist() {
+        // The reviewer opens proposal.md, not docs/brownfield.md, so the
+        // artefact itself has to disclaim the confidence column and name the
+        // curation the map still needs.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let root = dir.path();
+        let ext = extraction(vec![candidate("app.payments", "Payments", "payments/")]);
+        write_change(root, "c1", &ext, &[]).expect("write_change must succeed");
+        let proposal = std::fs::read_to_string(root.join("meta/changes/c1/proposal.md"))
+            .expect("proposal must exist");
+        assert!(
+            proposal.contains(
+                "Confidence is a structural signal, not a claim of architectural correctness"
+            ),
+            "proposal must disclaim confidence: {proposal}"
+        );
+        assert!(
+            proposal.contains("docs/brownfield.md"),
+            "proposal must point at the limits doc: {proposal}"
+        );
+        for item in [
+            "Path ownership",
+            "Grouping",
+            "Edges",
+            "Contracts",
+            "Currency",
+            "Hierarchy",
+        ] {
+            assert!(
+                proposal.contains(&format!("- [ ] {item}:")),
+                "review checklist must cover `{item}`: {proposal}"
+            );
+        }
+        assert!(
+            proposal.find("## Candidates").expect("candidates heading")
+                < proposal
+                    .find("## Review before applying")
+                    .expect("review heading"),
+            "the checklist follows the candidate list it applies to"
         );
     }
 

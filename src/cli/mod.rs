@@ -96,6 +96,51 @@ fn bootstrap_agent(root: &Path, wire_file: Option<&str>, wire: bool) -> CliResul
     ok(format!("{}\n{}", pack.stdout.trim_end(), wired.stdout))
 }
 
+/// Ordered next actions after a non-apply `cairn init --from-code`, one entry
+/// per action. The human ladder and the `--json` envelope both render this one
+/// list, so the two orderings cannot drift apart.
+fn brownfield_next_actions(change_id: &str) -> Vec<String> {
+    copy::lookup("init.from-code.next-actions")
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(|line| line.replace("{change_id}", change_id))
+        .collect()
+}
+
+/// Report a completed discovery-only `cairn init --from-code`. Discovery is
+/// not the end of the cold start: the semantic review is, and the agent pack
+/// that would say so is not installed yet, so the ladder has to name the
+/// remaining steps itself.
+fn brownfield_init_report(change_id: &str, json: bool) -> CliResult {
+    let actions = brownfield_next_actions(change_id);
+    if json {
+        // Same envelope family as the `--apply` branch of this command, which
+        // delegates to `archive`: one command must not speak two dialects.
+        return ok(format!(
+            "{}\n",
+            serde_json::json!({
+                "command": "init",
+                "status": "ok",
+                "data": {
+                    "change_id": change_id,
+                    "change_path": format!("meta/changes/{change_id}"),
+                    "applied": false,
+                    "next_actions": actions,
+                },
+            })
+        ));
+    }
+    let mut stdout = copy::lookup("init.from-code.done").replace("{change_id}", change_id);
+    stdout.push_str("\n\n");
+    stdout.push_str(copy::lookup("init.from-code.next-steps-header"));
+    for (index, action) in actions.iter().enumerate() {
+        let _ = write!(stdout, "\n  {}. {action}", index + 1);
+    }
+    stdout.push('\n');
+    ok(stdout)
+}
+
 fn finish_brownfield_apply(
     mut result: CliResult,
     archive_path: Option<&Path>,
@@ -311,9 +356,7 @@ pub fn run(args: &[String]) -> CliResult {
                             parsed.json,
                         )
                     } else {
-                        ok(format!(
-                            "brownfield init complete; change written to meta/changes/{change_id}/\n"
-                        ))
+                        brownfield_init_report(&change_id, parsed.json)
                     }
                 }
                 Err(e) => err(1, &e.to_string()),
@@ -1567,6 +1610,118 @@ mod tests {
         assert_eq!(parsed["command"], "archive");
         assert!(result.stderr.is_empty(), "stderr: {}", result.stderr);
         Ok(())
+    }
+
+    /// Parse the numbered ladder `brownfield_init_report` renders in text mode
+    /// back into an ordered list, so it can be compared with the JSON array.
+    fn ladder_steps(stdout: &str) -> Vec<String> {
+        stdout
+            .lines()
+            .filter_map(|line| {
+                let (index, text) = line.trim().split_once(". ")?;
+                index.parse::<usize>().ok().map(|_| text.to_owned())
+            })
+            .collect()
+    }
+
+    fn from_code_root(name: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+        let root = temp_root(name)?;
+        fs::create_dir_all(root.join("src/alpha"))?;
+        for i in 0..3 {
+            fs::write(root.join(format!("src/alpha/f{i}.rs")), "pub fn f() {}\n")?;
+        }
+        Ok(root)
+    }
+
+    #[test]
+    fn test_cli_init_from_code_prints_review_before_apply_ladder()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ladder")?;
+        let result = run_in(&root, &["init", "--from-code"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let steps = ladder_steps(&result.stdout);
+        assert_eq!(
+            steps.len(),
+            6,
+            "discovery must hand back an ordered ladder: {}",
+            result.stdout
+        );
+        assert!(
+            steps[0].contains("Review") && steps[0].contains("proposal.md"),
+            "review must lead the ladder, got: {}",
+            steps[0]
+        );
+        let apply_at = steps
+            .iter()
+            .position(|step| step.contains("cairn change apply brownfield-init"))
+            .expect("ladder must name the apply command");
+        assert!(
+            apply_at > 0,
+            "apply must not precede review: {}",
+            result.stdout
+        );
+        for command in [
+            "cairn init --wire",
+            "cairn scan",
+            "cairn onboard",
+            "cairn hook all",
+        ] {
+            assert!(
+                steps.iter().any(|step| step.contains(command)),
+                "ladder must name `{command}`: {}",
+                result.stdout
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_json_next_actions_match_human_output()
+    -> Result<(), Box<dyn std::error::Error>> {
+        // One flag must not mean two behaviours: the non-apply branch used to
+        // ignore --json entirely and print the same human sentence.
+        let human = run_in(
+            &from_code_root("init-from-code-human")?,
+            &["init", "--from-code"],
+        );
+        assert_eq!(human.code, 0, "stderr: {}", human.stderr);
+        let json = run_in(
+            &from_code_root("init-from-code-json")?,
+            &["--json", "init", "--from-code"],
+        );
+        assert_eq!(json.code, 0, "stderr: {}", json.stderr);
+        let parsed: serde_json::Value = serde_json::from_str(json.stdout.trim())
+            .unwrap_or_else(|e| panic!("json mode must emit valid JSON ({e}): {}", json.stdout));
+        assert_eq!(parsed["command"], "init");
+        assert_eq!(parsed["status"], "ok");
+        assert_eq!(parsed["data"]["change_id"], "brownfield-init");
+        assert_eq!(parsed["data"]["applied"], serde_json::json!(false));
+        let actions: Vec<String> = parsed["data"]["next_actions"]
+            .as_array()
+            .expect("next_actions must be an array")
+            .iter()
+            .map(|v| v.as_str().expect("action must be a string").to_owned())
+            .collect();
+        assert_eq!(
+            actions,
+            ladder_steps(&human.stdout),
+            "JSON next_actions must be the human ladder, same steps, same order"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_init_from_code_copy_keys_resolve() {
+        // `copy::lookup` falls back to the key itself, so a renamed or
+        // mistyped key would print `init.from-code.done` at exit 0 on the
+        // cold-start path. Only `next-actions` fails loudly on its own.
+        for key in [
+            "init.from-code.done",
+            "init.from-code.next-steps-header",
+            "init.from-code.next-actions",
+        ] {
+            assert_ne!(copy::lookup(key), key, "missing copy key {key}");
+        }
     }
 
     #[test]
