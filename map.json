@@ -8370,6 +8370,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.chatgpt-issue-audit` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/chatgpt-issue-audit.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.skill-absorption` is not linked from any decision",
       "node": null,
       "path": "././meta/research/skill-absorption.md"
@@ -8380,6 +8387,13 @@
       "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
       "node": null,
       "path": "././meta/research/spec-rules-anchor-drift.md"
+    },
+    {
+      "code": "CAIRN_SOURCE_UNVERIFIED",
+      "severity": "info",
+      "message": "source `src.chatgpt-issue-audit` is unverified",
+      "node": null,
+      "path": "././meta/sources/chatgpt-issue-audit.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
