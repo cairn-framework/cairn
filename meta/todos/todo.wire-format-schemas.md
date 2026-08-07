@@ -87,3 +87,5 @@ shape (`schemas/finding.schema.json`) still omits both by design.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It preserves the wire-format contract while campaign units serialise against it.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep in_progress; remaining batches stand.

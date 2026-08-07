@@ -45,3 +45,5 @@ implementation), recorded 2026-07-31 immediately after that merge.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps pending ratification work discoverable and actionable.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; integrity defect, second in the adopter-defect order.

@@ -76,3 +76,5 @@ unloaded sources). Keep eval prompts inside the loaded authority corpus
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps authorability coverage in the quality gate.
 
 cairn.root anchor justified (2026-08-07): writes only research artefacts and unowned eval scaffolding; no owned source files.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; now executable post rung-3, no stale assumptions found.

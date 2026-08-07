@@ -44,3 +44,5 @@ in this unit; if the comparison argues for one, enqueue a decision via
 ## Mission disposition
 
 2026-08-02: blocked against dec.cairn-mission. Serves investigable. It remains maintainer-triage-gated with no declared blocker by design.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): res.chatgpt-issue-audit says unblock (no real blocker); the 2026-08-02 note here says maintainer-triage-gated by design. Tension recorded; stays blocked pending the maintainer's call.

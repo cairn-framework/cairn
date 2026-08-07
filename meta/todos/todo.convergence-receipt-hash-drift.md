@@ -124,3 +124,5 @@ Error-severity finding, not the first finding.
 
 Found 2026-08-03 while checking whether the repository was at a cuttable
 0.10.0 milestone. It is the reason that answer is no.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): headline is stale: main is strict-green with a freshly built binary (verified this session, scan --strict exit 0), so the P0 framing and the bootstrap-fixture receipts Error are resolved. Live remainder: item 3 (findings_error still keys on findings.first(), verified in src/query_api/util.rs), items 4 to 6, and the three standing CAIRN_REVIEW_SUBJECT_UNMATCHED Infos now sitting on the rung-three reviews. Re-scope to that remainder.

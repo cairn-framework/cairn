@@ -205,3 +205,5 @@ input to task 4 here. This unit is the in-repo successor that change
 deliberately did not become.
 
 cairn.root anchor justified (2026-08-07): declares its own driver nodes in task 1; re-anchor when they exist.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep, awaiting maintainer signature; split after signature. The 2026-08-07 architecture review (res.chatgpt-architecture-review) recommends landing todo.coord-fact-store-hardening and todo.coord-cursor-semantics BEFORE the driver becomes coord's second adapter; put that sequencing to the maintainer at signature time.

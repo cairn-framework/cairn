@@ -206,3 +206,5 @@ the at-threshold fragility rather than on regeneration.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps backlog selection aligned with declared findings and mission work.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): landed except the `defers:` field ratification; narrow scope to that remainder.

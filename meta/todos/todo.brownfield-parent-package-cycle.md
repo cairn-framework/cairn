@@ -63,3 +63,5 @@ when the second lands.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps the parent-package cycle gate explicit while its prerequisite remains unresolved.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked; sole open child is todo.brownfield-nested-package-scan-clean, and this parent flips done when it lands.

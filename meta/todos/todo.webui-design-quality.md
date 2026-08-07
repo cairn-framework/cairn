@@ -61,3 +61,5 @@ the scorer.
 ## Mission disposition
 
 2026-08-02: blocked against dec.cairn-mission. Serves fit-for-purpose. Bet D design-quality scorer tracker per dec.webui-write-authority clause 5, gated on the visual harness; bet A alone was superseded by dec.webui-design-direction.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): res.chatgpt-issue-audit says unblock and narrow to Bet D proxies, but the body is decision-gated (dec.webui-design-quality-direction) plus maintainer-gated, so it stays blocked; narrowing needs that ruling.

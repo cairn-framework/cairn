@@ -38,3 +38,5 @@ the guidance edit lands with maintainer signature; enqueue via
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves investigable. It fills the empty frontier lane with guidance for declaring future structure.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): res.chatgpt-issue-audit recommends closure (the rule conflates the work graph with blueprint anchoring); check against the accepted task-tracking authority before closing.

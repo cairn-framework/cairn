@@ -22,3 +22,5 @@ init-time proposal step.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It is campaign filler A on a disjoint surface and keeps adoption work moving.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; adopter-defect queue.

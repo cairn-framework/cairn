@@ -167,13 +167,11 @@ impl SummariserBackend for FakeBackend {
 /// Local command backend: spawns a subprocess, sends JSON on stdin,
 /// reads JSON from stdout, and enforces a per-call timeout.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[allow(dead_code)] // Reason: will be constructed by CLI wiring in upcoming task 4.1
 pub struct LocalCommandBackend {
     command: String,
     args: Vec<String>,
 }
 
-#[allow(dead_code)] // Reason: same as struct; used by CLI wiring in task 4.1
 impl LocalCommandBackend {
     /// Creates a backend from a command path and argument list.
     #[must_use]

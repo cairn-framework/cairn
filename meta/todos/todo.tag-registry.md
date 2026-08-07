@@ -39,3 +39,5 @@ needed for the Info-tier core.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves investigable. It keeps tag coverage discoverable for future graph investigations.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep as written.

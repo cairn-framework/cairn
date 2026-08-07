@@ -37,3 +37,5 @@ not delete the worktree before this triage lands its disposition.
   grounds; anything cherry-picked lands through the normal PR gates.
 
 cairn.root anchor justified (2026-08-07): triages an external experiment branch into meta/ artefacts only.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; preserve the experiment diff first, early in the execution order.

@@ -72,3 +72,5 @@ Informed by: res.loop-efficiency-observations
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves investigable. It improves investigation when symbols need precise graph coverage.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep as written.

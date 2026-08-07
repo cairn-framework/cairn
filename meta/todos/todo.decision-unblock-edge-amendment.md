@@ -32,3 +32,5 @@ amendment.
 - The amendment decision is signed; the edge parses and validates.
 - `cairn pending` orders by what each decision unblocks, traceably from
   typed edges, replacing the age-only sort.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; task/control-plane spine per res.chatgpt-issue-audit.

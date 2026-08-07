@@ -53,3 +53,5 @@ notice, which is how `todo.map-snapshot-resync` came to exist.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves maintainable. It keeps generated map evidence fresh enough for maintainers to trust.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep as written.

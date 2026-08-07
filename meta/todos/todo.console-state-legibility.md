@@ -67,3 +67,5 @@ orchestration-facing nor speculative: they are defects on surfaces that
 already shipped, and fixing them first removes "the console showed
 nothing useful" as a confound when the mockups are compared against the
 live surface.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; blocker of todo.ui-asset-refresh.

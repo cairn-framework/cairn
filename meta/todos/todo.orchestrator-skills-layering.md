@@ -47,3 +47,5 @@ ruling, which was signed on 2026-08-06.
 - The workflow schema names skills by id and cairn validates the
   references at scan time.
 - No skill content is duplicated into any workflow artefact.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; no stale assumptions found this pass.

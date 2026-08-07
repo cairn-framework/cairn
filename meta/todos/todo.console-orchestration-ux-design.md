@@ -323,3 +323,5 @@ defers to them; the console is product lane per
   `scripts/check-design-tokens.sh` and `scripts/check-a11y.sh`; run
   them on mockup HTML only, not on `src/ui_assets`, until
   implementation starts.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; gates todo.console-signed-widening.

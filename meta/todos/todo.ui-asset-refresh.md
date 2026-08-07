@@ -76,3 +76,5 @@ specify). The design unit that feeds them,
 `todo.console-orchestration-ux-design`, ships no console code, so
 blocking on it alone would clear before the pixels changed and cause
 exactly the double recording this todo exists to avoid.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): not obsolete (the res.chatgpt-issue-audit staleness note stands); correctly blocked on todo.console-state-legibility and todo.console-signed-widening, both live.

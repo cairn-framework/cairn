@@ -67,3 +67,5 @@ this todo `open` if a maintainer sanctions one.
 ## Mission disposition
 
 2026-08-02: blocked against dec.cairn-mission. Serves investigable. It remains deferred under the accepted revisit-trigger decision.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked as a deliberate record (deferral ruled by dec.revisit-trigger-correlator-deferred). res.chatgpt-issue-audit's close recommendation is rejected: the blocked todo IS the machine-visible parking record.

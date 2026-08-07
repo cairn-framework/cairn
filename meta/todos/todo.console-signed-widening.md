@@ -73,3 +73,5 @@ surface. Two prerequisites remain:
    which is rung 3 design under `todo.parallel-dispatch-granularity`,
    and the plan identity `cairn ruling run` takes as its argument, which
    clause 2 deliberately left to that design.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked on todo.console-orchestration-ux-design; child of the driver programme.

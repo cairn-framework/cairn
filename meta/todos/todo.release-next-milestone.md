@@ -111,3 +111,5 @@ Add to the changelog scope, landed since the list above was written:
 that list only if it is signed before the cut.
 
 cairn.root anchor justified (2026-08-07): release cut is crate-wide process (Cargo.toml, CHANGELOG).
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; refresh the gate inventory at release time. Milestone gate 1 (convergence receipt drift) is resolved: main is strict-green as of 2026-08-07.

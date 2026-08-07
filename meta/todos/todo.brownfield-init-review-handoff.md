@@ -96,3 +96,5 @@ MAG repository, which used the released 0.9.0 installer binary.
 
 Reported by the agent onboarding MAG (`cairn-framework/cairn` was read-only for
 that installation, so no upstream issue or branch could be created).
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep; res.chatgpt-issue-audit ranks this the highest-priority product defect. First in the adopter-defect order.

@@ -7319,16 +7319,16 @@
           "kind": "function",
           "signature": "pub const fn new(command: String, args: Vec<String>) -> Self",
           "file": "src/summariser/backend/mod.rs",
-          "line": 180,
-          "end_line": 182
+          "line": 178,
+          "end_line": 180
         },
         {
           "name": "new",
           "kind": "function",
           "signature": "pub const fn new(config: HostedConfig) -> Self",
           "file": "src/summariser/backend/mod.rs",
-          "line": 307,
-          "end_line": 309
+          "line": 305,
+          "end_line": 307
         },
         {
           "name": "ok",
@@ -7671,24 +7671,24 @@
           "kind": "struct",
           "signature": "pub struct HostedBackend",
           "file": "src/summariser/backend/mod.rs",
-          "line": 299,
-          "end_line": 301
+          "line": 297,
+          "end_line": 299
         },
         {
           "name": "HostedConfig",
           "kind": "struct",
           "signature": "pub struct HostedConfig",
           "file": "src/summariser/backend/mod.rs",
-          "line": 281,
-          "end_line": 290
+          "line": 279,
+          "end_line": 288
         },
         {
           "name": "LocalCommandBackend",
           "kind": "struct",
           "signature": "pub struct LocalCommandBackend",
           "file": "src/summariser/backend/mod.rs",
-          "line": 171,
-          "end_line": 174
+          "line": 170,
+          "end_line": 173
         },
         {
           "name": "PendingDraft",
@@ -8354,18 +8354,11 @@
       "path": "././meta/decisions/webui-write-authority.md"
     },
     {
-      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
+      "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
-      "message": "todo `todo.build-ci-observation-overlay` is blocked while every declared blocker is done",
+      "message": "research `res.chatgpt-architecture-review` is not linked from any decision",
       "node": null,
-      "path": "././meta/todos/todo.build-ci-observation-overlay.md"
-    },
-    {
-      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
-      "severity": "info",
-      "message": "todo `todo.workflow-serialises-validation` is open while declared blocker `todo.driver-in-repo` is not done",
-      "node": null,
-      "path": "././meta/todos/todo.workflow-serialises-validation.md"
+      "path": "././meta/research/chatgpt-architecture-review.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
@@ -8373,6 +8366,13 @@
       "message": "research `res.chatgpt-issue-audit` is not linked from any decision",
       "node": null,
       "path": "././meta/research/chatgpt-issue-audit.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.roadmap-audit-health` is not linked from any decision",
+      "node": null,
+      "path": "././meta/research/roadmap-audit-health.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",

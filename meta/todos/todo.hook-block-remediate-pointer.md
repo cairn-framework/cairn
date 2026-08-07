@@ -29,3 +29,5 @@ copy registry from day one). Small enough to not need a change proposal.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps hook failures pointed at actionable remediation.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep as written.

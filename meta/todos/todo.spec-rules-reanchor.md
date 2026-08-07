@@ -50,3 +50,5 @@ drifted.
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves investigable. It keeps specification rules anchored to the surfaces that implement them.
+
+2026-08-07 audit (todo.roadmap-assumption-audit): keep as written.
