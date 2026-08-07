@@ -1,6 +1,6 @@
 ---
 node: cairn.coord
-status: blocked
+status: done
 created: 2026-08-07
 blocked_by: [todo.parallel-dispatch-granularity, todo.coord-common-dir-helper]
 related: [dec.rung-three-coordination-substrate, res.parallel-dispatch-rung-3]

@@ -347,6 +347,15 @@ created = "created meta/decisions/{slug}.md; add the governing node id(s) and fi
 refined-by = "  refined by {id}, {status} {date}"
 superseded-by = "  superseded by {id}, {status} {date}"
 
+# -- Coordination store admin ---------------------------------------------
+
+[coord]
+usage = "usage: cairn coord <verify|compact --before <YYYY-MM-DD>>"
+compact-usage = "usage: cairn coord compact --before <YYYY-MM-DD>"
+verify-clean = "coordination store verifies clean"
+compact-none = "nothing to compact before the given date"
+compact-moved = "archived {count} fact(s); nothing was deleted"
+
 # -- Todo scaffold --------------------------------------------------------
 
 [todo]
@@ -840,6 +849,11 @@ args = """  new <slug> --node <id>                              Scaffold a todo
   set <slug> <open|in_progress|done|blocked>          Update todo status
   link <slug> [--blocked-by|--parent|--related]...    Add relationship links
   unlink <slug> [--blocked-by|--parent|--related]...  Remove relationship links"""
+
+[help.commands.coord]
+usage = "cairn coord <verify|compact --before <YYYY-MM-DD>> [options]"
+args = """  verify                            Check store integrity: append-only, chains, parks
+  compact --before <YYYY-MM-DD>     Archive facts recorded before the date; deletes nothing"""
 
 [help.commands.todos]
 usage = "cairn todos [node] [options]"

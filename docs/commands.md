@@ -77,6 +77,8 @@ This installs `cairn`, `cairn-mcp`, and `cairn-lsp`.
 | `cairn todo unlink <slug> [--blocked-by <todo.slug>]... [--parent <todo.slug>] [--related <id>]...` | Remove relationship links from a todo; same flags as `link` |
 | `cairn gap <node> --question "<text>"` | Log an unresolved question as a proposed decision artefact |
 | `cairn baseline <record\|drop> <node>` | Record, re-record, or prune a node's contract baseline in `.cairn/state/contract-baselines.json`. Needs no summariser backend; drop is restricted to inert entries |
+| `cairn coord verify` | Check the family-local coordination fact store: append-only held, no broken supersedes chain, no compacted unmatched park |
+| `cairn coord compact --before <YYYY-MM-DD>` | Move old coordination facts into `archive/<yyyy-mm>/`; never deletes, never moves an unmatched park or a live chain's antecedent |
 
 ### Optional integrations
 

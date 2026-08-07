@@ -103,6 +103,8 @@ Error responses from the MCP/query path:
 | `feedback "<message>"` | - | Record cairn friction in `.cairn/feedback.md`, print upstream issue link |
 | `decision new <slug>` | - | Scaffold a new decision artefact (frontmatter + sections) |
 | `gap <node> --question "<text>"` | - | Log an unresolved question as a `gap: true`, `status: proposed` decision artefact |
+| `coord verify` | n/a | Check coordination-store integrity; records an observation snapshot in the store's derived cache. CLI-only |
+| `coord compact --before <YYYY-MM-DD>` | n/a | Archive old coordination facts; deletes nothing. CLI-only |
 
 ### Draft lifecycle (semi-stable)
 

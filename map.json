@@ -559,11 +559,58 @@
         "./src/coord"
       ],
       "files": [
+        "src/coord/append.rs",
+        "src/coord/envelope.rs",
+        "src/coord/epoch.rs",
         "src/coord/git.rs",
-        "src/coord/mod.rs"
+        "src/coord/mod.rs",
+        "src/coord/read.rs",
+        "src/coord/store.rs",
+        "src/coord/time.rs",
+        "src/coord/verify.rs"
       ],
       "contracts": [],
       "symbols": [
+        {
+          "name": "STORE_FORMAT",
+          "kind": "const",
+          "signature": "pub const STORE_FORMAT u32",
+          "file": "src/coord/envelope.rs",
+          "line": 12,
+          "end_line": 12
+        },
+        {
+          "name": "StoreRead",
+          "kind": "enum",
+          "signature": "pub enum StoreRead",
+          "file": "src/coord/read.rs",
+          "line": 21,
+          "end_line": 26
+        },
+        {
+          "name": "acquire_epoch",
+          "kind": "function",
+          "signature": "pub fn acquire_epoch(dir: &Path) -> Result<u64, String>",
+          "file": "src/coord/epoch.rs",
+          "line": 45,
+          "end_line": 66
+        },
+        {
+          "name": "append_fact",
+          "kind": "function",
+          "signature": "pub fn append_fact(root: &Path, fact: NewFact) -> Result<PathBuf, String>",
+          "file": "src/coord/append.rs",
+          "line": 41,
+          "end_line": 99
+        },
+        {
+          "name": "compact",
+          "kind": "function",
+          "signature": "pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String>",
+          "file": "src/coord/verify.rs",
+          "line": 132,
+          "end_line": 196
+        },
         {
           "name": "git_common_dir",
           "kind": "function",
@@ -573,12 +620,156 @@
           "end_line": 40
         },
         {
+          "name": "is_initialised",
+          "kind": "function",
+          "signature": "pub fn is_initialised(store: &Path) -> bool",
+          "file": "src/coord/store.rs",
+          "line": 25,
+          "end_line": 27
+        },
+        {
+          "name": "read_facts",
+          "kind": "function",
+          "signature": "pub fn read_facts(root: &Path) -> Result<StoreRead, String>",
+          "file": "src/coord/read.rs",
+          "line": 60,
+          "end_line": 63
+        },
+        {
+          "name": "store_root",
+          "kind": "function",
+          "signature": "pub fn store_root(root: &Path) -> Result<PathBuf, String>",
+          "file": "src/coord/store.rs",
+          "line": 19,
+          "end_line": 21
+        },
+        {
+          "name": "verify",
+          "kind": "function",
+          "signature": "pub fn verify(root: &Path) -> Result<(), String>",
+          "file": "src/coord/verify.rs",
+          "line": 71,
+          "end_line": 123
+        },
+        {
+          "name": "append",
+          "kind": "module",
+          "signature": "pub mod append",
+          "file": "src/coord/mod.rs",
+          "line": 9,
+          "end_line": 9
+        },
+        {
+          "name": "envelope",
+          "kind": "module",
+          "signature": "pub mod envelope",
+          "file": "src/coord/mod.rs",
+          "line": 11,
+          "end_line": 11
+        },
+        {
+          "name": "epoch",
+          "kind": "module",
+          "signature": "pub mod epoch",
+          "file": "src/coord/mod.rs",
+          "line": 13,
+          "end_line": 13
+        },
+        {
           "name": "git",
           "kind": "module",
           "signature": "pub mod git",
           "file": "src/coord/mod.rs",
-          "line": 8,
-          "end_line": 8
+          "line": 15,
+          "end_line": 15
+        },
+        {
+          "name": "read",
+          "kind": "module",
+          "signature": "pub mod read",
+          "file": "src/coord/mod.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
+          "name": "store",
+          "kind": "module",
+          "signature": "pub mod store",
+          "file": "src/coord/mod.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "verify",
+          "kind": "module",
+          "signature": "pub mod verify",
+          "file": "src/coord/mod.rs",
+          "line": 23,
+          "end_line": 23
+        },
+        {
+          "name": "Actor",
+          "kind": "struct",
+          "signature": "pub struct Actor",
+          "file": "src/coord/envelope.rs",
+          "line": 16,
+          "end_line": 21
+        },
+        {
+          "name": "Envelope",
+          "kind": "struct",
+          "signature": "pub struct Envelope",
+          "file": "src/coord/envelope.rs",
+          "line": 25,
+          "end_line": 44
+        },
+        {
+          "name": "NamedFact",
+          "kind": "struct",
+          "signature": "pub struct NamedFact",
+          "file": "src/coord/read.rs",
+          "line": 30,
+          "end_line": 35
+        },
+        {
+          "name": "NewFact",
+          "kind": "struct",
+          "signature": "pub struct NewFact",
+          "file": "src/coord/append.rs",
+          "line": 18,
+          "end_line": 31
+        },
+        {
+          "name": "check_format",
+          "kind": "function",
+          "signature": "pub(crate) fn check_format(store: &Path) -> Result<(), String>",
+          "file": "src/coord/store.rs",
+          "line": 35,
+          "end_line": 45
+        },
+        {
+          "name": "ensure_initialised",
+          "kind": "function",
+          "signature": "pub(crate) fn ensure_initialised(store: &Path) -> Result<(), String>",
+          "file": "src/coord/store.rs",
+          "line": 54,
+          "end_line": 64
+        },
+        {
+          "name": "evidence_class_for",
+          "kind": "function",
+          "signature": "pub(crate) fn evidence_class_for(kind: &str) -> Option<&'static str>",
+          "file": "src/coord/envelope.rs",
+          "line": 48,
+          "end_line": 61
+        },
+        {
+          "name": "fact_id_for",
+          "kind": "function",
+          "signature": "pub(crate) fn fact_id_for(envelope: &Envelope) -> Result<String, String>",
+          "file": "src/coord/envelope.rs",
+          "line": 70,
+          "end_line": 78
         },
         {
           "name": "head_hash",
@@ -587,6 +778,30 @@
           "file": "src/coord/git.rs",
           "line": 65,
           "end_line": 71
+        },
+        {
+          "name": "known_evidence_class",
+          "kind": "function",
+          "signature": "pub(crate) fn known_evidence_class(class: &str) -> bool",
+          "file": "src/coord/envelope.rs",
+          "line": 64,
+          "end_line": 66
+        },
+        {
+          "name": "read_store",
+          "kind": "function",
+          "signature": "pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String>",
+          "file": "src/coord/read.rs",
+          "line": 70,
+          "end_line": 117
+        },
+        {
+          "name": "time",
+          "kind": "module",
+          "signature": "pub(crate) mod time",
+          "file": "src/coord/mod.rs",
+          "line": 21,
+          "end_line": 21
         }
       ]
     },
@@ -1076,6 +1291,14 @@
           "file": "src/artefacts/registry/mod.rs",
           "line": 20,
           "end_line": 20
+        },
+        {
+          "name": "sha256",
+          "kind": "module",
+          "signature": "pub(crate) mod sha256",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 22,
+          "end_line": 22
         },
         {
           "name": "ARTEFACT_KINDS",
@@ -1608,6 +1831,7 @@
         "src/cli/commands/archive.rs",
         "src/cli/commands/baseline.rs",
         "src/cli/commands/change.rs",
+        "src/cli/commands/coord.rs",
         "src/cli/commands/decision.rs",
         "src/cli/commands/feedback.rs",
         "src/cli/commands/gap.rs",
@@ -1740,8 +1964,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1091,
-          "end_line": 1109
+          "line": 1098,
+          "end_line": 1116
         },
         {
           "name": "blank_command_failure_detail",
@@ -1789,7 +2013,7 @@
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
           "line": 207,
-          "end_line": 456
+          "end_line": 459
         },
         {
           "name": "run",
@@ -1924,8 +2148,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1086,
-          "end_line": 1086
+          "line": 1093,
+          "end_line": 1093
         },
         {
           "name": "blueprint_root",
@@ -1940,8 +2164,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1117,
-          "end_line": 1125
+          "line": 1124,
+          "end_line": 1132
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -7729,6 +7953,11 @@
       "from": "cairn.kernel.cli",
       "to": "cairn.ui",
       "description": "Launches graph explorer"
+    },
+    {
+      "from": "cairn.kernel.cli",
+      "to": "cairn.coord",
+      "description": "Runs store admin verbs"
     },
     {
       "from": "cairn.kernel.cli",

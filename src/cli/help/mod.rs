@@ -86,6 +86,7 @@ const COMMAND_HELP: &[CommandHelpSpec] = &[
         &["depth", "scope", "mermaid", "json", "file", "help"],
     ),
     spec("contract", "contract", FLAGS_BASIC),
+    spec("coord", "coord", FLAGS_HELP_ONLY),
     spec(
         "decision",
         "decision",
