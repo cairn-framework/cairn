@@ -21,6 +21,8 @@ pub mod brownfield;
 pub mod changes;
 /// CLI command registry and renderer helpers.
 pub mod cli;
+/// Family-local coordination store: append-only facts and epoch tokens.
+pub mod coord;
 /// Compile-time copy lookup from `docs/design-system/copy.toml`.
 pub mod copy;
 /// Shared error type.

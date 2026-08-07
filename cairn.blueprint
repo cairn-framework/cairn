@@ -31,6 +31,7 @@ System Cairn "Graph, decisions, and gates keeping extreme AI-agent software deve
     }
 
     Module Coordination "Family-local coordination fact store: append-only facts, epoch tokens, read fold" id "cairn.coord" @no-contract {
+        path "./src/coord"
     }
 
     Module Watch "Watch mode: periodic scan with finding-change events" id "cairn.watch" {
@@ -170,6 +171,7 @@ cairn.kernel.map        -> cairn.kernel.artefacts   "Validates contracts against
 # Enforcement gates
 cairn.kernel.hooks      -> cairn.kernel.scanner     "Gates commits on scan integrity"
 cairn.kernel.hooks      -> cairn.kernel.map         "Reads findings"
+cairn.kernel.hooks      -> cairn.coord             "Resolves the shared git dir"
 cairn.kernel.changes    -> cairn.kernel.scanner     "Validates deltas before archive"
 cairn.kernel.changes    -> cairn.kernel.blueprint   "Parses blueprint deltas"
 cairn.kernel.changes    -> cairn.kernel.map         "Reads graph state"
