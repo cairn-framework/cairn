@@ -24,7 +24,10 @@ session ruled that workflow definitions are inert typed cairn artefacts
 with a context slot naming the skills a dispatched session receives. The
 maintainer answered Q6 in session. This record owns the ruling;
 `todo.orchestrator-skills-layering` carries only a pointer and the
-implementation tasks, and stays blocked on this signature.
+implementation tasks, and was blocked on this signature until it was
+given. Accepted 2026-08-06: that todo is open and its tasks are
+startable. Where this record still reads in the present tense about
+being unsigned, it is describing the state it was authored in.
 
 ## Decision
 

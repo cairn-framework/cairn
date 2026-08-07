@@ -29,7 +29,7 @@ amendment.
 
 Owned by `dec.orchestrator-skills-layering`; this todo does not restate
 it, in any form; read the decision. Tasks 2 and 3 below implement the
-ruling once it is signed.
+ruling, which was signed on 2026-08-06.
 
 ## Task
 

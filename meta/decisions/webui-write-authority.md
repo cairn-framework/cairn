@@ -26,6 +26,13 @@ revisit_triggers:
 
 # Webui write authority: rulings are recorded facts, and run is one of them
 
+Accepted 2026-08-06. All four ratification actions landed in that commit:
+the supersession marked, the brief's non-goal line and J6 table amended,
+`cairn todo new` confirmed into the clause 1 union, and every live pointer
+moved. Clause 6 and the ratification section below are written from before
+the signature and describe the state they were authored in, not a live
+boundary.
+
 ## Context
 
 `dec.webui-design-authority` clause 4 rules that the webui stays read-only,
@@ -361,8 +368,8 @@ the brief's candidate reconciliation proposed.
 
 ## Consequences
 
-- The decision is enqueued in `cairn pending` and waits for the
-  maintainer; `todo.console-orchestration-ux-design` task 6 is discharged
+- The decision was enqueued in `cairn pending` and accepted on
+  2026-08-06; `todo.console-orchestration-ux-design` task 6 is discharged
   by the enqueue, not the signature.
 - On signature, `dec.webui-design-authority` joins its own five superseded
   ancestors as historical detail, and this record becomes the binding
