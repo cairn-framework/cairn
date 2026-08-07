@@ -2,6 +2,7 @@
 node: cairn.root
 status: open
 created: 2026-08-03
+related: [res.chatgpt-issue-audit]
 ---
 
 # Roadmap Assumption Audit
