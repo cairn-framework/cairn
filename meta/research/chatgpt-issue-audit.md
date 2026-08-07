@@ -32,9 +32,10 @@ The audit predates the rung-3 substrate merge (PR #589, merge commit
 - "#562 parallel dispatch granularity: keep as research until a driver
   exists": `todo.parallel-dispatch-granularity` is `done`; rungs 1 to 3
   shipped.
-- "#425 UI asset refresh: close as obsolete": re-anchored 2026-08-07,
-  deliberately blocked by `todo.console-state-legibility` and
-  `todo.console-signed-widening`.
+- "#425 UI asset refresh: close as obsolete": its blockers were updated
+  2026-08-03 to `todo.console-state-legibility` and
+  `todo.console-signed-widening`; it is deliberately blocked, not
+  obsolete.
 - "#575 console signed widening: only live gate is orchestration
   placement": now blocked by `todo.console-orchestration-ux-design`.
 - "There are currently no open PRs": PR #589 was open at receipt.

@@ -2,8 +2,9 @@
 
 Produced by ChatGPT at the maintainer's request; handed over in-session
 2026-08-07. Preserved verbatim (em-dashes included; this directory is
-exempt). Provenance artefact: `src.chatgpt-issue-audit`. Verified capture
-and staleness record: `res.chatgpt-issue-audit`.
+exempt). Provenance artefact: `src.chatgpt-issue-audit`. Capture with a
+staleness record (staleness verified, dispositions as received):
+`res.chatgpt-issue-audit`.
 
 ---
 
