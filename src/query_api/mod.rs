@@ -34,6 +34,8 @@ mod registry;
 mod serialise;
 mod util;
 
+/// Derived write-sets and the wave composer.
+pub(crate) mod wave;
 use change_queries::dispatch_change_tool;
 pub(crate) use handlers::{
     CleanItem, NextSelection, decision_summary, from_finding_action, health_json,

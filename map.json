@@ -2448,6 +2448,7 @@
         "src/map/integrity.rs",
         "src/map/mod.rs",
         "src/map/module_size.rs",
+        "src/map/paths.rs",
         "src/map/query.rs",
         "src/map/spec_rule_coverage.rs",
         "src/map/spec_rule_coverage/tests.rs",
@@ -2654,8 +2655,8 @@
           "kind": "module",
           "signature": "pub mod query",
           "file": "src/map/mod.rs",
-          "line": 8,
-          "end_line": 8
+          "line": 9,
+          "end_line": 9
         },
         {
           "name": "DependencyResponse",
@@ -2800,6 +2801,14 @@
           "file": "src/map/graph.rs",
           "line": 247,
           "end_line": 254
+        },
+        {
+          "name": "paths",
+          "kind": "module",
+          "signature": "pub(crate) mod paths",
+          "file": "src/map/mod.rs",
+          "line": 8,
+          "end_line": 8
         }
       ]
     },
@@ -2845,7 +2854,8 @@
         "src/query_api/serialise/tests.rs",
         "src/query_api/strict_green_tests.rs",
         "src/query_api/tests.rs",
-        "src/query_api/util.rs"
+        "src/query_api/util.rs",
+        "src/query_api/wave.rs"
       ],
       "contracts": [
         "./meta/contracts/kernel.query.md"
@@ -2856,16 +2866,16 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 65,
-          "end_line": 65
+          "line": 67,
+          "end_line": 67
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 244,
-          "end_line": 246
+          "line": 246,
+          "end_line": 248
         },
         {
           "name": "PendingTier",
@@ -2880,16 +2890,16 @@
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 126,
-          "end_line": 147
+          "line": 128,
+          "end_line": 149
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 69,
-          "end_line": 74
+          "line": 71,
+          "end_line": 76
         },
         {
           "name": "WorkItemSource",
@@ -2912,48 +2922,48 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 412,
-          "end_line": 419
+          "line": 414,
+          "end_line": 421
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 423,
-          "end_line": 430
+          "line": 425,
+          "end_line": 432
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 275,
-          "end_line": 333
+          "line": 277,
+          "end_line": 335
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 341,
-          "end_line": 392
+          "line": 343,
+          "end_line": 394
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 262,
-          "end_line": 268
+          "line": 264,
+          "end_line": 270
         },
         {
           "name": "EnvelopeFinding",
           "kind": "struct",
           "signature": "pub struct EnvelopeFinding",
           "file": "src/query_api/mod.rs",
-          "line": 169,
-          "end_line": 190
+          "line": 171,
+          "end_line": 192
         },
         {
           "name": "PendingBrief",
@@ -3016,24 +3026,24 @@
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 223,
-          "end_line": 232
+          "line": 225,
+          "end_line": 234
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 96,
-          "end_line": 122
+          "line": 98,
+          "end_line": 124
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 157,
-          "end_line": 166
+          "line": 159,
+          "end_line": 168
         },
         {
           "name": "RemediateResponse",
@@ -3048,8 +3058,8 @@
           "kind": "struct",
           "signature": "pub struct ResponseEnvelopeSchema",
           "file": "src/query_api/mod.rs",
-          "line": 204,
-          "end_line": 213
+          "line": 206,
+          "end_line": 215
         },
         {
           "name": "RoadmapItem",
@@ -3104,16 +3114,16 @@
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 78,
-          "end_line": 92
+          "line": 80,
+          "end_line": 94
         },
         {
           "name": "VersionedDataSchema",
           "kind": "struct",
           "signature": "pub struct VersionedDataSchema",
           "file": "src/query_api/mod.rs",
-          "line": 194,
-          "end_line": 200
+          "line": 196,
+          "end_line": 202
         },
         {
           "name": "WorkItem",
@@ -3146,6 +3156,14 @@
           "file": "src/query_api/handlers/bundle.rs",
           "line": 12,
           "end_line": 96
+        },
+        {
+          "name": "derive_write_set",
+          "kind": "function",
+          "signature": "pub(crate) fn derive_write_set(graph: &Graph, anchor: &str) -> WriteSet",
+          "file": "src/query_api/wave.rs",
+          "line": 82,
+          "end_line": 146
         },
         {
           "name": "from_bead",
@@ -3188,12 +3206,20 @@
           "end_line": 38
         },
         {
+          "name": "hotspot_prefixes",
+          "kind": "function",
+          "signature": "pub(crate) fn hotspot_prefixes(graph: &Graph) -> Vec<String>",
+          "file": "src/query_api/wave.rs",
+          "line": 42,
+          "end_line": 52
+        },
+        {
           "name": "lint_findings",
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 402,
-          "end_line": 408
+          "line": 404,
+          "end_line": 410
         },
         {
           "name": "parse_pending_brief",
@@ -3258,6 +3284,30 @@
           "file": "src/query_api/handlers/project.rs",
           "line": 62,
           "end_line": 108
+        },
+        {
+          "name": "write_sets_disjoint",
+          "kind": "function",
+          "signature": "pub(crate) fn write_sets_disjoint(a: &WriteSet, b: &WriteSet) -> bool",
+          "file": "src/query_api/wave.rs",
+          "line": 159,
+          "end_line": 177
+        },
+        {
+          "name": "wave",
+          "kind": "module",
+          "signature": "pub(crate) mod wave",
+          "file": "src/query_api/mod.rs",
+          "line": 38,
+          "end_line": 38
+        },
+        {
+          "name": "WriteSet",
+          "kind": "struct",
+          "signature": "pub(crate) struct WriteSet",
+          "file": "src/query_api/wave.rs",
+          "line": 25,
+          "end_line": 39
         },
         {
           "name": "clean_markdown",
@@ -8217,13 +8267,6 @@
       "message": "todo `todo.build-ci-observation-overlay` is blocked while every declared blocker is done",
       "node": null,
       "path": "././meta/todos/todo.build-ci-observation-overlay.md"
-    },
-    {
-      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
-      "severity": "info",
-      "message": "todo `todo.coord-read-surface` is blocked while every declared blocker is done",
-      "node": null,
-      "path": "././meta/todos/todo.coord-read-surface.md"
     },
     {
       "code": "CAIRN_TODO_STATUS_CONTRADICTION",

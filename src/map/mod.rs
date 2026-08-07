@@ -5,6 +5,7 @@ mod contract_coverage;
 pub mod graph;
 pub mod integrity;
 mod module_size;
+pub(crate) mod paths;
 pub mod query;
 mod spec_rule_coverage;
 mod test_coverage;
