@@ -27,3 +27,9 @@ Resolved 2026-07-12: `cairn init --from-code --apply` applies the discovered
 proposal in one command via the shared archive path (dec.init-from-code-apply-flag).
 Default remains a reviewable proposal. First-run copy updated in README,
 quickstart, brownfield doc, agent-setup, and the init next-steps hint.
+
+2026-08-07 (todo.brownfield-init-review-handoff): the 2026-07-12 note above
+covered the greenfield `init.next-steps` keys only; the `--from-code` non-apply
+branch printed one sentence and no ladder. That branch now renders its own
+ordered `init.from-code.next-actions` ladder, review before apply, so the claim
+holds for both entry points.

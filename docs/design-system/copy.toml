@@ -248,6 +248,20 @@ Next steps:
 
 Want to re-derive modules from code? `cairn init --from-code`."""
 
+[init.from-code]
+done = "brownfield init complete; change written to meta/changes/{change_id}/"
+next-steps-header = "Next steps (review before you apply):"
+# One action per line, in order. The human ladder and the `--json`
+# `next_actions` array are both rendered from this single list.
+next-actions = """
+Review `meta/changes/{change_id}/proposal.md` and correct the grouping, paths, edges, and contracts
+Apply the reviewed change: `cairn change apply {change_id}`
+Wire cairn into your agent: `cairn init --wire`
+Reconcile the blueprint against your code: `cairn scan`
+Group any files still unowned: `cairn onboard`
+Check the commit gate: `cairn hook all`
+"""
+
 [init.wire]
 done = "Wired .cairn/AGENTS.md into {file}."
 already-wired = "Agent instructions already reference .cairn/AGENTS.md; nothing to do."
