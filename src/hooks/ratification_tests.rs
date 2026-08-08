@@ -138,49 +138,6 @@ fn test_ratification_missing_base_with_local_decision_fails_closed() {
     cleanup(root);
 }
 
-#[test]
-fn test_ratification_non_default_decisions_pointer_refuses_uncovered_change() {
-    let root = git_root("non-default-pointer");
-    let artefacts = accepted_decision_at(
-        &root,
-        "docs/policies/decisions",
-        "src/subject.rs",
-        "subject\n",
-    );
-    commit(&root, "accept");
-    write(&root, "src/junk.rs", "junk\n");
-    commit(&root, "junk");
-    let findings = ratification_findings(&root, &artefacts, RatificationMode::Head);
-    assert!(
-        findings
-            .iter()
-            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
-        "{findings:?}"
-    );
-    cleanup(root);
-}
-
-#[test]
-fn test_ratification_non_default_decisions_pointer_index_refuses_uncovered_change() {
-    let root = git_root("non-default-pointer-index");
-    let artefacts = accepted_decision_at(
-        &root,
-        "docs/policies/decisions",
-        "src/subject.rs",
-        "subject\n",
-    );
-    write(&root, "src/junk.rs", "junk\n");
-    run(&root, ["add", "."]);
-    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
-    assert!(
-        findings
-            .iter()
-            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
-        "{findings:?}"
-    );
-    cleanup(root);
-}
-
 fn proposed_local_decision(root: &Path, subject_path: &str) -> ArtefactSet {
     let mut artefacts = accepted_decision(root, subject_path, "subject\n");
     let decision_path = "meta/decisions/dec.local.md";
@@ -194,11 +151,11 @@ fn proposed_local_decision(root: &Path, subject_path: &str) -> ArtefactSet {
     artefacts
 }
 
-fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> ArtefactSet {
+pub(super) fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> ArtefactSet {
     accepted_decision_at(root, "meta/decisions", subject_path, subject)
 }
 
-fn accepted_decision_at(
+pub(super) fn accepted_decision_at(
     root: &Path,
     decisions_dir: &str,
     subject_path: &str,
@@ -216,7 +173,7 @@ fn accepted_decision_at(
         &[decision_path.clone(), subject_path.to_owned()],
     )
     .unwrap();
-    write(root, receipt_path, "receipt\n");
+    write(root, receipt_path, &review_source(&hash));
     ArtefactSet {
         decision_pointers: vec![decisions_dir.to_owned()],
         decisions: vec![Decision {
@@ -267,13 +224,25 @@ fn accepted_decision_at(
 
 fn decision_source(decision_path: &str, subject_path: &str, receipt_path: &str) -> String {
     format!(
-        "---\nid: dec.local\nstatus: accepted\nratification: local\naffects:\n  - {decision_path}\n  - {subject_path}\n  - {receipt_path}\nreceipts:\n  - rev.correctness\n---\nDecision body.\n"
+        "---\nid: dec.local\nnodes:\n  - app\nstatus: accepted\ndate: 2026-07-30\nratification: local\naffects:\n  - {decision_path}\n  - {subject_path}\n  - {receipt_path}\nreceipts:\n  - rev.correctness\n---\nDecision body.\n"
+    )
+}
+
+fn review_source(subject_hash: &str) -> String {
+    format!(
+        "---\nnode: app\ndate: 2026-07-30\nreviewer: model/lens\nreview_type: agent_cross_model\nsubject_hash: {subject_hash}\nlens_prompt_hash: sha256:0000000000000000000000000000000000000000000000000000000000000000\n---\n## Verdict\nPASS\n"
+    )
+}
+
+pub(super) fn pointer_blueprint(decisions_dir: &str) -> String {
+    format!(
+        "System App \"app\" id \"app\" {{\n    decisions \"./{decisions_dir}\"\n    reviews \"./meta/reviews\"\n}}\n"
     )
 }
 
 const BASE_ALLOWLIST: &str = "# Binding surface\n\n- docs/spec.md\n- docs/registries/\n- tools/agent-pack/content/\n- src/artefacts/registry/\n- cairn.blueprint\n";
 
-fn git_root(name: &str) -> PathBuf {
+pub(super) fn git_root(name: &str) -> PathBuf {
     git_root_with_allowlist(name, Some(BASE_ALLOWLIST))
 }
 
@@ -304,21 +273,26 @@ fn git_root_without_remote(name: &str) -> PathBuf {
     run(&root, ["init", "--quiet"]);
     run(&root, ["config", "user.email", "tests@example.com"]);
     run(&root, ["config", "user.name", "Tests"]);
+    write(
+        &root,
+        "cairn.blueprint",
+        &pointer_blueprint("meta/decisions"),
+    );
     root
 }
 
-fn write(root: &Path, path: &str, content: &str) {
+pub(super) fn write(root: &Path, path: &str, content: &str) {
     let path = root.join(path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, content).unwrap();
 }
 
-fn commit(root: &Path, message: &str) {
+pub(super) fn commit(root: &Path, message: &str) {
     run(root, ["add", "."]);
     run(root, ["commit", "--quiet", "-m", message]);
 }
 
-fn run<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) {
+pub(super) fn run<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) {
     assert!(
         Command::new("git")
             .current_dir(root)
@@ -339,7 +313,7 @@ fn output<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) -> String {
     String::from_utf8(output.stdout).unwrap()
 }
 
-fn cleanup(root: PathBuf) {
+pub(super) fn cleanup(root: PathBuf) {
     let _ = fs::remove_dir_all(root);
 }
 

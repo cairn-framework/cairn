@@ -26,6 +26,22 @@ fn manifest_hash(entries: &[(&str, String)]) -> String {
         });
     format!("sha256:{}", sha256_hex(manifest.as_bytes()))
 }
+#[test]
+fn test_normalise_repo_pointer_rejects_unsafe_git_pathspecs() {
+    assert_eq!(
+        normalise_repo_pointer("./meta/decisions"),
+        Some("meta/decisions".to_owned())
+    );
+    for invalid in [
+        ":(exclude)meta/decisions",
+        ".//meta/decisions",
+        "././meta/decisions",
+        "../meta/decisions",
+        "/meta/decisions",
+    ] {
+        assert_eq!(normalise_repo_pointer(invalid), None, "{invalid}");
+    }
+}
 
 #[test]
 fn test_governed_content_strips_ratification_keys_only() {

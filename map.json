@@ -1033,8 +1033,8 @@
           "kind": "function",
           "signature": "pub fn compute_subject_hash( repo_root: &Path, decision_repo_path: &str, decision_raw: &str, affects: &[String], ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 139,
-          "end_line": 192
+          "line": 152,
+          "end_line": 205
         },
         {
           "name": "count_tasks",
@@ -1065,8 +1065,8 @@
           "kind": "function",
           "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 42,
-          "end_line": 54
+          "line": 47,
+          "end_line": 59
         },
         {
           "name": "load_contracts",
@@ -1081,8 +1081,8 @@
           "kind": "function",
           "signature": "pub fn normalise_repo_entry(raw: &str) -> Option<RepoPathRule>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 87,
-          "end_line": 95
+          "line": 100,
+          "end_line": 108
         },
         {
           "name": "normalise_repo_path",
@@ -1113,8 +1113,8 @@
           "kind": "function",
           "signature": "pub fn rule_matches(rule: &RepoPathRule, file: &str) -> bool",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 99,
-          "end_line": 110
+          "line": 112,
+          "end_line": 123
         },
         {
           "name": "set_field",
@@ -1241,8 +1241,8 @@
           "kind": "struct",
           "signature": "pub struct ManifestError",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 114,
-          "end_line": 117
+          "line": 127,
+          "end_line": 130
         },
         {
           "name": "Research",
@@ -1297,32 +1297,48 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_decision_subject_hash( root: &Path, decision: &super::Decision, ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 205,
-          "end_line": 218
+          "line": 218,
+          "end_line": 231
         },
         {
           "name": "compute_reverse_provenance",
           "kind": "function",
           "signature": "pub(crate) fn compute_reverse_provenance(decisions: &mut [Decision])",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 69,
-          "end_line": 102
+          "line": 74,
+          "end_line": 107
         },
         {
           "name": "contained_file_sha256",
           "kind": "function",
           "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 447,
-          "end_line": 457
+          "line": 460,
+          "end_line": 470
+        },
+        {
+          "name": "decision_pointers",
+          "kind": "function",
+          "signature": "pub(crate) fn decision_pointers(ast: &Ast) -> Vec<String>",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "load_decisions",
           "kind": "function",
           "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 60,
-          "end_line": 64
+          "line": 65,
+          "end_line": 69
+        },
+        {
+          "name": "normalise_repo_pointer",
+          "kind": "function",
+          "signature": "pub(crate) fn normalise_repo_pointer(raw: &str) -> Option<String>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 91,
+          "end_line": 96
         },
         {
           "name": "dates",
@@ -2327,6 +2343,7 @@
         "src/hooks/mod.rs",
         "src/hooks/ratification.rs",
         "src/hooks/ratification/git.rs",
+        "src/hooks/ratification_pointer_tests.rs",
         "src/hooks/ratification_tests.rs",
         "src/hooks/render.rs",
         "src/hooks/tests.rs"
@@ -2364,8 +2381,8 @@
           "kind": "enum",
           "signature": "pub enum RatificationMode",
           "file": "src/hooks/ratification.rs",
-          "line": 26,
-          "end_line": 31
+          "line": 27,
+          "end_line": 32
         },
         {
           "name": "architecture_findings",
@@ -2396,8 +2413,8 @@
           "kind": "function",
           "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
-          "line": 35,
-          "end_line": 123
+          "line": 36,
+          "end_line": 139
         },
         {
           "name": "render_human",

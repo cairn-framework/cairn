@@ -482,6 +482,8 @@ fn path_string(path: &Path) -> String {
 }
 
 #[cfg(test)]
+mod ratification_pointer_tests;
+#[cfg(test)]
 mod ratification_tests;
 #[cfg(test)]
 mod tests;

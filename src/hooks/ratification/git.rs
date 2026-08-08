@@ -15,6 +15,8 @@ pub(super) fn inside_work_tree(root: &Path) -> bool {
     git_output(root, ["rev-parse", "--is-inside-work-tree"])
         .is_some_and(|value| value.trim() == "true")
 }
+const BLUEPRINT_PATH: &str = "cairn.blueprint";
+
 /// Repository-relative paths of decisions the CANDIDATE tree accepts at tier
 /// local: the index in pre-commit mode, `HEAD` in CI mode.
 ///
@@ -23,21 +25,26 @@ pub(super) fn inside_work_tree(root: &Path) -> bool {
 /// as a refusal.
 pub(super) fn candidate_accepted_local(
     root: &Path,
-    decision_pointers: &[String],
     mode: RatificationMode,
 ) -> Option<BTreeSet<String>> {
-    let pointers = decision_pointers
-        .iter()
-        .map(|pointer| pointer.trim_start_matches("./").to_owned())
-        .collect::<Vec<_>>();
-    if pointers.is_empty() {
+    let candidate_pointers = normalise_pointers(&candidate_decision_pointers(root, mode)?)?;
+    for pointer in &candidate_pointers {
+        if candidate_pointer_contains_symlink(root, pointer, mode)? {
+            return None;
+        }
+    }
+    if candidate_pointers.is_empty() {
         return Some(BTreeSet::new());
     }
+    let pathspecs = candidate_pointers
+        .iter()
+        .map(|pointer| literal_pathspec(pointer))
+        .collect::<Vec<_>>();
     let mut args = match mode {
         RatificationMode::Index => vec!["ls-files", "-z", "--"],
         RatificationMode::Head => vec!["ls-tree", "-r", "--name-only", "-z", "HEAD", "--"],
     };
-    args.extend(pointers.iter().map(String::as_str));
+    args.extend(pathspecs.iter().map(String::as_str));
     let listing = git_output(root, args)?;
     let mut accepted = BTreeSet::new();
     for path in listing.split('\0').filter(|path| !path.is_empty()) {
@@ -60,6 +67,75 @@ pub(super) fn candidate_accepted_local(
         }
     }
     Some(accepted)
+}
+
+fn candidate_decision_pointers(root: &Path, mode: RatificationMode) -> Option<Vec<String>> {
+    let spec = match mode {
+        RatificationMode::Index => format!(":{BLUEPRINT_PATH}"),
+        RatificationMode::Head => format!("HEAD:{BLUEPRINT_PATH}"),
+    };
+    let source = git_output(root, ["show", &spec])?;
+    let ast = crate::blueprint::parser::parse_str(BLUEPRINT_PATH, &source).ok()?;
+    Some(crate::artefacts::registry::decision_pointers(&ast))
+}
+
+pub(super) fn candidate_pointer_configuration_matches(
+    root: &Path,
+    worktree_pointers: &[String],
+    mode: RatificationMode,
+) -> Option<bool> {
+    let worktree = normalise_pointers(worktree_pointers)?;
+    let candidate = normalise_pointers(&candidate_decision_pointers(root, mode)?)?;
+    Some(worktree == candidate)
+}
+
+fn normalise_pointers(raw: &[String]) -> Option<Vec<String>> {
+    let mut pointers = raw
+        .iter()
+        .map(|pointer| crate::artefacts::registry::manifest::normalise_repo_pointer(pointer))
+        .collect::<Option<Vec<_>>>()?;
+    pointers.sort();
+    pointers.dedup();
+    Some(pointers)
+}
+
+fn literal_pathspec(pointer: &str) -> String {
+    format!(":(top,literal){pointer}")
+}
+
+fn candidate_pointer_contains_symlink(
+    root: &Path,
+    pointer: &str,
+    mode: RatificationMode,
+) -> Option<bool> {
+    let mut prefix = String::new();
+    for component in pointer.split('/') {
+        if !prefix.is_empty() {
+            prefix.push('/');
+        }
+        prefix.push_str(component);
+        let pathspec = literal_pathspec(&prefix);
+        let mut args = match mode {
+            RatificationMode::Index => vec!["ls-files", "-s", "-z", "--"],
+            RatificationMode::Head => vec!["ls-tree", "-z", "--full-tree", "HEAD", "--"],
+        };
+        args.push(pathspec.as_str());
+        let listing = git_output(root, args)?;
+        let found = listing.split('\0').any(|entry| {
+            if mode == RatificationMode::Index {
+                let Some((metadata, path)) = entry.split_once('\t') else {
+                    return false;
+                };
+                metadata.starts_with("120000 ") && path == prefix
+            } else {
+                entry.starts_with("120000 ")
+            }
+        });
+        if found {
+            return Some(true);
+        }
+    }
+    Some(false)
 }
 pub(super) fn changed_paths(
     root: &Path,

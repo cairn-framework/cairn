@@ -37,13 +37,18 @@ use parse::{
 };
 pub use types::*;
 use validate::validate_integrity;
+/// Returns all configured decisions pointers from the blueprint AST.
+pub(crate) fn decision_pointers(ast: &Ast) -> Vec<String> {
+    pointers(ast, "decisions")
+}
+
 #[must_use]
 /// Loads all non-contract Phase 2 artefacts from retained blueprint pointers.
 pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet {
     let ids = collect_ids(ast);
     let mut set = ArtefactSet {
         contracts,
-        decision_pointers: pointers(ast, "decisions"),
+        decision_pointers: decision_pointers(ast),
         ..ArtefactSet::default()
     };
     load_kinds(root, ast, &mut set);
@@ -58,7 +63,7 @@ pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> Artefac
 /// Thin wrapper over the kind table for callers (e.g. architecture hooks) that
 /// only need decisions without a full artefact load.
 pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
-    set.decision_pointers = pointers(ast, "decisions");
+    set.decision_pointers = decision_pointers(ast);
     load_kind(root, ast, decisions_kind(), set);
     compute_reverse_provenance(&mut set.decisions);
 }

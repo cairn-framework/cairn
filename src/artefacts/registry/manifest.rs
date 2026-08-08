@@ -82,6 +82,19 @@ pub fn normalise_repo_path(raw: &str) -> Option<String> {
     normalise_segments(raw)
 }
 
+/// Normalises a configured artefact pointer as a safe repository-relative path.
+///
+/// A single leading `./` is accepted because blueprint pointers use it by
+/// convention. All other dot segments, absolute spellings, pathspec magic, and
+/// empty components are rejected.
+#[must_use]
+pub(crate) fn normalise_repo_pointer(raw: &str) -> Option<String> {
+    if raw.starts_with(':') {
+        return None;
+    }
+    normalise_repo_path(raw.strip_prefix("./").unwrap_or(raw))
+}
+
 /// Normalises a repository entry, retaining whether its source was a directory rule.
 #[must_use]
 pub fn normalise_repo_entry(raw: &str) -> Option<RepoPathRule> {

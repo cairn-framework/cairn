@@ -16,7 +16,8 @@ use crate::{
 mod git;
 
 use git::{
-    candidate_accepted_local, changed_paths, decision_was_not_local, git_output, inside_work_tree,
+    candidate_accepted_local, candidate_pointer_configuration_matches, changed_paths,
+    decision_was_not_local, git_output, inside_work_tree,
 };
 
 const ALLOWLIST_PATH: &str = "docs/registries/binding-surface.md";
@@ -51,14 +52,29 @@ pub fn ratification_findings(
     if !inside_work_tree(root) {
         return Vec::new();
     }
-    let Some(candidates) = candidate_accepted_local(root, &artefacts.decision_pointers, mode)
-    else {
+    let Some(candidates) = candidate_accepted_local(root, mode) else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
-            "cannot read candidate decisions while checking ratification evidence",
+            "cannot read or reconcile candidate decisions and pointer configuration while checking ratification evidence",
             None,
         )];
     };
+    let Some(pointer_configuration_matches) =
+        candidate_pointer_configuration_matches(root, &artefacts.decision_pointers, mode)
+    else {
+        return vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot validate candidate decisions pointer configuration while checking ratification evidence",
+            None,
+        )];
+    };
+    if !pointer_configuration_matches {
+        return vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "candidate and worktree decisions pointer configurations differ",
+            None,
+        )];
+    }
     if candidates.is_empty() {
         return Vec::new();
     }
