@@ -259,7 +259,7 @@ err-ignore-write = "could not write initial ignores: {detail}"
 # `next_actions` array are both rendered from this single list.
 next-actions = """
 Review `meta/changes/{change_id}/proposal.md` and correct the grouping, paths, edges, and contracts
-Apply the reviewed change: `cairn change apply {change_id}`
+Apply the reviewed change: `cairn change apply {change_id}` (ignore suggestions are informational; confirm them with `cairn init --from-code --apply` on the initial run)
 Wire cairn into your agent: `cairn init --wire`
 Reconcile the blueprint against your code: `cairn scan`
 Group any files still unowned: `cairn onboard`

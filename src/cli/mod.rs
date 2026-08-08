@@ -207,7 +207,10 @@ fn collect_initial_ignore_candidates(
 fn initial_ignore_suggestions(root: &Path) -> Result<Vec<String>, String> {
     let mut candidates = BTreeSet::new();
     collect_initial_ignore_candidates(root, root, &mut candidates)?;
-    Ok(candidates.into_iter().collect())
+    Ok(candidates
+        .into_iter()
+        .filter(|candidate| is_safe_ignore_path(candidate))
+        .collect())
 }
 /// Validate the existing config shape before an apply can archive the
 /// brownfield proposal. This keeps malformed inline ignore syntax from
@@ -215,6 +218,11 @@ fn initial_ignore_suggestions(root: &Path) -> Result<Vec<String>, String> {
 fn validate_initial_ignore_target(root: &Path, suggestions: &[String]) -> Result<(), String> {
     if suggestions.is_empty() {
         return Ok(());
+    }
+    if let Some(unsafe_path) = suggestions.iter().find(|path| !is_safe_ignore_path(path)) {
+        return Err(format!(
+            "cannot scaffold initial ignore `{unsafe_path}`: path contains unsupported characters"
+        ));
     }
     let config_path = root.join("cairn.config.yaml");
     let metadata = match fs::symlink_metadata(&config_path) {
@@ -247,8 +255,15 @@ fn validate_initial_ignore_target(root: &Path, suggestions: &[String]) -> Result
     Ok(())
 }
 
+fn is_safe_ignore_path(path: &str) -> bool {
+    !path.is_empty()
+        && path
+            .chars()
+            .all(|character| !character.is_control() && character != '"' && character != '\\')
+}
+
 fn yaml_quote(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('"', "\\\"")
+    value.to_owned()
 }
 
 fn ignore_line_matches(line: &str, candidate: &str) -> bool {
@@ -264,6 +279,47 @@ fn ignore_line_matches(line: &str, candidate: &str) -> bool {
     value == candidate
 }
 
+fn ignore_block_end(lines: &[String], ignore_index: usize) -> usize {
+    let mut end = ignore_index + 1;
+    while end < lines.len() {
+        let line = &lines[end];
+        let trimmed = line.trim();
+        if !trimmed.is_empty()
+            && !line.starts_with(' ')
+            && !line.starts_with('\t')
+            && !trimmed.starts_with('#')
+        {
+            break;
+        }
+        end += 1;
+    }
+    end
+}
+
+fn ignore_block_has_entry(lines: &[String], ignore_index: Option<usize>, candidate: &str) -> bool {
+    let Some(ignore_index) = ignore_index else {
+        return false;
+    };
+    let end = ignore_block_end(lines, ignore_index);
+    lines[ignore_index + 1..end]
+        .iter()
+        .any(|line| ignore_line_matches(line, candidate))
+}
+
+fn ignore_block_indent(lines: &[String], ignore_index: usize) -> String {
+    let end = ignore_block_end(lines, ignore_index);
+    lines[ignore_index + 1..end]
+        .iter()
+        .find_map(|line| {
+            let trimmed = line.trim_start();
+            if !trimmed.starts_with('-') {
+                return None;
+            }
+            Some(line[..line.len() - trimmed.len()].to_owned())
+        })
+        .unwrap_or_else(|| "  ".to_owned())
+}
+
 fn append_initial_ignore_entries(
     root: &Path,
     suggestions: &[String],
@@ -271,32 +327,51 @@ fn append_initial_ignore_entries(
     if suggestions.is_empty() {
         return Ok(Vec::new());
     }
-    let config_path = root.join("cairn.config.yaml");
-    let metadata = fs::symlink_metadata(&config_path)
-        .map_err(|error| format!("failed to inspect {}: {error}", config_path.display()))?;
-    if metadata.file_type().is_symlink() || !metadata.is_file() {
-        return Err(format!("{} is not a regular file", config_path.display()));
+    if let Some(unsafe_path) = suggestions.iter().find(|path| !is_safe_ignore_path(path)) {
+        return Err(format!(
+            "cannot scaffold initial ignore `{unsafe_path}`: path contains unsupported characters"
+        ));
     }
-    let source = fs::read_to_string(&config_path)
-        .map_err(|error| format!("failed to read {}: {error}", config_path.display()))?;
-    let mut lines: Vec<String> = source.lines().map(ToOwned::to_owned).collect();
-    let mut missing = suggestions
+    let config_path = root.join("cairn.config.yaml");
+    let source = match fs::symlink_metadata(&config_path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                return Err(format!("{} is not a regular file", config_path.display()));
+            }
+            fs::read_to_string(&config_path)
+                .map_err(|error| format!("failed to read {}: {error}", config_path.display()))?
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(error) => {
+            return Err(format!(
+                "failed to inspect {}: {error}",
+                config_path.display()
+            ));
+        }
+    };
+    let mut lines: Vec<String> = if source.is_empty() {
+        vec![
+            "ignore:".to_owned(),
+            "  - target".to_owned(),
+            "context: \"\"".to_owned(),
+            "rules: {}".to_owned(),
+        ]
+    } else {
+        source.lines().map(ToOwned::to_owned).collect()
+    };
+    let ignore_index = lines
         .iter()
-        .filter(|candidate| {
-            !lines
-                .iter()
-                .any(|line| ignore_line_matches(line, candidate))
-        })
-        .map(|candidate| format!("  - \"{}\"", yaml_quote(candidate)))
+        .position(|line| line.trim_start().starts_with("ignore:"));
+    let missing = suggestions
+        .iter()
+        .filter(|candidate| !ignore_block_has_entry(&lines, ignore_index, candidate))
+        .cloned()
         .collect::<Vec<_>>();
     if missing.is_empty() {
         return Ok(Vec::new());
     }
 
-    if let Some(ignore_index) = lines
-        .iter()
-        .position(|line| line.trim_start().starts_with("ignore:"))
-    {
+    if let Some(ignore_index) = ignore_index {
         let ignore_value = lines[ignore_index].trim()["ignore:".len()..].trim();
         if !ignore_value.is_empty() && ignore_value != "[]" {
             return Err(
@@ -307,34 +382,28 @@ fn append_initial_ignore_entries(
         if ignore_value == "[]" {
             "ignore:".clone_into(&mut lines[ignore_index]);
         }
-        let mut insert_at = ignore_index + 1;
-        while insert_at < lines.len()
-            && (lines[insert_at].trim().is_empty()
-                || lines[insert_at].starts_with(' ')
-                || lines[insert_at].starts_with('\t'))
-        {
-            insert_at += 1;
-        }
-        lines.splice(insert_at..insert_at, missing.drain(..));
+        let indent = ignore_block_indent(&lines, ignore_index);
+        let insert_at = ignore_block_end(&lines, ignore_index);
+        let rows = missing
+            .iter()
+            .map(|candidate| format!("{indent}- \"{}\"", yaml_quote(candidate)))
+            .collect::<Vec<_>>();
+        lines.splice(insert_at..insert_at, rows);
     } else {
         if !lines.is_empty() && !lines.last().is_some_and(String::is_empty) {
             lines.push(String::new());
         }
         lines.push("ignore:".to_owned());
-        lines.append(&mut missing);
+        lines.extend(
+            missing
+                .iter()
+                .map(|candidate| format!("  - \"{}\"", yaml_quote(candidate))),
+        );
     }
 
     let content = format!("{}\n", lines.join("\n"));
     atomic_write(root, &config_path, &content)?;
-    Ok(suggestions
-        .iter()
-        .filter(|candidate| {
-            !source
-                .lines()
-                .any(|line| ignore_line_matches(line, candidate))
-        })
-        .cloned()
-        .collect())
+    Ok(missing)
 }
 
 fn render_ignore_proposal(suggestions: &[String], header_key: &str) -> String {
@@ -342,6 +411,7 @@ fn render_ignore_proposal(suggestions: &[String], header_key: &str) -> String {
         return String::new();
     }
     let mut rendered = copy::lookup(header_key).to_owned();
+    rendered.push('\n');
     for suggestion in suggestions {
         let _ = writeln!(rendered, "  - \"{}\"", yaml_quote(suggestion));
     }
@@ -397,7 +467,7 @@ fn finish_brownfield_apply(
     change_id: &str,
     wire_file: Option<&str>,
     wire: bool,
-    ignore_suggestions: &[String],
+    applied_ignores: &[String],
     json: bool,
 ) -> CliResult {
     if result.code != 0 {
@@ -407,10 +477,6 @@ fn finish_brownfield_apply(
         );
         return result;
     }
-    let scaffold = init_project(root, wire);
-    if scaffold.code != 0 {
-        return scaffold;
-    }
     let Some(archive_path) = archive_path else {
         return err(
             1,
@@ -418,17 +484,14 @@ fn finish_brownfield_apply(
                 .replace("{detail}", "the archive command returned no destination"),
         );
     };
-    let applied_ignores = match append_initial_ignore_entries(root, ignore_suggestions) {
-        Ok(entries) => entries,
-        Err(detail) => {
-            return err(
-                1,
-                &copy::lookup("init.from-code.err-ignore-write").replace("{detail}", &detail),
-            );
-        }
-    };
+    // Publish the archive completion marker before any resumable bootstrap
+    // work. If scaffolding or wiring fails, the next --apply resumes safely.
     if let Err(marker_error) = record_brownfield_apply(root, archive_path) {
         return marker_error;
+    }
+    let scaffold = init_project(root, wire);
+    if scaffold.code != 0 {
+        return scaffold;
     }
     let bootstrap = bootstrap_agent(root, wire_file, wire);
     if bootstrap.code != 0 {
@@ -438,7 +501,7 @@ fn finish_brownfield_apply(
         return result;
     }
     let applied_copy =
-        render_ignore_proposal(&applied_ignores, "init.from-code.ignore-applied-header");
+        render_ignore_proposal(applied_ignores, "init.from-code.ignore-applied-header");
     let mut stdout = format!(
         "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n{}",
         result.stdout.trim_end()
@@ -614,6 +677,21 @@ pub fn run(args: &[String]) -> CliResult {
             return match crate::brownfield::init::run_init_from_code(project_root, force) {
                 Ok(change_id) => {
                     if apply {
+                        // Write confirmed ignores before archive so its scan
+                        // reconciles the project with the proposed paths.
+                        let applied_ignores = match append_initial_ignore_entries(
+                            project_root,
+                            &ignore_suggestions,
+                        ) {
+                            Ok(entries) => entries,
+                            Err(detail) => {
+                                return err(
+                                    1,
+                                    &copy::lookup("init.from-code.err-ignore-write")
+                                        .replace("{detail}", &detail),
+                                );
+                            }
+                        };
                         // Delegate to the archive command so `--apply` shares
                         // the conflict gate and path handling of `change apply`.
                         // Use the paths init actually wrote (it hardcodes
@@ -638,7 +716,7 @@ pub fn run(args: &[String]) -> CliResult {
                             &change_id,
                             wire_file,
                             wire,
-                            &ignore_suggestions,
+                            &applied_ignores,
                             parsed.json,
                         )
                     } else {
@@ -1904,6 +1982,17 @@ mod tests {
             !root.join("cairn.config.yaml").exists(),
             "proposal must not write config before --apply"
         );
+        let json_root = from_code_root("init-from-code-ignore-json")?;
+        fs::write(json_root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(json_root.join("packages/web/dist"))?;
+        fs::create_dir_all(json_root.join("packages/api/dist"))?;
+        let json = run_in(&json_root, &["--json", "init", "--from-code"]);
+        assert_eq!(json.code, 0, "stderr: {}", json.stderr);
+        let payload: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+        assert_eq!(
+            payload["data"]["ignore_suggestions"],
+            serde_json::json!(["node_modules", "packages/api/dist", "packages/web/dist"])
+        );
         Ok(())
     }
 
@@ -1931,6 +2020,32 @@ mod tests {
         assert!(loaded.ignores.contains(&"packages/api/dist".to_owned()));
         assert!(loaded.ignores.contains(&"packages/web/dist".to_owned()));
         assert!(loaded.ignores.contains(&"node_modules".to_owned()));
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_scaffolds_ignores_without_existing_config()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ignore-no-config")?;
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let config = fs::read_to_string(root.join("cairn.config.yaml"))?;
+        assert!(config.contains("  - target"));
+        assert!(config.contains("  - \"node_modules\""));
+        assert!(config.contains("  - \"packages/api/dist\""));
+        let loaded = scanner::config::load(&root)?;
+        assert!(loaded.ignores.contains(&"packages/api/dist".to_owned()));
+        let scan = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+        assert!(
+            !scan.graph.findings.iter().any(|finding| {
+                finding.path.as_deref() == Some("packages/api/dist")
+                    || finding.message.contains("packages/api/dist")
+            }),
+            "archive scan must see the confirmed ignore before deriving findings"
+        );
         Ok(())
     }
     #[test]
@@ -2076,6 +2191,23 @@ mod tests {
             ladder_steps(&human.stdout),
             "JSON next_actions must be the human ladder, same steps, same order"
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_init_from_code_ignore_proposal_snapshots() -> Result<(), Box<dyn std::error::Error>> {
+        let suggestions = vec![
+            "node_modules".to_owned(),
+            "packages/api/dist".to_owned(),
+            "packages/web/dist".to_owned(),
+        ];
+        let human = brownfield_init_report("brownfield-init", false, &suggestions);
+        assert_eq!(human.code, 0);
+        insta::assert_snapshot!("init_from_code_ignore_human", human.stdout);
+
+        let json = brownfield_init_report("brownfield-init", true, &suggestions);
+        let payload: serde_json::Value = serde_json::from_str(&json.stdout)?;
+        insta::assert_json_snapshot!("init_from_code_ignore_json", payload);
         Ok(())
     }
 
