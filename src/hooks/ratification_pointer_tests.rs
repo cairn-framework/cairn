@@ -110,6 +110,21 @@ fn test_ratification_uses_selected_blueprint_path() {
     cleanup(root);
 }
 #[test]
+fn test_scan_result_records_lexically_relative_blueprint_path() {
+    let root = git_root("selected-blueprint-parent");
+    write(
+        &root,
+        "alt.blueprint",
+        &pointer_blueprint("docs/policies/decisions"),
+    );
+    fs::create_dir_all(root.join("nested")).unwrap();
+    let selected = root.join("nested/../alt.blueprint");
+    let scan = crate::scanner::load_project(&root, &selected).unwrap();
+    assert_eq!(scan.blueprint_path, Path::new("alt.blueprint"));
+    cleanup(root);
+}
+
+#[test]
 fn test_ratification_candidate_invalid_utf8_head_refuses() {
     candidate_invalid_utf8_refuses(RatificationMode::Head, "invalid-utf8-candidate-head");
 }
