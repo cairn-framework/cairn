@@ -147,9 +147,9 @@ mapping in `src/mcp/mod.rs`. Update `docs/commands.md` and
   the node scope, baseline and live sections, observation instant, store
   state, explicit uninitialised-store reason when applicable, and plan
   digest. Human output contains the same rows and reasons.
-- A missing or partially unreadable family store fails closed. An
-  uninitialised store is an explicit empty-with-reason result, not silent
-  admission. Missing `--at` is rejected for coordination rows, and
+- An uninitialised or missing store is an explicit empty-with-reason result,
+  not silent admission. A malformed or partially unreadable family store
+  fails closed. Missing `--at` is rejected for coordination rows, and
   non-UTC or fractional instants are rejected or normalized before lexical
   reader predicates run.
 - The `NeighbourhoodResponse` schema extension has updated wire snapshots,
