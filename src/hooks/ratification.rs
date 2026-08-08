@@ -76,14 +76,6 @@ pub(super) fn ratification_findings_with_blueprint(
             None,
         )];
     };
-    let Some(candidates) = candidate_accepted_local(root, &candidate_pointers, &git_prefix, mode)
-    else {
-        return vec![finding(
-            "CAIRN_HOOK_AFFECTS_SUBSET",
-            "cannot read or reconcile candidate decisions while checking ratification evidence",
-            None,
-        )];
-    };
     let Some(pointer_configuration_matches) =
         candidate_pointer_configuration_matches(&artefacts.decision_pointers, &candidate_pointers)
     else {
@@ -100,6 +92,14 @@ pub(super) fn ratification_findings_with_blueprint(
             None,
         )];
     }
+    let Some(candidates) = candidate_accepted_local(root, &candidate_pointers, &git_prefix, mode)
+    else {
+        return vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot read or reconcile candidate decisions while checking ratification evidence",
+            None,
+        )];
+    };
     if candidates.is_empty() {
         return Vec::new();
     }
