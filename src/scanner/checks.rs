@@ -223,7 +223,7 @@ pub(crate) fn check_tag_registry(graph: &mut Graph, registry: &config::TagRegist
                     node.id
                 ),
                 node: Some(node.id.clone()),
-                target: None,
+                target: Some(tag.to_owned()),
                 path: None,
                 deferred_by: None,
                 parked_by: None,

@@ -41,3 +41,6 @@ needed for the Info-tier core.
 2026-08-02: keep against dec.cairn-mission. Serves investigable. It keeps tag coverage discoverable for future graph investigations.
 
 2026-08-07 audit (todo.roadmap-assumption-audit): keep as written.
+
+2026-08-08 implementation review: `docs/spec.md` top-level config key list
+remains owned by S15; defer that reconciliation.

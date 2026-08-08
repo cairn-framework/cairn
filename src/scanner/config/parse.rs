@@ -37,9 +37,10 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
 
     for line in source.lines() {
         let trimmed = line.trim();
+        let top_level = indentation(line) == 0;
         // Top-level key detection: unindented `key:` not in the known set.
         // Require a colon so bare lines / document markers are not treated as keys.
-        if indentation(line) == 0
+        if top_level
             && !trimmed.is_empty()
             && !trimmed.starts_with('#')
             && !trimmed.starts_with('-')
@@ -69,7 +70,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             });
         }
 
-        if trimmed.starts_with("context:") {
+        if top_level && trimmed.starts_with("context:") {
             config.context = value_after_colon(trimmed);
             in_rules = false;
             in_ignore = false;
@@ -78,7 +79,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_asymmetry = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if trimmed.starts_with("rules:") {
+        } else if top_level && trimmed.starts_with("rules:") {
             in_rules = true;
             in_ignore = false;
             in_artefacts = false;
@@ -86,7 +87,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_asymmetry = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if trimmed.starts_with("artefact_types:") {
+        } else if top_level && trimmed.starts_with("artefact_types:") {
             in_artefacts = true;
             in_rules = false;
             in_ignore = false;
@@ -96,14 +97,14 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             flush_gate(&mut current_gate, config);
             config.artefact_types.push_str(trimmed);
             config.artefact_types.push('\n');
-        } else if !in_asymmetry && trimmed.starts_with("targets:") {
+        } else if top_level && !in_asymmetry && trimmed.starts_with("targets:") {
             in_targets = true;
             in_rules = false;
             in_ignore = false;
             in_artefacts = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if trimmed.starts_with("multi_target:") {
+        } else if top_level && trimmed.starts_with("multi_target:") {
             in_asymmetry = true;
             in_rules = false;
             in_ignore = false;
@@ -111,7 +112,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_targets = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if trimmed.starts_with("ignore:") {
+        } else if top_level && trimmed.starts_with("ignore:") {
             in_ignore = true;
             in_rules = false;
             in_artefacts = false;
@@ -119,7 +120,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_asymmetry = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if trimmed.starts_with("gates:") {
+        } else if top_level && trimmed.starts_with("gates:") {
             in_gates = true;
             config.gates_configured = true;
             in_ignore = false;
@@ -127,7 +128,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_artefacts = false;
             in_targets = false;
             in_asymmetry = false;
-        } else if trimmed.starts_with("tags:") {
+        } else if top_level && trimmed.starts_with("tags:") {
             in_ignore = false;
             in_rules = false;
             in_artefacts = false;
@@ -302,8 +303,23 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
         }
     }
     flush_gate(&mut current_gate, config);
-    config.tags = super::tags::TagRegistry::parse(source);
     parse_context_rules_blocks(source, config);
+    match super::tags::TagRegistry::parse(source) {
+        Ok(tags) => config.tags = tags,
+        Err(message) => {
+            config.tags = None;
+            config.findings.push(Finding {
+                code: "CAIRN_CONFIG_TAGS_INVALID".to_owned(),
+                severity: FindingSeverity::Warning,
+                message,
+                node: None,
+                target: None,
+                path: Some("cairn.config.yaml".to_owned()),
+                deferred_by: None,
+                parked_by: None,
+            });
+        }
+    }
 }
 
 fn flush_gate(current: &mut Option<GateStep>, config: &mut Config) {
@@ -320,7 +336,7 @@ fn parse_context_rules_blocks(source: &str, config: &mut Config) {
     while index < lines.len() {
         let line = lines[index];
         let trimmed = line.trim();
-        if trimmed.starts_with("context:") {
+        if indentation(line) == 0 && trimmed.starts_with("context:") {
             let indent = indentation(line);
             let value = value_after_colon(trimmed);
             if matches!(value.as_str(), "|" | ">") {
@@ -330,7 +346,7 @@ fn parse_context_rules_blocks(source: &str, config: &mut Config) {
                 continue;
             }
             config.context = value;
-        } else if trimmed == "rules:" {
+        } else if indentation(line) == 0 && trimmed == "rules:" {
             let (rules, next) = collect_rules(&lines, index + 1, indentation(line));
             if !rules.is_empty() {
                 config.rules = rules;

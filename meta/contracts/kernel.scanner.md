@@ -16,17 +16,17 @@ machine state plus generated outputs. `load_project` is the pure read path;
 
 - `load_project(root, blueprint_path)`: loads config, parses the blueprint,
   loads contracts and artefacts, builds targets, reconciles them, dedups
-  findings, builds the graph, and runs the provenance, decision-accumulation,
-  claims, gitignored-path, orphan-bead, and blueprint-change checks. Returns a
-  `ScanResult` or an error string.
+  findings, builds the graph, and runs the tag-registry, provenance,
+  decision-accumulation, claims, gitignored-path, orphan-bead, and
+  blueprint-change checks. Returns a `ScanResult` or an error string.
 - `scan(root, blueprint_path)`: calls `load_project`, then writes the interface
   hash, blueprint snapshot, `map.md`, and the scan log concurrently via
   `thread::scope`, returning the first persistence error if any.
 - `ScanResult`: graph, artefacts, contracts, interface_hash, target_reports,
   target_hashes, and blueprint_snapshot.
 - `TargetReport`: per-target reconciliation result.
-- `config`: `Config`, `TargetConfig`, `IntentionalAsymmetry`, `load`, and
-  `is_ignored`.
+- `config`: `Config`, `TargetConfig`, `IntentionalAsymmetry`, `TagEntry`,
+  `TagRegistry`, `load`, and `is_ignored`.
 - `state`: interface-hash and `BlueprintSnapshot` read/write plus v1-to-v2
   migration.
 - `outputs`: `write_map` and `append_log`.
@@ -54,8 +54,9 @@ read scanner runs.
 
 ## Tests
 
-Unit tests live in `src/scanner/tests.rs` (wired as `#[cfg(test)] mod tests`)
-covering scan orchestration and divergence detection, plus `#[cfg(test)]`
-modules in `cache.rs`, `checks.rs`, `outputs.rs`, `state.rs`, and
-`config/tests.rs` covering caching, the scan-time checks, output rendering,
-snapshot migration, and config parsing.
+- Unit tests live in `src/scanner/tests.rs` (wired as `#[cfg(test)] mod tests`)
+  covering scan orchestration and divergence detection, plus `#[cfg(test)]`
+  modules in `cache.rs`, `checks.rs`, `outputs.rs`, `state.rs`,
+  `tag_registry_tests.rs`, `config/tests.rs`, and `config/tags_tests.rs`
+  covering caching, scan-time checks, output rendering, snapshot migration,
+  tag registry validation, and config parsing.

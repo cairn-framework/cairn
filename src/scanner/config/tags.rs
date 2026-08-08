@@ -32,47 +32,34 @@ impl TagRegistry {
         self.entries.contains_key(tag)
     }
 
-    pub(crate) fn parse(source: &str) -> Option<Self> {
-        let root: RootConfig = serde_yaml::from_str(source).ok()?;
-        let tags = root.tags?;
-        let entries = match tags {
-            RawTags::Map(tags) => tags
-                .into_iter()
-                .map(|(name, tag)| (name, tag.into_entry()))
-                .collect(),
-            RawTags::List(tags) => tags
-                .into_iter()
-                .filter_map(|tag| {
-                    let name = if tag.name.is_empty() {
-                        tag.tag
-                    } else {
-                        tag.name
-                    };
-                    (!name.is_empty()).then_some((
-                        name,
-                        TagEntry {
-                            description: tag.description,
-                            behavior_affecting: tag.behavior_affecting,
-                        },
-                    ))
-                })
-                .collect(),
-        };
-        Some(Self { entries })
+    pub(crate) fn parse(source: &str) -> Result<Option<Self>, String> {
+        if !has_top_level_tags(source) {
+            return Ok(None);
+        }
+        let root: RootConfig = serde_yaml::from_str(source)
+            .map_err(|error| format!("invalid `tags:` registry: {error}"))?;
+        let tags = root.tags.unwrap_or_default();
+        let entries = tags
+            .into_iter()
+            .map(|(name, tag)| (name, tag.into_entry()))
+            .collect();
+        Ok(Some(Self { entries }))
     }
+}
+
+fn has_top_level_tags(source: &str) -> bool {
+    source.lines().any(|line| {
+        line.trim_start().len() == line.len()
+            && line
+                .split_once(':')
+                .is_some_and(|(key, _)| key.trim() == "tags")
+    })
 }
 
 #[derive(Debug, Deserialize)]
 struct RootConfig {
     #[serde(default)]
-    tags: Option<RawTags>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum RawTags {
-    Map(BTreeMap<String, RawTag>),
-    List(Vec<RawNamedTag>),
+    tags: Option<BTreeMap<String, RawTag>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -99,18 +86,6 @@ impl RawTag {
 
 #[derive(Debug, Default, Deserialize)]
 struct RawTagDefinition {
-    #[serde(default)]
-    description: String,
-    #[serde(default)]
-    behavior_affecting: bool,
-}
-
-#[derive(Debug, Default, Deserialize)]
-struct RawNamedTag {
-    #[serde(default)]
-    name: String,
-    #[serde(default)]
-    tag: String,
     #[serde(default)]
     description: String,
     #[serde(default)]
