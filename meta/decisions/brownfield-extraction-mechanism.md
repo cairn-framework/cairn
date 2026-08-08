@@ -1,7 +1,11 @@
 ---
 id: dec.brownfield-extraction-mechanism
 nodes: [cairn.brownfield, cairn.kernel.cli]
-status: proposed
+status: accepted
+receipts:
+  - rev.brownfield-extraction-mechanism-correctness
+  - rev.brownfield-extraction-mechanism-alternatives
+  - rev.brownfield-extraction-mechanism-reversibility
 ratification: binding
 date: 2026-08-08
 informed_by:

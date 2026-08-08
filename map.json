@@ -8427,7 +8427,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.kernel.cli` carries 12 accepted decisions (threshold 10).",
+      "message": "Node `cairn.kernel.cli` carries 13 accepted decisions (threshold 10).",
       "node": "cairn.kernel.cli",
       "path": null
     },
@@ -8451,6 +8451,27 @@
       "message": "Node `cairn.ui` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.ui",
       "path": null
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.brownfield-extraction-mechanism-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "././meta/reviews/rev.brownfield-extraction-mechanism-alternatives.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.brownfield-extraction-mechanism-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "././meta/reviews/rev.brownfield-extraction-mechanism-correctness.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `././meta/reviews/rev.brownfield-extraction-mechanism-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "././meta/reviews/rev.brownfield-extraction-mechanism-reversibility.md"
     },
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
