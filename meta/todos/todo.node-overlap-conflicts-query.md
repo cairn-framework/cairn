@@ -41,13 +41,14 @@ the match.
 
 ### Live coordination
 
-- The current lease read verb is `cairn lease list`, routed by
+- The shipped lease read verb is `cairn lease list`, routed by
   `src/cli/commands/coord.rs`. It is the raw lease and driver-singleton
-  source; `cairn coord verify|compact` remains store administration. The
-  `--json` is already emitted by `coordination_query`; `--at <RFC3339>` and
-  `--since <filename>` are not shipped accepted forms to rely on. This unit
-  must add those observation flags, their help spec, copy usage, and parser
-  plumbing before using them for the join.
+  source; `cairn coord verify|compact` remains store administration. Its
+  `--json`, `--at <RFC3339>`, and `--since <filename>` forms are already
+  wired by `coordination_query` and contracted by `todo.coord-read-surface`.
+  The current help-spec/validator mismatch is a grammar defect to repair, not
+  a new substrate flag: expose these shipped forms in help, copy usage, and
+  validation before relying on them from this query.
 - Read the family-local store through
   `src/coord/read.rs::read_facts`. Lease `payload.unit_id` is already the full
   todo stem, such as `todo.driver-in-repo`; join it exactly to the stem
@@ -64,17 +65,18 @@ the match.
   through a facts-taking composer variant or equivalent. Two independent reads
   must not disagree when a grant lands between them.
 - Include the matching `units` and `held` rows from the shared composer behind
-  the current `cairn wave` command. Preserve its existing JSON rendering. The
-  future unit must add accepted `--at <RFC3339>` to that command's help spec,
-  copy usage, and parser plumbing before treating the observation instant as
-  a CLI form.
+  the current `cairn wave` command. `src/cli/render/project.rs::render_wave`
+  already passes `--at <RFC3339>` into `wave_json` and `compose_wave`, and the
+  command already has a JSON rendering path. If `FLAGS_HELP_ONLY` and
+  `validate_command_flags` block that shipped observation form, repair the
+  help spec, copy usage, and validation rather than redesigning the substrate.
   Preserve the plan digest, unit IDs, write-set prefixes, and held reasons
   (`lease-held`, `write-sets-overlap`, `runs-alone`, and `parked`) with any
   blocking fact ID. A wave preview is live coordination context, not proof
   that a unit has started; only a lease chain classified as held at `--at`
   may be rendered as a current claim. `cairn ruling run <plan-digest>`
   records consent and is not itself an in-flight claim.
-- Require `--at <RFC3339>` for coordination rows. Missing `--at` is a usage
+- Require `--at <RFC3339>` for this view's coordination rows. Missing `--at`
   or query error, never an implicit "now". The reader predicates compare
   single-format UTC strings lexically, so reject or normalize non-UTC and
   fractional inputs before calling them. Do not collapse malformed or missing
@@ -106,15 +108,17 @@ already owns the one-hop graph scope and the shipped opt-in
 coordination section. Keep `--json` as the machine-readable form and make the
 human sections mirror the same baseline and live rows.
 
-The flag additions are implementation scope, not current grammar: the
-`lease list` and `wave` entries in `src/cli/help/mod.rs` currently use
-`FLAGS_HELP_ONLY`, and `validate_command_flags` rejects their observation
-flags. Update those help specs, `docs/design-system/copy.toml` usage and
-argument copy, `src/cli/commands/mod.rs::shared_flags` and
-`shared_request`, and the relevant command plumbing together. The new
-coordination section must extend the existing `NeighbourhoodResponse` wire
-schema and its snapshots without changing the existing neighbourhood todo
-listing. No new command row is expected, but
+Only `--include-coordination` and `--at <RFC3339>` on `neighbourhood` are
+new flags for this unit. The shipped lease and wave observation forms already
+exist in `coordination_query` and `render_wave`; the `FLAGS_HELP_ONLY` entries
+and `validate_command_flags` mismatch is a help-grammar defect. Repair those
+help specs, `docs/design-system/copy.toml` usage and argument copy, and
+validation so the existing forms are discoverable and accepted. Add the new
+neighbourhood flags through `src/cli/commands/mod.rs::shared_flags` and
+`shared_request` and the relevant query plumbing. The new coordination
+section must extend the existing `NeighbourhoodResponse` wire schema and its
+snapshots without changing the existing neighbourhood todo listing.
+No new command row is expected, but
 `tests/command_reference_consistency.rs` and the query wire contract tests
 must remain green.
 
