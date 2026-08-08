@@ -12,7 +12,7 @@ Suggested initial ignores (written only with `--apply`):
 
 Next steps (review before you apply):
   1. Review `meta/changes/brownfield-init/proposal.md` and correct the grouping, paths, edges, and contracts
-  2. Apply the reviewed change: `cairn change apply brownfield-init` (ignore suggestions are informational; confirm them with `cairn init --from-code --apply` on the initial run)
+  2. Apply the reviewed change: `cairn change apply brownfield-init`. On a fresh run, `cairn init --from-code --apply` writes the suggested ignore entries first. If you review this proposal first, add the listed paths to `cairn.config.yaml` yourself (one to four lines), then run this apply command
   3. Wire cairn into your agent: `cairn init --wire`
   4. Reconcile the blueprint against your code: `cairn scan`
   5. Group any files still unowned: `cairn onboard`

@@ -39,7 +39,7 @@ pub(crate) use crate::copy;
 pub(crate) use format::render_finding_lines;
 
 use commands::{
-    atomic_write, init_project, install_default_pack, legacy_blueprint_warning,
+    atomic_write, contained_path, init_project, install_default_pack, legacy_blueprint_warning,
     preflight_wire_check, run_archive_command, run_archive_command_with_path, run_baseline_command,
     run_change_new, run_coord_command, run_decision_command, run_draft_command,
     run_feedback_command, run_gap_command, run_hook_command, run_hook_lifecycle_command,
@@ -212,6 +212,7 @@ fn initial_ignore_suggestions(root: &Path) -> Result<Vec<String>, String> {
         .filter(|candidate| is_safe_ignore_path(candidate))
         .collect())
 }
+
 /// Validate the existing config shape before an apply can archive the
 /// brownfield proposal. This keeps malformed inline ignore syntax from
 /// turning a later scaffold failure into a partial apply.
@@ -503,14 +504,18 @@ fn finish_brownfield_apply(
     let applied_copy =
         render_ignore_proposal(applied_ignores, "init.from-code.ignore-applied-header");
     let mut stdout = format!(
-        "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n{}",
+        "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n\n{}",
         result.stdout.trim_end()
     );
     if !applied_copy.is_empty() {
-        stdout.push_str(&applied_copy);
+        stdout.push_str("\n\n");
+        stdout.push_str(applied_copy.trim_end());
+    }
+    if !bootstrap.stdout.trim().is_empty() {
+        stdout.push_str("\n\n");
+        stdout.push_str(bootstrap.stdout.trim_end());
         stdout.push('\n');
     }
-    stdout.push_str(&bootstrap.stdout);
     result.stdout = stdout;
     result
 }
@@ -525,9 +530,9 @@ fn record_brownfield_apply(root: &Path, archive_path: &Path) -> Result<(), CliRe
                 .replace("{detail}", "the archived change name is invalid"),
         ));
     };
-    let parent = root.join(".cairn/state");
-    let marker = root.join(BROWNFIELD_APPLIED_MARKER);
-    atomic_write(&parent, &marker, name).map_err(|detail| {
+    let marker = contained_path(root, BROWNFIELD_APPLIED_MARKER)?;
+    let parent = marker.parent().unwrap_or(root);
+    atomic_write(parent, &marker, name).map_err(|detail| {
         err(
             1,
             &copy::lookup("init.err-completion-marker").replace("{detail}", &detail),
@@ -640,6 +645,14 @@ pub fn run(args: &[String]) -> CliResult {
                 return preflight;
             }
         }
+        // The archive scan writes under `.cairn/`; reject a symlinked marker
+        // path before any apply-time scan or mutation can follow it.
+        if from_code
+            && apply
+            && let Err(marker_error) = contained_path(project_root, BROWNFIELD_APPLIED_MARKER)
+        {
+            return marker_error;
+        }
         let force = parsed.command_args.iter().any(|a| a == "--force");
         if from_code
             && apply
@@ -677,6 +690,21 @@ pub fn run(args: &[String]) -> CliResult {
             return match crate::brownfield::init::run_init_from_code(project_root, force) {
                 Ok(change_id) => {
                     if apply {
+                        let legacy_warning = legacy_blueprint_warning(project_root);
+                        let conflict_findings = hooks::detect_active_change_conflicts(
+                            &project_root.join("meta/changes"),
+                        );
+                        if !conflict_findings.is_empty() {
+                            return CliResult {
+                                code: 1,
+                                stdout: render_findings(
+                                    &conflict_findings,
+                                    parsed.json,
+                                    parsed.verbose,
+                                ),
+                                stderr: legacy_warning,
+                            };
+                        }
                         // Write confirmed ignores before archive so its scan
                         // reconciles the project with the proposed paths.
                         let applied_ignores = match append_initial_ignore_entries(
@@ -697,7 +725,6 @@ pub fn run(args: &[String]) -> CliResult {
                         // Use the paths init actually wrote (it hardcodes
                         // cairn.blueprint and meta/changes), not --file /
                         // --changes-dir overrides.
-                        let legacy_warning = legacy_blueprint_warning(project_root);
                         let archive_parsed = delegated_archive_args(
                             &parsed,
                             project_root.join("cairn.blueprint"),
@@ -1982,6 +2009,7 @@ mod tests {
             !root.join("cairn.config.yaml").exists(),
             "proposal must not write config before --apply"
         );
+
         let json_root = from_code_root("init-from-code-ignore-json")?;
         fs::write(json_root.join("package.json"), "{}\n")?;
         fs::create_dir_all(json_root.join("packages/web/dist"))?;
@@ -2029,6 +2057,7 @@ mod tests {
         let root = from_code_root("init-from-code-ignore-no-config")?;
         fs::write(root.join("package.json"), "{}\n")?;
         fs::create_dir_all(root.join("packages/api/dist"))?;
+        fs::write(root.join("packages/api/dist/generated.js"), "generated\n")?;
 
         let result = run_in(&root, &["init", "--from-code", "--apply"]);
         assert_eq!(result.code, 0, "stderr: {}", result.stderr);
@@ -2048,6 +2077,39 @@ mod tests {
         );
         Ok(())
     }
+    #[test]
+    fn test_cli_init_from_code_apply_conflict_does_not_write_ignores()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ignore-conflict")?;
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+        fs::write(root.join("packages/api/dist/generated.js"), "generated\n")?;
+        let original = "ignore:\n  - custom-generated\ncontext: \"keep this\"\nrules: {}\n";
+        fs::write(root.join("cairn.config.yaml"), original)?;
+
+        let conflicting = root.join("meta/changes/conflicting");
+        fs::create_dir_all(&conflicting)?;
+        fs::write(conflicting.join("proposal.md"), "# Conflicting proposal\n")?;
+        fs::write(
+            conflicting.join("blueprint.delta"),
+            "## ADDED Nodes\nModule Alpha \"Alpha\" id \"src.alpha\" {\n    path \"./src/alpha\"\n}\n",
+        )?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 1, "archive conflicts must fail closed");
+        assert!(
+            result.stdout.contains("CAIRN_CHANGE_BLUEPRINT_CONFLICT"),
+            "conflict must be reported before writing ignores: {}",
+            result.stdout
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("cairn.config.yaml"))?,
+            original,
+            "archive conflict must not leave config partially mutated"
+        );
+        Ok(())
+    }
+
     #[test]
     fn test_cli_init_from_code_apply_rejects_inline_ignore_list_without_mutation()
     -> Result<(), Box<dyn std::error::Error>> {
@@ -2087,10 +2149,18 @@ mod tests {
         for i in 0..3 {
             fs::write(root.join(format!("src/alpha/f{i}.rs")), "pub fn f() {}\n")?;
         }
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+        fs::write(root.join("packages/api/dist/generated.js"), "generated\n")?;
         let result = run_in(&root, &["--json", "init", "--from-code", "--apply"]);
         assert_eq!(result.code, 0, "stderr: {}", result.stderr);
         let parsed: serde_json::Value = serde_json::from_str(result.stdout.trim())
             .unwrap_or_else(|e| panic!("json mode must emit valid JSON ({e}): {}", result.stdout));
+        assert!(
+            fs::read_to_string(root.join("cairn.config.yaml"))?
+                .contains("  - \"packages/api/dist\""),
+            "JSON apply must still write confirmed ignore entries"
+        );
         assert_eq!(parsed["command"], "archive");
         assert!(result.stderr.is_empty(), "stderr: {}", result.stderr);
         Ok(())
@@ -2380,6 +2450,40 @@ mod tests {
         assert!(!root.join(".cairn/state/agent-pack.json").exists());
         assert!(!root.join(".claude/skills/cairn-dev/SKILL.md").exists());
         assert!(!root.join("AGENTS.md").exists());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_brownfield_apply_rejects_symlinked_state_before_archive()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::unix::fs::symlink;
+
+        let root = from_code_root("init-from-code-symlink-state")?;
+        let outside = tempfile::tempdir()?;
+        fs::create_dir_all(outside.path().join("state"))?;
+        fs::create_dir_all(root.join(".cairn"))?;
+        symlink(outside.path().join("state"), root.join(".cairn/state"))?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 1, "symlinked state must fail closed");
+        assert!(
+            result.stdout.contains("symlink") || result.stderr.contains("symlink"),
+            "error must identify the containment failure: stdout={} stderr={}",
+            result.stdout,
+            result.stderr
+        );
+        assert!(
+            !outside
+                .path()
+                .join("state/brownfield-init-applied")
+                .exists(),
+            "completion marker must never be written through a state symlink"
+        );
+        assert!(
+            !outside.path().join("state/log.md").exists(),
+            "archive scan must not write logs through a state symlink"
+        );
         Ok(())
     }
 
