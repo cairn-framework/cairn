@@ -63,9 +63,11 @@ The old `StateBackend` seam is dropped. `dec.change-format-only` deleted the
 generic persistence abstraction and the beads claim and sequence workflow, so
 this read-only view must not revive either. It composes the scanner's
 committed artefacts with `read_facts` and `compose_wave`; it writes no facts
-and performs no claiming, sequencing, expiry evaluation, or dispatch.
-Coordination reads fail closed when the family store cannot be fully resolved,
-and no clock is consulted when the caller does not supply `--at`.
+and performs no claiming, sequencing, or dispatch. The core and appender do
+not evaluate expiry; only the reader predicates derive `held`, `stale`, and
+`no_lease` from an explicit `--at`. Coordination reads fail closed when the
+family store cannot be fully resolved, and no clock is consulted when the
+caller does not supply `--at`.
 
 ## CLI surface
 
@@ -115,7 +117,9 @@ contract tests must remain green.
 2026-08-09: re-scope completed against
 `dec.rung-three-coordination-substrate`, `cairn lease list`, and the shipped
 wave composer. This resolves the 2026-08-07 audit; the former pre-substrate
-StateBackend and committed-only framing is no longer applicable.
+StateBackend and committed-only-as-live-signal framing are no longer
+applicable. Committed todos and changes remain the baseline, augmented by live
+lease and wave evidence.
 
 ## Mission disposition
 
