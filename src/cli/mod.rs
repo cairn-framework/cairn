@@ -39,7 +39,7 @@ pub(crate) use crate::copy;
 pub(crate) use format::render_finding_lines;
 
 use commands::{
-    atomic_write, contained_path, init_project, install_default_pack, legacy_blueprint_warning,
+    atomic_write, init_project, install_default_pack, legacy_blueprint_warning,
     preflight_wire_check, run_archive_command, run_archive_command_with_path, run_baseline_command,
     run_change_new, run_coord_command, run_decision_command, run_draft_command,
     run_feedback_command, run_gap_command, run_hook_command, run_hook_lifecycle_command,
@@ -78,6 +78,25 @@ pub const fn registry() -> &'static [CommandMetadata] {
 }
 
 const BROWNFIELD_APPLIED_MARKER: &str = ".cairn/state/brownfield-init-applied";
+/// Resolve the completion marker with the same symlink guard as the shared
+/// scaffold writer. The command seam cannot import the private wire module,
+/// so this fixed marker check stays local to the init dispatcher.
+fn contained_brownfield_marker(root: &Path) -> Result<PathBuf, CliResult> {
+    let marker = root.join(BROWNFIELD_APPLIED_MARKER);
+    let mut current = root.to_path_buf();
+    for component in Path::new(BROWNFIELD_APPLIED_MARKER).components() {
+        current.push(component);
+        if let Ok(metadata) = fs::symlink_metadata(&current)
+            && metadata.file_type().is_symlink()
+        {
+            return Err(err(
+                1,
+                &copy::lookup("paths.err-symlink").replace("{file}", BROWNFIELD_APPLIED_MARKER),
+            ));
+        }
+    }
+    Ok(marker)
+}
 
 /// Install the owned base pack, then append the optional orientation pointer.
 /// Both operations run only after project scaffolding or brownfield apply has
@@ -530,7 +549,7 @@ fn record_brownfield_apply(root: &Path, archive_path: &Path) -> Result<(), CliRe
                 .replace("{detail}", "the archived change name is invalid"),
         ));
     };
-    let marker = contained_path(root, BROWNFIELD_APPLIED_MARKER)?;
+    let marker = contained_brownfield_marker(root)?;
     let parent = marker.parent().unwrap_or(root);
     atomic_write(parent, &marker, name).map_err(|detail| {
         err(
@@ -649,7 +668,7 @@ pub fn run(args: &[String]) -> CliResult {
         // path before any apply-time scan or mutation can follow it.
         if from_code
             && apply
-            && let Err(marker_error) = contained_path(project_root, BROWNFIELD_APPLIED_MARKER)
+            && let Err(marker_error) = contained_brownfield_marker(project_root)
         {
             return marker_error;
         }

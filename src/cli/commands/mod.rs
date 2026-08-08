@@ -42,7 +42,7 @@ pub(crate) use pack::{install_default_pack, run_pack_command};
 pub(crate) use project::{init_project, run_ui_command};
 pub(crate) use todo::run_todo_command;
 pub(crate) use watch::run_watch_command;
-pub(crate) use wire::{atomic_write, contained_path, preflight_wire_check, wire_agent_guide};
+pub(crate) use wire::{atomic_write, preflight_wire_check, wire_agent_guide};
 pub(crate) use workspace::run_workspace_command;
 
 pub(crate) fn run_draft_command(
