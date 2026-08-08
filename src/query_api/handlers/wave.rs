@@ -177,7 +177,41 @@ pub(in crate::query_api) fn wave_stats_json(
 
 #[cfg(test)]
 mod tests {
+    use crate::coord::append::{NewFact, append_fact};
+    use crate::coord::envelope::Actor;
+    use std::path::Path;
+
     use super::*;
+
+    fn repo() -> tempfile::TempDir {
+        let dir = tempfile::TempDir::new().expect("tempdir");
+        let output = std::process::Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["init", "-q"])
+            .output()
+            .expect("git runs");
+        assert!(output.status.success());
+        dir
+    }
+
+    fn record(root: &Path, recorded_at: &str, payload: serde_json::Value) {
+        append_fact(
+            root,
+            NewFact {
+                kind: "outcome.touched_files".to_owned(),
+                recorded_at: recorded_at.to_owned(),
+                recorded_by: Actor {
+                    kind: "driver".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload,
+            },
+        )
+        .expect("appends");
+    }
 
     #[test]
     fn wave_stats_uses_its_timestamp_since_variant() {
@@ -193,5 +227,36 @@ mod tests {
             ..QueryRequest::default()
         };
         assert_eq!(wave_stats_since(&request), None);
+    }
+
+    #[test]
+    fn wave_stats_since_filters_out_older_touched_files_facts() {
+        let dir = repo();
+        record(
+            dir.path(),
+            "2026-08-07T03:00:00Z",
+            serde_json::json!({
+                "files": ["src/old.rs"],
+                "excluded_by_prefixes": ["src/"],
+            }),
+        );
+        record(
+            dir.path(),
+            "2026-08-07T05:00:00Z",
+            serde_json::json!({
+                "files": ["src/new.rs"],
+                "excluded_by_prefixes": ["docs/"],
+            }),
+        );
+        let request = QueryRequest {
+            since: Some(QuerySince::WaveStatsTimestamp(
+                "2026-08-07T04:00:00Z".to_owned(),
+            )),
+            ..QueryRequest::default()
+        };
+        let data = wave_stats_json(dir.path(), &request).expect("stats");
+        assert_eq!(data["window"]["size"], 1);
+        assert_eq!(data["proven_false"], 1);
+        assert_eq!(data["false_overlap_rate"], 1.0);
     }
 }

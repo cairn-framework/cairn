@@ -306,6 +306,9 @@ fn input_schema_for_tool(tool: &str, schema: &str) -> Value {
 
 fn input_schema_properties(schema: &str) -> Value {
     match schema {
+        "NodeRequest" | "ArtefactNodeRequest" => json!({
+            "node": { "type": "string" },
+        }),
         "CoordinationShowRequest" => json!({
             "node": { "type": "string" },
             "at": { "type": "string" },
@@ -433,6 +436,11 @@ mod since_schema_tests {
         let stats = input_schema_for_tool("wave stats", "CoordinationRequest");
         assert!(stats["properties"]["since"].is_object());
         assert!(stats["properties"]["cursor"].is_null());
+        let beads = tools_json(false)
+            .into_iter()
+            .find(|tool| tool["name"] == "cairn_beads")
+            .expect("cairn_beads is registered");
+        assert_eq!(beads["inputSchema"]["properties"]["node"]["type"], "string");
 
         let coordination_request = request_from_arguments(
             "cairn_coordination_rulings",
