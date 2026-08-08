@@ -1,67 +1,213 @@
+// cairn:allow-large-module reason: integrity algorithms and their cohesive graph invariant tests remain together
 //! Reusable integrity algorithms.
 use super::graph::{Finding, FindingSeverity, Graph};
-use std::collections::{BTreeMap, BTreeSet};
-/// Finds dependency cycles without blocking basic graph construction.
-#[must_use]
-#[allow(clippy::missing_panics_doc)] // Reason: infallible unwrap; entry was just inserted via or_insert
-pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
-    // 0 = white (unvisited), 1 = gray (in stack), 2 = black (done)
-    let mut color: BTreeMap<&str, u8> = BTreeMap::new();
-    let mut stack: Vec<&str> = Vec::new();
-    for start in graph.nodes.keys().map(String::as_str) {
-        if color.get(start).copied().unwrap_or(0) != 0 {
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
+fn dependency_components(graph: &Graph) -> Vec<Vec<&str>> {
+    let mut outbound: BTreeMap<&str, Vec<&str>> = graph
+        .nodes
+        .keys()
+        .map(|id| (id.as_str(), Vec::new()))
+        .collect();
+    let mut inbound: BTreeMap<&str, Vec<&str>> = graph
+        .nodes
+        .keys()
+        .map(|id| (id.as_str(), Vec::new()))
+        .collect();
+
+    for (from, edges) in &graph.outbound {
+        let Some(targets) = outbound.get_mut(from.as_str()) else {
+            continue;
+        };
+        for edge in edges {
+            if let Some(reverse_targets) = inbound.get_mut(edge.to.as_str()) {
+                targets.push(edge.to.as_str());
+                reverse_targets.push(from.as_str());
+            }
+        }
+        targets.sort_unstable();
+        targets.dedup();
+    }
+    for targets in inbound.values_mut() {
+        targets.sort_unstable();
+        targets.dedup();
+    }
+
+    let mut visited = BTreeSet::new();
+    let mut finish = Vec::with_capacity(graph.nodes.len());
+    for &start in outbound.keys() {
+        if visited.contains(start) {
             continue;
         }
-        stack.push(start);
-        while let Some(node) = stack.last().copied() {
-            match color.entry(node).or_insert(0) {
-                0 => {
-                    *color.get_mut(node).unwrap() = 1;
-                    if let Some(edges) = graph.outbound.get(node) {
-                        for edge in edges {
-                            let to = edge.to.as_str();
-                            match color.get(to).copied().unwrap_or(0) {
-                                1 => {
-                                    // Cycle found: extract cycle from stack
-                                    let cycle: Vec<_> = stack
-                                        .iter()
-                                        .skip_while(|&n| *n != to)
-                                        .copied()
-                                        .chain(std::iter::once(to))
-                                        .collect();
-                                    return vec![Finding {
-                                        code: "CAIRN_ORDER_CYCLE".to_owned(),
-                                        severity: FindingSeverity::Error,
-                                        message: format!(
-                                            "dependency cycle: {}",
-                                            cycle.join(" -> ")
-                                        ),
-                                        node: Some(start.to_owned()),
-                                        target: None,
-                                        path: None,
-                                        deferred_by: None,
-                                        parked_by: None,
-                                    }];
-                                }
-                                2 => {}
-                                _ => {
-                                    stack.push(to);
-                                }
-                            }
-                        }
-                    }
-                }
-                1 => {
-                    *color.get_mut(node).unwrap() = 2;
-                    stack.pop();
-                }
-                _ => {
-                    stack.pop();
+        let mut stack = vec![(start, false)];
+        while let Some((node, expanded)) = stack.pop() {
+            if expanded {
+                finish.push(node);
+                continue;
+            }
+            if !visited.insert(node) {
+                continue;
+            }
+            stack.push((node, true));
+            for &next in outbound[node].iter().rev() {
+                if !visited.contains(next) {
+                    stack.push((next, false));
                 }
             }
         }
     }
-    Vec::new()
+
+    let mut assigned = BTreeSet::new();
+    let mut components = Vec::new();
+    for &start in finish.iter().rev() {
+        if !assigned.insert(start) {
+            continue;
+        }
+        let mut component = Vec::new();
+        let mut stack = vec![start];
+        while let Some(node) = stack.pop() {
+            component.push(node);
+            for &next in &inbound[node] {
+                if assigned.insert(next) {
+                    stack.push(next);
+                }
+            }
+        }
+        component.sort_unstable();
+        components.push(component);
+    }
+    components.sort_by(|left, right| left[0].cmp(right[0]));
+    components
+}
+
+fn is_cyclic_component(component: &[&str], graph: &Graph) -> bool {
+    component.len() > 1
+        || graph
+            .outbound
+            .get(component[0])
+            .into_iter()
+            .flatten()
+            .any(|edge| edge.to == component[0])
+}
+
+fn representative_cycle<'a>(graph: &'a Graph, component: &[&'a str]) -> Vec<&'a str> {
+    let start = component[0];
+    let members: BTreeSet<&str> = component.iter().copied().collect();
+    let mut parent = BTreeMap::from([(start, start)]);
+    let mut queue = VecDeque::from([start]);
+    while let Some(node) = queue.pop_front() {
+        let Some(edges) = graph.outbound.get(node) else {
+            continue;
+        };
+        let mut neighbors: Vec<&str> = edges
+            .iter()
+            .map(|edge| edge.to.as_str())
+            .filter(|next| members.contains(next))
+            .collect();
+        neighbors.sort_unstable();
+        neighbors.dedup();
+        for next in neighbors {
+            if next == start {
+                let mut path = vec![node];
+                let mut current = node;
+                while current != start {
+                    current = parent[current];
+                    path.push(current);
+                }
+                path.reverse();
+                path.push(start);
+                return path;
+            }
+            if !parent.contains_key(next) {
+                parent.insert(next, node);
+                queue.push_back(next);
+            }
+        }
+    }
+    debug_assert!(false, "cyclic component has no representative cycle");
+    unreachable!("cyclic component has no representative cycle");
+}
+
+fn dependency_cycle_data(graph: &Graph) -> (Vec<Finding>, BTreeMap<&str, usize>) {
+    let mut findings = Vec::new();
+    let mut membership = BTreeMap::new();
+    for component in dependency_components(graph) {
+        if !is_cyclic_component(&component, graph) {
+            continue;
+        }
+        let component_id = findings.len();
+        for &node in &component {
+            membership.insert(node, component_id);
+        }
+        let path = representative_cycle(graph, &component);
+        findings.push(Finding {
+            code: "CAIRN_ORDER_CYCLE".to_owned(),
+            severity: FindingSeverity::Error,
+            message: format!("dependency cycle: {}", path.join(" -> ")),
+            node: Some(component[0].to_owned()),
+            target: None,
+            path: None,
+            deferred_by: None,
+            parked_by: None,
+        });
+    }
+    (findings, membership)
+}
+
+/// Finds dependency cycles without blocking basic graph construction.
+#[must_use]
+pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
+    dependency_cycle_data(graph).0
+}
+fn combined_cycle_finding(
+    indegree: &BTreeMap<&str, usize>,
+    succ: &BTreeMap<&str, Vec<&str>>,
+) -> Finding {
+    let mut outdeg: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut pred: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for (&before, afters) in succ {
+        if !indegree.contains_key(before) {
+            continue;
+        }
+        for &after in afters {
+            if indegree.contains_key(after) {
+                *outdeg.entry(before).or_insert(0) += 1;
+                pred.entry(after).or_default().push(before);
+            }
+        }
+    }
+    let mut peel: Vec<&str> = indegree
+        .keys()
+        .filter(|id| !outdeg.contains_key(*id))
+        .copied()
+        .collect();
+    let mut stuck: BTreeSet<&str> = indegree.keys().copied().collect();
+    while let Some(leaf) = peel.pop() {
+        stuck.remove(leaf);
+        for &parent in pred.get(leaf).into_iter().flatten() {
+            if let Some(degree) = outdeg.get_mut(parent) {
+                *degree -= 1;
+                if *degree == 0 {
+                    outdeg.remove(parent);
+                    peel.push(parent);
+                }
+            }
+        }
+    }
+    let stuck: Vec<&str> = stuck.into_iter().collect();
+    Finding {
+        code: "CAIRN_ORDER_CYCLE".to_owned(),
+        severity: FindingSeverity::Error,
+        message: format!(
+            "containment and dependency constraints are cyclic among: {}",
+            stuck.join(", ")
+        ),
+        node: stuck.first().map(|s| (*s).to_owned()),
+        target: None,
+        path: None,
+        deferred_by: None,
+        parked_by: None,
+    }
 }
 
 /// Computes a deterministic topological order for the graph.
@@ -72,19 +218,18 @@ pub fn cycle_findings(graph: &Graph) -> Vec<Finding> {
 /// 3. Ties break by node id, so the order is independent of declaration or
 ///    key order.
 ///
-/// Both edge kinds are hard constraints: a contradiction between them (for
+/// Both edge kinds are hard constraints. Dependency cycles are reported as
+/// dependency findings, while this combined pass still checks for additional
+/// cycles involving containment edges. A contradiction between them (for
 /// example a node depending on its own container's parent chain) is reported
 /// as a cycle, the same as a pure dependency cycle.
 ///
 /// # Errors
 ///
-/// Returns cycle findings when the combined dependency and containment
-/// constraints are cyclic.
+/// Returns cycle findings when the dependency graph or the combined dependency
+/// and containment constraints are cyclic.
 pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
-    let cycles = cycle_findings(graph);
-    if !cycles.is_empty() {
-        return Err(cycles);
-    }
+    let (mut cycles, dependency_cycle_membership) = dependency_cycle_data(graph);
     // Precedence successors: `before -> [after]`. Dependency edge a->b means
     // b precedes a; containment means child precedes parent. Both are hard.
     let mut succ: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
@@ -93,6 +238,13 @@ pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
     for (from, edges) in &graph.outbound {
         for edge in edges {
             if !indegree.contains_key(edge.to.as_str()) {
+                continue;
+            }
+            if let (Some(from_component), Some(to_component)) = (
+                dependency_cycle_membership.get(from.as_str()),
+                dependency_cycle_membership.get(edge.to.as_str()),
+            ) && from_component == to_component
+            {
                 continue;
             }
             if let Some(deg) = indegree.get_mut(from.as_str()) {
@@ -124,56 +276,10 @@ pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
     let mut order: Vec<String> = Vec::with_capacity(graph.nodes.len());
     while order.len() < graph.nodes.len() {
         let Some(&next) = ready.iter().next() else {
-            // Deadlock: the dependency graph alone is acyclic (checked
-            // above), so containment contradicts a dependency edge. The
-            // remaining nodes all have unmet predecessors; peel those with
-            // no remaining successors (merely blocked downstream of the
-            // cycle) so the finding names only the cyclic structure.
-            let mut outdeg: BTreeMap<&str, usize> = BTreeMap::new();
-            let mut pred: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
-            for (&before, afters) in &succ {
-                if !indegree.contains_key(before) {
-                    continue;
-                }
-                for &after in afters {
-                    if indegree.contains_key(after) {
-                        *outdeg.entry(before).or_insert(0) += 1;
-                        pred.entry(after).or_default().push(before);
-                    }
-                }
-            }
-            let mut peel: Vec<&str> = indegree
-                .keys()
-                .filter(|id| !outdeg.contains_key(*id))
-                .copied()
-                .collect();
-            let mut stuck: BTreeSet<&str> = indegree.keys().copied().collect();
-            while let Some(leaf) = peel.pop() {
-                stuck.remove(leaf);
-                for &p in pred.get(leaf).into_iter().flatten() {
-                    if let Some(deg) = outdeg.get_mut(p) {
-                        *deg -= 1;
-                        if *deg == 0 {
-                            outdeg.remove(p);
-                            peel.push(p);
-                        }
-                    }
-                }
-            }
-            let stuck: Vec<&str> = stuck.into_iter().collect();
-            return Err(vec![Finding {
-                code: "CAIRN_ORDER_CYCLE".to_owned(),
-                severity: FindingSeverity::Error,
-                message: format!(
-                    "containment and dependency constraints are cyclic among: {}",
-                    stuck.join(", ")
-                ),
-                node: stuck.first().map(|s| (*s).to_owned()),
-                target: None,
-                path: None,
-                deferred_by: None,
-                parked_by: None,
-            }]);
+            // Internal dependency SCC edges were removed above, so a
+            // deadlock here necessarily includes a containment edge.
+            cycles.push(combined_cycle_finding(&indegree, &succ));
+            return Err(cycles);
         };
         ready.remove(next);
         indegree.remove(next);
@@ -187,9 +293,12 @@ pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
             }
         }
     }
-    Ok(order)
+    if cycles.is_empty() {
+        Ok(order)
+    } else {
+        Err(cycles)
+    }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -276,12 +385,24 @@ mod tests {
 
     #[test]
     fn test_cycle_findings_acyclic_diamond_returns_no_findings() {
-        // a→b, a→c, b→d, c→d — shared dependency, no cycle.
+        // a→b, a→c, b→d, c→d; shared dependency, no cycle.
         let g = make_graph(
             &["a", "b", "c", "d"],
             &[("a", "b"), ("a", "c"), ("b", "d"), ("c", "d")],
         );
         assert!(cycle_findings(&g).is_empty());
+    }
+
+    #[test]
+    fn test_cycle_findings_acyclic_shared_dependency_triangle_returns_no_findings() {
+        let g = make_graph(
+            &["api", "auth", "db"],
+            &[("api", "auth"), ("api", "db"), ("auth", "db")],
+        );
+        assert!(
+            cycle_findings(&g).is_empty(),
+            "shared dependency DAG must not be reported as a cycle"
+        );
     }
 
     #[test]
@@ -300,11 +421,82 @@ mod tests {
         let findings = cycle_findings(&g);
         assert!(has_cycle_code(&findings));
     }
+    #[test]
+    fn test_cycle_findings_enumerates_disjoint_components_in_id_order() {
+        let g = make_graph(
+            &["b2", "a1", "b1", "a2"],
+            &[("b2", "b1"), ("b1", "b2"), ("a2", "a1"), ("a1", "a2")],
+        );
+        let findings = cycle_findings(&g);
+        assert_eq!(
+            findings.len(),
+            2,
+            "one finding per cyclic SCC: {findings:?}"
+        );
+        assert_eq!(
+            findings
+                .iter()
+                .map(|finding| finding.node.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("a1"), Some("b1")]
+        );
+    }
+
+    #[test]
+    fn test_cycle_findings_collapses_multiple_simple_cycles_per_component() {
+        let first = make_graph(
+            &["c", "a", "b"],
+            &[("a", "c"), ("c", "a"), ("a", "b"), ("b", "a")],
+        );
+        let permuted = make_graph(
+            &["b", "c", "a"],
+            &[("b", "a"), ("a", "b"), ("c", "a"), ("a", "c")],
+        );
+
+        let first_findings = cycle_findings(&first);
+        let permuted_findings = cycle_findings(&permuted);
+        assert_eq!(first_findings.len(), 1);
+        assert_eq!(permuted_findings, first_findings);
+    }
+
+    #[test]
+    fn test_topological_order_reports_dependency_and_containment_cycles() {
+        let g = with_containment(
+            make_graph(
+                &["ancestor", "child", "cycle-a", "cycle-b"],
+                &[
+                    ("cycle-a", "cycle-b"),
+                    ("cycle-b", "cycle-a"),
+                    ("child", "ancestor"),
+                ],
+            ),
+            &[("ancestor", "child")],
+        );
+        let err = topological_order(&g).expect_err("both contradictions must be reported");
+        assert_eq!(
+            err.iter()
+                .filter(|finding| finding.message.starts_with("dependency cycle:"))
+                .count(),
+            1,
+            "expected dependency SCC finding: {err:?}"
+        );
+        assert_eq!(
+            err.iter()
+                .filter(|finding| {
+                    finding
+                        .message
+                        .starts_with("containment and dependency constraints are cyclic")
+                })
+                .count(),
+            1,
+            "expected combined-constraint finding: {err:?}"
+        );
+    }
 
     #[test]
     fn test_cycle_findings_detects_self_loop() {
         // A self-loop (a→a) is a cycle with one node.
-        // The BFS condition `path.len() > 1` currently suppresses this — red test.
+        // The SCC pass must retain this singleton self-loop.
         let g = make_graph(&["a"], &[("a", "a")]);
         let findings = cycle_findings(&g);
         assert!(

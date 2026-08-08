@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.map
-status: open
+status: done
 created: 2026-08-07
 parent: todo.brownfield-nested-package-scan-clean
 related: [dec.brownfield-discovery-cycle-severity, dec.order-containment-rule]
