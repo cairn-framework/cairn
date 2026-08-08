@@ -5,6 +5,10 @@ use std::{collections::BTreeMap, error::Error, fmt, fs, path::Path, path::PathBu
 use crate::map::graph::Finding;
 
 mod parse;
+mod tags;
+
+pub use tags::{TagEntry, TagRegistry};
+
 use parse::parse_config;
 
 /// Default accepted-decision count above which
@@ -66,6 +70,8 @@ pub struct Config {
     pub intentional_asymmetries: Vec<IntentionalAsymmetry>,
     /// Accept-gate steps from a top-level `gates:` block (language-agnostic).
     pub gates: Vec<GateStep>,
+    /// Optional registry documenting the tags used by blueprint nodes.
+    pub tags: Option<TagRegistry>,
     /// True when a top-level `gates:` key was present (even if the list is empty).
     ///
     /// Distinguishes "no gates configured" (fall back by language) from an
@@ -211,5 +217,7 @@ impl Config {
     }
 }
 
+#[cfg(test)]
+mod tags_tests;
 #[cfg(test)]
 mod tests;

@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.scanner
-status: open
+status: done
 created: 2026-07-16
 ---
 
@@ -11,9 +11,9 @@ Tags are freeform strings the parser merely collects
 exact tag strings: `no-contract` exemption
 (`src/map/contract_coverage.rs:19`), `no-test-coverage` exemption
 (`src/map/test_coverage.rs:17`), and brownfield template matching via
-MatchRule::HasTag (`src/brownfield/templates.rs:95`). A typo'd exemption
-tag silently fails to exempt, and the cairn-dev skill (line 131) wrongly
-documents tags as informational only.
+MatchRule::HasTag (`src/brownfield/templates.rs:95`). A typo'd exemption tag
+silently fails to exempt, and the cairn-dev skill previously documented tags
+as informational only.
 
 Add an opt-in `tags:` section to cairn.config.yaml (small module modeled
 on `src/summariser/config.rs`) declaring each known tag with a one-line
@@ -41,3 +41,6 @@ needed for the Info-tier core.
 2026-08-02: keep against dec.cairn-mission. Serves investigable. It keeps tag coverage discoverable for future graph investigations.
 
 2026-08-07 audit (todo.roadmap-assumption-audit): keep as written.
+
+2026-08-08 implementation review: `docs/spec.md` top-level config key list
+remains owned by S15; defer that reconciliation.
