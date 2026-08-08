@@ -56,6 +56,7 @@ use handlers::{
 };
 use handlers::{coordination_leases_json, coordination_rulings_json, wave_json, wave_stats_json};
 use registry::{metadata_for_tool, registry_slice};
+pub(crate) use serialise::relative_path;
 use serialise::{
     backlog_item_detail_json, decision_json, findings_json, node_json, relevant_rules,
 };

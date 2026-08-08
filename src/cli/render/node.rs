@@ -171,7 +171,12 @@ pub(crate) fn render_neighbourhood(
                         .map(|decision| decision_line_with_index(decision, &index))
                         .collect::<Vec<_>>(),
                 ),
-                lines(&todos.iter().map(super::super::format::todo_line).collect::<Vec<_>>()),
+                lines(
+                    &todos
+                        .iter()
+                        .map(|todo| super::super::format::todo_line(todo, root))
+                        .collect::<Vec<_>>(),
+                ),
                 lines(&research.iter().map(super::super::format::research_line).collect::<Vec<_>>()),
                 lines(&reviews.iter().map(super::super::format::review_line).collect::<Vec<_>>())
             )

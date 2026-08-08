@@ -67,7 +67,7 @@ fn render_status_brief(
     );
     out.push('\n');
     for todo in open.iter().take(5) {
-        out.push_str(&super::super::format::todo_line(todo));
+        out.push_str(&super::super::format::todo_line(todo, root));
         out.push('\n');
     }
     let remaining = open.len().saturating_sub(5);
@@ -151,7 +151,7 @@ pub(crate) fn render_status(
         });
         format!(
             "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{},\"next_recommended\":{next_json}}}\n",
-            todos_json(&open),
+            todos_json(&open, root),
             string_array_json(&log_entries),
         )
     } else if parsed.brief {
@@ -166,7 +166,7 @@ pub(crate) fn render_status(
             lines(
                 &open
                     .iter()
-                    .map(super::super::format::todo_line)
+                    .map(|todo| super::super::format::todo_line(todo, root))
                     .collect::<Vec<_>>()
             ),
             lines(&log_entries),
