@@ -2404,16 +2404,16 @@
           "kind": "function",
           "signature": "pub fn render_human(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 33,
-          "end_line": 35
+          "line": 37,
+          "end_line": 39
         },
         {
           "name": "render_json",
           "kind": "function",
           "signature": "pub fn render_json(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 39,
-          "end_line": 66
+          "line": 43,
+          "end_line": 78
         },
         {
           "name": "run",
@@ -2437,7 +2437,7 @@
           "signature": "pub(crate) fn render_human_verbose(report: &HookReport, verbose: bool) -> String",
           "file": "src/hooks/render.rs",
           "line": 14,
-          "end_line": 28
+          "end_line": 32
         },
         {
           "name": "run_with_ratification_mode",
