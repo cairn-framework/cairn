@@ -429,9 +429,10 @@ fn base_binding_surface_findings(
 }
 
 fn repository_path(root: &Path, path: &str) -> String {
-    Path::new(path)
-        .strip_prefix(root)
-        .unwrap_or_else(|_| Path::new(path))
+    let root = lexical_normalize(root);
+    let path = lexical_normalize(Path::new(path));
+    path.strip_prefix(&root)
+        .unwrap_or(path.as_path())
         .to_string_lossy()
         .replace('\\', "/")
 }

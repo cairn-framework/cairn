@@ -123,6 +123,26 @@ fn test_scan_result_records_lexically_relative_blueprint_path() {
     assert_eq!(scan.blueprint_path, Path::new("alt.blueprint"));
     cleanup(root);
 }
+#[test]
+fn test_ratification_normalizes_parent_segments_in_scan_root() {
+    let root = git_root("parent-segment-root");
+    let _ = accepted_decision(&root, "src/subject.rs", "subject\n");
+    let scan_root = root.join("src/..");
+    let artefacts = crate::scanner::load_project(&scan_root, &scan_root.join("cairn.blueprint"))
+        .unwrap()
+        .artefacts;
+    commit(&root, "accept");
+    write(&root, "src/junk.rs", "junk\n");
+    commit(&root, "junk");
+    let findings = ratification_findings(&scan_root, &artefacts, RatificationMode::Head);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
 
 #[test]
 fn test_ratification_candidate_invalid_utf8_head_refuses() {
