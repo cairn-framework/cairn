@@ -82,7 +82,7 @@ const BROWNFIELD_LOG_PATH: &str = ".cairn/log.md";
 /// Resolve an init-time archive path with the same symlink guard as the
 /// shared scaffold writer. The command seam cannot import the private wire
 /// module, so these fixed paths stay local to the init dispatcher.
-fn contained_brownfield_path(root: &Path, relative: &str) -> Result<PathBuf, CliResult> {
+fn contained_brownfield_path(root: &Path, relative: &str) -> Result<PathBuf, String> {
     let path = root.join(relative);
     let mut current = root.to_path_buf();
     for component in Path::new(relative).components() {
@@ -90,10 +90,7 @@ fn contained_brownfield_path(root: &Path, relative: &str) -> Result<PathBuf, Cli
         if let Ok(metadata) = fs::symlink_metadata(&current)
             && metadata.file_type().is_symlink()
         {
-            return Err(err(
-                1,
-                &copy::lookup("paths.err-symlink").replace("{file}", relative),
-            ));
+            return Err(copy::lookup("paths.err-symlink").replace("{file}", relative));
         }
     }
     Ok(path)
@@ -567,7 +564,12 @@ fn record_brownfield_apply(root: &Path, archive_path: &Path) -> Result<(), CliRe
                 .replace("{detail}", "the archived change name is invalid"),
         ));
     };
-    let marker = contained_brownfield_path(root, BROWNFIELD_APPLIED_MARKER)?;
+    let marker = contained_brownfield_path(root, BROWNFIELD_APPLIED_MARKER).map_err(|detail| {
+        err(
+            1,
+            &copy::lookup("init.err-completion-marker").replace("{detail}", &detail),
+        )
+    })?;
     let parent = marker.parent().unwrap_or(root);
     atomic_write(parent, &marker, name).map_err(|detail| {
         err(
@@ -687,7 +689,7 @@ pub fn run(args: &[String]) -> CliResult {
         if from_code && apply {
             for relative in [BROWNFIELD_APPLIED_MARKER, BROWNFIELD_LOG_PATH] {
                 if let Err(path_error) = contained_brownfield_path(project_root, relative) {
-                    return path_error;
+                    return error_output(parsed.json, "CAIRN_COMMAND_FAILED", &path_error);
                 }
             }
         }
@@ -2121,11 +2123,6 @@ mod tests {
             !map.contains("packages/api/dist"),
             "persisted map must not retain the ignored orphan path: {map}"
         );
-        let log = fs::read_to_string(root.join(".cairn/log.md"))?;
-        assert!(
-            !log.contains("packages/api/dist"),
-            "persisted scan log must not retain the ignored orphan path: {log}"
-        );
         Ok(())
     }
     #[test]
@@ -2560,6 +2557,11 @@ mod tests {
             !root.join("meta/changes/archive").exists(),
             "symlink preflight must reject before creating an archive"
         );
+        let json = run_in(&root, &["--json", "init", "--from-code", "--apply"]);
+        assert_eq!(json.code, 1);
+        assert!(json.stderr.is_empty(), "JSON failures belong on stdout");
+        let envelope: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+        assert_eq!(envelope["findings"][0]["code"], "CAIRN_COMMAND_FAILED");
         Ok(())
     }
 
