@@ -78,24 +78,25 @@ pub const fn registry() -> &'static [CommandMetadata] {
 }
 
 const BROWNFIELD_APPLIED_MARKER: &str = ".cairn/state/brownfield-init-applied";
-/// Resolve the completion marker with the same symlink guard as the shared
-/// scaffold writer. The command seam cannot import the private wire module,
-/// so this fixed marker check stays local to the init dispatcher.
-fn contained_brownfield_marker(root: &Path) -> Result<PathBuf, CliResult> {
-    let marker = root.join(BROWNFIELD_APPLIED_MARKER);
+const BROWNFIELD_LOG_PATH: &str = ".cairn/log.md";
+/// Resolve an init-time archive path with the same symlink guard as the
+/// shared scaffold writer. The command seam cannot import the private wire
+/// module, so these fixed paths stay local to the init dispatcher.
+fn contained_brownfield_path(root: &Path, relative: &str) -> Result<PathBuf, CliResult> {
+    let path = root.join(relative);
     let mut current = root.to_path_buf();
-    for component in Path::new(BROWNFIELD_APPLIED_MARKER).components() {
+    for component in Path::new(relative).components() {
         current.push(component);
         if let Ok(metadata) = fs::symlink_metadata(&current)
             && metadata.file_type().is_symlink()
         {
             return Err(err(
                 1,
-                &copy::lookup("paths.err-symlink").replace("{file}", BROWNFIELD_APPLIED_MARKER),
+                &copy::lookup("paths.err-symlink").replace("{file}", relative),
             ));
         }
     }
-    Ok(marker)
+    Ok(path)
 }
 
 /// Install the owned base pack, then append the optional orientation pointer.
@@ -159,32 +160,31 @@ fn relative_slash_path(root: &Path, path: &Path) -> String {
         .trim_matches('/')
         .to_owned()
 }
+fn ignore_copy_error(key: &str, path: &str, detail: &str) -> String {
+    copy::lookup(key)
+        .replace("{path}", path)
+        .replace("{detail}", detail)
+}
+
+fn ignore_inspection_error(path: &Path, error: impl std::fmt::Display) -> String {
+    ignore_copy_error(
+        "init.from-code.err-ignore-inspect",
+        &path.display().to_string(),
+        &error.to_string(),
+    )
+}
 
 fn collect_initial_ignore_candidates(
     root: &Path,
     current: &Path,
     candidates: &mut BTreeSet<String>,
 ) -> Result<(), String> {
-    let entries = fs::read_dir(current).map_err(|error| {
-        format!(
-            "failed to inspect {} while proposing ignores: {error}",
-            current.display()
-        )
-    })?;
+    let entries = fs::read_dir(current).map_err(|error| ignore_inspection_error(current, error))?;
     for entry in entries {
-        let entry = entry.map_err(|error| {
-            format!(
-                "failed to inspect {} while proposing ignores: {error}",
-                current.display()
-            )
-        })?;
+        let entry = entry.map_err(|error| ignore_inspection_error(current, error))?;
         let path = entry.path();
-        let metadata = fs::symlink_metadata(&path).map_err(|error| {
-            format!(
-                "failed to inspect {} while proposing ignores: {error}",
-                path.display()
-            )
-        })?;
+        let metadata =
+            fs::symlink_metadata(&path).map_err(|error| ignore_inspection_error(&path, error))?;
         if metadata.file_type().is_symlink() {
             continue;
         }
@@ -240,8 +240,10 @@ fn validate_initial_ignore_target(root: &Path, suggestions: &[String]) -> Result
         return Ok(());
     }
     if let Some(unsafe_path) = suggestions.iter().find(|path| !is_safe_ignore_path(path)) {
-        return Err(format!(
-            "cannot scaffold initial ignore `{unsafe_path}`: path contains unsupported characters"
+        return Err(ignore_copy_error(
+            "init.from-code.err-ignore-unsafe-path",
+            unsafe_path,
+            "",
         ));
     }
     let config_path = root.join("cairn.config.yaml");
@@ -249,27 +251,34 @@ fn validate_initial_ignore_target(root: &Path, suggestions: &[String]) -> Result
         Ok(metadata) => metadata,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
         Err(error) => {
-            return Err(format!(
-                "failed to inspect {}: {error}",
-                config_path.display()
+            return Err(ignore_copy_error(
+                "init.from-code.err-ignore-config-inspect",
+                &config_path.display().to_string(),
+                &error.to_string(),
             ));
         }
     };
     if metadata.file_type().is_symlink() || !metadata.is_file() {
-        return Err(format!("{} is not a regular file", config_path.display()));
+        return Err(ignore_copy_error(
+            "init.from-code.err-ignore-not-regular",
+            &config_path.display().to_string(),
+            "",
+        ));
     }
-    let source = fs::read_to_string(&config_path)
-        .map_err(|error| format!("failed to read {}: {error}", config_path.display()))?;
+    let source = fs::read_to_string(&config_path).map_err(|error| {
+        ignore_copy_error(
+            "init.from-code.err-ignore-read",
+            &config_path.display().to_string(),
+            &error.to_string(),
+        )
+    })?;
     if let Some(ignore_line) = source
         .lines()
         .find(|line| line.trim_start().starts_with("ignore:"))
     {
         let ignore_value = ignore_line.trim()["ignore:".len()..].trim();
         if !ignore_value.is_empty() && ignore_value != "[]" {
-            return Err(
-                "cannot scaffold initial ignores into an inline `ignore:` list; expand it first"
-                    .to_owned(),
-            );
+            return Err(copy::lookup("init.from-code.err-ignore-inline").to_owned());
         }
     }
     Ok(())
@@ -348,24 +357,36 @@ fn append_initial_ignore_entries(
         return Ok(Vec::new());
     }
     if let Some(unsafe_path) = suggestions.iter().find(|path| !is_safe_ignore_path(path)) {
-        return Err(format!(
-            "cannot scaffold initial ignore `{unsafe_path}`: path contains unsupported characters"
+        return Err(ignore_copy_error(
+            "init.from-code.err-ignore-unsafe-path",
+            unsafe_path,
+            "",
         ));
     }
     let config_path = root.join("cairn.config.yaml");
     let source = match fs::symlink_metadata(&config_path) {
         Ok(metadata) => {
             if metadata.file_type().is_symlink() || !metadata.is_file() {
-                return Err(format!("{} is not a regular file", config_path.display()));
+                return Err(ignore_copy_error(
+                    "init.from-code.err-ignore-not-regular",
+                    &config_path.display().to_string(),
+                    "",
+                ));
             }
-            fs::read_to_string(&config_path)
-                .map_err(|error| format!("failed to read {}: {error}", config_path.display()))?
+            fs::read_to_string(&config_path).map_err(|error| {
+                ignore_copy_error(
+                    "init.from-code.err-ignore-read",
+                    &config_path.display().to_string(),
+                    &error.to_string(),
+                )
+            })?
         }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
         Err(error) => {
-            return Err(format!(
-                "failed to inspect {}: {error}",
-                config_path.display()
+            return Err(ignore_copy_error(
+                "init.from-code.err-ignore-config-inspect",
+                &config_path.display().to_string(),
+                &error.to_string(),
             ));
         }
     };
@@ -394,10 +415,7 @@ fn append_initial_ignore_entries(
     if let Some(ignore_index) = ignore_index {
         let ignore_value = lines[ignore_index].trim()["ignore:".len()..].trim();
         if !ignore_value.is_empty() && ignore_value != "[]" {
-            return Err(
-                "cannot scaffold initial ignores into an inline `ignore:` list; expand it first"
-                    .to_owned(),
-            );
+            return Err(copy::lookup("init.from-code.err-ignore-inline").to_owned());
         }
         if ignore_value == "[]" {
             "ignore:".clone_into(&mut lines[ignore_index]);
@@ -549,7 +567,7 @@ fn record_brownfield_apply(root: &Path, archive_path: &Path) -> Result<(), CliRe
                 .replace("{detail}", "the archived change name is invalid"),
         ));
     };
-    let marker = contained_brownfield_marker(root)?;
+    let marker = contained_brownfield_path(root, BROWNFIELD_APPLIED_MARKER)?;
     let parent = marker.parent().unwrap_or(root);
     atomic_write(parent, &marker, name).map_err(|detail| {
         err(
@@ -664,13 +682,14 @@ pub fn run(args: &[String]) -> CliResult {
                 return preflight;
             }
         }
-        // The archive scan writes under `.cairn/`; reject a symlinked marker
-        // path before any apply-time scan or mutation can follow it.
-        if from_code
-            && apply
-            && let Err(marker_error) = contained_brownfield_marker(project_root)
-        {
-            return marker_error;
+        // The archive scan writes under `.cairn/`; reject symlinked archive
+        // paths before any apply-time scan or mutation can follow them.
+        if from_code && apply {
+            for relative in [BROWNFIELD_APPLIED_MARKER, BROWNFIELD_LOG_PATH] {
+                if let Err(path_error) = contained_brownfield_path(project_root, relative) {
+                    return path_error;
+                }
+            }
         }
         let force = parsed.command_args.iter().any(|a| a == "--force");
         if from_code
@@ -690,8 +709,9 @@ pub fn run(args: &[String]) -> CliResult {
             let ignore_suggestions = match initial_ignore_suggestions(project_root) {
                 Ok(suggestions) => suggestions,
                 Err(detail) => {
-                    return err(
-                        1,
+                    return error_output(
+                        parsed.json,
+                        "CAIRN_COMMAND_FAILED",
                         &copy::lookup("init.from-code.err-ignore-scan")
                             .replace("{detail}", &detail),
                     );
@@ -701,8 +721,9 @@ pub fn run(args: &[String]) -> CliResult {
                 && let Err(detail) =
                     validate_initial_ignore_target(project_root, &ignore_suggestions)
             {
-                return err(
-                    1,
+                return error_output(
+                    parsed.json,
+                    "CAIRN_COMMAND_FAILED",
                     &copy::lookup("init.from-code.err-ignore-write").replace("{detail}", &detail),
                 );
             }
@@ -732,8 +753,9 @@ pub fn run(args: &[String]) -> CliResult {
                         ) {
                             Ok(entries) => entries,
                             Err(detail) => {
-                                return err(
-                                    1,
+                                return error_output(
+                                    parsed.json,
+                                    "CAIRN_COMMAND_FAILED",
                                     &copy::lookup("init.from-code.err-ignore-write")
                                         .replace("{detail}", &detail),
                                 );
@@ -2094,6 +2116,16 @@ mod tests {
             }),
             "archive scan must see the confirmed ignore before deriving findings"
         );
+        let map = fs::read_to_string(root.join("map.md"))?;
+        assert!(
+            !map.contains("packages/api/dist"),
+            "persisted map must not retain the ignored orphan path: {map}"
+        );
+        let log = fs::read_to_string(root.join(".cairn/log.md"))?;
+        assert!(
+            !log.contains("packages/api/dist"),
+            "persisted scan log must not retain the ignored orphan path: {log}"
+        );
         Ok(())
     }
     #[test]
@@ -2141,8 +2173,10 @@ mod tests {
         let result = run_in(&root, &["init", "--from-code", "--apply"]);
         assert_eq!(result.code, 1, "inline ignore lists must fail closed");
         assert!(
-            result.stderr.contains("inline `ignore:` list"),
-            "error should explain how to recover: {}",
+            result.stdout.contains("inline `ignore:` list")
+                || result.stderr.contains("inline `ignore:` list"),
+            "error should explain how to recover: stdout={} stderr={}",
+            result.stdout,
             result.stderr
         );
         assert_eq!(
@@ -2156,6 +2190,20 @@ mod tests {
         assert!(
             !root.join(BROWNFIELD_APPLIED_MARKER).exists(),
             "config validation must happen before completion is recorded"
+        );
+        let json_root = from_code_root("init-from-code-ignore-inline-json")?;
+        fs::write(json_root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(json_root.join("packages/web/dist"))?;
+        fs::write(json_root.join("cairn.config.yaml"), original)?;
+        let json = run_in(&json_root, &["--json", "init", "--from-code", "--apply"]);
+        assert_eq!(json.code, 1);
+        assert!(json.stderr.is_empty(), "JSON failures belong on stdout");
+        let envelope: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+        assert_eq!(envelope["findings"][0]["code"], "CAIRN_COMMAND_FAILED");
+        assert!(
+            envelope["findings"][0]["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("inline `ignore:` list"))
         );
         Ok(())
     }
@@ -2313,6 +2361,12 @@ mod tests {
             "init.from-code.ignore-applied-header",
             "init.from-code.err-ignore-scan",
             "init.from-code.err-ignore-write",
+            "init.from-code.err-ignore-inspect",
+            "init.from-code.err-ignore-config-inspect",
+            "init.from-code.err-ignore-not-regular",
+            "init.from-code.err-ignore-read",
+            "init.from-code.err-ignore-unsafe-path",
+            "init.from-code.err-ignore-inline",
         ] {
             assert_ne!(copy::lookup(key), key, "missing copy key {key}");
         }
@@ -2492,16 +2546,52 @@ mod tests {
             result.stdout,
             result.stderr
         );
+        for relative in [
+            "state/brownfield-init-applied",
+            "state/interface-hashes.json",
+            "state/blueprint-snapshot.json",
+        ] {
+            assert!(
+                !outside.path().join(relative).exists(),
+                "no archive output may escape through the state symlink: {relative}"
+            );
+        }
         assert!(
-            !outside
-                .path()
-                .join("state/brownfield-init-applied")
-                .exists(),
-            "completion marker must never be written through a state symlink"
+            !root.join("meta/changes/archive").exists(),
+            "symlink preflight must reject before creating an archive"
+        );
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_brownfield_apply_rejects_symlinked_log_before_archive()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::unix::fs::symlink;
+
+        let root = from_code_root("init-from-code-symlink-log")?;
+        let outside = tempfile::tempdir()?;
+        let outside_log = outside.path().join("log.md");
+        fs::write(&outside_log, "sentinel\n")?;
+        fs::create_dir_all(root.join(".cairn"))?;
+        symlink(&outside_log, root.join(".cairn/log.md"))?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 1, "symlinked log must fail closed");
+        assert!(
+            result.stdout.contains("symlink") || result.stderr.contains("symlink"),
+            "error must identify the containment failure: stdout={} stderr={}",
+            result.stdout,
+            result.stderr
+        );
+        assert_eq!(
+            fs::read_to_string(&outside_log)?,
+            "sentinel\n",
+            "archive must not write through a log symlink"
         );
         assert!(
-            !outside.path().join("state/log.md").exists(),
-            "archive scan must not write logs through a state symlink"
+            !root.join("meta/changes/archive").exists(),
+            "symlink preflight must reject before creating an archive"
         );
         Ok(())
     }
