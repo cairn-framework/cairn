@@ -51,15 +51,12 @@ pub(super) fn ratification_findings_with_blueprint(
     mode: RatificationMode,
     blueprint_path: &Path,
 ) -> Vec<Finding> {
-    let filesystem_root = match root.canonicalize() {
-        Ok(root) => root,
-        Err(_) => {
-            return vec![finding(
-                "CAIRN_HOOK_AFFECTS_SUBSET",
-                "cannot resolve scan root while checking ratification evidence",
-                None,
-            )];
-        }
+    let Ok(filesystem_root) = root.canonicalize() else {
+        return vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot resolve scan root while checking ratification evidence",
+            None,
+        )];
     };
     // The trigger is read from the CANDIDATE tree (index in pre-commit, HEAD
     // in CI), never from the worktree: staging an acceptance and then editing
@@ -75,69 +72,14 @@ pub(super) fn ratification_findings_with_blueprint(
     if !inside_work_tree(&filesystem_root) {
         return Vec::new();
     }
-    let Some((candidate_pointers, git_prefix)) =
-        candidate_decision_pointers(&filesystem_root, blueprint_path, mode)
-    else {
-        return vec![finding(
-            "CAIRN_HOOK_AFFECTS_SUBSET",
-            "cannot read or parse the candidate blueprint while checking ratification evidence",
-            None,
-        )];
-    };
-    let Some(pointer_configuration_matches) =
-        candidate_pointer_configuration_matches(&artefacts.decision_pointers, &candidate_pointers)
-    else {
-        return vec![finding(
-            "CAIRN_HOOK_AFFECTS_SUBSET",
-            "cannot validate candidate decisions pointer configuration while checking ratification evidence",
-            None,
-        )];
-    };
-    if !pointer_configuration_matches {
-        return vec![finding(
-            "CAIRN_HOOK_AFFECTS_SUBSET",
-            "candidate and worktree decisions pointer configurations differ",
-            None,
-        )];
-    }
-    let Some(candidates) =
-        candidate_accepted_local(&filesystem_root, &candidate_pointers, &git_prefix, mode)
-    else {
-        return vec![finding(
-            "CAIRN_HOOK_AFFECTS_SUBSET",
-            "cannot read or reconcile candidate decisions while checking ratification evidence",
-            None,
-        )];
-    };
-    if candidates.is_empty() {
+    let candidate =
+        match candidate_local_decisions(root, &filesystem_root, artefacts, mode, blueprint_path) {
+            Ok(candidate) => candidate,
+            Err(findings) => return findings,
+        };
+    let Some((local_decisions, git_prefix)) = candidate else {
         return Vec::new();
-    }
-    let mut local_decisions = Vec::new();
-    let mut missing = Vec::new();
-    for path in &candidates {
-        match artefacts
-            .decisions
-            .iter()
-            .find(|decision| &repository_path(root, &decision.path) == path)
-        {
-            Some(decision) => local_decisions.push(decision),
-            None => missing.push(path.clone()),
-        }
-    }
-    if !missing.is_empty() {
-        return missing
-            .into_iter()
-            .map(|path| {
-                finding(
-                    "CAIRN_HOOK_MANIFEST_MISMATCH",
-                    &format!(
-                        "candidate tree accepts local decision `{path}` that the working tree does not load, so its subject cannot be validated"
-                    ),
-                    Some(path),
-                )
-            })
-            .collect();
-    }
+    };
 
     let Some(base) = git_output(&filesystem_root, ["merge-base", "origin/main", "HEAD"]) else {
         return vec![finding(
@@ -181,6 +123,79 @@ pub(super) fn ratification_findings_with_blueprint(
             ))
         })
         .collect()
+}
+
+fn candidate_local_decisions<'a>(
+    scan_root: &Path,
+    filesystem_root: &Path,
+    artefacts: &'a ArtefactSet,
+    mode: RatificationMode,
+    blueprint_path: &Path,
+) -> Result<Option<(Vec<&'a Decision>, String)>, Vec<Finding>> {
+    let Some((candidate_pointers, git_prefix)) =
+        candidate_decision_pointers(filesystem_root, blueprint_path, mode)
+    else {
+        return Err(vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot read or parse the candidate blueprint while checking ratification evidence",
+            None,
+        )]);
+    };
+    let Some(pointer_configuration_matches) =
+        candidate_pointer_configuration_matches(&artefacts.decision_pointers, &candidate_pointers)
+    else {
+        return Err(vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot validate candidate decisions pointer configuration while checking ratification evidence",
+            None,
+        )]);
+    };
+    if !pointer_configuration_matches {
+        return Err(vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "candidate and worktree decisions pointer configurations differ",
+            None,
+        )]);
+    }
+    let Some(candidates) =
+        candidate_accepted_local(filesystem_root, &candidate_pointers, &git_prefix, mode)
+    else {
+        return Err(vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot read or reconcile candidate decisions while checking ratification evidence",
+            None,
+        )]);
+    };
+    if candidates.is_empty() {
+        return Ok(None);
+    }
+    let mut local_decisions = Vec::new();
+    let mut missing = Vec::new();
+    for path in &candidates {
+        match artefacts
+            .decisions
+            .iter()
+            .find(|decision| &repository_path(scan_root, &decision.path) == path)
+        {
+            Some(decision) => local_decisions.push(decision),
+            None => missing.push(path.clone()),
+        }
+    }
+    if !missing.is_empty() {
+        return Err(missing
+            .into_iter()
+            .map(|path| {
+                finding(
+                    "CAIRN_HOOK_MANIFEST_MISMATCH",
+                    &format!(
+                        "candidate tree accepts local decision `{path}` that the working tree does not load, so its subject cannot be validated"
+                    ),
+                    Some(path),
+                )
+            })
+            .collect());
+    }
+    Ok(Some((local_decisions, git_prefix)))
 }
 
 fn decision_findings(
@@ -336,25 +351,34 @@ fn index_governed_overlap_findings(
             Some(decision.path.clone()),
         )];
     }
+    unstaged_governed_overlap_finding(&unstaged, &governed, &rules, git_prefix, decision)
+        .into_iter()
+        .collect()
+}
+
+fn unstaged_governed_overlap_finding(
+    unstaged: &str,
+    governed: &BTreeSet<String>,
+    rules: &[crate::artefacts::registry::manifest::RepoPathRule],
+    git_prefix: &str,
+    decision: &Decision,
+) -> Option<Finding> {
     let overlaps = unstaged
         .split('\0')
         .filter(|path| !path.is_empty())
         .filter_map(|path| project_relative_path(path, git_prefix))
         .filter_map(normalise_repo_path)
         .any(|path| governed.contains(&path) || rules.iter().any(|rule| rule_matches(rule, &path)));
-    overlaps
-        .then(|| {
-            finding(
-                "CAIRN_HOOK_MANIFEST_MISMATCH",
-                &format!(
-                    "unstaged changes overlap the governed subject for accepted local decision `{}`; stage or stash them before accepting",
-                    decision.id
-                ),
-                Some(decision.path.clone()),
-            )
-        })
-        .into_iter()
-        .collect()
+    overlaps.then(|| {
+        finding(
+            "CAIRN_HOOK_MANIFEST_MISMATCH",
+            &format!(
+                "unstaged changes overlap the governed subject for accepted local decision `{}`; stage or stash them before accepting",
+                decision.id
+            ),
+            Some(decision.path.clone()),
+        )
+    })
 }
 
 fn governed_paths(
