@@ -222,6 +222,13 @@ the edges.
 - Sibling reciprocal cycles, 20 of the 50 pairs measured, are untouched by any
   package-root-only shape rule and are covered by clause 3 for the same reason
   package-root cycles are.
+- 2026-08-07 pointer correction, no clause changed:
+  `todo.brownfield-nested-package-scan-clean` was decomposed under the sizing
+  rule and is now `blocked`. The enumeration half of clause 5 and clause 7 are
+  carried by `todo.order-cycle-scc-enumeration`, clause 4 by
+  `todo.blueprint-edge-provenance`, and clause 3 plus the severity half of
+  clause 5 by `todo.order-cycle-discovery-severity`. Where clause 7 says that
+  todo pins the fixtures, read the three of them.
 
 ## Revisit triggers
 

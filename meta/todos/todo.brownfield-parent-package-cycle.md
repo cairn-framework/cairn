@@ -60,8 +60,16 @@ and its subpackages and carries the evidence for that ruling. The second
 implements the chosen rule and pins the round-trip. This todo flips to `done`
 when the second lands.
 
+2026-08-07: `todo.brownfield-nested-package-scan-clean` was itself decomposed
+under the sizing rule and is now `blocked` on three grandchildren
+(`todo.order-cycle-scc-enumeration`, `todo.blueprint-edge-provenance`,
+`todo.order-cycle-discovery-severity`). The flip-to-done rule above is
+unchanged; the chain is one level longer. The selectable work under this
+umbrella is the first two grandchildren, which are `open` and independent of
+each other.
+
 ## Mission disposition
 
 2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps the parent-package cycle gate explicit while its prerequisite remains unresolved.
 
-2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked; sole open child is todo.brownfield-nested-package-scan-clean, and this parent flips done when it lands.
+2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked; sole child is todo.brownfield-nested-package-scan-clean, and this parent flips done when it lands. Superseded in part the same day by the decomposition note above: that child is now blocked on three grandchildren, so the open work sits one level deeper.
