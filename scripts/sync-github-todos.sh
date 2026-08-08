@@ -56,17 +56,13 @@ PROJECTION="$(gh issue list --label "$LABEL" --state all --limit 500 \
   --json number,state,title,body \
   --jq '.[] | [(.number|tostring), .state, .title,
         ((.body | capture("cairn-todo: todo\\.(?<s>[A-Za-z0-9._-]+)").s) // ""),
-        ((.body | capture("\nstatus: (?<st>[a-z_]+)").st) // ""),
-        ((.body | capture("\nnode: (?<n>[A-Za-z0-9._-]+)").n) // ""),
         ((.body // "") | @base64)] | @tsv')"
-declare -A ISSUE_NUM ISSUE_STATE ISSUE_TITLE ISSUE_STATUS ISSUE_NODE ISSUE_BODY_B64
-while IFS=$'\t' read -r number state title slug status node_field body_b64; do
+declare -A ISSUE_NUM ISSUE_STATE ISSUE_TITLE ISSUE_BODY_B64
+while IFS=$'\t' read -r number state title slug body_b64; do
   [ -n "$slug" ] || continue
   ISSUE_NUM["$slug"]="$number"
   ISSUE_STATE["$slug"]="$state"
   ISSUE_TITLE["$slug"]="$title"
-  ISSUE_STATUS["$slug"]="$status"
-  ISSUE_NODE["$slug"]="$node_field"
   ISSUE_BODY_B64["$slug"]="$body_b64"
 done <<<"$PROJECTION"
 
@@ -76,9 +72,9 @@ for file in "$TODO_DIR"/todo.*.md; do
   [ -e "$file" ] || continue
   slug="$(basename "$file" .md)"; slug="${slug#todo.}"
   SEEN["$slug"]=1
-  status="$(sed -n 's/^status:[[:space:]]*//p' "$file" | head -1)"
-  node="$(sed -n 's/^node:[[:space:]]*//p' "$file" | head -1)"
-  title="$(sed -n 's/^#[[:space:]]\{1,\}//p' "$file" | head -1)"
+  status="$(sed -n 's/^status:[[:space:]]*//p' "$file" | head -1 | sed 's/\r$//')"
+  node="$(sed -n 's/^node:[[:space:]]*//p' "$file" | head -1 | sed 's/\r$//')"
+  title="$(sed -n 's/^#[[:space:]]\{1,\}//p' "$file" | head -1 | sed 's/\r$//')"
   [ -n "$title" ] || title="$slug"
   case "$status" in
     done) want_state="CLOSED" ;;
@@ -87,8 +83,16 @@ for file in "$TODO_DIR"/todo.*.md; do
   esac
   want_title="[todo] $title"
   frontmatter_end="$(awk '
-    NR == 1 && $0 == "---" { in_frontmatter=1; next }
-    in_frontmatter && $0 == "---" { print NR; exit }
+    NR == 1 {
+      line=$0
+      sub(/\r$/, "", line)
+      if (line == "---") { in_frontmatter=1; next }
+    }
+    in_frontmatter {
+      line=$0
+      sub(/\r$/, "", line)
+      if (line == "---") { print NR; exit }
+    }
   ' "$file")"
   if [ -n "$frontmatter_end" ]; then
     todo_markdown="$(tail -n "+$((frontmatter_end + 1))" "$file"; printf '\034')"
@@ -126,11 +130,8 @@ ${todo_markdown}"
     echo "retitle #$number: $slug"
     run gh issue edit "$number" --title "$want_title"
   fi
-  if [ "${ISSUE_STATUS[$slug]:-}" != "$status" ] \
-    || [ "${ISSUE_NODE[$slug]:-}" != "$node" ] \
-    || [ "$issue_body" != "$body" ]; then
-    # Canonical status, node, or full projected body changed: files win on
-    # the next sync, so rewrite the derived GitHub body.
+  if [ "$issue_body" != "$body" ]; then
+    # The canonical full render wins whenever the fetched issue body differs.
     echo "rebody #$number: $slug ($status, $node)"
     run gh issue edit "$number" --body "$body"
   fi

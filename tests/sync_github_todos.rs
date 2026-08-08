@@ -13,20 +13,9 @@ use std::process::Command;
 struct Sandbox {
     dir: tempfile::TempDir,
 }
-
-impl Sandbox {
-    /// `projection` is the TSV the stub returns for the marker-labelled
-    /// issue list (number, state, title, slug per line). `unmapped` is the
-    /// newline-separated issue numbers returned for the external scan.
-    fn new(projection: &str, unmapped: &str) -> Self {
-        let dir = tempfile::tempdir().unwrap();
-        let root = dir.path();
-        fs::create_dir_all(root.join("meta/todos")).unwrap();
-        fs::create_dir_all(root.join("bin")).unwrap();
-        fs::write(root.join("projection.tsv"), projection).unwrap();
-        fs::write(root.join("unmapped.txt"), unmapped).unwrap();
-        let stub = format!(
-            r#"#!/usr/bin/env bash
+fn gh_stub(root: &Path) -> String {
+    format!(
+        r#"#!/usr/bin/env bash
 # Stub gh: serve canned lists, record every mutating call, and expose body payloads.
 root="{root}"
 args="$*"
@@ -39,8 +28,8 @@ if [[ "$1 $2" == "issue list" ]]; then
             if [[ -e "$root/body.$slug" ]]; then
                 body_b64="$(base64 < "$root/body.$slug" | tr -d '\n')"
             fi
-            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-                "$number" "$state" "$title" "$slug" "$status" "$node_field" "$body_b64"
+            printf '%s\t%s\t%s\t%s\t%s\n' \
+                "$number" "$state" "$title" "$slug" "$body_b64"
         done < "$root/projection.tsv"
     else
         cat "$root/unmapped.txt"
@@ -60,10 +49,23 @@ if [[ "$1 $2" == "issue create" || "$1 $2" == "issue edit" ]]; then
 fi
 echo "$args" >> "$root/mutations.log"
 "#,
-            root = root.display()
-        );
+        root = root.display()
+    )
+}
+
+impl Sandbox {
+    /// `projection` is the TSV the stub returns for the marker-labelled
+    /// issue list (number, state, title, slug per line). `unmapped` is the
+    /// newline-separated issue numbers returned for the external scan.
+    fn new(projection: &str, unmapped: &str) -> Self {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        fs::create_dir_all(root.join("meta/todos")).unwrap();
+        fs::create_dir_all(root.join("bin")).unwrap();
+        fs::write(root.join("projection.tsv"), projection).unwrap();
+        fs::write(root.join("unmapped.txt"), unmapped).unwrap();
         let stub_path = root.join("bin/gh");
-        fs::write(&stub_path, stub).unwrap();
+        fs::write(&stub_path, gh_stub(root)).unwrap();
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -79,6 +81,17 @@ echo "$args" >> "$root/mutations.log"
                 "---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n---\n\n\
                  # {title}\n\n## Problem\n\nBody.\n\n## Acceptance\n\nAccept.\n"
             ),
+        )
+        .unwrap();
+    }
+    fn add_crlf_todo(&self, slug: &str, status: &str, title: &str) {
+        let content = format!(
+            "---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n---\n\n\
+             # {title}\n\n## Problem\n\nBody.\n\n## Acceptance\n\nAccept.\n"
+        );
+        fs::write(
+            self.dir.path().join(format!("meta/todos/todo.{slug}.md")),
+            content.replace('\n', "\r\n"),
         )
         .unwrap();
     }
@@ -120,7 +133,12 @@ echo "$args" >> "$root/mutations.log"
     fn rendered_body(&self, slug: &str, status: &str, node: &str) -> String {
         let raw =
             fs::read_to_string(self.dir.path().join(format!("meta/todos/todo.{slug}.md"))).unwrap();
-        let markdown = raw.splitn(3, "---\n").nth(2).unwrap();
+        let fence = if raw.starts_with("---\r\n") {
+            "---\r\n"
+        } else {
+            "---\n"
+        };
+        let markdown = raw.splitn(3, fence).nth(2).unwrap();
         format!(
             "cairn-todo: todo.{slug}\nnode: {node}\nstatus: {status}\n\
              artefact: meta/todos/todo.{slug}.md\n\
@@ -176,6 +194,26 @@ fn create_projects_full_todo_body() {
     assert!(
         !body.contains("Files in git are the source of truth"),
         "prior multi-line disclaimer must be dropped, got {body}"
+    );
+}
+#[test]
+fn crlf_todo_projects_body_after_frontmatter() {
+    let sb = Sandbox::new("", "");
+    sb.add_crlf_todo("alpha", "open", "Alpha Work");
+    sb.run(false);
+    let body = sb.last_body();
+    assert_eq!(
+        body,
+        sb.rendered_body("alpha", "open", "cairn.root"),
+        "CRLF frontmatter fences must still yield the complete body"
+    );
+    assert!(
+        body.contains("# Alpha Work\r\n\r\n## Problem\r\n"),
+        "CRLF markdown bytes must remain unchanged, got {body:?}"
+    );
+    assert!(
+        !body.contains("created: 2026-07-12"),
+        "frontmatter must not be projected, got {body:?}"
     );
 }
 
