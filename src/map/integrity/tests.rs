@@ -422,3 +422,30 @@ fn test_topological_order_cycle_finding_excludes_upstream_nodes() {
         "upstream node reported as cyclic: {msg}"
     );
 }
+
+#[test]
+fn test_topological_order_cycle_finding_excludes_acyclic_quotient_bridge() {
+    let g = with_containment(
+        make_graph(
+            &["a-parent", "a-child", "bridge", "b-parent", "b-child"],
+            &[
+                ("a-child", "a-parent"),
+                ("bridge", "a-parent"),
+                ("b-child", "b-parent"),
+                ("b-parent", "bridge"),
+            ],
+        ),
+        &[("a-parent", "a-child"), ("b-parent", "b-child")],
+    );
+    let err = topological_order(&g).expect_err("contradictions must be Err");
+    assert_eq!(err.len(), 1, "the two cycles share one finding: {err:?}");
+    let msg = &err[0].message;
+    assert!(
+        msg.contains("a-parent") && msg.contains("b-parent"),
+        "{msg}"
+    );
+    assert!(
+        !msg.contains("bridge"),
+        "acyclic quotient bridge reported as cyclic: {msg}"
+    );
+}
