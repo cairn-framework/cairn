@@ -1989,8 +1989,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 75,
-          "end_line": 77
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "BatterySelection",
@@ -2013,8 +2013,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1161,
-          "end_line": 1179
+          "line": 1525,
+          "end_line": 1543
         },
         {
           "name": "blank_command_failure_detail",
@@ -2061,8 +2061,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 253,
-          "end_line": 509
+          "line": 582,
+          "end_line": 873
         },
         {
           "name": "run",
@@ -2133,8 +2133,8 @@
           "kind": "module",
           "signature": "pub mod export",
           "file": "src/cli/mod.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 30,
+          "end_line": 30
         },
         {
           "name": "AcceptStep",
@@ -2165,8 +2165,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 64,
-          "end_line": 71
+          "line": 65,
+          "end_line": 72
         },
         {
           "name": "EdgeEntry",
@@ -2189,16 +2189,16 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 62,
+          "end_line": 62
         },
         {
           "name": "RETIRED_TOP_LEVEL",
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1156,
-          "end_line": 1156
+          "line": 1520,
+          "end_line": 1520
         },
         {
           "name": "blueprint_root",
@@ -2213,8 +2213,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1187,
-          "end_line": 1195
+          "line": 1551,
+          "end_line": 1559
         },
         {
           "name": "current_timestamp_rfc3339",
