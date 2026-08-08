@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.map
-status: open
+status: done
 created: 2026-08-07
 parent: todo.brownfield-nested-package-scan-clean
 related: [dec.brownfield-discovery-cycle-severity, dec.order-containment-rule]
@@ -23,14 +23,12 @@ declared contradictions block does not hold across the two detection paths.
 
 ## Verified facts
 
-1. `cycle_findings` (`src/map/integrity.rs:7-65`) is an iterative white/gray/black
-   DFS that `return`s a single-element `Vec` on the first back edge it sees. A
-   map with five disjoint cyclic components surfaces as one
-   `CAIRN_ORDER_CYCLE`.
-2. `topological_order` (`src/map/integrity.rs:83-87`) calls dependency-only
-   `cycle_findings` and returns `Err` immediately when it is non-empty, before
-   the combined containment-and-dependency Kahn pass further down
-   (`src/map/integrity.rs:88-190`) ever runs. That is the masking bug.
+1. `cycle_findings` uses deterministic SCC enumeration. It reports one
+   `CAIRN_ORDER_CYCLE` per cyclic dependency component, ordered by the
+   component's smallest member id, and no longer stops at the first back edge.
+2. `topological_order` computes dependency findings and then evaluates the
+   combined containment-and-dependency constraints over a dependency-SCC
+   quotient, so dependency cycles cannot mask containment contradictions.
 3. The blast radius is contained. Outside `src/map/integrity.rs`, the only
    callers are `src/map/query.rs:288`, `:301`, and `:377`; the identically
    named `cycle_findings` in `src/artefacts/registry/validate/relations.rs` is
@@ -53,11 +51,11 @@ declared contradictions block does not hold across the two detection paths.
   graph they read.
 - Run the containment pass in `topological_order` whenever any dependency
   component is reported, rather than returning at the first one, so an
-  independent containment contradiction is still evaluated and reported. Both
-  sets of findings reach the caller. Restricting the fall-through to some
-  subset of components is explicitly rejected by clause 7.
-- Update the `topological_order` doc comment at `src/map/integrity.rs:74-77`,
-  which states the contradiction rule in the shape this changes.
+  independent containment contradiction is still evaluated and reported. The
+  SCC quotient preserves reachability through dependency components. Both sets
+  of findings reach the caller.
+- Update the `topological_order` doc comment, which states the contradiction
+  rule in the shape this changes.
 
 ## Acceptance
 

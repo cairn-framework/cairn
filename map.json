@@ -2005,8 +2005,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 75,
-          "end_line": 77
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "BatterySelection",
@@ -2029,8 +2029,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1161,
-          "end_line": 1179
+          "line": 1595,
+          "end_line": 1613
         },
         {
           "name": "blank_command_failure_detail",
@@ -2077,8 +2077,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 253,
-          "end_line": 509
+          "line": 626,
+          "end_line": 943
         },
         {
           "name": "run",
@@ -2149,8 +2149,8 @@
           "kind": "module",
           "signature": "pub mod export",
           "file": "src/cli/mod.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 30,
+          "end_line": 30
         },
         {
           "name": "AcceptStep",
@@ -2181,8 +2181,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 64,
-          "end_line": 71
+          "line": 65,
+          "end_line": 72
         },
         {
           "name": "EdgeEntry",
@@ -2205,16 +2205,16 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 62,
+          "end_line": 62
         },
         {
           "name": "RETIRED_TOP_LEVEL",
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1156,
-          "end_line": 1156
+          "line": 1590,
+          "end_line": 1590
         },
         {
           "name": "blueprint_root",
@@ -2229,8 +2229,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1187,
-          "end_line": 1195
+          "line": 1621,
+          "end_line": 1629
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -2421,16 +2421,16 @@
           "kind": "function",
           "signature": "pub fn render_human(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 33,
-          "end_line": 35
+          "line": 37,
+          "end_line": 39
         },
         {
           "name": "render_json",
           "kind": "function",
           "signature": "pub fn render_json(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 39,
-          "end_line": 66
+          "line": 43,
+          "end_line": 78
         },
         {
           "name": "run",
@@ -2454,7 +2454,7 @@
           "signature": "pub(crate) fn render_human_verbose(report: &HookReport, verbose: bool) -> String",
           "file": "src/hooks/render.rs",
           "line": 14,
-          "end_line": 28
+          "end_line": 32
         },
         {
           "name": "run_with_ratification_mode",
@@ -2488,6 +2488,7 @@
         "src/map/contract_coverage.rs",
         "src/map/graph.rs",
         "src/map/integrity.rs",
+        "src/map/integrity/tests.rs",
         "src/map/mod.rs",
         "src/map/module_size.rs",
         "src/map/paths.rs",
@@ -2553,8 +2554,8 @@
           "kind": "function",
           "signature": "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>",
           "file": "src/map/integrity.rs",
-          "line": 7,
-          "end_line": 65
+          "line": 204,
+          "end_line": 206
         },
         {
           "name": "dependents",
@@ -2665,8 +2666,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 83,
-          "end_line": 191
+          "line": 336,
+          "end_line": 399
         },
         {
           "name": "build",
@@ -7854,6 +7855,7 @@
         "tests/schema_validation.rs",
         "tests/status_todo_path_wire.rs",
         "tests/summariser_accept_baseline.rs",
+        "tests/support/sync_github_todos_stub.rs",
         "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
         "tests/watch.rs",
@@ -7862,7 +7864,16 @@
       "contracts": [
         "./meta/contracts/tests.md"
       ],
-      "symbols": []
+      "symbols": [
+        {
+          "name": "script",
+          "kind": "function",
+          "signature": "pub fn script(root: &Path) -> String",
+          "file": "tests/support/sync_github_todos_stub.rs",
+          "line": 103,
+          "end_line": 105
+        }
+      ]
     },
     {
       "id": "cairn.ui",
@@ -8446,9 +8457,9 @@
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
-      "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
+      "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:675) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
       "node": null,
-      "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
+      "target": "spec:675 ADR revisit_triggers appear relevant to recent changes",
       "path": "docs/registries/spec-rules.md"
     },
     {
@@ -8461,7 +8472,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.kernel.cli` carries 12 accepted decisions (threshold 10).",
+      "message": "Node `cairn.kernel.cli` carries 13 accepted decisions (threshold 10).",
       "node": "cairn.kernel.cli",
       "path": null
     },
@@ -8485,6 +8496,27 @@
       "message": "Node `cairn.ui` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.ui",
       "path": null
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.brownfield-extraction-mechanism-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "meta/reviews/rev.brownfield-extraction-mechanism-alternatives.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.brownfield-extraction-mechanism-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "meta/reviews/rev.brownfield-extraction-mechanism-correctness.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.brownfield-extraction-mechanism-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "meta/reviews/rev.brownfield-extraction-mechanism-reversibility.md"
     },
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",

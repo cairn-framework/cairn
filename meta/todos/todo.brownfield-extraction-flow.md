@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: open
 created: 2026-08-07
 blocked_by: [todo.brownfield-extraction-mechanism]
 parent: todo.brownfield-decision-extraction
