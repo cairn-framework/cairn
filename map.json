@@ -1989,8 +1989,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [CommandMetadata]",
           "file": "src/cli/mod.rs",
-          "line": 75,
-          "end_line": 77
+          "line": 76,
+          "end_line": 78
         },
         {
           "name": "BatterySelection",
@@ -2013,8 +2013,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1161,
-          "end_line": 1179
+          "line": 1595,
+          "end_line": 1613
         },
         {
           "name": "blank_command_failure_detail",
@@ -2061,8 +2061,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 253,
-          "end_line": 509
+          "line": 626,
+          "end_line": 943
         },
         {
           "name": "run",
@@ -2133,8 +2133,8 @@
           "kind": "module",
           "signature": "pub mod export",
           "file": "src/cli/mod.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 30,
+          "end_line": 30
         },
         {
           "name": "AcceptStep",
@@ -2165,8 +2165,8 @@
           "kind": "struct",
           "signature": "pub struct CliResult",
           "file": "src/cli/mod.rs",
-          "line": 64,
-          "end_line": 71
+          "line": 65,
+          "end_line": 72
         },
         {
           "name": "EdgeEntry",
@@ -2189,16 +2189,16 @@
           "kind": "type",
           "signature": "pub type CommandMetadata",
           "file": "src/cli/mod.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 62,
+          "end_line": 62
         },
         {
           "name": "RETIRED_TOP_LEVEL",
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1156,
-          "end_line": 1156
+          "line": 1590,
+          "end_line": 1590
         },
         {
           "name": "blueprint_root",
@@ -2213,8 +2213,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1187,
-          "end_line": 1195
+          "line": 1621,
+          "end_line": 1629
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -2463,6 +2463,7 @@
         "src/map/contract_coverage.rs",
         "src/map/graph.rs",
         "src/map/integrity.rs",
+        "src/map/integrity/tests.rs",
         "src/map/mod.rs",
         "src/map/module_size.rs",
         "src/map/paths.rs",
@@ -2528,8 +2529,8 @@
           "kind": "function",
           "signature": "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>",
           "file": "src/map/integrity.rs",
-          "line": 7,
-          "end_line": 65
+          "line": 204,
+          "end_line": 206
         },
         {
           "name": "dependents",
@@ -2640,8 +2641,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 83,
-          "end_line": 191
+          "line": 336,
+          "end_line": 399
         },
         {
           "name": "build",
@@ -2886,16 +2887,16 @@
           "kind": "const",
           "signature": "pub const SCHEMA_VERSION u32",
           "file": "src/query_api/mod.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 68,
+          "end_line": 68
         },
         {
           "name": "registry",
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 246,
-          "end_line": 248
+          "line": 257,
+          "end_line": 259
         },
         {
           "name": "PendingTier",
@@ -2910,16 +2911,24 @@
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 128,
-          "end_line": 149
+          "line": 139,
+          "end_line": 160
+        },
+        {
+          "name": "QuerySince",
+          "kind": "enum",
+          "signature": "pub enum QuerySince",
+          "file": "src/query_api/mod.rs",
+          "line": 99,
+          "end_line": 104
         },
         {
           "name": "SafetyClass",
           "kind": "enum",
           "signature": "pub enum SafetyClass",
           "file": "src/query_api/mod.rs",
-          "line": 71,
-          "end_line": 76
+          "line": 72,
+          "end_line": 77
         },
         {
           "name": "WorkItemSource",
@@ -2942,48 +2951,48 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 414,
-          "end_line": 421
+          "line": 425,
+          "end_line": 432
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 425,
-          "end_line": 432
+          "line": 436,
+          "end_line": 443
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 277,
-          "end_line": 335
+          "line": 288,
+          "end_line": 346
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 343,
-          "end_line": 394
+          "line": 354,
+          "end_line": 405
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 264,
-          "end_line": 270
+          "line": 275,
+          "end_line": 281
         },
         {
           "name": "EnvelopeFinding",
           "kind": "struct",
           "signature": "pub struct EnvelopeFinding",
           "file": "src/query_api/mod.rs",
-          "line": 171,
-          "end_line": 192
+          "line": 182,
+          "end_line": 203
         },
         {
           "name": "PendingBrief",
@@ -3046,24 +3055,24 @@
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 225,
-          "end_line": 234
+          "line": 236,
+          "end_line": 245
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 98,
-          "end_line": 124
+          "line": 108,
+          "end_line": 135
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 159,
-          "end_line": 168
+          "line": 170,
+          "end_line": 179
         },
         {
           "name": "RemediateResponse",
@@ -3078,8 +3087,8 @@
           "kind": "struct",
           "signature": "pub struct ResponseEnvelopeSchema",
           "file": "src/query_api/mod.rs",
-          "line": 206,
-          "end_line": 215
+          "line": 217,
+          "end_line": 226
         },
         {
           "name": "RoadmapItem",
@@ -3134,16 +3143,16 @@
           "kind": "struct",
           "signature": "pub struct ToolMetadata",
           "file": "src/query_api/mod.rs",
-          "line": 80,
-          "end_line": 94
+          "line": 81,
+          "end_line": 95
         },
         {
           "name": "VersionedDataSchema",
           "kind": "struct",
           "signature": "pub struct VersionedDataSchema",
           "file": "src/query_api/mod.rs",
-          "line": 196,
-          "end_line": 202
+          "line": 207,
+          "end_line": 213
         },
         {
           "name": "WorkItem",
@@ -3270,8 +3279,8 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 404,
-          "end_line": 410
+          "line": 415,
+          "end_line": 421
         },
         {
           "name": "parse_pending_brief",
@@ -7819,6 +7828,7 @@
         "tests/rung3_node_declarations.rs",
         "tests/scanner_interface_hash.rs",
         "tests/schema_validation.rs",
+        "tests/status_todo_path_wire.rs",
         "tests/summariser_accept_baseline.rs",
         "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
@@ -8255,7 +8265,7 @@
       "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-command-harness-model`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.loop-command-harness-model",
-      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+      "path": "meta/decisions/adopt-cairn-dev-loop.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8263,7 +8273,7 @@
       "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-resolves-knowable-gaps`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.loop-resolves-knowable-gaps",
-      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+      "path": "meta/decisions/adopt-cairn-dev-loop.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8271,7 +8281,7 @@
       "message": "Decision `dec.agent-pack-packaging` is refined by accepted decision `dec.pack-adapter-roots`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.pack-adapter-roots",
-      "path": "././meta/decisions/agent-pack-packaging.md"
+      "path": "meta/decisions/agent-pack-packaging.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8279,7 +8289,7 @@
       "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.rung-three-coordination-substrate",
-      "path": "././meta/decisions/control-plane-programme.md"
+      "path": "meta/decisions/control-plane-programme.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8287,7 +8297,7 @@
       "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.webui-write-authority",
-      "path": "././meta/decisions/control-plane-programme.md"
+      "path": "meta/decisions/control-plane-programme.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8295,7 +8305,7 @@
       "message": "Decision `dec.decision-ratification-tiers` is refined by accepted decision `dec.reviewer-panel-ratification`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.reviewer-panel-ratification",
-      "path": "././meta/decisions/decision-ratification-tiers.md"
+      "path": "meta/decisions/decision-ratification-tiers.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8303,7 +8313,7 @@
       "message": "Decision `dec.init-emits-agent-skills` is refined by accepted decision `dec.agent-pack-packaging`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.agent-pack-packaging",
-      "path": "././meta/decisions/init-emits-agent-skills.md"
+      "path": "meta/decisions/init-emits-agent-skills.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8311,7 +8321,7 @@
       "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.loop-reconcile-step`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.loop-reconcile-step",
-      "path": "././meta/decisions/loop-command-harness-model.md"
+      "path": "meta/decisions/loop-command-harness-model.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8319,7 +8329,7 @@
       "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.unified-cairn-dev-entry`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.unified-cairn-dev-entry",
-      "path": "././meta/decisions/loop-command-harness-model.md"
+      "path": "meta/decisions/loop-command-harness-model.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8327,7 +8337,7 @@
       "message": "Decision `dec.north-star-continuous-loop` is refined by accepted decision `dec.control-plane-programme`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.control-plane-programme",
-      "path": "././meta/decisions/north-star-continuous-loop.md"
+      "path": "meta/decisions/north-star-continuous-loop.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8335,7 +8345,7 @@
       "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.rung-three-coordination-substrate",
-      "path": "././meta/decisions/orchestration-placement.md"
+      "path": "meta/decisions/orchestration-placement.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8343,7 +8353,7 @@
       "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.webui-write-authority",
-      "path": "././meta/decisions/orchestration-placement.md"
+      "path": "meta/decisions/orchestration-placement.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8351,63 +8361,63 @@
       "message": "Decision `dec.webui-write-authority` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.rung-three-coordination-substrate",
-      "path": "././meta/decisions/webui-write-authority.md"
+      "path": "meta/decisions/webui-write-authority.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.chatgpt-architecture-review` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/chatgpt-architecture-review.md"
+      "path": "meta/research/chatgpt-architecture-review.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.chatgpt-issue-audit` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/chatgpt-issue-audit.md"
+      "path": "meta/research/chatgpt-issue-audit.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.roadmap-audit-health` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/roadmap-audit-health.md"
+      "path": "meta/research/roadmap-audit-health.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.skill-absorption` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/skill-absorption.md"
+      "path": "meta/research/skill-absorption.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/spec-rules-anchor-drift.md"
+      "path": "meta/research/spec-rules-anchor-drift.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
       "severity": "info",
       "message": "source `src.huntley-software-factory` is unverified",
       "node": null,
-      "path": "././meta/sources/huntley-software-factory.md"
+      "path": "meta/sources/huntley-software-factory.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
       "severity": "info",
       "message": "source `src.maintainer-design-threads-2026-07-30` is unverified",
       "node": null,
-      "path": "././meta/sources/maintainer-design-threads-2026-07-30.md"
+      "path": "meta/sources/maintainer-design-threads-2026-07-30.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
       "severity": "info",
       "message": "source `src.mission-ratification-2026-07-30` is unverified",
       "node": null,
-      "path": "././meta/sources/mission-ratification-2026-07-30.md"
+      "path": "meta/sources/mission-ratification-2026-07-30.md"
     },
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
@@ -8455,23 +8465,23 @@
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
       "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "message": "Receipt-grade review `meta/reviews/rev.rung-three-coordination-substrate-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
       "node": "cairn.root",
-      "path": "././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md"
+      "path": "meta/reviews/rev.rung-three-coordination-substrate-alternatives.md"
     },
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
       "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "message": "Receipt-grade review `meta/reviews/rev.rung-three-coordination-substrate-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
       "node": "cairn.root",
-      "path": "././meta/reviews/rev.rung-three-coordination-substrate-correctness.md"
+      "path": "meta/reviews/rev.rung-three-coordination-substrate-correctness.md"
     },
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
       "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "message": "Receipt-grade review `meta/reviews/rev.rung-three-coordination-substrate-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
       "node": "cairn.root",
-      "path": "././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md"
+      "path": "meta/reviews/rev.rung-three-coordination-substrate-reversibility.md"
     }
   ]
 }

@@ -7,7 +7,7 @@ expression: stats.data
   "false_overlap_rate": null,
   "observed_at": null,
   "proven_false": 0,
-  "schema_version": 11,
+  "schema_version": 12,
   "store_state": "ready",
   "threshold": null,
   "window": {

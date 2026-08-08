@@ -117,6 +117,11 @@ fn todo(status: TodoStatus) -> Todo {
         body: String::new(),
     }
 }
+fn todo_at(status: TodoStatus, path: String) -> Todo {
+    let mut todo = todo(status);
+    todo.path = path;
+    todo
+}
 
 #[test]
 fn render_status_human_lists_open_and_in_progress_todos() {
@@ -184,6 +189,62 @@ fn render_status_json_omits_done_todos() {
     assert!(!rendered.contains("\"node\":\"app\""));
     assert!(!rendered.contains("in-progress"));
     assert!(!rendered.contains("\"status\":\"open\""));
+}
+#[test]
+fn render_status_human_relativizes_todo_paths_for_relative_and_absolute_roots() {
+    let absolute_root = tempfile::tempdir().unwrap();
+    let absolute_path = absolute_root
+        .path()
+        .join("./meta/todos/todo.status.md")
+        .to_string_lossy()
+        .into_owned();
+    let cases = [
+        (
+            std::path::Path::new("."),
+            "./meta/todos/todo.status.md".to_owned(),
+        ),
+        (absolute_root.path(), absolute_path),
+    ];
+    for (root, path) in cases {
+        let rendered = render_status(
+            &parsed(false),
+            &scan_with_todos(vec![todo_at(TodoStatus::Open, path)]),
+            root,
+        );
+        assert!(
+            rendered.contains("[open] meta/todos/todo.status.md"),
+            "status must render a root-relative todo path: {rendered}"
+        );
+    }
+}
+
+#[test]
+fn render_status_json_relativizes_todo_paths_for_relative_and_absolute_roots() {
+    let absolute_root = tempfile::tempdir().unwrap();
+    let absolute_path = absolute_root
+        .path()
+        .join("./meta/todos/todo.status.md")
+        .to_string_lossy()
+        .into_owned();
+    let cases = [
+        (
+            std::path::Path::new("."),
+            "./meta/todos/todo.status.md".to_owned(),
+        ),
+        (absolute_root.path(), absolute_path),
+    ];
+    for (root, path) in cases {
+        let rendered = render_status(
+            &parsed(true),
+            &scan_with_todos(vec![todo_at(TodoStatus::Open, path)]),
+            root,
+        );
+        let value: serde_json::Value = serde_json::from_str(&rendered).unwrap();
+        assert_eq!(
+            value["open_todos"][0]["path"], "meta/todos/todo.status.md",
+            "status JSON must render a root-relative todo path: {rendered}"
+        );
+    }
 }
 
 #[test]

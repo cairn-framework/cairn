@@ -12,7 +12,7 @@ created: 2026-07-15
 
 ## Evidence
 
-Discovered during PR #345 doc-sync: `CAIRN_RECONCILE_ORPHANED_FILE` (emitted at `src/reconcile/generic.rs:206`, severity Info) and `CAIRN_ORDER_CYCLE` (`src/map/integrity.rs:33`, Error) have no registry entry. There may be others.
+Discovered during PR #345 doc-sync: `CAIRN_RECONCILE_ORPHANED_FILE` (emitted at `src/reconcile/generic.rs:206`, severity Info) and `CAIRN_ORDER_CYCLE` (`src/map/integrity.rs:189`, Error) have no registry entry. There may be others.
 
 ## Approach (backlog only)
 

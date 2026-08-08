@@ -30,8 +30,8 @@ artefact, beads, and rationale data. The server is dependency-free (raw
 
 ## Invariants
 
-- Every `/api/*` JSON envelope is stamped with `schema_version` (currently `1`)
-  as its first key via the single `versioned` helper.
+- Every `/api/*` JSON envelope is stamped with `schema_version` as its first
+  key via the single `versioned` helper.
 - The server binds only to `127.0.0.1`; port `0` requests an OS-assigned port.
 - Scans are cached and reloaded only when the blueprint or watched target and
   contract files change mtime.

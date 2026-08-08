@@ -18,6 +18,13 @@ fn test_load_artefacts_loads_known_records() -> Result<(), Box<dyn std::error::E
     assert!(set.findings.is_empty(), "{:?}", set.findings);
     Ok(())
 }
+#[test]
+fn test_path_string_normalises_redundant_current_directory_components() {
+    assert_eq!(
+        path_string(Path::new("././meta/todos/todo.api.md")),
+        "meta/todos/todo.api.md"
+    );
+}
 
 #[test]
 fn test_load_artefacts_computes_reverse_provenance_and_ignores_authored_reverse_keys()

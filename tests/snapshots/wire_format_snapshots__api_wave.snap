@@ -10,7 +10,7 @@ expression: wave.data
   "plan": "plan-db77bdcd17e9af40",
   "preimage": "cairn-plan-v1\nrule=wf.default:1\nunit=todo.api@564e6611853d\nws=src/api\n",
   "rule": "wf.default:1",
-  "schema_version": 11,
+  "schema_version": 12,
   "store_state": "ready",
   "units": [
     {
