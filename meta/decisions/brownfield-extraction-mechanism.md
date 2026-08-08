@@ -11,13 +11,25 @@ related:
   - dec.build-and-extension
   - dec.decision-ratification-tiers
   - dec.reviewer-panel-ratification
+affects:
+  - meta/decisions/brownfield-extraction-mechanism.md
+  - meta/research/brownfield-extraction-mechanism.comparison.md
+  - src/cli/commands/onboard.rs
+  - src/brownfield/onboard.rs
+  - docs/design-system/copy.toml
+  - tests/phase_9_brownfield.rs
+  - tools/agent-pack/content/skills/cairn-dev/references/task-brownfield-decision-extraction.md
+  - .claude/skills/cairn-dev/references/task-brownfield-decision-extraction.md
+  - tools/agent-pack/manifest.toml
+  - src/cli/commands/pack_assets.rs
 revisit_triggers:
   - "Cairn gains a first-party inference backend with a deterministic, reviewable contract for decision prose"
   - "the onboard evidence report misses a material ADR-like location or produces an unbound node claim in external validation"
-  - "the agent pack stops shipping harness skills through the current canonical and adapter surfaces"
+  - "the onboard surface acquires a different ownership or mutation contract, making a decision subcommand ambiguous or unsafe"
+  - "the pack distribution model changes so the cairn-dev reference is no longer shipped through the current canonical and adapter surfaces"
 ---
 
-# Brownfield decision extraction uses a deterministic onboard index and a shipped authoring skill
+# Brownfield decision extraction uses a deterministic onboard index and a cairn-dev authoring reference
 
 ## Status
 
@@ -32,15 +44,16 @@ path-based candidate ids, records evidence paths, and derives only import edges
 that the code proves. It does not inspect ADR-like documents or infer which
 prose expresses a decision.
 
-The existing CLI has two relevant writing and analysis surfaces. `cairn
+The existing CLI has three relevant writing and analysis surfaces. `cairn
 onboard` reports deterministic orphan-file clusters and node or ignore
 suggestions. `cairn decision new` validates a slug and writes a proposal
 scaffold with the required decision frontmatter and standard sections. `cairn
 gap` writes a different `gap: true` decision for an unresolved implementation
 question and leaves an unresolved-gap finding until that question is answered.
-The brownfield `init --from-code` family writes a change proposal, blueprint
-delta, and contract stubs for map bootstrap; it is not a decision-drafting
-lifecycle.
+The brownfield CLI surfaces are `cairn onboard`, `cairn refine`, and
+`cairn init --from-code`; no `cairn brownfield` noun exists. The
+`init --from-code` family writes a change proposal, blueprint delta, and
+contract stubs for map bootstrap, so it is not a decision-drafting lifecycle.
 
 The verified constraint is hard: Cairn performs no LLM inference of its own on
 this path. The summariser delegates to an external local command when enabled,
@@ -51,8 +64,8 @@ remain mechanically checkable.
 ## Decision
 
 Choose the hybrid mechanism: extend the existing `cairn onboard` surface with
-a deterministic decision-evidence subcommand, and ship a harness skill that
-writes the decision prose from that evidence.
+a deterministic decision-evidence subcommand, and host the harness authoring
+instructions as a reference under the existing `cairn-dev` skill.
 
 ### 1. Deterministic Cairn surface
 
@@ -63,59 +76,135 @@ this command surface:
 cairn onboard decisions --json
 ```
 
-The command reuses the bounded candidate and evidence facts from
-`src/brownfield/discovery.rs`, adds a deterministic index of the flow's
-explicit ADR-like locations and invariant comment forms, resolves candidate
-ids against the user's blueprint, and emits stable JSON for the harness plus a
-human-readable report. It reports evidence that has no node binding instead of
-inventing one. It does not call a model, draft narrative, write
-`status: accepted`, or mutate the blueprint.
+The existing no-subcommand `cairn onboard` path loads the project through the
+scanner and passes its findings to `brownfield::onboard::analyze`, which
+groups `CAIRN_RECONCILE_ORPHANED_FILE` paths. That path reads scanner findings,
+not `src/brownfield/discovery.rs` directly. The new `decisions` branch keeps
+the scanner-loaded graph as its source of real node bindings and uses the
+deterministic discovery facts as bounded code evidence. It must never treat a
+path-derived discovery candidate as a graph node unless the loaded blueprint
+resolves that id.
 
-This is an extension of `cairn onboard`, not a new `cairn brownfield extract`
-noun. The existing surface is already a brownfield-specific, read-only report
-with human and JSON renderers. The implementation must keep its existing
-orphan-cluster behavior unchanged while adding the explicit `decisions`
-subcommand.
+The flow requires an onboarded `cairn.blueprint` to exist and load
+successfully. The current onboard command synthesises a temporary stub
+blueprint when its requested file is absent; the `decisions` branch must fail
+with a clear error instead, because a draft without a real `nodes:` binding
+does not meet this flow's contract.
 
-### 2. Harness authoring surface
+The branch adds a deterministic index of the flow's explicit ADR-like
+locations and invariant comment forms, resolves candidate ids against the
+loaded blueprint, and emits stable JSON for the harness plus a human-readable
+report. It reports evidence that has no node binding instead of inventing one.
+It does not call a model, draft narrative, write `status: accepted`, or mutate
+the blueprint.
 
-The implementation unit will ship this skill as canonical pack content:
+With no subcommand, the existing orphan report remains unchanged. `decisions`
+selects the evidence index. Any other positional subcommand must return exit
+code 2 with the usage text from
+`copy::lookup("help.commands.onboard.usage")`; it must not silently fall back
+to the orphan report, as the current `run_onboard_command` does by ignoring
+`command_args`. The usage value in `docs/design-system/copy.toml` must name
+the supported form, `cairn onboard [decisions] [options]`, so this new string
+does not become a hardcoded parallel copy surface.
+
+This is an extension of `cairn onboard`. There is no existing
+`cairn brownfield extract` command to preserve or extend, and this ruling does
+not add that new top-level noun.
+
+### 2. Cairn-dev authoring reference
+
+The implementation unit will add the authoring instructions as this reference
+under the existing owning skill:
 
 ```
-tools/agent-pack/content/skills/cairn-brownfield-decision-extraction/SKILL.md
+tools/agent-pack/content/skills/cairn-dev/references/task-brownfield-decision-extraction.md
 ```
 
-The normal pack manifest and adapter destinations install it under the active
-harness pack root. The skill invokes `cairn onboard decisions --json`, asks the
-harness agent to interpret the returned code and document evidence, records
-the selected evidence in a primary research artefact, and writes the decision
-body. It must preserve the evidence paths and resolved node ids in the draft
-and must leave every extracted decision at `status: proposed`.
+The checked-in `.claude` mirror at
+`.claude/skills/cairn-dev/references/task-brownfield-decision-extraction.md`
+is an input to `src/cli/commands/pack_assets.rs`: the `BASE_ASSETS` table
+uses `include_str!` for each Cairn-dev reference, and `all_assets` rewrites
+the adapter root for the `.omp` destination. The implementation must add the
+reference to `tools/agent-pack/manifest.toml` as a canonical entry and to the
+existing Claude and OMP adapter rows. It therefore ships through the same
+owning skill path, not as a new standalone skill.
+
+The reference invokes `cairn onboard decisions --json`, asks the harness agent
+to interpret the returned code and document evidence, records the selected
+evidence in a primary research artefact, and writes the decision body. It must
+preserve the evidence paths and resolved node ids in the draft and must leave
+every extracted decision at `status: proposed`.
+
+The panel's alternatives debate resolved the standalone-skill question:
+
+### For
+
+A standalone `cairn-brownfield-decision-extraction` skill would make the
+workflow directly discoverable to an agent that wants to mine decisions. Its
+name could provide a clear trigger without requiring the harness to search
+inside `cairn-dev`.
+
+### Against
+
+Accepted `dec.cli-agent-workflow-consolidation` states that future pack
+promotions are judged on marginal lift over the current pack and that
+non-overlapping value must be merged into the owning skill before a new skill
+is added. This is rung-1 accepted authority. No marginal-lift judgement was
+recorded for a standalone extraction skill, while a new skill would add
+another shipped-pack asset and binding distribution surface.
+
+### Verdict
+
+Driver adjudication: **For:** standalone trigger discoverability.
+**Against:** accepted rule directly governs, rung-1 precedence.
+**Verdict:** reference-hosting; future recorded marginal-lift judgement remains
+the sanctioned promotion path.
 
 ### 3. Existing artefact-writing entry point
 
-For each selected decision, the skill reuses the existing command:
+For each selected decision, the authoring reference reuses the existing
+command:
 
 ```
 cairn decision new <slug> --node <id> --informed-by <research-id>
 ```
 
-`src/cli/commands/decision.rs` and its shared `write_new_artefact` helper own
-slug validation, slug-only filenames, typed frontmatter, proposal status, and
-overwrite refusal. The skill edits only the generated body and any permitted
-provenance fields after the command creates the file. It does not introduce a
-second decision writer. It does not use `cairn gap`, because an extracted
-decision is not an unresolved implementation question and must not create a
+`run_decision_new` validates the slug and combines two existing helpers.
+`decision_stub` owns the typed decision frontmatter, `status: proposed`, date,
+and standard decision sections. The shared `write_new_artefact` helper is
+kind-agnostic: it creates the directory, refuses an existing target, and
+writes the supplied bytes. It does not own typed frontmatter or proposal
+status. The reference edits only the generated body and permitted provenance
+fields after the command creates the file. It does not introduce a second
+decision writer.
+
+The authoring reference may set these fields on a generated draft:
+
+- `informed_by`, pointing to the primary research artefact selected from the
+  evidence report;
+- `revisit_triggers`, carrying queryable conditions for reconsideration;
+- `ratification: local` or `ratification: binding`, or no `ratification`
+  field at all.
+
+`decision_stub` currently emits no `ratification` field. The registry parser
+defaults an absent value to `binding` (`src/artefacts/registry/kinds.rs:138-140`),
+so extracted drafts carry `binding` by default. An explicit `local` value is a
+claim subject to the full tier shape rules, not a shortcut around them. The
+flow reference must not set `status: accepted`, `ratified_by`, `receipts`, or
+`supersedes`. It does not use `cairn gap`, because an extracted decision is not
+an unresolved implementation question and must not create a
 `CAIRN_GAP_UNRESOLVED` finding.
 
 ### 4. Ratification tier
 
-The ruling is **binding**. The command half alone would fit the local shape of
-`dec.decision-ratification-tiers`: it is anchored to one brownfield container,
-supersedes nothing, and can avoid the binding-surface allowlist. The selected
-mechanism also adds shipped agent-pack content, however, and shipped pack
-content is binding by that decision. The pack skill therefore makes this
-combined ruling binding even though its command half is local-shaped.
+The ruling is **binding**. The selected command is anchored to
+`cairn.brownfield`, supersedes nothing, and can keep its command paths outside
+the binding-surface allowlist. The authoring reference nevertheless changes
+shipped pack content under the existing Cairn-dev skill. Shipped pack content
+is binding by `dec.decision-ratification-tiers`, so reference-hosting does not
+turn this combined ruling into a local decision. Extracted drafts also default
+to `binding` because `decision_stub` omits `ratification` and the registry
+default is binding.
 
 This draft stays `status: proposed` until the Decision governance panel runs.
 Under `dec.reviewer-panel-ratification`, a convergent binding ruling may be
@@ -125,22 +214,26 @@ self-ratify.
 
 ## Rejected alternatives
 
-### Shipped skill alone
+### Shipped standalone skill alone
 
-Rejected as the complete mechanism. A skill can write useful prose, but if it
-also owns repository walking and evidence selection, the evidence boundary
-becomes prompt and harness dependent. It would not provide a stable report of
-candidate ids, paths, headings, and node bindings that later runs can compare.
-The skill is retained as the authoring half of the chosen hybrid.
+Rejected as the complete mechanism and as a new distribution surface. A
+standalone skill can write useful prose, but if it also owns repository walking
+and evidence selection, the evidence boundary becomes prompt and harness
+dependent. It would not provide a stable report of candidate ids, paths,
+headings, and node bindings that later runs can compare. The authoring
+instructions are retained as a reference under `cairn-dev`, where the accepted
+pack-consolidation rule places non-overlapping value.
 
-### New deterministic `cairn brownfield extract` command
+### New deterministic top-level command
 
 Rejected as the command host. A new noun would duplicate the existing
-brownfield command family and add another dispatch, help, copy, JSON, and test
-surface. More importantly, a deterministic command alone cannot infer
-prose-level decisions. It would either emit a sterile template or violate the
-hard no-inference boundary. The evidence operation belongs on `cairn onboard`
-where an existing brownfield report already provides the read-only hand-off.
+brownfield surfaces and add another dispatch, help, copy, JSON, and test
+surface. The real differentiator is ownership and marginal lift: `onboard`
+already owns a brownfield read-only report with human and JSON renderers, so
+its `decisions` subcommand gives the harness a hand-off point without a
+second top-level namespace. A new noun has no recorded marginal lift over that
+existing owner. The prose limitation is handled by the authoring reference in
+both designs and is not the reason this command host loses.
 
 ### `cairn onboard` extension alone
 
@@ -169,21 +262,26 @@ normal draft look unresolved.
 ## Consequences
 
 - Brownfield extraction has a reproducible evidence boundary. Cairn owns
-  candidate ids, bounded source evidence, recognised ADR-like paths and
-  headings, node resolution, output ordering, and proposal-only status.
+  scanner-backed graph resolution, candidate ids, bounded source evidence,
+  recognised ADR-like paths and headings, node bindings, output ordering, and
+  proposal-only status.
 - The harness can perform the semantic work Cairn cannot: deciding which
   evidence expresses an architectural decision and writing readable context,
   rationale, consequences, and revisit triggers. Model variation is visible in
   the proposed body rather than hidden in a graph mutation.
 - The flow has one sanctioned decision writer. `cairn decision new` remains the
-  source of frontmatter and safe file creation, while the skill fills prose
-  and links the selected research evidence.
-- The selected command extends an existing brownfield report instead of adding
-  a top-level noun or coupling extraction to the `init --from-code` apply
-  lifecycle. The existing onboard orphan report must remain compatible.
-- The skill is shipped pack content. Its canonical bytes, pack manifest,
-  adapter destinations, and compiled pack assets become part of the binding
-  distribution surface and require the corresponding pack conformance gates.
+  source of proposal bytes and safe file creation, while the reference fills
+  prose and links the selected research evidence.
+- The command extension has an explicit blueprint precondition and explicit
+  unknown-subcommand error. The existing `cairn onboard` orphan report remains
+  compatible for the no-subcommand form.
+- The authoring reference is shipped under `cairn-dev`. Its canonical content,
+  `.claude` include source, pack manifest rows, adapter-root transformation,
+  and compiled pack asset are part of the binding distribution surface and
+  require the corresponding pack conformance gates.
+- Extracted drafts carry `binding` by default. An explicit `ratification`
+  value is allowed only when the registry shape rules support it; no draft is
+  accepted by the flow.
 - The decision is binding-tier even though the Cairn command alone could have
   been local-tier. Panel acceptance, if warranted by contestedness review,
   must follow `dec.reviewer-panel-ratification`; this draft does not claim that
@@ -203,5 +301,5 @@ normal draft look unresolved.
   too much unrelated evidence for an agent to review.
 - The `onboard` surface acquires a different ownership or mutation contract,
   making a decision subcommand ambiguous or unsafe.
-- The pack distribution model changes so the selected skill is no longer
-  shipped through the canonical content and adapter destinations named above.
+- The pack distribution model changes so the `cairn-dev` reference is no
+  longer shipped through the current canonical and adapter surfaces.
