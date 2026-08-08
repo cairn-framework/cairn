@@ -1,6 +1,6 @@
 ---
 id: res.brownfield-extraction-mechanism.comparison
-nodes: [cairn.brownfield]
+nodes: [cairn.brownfield, cairn.kernel.cli]
 date: 2026-08-08
 method: primary
 ---
@@ -57,10 +57,11 @@ surfaces:
   sees scanner orphan findings rather than ADR-like documents.
 - The command change must also update `src/cli/mod.rs`'s onboard dispatch and
   `CliOnlyCommand` description, the Brownfield onboarding row in
-  `docs/commands.md`, and `help.commands.onboard.usage` in
-  `docs/design-system/copy.toml`. The shipped Cairn-dev
-  `references/command-reference.md` in both canonical and `.claude` trees is
-  another invalidated command surface and must describe the new subcommand.
+  `docs/commands.md`, and `help.commands.onboard.usage` plus
+  `help.commands.onboard.args` in `docs/design-system/copy.toml`. The shipped
+  Cairn-dev `references/command-reference.md` in both canonical and `.claude`
+  trees is another invalidated command surface and must describe the new
+  subcommand.
 - `src/brownfield/init.rs` calls `discovery::discover` and
   `src/brownfield/mod.rs::write_change` writes a proposal, a blueprint delta,
   and contract stubs under `meta/changes/brownfield-init`. The `init
@@ -168,10 +169,12 @@ command documentation, and a second brownfield vocabulary beside the existing
 `onboard`, `init --from-code`, and `refine` family. The real differentiator is
 ownership and marginal lift. `onboard` already owns a brownfield read-only
 report with human and JSON renderers, so its `decisions` subcommand gives the
-harness a hand-off point without a second top-level namespace. A command-only
-change on `cairn.brownfield` could be local-tier if its affected paths stay
-outside the binding allowlist, but a new noun has no recorded marginal lift
-over the existing owner.
+the harness a hand-off point without a second top-level namespace. A
+command-only change on `cairn.brownfield` could be local-tier when its
+`affects:` list stays wholly outside the binding-surface allowlist. The
+selected hybrid is binding-tier because its cairn-dev reference changes
+`tools/agent-pack/content/`, which is protected shipped-pack content. A new
+noun has no recorded marginal lift over the existing owner.
 
 **Result:** reject as the complete mechanism. The deterministic evidence
 operation is needed, but it belongs on the existing `onboard` surface rather
@@ -198,10 +201,11 @@ own warning lifecycle. As a pure onboard extension, the result would stop at
 a report or a template and would not satisfy the value promised by the parent
 todo.
 
-A command-only onboard extension remains a single-container brownfield change
-and could be local-tier under the tier rules. It has a narrower distribution
-surface than pack content and can be exercised deterministically in the CLI
-tests.
+A command-only onboard extension could be local-tier when its `affects:` list
+stays wholly outside the binding-surface allowlist. The selected hybrid is
+binding-tier because the cairn-dev reference changes protected
+`tools/agent-pack/content/`; it has a narrower deterministic CLI surface, but
+its combined mechanism is not local.
 
 **Result:** reject as the complete mechanism, and select it as the
 deterministic evidence half of the hybrid.
@@ -229,19 +233,24 @@ The hybrid gives each layer one responsibility:
    body. The reference is ordinary guidance and therefore belongs in
    `BASE_ASSETS`, not opt-in `LOOP_ASSETS`.
 3. The reference is mirrored under `.claude/skills/cairn-dev/references/`,
-   registered in `tools/agent-pack/manifest.toml` with canonical and existing
-   Claude and OMP adapter rows, and added to `BASE_ASSETS` in
+   registered in `tools/agent-pack/manifest.toml` with a canonical entry and
+   new Claude and OMP adapter rows, and added to `BASE_ASSETS` in
    `src/cli/commands/pack_assets.rs`, whose renderer maps the Claude asset to
-   the OMP root.
+   the OMP root. The manifest update also requires the generated marker in
+   `.gitattributes`, the size-pinned arrays in
+   `tools/agent-pack/tests/determinism_drift_tests.rs`, and the reachability
+   checks in `tools/agent-pack/tests/router_route_tests.rs`.
 4. The command change also updates `src/cli/mod.rs` onboard description and
    dispatch, `src/cli/commands/onboard.rs`, `docs/commands.md`,
-   `docs/design-system/copy.toml`, and both shipped Cairn-dev
+   `docs/design-system/copy.toml` usage and args, and both shipped Cairn-dev
    `references/command-reference.md` copies.
 5. For each selected decision, the reference reuses
    `cairn decision new <slug> --node <id> --informed-by <research-id>`.
    That command's `decision_stub` creates the slug-only decision file and
-   `status: proposed` frontmatter. The reference fills the body and permitted
-   provenance fields and leaves the maintainer to accept, reject, or edit it.
+   `status: proposed` frontmatter. The onboard report validates bindings; the
+   writer does not re-resolve or validate graph ownership. The reference fills
+   the body and permitted provenance fields and leaves the maintainer to
+   accept, reject, or edit it.
 
 This boundary is deterministic where it needs to be. The evidence report has
 stable candidate ids, paths, headings, and ordering, and the decision's
