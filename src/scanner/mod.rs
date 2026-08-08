@@ -67,6 +67,8 @@ pub struct ScanResult {
     pub artefacts: ArtefactSet,
     /// Loaded contracts.
     pub contracts: ContractSet,
+    /// Blueprint path relative to the scan root.
+    pub blueprint_path: PathBuf,
     /// Interface hash.
     pub interface_hash: String,
     /// Per-target reconciliation reports.
@@ -75,6 +77,20 @@ pub struct ScanResult {
     pub target_hashes: state::TargetHashes,
     /// Blueprint node fingerprints for change detection.
     pub blueprint_snapshot: state::BlueprintSnapshot,
+}
+
+fn blueprint_path_relative_to_root(root: &Path, blueprint_path: &Path) -> PathBuf {
+    let root_components = normalized_components(root);
+    let blueprint_components = normalized_components(blueprint_path);
+    let mut relative = PathBuf::new();
+    let components = blueprint_components
+        .as_slice()
+        .strip_prefix(root_components.as_slice())
+        .unwrap_or(blueprint_components.as_slice());
+    for component in components {
+        relative.push(component);
+    }
+    relative
 }
 
 fn normalized_components(path: &Path) -> Vec<std::ffi::OsString> {
@@ -542,6 +558,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         target_hashes,
         interface_hash,
         blueprint_snapshot: current_snapshot,
+        blueprint_path: blueprint_path_relative_to_root(root, blueprint_path),
         target_reports,
         contracts,
         artefacts,

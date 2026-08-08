@@ -34,6 +34,7 @@ fn test_normalise_repo_pointer_rejects_unsafe_git_pathspecs() {
     );
     for invalid in [
         ":(exclude)meta/decisions",
+        "./:(exclude)meta/decisions",
         ".//meta/decisions",
         "././meta/decisions",
         "../meta/decisions",

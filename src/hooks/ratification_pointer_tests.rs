@@ -109,6 +109,35 @@ fn test_ratification_uses_selected_blueprint_path() {
     );
     cleanup(root);
 }
+#[test]
+fn test_ratification_candidate_invalid_utf8_head_refuses() {
+    candidate_invalid_utf8_refuses(RatificationMode::Head, "invalid-utf8-candidate-head");
+}
+
+#[test]
+fn test_ratification_candidate_invalid_utf8_index_refuses() {
+    candidate_invalid_utf8_refuses(RatificationMode::Index, "invalid-utf8-candidate-index");
+}
+
+fn candidate_invalid_utf8_refuses(mode: RatificationMode, name: &str) {
+    let root = git_root(name);
+    let _ = accepted_decision(&root, "src/subject.rs", "subject\n");
+    let artefacts = loaded_artefacts(&root);
+    let decision_path = root.join("meta/decisions/dec.local.md");
+    fs::write(&decision_path, b"---\n\xff\n").unwrap();
+    match mode {
+        RatificationMode::Head => commit(&root, "invalid decision"),
+        RatificationMode::Index => run(&root, ["add", "."]),
+    }
+    let findings = ratification_findings(&root, &artefacts, mode);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.message.contains("candidate decisions")),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
 
 #[cfg(unix)]
 #[test]

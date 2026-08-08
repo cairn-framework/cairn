@@ -113,34 +113,34 @@ fn markdown_directory(path: &Path, pointer: &str, set: &mut ArtefactSet) -> Vec<
 }
 
 fn markdown_file(path: &Path, pointer: &str, set: &mut ArtefactSet) -> Vec<PathBuf> {
-    if path.exists() {
-        return match fs::symlink_metadata(path) {
-            Ok(metadata) if metadata.file_type().is_file() => vec![path.to_owned()],
-            Ok(_) => {
-                set.findings.push(error_finding(
-                    "CAIRN_ARTEFACT_READ_FAILED",
-                    format!("artefact pointer `{pointer}` is not a regular file"),
-                    Some(pointer.to_owned()),
-                ));
-                Vec::new()
-            }
-            Err(error) => {
-                set.findings.push(error_finding(
-                    "CAIRN_ARTEFACT_READ_FAILED",
-                    format!("failed to inspect artefact pointer `{pointer}`: {error}"),
-                    Some(pointer.to_owned()),
-                ));
-                Vec::new()
-            }
-        };
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_file() => vec![path.to_owned()],
+        Ok(_) => {
+            set.findings.push(error_finding(
+                "CAIRN_ARTEFACT_READ_FAILED",
+                format!("artefact pointer `{pointer}` is not a regular file"),
+                Some(pointer.to_owned()),
+            ));
+            Vec::new()
+        }
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            set.findings.push(warning(
+                "CAIRN_ARTEFACT_POINTER_MISSING",
+                format!("artefact pointer `{pointer}` is missing"),
+                None,
+                Some(pointer.to_owned()),
+            ));
+            Vec::new()
+        }
+        Err(error) => {
+            set.findings.push(error_finding(
+                "CAIRN_ARTEFACT_READ_FAILED",
+                format!("failed to inspect artefact pointer `{pointer}`: {error}"),
+                Some(pointer.to_owned()),
+            ));
+            Vec::new()
+        }
     }
-    set.findings.push(warning(
-        "CAIRN_ARTEFACT_POINTER_MISSING",
-        format!("artefact pointer `{pointer}` is missing"),
-        None,
-        Some(pointer.to_owned()),
-    ));
-    Vec::new()
 }
 
 fn pointer_contains_symlink(root: &Path, pointer: &str) -> io::Result<bool> {

@@ -33,18 +33,8 @@ pub(crate) fn run_hook_command(
         return err(2, copy::lookup("hooks.usage"));
     };
     let changes_dir = root.join(&parsed.changes_dir);
-    let blueprint_path = parsed
-        .file
-        .file_name()
-        .map_or_else(|| Path::new("cairn.blueprint"), Path::new);
-    let report = hooks::run_with_ratification_mode(
-        kind,
-        root,
-        &changes_dir,
-        scan_result,
-        blueprint_path,
-        ratification_mode,
-    );
+    let report =
+        hooks::run_with_ratification_mode(kind, root, &changes_dir, scan_result, ratification_mode);
     CliResult {
         code: report.exit_code(),
         stdout: if parsed.json {

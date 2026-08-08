@@ -41,7 +41,12 @@ pub(super) fn candidate_accepted_local(
         .iter()
         .map(|pointer| git_path(git_prefix, pointer))
         .collect::<Vec<_>>();
-    let pathspecs = candidate_paths
+    let listing = candidate_listing(root, &candidate_paths, mode)?;
+    accepted_local_from_listing(root, &listing, &candidate_paths, git_prefix, mode)
+}
+
+fn candidate_listing(root: &Path, paths: &[String], mode: RatificationMode) -> Option<String> {
+    let pathspecs = paths
         .iter()
         .map(|pointer| literal_pathspec(pointer))
         .collect::<Vec<_>>();
@@ -58,7 +63,16 @@ pub(super) fn candidate_accepted_local(
         ],
     };
     args.extend(pathspecs.iter().map(String::as_str));
-    let listing = git_output(root, args)?;
+    git_output(root, args)
+}
+
+fn accepted_local_from_listing(
+    root: &Path,
+    listing: &str,
+    candidate_paths: &[String],
+    git_prefix: &str,
+    mode: RatificationMode,
+) -> Option<BTreeSet<String>> {
     let mut accepted = BTreeSet::new();
     for git_path in listing.split('\0').filter(|path| !path.is_empty()) {
         let exact_pointer = candidate_paths.iter().any(|pointer| pointer == git_path);
@@ -117,19 +131,21 @@ pub(super) fn candidate_pointer_configuration_matches(
 }
 
 fn candidate_path_context(root: &Path, blueprint_path: &Path) -> Option<(String, String)> {
+    let lexical_root = lexical_normalize(root);
     let git_root = fs::canonicalize(Path::new(
-        git_output(root, ["rev-parse", "--show-toplevel"])?.trim(),
+        git_output(&lexical_root, ["rev-parse", "--show-toplevel"])?.trim(),
     ))
     .ok()?;
-    let root = fs::canonicalize(root).ok()?;
-    let blueprint = if blueprint_path.is_absolute() {
-        blueprint_path.to_owned()
+    let canonical_root = fs::canonicalize(&lexical_root).ok()?;
+    let git_prefix = relative_path(&git_root, &canonical_root)?;
+    let blueprint_relative = if blueprint_path.is_absolute() {
+        let blueprint = lexical_normalize(blueprint_path);
+        relative_path(&canonical_root, &blueprint)?
     } else {
-        root.join(blueprint_path)
+        crate::artefacts::registry::manifest::normalise_repo_pointer(blueprint_path.to_str()?)?
     };
-    let git_prefix = relative_path(&git_root, &root)?;
     let git_blueprint_path = crate::artefacts::registry::manifest::normalise_repo_pointer(
-        &relative_path(&git_root, &blueprint)?,
+        &git_path(&git_prefix, &blueprint_relative),
     )?;
     Some((git_blueprint_path, git_prefix))
 }
@@ -196,6 +212,7 @@ pub(super) fn changed_paths(
     root: &Path,
     base: &str,
     mode: RatificationMode,
+    git_prefix: &str,
 ) -> Option<BTreeSet<String>> {
     // `-z` is mandatory: without it Git C-quotes paths holding control or
     // non-ASCII bytes, the quoted spelling never equals the artefact path, and
@@ -216,12 +233,18 @@ pub(super) fn changed_paths(
         output
             .split('\0')
             .filter(|path| !path.is_empty())
+            .filter_map(|path| project_relative_path(path, git_prefix))
             .map(str::to_owned)
             .collect(),
     )
 }
-pub(super) fn decision_was_not_local(root: &Path, base: &str, decision: &Decision) -> bool {
-    let path = repository_path(root, &decision.path);
+pub(super) fn decision_was_not_local(
+    root: &Path,
+    base: &str,
+    decision: &Decision,
+    git_prefix: &str,
+) -> bool {
+    let path = project_git_path(&repository_path(root, &decision.path), git_prefix);
     let Some(raw) = git_output(root, ["show", &format!("{base}:{path}")]) else {
         return true;
     };

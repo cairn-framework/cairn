@@ -85,7 +85,6 @@ pub fn run(
         root,
         changes_dir,
         scan_result,
-        Path::new("cairn.blueprint"),
         RatificationMode::Index,
     )
 }
@@ -97,7 +96,6 @@ pub(crate) fn run_with_ratification_mode(
     root: &Path,
     changes_dir: &Path,
     scan_result: &scanner::ScanResult,
-    blueprint_path: &Path,
     ratification_mode: RatificationMode,
 ) -> HookReport {
     let started = Instant::now();
@@ -120,6 +118,7 @@ pub(crate) fn run_with_ratification_mode(
         HookKind::Tension => (tensions.clone(), false),
         HookKind::ArchitectureDecision => (architecture.clone(), !architecture.is_empty()),
         HookKind::All => {
+            let blueprint_path = scan_result.blueprint_path.as_path();
             let ratification = if blueprint_path == Path::new("cairn.blueprint") {
                 ratification::ratification_findings(root, &scan_result.artefacts, ratification_mode)
             } else {

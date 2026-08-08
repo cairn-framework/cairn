@@ -1,6 +1,9 @@
 //! Ratification gate for newly accepted local decisions.
 
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::BTreeSet,
+    path::{Component, Path, PathBuf},
+};
 
 use crate::{
     artefacts::registry::{
@@ -48,6 +51,8 @@ pub(super) fn ratification_findings_with_blueprint(
     mode: RatificationMode,
     blueprint_path: &Path,
 ) -> Vec<Finding> {
+    let normalized_root = lexical_normalize(root);
+    let root = normalized_root.as_path();
     // The trigger is read from the CANDIDATE tree (index in pre-commit, HEAD
     // in CI), never from the worktree: staging an acceptance and then editing
     // the unstaged copy back to `proposed` would otherwise empty this set and
@@ -132,7 +137,7 @@ pub(super) fn ratification_findings_with_blueprint(
             None,
         )];
     };
-    let Some(changed) = changed_paths(root, base.trim(), mode) else {
+    let Some(changed) = changed_paths(root, base.trim(), mode, &git_prefix) else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
             "cannot read changed paths from ratification range",
@@ -142,10 +147,10 @@ pub(super) fn ratification_findings_with_blueprint(
 
     local_decisions
         .into_iter()
-        .filter(|decision| decision_was_not_local(root, base.trim(), decision))
+        .filter(|decision| decision_was_not_local(root, base.trim(), decision, &git_prefix))
         .filter(|decision| changed.contains(&repository_path(root, &decision.path)))
         .flat_map(|decision| {
-            index_governed_overlap_findings(root, decision, &artefacts.reviews, mode)
+            index_governed_overlap_findings(root, decision, &artefacts.reviews, mode, &git_prefix)
                 .into_iter()
                 .chain(decision_findings(
                     root,
@@ -153,6 +158,7 @@ pub(super) fn ratification_findings_with_blueprint(
                     decision,
                     &artefacts.reviews,
                     &changed,
+                    &git_prefix,
                 ))
         })
         .collect()
@@ -164,6 +170,7 @@ fn decision_findings(
     decision: &Decision,
     reviews: &[Review],
     changed: &BTreeSet<String>,
+    git_prefix: &str,
 ) -> Vec<Finding> {
     let path = repository_path(root, &decision.path);
     let rules = decision
@@ -199,7 +206,9 @@ fn decision_findings(
                 review.and_then(|review| review.subject_hash.as_ref()) == Some(actual)
             })
         });
-    findings.extend(base_binding_surface_findings(root, base, decision));
+    findings.extend(base_binding_surface_findings(
+        root, base, decision, git_prefix,
+    ));
 
     if !receipts_match {
         findings.push(finding(
@@ -219,11 +228,11 @@ fn index_governed_overlap_findings(
     decision: &Decision,
     reviews: &[Review],
     mode: RatificationMode,
+    git_prefix: &str,
 ) -> Vec<Finding> {
     if mode != RatificationMode::Index {
         return Vec::new();
     }
-
     let Some(unstaged) = git_output(root, ["diff", "-z", "--name-only", "--no-renames"]) else {
         return vec![finding(
             "CAIRN_HOOK_MANIFEST_MISMATCH",
@@ -236,15 +245,18 @@ fn index_governed_overlap_findings(
         .iter()
         .filter_map(|affect| normalise_repo_entry(affect))
         .collect::<Vec<_>>();
-    let Some(tracked) = git_path_set(root, ["ls-files", "-z"]) else {
+    let Some(tracked) = git_path_set(root, ["ls-files", "-z"], git_prefix) else {
         return vec![finding(
             "CAIRN_HOOK_MANIFEST_MISMATCH",
             "cannot read index paths while checking ratification evidence",
             Some(decision.path.clone()),
         )];
     };
-    let Some(untracked) = git_path_set(root, ["ls-files", "-z", "--others", "--exclude-standard"])
-    else {
+    let Some(untracked) = git_path_set(
+        root,
+        ["ls-files", "-z", "--others", "--exclude-standard"],
+        git_prefix,
+    ) else {
         return vec![finding(
             "CAIRN_HOOK_MANIFEST_MISMATCH",
             "cannot read untracked paths while checking ratification evidence",
@@ -254,6 +266,7 @@ fn index_governed_overlap_findings(
     let Some(ignored) = git_path_set(
         root,
         ["ls-files", "-z", "--others", "-i", "--exclude-standard"],
+        git_prefix,
     ) else {
         return vec![finding(
             "CAIRN_HOOK_MANIFEST_MISMATCH",
@@ -282,6 +295,7 @@ fn index_governed_overlap_findings(
     let overlaps = unstaged
         .split('\0')
         .filter(|path| !path.is_empty())
+        .filter_map(|path| project_relative_path(path, git_prefix))
         .filter_map(normalise_repo_path)
         .any(|path| governed.contains(&path) || rules.iter().any(|rule| rule_matches(rule, &path)));
     overlaps
@@ -330,12 +344,14 @@ fn governed_paths(
 fn git_path_set<'a>(
     root: &Path,
     args: impl IntoIterator<Item = &'a str>,
+    git_prefix: &str,
 ) -> Option<BTreeSet<String>> {
     let output = git_output(root, args)?;
     Some(
         output
             .split('\0')
             .filter(|path| !path.is_empty())
+            .filter_map(|path| project_relative_path(path, git_prefix))
             .filter_map(normalise_repo_path)
             .collect(),
     )
@@ -346,10 +362,14 @@ fn git_path_set<'a>(
 /// The candidate range must not be able to weaken its own gate: reading the
 /// allowlist from the base tree means a commit that rewrites
 /// `docs/registries/binding-surface.md` is still judged by the rules that
-/// stood before it. Fails closed when the base copy is unavailable, since a
-/// local acceptance cannot be validated without the surface it must avoid.
-fn base_binding_surface_findings(root: &Path, base: &str, decision: &Decision) -> Vec<Finding> {
-    let Some(source) = git_output(root, ["show", &format!("{base}:{ALLOWLIST_PATH}")]) else {
+fn base_binding_surface_findings(
+    root: &Path,
+    base: &str,
+    decision: &Decision,
+    git_prefix: &str,
+) -> Vec<Finding> {
+    let allowlist_path = project_git_path(ALLOWLIST_PATH, git_prefix);
+    let Some(source) = git_output(root, ["show", &format!("{base}:{allowlist_path}")]) else {
         return vec![finding(
             "CAIRN_DECISION_TIER_BINDING_PATH",
             &format!(
@@ -414,6 +434,41 @@ fn repository_path(root: &Path, path: &str) -> String {
         .unwrap_or_else(|_| Path::new(path))
         .to_string_lossy()
         .replace('\\', "/")
+}
+
+fn lexical_normalize(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir if normalized.file_name().is_some() => {
+                normalized.pop();
+            }
+            Component::ParentDir => normalized.push(".."),
+            _ => normalized.push(component.as_os_str()),
+        }
+    }
+    if normalized.as_os_str().is_empty() {
+        PathBuf::from(".")
+    } else {
+        normalized
+    }
+}
+
+fn project_relative_path<'a>(path: &'a str, git_prefix: &str) -> Option<&'a str> {
+    if git_prefix.is_empty() {
+        Some(path)
+    } else {
+        path.strip_prefix(git_prefix)?.strip_prefix('/')
+    }
+}
+
+fn project_git_path(path: &str, git_prefix: &str) -> String {
+    if git_prefix.is_empty() {
+        path.to_owned()
+    } else {
+        format!("{git_prefix}/{path}")
+    }
 }
 
 fn review_stem(review: &Review) -> &str {

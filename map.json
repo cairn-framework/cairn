@@ -2381,8 +2381,8 @@
           "kind": "enum",
           "signature": "pub enum RatificationMode",
           "file": "src/hooks/ratification.rs",
-          "line": 27,
-          "end_line": 32
+          "line": 30,
+          "end_line": 35
         },
         {
           "name": "architecture_findings",
@@ -2405,16 +2405,16 @@
           "kind": "function",
           "signature": "pub fn detect_active_change_conflicts(changes_dir: &Path) -> Vec<Finding>",
           "file": "src/hooks/mod.rs",
-          "line": 166,
-          "end_line": 203
+          "line": 165,
+          "end_line": 202
         },
         {
           "name": "ratification_findings",
           "kind": "function",
           "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
-          "line": 36,
-          "end_line": 42
+          "line": 39,
+          "end_line": 45
         },
         {
           "name": "render_human",
@@ -2438,7 +2438,7 @@
           "signature": "pub fn run( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> HookReport",
           "file": "src/hooks/mod.rs",
           "line": 77,
-          "end_line": 91
+          "end_line": 90
         },
         {
           "name": "HookReport",
@@ -2459,18 +2459,18 @@
         {
           "name": "run_with_ratification_mode",
           "kind": "function",
-          "signature": "pub(crate) fn run_with_ratification_mode( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, blueprint_path: &Path, ratification_mode: RatificationMode, ) -> HookReport",
+          "signature": "pub(crate) fn run_with_ratification_mode( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ratification_mode: RatificationMode, ) -> HookReport",
           "file": "src/hooks/mod.rs",
-          "line": 95,
-          "end_line": 162
+          "line": 94,
+          "end_line": 161
         },
         {
           "name": "ratification_findings_with_blueprint",
           "kind": "function",
           "signature": "pub(super) fn ratification_findings_with_blueprint( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, blueprint_path: &Path, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
-          "line": 45,
-          "end_line": 159
+          "line": 48,
+          "end_line": 165
         }
       ]
     },
@@ -3627,8 +3627,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 455,
-          "end_line": 549
+          "line": 471,
+          "end_line": 566
         },
         {
           "name": "matches",
@@ -3699,8 +3699,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 556,
-          "end_line": 592
+          "line": 573,
+          "end_line": 609
         },
         {
           "name": "select_gate_recipe",
@@ -3876,7 +3876,7 @@
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
           "line": 63,
-          "end_line": 78
+          "end_line": 80
         },
         {
           "name": "SnapshotEdge",
@@ -3923,8 +3923,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 625,
-          "end_line": 640
+          "line": 642,
+          "end_line": 657
         },
         {
           "name": "cache",
