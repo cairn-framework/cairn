@@ -205,6 +205,34 @@ pub(crate) fn check_gitignored_paths(graph: &mut Graph, ast: &blueprint::Ast, ig
     visit_nodes(&ast.nodes, &mut emit_for);
 }
 
+/// Emits an informational finding for every node tag not declared in the
+/// project's opt-in registry.
+pub(crate) fn check_tag_registry(graph: &mut Graph, registry: &config::TagRegistry) {
+    let mut findings = Vec::new();
+    for node in graph.nodes.values() {
+        let tags: BTreeSet<&str> = node.tags.iter().map(String::as_str).collect();
+        for tag in tags {
+            if registry.contains(tag) {
+                continue;
+            }
+            findings.push(crate::map::graph::Finding {
+                code: "CAIRN_TAG_UNREGISTERED".to_owned(),
+                severity: crate::map::graph::FindingSeverity::Info,
+                message: format!(
+                    "node `{}` uses tag `{tag}` which is not declared in the `tags:` registry",
+                    node.id
+                ),
+                node: Some(node.id.clone()),
+                target: None,
+                path: None,
+                deferred_by: None,
+                parked_by: None,
+            });
+        }
+    }
+    graph.findings.extend(findings);
+}
+
 /// Emits `CAIRN_CONTRACT_INTERFACE_DRIFT` for every contract `interface:`
 /// entry that does not match a symbol extracted from the contract's node.
 /// Opt-in: contracts with no `interface:` block are never checked, and

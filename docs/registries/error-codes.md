@@ -80,6 +80,7 @@ All codes follow the pattern **`CXNNN`**:
 - CK031 -- claimed source/asset file exceeds the 500-line module-size guideline with no allow-list marker (CAIRN_MODULE_OVERSIZED) -- todo.modularity-scan-finding
 - CK032 -- spec rule defers to a decision that is not accepted: missing, proposed, deprecated, or superseded (CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID) -- todo.spec-rule-deferred-cell-check
 - CK033 -- contract has not been reviewed against its node's current declared shape (CAIRN_CONTRACT_NODE_SHAPE_DRIFT) -- todo.contract-blueprint-staleness
+- CK034 -- node uses a tag that is absent from the opt-in `tags:` registry (CAIRN_TAG_UNREGISTERED) -- todo.tag-registry
 
 ## CA -- Artefacts
 

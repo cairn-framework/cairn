@@ -19,6 +19,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
         "multi_target",
         "ignore",
         "gates",
+        "tags",
         "decision_accumulation_threshold",
     ];
 
@@ -126,6 +127,14 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_artefacts = false;
             in_targets = false;
             in_asymmetry = false;
+        } else if trimmed.starts_with("tags:") {
+            in_ignore = false;
+            in_rules = false;
+            in_artefacts = false;
+            in_targets = false;
+            in_asymmetry = false;
+            in_gates = false;
+            flush_gate(&mut current_gate, config);
         } else if indentation(line) == 0 && trimmed.starts_with("decision_accumulation_threshold:")
         {
             // Invalid values leave the default in force.
@@ -293,6 +302,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
         }
     }
     flush_gate(&mut current_gate, config);
+    config.tags = super::tags::TagRegistry::parse(source);
     parse_context_rules_blocks(source, config);
 }
 

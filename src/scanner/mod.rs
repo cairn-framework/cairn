@@ -15,6 +15,8 @@ mod ratification;
 pub mod snapshot;
 pub mod state;
 #[cfg(test)]
+mod tag_registry_tests;
+#[cfg(test)]
 mod tests;
 pub(crate) mod todo_defers;
 
@@ -505,6 +507,9 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         if let Some(node) = graph.nodes.get_mut(&report.target_id.node_id) {
             node.symbols.extend(report.symbol_records.iter().cloned());
         }
+    }
+    if let Some(registry) = &config.tags {
+        checks::check_tag_registry(&mut graph, registry);
     }
     checks::check_contract_interface_drift(&mut graph, &contracts);
     checks::check_provenance_coverage(&mut graph, &artefacts);

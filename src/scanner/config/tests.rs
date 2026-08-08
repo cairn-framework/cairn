@@ -477,3 +477,18 @@ targets:
     assert_eq!(config.targets[0].contract_role, "public_api");
     assert!(crate::reconcile::target::VALID_CONFIG_LANGUAGES.contains(&"assets"));
 }
+#[test]
+fn test_parse_config_tag_registry_with_behavior_flag() {
+    let mut config = Config::default();
+    parse_config(
+        "tags:\n  no-contract:\n    description: Exempts contract coverage\n    behavior_affecting: true\n",
+        &mut config,
+    );
+
+    let registry = config.tags.expect("tags section must create a registry");
+    let entry = registry
+        .get("no-contract")
+        .expect("declared tag must be available");
+    assert_eq!(entry.description, "Exempts contract coverage");
+    assert!(entry.behavior_affecting);
+}
