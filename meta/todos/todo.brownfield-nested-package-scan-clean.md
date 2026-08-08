@@ -50,7 +50,8 @@ body is stale.
 - **Edge provenance (clause 4).** Give edges written by `blueprint_delta` a
   marker that survives into the blueprint and the graph, so they are
   distinguishable from hand-written ones. Reaches blueprint syntax and the map
-  builder, not just brownfield. Prerequisite for everything below.
+  builder, not just brownfield. Prerequisite for the severity branch below;
+  cycle enumeration and the containment fall-through need no provenance.
 - **Cycle enumeration (clause 5).** Replace the return-on-first-cycle behaviour
   in `cycle_findings` with clause 5's deterministic per-component findings.
 - **Containment fall-through (clause 7).** `topological_order` returns as soon as
@@ -82,15 +83,16 @@ masking bug) fails against today's code with no provenance work at all.
 
 blocked on sub-todos: todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance, todo.order-cycle-discovery-severity
 
-The first carries clauses 5 and 7 and needs no provenance, so it lands the
-pre-existing masking fix on its own. The second carries clause 4, the marker the
+The first carries the enumeration half of clause 5 and clause 7 and needs no
+provenance, so it lands the pre-existing masking fix on its own. The second
+carries clause 4, the marker the
 decision names as the implementation prerequisite. The third carries clause 3 and
 the severity half of clause 5, depends on both, and is `blocked` accordingly.
 This todo flips to `done` when the third lands.
 
-The body's own suggestion that "edge provenance is the natural first half" is
-superseded here: the seam runs the other way round, because enumeration is
-independently valuable and provenance is not.
+An earlier version of this body suggested edge provenance as the natural first
+half. The seam runs the other way round, because enumeration is independently
+valuable and provenance is not.
 
 ## Acceptance
 
