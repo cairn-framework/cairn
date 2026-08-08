@@ -1,11 +1,7 @@
 ---
 id: dec.brownfield-extraction-mechanism
 nodes: [cairn.brownfield, cairn.kernel.cli]
-status: accepted
-receipts:
-  - rev.brownfield-extraction-mechanism-correctness
-  - rev.brownfield-extraction-mechanism-alternatives
-  - rev.brownfield-extraction-mechanism-reversibility
+status: proposed
 ratification: binding
 date: 2026-08-08
 informed_by:
@@ -47,8 +43,8 @@ revisit_triggers:
 
 ## Status
 
-This is a proposed ruling for the Decision governance panel. It deliberately
-contains no acceptance, receipt, or machine-ratification marker.
+This ruling was drafted for the Decision governance panel. Its lifecycle state
+and receipts live in the frontmatter.
 
 ## Context
 
@@ -254,11 +250,11 @@ combined ruling into a local decision. Extracted drafts also default to
 `binding` because `decision_stub` omits `ratification` and the registry default
 is binding.
 
-This draft stays `status: proposed` until the Decision governance panel runs.
-Under `dec.reviewer-panel-ratification`, a convergent binding ruling may be
-accepted on convergent panel receipts, while a contested clause needs the
-recorded debate or maintainer path. This unit writes no receipts and does not
-self-ratify.
+The Decision governance panel evaluates this ruling under
+`dec.reviewer-panel-ratification`. A convergent binding ruling may be accepted
+on convergent panel receipts, while a contested clause requires the recorded
+debate or maintainer path. The lifecycle state and receipts live in the
+frontmatter.
 
 
 ## For
@@ -369,9 +365,9 @@ normal draft look unresolved.
   Cairn-dev pack content under `tools/agent-pack/content/`, which is protected
   by the binding-surface allowlist. The command-only half could be local-tier
   only if its `affects:` list stayed wholly outside that allowlist; this
-  combined mechanism does not. Panel acceptance, if warranted by contestedness
-  review, must follow `dec.reviewer-panel-ratification`; this draft does not
-  claim that acceptance occurred.
+  combined mechanism does not. Contestedness review and any resulting
+  acceptance follow `dec.reviewer-panel-ratification`; the lifecycle state and
+  receipts live in the frontmatter.
 - The flow still needs external-repository validation and a behaviour test in
   `todo.brownfield-extraction-flow`. A green scan proves artefact integrity,
   not that a model selected the right prose, so the flow must retain the
