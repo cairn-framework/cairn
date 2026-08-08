@@ -2470,7 +2470,7 @@
           "signature": "pub(super) fn ratification_findings_with_blueprint( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, blueprint_path: &Path, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
           "line": 48,
-          "end_line": 165
+          "end_line": 126
         }
       ]
     },
