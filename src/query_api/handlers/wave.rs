@@ -22,10 +22,10 @@ use crate::scanner;
 use super::super::{QueryError, QueryRequest, QuerySince, SCHEMA_VERSION};
 
 /// An RFC 3339 instant normalized to UTC for temporal comparisons.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-struct Rfc3339Instant {
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct Rfc3339Instant<'a> {
     seconds: i64,
-    nanos: u32,
+    fraction: &'a [u8],
 }
 
 fn parse_digits(bytes: &[u8], start: usize, length: usize) -> Option<u32> {
@@ -38,7 +38,7 @@ fn parse_digits(bytes: &[u8], start: usize, length: usize) -> Option<u32> {
         })
 }
 
-fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant> {
+fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant<'_>> {
     let bytes = value.as_bytes();
     if bytes.len() < 20
         || bytes.get(10) != Some(&b'T')
@@ -56,20 +56,15 @@ fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant> {
     }
 
     let mut cursor = 19;
-    let nanos = if bytes.get(cursor) == Some(&b'.') {
+    let fraction = if bytes.get(cursor) == Some(&b'.') {
         cursor += 1;
         let start = cursor;
         while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
             cursor += 1;
         }
-        let length = cursor - start;
-        if !(1..=9).contains(&length) {
-            return None;
-        }
-        let fraction = parse_digits(bytes, start, length)?;
-        fraction * 10_u32.pow(u32::try_from(9 - length).ok()?)
+        (start < cursor).then_some(&bytes[start..cursor])?
     } else {
-        0
+        &[]
     };
 
     let offset_seconds = match bytes.get(cursor) {
@@ -92,20 +87,39 @@ fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant> {
         .checked_add(i64::from(hour * 3_600 + minute * 60 + second))?;
     Some(Rfc3339Instant {
         seconds: local_seconds.checked_sub(offset_seconds)?,
-        nanos,
+        fraction,
     })
+}
+
+fn compare_fractions(left: &[u8], right: &[u8]) -> std::cmp::Ordering {
+    let length = left.len().max(right.len());
+    (0..length)
+        .map(|index| {
+            (
+                left.get(index).copied().unwrap_or(b'0'),
+                right.get(index).copied().unwrap_or(b'0'),
+            )
+        })
+        .find_map(|(left, right)| (left != right).then_some(left.cmp(&right)))
+        .unwrap_or(std::cmp::Ordering::Equal)
+}
+
+fn compare_instants(left: Rfc3339Instant<'_>, right: Rfc3339Instant<'_>) -> std::cmp::Ordering {
+    left.seconds
+        .cmp(&right.seconds)
+        .then_with(|| compare_fractions(left.fraction, right.fraction))
 }
 
 // The stats window must compare instants, not their spellings. In particular,
 // a fractional second sorts before `Z` lexically even though it is later.
 fn compare_recorded_at(
-    left: (Option<Rfc3339Instant>, &str),
-    right: (Option<Rfc3339Instant>, &str),
+    left: (Option<Rfc3339Instant<'_>>, &str),
+    right: (Option<Rfc3339Instant<'_>>, &str),
 ) -> std::cmp::Ordering {
     match (left.0, right.0) {
-        (Some(left_instant), Some(right_instant)) => left_instant
-            .cmp(&right_instant)
-            .then_with(|| left.1.cmp(right.1)),
+        (Some(left_instant), Some(right_instant)) => {
+            compare_instants(left_instant, right_instant).then_with(|| left.1.cmp(right.1))
+        }
         _ => left.1.cmp(right.1),
     }
 }
@@ -221,13 +235,17 @@ pub(in crate::query_api) fn wave_stats_json(
         }
         StoreRead::Ready(facts) => facts,
     };
-    let mut evidenced: Vec<(Option<Rfc3339Instant>, &str, bool)> = facts
+    let mut evidenced: Vec<(Option<Rfc3339Instant<'_>>, &str, bool)> = facts
         .iter()
         .filter(|named| named.fact.kind == "outcome.touched_files")
         .filter_map(|named| {
             let recorded_at = named.fact.recorded_at.as_str();
             let instant = parse_rfc3339(recorded_at);
-            if since.is_some_and(|since| instant.is_none_or(|recorded| recorded < since)) {
+            if since.is_some_and(|since| {
+                instant.is_none_or(|recorded| {
+                    compare_instants(recorded, since) == std::cmp::Ordering::Less
+                })
+            }) {
                 return None;
             }
             let prefixes = named.fact.payload.get("excluded_by_prefixes")?.as_array()?;
@@ -325,10 +343,16 @@ mod tests {
 
     #[test]
     fn parse_rfc3339_normalizes_fraction_and_offset() {
-        assert_eq!(
-            parse_rfc3339("2026-08-07T03:45:12.500Z"),
-            parse_rfc3339("2026-08-07T05:45:12.5+02:00")
-        );
+        let left = parse_rfc3339("2026-08-07T03:45:12.500Z").expect("timestamp");
+        let right = parse_rfc3339("2026-08-07T05:45:12.5+02:00").expect("timestamp");
+        assert_eq!(compare_instants(left, right), std::cmp::Ordering::Equal);
+    }
+
+    #[test]
+    fn parse_rfc3339_accepts_arbitrary_fraction_precision() {
+        let early = parse_rfc3339("2026-08-07T03:45:12.123456789123Z").expect("timestamp");
+        let late = parse_rfc3339("2026-08-07T03:45:12.123456789124Z").expect("timestamp");
+        assert_eq!(compare_instants(early, late), std::cmp::Ordering::Less);
     }
 
     #[test]
