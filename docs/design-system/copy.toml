@@ -251,6 +251,10 @@ Want to re-derive modules from code? `cairn init --from-code`."""
 [init.from-code]
 done = "brownfield init complete; change written to meta/changes/{change_id}/"
 next-steps-header = "Next steps (review before you apply):"
+ignore-proposal-header = "Suggested initial ignores (written only with `--apply`):"
+ignore-applied-header = "Accepted initial ignores:"
+err-ignore-scan = "could not inspect the project while proposing initial ignores: {detail}"
+err-ignore-write = "could not write initial ignores: {detail}"
 # One action per line, in order. The human ladder and the `--json`
 # `next_actions` array are both rendered from this single list.
 next-actions = """
