@@ -41,7 +41,9 @@ fn parse_digits(bytes: &[u8], start: usize, length: usize) -> Option<u32> {
 fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant<'_>> {
     let bytes = value.as_bytes();
     if bytes.len() < 20
-        || bytes.get(10) != Some(&b'T')
+        || bytes
+            .get(10)
+            .is_none_or(|byte| !byte.eq_ignore_ascii_case(&b'T'))
         || bytes.get(13) != Some(&b':')
         || bytes.get(16) != Some(&b':')
     {
@@ -68,7 +70,7 @@ fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant<'_>> {
     };
 
     let offset_seconds = match bytes.get(cursor) {
-        Some(b'Z') if cursor + 1 == bytes.len() => 0_i64,
+        Some(zone) if zone.eq_ignore_ascii_case(&b'Z') && cursor + 1 == bytes.len() => 0_i64,
         Some(sign @ (b'+' | b'-'))
             if cursor + 6 == bytes.len() && bytes.get(cursor + 3) == Some(&b':') =>
         {
@@ -205,16 +207,22 @@ pub(in crate::query_api) fn wave_json(
         "conflicts": [],
     }))
 }
-
 /// `wave stats`: the false-overlap projection.
 ///
 /// An exclusion with merge evidence is an `outcome.touched_files` fact
 /// whose payload carries `excluded_by_prefixes`; it is proven false when
 /// none of its `files` fall under any of those prefixes.
 ///
+/// The lower bound accepts RFC 3339 fractional seconds, numeric offsets, and
+/// lowercase `t` or `z`. Invalid lower bounds are outside this request
+/// contract and retain the historical no-filter behavior. Leap-second `:60`
+/// values are deliberately rejected because Cairn facts never generate leap
+/// seconds and exact ordering across them is not defined here.
+///
 /// # Errors
 ///
 /// Fails closed when the coordination store is partially resolvable.
+///
 pub(in crate::query_api) fn wave_stats_json(
     root: &Path,
     request: &QueryRequest,
@@ -353,6 +361,17 @@ mod tests {
         let early = parse_rfc3339("2026-08-07T03:45:12.123456789123Z").expect("timestamp");
         let late = parse_rfc3339("2026-08-07T03:45:12.123456789124Z").expect("timestamp");
         assert_eq!(compare_instants(early, late), std::cmp::Ordering::Less);
+    }
+
+    #[test]
+    fn parse_rfc3339_normalizes_case_and_rejects_leap_seconds() {
+        let uppercase = parse_rfc3339("2026-08-07T03:45:12.5Z").expect("timestamp");
+        let lowercase = parse_rfc3339("2026-08-07t03:45:12.5z").expect("timestamp");
+        assert_eq!(
+            compare_instants(uppercase, lowercase),
+            std::cmp::Ordering::Equal
+        );
+        assert!(parse_rfc3339("2026-08-07T03:45:60Z").is_none());
     }
 
     #[test]
