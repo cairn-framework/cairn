@@ -80,8 +80,8 @@ pub struct ScanResult {
 }
 
 fn blueprint_path_relative_to_root(root: &Path, blueprint_path: &Path) -> PathBuf {
-    let root_components = normalized_components(root);
-    let blueprint_components = normalized_components(blueprint_path);
+    let root_components = normalized_components(&lexical_normalize(root));
+    let blueprint_components = normalized_components(&lexical_normalize(blueprint_path));
     let mut relative = PathBuf::new();
     let components = blueprint_components
         .as_slice()
@@ -93,6 +93,24 @@ fn blueprint_path_relative_to_root(root: &Path, blueprint_path: &Path) -> PathBu
     relative
 }
 
+fn lexical_normalize(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir if normalized.file_name().is_some() => {
+                normalized.pop();
+            }
+            Component::ParentDir => normalized.push(".."),
+            _ => normalized.push(component.as_os_str()),
+        }
+    }
+    if normalized.as_os_str().is_empty() {
+        PathBuf::from(".")
+    } else {
+        normalized
+    }
+}
 fn normalized_components(path: &Path) -> Vec<std::ffi::OsString> {
     let normalized = path.to_string_lossy().replace('\\', "/");
     Path::new(&normalized)
