@@ -234,15 +234,19 @@ fn test_topological_order_reports_crossing_containment_through_dependency_scc() 
 }
 
 #[test]
-fn test_cycle_findings_detects_self_loop() {
-    // A self-loop (a→a) is a cycle with one node.
-    // The SCC pass must retain this singleton self-loop.
-    let g = make_graph(&["a"], &[("a", "a")]);
+fn test_cycle_findings_enumerates_self_loop_with_disjoint_cycle() {
+    // A self-loop (a→a) is a one-node cycle and must not mask another SCC.
+    let g = make_graph(&["a", "b", "c"], &[("a", "a"), ("b", "c"), ("c", "b")]);
     let findings = cycle_findings(&g);
-    assert!(
-        has_cycle_code(&findings),
-        "self-loop a→a must produce CAIRN_ORDER_CYCLE; got: {findings:?}"
+    assert_eq!(
+        findings
+            .iter()
+            .map(|finding| finding.node.as_deref())
+            .collect::<Vec<_>>(),
+        vec![Some("a"), Some("b")],
+        "one finding per cyclic SCC, including self-loops: {findings:?}"
     );
+    assert!(findings[0].message.contains("a -> a"));
 }
 
 #[test]

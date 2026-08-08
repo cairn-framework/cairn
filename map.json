@@ -2529,8 +2529,8 @@
           "kind": "function",
           "signature": "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>",
           "file": "src/map/integrity.rs",
-          "line": 171,
-          "end_line": 173
+          "line": 204,
+          "end_line": 206
         },
         {
           "name": "dependents",
@@ -2641,8 +2641,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 357,
-          "end_line": 420
+          "line": 336,
+          "end_line": 399
         },
         {
           "name": "build",

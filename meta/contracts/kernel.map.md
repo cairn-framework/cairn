@@ -25,9 +25,9 @@ API, hooks, changes) reads from.
 - `Graph`, `NodeRecord`, `EdgeRef`, `NodeState`, `Finding`, `FindingSeverity`:
   re-exported graph types. `Finding` carries a stable `code`, severity, and
   span, and implements `Display` plus `Error`.
-- `integrity::cycle_findings` and `integrity::topological_order`: DFS cycle
-  detection (white/gray/black colouring) and a topological sort that returns
-  cycle findings on a cyclic graph.
+- `integrity::cycle_findings` and `integrity::topological_order`: deterministic
+  Kosaraju SCC enumeration and a topological sort that returns cycle findings
+  for dependency or combined dependency and containment constraints.
 - `query`: typed read services, `get`, `neighbourhood`, `files`, `depends`,
   `dependents`, `graph`, `order`, `lint`, and `islands`, returning typed
   response structs.
@@ -58,8 +58,9 @@ brownfield modules all read the graph and its findings.
 
 ## Tests
 
-Unit tests live in `#[cfg(test)] mod tests` blocks within each file:
-`build.rs` (builder and edge/id/path validation), `integrity.rs` (cycles and
-topological order), `contract_coverage.rs` (CK003 exemption cases),
-`test_coverage.rs`, `graph.rs`, and `query.rs` (each typed query, islands, and
-neighbourhood edge listing).
+Unit tests live in `#[cfg(test)]` modules beside their implementation:
+`build/tests.rs` (builder and edge/id/path validation),
+`src/map/integrity/tests.rs` (cycle and topological-order behavior),
+`contract_coverage.rs` (CK003 exemption cases), `test_coverage.rs`,
+`graph.rs`, and `query.rs` (each typed query, islands, and neighbourhood edge
+listing).

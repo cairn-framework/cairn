@@ -35,11 +35,12 @@ fn dependency_adjacency(graph: &Graph) -> DependencyAdjacency<'_> {
     (outbound, inbound)
 }
 
-fn dependency_finish_order<'a>(outbound: &BTreeMap<&'a str, Vec<&'a str>>) -> Vec<&'a str> {
-    let mut visited = BTreeSet::new();
+fn kosaraju_components(outbound: &[Vec<usize>], inbound: &[Vec<usize>]) -> Vec<Vec<usize>> {
+    debug_assert_eq!(outbound.len(), inbound.len());
+    let mut visited = vec![false; outbound.len()];
     let mut finish = Vec::with_capacity(outbound.len());
-    for &start in outbound.keys() {
-        if visited.contains(start) {
+    for start in 0..outbound.len() {
+        if visited[start] {
             continue;
         }
         let mut stack = vec![(start, false)];
@@ -48,36 +49,33 @@ fn dependency_finish_order<'a>(outbound: &BTreeMap<&'a str, Vec<&'a str>>) -> Ve
                 finish.push(node);
                 continue;
             }
-            if !visited.insert(node) {
+            if visited[node] {
                 continue;
             }
+            visited[node] = true;
             stack.push((node, true));
             for &next in outbound[node].iter().rev() {
-                if !visited.contains(next) {
+                if !visited[next] {
                     stack.push((next, false));
                 }
             }
         }
     }
-    finish
-}
 
-fn reverse_dependency_components<'a>(
-    finish: &[&'a str],
-    inbound: &BTreeMap<&'a str, Vec<&'a str>>,
-) -> Vec<Vec<&'a str>> {
-    let mut assigned = BTreeSet::new();
+    let mut assigned = vec![false; inbound.len()];
     let mut components = Vec::new();
     for &start in finish.iter().rev() {
-        if !assigned.insert(start) {
+        if assigned[start] {
             continue;
         }
+        assigned[start] = true;
         let mut component = Vec::new();
         let mut stack = vec![start];
         while let Some(node) = stack.pop() {
             component.push(node);
             for &next in &inbound[node] {
-                if assigned.insert(next) {
+                if !assigned[next] {
+                    assigned[next] = true;
                     stack.push(next);
                 }
             }
@@ -85,15 +83,50 @@ fn reverse_dependency_components<'a>(
         component.sort_unstable();
         components.push(component);
     }
+    components.sort_by_key(|component| component[0]);
     components
 }
 
 fn dependency_components(graph: &Graph) -> Vec<Vec<&str>> {
-    let (outbound, inbound) = dependency_adjacency(graph);
-    let finish = dependency_finish_order(&outbound);
-    let mut components = reverse_dependency_components(&finish, &inbound);
-    components.sort_by(|left, right| left[0].cmp(right[0]));
-    components
+    let (dependency_outbound, dependency_inbound) = dependency_adjacency(graph);
+    let nodes: Vec<&str> = dependency_outbound.keys().copied().collect();
+    let indices: BTreeMap<&str, usize> = nodes
+        .iter()
+        .enumerate()
+        .map(|(index, &node)| (node, index))
+        .collect();
+    let to_index = |node: &str| {
+        indices
+            .get(node)
+            .copied()
+            .expect("dependency adjacency node has an index")
+    };
+    let outbound: Vec<Vec<usize>> = nodes
+        .iter()
+        .map(|node| {
+            dependency_outbound
+                .get(node)
+                .into_iter()
+                .flatten()
+                .map(|target| to_index(target))
+                .collect()
+        })
+        .collect();
+    let inbound: Vec<Vec<usize>> = nodes
+        .iter()
+        .map(|node| {
+            dependency_inbound
+                .get(node)
+                .into_iter()
+                .flatten()
+                .map(|target| to_index(target))
+                .collect()
+        })
+        .collect();
+    kosaraju_components(&outbound, &inbound)
+        .into_iter()
+        .map(|component| component.into_iter().map(|index| nodes[index]).collect())
+        .collect()
 }
 
 fn is_cyclic_component(component: &[&str], graph: &Graph) -> bool {
@@ -239,63 +272,9 @@ fn quotient_adjacency(
     (outbound, inbound)
 }
 
-fn quotient_finish_order(outbound: &[Vec<usize>]) -> Vec<usize> {
-    let mut visited = vec![false; outbound.len()];
-    let mut finish = Vec::with_capacity(outbound.len());
-    for start in 0..outbound.len() {
-        if visited[start] {
-            continue;
-        }
-        let mut stack = vec![(start, false)];
-        while let Some((node, expanded)) = stack.pop() {
-            if expanded {
-                finish.push(node);
-                continue;
-            }
-            if visited[node] {
-                continue;
-            }
-            visited[node] = true;
-            stack.push((node, true));
-            for &next in outbound[node].iter().rev() {
-                if !visited[next] {
-                    stack.push((next, false));
-                }
-            }
-        }
-    }
-    finish
-}
-
-fn quotient_components(finish: &[usize], inbound: &[Vec<usize>]) -> Vec<Vec<usize>> {
-    let mut assigned = vec![false; inbound.len()];
-    let mut components = Vec::new();
-    for &start in finish.iter().rev() {
-        if assigned[start] {
-            continue;
-        }
-        assigned[start] = true;
-        let mut component = Vec::new();
-        let mut stack = vec![start];
-        while let Some(node) = stack.pop() {
-            component.push(node);
-            for &next in &inbound[node] {
-                if !assigned[next] {
-                    assigned[next] = true;
-                    stack.push(next);
-                }
-            }
-        }
-        component.sort_unstable();
-        components.push(component);
-    }
-    components
-}
-
 fn stuck_components(succ: &BTreeMap<usize, Vec<usize>>, count: usize) -> BTreeSet<usize> {
     let (outbound, inbound) = quotient_adjacency(succ, count);
-    let finish = quotient_finish_order(&outbound);
-    quotient_components(&finish, &inbound)
+    kosaraju_components(&outbound, &inbound)
         .into_iter()
         .filter(|component| component.len() > 1 || outbound[component[0]].contains(&component[0]))
         .flatten()
