@@ -57,8 +57,10 @@ fi
 # Fetch and check out the PR branch
 gh pr checkout "$PR_NUMBER"
 
-echo ""
-echo "Checked out $HEAD_BRANCH at $(git rev-parse --short HEAD)"
+# Pin merge to the exact commit that passed every gate. GitHub rejects a merge
+# if the pull request head moves after those checks.
+GATED_HEAD_SHA=$(git rev-parse HEAD)
+echo "Checked out $HEAD_BRANCH at ${GATED_HEAD_SHA:0:12}"
 echo ""
 
 # ── Phase 2: gates ────────────────────────────────────────────────────────────
@@ -104,7 +106,13 @@ else
   echo ""
   GATES_PASSED=false
 fi
-
+if $GATES_PASSED; then
+  CURRENT_HEAD_SHA=$(git rev-parse HEAD)
+  if [[ "$CURRENT_HEAD_SHA" != "$GATED_HEAD_SHA" ]]; then
+    echo "❌ checked-out head changed after gates; refusing to merge"
+    GATES_PASSED=false
+  fi
+fi
 echo ""
 
 # ── Phase 3: report ───────────────────────────────────────────────────────────
@@ -128,7 +136,8 @@ fi
 # ── Phase 4: merge (only if --fix was NOT passed and all gates pass) ─────────
 if ! $FIX_MODE && $GATES_PASSED; then
   echo "== Merging PR #$PR_NUMBER =="
-  gh pr merge "$PR_NUMBER" --squash --delete-branch
+  gh pr merge "$PR_NUMBER" --squash --delete-branch \
+    --match-head-commit "$GATED_HEAD_SHA"
   echo "✅ Merged and deleted branch."
 fi
 
