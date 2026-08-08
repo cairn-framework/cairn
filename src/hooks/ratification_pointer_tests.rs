@@ -141,6 +141,12 @@ fn test_ratification_normalizes_parent_segments_in_scan_root() {
             .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
         "{findings:?}"
     );
+    assert!(
+        findings
+            .iter()
+            .all(|finding| finding.code != "CAIRN_HOOK_MANIFEST_MISMATCH"),
+        "{findings:?}"
+    );
     cleanup(root);
 }
 

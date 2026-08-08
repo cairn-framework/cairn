@@ -51,8 +51,6 @@ pub(super) fn ratification_findings_with_blueprint(
     mode: RatificationMode,
     blueprint_path: &Path,
 ) -> Vec<Finding> {
-    let normalized_root = lexical_normalize(root);
-    let root = normalized_root.as_path();
     // The trigger is read from the CANDIDATE tree (index in pre-commit, HEAD
     // in CI), never from the worktree: staging an acceptance and then editing
     // the unstaged copy back to `proposed` would otherwise empty this set and
