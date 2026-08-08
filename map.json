@@ -7819,6 +7819,7 @@
         "tests/rung3_node_declarations.rs",
         "tests/scanner_interface_hash.rs",
         "tests/schema_validation.rs",
+        "tests/status_todo_path_wire.rs",
         "tests/summariser_accept_baseline.rs",
         "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
@@ -8255,7 +8256,7 @@
       "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-command-harness-model`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.loop-command-harness-model",
-      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+      "path": "meta/decisions/adopt-cairn-dev-loop.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8263,7 +8264,7 @@
       "message": "Decision `dec.adopt-cairn-dev-loop` is refined by accepted decision `dec.loop-resolves-knowable-gaps`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.loop-resolves-knowable-gaps",
-      "path": "././meta/decisions/adopt-cairn-dev-loop.md"
+      "path": "meta/decisions/adopt-cairn-dev-loop.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8271,7 +8272,7 @@
       "message": "Decision `dec.agent-pack-packaging` is refined by accepted decision `dec.pack-adapter-roots`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.pack-adapter-roots",
-      "path": "././meta/decisions/agent-pack-packaging.md"
+      "path": "meta/decisions/agent-pack-packaging.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8279,7 +8280,7 @@
       "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.rung-three-coordination-substrate",
-      "path": "././meta/decisions/control-plane-programme.md"
+      "path": "meta/decisions/control-plane-programme.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8287,7 +8288,7 @@
       "message": "Decision `dec.control-plane-programme` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.webui-write-authority",
-      "path": "././meta/decisions/control-plane-programme.md"
+      "path": "meta/decisions/control-plane-programme.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8295,7 +8296,7 @@
       "message": "Decision `dec.decision-ratification-tiers` is refined by accepted decision `dec.reviewer-panel-ratification`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.reviewer-panel-ratification",
-      "path": "././meta/decisions/decision-ratification-tiers.md"
+      "path": "meta/decisions/decision-ratification-tiers.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8303,7 +8304,7 @@
       "message": "Decision `dec.init-emits-agent-skills` is refined by accepted decision `dec.agent-pack-packaging`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.agent-pack-packaging",
-      "path": "././meta/decisions/init-emits-agent-skills.md"
+      "path": "meta/decisions/init-emits-agent-skills.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8311,7 +8312,7 @@
       "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.loop-reconcile-step`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.loop-reconcile-step",
-      "path": "././meta/decisions/loop-command-harness-model.md"
+      "path": "meta/decisions/loop-command-harness-model.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8319,7 +8320,7 @@
       "message": "Decision `dec.loop-command-harness-model` is refined by accepted decision `dec.unified-cairn-dev-entry`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.unified-cairn-dev-entry",
-      "path": "././meta/decisions/loop-command-harness-model.md"
+      "path": "meta/decisions/loop-command-harness-model.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8327,7 +8328,7 @@
       "message": "Decision `dec.north-star-continuous-loop` is refined by accepted decision `dec.control-plane-programme`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.control-plane-programme",
-      "path": "././meta/decisions/north-star-continuous-loop.md"
+      "path": "meta/decisions/north-star-continuous-loop.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8335,7 +8336,7 @@
       "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.rung-three-coordination-substrate",
-      "path": "././meta/decisions/orchestration-placement.md"
+      "path": "meta/decisions/orchestration-placement.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8343,7 +8344,7 @@
       "message": "Decision `dec.orchestration-placement` is refined by accepted decision `dec.webui-write-authority`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.webui-write-authority",
-      "path": "././meta/decisions/orchestration-placement.md"
+      "path": "meta/decisions/orchestration-placement.md"
     },
     {
       "code": "CAIRN_DECISION_REFINED_AUTHORITY",
@@ -8351,63 +8352,63 @@
       "message": "Decision `dec.webui-write-authority` is refined by accepted decision `dec.rung-three-coordination-substrate`. Check the refinement before treating the original as the only authority.",
       "node": null,
       "target": "dec.rung-three-coordination-substrate",
-      "path": "././meta/decisions/webui-write-authority.md"
+      "path": "meta/decisions/webui-write-authority.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.chatgpt-architecture-review` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/chatgpt-architecture-review.md"
+      "path": "meta/research/chatgpt-architecture-review.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.chatgpt-issue-audit` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/chatgpt-issue-audit.md"
+      "path": "meta/research/chatgpt-issue-audit.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.roadmap-audit-health` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/roadmap-audit-health.md"
+      "path": "meta/research/roadmap-audit-health.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.skill-absorption` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/skill-absorption.md"
+      "path": "meta/research/skill-absorption.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
       "message": "research `res.spec-rules-anchor-drift` is not linked from any decision",
       "node": null,
-      "path": "././meta/research/spec-rules-anchor-drift.md"
+      "path": "meta/research/spec-rules-anchor-drift.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
       "severity": "info",
       "message": "source `src.huntley-software-factory` is unverified",
       "node": null,
-      "path": "././meta/sources/huntley-software-factory.md"
+      "path": "meta/sources/huntley-software-factory.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
       "severity": "info",
       "message": "source `src.maintainer-design-threads-2026-07-30` is unverified",
       "node": null,
-      "path": "././meta/sources/maintainer-design-threads-2026-07-30.md"
+      "path": "meta/sources/maintainer-design-threads-2026-07-30.md"
     },
     {
       "code": "CAIRN_SOURCE_UNVERIFIED",
       "severity": "info",
       "message": "source `src.mission-ratification-2026-07-30` is unverified",
       "node": null,
-      "path": "././meta/sources/mission-ratification-2026-07-30.md"
+      "path": "meta/sources/mission-ratification-2026-07-30.md"
     },
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
@@ -8455,23 +8456,23 @@
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
       "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "message": "Receipt-grade review `meta/reviews/rev.rung-three-coordination-substrate-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
       "node": "cairn.root",
-      "path": "././meta/reviews/rev.rung-three-coordination-substrate-alternatives.md"
+      "path": "meta/reviews/rev.rung-three-coordination-substrate-alternatives.md"
     },
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
       "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "message": "Receipt-grade review `meta/reviews/rev.rung-three-coordination-substrate-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
       "node": "cairn.root",
-      "path": "././meta/reviews/rev.rung-three-coordination-substrate-correctness.md"
+      "path": "meta/reviews/rev.rung-three-coordination-substrate-correctness.md"
     },
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
       "severity": "info",
-      "message": "Receipt-grade review `././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "message": "Receipt-grade review `meta/reviews/rev.rung-three-coordination-substrate-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
       "node": "cairn.root",
-      "path": "././meta/reviews/rev.rung-three-coordination-substrate-reversibility.md"
+      "path": "meta/reviews/rev.rung-three-coordination-substrate-reversibility.md"
     }
   ]
 }

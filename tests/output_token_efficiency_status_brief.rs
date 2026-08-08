@@ -254,8 +254,8 @@ Status:
 Active changes:
 None
 Open todos:
-- app [open] ././meta/todos/todo.0.md
-- app [open] ././meta/todos/todo.1.md
+- app [open] meta/todos/todo.0.md
+- app [open] meta/todos/todo.1.md
 Recent log entries:
 None
 Next recommended:

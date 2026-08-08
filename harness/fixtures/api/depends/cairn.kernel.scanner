@@ -1,1 +1,1 @@
-{"schema_version":11,"node":"cairn.kernel.scanner","nodes":["cairn.kernel.artefacts","cairn.kernel.blueprint","cairn.kernel.map","cairn.reconcile","cairn.state"]}
+{"schema_version":12,"node":"cairn.kernel.scanner","nodes":["cairn.kernel.artefacts","cairn.kernel.blueprint","cairn.kernel.map","cairn.reconcile","cairn.state"]}
