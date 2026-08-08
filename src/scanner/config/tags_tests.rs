@@ -35,6 +35,34 @@ fn tag_registry_finding_reaches_load_project_as_info() {
 }
 
 #[test]
+fn quoted_tag_registry_key_reaches_load_project() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(
+        dir.path().join("cairn.blueprint"),
+        r#"System App "app" id "app" @unknown {
+}
+"#,
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("cairn.config.yaml"),
+        "\"tags\":\n  known:\n    description: A known tag\n",
+    )
+    .unwrap();
+
+    let result =
+        crate::scanner::load_project(dir.path(), &dir.path().join("cairn.blueprint")).unwrap();
+    assert!(
+        result
+            .graph
+            .findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_TAG_UNREGISTERED"
+                && finding.target.as_deref() == Some("unknown"))
+    );
+}
+
+#[test]
 fn absent_tag_registry_emits_no_tag_findings() {
     let dir = tempfile::tempdir().unwrap();
     std::fs::write(
@@ -86,10 +114,9 @@ fn absent_tag_registry_does_not_validate_unrelated_malformed_yaml() {
 
     assert!(config.tags.is_none());
     assert!(
-        config
-            .findings
-            .iter()
-            .all(|finding| finding.code != "CAIRN_CONFIG_TAGS_INVALID")
+        config.findings.is_empty(),
+        "a malformed config without tags must not trigger tag validation: {:?}",
+        config.findings
     );
 }
 
@@ -107,6 +134,53 @@ fn terminal_gate_is_flushed_before_tag_registry() {
     assert_eq!(config.gates[0].command, "cargo build");
 }
 
+#[test]
+fn null_tag_registry_is_enabled_as_empty() {
+    let mut config = Config::default();
+    parse_config("tags: null\n", &mut config);
+
+    assert!(config.tags.is_some());
+    assert!(config.findings.is_empty());
+}
+
+#[test]
+fn spaced_tag_key_ends_the_gate_section() {
+    let mut config = Config::default();
+    parse_config(
+        "gates:\n  - name: build\n    command: cargo build\n\
+tags :\n  known:\n    description: A known tag\n",
+        &mut config,
+    );
+
+    assert_eq!(config.gates.len(), 1);
+    assert_eq!(config.gates[0].name, "build");
+    assert_eq!(config.gates[0].command, "cargo build");
+    assert!(
+        config
+            .tags
+            .as_ref()
+            .is_some_and(|tags| tags.contains("known"))
+    );
+}
+
+#[test]
+fn known_prefix_unknown_key_does_not_reconfigure_sections() {
+    let mut config = Config::default();
+    parse_config(
+        "gates:\n  - name: build\n    command: cargo build\n\
+tags_extra: value: with colon\n",
+        &mut config,
+    );
+
+    assert_eq!(config.gates.len(), 1);
+    let findings: Vec<_> = config
+        .findings
+        .iter()
+        .filter(|finding| finding.code == "CAIRN_CONFIG_UNKNOWN_KEY")
+        .collect();
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0].message.contains("tags_extra"));
+}
 #[test]
 fn reserved_names_inside_tag_registry_do_not_reconfigure_sections() {
     let mut config = Config::default();

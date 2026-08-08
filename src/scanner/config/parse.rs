@@ -37,16 +37,10 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
 
     for line in source.lines() {
         let trimmed = line.trim();
-        let top_level = indentation(line) == 0;
-        // Top-level key detection: unindented `key:` not in the known set.
-        // Require a colon so bare lines / document markers are not treated as keys.
-        if top_level
-            && !trimmed.is_empty()
-            && !trimmed.starts_with('#')
-            && !trimmed.starts_with('-')
-            && trimmed.contains(':')
-            && let Some(key) = trimmed.split(':').next().map(str::trim)
-            && !key.is_empty()
+        let key = top_level_key(line);
+        // Top-level key detection is shared with section dispatch and the
+        // block parser so quoted keys and spacing have one interpretation.
+        if let Some(key) = key.as_deref()
             && !KNOWN_TOP_LEVEL_KEYS.contains(&key)
             && warned_keys.insert(key.to_owned())
         {
@@ -70,7 +64,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             });
         }
 
-        if top_level && trimmed.starts_with("context:") {
+        if key.as_deref() == Some("context") {
             config.context = value_after_colon(trimmed);
             in_rules = false;
             in_ignore = false;
@@ -79,7 +73,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_asymmetry = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if top_level && trimmed.starts_with("rules:") {
+        } else if key.as_deref() == Some("rules") {
             in_rules = true;
             in_ignore = false;
             in_artefacts = false;
@@ -87,7 +81,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_asymmetry = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if top_level && trimmed.starts_with("artefact_types:") {
+        } else if key.as_deref() == Some("artefact_types") {
             in_artefacts = true;
             in_rules = false;
             in_ignore = false;
@@ -97,14 +91,14 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             flush_gate(&mut current_gate, config);
             config.artefact_types.push_str(trimmed);
             config.artefact_types.push('\n');
-        } else if top_level && !in_asymmetry && trimmed.starts_with("targets:") {
+        } else if key.as_deref() == Some("targets") && !in_asymmetry {
             in_targets = true;
             in_rules = false;
             in_ignore = false;
             in_artefacts = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if top_level && trimmed.starts_with("multi_target:") {
+        } else if key.as_deref() == Some("multi_target") {
             in_asymmetry = true;
             in_rules = false;
             in_ignore = false;
@@ -112,7 +106,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_targets = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if top_level && trimmed.starts_with("ignore:") {
+        } else if key.as_deref() == Some("ignore") {
             in_ignore = true;
             in_rules = false;
             in_artefacts = false;
@@ -120,7 +114,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_asymmetry = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if top_level && trimmed.starts_with("gates:") {
+        } else if key.as_deref() == Some("gates") {
             in_gates = true;
             config.gates_configured = true;
             in_ignore = false;
@@ -128,7 +122,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_artefacts = false;
             in_targets = false;
             in_asymmetry = false;
-        } else if top_level && trimmed.starts_with("tags:") {
+        } else if key.as_deref() == Some("tags") {
             in_ignore = false;
             in_rules = false;
             in_artefacts = false;
@@ -136,8 +130,7 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
             in_asymmetry = false;
             in_gates = false;
             flush_gate(&mut current_gate, config);
-        } else if indentation(line) == 0 && trimmed.starts_with("decision_accumulation_threshold:")
-        {
+        } else if key.as_deref() == Some("decision_accumulation_threshold") {
             // Invalid values leave the default in force.
             config.decision_accumulation_threshold = value_after_colon(trimmed).parse().ok();
             in_gates = false;
@@ -322,6 +315,30 @@ pub(super) fn parse_config(source: &str, config: &mut Config) {
     }
 }
 
+pub(super) fn top_level_key(line: &str) -> Option<String> {
+    if line.trim_start().len() != line.len() {
+        return None;
+    }
+    let trimmed = line.trim();
+    if trimmed.is_empty() || trimmed.starts_with('#') || trimmed.starts_with('-') {
+        return None;
+    }
+    let (raw_key, _) = trimmed.split_once(':')?;
+    let key = raw_key.trim();
+    if key.is_empty() {
+        return None;
+    }
+    let key = if key.len() >= 2
+        && ((key.starts_with('"') && key.ends_with('"'))
+            || (key.starts_with('\'') && key.ends_with('\'')))
+    {
+        &key[1..key.len() - 1]
+    } else {
+        key
+    };
+    (!key.is_empty()).then(|| key.to_owned())
+}
+
 fn flush_gate(current: &mut Option<GateStep>, config: &mut Config) {
     if let Some(gate) = current.take()
         && (!gate.name.is_empty() || !gate.command.is_empty())
@@ -335,8 +352,9 @@ fn parse_context_rules_blocks(source: &str, config: &mut Config) {
     let mut index = 0;
     while index < lines.len() {
         let line = lines[index];
+        let key = top_level_key(line);
         let trimmed = line.trim();
-        if indentation(line) == 0 && trimmed.starts_with("context:") {
+        if key.as_deref() == Some("context") {
             let indent = indentation(line);
             let value = value_after_colon(trimmed);
             if matches!(value.as_str(), "|" | ">") {
@@ -346,7 +364,7 @@ fn parse_context_rules_blocks(source: &str, config: &mut Config) {
                 continue;
             }
             config.context = value;
-        } else if indentation(line) == 0 && trimmed == "rules:" {
+        } else if key.as_deref() == Some("rules") {
             let (rules, next) = collect_rules(&lines, index + 1, indentation(line));
             if !rules.is_empty() {
                 config.rules = rules;

@@ -2,6 +2,7 @@
 
 use std::collections::BTreeMap;
 
+use super::parse::top_level_key;
 use serde::Deserialize;
 
 /// A documented blueprint tag.
@@ -33,7 +34,10 @@ impl TagRegistry {
     }
 
     pub(crate) fn parse(source: &str) -> Result<Option<Self>, String> {
-        if !has_top_level_tags(source) {
+        if !source
+            .lines()
+            .any(|line| top_level_key(line).as_deref() == Some("tags"))
+        {
             return Ok(None);
         }
         let root: RootConfig = serde_yaml::from_str(source)
@@ -45,15 +49,6 @@ impl TagRegistry {
             .collect();
         Ok(Some(Self { entries }))
     }
-}
-
-fn has_top_level_tags(source: &str) -> bool {
-    source.lines().any(|line| {
-        line.trim_start().len() == line.len()
-            && line
-                .split_once(':')
-                .is_some_and(|(key, _)| key.trim() == "tags")
-    })
 }
 
 #[derive(Debug, Deserialize)]
