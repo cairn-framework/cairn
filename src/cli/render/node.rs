@@ -401,6 +401,7 @@ mod tests {
                 ..Default::default()
             },
             contracts: crate::artefacts::contract::ContractSet::default(),
+            blueprint_path: std::path::PathBuf::from("cairn.blueprint"),
             interface_hash: String::new(),
             target_reports: Vec::new(),
             target_hashes: TargetHashes::default(),

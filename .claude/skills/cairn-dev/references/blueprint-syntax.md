@@ -84,15 +84,19 @@ Both node IDs must exist in the node declarations above. Edges form a directed g
 
 ## Tags
 
-Tags are prefixed with `@` and are informational annotations:
+Tags are prefixed with `@` and are freeform annotations by default. A project
+can opt into a `tags:` registry in `cairn.config.yaml` to document the
+vocabulary it uses without closing the vocabulary. With a registry configured,
+the scanner emits a non-blocking Info `CAIRN_TAG_UNREGISTERED` finding for
+each node tag absent from the declared set. Without a registry, no tag
+findings are emitted. Some tags affect scanner behaviour, so registry
+descriptions should call out those tags explicitly.
 
 ```
 Module Parser "Parses input files" id "myapp.parser" @core @v2 {
     path "./src/parser"
 }
 ```
-
-Tags don't affect behavior. They're useful for filtering and documentation.
 
 ## Path declarations
 

@@ -331,6 +331,8 @@ pub struct ChangeRecord {
 pub struct ArtefactSet {
     /// Contract set.
     pub contracts: ContractSet,
+    /// Blueprint pointers that load decision artefacts.
+    pub decision_pointers: Vec<String>,
     /// Todos.
     pub todos: Vec<Todo>,
     /// Decisions.

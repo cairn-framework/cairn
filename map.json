@@ -1033,8 +1033,8 @@
           "kind": "function",
           "signature": "pub fn compute_subject_hash( repo_root: &Path, decision_repo_path: &str, decision_raw: &str, affects: &[String], ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 139,
-          "end_line": 192
+          "line": 153,
+          "end_line": 206
         },
         {
           "name": "count_tasks",
@@ -1065,8 +1065,8 @@
           "kind": "function",
           "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 42,
-          "end_line": 53
+          "line": 47,
+          "end_line": 59
         },
         {
           "name": "load_contracts",
@@ -1081,8 +1081,8 @@
           "kind": "function",
           "signature": "pub fn normalise_repo_entry(raw: &str) -> Option<RepoPathRule>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 87,
-          "end_line": 95
+          "line": 101,
+          "end_line": 109
         },
         {
           "name": "normalise_repo_path",
@@ -1113,8 +1113,8 @@
           "kind": "function",
           "signature": "pub fn rule_matches(rule: &RepoPathRule, file: &str) -> bool",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 99,
-          "end_line": 110
+          "line": 113,
+          "end_line": 124
         },
         {
           "name": "set_field",
@@ -1178,7 +1178,7 @@
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
           "line": 331,
-          "end_line": 348
+          "end_line": 350
         },
         {
           "name": "ChangeRecord",
@@ -1241,8 +1241,8 @@
           "kind": "struct",
           "signature": "pub struct ManifestError",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 114,
-          "end_line": 117
+          "line": 128,
+          "end_line": 131
         },
         {
           "name": "Research",
@@ -1297,32 +1297,48 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_decision_subject_hash( root: &Path, decision: &super::Decision, ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 205,
-          "end_line": 218
+          "line": 219,
+          "end_line": 232
         },
         {
           "name": "compute_reverse_provenance",
           "kind": "function",
           "signature": "pub(crate) fn compute_reverse_provenance(decisions: &mut [Decision])",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 67,
-          "end_line": 100
+          "line": 74,
+          "end_line": 107
         },
         {
           "name": "contained_file_sha256",
           "kind": "function",
           "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 447,
-          "end_line": 457
+          "line": 461,
+          "end_line": 471
+        },
+        {
+          "name": "decision_pointers",
+          "kind": "function",
+          "signature": "pub(crate) fn decision_pointers(ast: &Ast) -> Vec<String>",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "load_decisions",
           "kind": "function",
           "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 59,
-          "end_line": 62
+          "line": 65,
+          "end_line": 69
+        },
+        {
+          "name": "normalise_repo_pointer",
+          "kind": "function",
+          "signature": "pub(crate) fn normalise_repo_pointer(raw: &str) -> Option<String>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 91,
+          "end_line": 97
         },
         {
           "name": "dates",
@@ -2327,6 +2343,7 @@
         "src/hooks/mod.rs",
         "src/hooks/ratification.rs",
         "src/hooks/ratification/git.rs",
+        "src/hooks/ratification_pointer_tests.rs",
         "src/hooks/ratification_tests.rs",
         "src/hooks/render.rs",
         "src/hooks/tests.rs"
@@ -2364,8 +2381,8 @@
           "kind": "enum",
           "signature": "pub enum RatificationMode",
           "file": "src/hooks/ratification.rs",
-          "line": 26,
-          "end_line": 31
+          "line": 30,
+          "end_line": 35
         },
         {
           "name": "architecture_findings",
@@ -2388,16 +2405,16 @@
           "kind": "function",
           "signature": "pub fn detect_active_change_conflicts(changes_dir: &Path) -> Vec<Finding>",
           "file": "src/hooks/mod.rs",
-          "line": 159,
-          "end_line": 196
+          "line": 165,
+          "end_line": 202
         },
         {
           "name": "ratification_findings",
           "kind": "function",
           "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
-          "line": 35,
-          "end_line": 122
+          "line": 39,
+          "end_line": 45
         },
         {
           "name": "render_human",
@@ -2445,7 +2462,15 @@
           "signature": "pub(crate) fn run_with_ratification_mode( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ratification_mode: RatificationMode, ) -> HookReport",
           "file": "src/hooks/mod.rs",
           "line": 94,
-          "end_line": 155
+          "end_line": 161
+        },
+        {
+          "name": "ratification_findings_with_blueprint",
+          "kind": "function",
+          "signature": "pub(super) fn ratification_findings_with_blueprint( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, blueprint_path: &Path, ) -> Vec<Finding>",
+          "file": "src/hooks/ratification.rs",
+          "line": 48,
+          "end_line": 126
         }
       ]
     },
@@ -3506,6 +3531,8 @@
         "src/scanner/claims.rs",
         "src/scanner/config/mod.rs",
         "src/scanner/config/parse.rs",
+        "src/scanner/config/tags.rs",
+        "src/scanner/config/tags_tests.rs",
         "src/scanner/config/tests.rs",
         "src/scanner/contract_baselines.rs",
         "src/scanner/contract_shape.rs",
@@ -3519,6 +3546,7 @@
         "src/scanner/ratification/tests/mod.rs",
         "src/scanner/snapshot.rs",
         "src/scanner/state.rs",
+        "src/scanner/tag_registry_tests.rs",
         "src/scanner/tests.rs",
         "src/scanner/todo_defers.rs"
       ],
@@ -3567,6 +3595,22 @@
           "end_line": 63
         },
         {
+          "name": "contains",
+          "kind": "function",
+          "signature": "pub fn contains(&self, tag: &str) -> bool",
+          "file": "src/scanner/config/tags.rs",
+          "line": 32,
+          "end_line": 34
+        },
+        {
+          "name": "get",
+          "kind": "function",
+          "signature": "pub fn get(&self, tag: &str) -> Option<&TagEntry>",
+          "file": "src/scanner/config/tags.rs",
+          "line": 26,
+          "end_line": 28
+        },
+        {
           "name": "is_empty",
           "kind": "function",
           "signature": "pub fn is_empty(&self) -> bool",
@@ -3579,40 +3623,40 @@
           "kind": "function",
           "signature": "pub fn is_ignored(path: &str, ignores: &[String]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 132,
-          "end_line": 147
+          "line": 138,
+          "end_line": 153
         },
         {
           "name": "is_intentional_asymmetry",
           "kind": "function",
           "signature": "pub fn is_intentional_asymmetry( &self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf], ) -> Option<&IntentionalAsymmetry>",
           "file": "src/scanner/config/mod.rs",
-          "line": 202,
-          "end_line": 211
+          "line": 208,
+          "end_line": 217
         },
         {
           "name": "load",
           "kind": "function",
           "signature": "pub fn load(root: &Path) -> Result<Config, ConfigError>",
           "file": "src/scanner/config/mod.rs",
-          "line": 103,
-          "end_line": 128
+          "line": 109,
+          "end_line": 134
         },
         {
           "name": "load_project",
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 455,
-          "end_line": 549
+          "line": 491,
+          "end_line": 589
         },
         {
           "name": "matches",
           "kind": "function",
           "signature": "pub fn matches(&self, node: &str, contract_role: &str, paths: &[&std::path::PathBuf]) -> bool",
           "file": "src/scanner/config/mod.rs",
-          "line": 183,
-          "end_line": 196
+          "line": 189,
+          "end_line": 202
         },
         {
           "name": "migrate_single_hash",
@@ -3675,8 +3719,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 556,
-          "end_line": 592
+          "line": 596,
+          "end_line": 632
         },
         {
           "name": "select_gate_recipe",
@@ -3779,16 +3823,16 @@
           "kind": "struct",
           "signature": "pub struct Config",
           "file": "src/scanner/config/mod.rs",
-          "line": 54,
-          "end_line": 79
+          "line": 58,
+          "end_line": 85
         },
         {
           "name": "ConfigError",
           "kind": "struct",
           "signature": "pub struct ConfigError",
           "file": "src/scanner/config/mod.rs",
-          "line": 83,
-          "end_line": 88
+          "line": 89,
+          "end_line": 94
         },
         {
           "name": "ContractBaseline",
@@ -3819,16 +3863,16 @@
           "kind": "struct",
           "signature": "pub struct GateStep",
           "file": "src/scanner/config/mod.rs",
-          "line": 45,
-          "end_line": 50
+          "line": 49,
+          "end_line": 54
         },
         {
           "name": "IntentionalAsymmetry",
           "kind": "struct",
           "signature": "pub struct IntentionalAsymmetry",
           "file": "src/scanner/config/mod.rs",
-          "line": 30,
-          "end_line": 39
+          "line": 34,
+          "end_line": 43
         },
         {
           "name": "MapSnapshot",
@@ -3851,8 +3895,8 @@
           "kind": "struct",
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
-          "line": 63,
-          "end_line": 78
+          "line": 65,
+          "end_line": 82
         },
         {
           "name": "SnapshotEdge",
@@ -3871,20 +3915,36 @@
           "end_line": 58
         },
         {
+          "name": "TagEntry",
+          "kind": "struct",
+          "signature": "pub struct TagEntry",
+          "file": "src/scanner/config/tags.rs",
+          "line": 10,
+          "end_line": 15
+        },
+        {
+          "name": "TagRegistry",
+          "kind": "struct",
+          "signature": "pub struct TagRegistry",
+          "file": "src/scanner/config/tags.rs",
+          "line": 19,
+          "end_line": 21
+        },
+        {
           "name": "TargetConfig",
           "kind": "struct",
           "signature": "pub struct TargetConfig",
           "file": "src/scanner/config/mod.rs",
-          "line": 17,
-          "end_line": 26
+          "line": 21,
+          "end_line": 30
         },
         {
           "name": "TargetReport",
           "kind": "struct",
           "signature": "pub struct TargetReport",
           "file": "src/scanner/mod.rs",
-          "line": 44,
-          "end_line": 59
+          "line": 46,
+          "end_line": 61
         },
         {
           "name": "TargetHashes",
@@ -3899,8 +3959,16 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 625,
-          "end_line": 640
+          "line": 665,
+          "end_line": 680
+        },
+        {
+          "name": "parse",
+          "kind": "function",
+          "signature": "pub(crate) fn parse(source: &str) -> Result<Option<Self>, String>",
+          "file": "src/scanner/config/tags.rs",
+          "line": 36,
+          "end_line": 51
         },
         {
           "name": "cache",
@@ -3955,16 +4023,16 @@
           "kind": "module",
           "signature": "pub(crate) mod todo_defers",
           "file": "src/scanner/mod.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "DEFAULT_DECISION_ACCUMULATION_THRESHOLD",
           "kind": "const",
           "signature": "pub(super) const DEFAULT_DECISION_ACCUMULATION_THRESHOLD usize",
           "file": "src/scanner/config/mod.rs",
-          "line": 13,
-          "end_line": 13
+          "line": 17,
+          "end_line": 17
         }
       ]
     },

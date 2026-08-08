@@ -14,3 +14,29 @@ targets:
   - node: cairn.design-copy
     path: ./docs/design-system/copy.toml
     language: assets
+
+tags:
+  build:
+    description: Build-time support node.
+  code:
+    description: Node containing code reconciled by Cairn.
+  framework:
+    description: Root node for a Cairn framework project.
+  hotspot:
+    description: Node receiving concentrated architectural attention.
+  integration:
+    description: Node integrating Cairn with another surface.
+  kernel:
+    description: Core domain node.
+  no-contract:
+    description: Exempts a node from contract coverage checks.
+    behavior_affecting: true
+  no-test-coverage:
+    description: Exempts a node from test coverage checks.
+    behavior_affecting: true
+  reconciler:
+    description: Node associated with a code reconciler.
+  test:
+    description: Test-only node.
+  ui:
+    description: User interface node.

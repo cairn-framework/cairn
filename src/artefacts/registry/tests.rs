@@ -27,6 +27,136 @@ fn test_path_string_normalises_redundant_current_directory_components() {
 }
 
 #[test]
+fn test_load_artefacts_retains_configured_decision_pointers()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("decision-pointers")?;
+    let ast = parse_str(
+        "cairn.blueprint",
+        r#"System App "desc" id "app" {
+    decisions "./docs/policies/decisions"
+}
+"#,
+    )?;
+
+    let set = load_artefacts(&root, &ast, ContractSet::default());
+
+    assert_eq!(
+        set.decision_pointers,
+        vec!["./docs/policies/decisions".to_owned()]
+    );
+    Ok(())
+}
+#[cfg(unix)]
+#[test]
+fn test_load_artefacts_rejects_symlinked_decision_pointer() -> Result<(), Box<dyn std::error::Error>>
+{
+    use std::os::unix::fs::symlink;
+
+    let root = temp_root("symlinked-decision-pointer")?;
+    fs::create_dir_all(root.join("outside"))?;
+    symlink(root.join("outside"), root.join("docs"))?;
+    let ast = parse_str(
+        "cairn.blueprint",
+        r#"System App "desc" id "app" {
+    decisions "./docs/decisions"
+}
+"#,
+    )?;
+
+    let set = load_artefacts(&root, &ast, ContractSet::default());
+
+    assert!(
+        set.findings.iter().any(|finding| {
+            finding.code == "CAIRN_ARTEFACT_READ_FAILED" && finding.message.contains("symlink")
+        }),
+        "{:?}",
+        set.findings
+    );
+    Ok(())
+}
+#[cfg(unix)]
+#[test]
+fn test_load_artefacts_rejects_symlinked_decision_child() -> Result<(), Box<dyn std::error::Error>>
+{
+    use std::os::unix::fs::symlink;
+
+    let root = temp_root("symlinked-decision-child")?;
+    fs::create_dir_all(root.join("docs/decisions"))?;
+    fs::write(root.join("outside.md"), "outside\n")?;
+    symlink(
+        root.join("outside.md"),
+        root.join("docs/decisions/alias.md"),
+    )?;
+    let ast = parse_str(
+        "cairn.blueprint",
+        r#"System App "desc" id "app" {
+    decisions "./docs/decisions"
+}
+"#,
+    )?;
+
+    let set = load_artefacts(&root, &ast, ContractSet::default());
+
+    assert!(
+        set.findings.iter().any(|finding| {
+            finding.code == "CAIRN_ARTEFACT_READ_FAILED" && finding.message.contains("symlink")
+        }),
+        "{:?}",
+        set.findings
+    );
+    Ok(())
+}
+#[cfg(unix)]
+#[test]
+fn test_load_artefacts_rejects_non_regular_decision_paths() -> Result<(), Box<dyn std::error::Error>>
+{
+    use std::process::Command;
+
+    let root = temp_root("non-regular-decision-pointer")?;
+    let fifo_path = root.join("decision.fifo");
+    let made = Command::new("mkfifo").arg(&fifo_path).status()?;
+    assert!(made.success(), "could not create the FIFO fixture");
+    let ast = parse_str(
+        "cairn.blueprint",
+        r#"System App "desc" id "app" {
+    decisions "./decision.fifo"
+}
+"#,
+    )?;
+    let set = load_artefacts(&root, &ast, ContractSet::default());
+    assert!(
+        set.findings.iter().any(|finding| {
+            finding.code == "CAIRN_ARTEFACT_READ_FAILED" && finding.message.contains("regular file")
+        }),
+        "{:?}",
+        set.findings
+    );
+
+    let root = temp_root("non-regular-decision-child")?;
+    fs::create_dir_all(root.join("docs/decisions"))?;
+    let fifo_path = root.join("docs/decisions/decision.md");
+    let made = Command::new("mkfifo").arg(&fifo_path).status()?;
+    assert!(made.success(), "could not create the FIFO fixture");
+    let ast = parse_str(
+        "cairn.blueprint",
+        r#"System App "desc" id "app" {
+    decisions "./docs/decisions"
+}
+"#,
+    )?;
+    let set = load_artefacts(&root, &ast, ContractSet::default());
+    assert!(
+        set.findings.iter().any(|finding| {
+            finding.code == "CAIRN_ARTEFACT_READ_FAILED"
+                && finding.message.contains("non-regular file")
+        }),
+        "{:?}",
+        set.findings
+    );
+    Ok(())
+}
+
+#[test]
 fn test_load_artefacts_computes_reverse_provenance_and_ignores_authored_reverse_keys()
 -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("reverse-provenance")?;

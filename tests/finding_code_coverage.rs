@@ -111,8 +111,6 @@ const UNCOVERED_ALLOWLIST: &[&str] = &[
     "CAIRN_ARTEFACT_MISSING_FIELD",
     // Artefact pointer does not resolve to a file
     "CAIRN_ARTEFACT_POINTER_MISSING",
-    // Individual artefact file read failure
-    "CAIRN_ARTEFACT_READ_FAILED",
     // change-id parameter missing in CLI command
     "CAIRN_CLI_MISSING_CHANGE",
     // config file read failure

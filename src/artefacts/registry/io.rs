@@ -50,37 +50,135 @@ pub(super) fn collect_node_id(node: &Node, ids: &mut BTreeSet<String>) {
     }
 }
 
-pub(super) fn markdown_paths(root: &Path, pointer: &str, set: &mut ArtefactSet) -> Vec<PathBuf> {
-    let path = root.join(pointer);
+pub(super) fn markdown_paths(
+    root: &Path,
+    raw_pointer: &str,
+    set: &mut ArtefactSet,
+) -> Vec<PathBuf> {
+    let Some(pointer) = super::manifest::normalise_repo_pointer(raw_pointer) else {
+        set.findings.push(error_finding(
+            "CAIRN_ARTEFACT_READ_FAILED",
+            format!("artefact pointer `{raw_pointer}` is not a safe repository-relative path"),
+            Some(raw_pointer.to_owned()),
+        ));
+        return Vec::new();
+    };
+    if let Err(error) = validate_pointer(root, &pointer) {
+        set.findings.push(error_finding(
+            "CAIRN_ARTEFACT_READ_FAILED",
+            format!("failed to inspect artefact pointer `{raw_pointer}`: {error}"),
+            Some(raw_pointer.to_owned()),
+        ));
+        return Vec::new();
+    }
+    let path = root.join(&pointer);
     if path.is_dir() {
-        return read_dir_markdown(&path).unwrap_or_else(|error| {
+        return markdown_directory(&path, &pointer, set);
+    }
+    markdown_file(&path, &pointer, set)
+}
+
+fn validate_pointer(root: &Path, pointer: &str) -> io::Result<()> {
+    match pointer_contains_symlink(root, pointer) {
+        Ok(true) => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "path resolves through a symlink",
+        )),
+        Ok(false) => Ok(()),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error),
+    }
+}
+
+fn markdown_directory(path: &Path, pointer: &str, set: &mut ArtefactSet) -> Vec<PathBuf> {
+    match read_dir_markdown(path) {
+        Ok(paths) => paths,
+        Err(error) if error.kind() == io::ErrorKind::InvalidData => {
+            set.findings.push(error_finding(
+                "CAIRN_ARTEFACT_READ_FAILED",
+                format!("failed to read artefact directory `{pointer}`: {error}"),
+                Some(pointer.to_owned()),
+            ));
+            Vec::new()
+        }
+        Err(error) => {
             set.findings.push(error_finding(
                 "CAIRN_ARTEFACT_DIR_READ_FAILED",
                 format!("failed to read artefact directory `{pointer}`: {error}"),
                 Some(pointer.to_owned()),
             ));
             Vec::new()
-        });
-    }
-    if path.exists() {
-        vec![path]
-    } else {
-        set.findings.push(warning(
-            "CAIRN_ARTEFACT_POINTER_MISSING",
-            format!("artefact pointer `{pointer}` is missing"),
-            None,
-            Some(pointer.to_owned()),
-        ));
-        Vec::new()
+        }
     }
 }
 
+fn markdown_file(path: &Path, pointer: &str, set: &mut ArtefactSet) -> Vec<PathBuf> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_file() => vec![path.to_owned()],
+        Ok(_) => {
+            set.findings.push(error_finding(
+                "CAIRN_ARTEFACT_READ_FAILED",
+                format!("artefact pointer `{pointer}` is not a regular file"),
+                Some(pointer.to_owned()),
+            ));
+            Vec::new()
+        }
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            set.findings.push(warning(
+                "CAIRN_ARTEFACT_POINTER_MISSING",
+                format!("artefact pointer `{pointer}` is missing"),
+                None,
+                Some(pointer.to_owned()),
+            ));
+            Vec::new()
+        }
+        Err(error) => {
+            set.findings.push(error_finding(
+                "CAIRN_ARTEFACT_READ_FAILED",
+                format!("failed to inspect artefact pointer `{pointer}`: {error}"),
+                Some(pointer.to_owned()),
+            ));
+            Vec::new()
+        }
+    }
+}
+
+fn pointer_contains_symlink(root: &Path, pointer: &str) -> io::Result<bool> {
+    let mut current = root.to_owned();
+    for component in Path::new(pointer).components() {
+        let Component::Normal(part) = component else {
+            continue;
+        };
+        current.push(part);
+        if fs::symlink_metadata(&current)?.file_type().is_symlink() {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 pub(super) fn read_dir_markdown(path: &Path) -> io::Result<Vec<PathBuf>> {
-    let mut paths = fs::read_dir(path)?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|entry| entry.extension().is_some_and(|ext| ext == "md"))
-        .collect::<Vec<_>>();
+    let mut paths = Vec::new();
+    for entry in fs::read_dir(path)? {
+        let entry = entry?.path();
+        if entry.extension().is_none_or(|ext| ext != "md") {
+            continue;
+        }
+        let metadata = fs::symlink_metadata(&entry)?;
+        if metadata.file_type().is_symlink() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("directory contains symlink `{}`", entry.display()),
+            ));
+        }
+        if !metadata.file_type().is_file() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("directory contains non-regular file `{}`", entry.display()),
+            ));
+        }
+        paths.push(entry);
+    }
     paths.sort();
     Ok(paths)
 }
