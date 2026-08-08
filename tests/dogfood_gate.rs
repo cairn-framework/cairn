@@ -67,22 +67,7 @@ fn dogfood_never_invokes_path_cairn() {
 }
 
 #[cfg(unix)]
-#[test]
-fn auto_pr_passes_the_gated_head_to_merge_guard() {
-    let root = tempfile::tempdir().expect("temporary repository");
-    git(root.path(), &["init", "--quiet"]);
-    git(
-        root.path(),
-        &["config", "user.email", "cairn-test@example.com"],
-    );
-    git(root.path(), &["config", "user.name", "Cairn Test"]);
-    fs::write(root.path().join("tracked.txt"), "gated\n").expect("tracked file");
-    git(root.path(), &["add", "tracked.txt"]);
-    git(root.path(), &["commit", "--quiet", "-m", "fixture"]);
-    let gated_head = git(root.path(), &["rev-parse", "HEAD"]).trim().to_owned();
-
-    let fake_bin = root.path().join("fake-bin");
-    fs::create_dir(&fake_bin).expect("fake bin");
+fn install_fake_gh(fake_bin: &Path) {
     executable(
         &fake_bin.join("gh"),
         r#"#!/bin/sh
@@ -93,11 +78,16 @@ elif [ "$1" = "pr" ] && [ "$2" = "checkout" ]; then
   exit 0
 elif [ "$1" = "pr" ] && [ "$2" = "merge" ]; then
   printf '%s\n' "$*" > "$AUTO_PR_MERGE_LOG"
+  if [ "${AUTO_PR_MERGE_FAIL:-}" = "1" ]; then exit 1; fi
 else
   exit 1
 fi
 "#,
     );
+}
+
+#[cfg(unix)]
+fn install_fake_jq(fake_bin: &Path) {
     executable(
         &fake_bin.join("jq"),
         r#"#!/bin/sh
@@ -111,15 +101,71 @@ case "$*" in
 esac
 "#,
     );
-    executable(&fake_bin.join("cargo"), "#!/bin/sh\nexit 0\n");
-    executable(&fake_bin.join("cairn"), "#!/bin/sh\nexit 0\n");
-    fs::create_dir(root.path().join("scripts")).expect("scripts directory");
-    executable(
-        &root.path().join("scripts/dogfood.sh"),
-        "#!/bin/sh\nexit 0\n",
-    );
+}
 
-    let log = root.path().join("merge.log");
+#[cfg(unix)]
+fn install_fake_cargo(fake_bin: &Path) {
+    executable(
+        &fake_bin.join("cargo"),
+        r#"#!/bin/sh
+set -eu
+if [ "$1" = "test" ] && [ "${AUTO_PR_MUTATE_HEAD:-}" = "1" ]; then
+  printf '%s\n' mutated >> tracked.txt
+  git add tracked.txt
+  git commit --quiet -m mutate
+fi
+"#,
+    );
+}
+
+#[cfg(unix)]
+fn install_fake_commands(fake_bin: &Path) {
+    fs::create_dir(fake_bin).expect("fake bin");
+    install_fake_gh(fake_bin);
+    install_fake_jq(fake_bin);
+    install_fake_cargo(fake_bin);
+    executable(&fake_bin.join("cairn"), "#!/bin/sh\nexit 0\n");
+}
+
+#[cfg(unix)]
+fn install_fake_dogfood(root: &Path) {
+    let scripts = root.join("scripts");
+    fs::create_dir(&scripts).expect("scripts directory");
+    executable(&scripts.join("dogfood.sh"), "#!/bin/sh\nexit 0\n");
+}
+
+#[cfg(unix)]
+struct AutoPrFixture {
+    root: tempfile::TempDir,
+    gated_head: String,
+    merge_log: std::path::PathBuf,
+}
+
+#[cfg(unix)]
+fn auto_pr_fixture() -> AutoPrFixture {
+    let root = tempfile::tempdir().expect("temporary repository");
+    git(root.path(), &["init", "--quiet"]);
+    git(
+        root.path(),
+        &["config", "user.email", "cairn-test@example.com"],
+    );
+    git(root.path(), &["config", "user.name", "Cairn Test"]);
+    fs::write(root.path().join("tracked.txt"), "gated\n").expect("tracked file");
+    git(root.path(), &["add", "tracked.txt"]);
+    git(root.path(), &["commit", "--quiet", "-m", "fixture"]);
+    let gated_head = git(root.path(), &["rev-parse", "HEAD"]).trim().to_owned();
+    install_fake_commands(&root.path().join("fake-bin"));
+    install_fake_dogfood(root.path());
+    AutoPrFixture {
+        merge_log: root.path().join("merge.log"),
+        root,
+        gated_head,
+    }
+}
+
+#[cfg(unix)]
+fn run_auto_pr(fixture: &AutoPrFixture, env: &[(&str, &str)]) -> std::process::Output {
+    let fake_bin = fixture.root.path().join("fake-bin");
     let path = format!(
         "{}:{}",
         fake_bin.display(),
@@ -128,23 +174,78 @@ esac
             .expect("PATH")
     );
     let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/auto-pr.sh");
-    let result = Command::new("bash")
+    let mut command = Command::new("bash");
+    command
         .arg(script)
         .arg("123")
-        .current_dir(root.path())
+        .current_dir(fixture.root.path())
         .env("PATH", path)
-        .env("AUTO_PR_MERGE_LOG", &log)
-        .output()
-        .expect("run auto-pr");
+        .env("AUTO_PR_MERGE_LOG", &fixture.merge_log);
+    for (key, value) in env {
+        command.env(*key, *value);
+    }
+    command.output().expect("run auto-pr")
+}
+
+#[cfg(unix)]
+#[test]
+fn auto_pr_passes_the_gated_head_to_merge_guard() {
+    let fixture = auto_pr_fixture();
+    let result = run_auto_pr(&fixture, &[]);
     assert!(
         result.status.success(),
         "auto-pr failed: stdout={} stderr={}",
         String::from_utf8_lossy(&result.stdout),
         String::from_utf8_lossy(&result.stderr)
     );
-    let merge_args = fs::read_to_string(log).expect("merge command log");
+    let merge_args = fs::read_to_string(&fixture.merge_log).expect("merge command log");
     assert!(
-        merge_args.contains(&format!("--match-head-commit {gated_head}")),
+        merge_args.contains(&format!("--match-head-commit {}", fixture.gated_head)),
         "merge must pin the reviewed head, got: {merge_args}"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn auto_pr_refuses_to_merge_after_a_gate_moves_head() {
+    let fixture = auto_pr_fixture();
+    let result = run_auto_pr(&fixture, &[("AUTO_PR_MUTATE_HEAD", "1")]);
+    let stdout = String::from_utf8_lossy(&result.stdout);
+    assert!(!result.status.success(), "head drift must fail the merge");
+    assert!(
+        stdout.contains("checked-out head changed after gates"),
+        "head drift should be reported: {stdout}"
+    );
+    assert!(
+        !fixture.merge_log.exists(),
+        "head drift must skip gh pr merge"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn auto_pr_restores_stash_when_match_head_merge_fails() {
+    let fixture = auto_pr_fixture();
+    fs::write(fixture.root.path().join("tracked.txt"), "gated\nlocal\n")
+        .expect("unstaged local edit");
+    let result = run_auto_pr(&fixture, &[("AUTO_PR_MERGE_FAIL", "1")]);
+    let stdout = String::from_utf8_lossy(&result.stdout);
+    assert!(
+        !result.status.success(),
+        "remote mismatch must fail the merge"
+    );
+    assert!(
+        stdout.contains("merge failed; the remote head may have moved"),
+        "merge failure should be reported: {stdout}"
+    );
+    assert_eq!(
+        fs::read_to_string(fixture.root.path().join("tracked.txt")).expect("restored edit"),
+        "gated\nlocal\n"
+    );
+    assert!(
+        git(fixture.root.path(), &["stash", "list"])
+            .trim()
+            .is_empty(),
+        "the temporary stash must be restored"
     );
 }

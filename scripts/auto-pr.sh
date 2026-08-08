@@ -134,18 +134,26 @@ else
 fi
 
 # ── Phase 4: merge (only if --fix was NOT passed and all gates pass) ─────────
+MERGE_FAILED=false
 if ! $FIX_MODE && $GATES_PASSED; then
   echo "== Merging PR #$PR_NUMBER =="
-  gh pr merge "$PR_NUMBER" --squash --delete-branch \
-    --match-head-commit "$GATED_HEAD_SHA"
-  echo "✅ Merged and deleted branch."
+  if ! gh pr merge "$PR_NUMBER" --squash --delete-branch \
+    --match-head-commit "$GATED_HEAD_SHA"; then
+    echo "❌ merge failed; the remote head may have moved"
+    MERGE_FAILED=true
+  else
+    echo "✅ Merged and deleted branch."
+  fi
 fi
-
 # Restore stashed changes if we stashed them
 if [[ "$STASHED" == "true" ]]; then
   echo ""
   echo "Restoring stashed changes..."
   git stash pop || echo "Warning: stash pop had conflicts"
+fi
+
+if $MERGE_FAILED; then
+  exit 1
 fi
 
 if $GATES_PASSED; then
