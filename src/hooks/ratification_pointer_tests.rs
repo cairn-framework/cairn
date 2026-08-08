@@ -1,8 +1,10 @@
 //! Git-range tests for configured ratification decision pointers.
 
-use std::fs;
+use std::{fs, path::Path};
 
-use super::ratification::{RatificationMode, ratification_findings};
+use super::ratification::{
+    RatificationMode, ratification_findings, ratification_findings_with_blueprint,
+};
 use super::ratification_tests::{
     accepted_decision, accepted_decision_at, cleanup, commit, git_root, pointer_blueprint, run,
 };
@@ -58,7 +60,8 @@ fn test_ratification_non_default_decisions_pointer_index_refuses_uncovered_chang
 #[test]
 fn test_ratification_candidate_pointer_configuration_drift_refuses() {
     let root = git_root("pointer-configuration-drift");
-    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    let _ = accepted_decision(&root, "src/subject.rs", "subject\n");
+    let artefacts = loaded_artefacts(&root);
     let default_blueprint = fs::read_to_string(root.join("cairn.blueprint")).unwrap();
     write_pointer_blueprint(&root);
     run(&root, ["add", "."]);
@@ -73,13 +76,48 @@ fn test_ratification_candidate_pointer_configuration_drift_refuses() {
     cleanup(root);
 }
 
+#[test]
+fn test_ratification_uses_selected_blueprint_path() {
+    let root = git_root("selected-blueprint");
+    let _manual = accepted_decision_at(
+        &root,
+        "docs/policies/decisions",
+        "src/subject.rs",
+        "subject\n",
+    );
+    write(
+        &root,
+        "alt.blueprint",
+        &pointer_blueprint("docs/policies/decisions"),
+    );
+    let artefacts = loaded_artefacts_at(&root, Path::new("alt.blueprint"));
+    commit(&root, "accept");
+    write(&root, "src/junk.rs", "junk\n");
+    commit(&root, "junk");
+    let findings = ratification_findings_with_blueprint(
+        &root,
+        &artefacts,
+        RatificationMode::Head,
+        Path::new("alt.blueprint"),
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"
+                && !finding.message.contains("pointer configurations differ")
+        }),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
+
 #[cfg(unix)]
 #[test]
 fn test_ratification_candidate_symlinked_pointer_refuses() {
     use std::os::unix::fs::symlink;
 
     let root = git_root("symlinked-candidate-pointer");
-    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    let _ = accepted_decision(&root, "src/subject.rs", "subject\n");
+    let artefacts = loaded_artefacts(&root);
     let decision_path = root.join("meta/decisions/dec.local.md");
     let decision = fs::read_to_string(&decision_path).unwrap();
     fs::remove_dir_all(root.join("meta/decisions")).unwrap();
@@ -97,7 +135,48 @@ fn test_ratification_candidate_symlinked_pointer_refuses() {
     cleanup(root);
 }
 
-fn write_pointer_blueprint(root: &std::path::Path) {
+#[cfg(unix)]
+#[test]
+fn test_ratification_candidate_child_symlink_head_refuses() {
+    candidate_child_symlink_refuses(RatificationMode::Head, "symlinked-candidate-child-head");
+}
+
+#[cfg(unix)]
+#[test]
+fn test_ratification_candidate_child_symlink_index_refuses() {
+    candidate_child_symlink_refuses(RatificationMode::Index, "symlinked-candidate-child-index");
+}
+
+#[cfg(unix)]
+fn candidate_child_symlink_refuses(mode: RatificationMode, name: &str) {
+    use std::os::unix::fs::symlink;
+
+    let root = git_root(name);
+    let _ = accepted_decision(&root, "src/subject.rs", "subject\n");
+    let artefacts = loaded_artefacts(&root);
+    let decision_path = root.join("meta/decisions/dec.local.md");
+    let decision = fs::read_to_string(&decision_path).unwrap();
+    fs::create_dir_all(root.join("outside-decisions")).unwrap();
+    fs::write(root.join("outside-decisions/dec.local.md"), &decision).unwrap();
+    fs::remove_file(&decision_path).unwrap();
+    symlink(root.join("outside-decisions/dec.local.md"), &decision_path).unwrap();
+    match mode {
+        RatificationMode::Head => commit(&root, "symlinked decision"),
+        RatificationMode::Index => run(&root, ["add", "."]),
+    }
+    fs::remove_file(&decision_path).unwrap();
+    fs::write(&decision_path, decision).unwrap();
+    let findings = ratification_findings(&root, &artefacts, mode);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.message.contains("candidate decisions")),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
+
+fn write_pointer_blueprint(root: &Path) {
     write(
         root,
         "cairn.blueprint",
@@ -105,18 +184,23 @@ fn write_pointer_blueprint(root: &std::path::Path) {
     );
 }
 
-fn loaded_artefacts(root: &std::path::Path) -> crate::artefacts::registry::ArtefactSet {
-    let ast = crate::blueprint::parser::parse_str(
-        "cairn.blueprint",
-        &fs::read_to_string(root.join("cairn.blueprint")).unwrap(),
-    )
-    .unwrap();
+fn loaded_artefacts(root: &Path) -> crate::artefacts::registry::ArtefactSet {
+    loaded_artefacts_at(root, Path::new("cairn.blueprint"))
+}
+
+fn loaded_artefacts_at(
+    root: &Path,
+    blueprint_path: &Path,
+) -> crate::artefacts::registry::ArtefactSet {
+    let path = root.join(blueprint_path);
+    let source = fs::read_to_string(&path).unwrap();
+    let ast = crate::blueprint::parser::parse_str(&path.to_string_lossy(), &source).unwrap();
     let artefacts = crate::artefacts::registry::load_artefacts(root, &ast, ContractSet::default());
     assert_eq!(artefacts.decisions.len(), 1, "{:?}", artefacts.findings);
     artefacts
 }
 
-fn write(root: &std::path::Path, path: &str, content: &str) {
+fn write(root: &Path, path: &str, content: &str) {
     let path = root.join(path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, content).unwrap();

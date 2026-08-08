@@ -89,10 +89,11 @@ pub fn normalise_repo_path(raw: &str) -> Option<String> {
 /// empty components are rejected.
 #[must_use]
 pub(crate) fn normalise_repo_pointer(raw: &str) -> Option<String> {
+    let raw = raw.strip_prefix("./").unwrap_or(raw);
     if raw.starts_with(':') {
         return None;
     }
-    normalise_repo_path(raw.strip_prefix("./").unwrap_or(raw))
+    normalise_repo_path(raw)
 }
 
 /// Normalises a repository entry, retaining whether its source was a directory rule.

@@ -16,8 +16,8 @@ use crate::{
 mod git;
 
 use git::{
-    candidate_accepted_local, candidate_pointer_configuration_matches, changed_paths,
-    decision_was_not_local, git_output, inside_work_tree,
+    candidate_accepted_local, candidate_decision_pointers, candidate_pointer_configuration_matches,
+    changed_paths, decision_was_not_local, git_output, inside_work_tree,
 };
 
 const ALLOWLIST_PATH: &str = "docs/registries/binding-surface.md";
@@ -38,6 +38,16 @@ pub fn ratification_findings(
     artefacts: &ArtefactSet,
     mode: RatificationMode,
 ) -> Vec<Finding> {
+    ratification_findings_with_blueprint(root, artefacts, mode, Path::new("cairn.blueprint"))
+}
+
+#[must_use]
+pub(super) fn ratification_findings_with_blueprint(
+    root: &Path,
+    artefacts: &ArtefactSet,
+    mode: RatificationMode,
+    blueprint_path: &Path,
+) -> Vec<Finding> {
     // The trigger is read from the CANDIDATE tree (index in pre-commit, HEAD
     // in CI), never from the worktree: staging an acceptance and then editing
     // the unstaged copy back to `proposed` would otherwise empty this set and
@@ -52,15 +62,25 @@ pub fn ratification_findings(
     if !inside_work_tree(root) {
         return Vec::new();
     }
-    let Some(candidates) = candidate_accepted_local(root, mode) else {
+    let Some((candidate_pointers, git_prefix)) =
+        candidate_decision_pointers(root, blueprint_path, mode)
+    else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
-            "cannot read or reconcile candidate decisions and pointer configuration while checking ratification evidence",
+            "cannot read or parse the candidate blueprint while checking ratification evidence",
+            None,
+        )];
+    };
+    let Some(candidates) = candidate_accepted_local(root, &candidate_pointers, &git_prefix, mode)
+    else {
+        return vec![finding(
+            "CAIRN_HOOK_AFFECTS_SUBSET",
+            "cannot read or reconcile candidate decisions while checking ratification evidence",
             None,
         )];
     };
     let Some(pointer_configuration_matches) =
-        candidate_pointer_configuration_matches(root, &artefacts.decision_pointers, mode)
+        candidate_pointer_configuration_matches(&artefacts.decision_pointers, &candidate_pointers)
     else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",

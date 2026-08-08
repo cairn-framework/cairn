@@ -1033,8 +1033,8 @@
           "kind": "function",
           "signature": "pub fn compute_subject_hash( repo_root: &Path, decision_repo_path: &str, decision_raw: &str, affects: &[String], ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 152,
-          "end_line": 205
+          "line": 153,
+          "end_line": 206
         },
         {
           "name": "count_tasks",
@@ -1081,8 +1081,8 @@
           "kind": "function",
           "signature": "pub fn normalise_repo_entry(raw: &str) -> Option<RepoPathRule>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 100,
-          "end_line": 108
+          "line": 101,
+          "end_line": 109
         },
         {
           "name": "normalise_repo_path",
@@ -1113,8 +1113,8 @@
           "kind": "function",
           "signature": "pub fn rule_matches(rule: &RepoPathRule, file: &str) -> bool",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 112,
-          "end_line": 123
+          "line": 113,
+          "end_line": 124
         },
         {
           "name": "set_field",
@@ -1241,8 +1241,8 @@
           "kind": "struct",
           "signature": "pub struct ManifestError",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 127,
-          "end_line": 130
+          "line": 128,
+          "end_line": 131
         },
         {
           "name": "Research",
@@ -1297,8 +1297,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_decision_subject_hash( root: &Path, decision: &super::Decision, ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 218,
-          "end_line": 231
+          "line": 219,
+          "end_line": 232
         },
         {
           "name": "compute_reverse_provenance",
@@ -1313,8 +1313,8 @@
           "kind": "function",
           "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 460,
-          "end_line": 470
+          "line": 461,
+          "end_line": 471
         },
         {
           "name": "decision_pointers",
@@ -1338,7 +1338,7 @@
           "signature": "pub(crate) fn normalise_repo_pointer(raw: &str) -> Option<String>",
           "file": "src/artefacts/registry/manifest.rs",
           "line": 91,
-          "end_line": 96
+          "end_line": 97
         },
         {
           "name": "dates",
@@ -2405,8 +2405,8 @@
           "kind": "function",
           "signature": "pub fn detect_active_change_conflicts(changes_dir: &Path) -> Vec<Finding>",
           "file": "src/hooks/mod.rs",
-          "line": 159,
-          "end_line": 196
+          "line": 166,
+          "end_line": 203
         },
         {
           "name": "ratification_findings",
@@ -2414,7 +2414,7 @@
           "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
           "line": 36,
-          "end_line": 139
+          "end_line": 42
         },
         {
           "name": "render_human",
@@ -2438,7 +2438,7 @@
           "signature": "pub fn run( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ) -> HookReport",
           "file": "src/hooks/mod.rs",
           "line": 77,
-          "end_line": 90
+          "end_line": 91
         },
         {
           "name": "HookReport",
@@ -2459,10 +2459,18 @@
         {
           "name": "run_with_ratification_mode",
           "kind": "function",
-          "signature": "pub(crate) fn run_with_ratification_mode( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ratification_mode: RatificationMode, ) -> HookReport",
+          "signature": "pub(crate) fn run_with_ratification_mode( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, blueprint_path: &Path, ratification_mode: RatificationMode, ) -> HookReport",
           "file": "src/hooks/mod.rs",
-          "line": 94,
-          "end_line": 155
+          "line": 95,
+          "end_line": 162
+        },
+        {
+          "name": "ratification_findings_with_blueprint",
+          "kind": "function",
+          "signature": "pub(super) fn ratification_findings_with_blueprint( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, blueprint_path: &Path, ) -> Vec<Finding>",
+          "file": "src/hooks/ratification.rs",
+          "line": 45,
+          "end_line": 159
         }
       ]
     },

@@ -2,7 +2,7 @@
 
 // Reason: the parent module owns the finding shapes these helpers feed.
 #![allow(clippy::wildcard_imports)]
-use std::{collections::BTreeSet, path::Path, process::Command};
+use std::{collections::BTreeSet, fs, path::Path, process::Command};
 
 use super::*;
 
@@ -15,8 +15,6 @@ pub(super) fn inside_work_tree(root: &Path) -> bool {
     git_output(root, ["rev-parse", "--is-inside-work-tree"])
         .is_some_and(|value| value.trim() == "true")
 }
-const BLUEPRINT_PATH: &str = "cairn.blueprint";
-
 /// Repository-relative paths of decisions the CANDIDATE tree accepts at tier
 /// local: the index in pre-commit mode, `HEAD` in CI mode.
 ///
@@ -25,36 +23,58 @@ const BLUEPRINT_PATH: &str = "cairn.blueprint";
 /// as a refusal.
 pub(super) fn candidate_accepted_local(
     root: &Path,
+    raw_pointers: &[String],
+    git_prefix: &str,
     mode: RatificationMode,
 ) -> Option<BTreeSet<String>> {
-    let candidate_pointers = normalise_pointers(&candidate_decision_pointers(root, mode)?)?;
+    let candidate_pointers = normalise_pointers(raw_pointers)?;
     for pointer in &candidate_pointers {
-        if candidate_pointer_contains_symlink(root, pointer, mode)? {
+        let candidate_path = git_path(git_prefix, pointer);
+        if candidate_pointer_contains_unsafe_entry(root, &candidate_path, mode)? {
             return None;
         }
     }
     if candidate_pointers.is_empty() {
         return Some(BTreeSet::new());
     }
-    let pathspecs = candidate_pointers
+    let candidate_paths = candidate_pointers
+        .iter()
+        .map(|pointer| git_path(git_prefix, pointer))
+        .collect::<Vec<_>>();
+    let pathspecs = candidate_paths
         .iter()
         .map(|pointer| literal_pathspec(pointer))
         .collect::<Vec<_>>();
     let mut args = match mode {
-        RatificationMode::Index => vec!["ls-files", "-z", "--"],
-        RatificationMode::Head => vec!["ls-tree", "-r", "--name-only", "-z", "HEAD", "--"],
+        RatificationMode::Index => vec!["ls-files", "--full-name", "-z", "--"],
+        RatificationMode::Head => vec![
+            "ls-tree",
+            "-r",
+            "--full-tree",
+            "--name-only",
+            "-z",
+            "HEAD",
+            "--",
+        ],
     };
     args.extend(pathspecs.iter().map(String::as_str));
     let listing = git_output(root, args)?;
     let mut accepted = BTreeSet::new();
-    for path in listing.split('\0').filter(|path| !path.is_empty()) {
-        let spec = match mode {
-            RatificationMode::Index => format!(":{path}"),
-            RatificationMode::Head => format!("HEAD:{path}"),
-        };
-        let Some(raw) = git_output(root, ["show", &spec]) else {
+    for git_path in listing.split('\0').filter(|path| !path.is_empty()) {
+        let exact_pointer = candidate_paths.iter().any(|pointer| pointer == git_path);
+        if !exact_pointer
+            && Path::new(git_path)
+                .extension()
+                .is_none_or(|extension| extension != "md")
+        {
             continue;
+        }
+        let path = strip_git_prefix(git_path, git_prefix)?;
+        let spec = match mode {
+            RatificationMode::Index => format!(":{git_path}"),
+            RatificationMode::Head => format!("HEAD:{git_path}"),
         };
+        let raw = git_output(root, ["show", &spec])?;
         let frontmatter = crate::artefacts::frontmatter::parse(&raw);
         if matches!(
             (
@@ -69,24 +89,56 @@ pub(super) fn candidate_accepted_local(
     Some(accepted)
 }
 
-fn candidate_decision_pointers(root: &Path, mode: RatificationMode) -> Option<Vec<String>> {
+pub(super) fn candidate_decision_pointers(
+    root: &Path,
+    blueprint_path: &Path,
+    mode: RatificationMode,
+) -> Option<(Vec<String>, String)> {
+    let (git_blueprint_path, git_prefix) = candidate_path_context(root, blueprint_path)?;
     let spec = match mode {
-        RatificationMode::Index => format!(":{BLUEPRINT_PATH}"),
-        RatificationMode::Head => format!("HEAD:{BLUEPRINT_PATH}"),
+        RatificationMode::Index => format!(":{git_blueprint_path}"),
+        RatificationMode::Head => format!("HEAD:{git_blueprint_path}"),
     };
     let source = git_output(root, ["show", &spec])?;
-    let ast = crate::blueprint::parser::parse_str(BLUEPRINT_PATH, &source).ok()?;
-    Some(crate::artefacts::registry::decision_pointers(&ast))
+    let ast = crate::blueprint::parser::parse_str(&git_blueprint_path, &source).ok()?;
+    Some((
+        crate::artefacts::registry::decision_pointers(&ast),
+        git_prefix,
+    ))
 }
 
 pub(super) fn candidate_pointer_configuration_matches(
-    root: &Path,
     worktree_pointers: &[String],
-    mode: RatificationMode,
+    candidate_pointers: &[String],
 ) -> Option<bool> {
     let worktree = normalise_pointers(worktree_pointers)?;
-    let candidate = normalise_pointers(&candidate_decision_pointers(root, mode)?)?;
+    let candidate = normalise_pointers(candidate_pointers)?;
     Some(worktree == candidate)
+}
+
+fn candidate_path_context(root: &Path, blueprint_path: &Path) -> Option<(String, String)> {
+    let git_root = fs::canonicalize(Path::new(
+        git_output(root, ["rev-parse", "--show-toplevel"])?.trim(),
+    ))
+    .ok()?;
+    let root = fs::canonicalize(root).ok()?;
+    let blueprint = if blueprint_path.is_absolute() {
+        blueprint_path.to_owned()
+    } else {
+        root.join(blueprint_path)
+    };
+    let git_prefix = relative_path(&git_root, &root)?;
+    let git_blueprint_path = crate::artefacts::registry::manifest::normalise_repo_pointer(
+        &relative_path(&git_root, &blueprint)?,
+    )?;
+    Some((git_blueprint_path, git_prefix))
+}
+
+fn relative_path(base: &Path, path: &Path) -> Option<String> {
+    path.strip_prefix(base)
+        .ok()?
+        .to_str()
+        .map(|path| path.replace('\\', "/"))
 }
 
 fn normalise_pointers(raw: &[String]) -> Option<Vec<String>> {
@@ -99,39 +151,42 @@ fn normalise_pointers(raw: &[String]) -> Option<Vec<String>> {
     Some(pointers)
 }
 
+fn git_path(prefix: &str, path: &str) -> String {
+    if prefix.is_empty() {
+        path.to_owned()
+    } else {
+        format!("{prefix}/{path}")
+    }
+}
+
+fn strip_git_prefix<'a>(path: &'a str, prefix: &str) -> Option<&'a str> {
+    if prefix.is_empty() {
+        Some(path)
+    } else {
+        path.strip_prefix(prefix)?.strip_prefix('/')
+    }
+}
+
 fn literal_pathspec(pointer: &str) -> String {
     format!(":(top,literal){pointer}")
 }
 
-fn candidate_pointer_contains_symlink(
+fn candidate_pointer_contains_unsafe_entry(
     root: &Path,
     pointer: &str,
     mode: RatificationMode,
 ) -> Option<bool> {
-    let mut prefix = String::new();
-    for component in pointer.split('/') {
-        if !prefix.is_empty() {
-            prefix.push('/');
-        }
-        prefix.push_str(component);
-        let pathspec = literal_pathspec(&prefix);
-        let mut args = match mode {
-            RatificationMode::Index => vec!["ls-files", "-s", "-z", "--"],
-            RatificationMode::Head => vec!["ls-tree", "-z", "--full-tree", "HEAD", "--"],
-        };
-        args.push(pathspec.as_str());
-        let listing = git_output(root, args)?;
-        let found = listing.split('\0').any(|entry| {
-            if mode == RatificationMode::Index {
-                let Some((metadata, path)) = entry.split_once('\t') else {
-                    return false;
-                };
-                metadata.starts_with("120000 ") && path == prefix
-            } else {
-                entry.starts_with("120000 ")
-            }
-        });
-        if found {
+    let pathspec = literal_pathspec(pointer);
+    let mut args = match mode {
+        RatificationMode::Index => vec!["ls-files", "--full-name", "-s", "-z", "--"],
+        RatificationMode::Head => vec!["ls-tree", "-r", "-z", "--full-tree", "HEAD", "--"],
+    };
+    args.push(pathspec.as_str());
+    let listing = git_output(root, args)?;
+    for entry in listing.split('\0').filter(|entry| !entry.is_empty()) {
+        let (metadata, _path) = entry.split_once('\t')?;
+        let mode = metadata.split_whitespace().next()?;
+        if !matches!(mode, "100644" | "100755") {
             return Some(true);
         }
     }
