@@ -135,6 +135,7 @@ fi
 
 # ── Phase 4: merge (only if --fix was NOT passed and all gates pass) ─────────
 MERGE_FAILED=false
+RESTORE_FAILED=false
 if ! $FIX_MODE && $GATES_PASSED; then
   echo "== Merging PR #$PR_NUMBER =="
   if ! gh pr merge "$PR_NUMBER" --squash --delete-branch \
@@ -149,10 +150,13 @@ fi
 if [[ "$STASHED" == "true" ]]; then
   echo ""
   echo "Restoring stashed changes..."
-  git stash pop || echo "Warning: stash pop had conflicts"
+  if ! git stash pop; then
+    echo "Warning: stash pop had conflicts"
+    RESTORE_FAILED=true
+  fi
 fi
 
-if $MERGE_FAILED; then
+if $MERGE_FAILED || $RESTORE_FAILED; then
   exit 1
 fi
 

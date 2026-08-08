@@ -75,6 +75,11 @@ set -eu
 if [ "$1" = "pr" ] && [ "$2" = "view" ]; then
   printf '%s\n' '{"headRefName":"feature","baseRefName":"main","title":"test","author":{"login":"tester"},"url":"https://example.test/123"}'
 elif [ "$1" = "pr" ] && [ "$2" = "checkout" ]; then
+  if [ "${AUTO_PR_CHECKOUT_CONFLICT:-}" = "1" ]; then
+    printf '%s\n' remote >> tracked.txt
+    git add tracked.txt
+    git commit --quiet -m checkout
+  fi
   exit 0
 elif [ "$1" = "pr" ] && [ "$2" = "merge" ]; then
   printf '%s\n' "$*" > "$AUTO_PR_MERGE_LOG"
@@ -247,5 +252,34 @@ fn auto_pr_restores_stash_when_match_head_merge_fails() {
             .trim()
             .is_empty(),
         "the temporary stash must be restored"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn auto_pr_reports_stash_restore_conflict() {
+    let fixture = auto_pr_fixture();
+    fs::write(fixture.root.path().join("tracked.txt"), "gated\nlocal\n")
+        .expect("unstaged local edit");
+    let result = run_auto_pr(&fixture, &[("AUTO_PR_CHECKOUT_CONFLICT", "1")]);
+    let stdout = String::from_utf8_lossy(&result.stdout);
+    assert!(
+        !result.status.success(),
+        "stash conflict must produce a nonzero result"
+    );
+    assert!(
+        stdout.contains("Warning: stash pop had conflicts"),
+        "stash conflict should be reported: {stdout}"
+    );
+    assert!(fixture.merge_log.exists(), "the merge command should run");
+    assert!(
+        git(fixture.root.path(), &["status", "--short"]).contains("UU tracked.txt"),
+        "the conflict must remain visible"
+    );
+    assert!(
+        !git(fixture.root.path(), &["stash", "list"])
+            .trim()
+            .is_empty(),
+        "a conflicted stash must remain available"
     );
 }
