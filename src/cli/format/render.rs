@@ -4,7 +4,7 @@
 use super::super::*;
 use super::json::node_json;
 use super::util::esc;
-use crate::query_api::todo_status;
+use crate::query_api::{relative_path, todo_status};
 
 pub(crate) fn render_node(node: &NodeRecord, json: bool) -> String {
     if json {
@@ -121,8 +121,13 @@ fn full_finding_line(finding: &Finding) -> String {
     line
 }
 
-pub(crate) fn todo_line(todo: &Todo) -> String {
-    format!("{} [{}] {}", todo.node, todo_status(todo.status), todo.path)
+pub(crate) fn todo_line(todo: &Todo, root: &Path) -> String {
+    format!(
+        "{} [{}] {}",
+        todo.node,
+        todo_status(todo.status),
+        relative_path(&todo.path, root)
+    )
 }
 
 pub(crate) fn research_line(research: &Research) -> String {
@@ -187,10 +192,13 @@ mod tests {
 
     #[test]
     fn test_todo_line_format() {
-        assert_eq!(todo_line(&todo(TodoStatus::Open)), "app [open] ./todo.md");
         assert_eq!(
-            todo_line(&todo(TodoStatus::InProgress)),
-            "app [in_progress] ./todo.md"
+            todo_line(&todo(TodoStatus::Open), Path::new(".")),
+            "app [open] todo.md"
+        );
+        assert_eq!(
+            todo_line(&todo(TodoStatus::InProgress), Path::new(".")),
+            "app [in_progress] todo.md"
         );
     }
 

@@ -25,7 +25,7 @@ expression: rulings.data
       "supersedes": null
     }
   ],
-  "schema_version": 11,
+  "schema_version": 12,
   "store_state": "ready",
   "truncated": false
 }
