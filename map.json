@@ -3627,8 +3627,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 471,
-          "end_line": 566
+          "line": 489,
+          "end_line": 584
         },
         {
           "name": "matches",
@@ -3699,8 +3699,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 573,
-          "end_line": 609
+          "line": 591,
+          "end_line": 627
         },
         {
           "name": "select_gate_recipe",
@@ -3923,8 +3923,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 642,
-          "end_line": 657
+          "line": 660,
+          "end_line": 675
         },
         {
           "name": "cache",
