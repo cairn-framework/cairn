@@ -1,6 +1,6 @@
 ---
 id: dec.brownfield-extraction-mechanism
-nodes: [cairn.brownfield]
+nodes: [cairn.brownfield, cairn.kernel.cli]
 status: proposed
 ratification: binding
 date: 2026-08-08
@@ -282,8 +282,9 @@ distribution surface governed by the allowlist via
 **Verdict:** choose reference-hosting; future recorded marginal-lift judgement
 remains the sanctioned promotion path.
 
-This is the proposed recommendation for the scheduled Decision governance
-panel. It asserts no panel outcome, acceptance, or receipt.
+The 2026-08-08 contestedness panel marked the original standalone-skill clause
+contested (alternatives lens); the driver adjudicated reference-hosting under
+the accepted consolidation rule.
 
 ## Rejected alternatives
 
