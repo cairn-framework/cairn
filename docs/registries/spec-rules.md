@@ -53,30 +53,30 @@ does not count.
 
 | Rule | Spec | Code | Status |
 |------|------|------|--------|
-| Duplicate node IDs | spec:620 | `CAIRN_INTEGRITY_DUPLICATE_ID` | enforced |
-| Path ties between leaf nodes | spec:621 | `CAIRN_INTEGRITY_PATH_TIE` | enforced |
-| Broken artefact pointer | spec:622 | `CAIRN_ARTEFACT_POINTER_MISSING` | enforced |
-| Artefact references non-existent node | spec:623 | `CAIRN_ARTEFACT_UNKNOWN_NODE` | enforced |
-| Orphan file under claimed container | spec:625 | `CAIRN_RECONCILE_ORPHANED_FILE` | enforced |
-| Verified source missing checksum | spec:476 | `CAIRN_SOURCE_SHA256_MISSING` | enforced |
-| Verified source checksum mismatch | spec:624 | `CAIRN_SOURCE_SHA256_MISMATCH` | enforced |
-| Module interface hash drift | spec:628 | `CAIRN_INTERFACE_HASH_CHANGED` | enforced |
-| Research must cite at least one source unless primary | spec:61 | `CAIRN_RESEARCH_MISSING_SOURCES` | enforced |
-| Decision must cite at least one research or source | spec:61 | `CAIRN_DECISION_UNKNOWN_PROVENANCE` | enforced |
-| Leaf node should declare a contract | spec:318 | `CAIRN_CONTRACT_LEAF_UNCOVERED` | enforced |
-| Contract interface entry should match an extracted symbol | spec:327 | `CAIRN_CONTRACT_INTERFACE_DRIFT` | enforced |
-| Proposed gap decision is an unresolved question | spec:865 | `CAIRN_GAP_UNRESOLVED` | enforced |
-| Workspace member root or blueprint fails to load | spec:866 | `CAIRN_WORKSPACE_MEMBER_MISSING` | enforced |
-| Synced module should carry test coverage | spec:318 | `CAIRN_TEST_COVERAGE_MISSING` | enforced |
-| Todo references exactly one valid node | spec:341 | `CAIRN_TODO_ORPHAN_NODE` | enforced |
-| Source referenced by at least one research or decision | spec:474 | `CAIRN_SOURCE_ORPHAN` | enforced |
-| External source file must be a URL | spec:474 | `CAIRN_SOURCE_EXTERNAL_URL` | enforced |
-| Unverified source persists as a tension | spec:474 | `CAIRN_SOURCE_UNVERIFIED` | enforced |
-| Decision supersedes target must be superseded | spec:867 | `CAIRN_DECISION_SUPERSEDES_STATUS` | enforced |
-| Decision cites deleted research or source | spec:631 | `CAIRN_DECISION_REFERENCE_UNKNOWN` | enforced |
-| Research not linked from any decision | spec:632 | `CAIRN_RESEARCH_ORPHAN` | enforced |
-| Decision claims to close a still-open spec question | spec:633 | `CAIRN_DECISION_CLAIM_UNRESOLVED` | enforced |
-| Blueprint shape change lacks a covering decision | spec:633 | `CAIRN_BLUEPRINT_CHANGE_NO_DECISION` | enforced |
+| Duplicate node IDs | spec:661 | `CAIRN_INTEGRITY_DUPLICATE_ID` | enforced |
+| Path ties between leaf nodes | spec:662 | `CAIRN_INTEGRITY_PATH_TIE` | enforced |
+| Broken artefact pointer | spec:663 | `CAIRN_ARTEFACT_POINTER_MISSING` | enforced |
+| Artefact references non-existent node | spec:664 | `CAIRN_ARTEFACT_UNKNOWN_NODE` | enforced |
+| Orphan file under claimed container | spec:666 | `CAIRN_RECONCILE_ORPHANED_FILE` | enforced |
+| Verified source missing checksum | spec:510 | `CAIRN_SOURCE_SHA256_MISSING` | enforced |
+| Verified source checksum mismatch | spec:665 | `CAIRN_SOURCE_SHA256_MISMATCH` | enforced |
+| Module interface hash drift | spec:669 | `CAIRN_INTERFACE_HASH_CHANGED` | enforced |
+| Research must cite at least one source unless primary | - | `CAIRN_RESEARCH_MISSING_SOURCES` | enforced |
+| Decision must cite at least one research or source | spec:70 | `CAIRN_DECISION_UNKNOWN_PROVENANCE` | enforced |
+| Leaf node should declare a contract | spec:356 | `CAIRN_CONTRACT_LEAF_UNCOVERED` | enforced |
+| Contract interface entry should match an extracted symbol | spec:360 | `CAIRN_CONTRACT_INTERFACE_DRIFT` | enforced |
+| Proposed gap decision is an unresolved question | spec:772 | `CAIRN_GAP_UNRESOLVED` | enforced |
+| Workspace member root or blueprint fails to load | - | `CAIRN_WORKSPACE_MEMBER_MISSING` | enforced |
+| Synced module should carry test coverage | - | `CAIRN_TEST_COVERAGE_MISSING` | enforced |
+| Todo references exactly one valid node | spec:379 | `CAIRN_TODO_ORPHAN_NODE` | enforced |
+| Source referenced by at least one research or decision | spec:515 | `CAIRN_SOURCE_ORPHAN` | enforced |
+| External source file must be a URL | spec:511 | `CAIRN_SOURCE_EXTERNAL_URL` | enforced |
+| Unverified source persists as a tension | spec:512 | `CAIRN_SOURCE_UNVERIFIED` | enforced |
+| Decision supersedes target must be superseded | spec:418 | `CAIRN_DECISION_SUPERSEDES_STATUS` | enforced |
+| Decision cites deleted research or source | spec:672 | `CAIRN_DECISION_REFERENCE_UNKNOWN` | enforced |
+| Research not linked from any decision | spec:673 | `CAIRN_RESEARCH_ORPHAN` | enforced |
+| Decision claims to close a still-open spec question | - | `CAIRN_DECISION_CLAIM_UNRESOLVED` | enforced |
+| Blueprint shape change lacks a covering decision | - | `CAIRN_BLUEPRINT_CHANGE_NO_DECISION` | enforced |
 | Spec rule has no emitting enforcer | spec:24 | `CAIRN_SPEC_RULE_UNIMPLEMENTED` | enforced |
 | Contract has not been reviewed against its node's current declared shape | - | `CAIRN_CONTRACT_NODE_SHAPE_DRIFT` | enforced |
 | Tracked source path must resolve | spec:515 | `CAIRN_SOURCE_READ_FAILED` | enforced |
@@ -96,7 +96,7 @@ until built.
 
 | Rule | Spec | Code | Status | Deferred-by |
 |------|------|------|--------|-------------|
-| ADR revisit_triggers appear relevant to recent changes | spec:634 | - | pending | dec.revisit-trigger-correlator-deferred |
+| ADR revisit_triggers appear relevant to recent changes | spec:675 | - | pending | dec.revisit-trigger-correlator-deferred |
 
 ## Declared rules
 
@@ -105,5 +105,5 @@ Listed for completeness; exempt.
 
 | Rule | Spec | Code | Status |
 |------|------|------|--------|
-| Edge divergence (declared edge vs observed import) | spec:635 | - | declared |
-| Docstring drift (authored docstring vs map) | spec:636 | - | declared |
+| Edge divergence (declared edge vs observed import) | spec:676 | - | declared |
+| Docstring drift (authored docstring vs map) | spec:677 | - | declared |
