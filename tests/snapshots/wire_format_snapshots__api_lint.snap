@@ -14,6 +14,6 @@ expression: value
       "severity": "error"
     }
   ],
-  "schema_version": 11,
+  "schema_version": 12,
   "strict_green": false
 }

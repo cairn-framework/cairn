@@ -38,7 +38,7 @@ expression: leases.data
     }
   ],
   "observed_at": null,
-  "schema_version": 11,
+  "schema_version": 12,
   "store_state": "ready",
   "truncated": false
 }

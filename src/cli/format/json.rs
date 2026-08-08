@@ -3,7 +3,9 @@
 #![allow(clippy::wildcard_imports)]
 use super::super::*;
 use super::util::esc;
-use crate::query_api::{decision_status, ratification_tier, ratified_by_wire, todo_status};
+use crate::query_api::{
+    decision_status, ratification_tier, ratified_by_wire, relative_path, todo_status,
+};
 
 pub(crate) fn node_json(node: &NodeRecord) -> String {
     format!(
@@ -26,7 +28,7 @@ pub(crate) fn finding_json(finding: &Finding) -> String {
     )
 }
 
-pub(crate) fn todos_json(todos: &[Todo]) -> String {
+pub(crate) fn todos_json(todos: &[Todo], root: &Path) -> String {
     format!(
         "[{}]",
         todos
@@ -34,7 +36,7 @@ pub(crate) fn todos_json(todos: &[Todo]) -> String {
             .map(|todo| {
                 format!(
                     "{{\"path\":\"{}\",\"node\":\"{}\",\"status\":\"{}\",\"created\":\"{}\",\"satisfies\":\"{}\"}}",
-                    esc(&todo.path),
+                    esc(&relative_path(&todo.path, root)),
                     esc(&todo.node),
                     todo_status(todo.status),
                     esc(&todo.created),
@@ -218,7 +220,7 @@ mod tests {
 
     #[test]
     fn test_todos_json_empty_list() {
-        assert_eq!(todos_json(&[]), "[]");
+        assert_eq!(todos_json(&[], Path::new(".")), "[]");
     }
 
     #[test]
@@ -227,7 +229,7 @@ mod tests {
             todo(TodoStatus::Open, Some("decision-1")),
             todo(TodoStatus::Done, None),
         ];
-        let json = todos_json(&todos);
+        let json = todos_json(&todos, Path::new("."));
         assert!(json.contains("\"status\":\"open\""));
         assert!(json.contains("\"satisfies\":\"decision-1\""));
         assert!(json.contains("\"satisfies\":\"\""));

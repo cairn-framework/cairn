@@ -6,7 +6,9 @@
 //! (`null` when absent, no clock consulted). There is no `active`,
 //! `expired`, `stale`, or `status` field anywhere: the core evaluates no
 //! expiry, and the filter lives in the renderer. A partially resolvable
-//! store fails closed rather than returning a short list.
+//! store fails closed rather than returning a short list. Because fact names
+//! have only second precision, a cursor replays the rest of its second so a
+//! fact appended later in that second cannot be lost to filename ordering.
 
 use std::path::Path;
 
@@ -14,7 +16,7 @@ use serde_json::{Value, json};
 
 use crate::coord::read::{NamedFact, StoreRead, read_facts};
 
-use super::super::{QueryError, QueryRequest, SCHEMA_VERSION};
+use super::super::{QueryError, QueryRequest, QuerySince, SCHEMA_VERSION};
 
 /// The kinds `ruling list|show` returns: rulings and the run lifecycle
 /// outcomes the reader predicates join them against.
@@ -25,6 +27,27 @@ fn is_ruling_kind(kind: &str) -> bool {
 /// The kinds `lease list` returns: leases and the driver singleton chain.
 fn is_lease_kind(kind: &str) -> bool {
     kind.starts_with("lease.") || kind.starts_with("driver.singleton.")
+}
+
+fn coordination_cursor(request: &QueryRequest) -> Option<&str> {
+    match request.since.as_ref() {
+        Some(QuerySince::CoordinationCursor(cursor)) => Some(cursor.as_str()),
+        _ => None,
+    }
+}
+
+fn fact_second(name: &str) -> Option<&str> {
+    let second = name.get(..15)?;
+    (second.as_bytes().get(8) == Some(&b'T')).then_some(second)
+}
+
+fn after_cursor(name: &str, cursor: &str) -> bool {
+    match (fact_second(name), fact_second(cursor)) {
+        (Some(name_second), Some(cursor_second)) => {
+            name_second > cursor_second || (name_second == cursor_second && name != cursor)
+        }
+        _ => name > cursor,
+    }
 }
 
 fn fact_json(named: &NamedFact) -> Value {
@@ -59,6 +82,7 @@ fn read_filtered(
     key: &str,
     keep: fn(&str) -> bool,
 ) -> Result<Value, QueryError> {
+    let cursor = coordination_cursor(request);
     let facts = match read_facts(root).map_err(read_error)? {
         StoreRead::Uninitialised => {
             return Ok(envelope(request, "uninitialised", key, &[], None));
@@ -68,21 +92,21 @@ fn read_filtered(
     let selected: Vec<&NamedFact> = facts
         .iter()
         .filter(|named| keep(&named.fact.kind))
-        .filter(|named| {
-            request
-                .since
-                .as_deref()
-                .is_none_or(|since| named.name.as_str() > since)
-        })
+        .filter(|named| cursor.is_none_or(|cursor| after_cursor(&named.name, cursor)))
         .collect();
-    let cursor = selected.last().map(|named| named.name.clone());
+    let next_cursor = match (cursor, selected.last()) {
+        (Some(previous), Some(last)) if last.name.as_str() > previous => Some(last.name.clone()),
+        (Some(previous), _) => Some(previous.to_owned()),
+        (None, Some(last)) => Some(last.name.clone()),
+        (None, None) => None,
+    };
     let rendered: Vec<Value> = selected.iter().map(|named| fact_json(named)).collect();
     Ok(envelope(
         request,
         "ready",
         key,
         &rendered,
-        cursor.as_deref(),
+        next_cursor.as_deref(),
     ))
 }
 
@@ -184,7 +208,7 @@ mod tests {
         }
     }
 
-    fn record(root: &Path, kind: &str, recorded_at: &str, payload: serde_json::Value) {
+    fn record(root: &Path, kind: &str, recorded_at: &str, payload: serde_json::Value) -> String {
         append_fact(
             root,
             NewFact {
@@ -199,7 +223,11 @@ mod tests {
                 payload,
             },
         )
-        .expect("appends");
+        .expect("appends")
+        .file_name()
+        .expect("fact filename")
+        .to_string_lossy()
+        .into_owned()
     }
 
     #[test]
@@ -254,6 +282,92 @@ mod tests {
                 );
             }
         }
+    }
+    #[test]
+    fn same_second_cursor_replays_a_late_lower_filename() {
+        let dir = repo();
+        let recorded_at = "2026-08-07T03:45:12Z";
+        let first_name = record(
+            dir.path(),
+            "ruling.run",
+            recorded_at,
+            serde_json::json!({ "target": "cursor-first" }),
+        );
+
+        // Fact IDs are content hashes, so find a deterministic same-second
+        // payload whose filename sorts below the first cursor.
+        let scratch = repo();
+        let (index, late_name) = (0..256)
+            .find_map(|index| {
+                let name = record(
+                    scratch.path(),
+                    "ruling.run",
+                    recorded_at,
+                    serde_json::json!({ "target": format!("cursor-late-{index}") }),
+                );
+                (name < first_name).then_some((index, name))
+            })
+            .expect("a same-second fact should sort below the cursor");
+        let actual_late_name = record(
+            dir.path(),
+            "ruling.run",
+            recorded_at,
+            serde_json::json!({ "target": format!("cursor-late-{index}") }),
+        );
+        assert_eq!(actual_late_name, late_name);
+
+        let mut request = request("ruling list", None, None);
+        request.since = Some(QuerySince::CoordinationCursor(first_name.clone()));
+        let data = coordination_rulings_json(dir.path(), &request).expect("reads");
+        assert_eq!(
+            data["cursor"].as_str(),
+            Some(first_name.as_str()),
+            "cursor must not move backwards within a second"
+        );
+        let names: Vec<&str> = data["rulings"]
+            .as_array()
+            .expect("rulings")
+            .iter()
+            .filter_map(|fact| fact["name"].as_str())
+            .collect();
+        assert!(
+            names.contains(&late_name.as_str()),
+            "late same-second fact {late_name} was lost behind the cursor"
+        );
+    }
+    #[test]
+    fn same_second_cursor_replays_fractional_second_facts() {
+        let dir = repo();
+        let first_name = record(
+            dir.path(),
+            "ruling.run",
+            "2026-08-07T03:45:12Z",
+            serde_json::json!({ "target": "cursor-whole-second" }),
+        );
+        let late_name = record(
+            dir.path(),
+            "ruling.run",
+            "2026-08-07T03:45:12.500Z",
+            serde_json::json!({ "target": "cursor-fractional-second" }),
+        );
+        assert!(
+            late_name < first_name,
+            "fractional filename should sort lower"
+        );
+
+        let mut request = request("ruling list", None, None);
+        request.since = Some(QuerySince::CoordinationCursor(first_name));
+        let data = coordination_rulings_json(dir.path(), &request).expect("reads");
+        let names: Vec<&str> = data["rulings"]
+            .as_array()
+            .expect("rulings")
+            .iter()
+            .filter_map(|fact| fact["name"].as_str())
+            .collect();
+        assert!(
+            names.contains(&late_name.as_str()),
+            "fractional same-second fact was lost behind the cursor"
+        );
     }
 
     #[test]

@@ -56,6 +56,7 @@ use handlers::{
 };
 use handlers::{coordination_leases_json, coordination_rulings_json, wave_json, wave_stats_json};
 use registry::{metadata_for_tool, registry_slice};
+pub(crate) use serialise::relative_path;
 use serialise::{
     backlog_item_detail_json, decision_json, findings_json, node_json, relevant_rules,
 };
@@ -64,7 +65,7 @@ use util::{finding_error, findings_error, load_for, required};
 /// Both the CLI `--json` surface (which prints `data` directly) and the MCP
 /// envelope (which wraps `data`) carry this version on the top-level data
 /// object so consumers can branch on the output contract uniformly.
-pub const SCHEMA_VERSION: u32 = 11;
+pub const SCHEMA_VERSION: u32 = 12;
 
 /// Tool safety class.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -93,6 +94,15 @@ pub struct ToolMetadata {
     pub description: &'static str,
 }
 
+/// Family-specific lower-bound semantics for coordination query tools.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum QuerySince {
+    /// A coordination-list cursor, represented by a fact filename.
+    CoordinationCursor(String),
+    /// A `wave stats` lower bound, represented by an RFC 3339 timestamp.
+    WaveStatsTimestamp(String),
+}
+
 /// Structured query request.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryRequest {
@@ -119,8 +129,9 @@ pub struct QueryRequest {
     /// Optional observation instant, echoed back verbatim by coordination
     /// reads; the core consults no clock.
     pub at: Option<String>,
-    /// Optional coordination pagination cursor (a fact filename).
-    pub since: Option<String>,
+    /// Optional family-typed lower bound. Coordination lists use a fact
+    /// filename cursor; `wave stats` uses an RFC 3339 `recorded_at` timestamp.
+    pub since: Option<QuerySince>,
 }
 
 /// Optional query flags.

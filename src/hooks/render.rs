@@ -24,6 +24,10 @@ pub(crate) fn render_human_verbose(report: &HookReport, verbose: bool) -> String
         output.push_str("Findings:\n");
         output.push_str(&crate::cli::render_finding_lines(&report.findings, verbose));
     }
+    if report.decision == ExitDecision::Block {
+        output.push_str(crate::copy::lookup("hooks.block-remediate-pointer"));
+        output.push('\n');
+    }
     output
 }
 
@@ -43,8 +47,15 @@ pub fn render_json(report: &HookReport) -> String {
         .map(|p| format!("\"{}\"", esc(p)))
         .collect::<Vec<_>>()
         .join(",");
+    let remediation_json = match report.decision {
+        ExitDecision::Block => format!(
+            ",\"remediation\":\"{}\"",
+            esc(crate::copy::lookup("hooks.block-remediate-pointer"))
+        ),
+        ExitDecision::Pass => String::new(),
+    };
     format!(
-        "{{\"kind\":\"{}\",\"decision\":\"{}\",\"exit_code\":{},\"elapsed_ms\":{},\"findings\":[{}],\"conflict_findings\":[{}],\"output_paths\":[{}]}}\n",
+        "{{\"kind\":\"{}\",\"decision\":\"{}\",\"exit_code\":{},\"elapsed_ms\":{},\"findings\":[{}],\"conflict_findings\":[{}],\"output_paths\":[{}]{}}}\n",
         hook_name(report.kind),
         decision_name(report.decision),
         report.exit_code(),
@@ -61,7 +72,8 @@ pub fn render_json(report: &HookReport) -> String {
             .map(finding_json)
             .collect::<Vec<_>>()
             .join(","),
-        output_paths_json
+        output_paths_json,
+        remediation_json
     )
 }
 
@@ -217,6 +229,17 @@ mod tests {
             "PascalCase severity in human output: {out:?}"
         );
     }
+    #[test]
+    fn test_render_human_block_includes_remediation_pointer() {
+        let mut report = bare_report(HookKind::Interface, ExitDecision::Block);
+        report.findings = vec![err_finding("CAIRN_TEST_ERROR")];
+        let out = render_human(&report);
+        let pointer = crate::copy::lookup("hooks.block-remediate-pointer");
+        assert!(
+            out.contains(pointer),
+            "blocked hooks must point to remediation: {out:?}"
+        );
+    }
 
     // ── render_json ───────────────────────────────────────────────────────────
 
@@ -246,6 +269,15 @@ mod tests {
             json.contains("\"decision\":\"block\""),
             "decision block: {json:?}"
         );
+    }
+    #[test]
+    fn test_render_json_block_includes_remediation_pointer() {
+        let report = bare_report(HookKind::Interface, ExitDecision::Block);
+        let json = render_json(&report);
+        let pointer = crate::copy::lookup("hooks.block-remediate-pointer");
+        let parsed: serde_json::Value =
+            serde_json::from_str(&json).expect("hook JSON must remain valid");
+        assert_eq!(parsed["remediation"], pointer);
     }
 
     #[test]

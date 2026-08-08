@@ -7,7 +7,7 @@ expression: value
   "relation_statuses": {
     "dec.api": "accepted"
   },
-  "schema_version": 11,
+  "schema_version": 12,
   "todos": [
     {
       "blocked_by": [],
