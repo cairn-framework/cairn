@@ -93,6 +93,15 @@ pub struct ToolMetadata {
     pub description: &'static str,
 }
 
+/// Family-specific lower-bound semantics for coordination query tools.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum QuerySince {
+    /// A coordination-list cursor, represented by a fact filename.
+    CoordinationCursor(String),
+    /// A `wave stats` lower bound, represented by an RFC 3339 timestamp.
+    WaveStatsTimestamp(String),
+}
+
 /// Structured query request.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryRequest {
@@ -119,8 +128,9 @@ pub struct QueryRequest {
     /// Optional observation instant, echoed back verbatim by coordination
     /// reads; the core consults no clock.
     pub at: Option<String>,
-    /// Optional coordination pagination cursor (a fact filename).
-    pub since: Option<String>,
+    /// Optional family-typed lower bound. Coordination lists use a fact
+    /// filename cursor; `wave stats` uses an RFC 3339 `recorded_at` timestamp.
+    pub since: Option<QuerySince>,
 }
 
 /// Optional query flags.
