@@ -220,27 +220,86 @@ fn condensed_successors<'a>(
     succ
 }
 
-fn stuck_components(succ: &BTreeMap<usize, Vec<usize>>, count: usize) -> BTreeSet<usize> {
-    let mut outdegree = vec![0; count];
-    let mut predecessors = vec![Vec::new(); count];
+fn quotient_adjacency(
+    succ: &BTreeMap<usize, Vec<usize>>,
+    count: usize,
+) -> (Vec<Vec<usize>>, Vec<Vec<usize>>) {
+    let mut outbound = vec![Vec::new(); count];
+    let mut inbound = vec![Vec::new(); count];
     for (&before, afters) in succ {
         for &after in afters {
-            outdegree[before] += 1;
-            predecessors[after].push(before);
+            outbound[before].push(after);
+            inbound[after].push(before);
         }
     }
-    let mut peel: Vec<usize> = (0..count).filter(|id| outdegree[*id] == 0).collect();
-    let mut stuck: BTreeSet<usize> = (0..count).collect();
-    while let Some(leaf) = peel.pop() {
-        stuck.remove(&leaf);
-        for &parent in &predecessors[leaf] {
-            outdegree[parent] -= 1;
-            if outdegree[parent] == 0 {
-                peel.push(parent);
+    for neighbors in outbound.iter_mut().chain(inbound.iter_mut()) {
+        neighbors.sort_unstable();
+        neighbors.dedup();
+    }
+    (outbound, inbound)
+}
+
+fn quotient_finish_order(outbound: &[Vec<usize>]) -> Vec<usize> {
+    let mut visited = vec![false; outbound.len()];
+    let mut finish = Vec::with_capacity(outbound.len());
+    for start in 0..outbound.len() {
+        if visited[start] {
+            continue;
+        }
+        let mut stack = vec![(start, false)];
+        while let Some((node, expanded)) = stack.pop() {
+            if expanded {
+                finish.push(node);
+                continue;
+            }
+            if visited[node] {
+                continue;
+            }
+            visited[node] = true;
+            stack.push((node, true));
+            for &next in outbound[node].iter().rev() {
+                if !visited[next] {
+                    stack.push((next, false));
+                }
             }
         }
     }
-    stuck
+    finish
+}
+
+fn quotient_components(finish: &[usize], inbound: &[Vec<usize>]) -> Vec<Vec<usize>> {
+    let mut assigned = vec![false; inbound.len()];
+    let mut components = Vec::new();
+    for &start in finish.iter().rev() {
+        if assigned[start] {
+            continue;
+        }
+        assigned[start] = true;
+        let mut component = Vec::new();
+        let mut stack = vec![start];
+        while let Some(node) = stack.pop() {
+            component.push(node);
+            for &next in &inbound[node] {
+                if !assigned[next] {
+                    assigned[next] = true;
+                    stack.push(next);
+                }
+            }
+        }
+        component.sort_unstable();
+        components.push(component);
+    }
+    components
+}
+
+fn stuck_components(succ: &BTreeMap<usize, Vec<usize>>, count: usize) -> BTreeSet<usize> {
+    let (outbound, inbound) = quotient_adjacency(succ, count);
+    let finish = quotient_finish_order(&outbound);
+    quotient_components(&finish, &inbound)
+        .into_iter()
+        .filter(|component| component.len() > 1 || outbound[component[0]].contains(&component[0]))
+        .flatten()
+        .collect()
 }
 
 fn combined_cycle_finding(

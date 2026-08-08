@@ -2641,8 +2641,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 298,
-          "end_line": 361
+          "line": 357,
+          "end_line": 420
         },
         {
           "name": "build",

@@ -407,3 +407,18 @@ fn test_topological_order_cycle_finding_excludes_downstream_nodes() {
     );
     assert_ne!(err[0].node.as_deref(), Some("aft"), "{:?}", err[0].node);
 }
+
+#[test]
+fn test_topological_order_cycle_finding_excludes_upstream_nodes() {
+    let g = with_containment(
+        make_graph(&["parent", "child", "sibling"], &[("child", "parent")]),
+        &[("parent", "child"), ("parent", "sibling")],
+    );
+    let err = topological_order(&g).expect_err("contradiction must be Err");
+    let msg = &err[0].message;
+    assert!(msg.contains("child") && msg.contains("parent"), "{msg}");
+    assert!(
+        !msg.contains("sibling"),
+        "upstream node reported as cyclic: {msg}"
+    );
+}
