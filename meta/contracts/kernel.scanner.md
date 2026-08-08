@@ -27,7 +27,7 @@ machine state plus generated outputs. `load_project` is the pure read path;
 - `TargetReport`: per-target reconciliation result.
 - `config`: `Config`, `TargetConfig`, `IntentionalAsymmetry`, `load`, and
   `is_ignored`.
-- `state`: interface-hash and `BlueprintSnapshot` read/write plus v1-to-v2
+- `state`: interface-hash and `BlueprintSnapshot` read/write plus snapshot
   migration.
 - `outputs`: `write_map` and `append_log`.
 
@@ -37,10 +37,10 @@ machine state plus generated outputs. `load_project` is the pure read path;
   target)`, preserving first occurrence and order; the message is display-only.
 - `scan` never poisons its mutex (writes run inside `thread::scope`); the first
   write error is surfaced and the rest discarded.
-- The reconciler cache (version 4, extensions rs/ts/tsx/py/go) is keyed on
-  every reconciliation input; a stale or version-mismatched cache is ignored,
-  and cache writes silently swallow errors.
-- Blueprint-change gating skips dependency-edge drift until a schema-v2
+- The reconciler cache (extensions rs/ts/tsx/py/go) is keyed on every
+  reconciliation input; a stale or version-mismatched cache is ignored, and
+  cache writes silently swallow errors.
+- Blueprint-change gating skips dependency-edge drift until a compatible
   snapshot exists, so an upgrade does not flag every edge as new.
 
 ## Dependencies
