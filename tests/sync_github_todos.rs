@@ -27,13 +27,36 @@ impl Sandbox {
         fs::write(root.join("unmapped.txt"), unmapped).unwrap();
         let stub = format!(
             r#"#!/usr/bin/env bash
-# Stub gh: serve canned lists, record every mutating call.
+# Stub gh: serve canned lists, record every mutating call, and expose body payloads.
 root="{root}"
 args="$*"
 if [[ "$1 $2" == "issue list" ]]; then
     [[ -e "$root/list-fails" ]] && exit 1
-    if [[ "$args" == *"--label"* ]]; then cat "$root/projection.tsv"; else cat "$root/unmapped.txt"; fi
+    if [[ "$args" == *"--label"* ]]; then
+        while IFS=$'\t' read -r number state title slug status node_field; do
+            [ -n "$number" ] || continue
+            body_b64=""
+            if [[ -e "$root/body.$slug" ]]; then
+                body_b64="$(base64 < "$root/body.$slug" | tr -d '\n')"
+            fi
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+                "$number" "$state" "$title" "$slug" "$status" "$node_field" "$body_b64"
+        done < "$root/projection.tsv"
+    else
+        cat "$root/unmapped.txt"
+    fi
     exit 0
+fi
+if [[ "$1 $2" == "issue create" || "$1 $2" == "issue edit" ]]; then
+    i=1
+    while (( i <= $# )); do
+        if [[ "${{!i}}" == "--body" ]]; then
+            body_arg=$((i + 1))
+            printf '%s' "${{!body_arg}}" > "$root/last-body"
+            break
+        fi
+        i=$((i + 1))
+    done
 fi
 echo "$args" >> "$root/mutations.log"
 "#,
@@ -52,7 +75,10 @@ echo "$args" >> "$root/mutations.log"
     fn add_todo(&self, slug: &str, status: &str, title: &str) {
         fs::write(
             self.dir.path().join(format!("meta/todos/todo.{slug}.md")),
-            format!("---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n---\n\n# {title}\n\nBody.\n"),
+            format!(
+                "---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n---\n\n\
+                 # {title}\n\n## Problem\n\nBody.\n\n## Acceptance\n\nAccept.\n"
+            ),
         )
         .unwrap();
     }
@@ -91,6 +117,25 @@ echo "$args" >> "$root/mutations.log"
             .map(str::to_owned)
             .collect()
     }
+    fn rendered_body(&self, slug: &str, status: &str, node: &str) -> String {
+        let raw =
+            fs::read_to_string(self.dir.path().join(format!("meta/todos/todo.{slug}.md"))).unwrap();
+        let markdown = raw.splitn(3, "---\n").nth(2).unwrap();
+        format!(
+            "cairn-todo: todo.{slug}\nnode: {node}\nstatus: {status}\n\
+             artefact: meta/todos/todo.{slug}.md\n\
+             one-way mirror of a cairn todo; edits here are not read back, \
+             dec.task-tracking-authority\n{markdown}"
+        )
+    }
+
+    fn set_projection_body(&self, slug: &str, body: &str) {
+        fs::write(self.dir.path().join(format!("body.{slug}")), body).unwrap();
+    }
+
+    fn last_body(&self) -> String {
+        fs::read_to_string(self.dir.path().join("last-body")).unwrap_or_default()
+    }
 }
 
 fn script_path() -> PathBuf {
@@ -109,11 +154,36 @@ fn open_todo_without_issue_is_created() {
         "expected a create, got {muts:?}"
     );
 }
+#[test]
+fn create_projects_full_todo_body() {
+    let sb = Sandbox::new("", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    sb.run(false);
+    let body = sb.last_body();
+    assert_eq!(
+        body,
+        sb.rendered_body("alpha", "open", "cairn.root"),
+        "create must carry the complete canonical projection"
+    );
+    assert!(
+        body.contains("# Alpha Work") && body.contains("Body."),
+        "expected the full todo body in create payload, got {body}"
+    );
+    assert!(
+        body.contains("one-way mirror of a cairn todo; edits here are not read back"),
+        "expected a one-line one-way note, got {body}"
+    );
+    assert!(
+        !body.contains("Files in git are the source of truth"),
+        "prior multi-line disclaimer must be dropped, got {body}"
+    );
+}
 
 #[test]
 fn matching_state_is_a_noop() {
     let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n", "");
     sb.add_todo("alpha", "open", "Alpha Work");
+    sb.set_projection_body("alpha", &sb.rendered_body("alpha", "open", "cairn.root"));
     sb.run(false);
     let muts: Vec<String> = sb
         .mutations()
@@ -234,6 +304,42 @@ fn node_change_rewrites_projected_body() {
     assert!(
         log.contains("issue edit 7 --body") && log.contains("node: cairn.root"),
         "expected body rewrite for node change, got {log}"
+    );
+}
+#[test]
+fn body_only_change_rewrites_projected_body() {
+    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    sb.set_projection_body("alpha", "stale body\n");
+    sb.run(false);
+    let log = sb.mutations().join("\n");
+    assert!(
+        log.contains("issue edit 7 --body"),
+        "expected body-only change to rebody, got {log}"
+    );
+    assert_eq!(
+        sb.last_body(),
+        sb.rendered_body("alpha", "open", "cairn.root"),
+        "rebody must carry the complete canonical projection"
+    );
+}
+
+#[test]
+fn unchanged_body_is_not_rewritten_on_second_run() {
+    let sb = Sandbox::new("7\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    let body = sb.rendered_body("alpha", "open", "cairn.root");
+    sb.set_projection_body("alpha", &body);
+    sb.run(false);
+    sb.run(false);
+    let edits: Vec<String> = sb
+        .mutations()
+        .into_iter()
+        .filter(|m| m.starts_with("issue edit") && m.contains("--body"))
+        .collect();
+    assert!(
+        edits.is_empty(),
+        "unchanged projected body must not be rewritten, got {edits:?}"
     );
 }
 
