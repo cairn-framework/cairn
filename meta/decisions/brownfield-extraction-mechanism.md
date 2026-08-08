@@ -1,8 +1,6 @@
 ---
 id: dec.brownfield-extraction-mechanism
-nodes:
-  - cairn.brownfield
-  - cairn.kernel.cli
+nodes: [cairn.brownfield]
 status: proposed
 ratification: binding
 date: 2026-08-08
@@ -22,6 +20,7 @@ affects:
   - src/cli/mod.rs
   - src/brownfield/onboard.rs
   - docs/commands.md
+  - docs/integration-contract.md
   - docs/design-system/copy.toml
   - tools/agent-pack/content/skills/cairn-dev/SKILL.md
   - .claude/skills/cairn-dev/SKILL.md
@@ -29,7 +28,7 @@ affects:
   - .claude/skills/cairn-dev/references/command-reference.md
   - tools/agent-pack/manifest.toml
   - src/cli/commands/pack_assets.rs
-  - tests/phase_9_brownfield.rs
+  - tests/kernel.rs
   - .gitattributes
   - tools/agent-pack/tests/determinism_drift_tests.rs
   - tools/agent-pack/tests/router_route_tests.rs
@@ -80,14 +79,17 @@ instructions as a reference under the existing `cairn-dev` skill.
 
 ### 1. Deterministic Cairn surface
 
-The implementation unit `todo.brownfield-extraction-flow` will add exactly
-this command surface:
+The implementation unit `todo.brownfield-extraction-flow` will add this
+command surface:
 
 ```
+cairn onboard decisions
 cairn onboard decisions --json
 ```
 
-The existing no-subcommand `cairn onboard` path loads the project through the
+The default `decisions` form emits the human-readable evidence report; adding
+`--json` emits the stable machine-readable index for the harness. The existing
+no-subcommand `cairn onboard` path loads the project through the
 scanner and passes its findings to `brownfield::onboard::analyze`, which
 groups `CAIRN_RECONCILE_ORPHANED_FILE` paths. That path reads scanner findings,
 not `src/brownfield/discovery.rs` directly. The new `decisions` branch keeps
@@ -116,24 +118,28 @@ blueprint when its requested file is absent; the `decisions` branch must fail
 with a clear error instead, because a draft without a real `nodes:` binding
 does not meet this flow's contract.
 
-The branch adds a deterministic index of the flow's explicit ADR-like
-locations and invariant comment forms, applies the path-to-blueprint binding
-rule above, and emits stable JSON for the harness plus a human-readable
-report. It reports evidence that has no node binding instead of inventing one.
-It does not call a model, draft narrative, write `status: accepted`, or mutate
-the blueprint.
+The branch adds a deterministic index of a closed set of evidence sources:
+files under `docs/adr/` and `docs/decisions/`, README sections headed
+`Decision`, `Rationale`, or `Invariant`, and source comments carrying the
+literal `// invariant:` or `# invariant:` markers. It applies the
+path-to-blueprint binding rule above and emits stable JSON for the harness
+plus the default human-readable report. It reports evidence that has no node
+binding instead of inventing one. It does not scan arbitrary prose, call a
+model, draft narrative, write `status: accepted`, or mutate the blueprint.
 
 With no subcommand, the existing orphan report remains unchanged. `decisions`
 selects the evidence index. Any other positional subcommand must return exit
-code 2 with the usage text from
-`copy::lookup("help.commands.onboard.usage")`; it must not silently fall back
-to the orphan report, as the current `run_onboard_command` does by ignoring
-`command_args`. The `usage` and `args` values in
+code 2 with the literal error text
+`usage: cairn onboard [decisions] [options]`, using the supported usage value
+from `copy::lookup("help.commands.onboard.usage")`; it must not silently fall
+back to the orphan report, as the current `run_onboard_command` does by
+ignoring `command_args`. The `usage` and `args` values in
 `docs/design-system/copy.toml` must name the supported form,
 `cairn onboard [decisions] [options]`, and explain that omitting `decisions`
-keeps the orphan report. These `help.commands.onboard.usage` and
-`help.commands.onboard.args` values must not become hardcoded parallel copy
-surfaces.
+keeps the orphan report. The usage copy value remains unprefixed for the help
+renderer; only the error path adds the literal `usage: ` prefix. These
+`help.commands.onboard.usage` and `help.commands.onboard.args` values must not
+become hardcoded parallel copy surfaces.
 
 This is an extension of `cairn onboard`. There is no existing
 `cairn brownfield extract` command to preserve or extend, and this ruling does
@@ -177,10 +183,12 @@ reachability checks in `tools/agent-pack/tests/router_route_tests.rs`.
 
 Clause 1 also invalidates the onboarding surfaces in
 `src/cli/commands/onboard.rs`, the `src/cli/mod.rs` onboard description and
-help dispatch, the Brownfield onboarding row in `docs/commands.md`, and the
+help dispatch, the Brownfield onboarding rows in `docs/commands.md` and
+`docs/integration-contract.md:88`, the
 `help.commands.onboard.usage` and `help.commands.onboard.args` values in
-`docs/design-system/copy.toml`. Those surfaces must name the supported
-`decisions` form rather than carrying stale or parallel command text.
+`docs/design-system/copy.toml`, and the onboard behaviour coverage in
+`tests/kernel.rs`. Those surfaces must name the supported `decisions` form
+rather than carrying stale or parallel command text.
 
 The reference invokes `cairn onboard decisions --json`, asks the harness agent
 to interpret the returned code and document evidence, records the selected
@@ -229,10 +237,14 @@ an unresolved implementation question and must not create a
 ### 4. Ratification tier
 
 The ruling is **binding**. The selected command is anchored to
-`cairn.brownfield` and `cairn.kernel.cli`, supersedes nothing, and can keep
-its command paths outside the binding-surface allowlist. The authoring
-reference nevertheless changes shipped pack content under the existing
-Cairn-dev skill. Shipped pack content is binding by
+`cairn.brownfield`, supersedes nothing, and its command paths are outside the
+binding registry. The only selected implementation path
+inside that registry is `tools/agent-pack/content/`, the exact directory row
+in `docs/registries/binding-surface.md:7`, because the authoring reference is
+shipped under the existing Cairn-dev skill. The manifest, adapter-root,
+compiled-asset, and generated-mirror files are distribution surfaces the
+allowlist governs via `tools/agent-pack/content/`; they are not themselves
+binding-registry paths. The pack content is binding by
 `dec.decision-ratification-tiers`, so reference-hosting does not turn this
 combined ruling into a local decision. Extracted drafts also default to
 `binding` because `decision_stub` omits `ratification` and the registry default
@@ -259,17 +271,19 @@ promotions are judged on marginal lift over the current pack and that
 non-overlapping value must be merged into the owning skill before a new skill
 is added. The accepted consolidation rule governs this choice under
 accepted-decision precedence. No marginal-lift judgement was recorded for a
-standalone extraction skill, while a new skill would add another shipped-pack
-asset and binding distribution surface.
+standalone extraction skill, while a new skill would add another
+distribution surface governed by the allowlist via
+`tools/agent-pack/content/`.
 
 ## Verdict
 
-Driver adjudication: **For:** standalone trigger discoverability.
+**For:** standalone trigger discoverability.
 **Against:** the accepted consolidation rule directly governs.
-**Verdict:** reference-hosting; future recorded marginal-lift judgement remains
-the sanctioned promotion path.
+**Verdict:** choose reference-hosting; future recorded marginal-lift judgement
+remains the sanctioned promotion path.
 
-The original standalone-skill clause was contested by the panel, and the driver adjudicated reference-hosting. Acceptance and receipts remain future panel or maintainer actions.
+This is the proposed recommendation for the scheduled Decision governance
+panel. It asserts no panel outcome, acceptance, or receipt.
 
 ## Rejected alternatives
 
@@ -337,11 +351,12 @@ normal draft look unresolved.
   description and dispatch, `docs/commands.md` onboarding row,
   `docs/design-system/copy.toml` usage and args, and both shipped Cairn-dev
   `command-reference.md` copies must describe the supported subcommand.
-- The authoring reference is shipped under `cairn-dev`. Its canonical content,
-  both router files, both command-reference copies, `.claude` include source,
-  pack manifest rows, adapter-root transformation, and compiled pack asset are
-  part of the binding distribution surface and require the corresponding pack
-  conformance gates.
+- The authoring reference is shipped under `cairn-dev`. Its canonical content
+  under `tools/agent-pack/content/` is the binding-registry path. The router
+  files, command-reference copies, `.claude` mirror, pack manifest rows,
+  adapter-root transformation, and compiled pack asset are distribution
+  surfaces governed by that allowlist via the canonical content path, and
+  require the corresponding pack conformance gates.
 - Extracted drafts carry `binding` by default. An explicit `ratification`
   value is allowed only when the registry shape rules support it; no draft is
   accepted by the flow.
