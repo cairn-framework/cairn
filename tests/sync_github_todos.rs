@@ -1,3 +1,4 @@
+// cairn:allow-large-module reason: GitHub projector tests share gh stub state across phase one and phase two inventory scenarios and must stay co-located.
 //! Behavioural tests for scripts/sync-github-todos.sh.
 //!
 //! The script is a one-way projector from meta/todos/*.md to GitHub issues.
@@ -13,6 +14,9 @@ use std::process::Command;
 struct Sandbox {
     dir: tempfile::TempDir,
 }
+// Reason: the shell stub stays as one script literal so it exercises the
+// phase-one and phase-two gh command protocol in the same test process.
+#[allow(clippy::too_many_lines)]
 fn gh_stub(root: &Path) -> String {
     format!(
         r#"#!/usr/bin/env bash
@@ -35,6 +39,71 @@ if [[ "$1 $2" == "issue list" ]]; then
         cat "$root/unmapped.txt"
     fi
     exit 0
+fi
+if [[ "$1 $2" == "issue create" ]]; then
+    title_value=""
+    body_value=""
+    i=1
+    while (( i <= $# )); do
+        if [[ "${{!i}}" == "--title" ]]; then
+            title_arg=$((i + 1))
+            title_value="${{!title_arg}}"
+        elif [[ "${{!i}}" == "--body" ]]; then
+            body_arg=$((i + 1))
+            body_value="${{!body_arg}}"
+        fi
+        i=$((i + 1))
+    done
+    number="$(cat "$root/next-number" 2>/dev/null || printf '100')"
+    printf '%s' "$((number + 1))" > "$root/next-number"
+    slug="$(printf '%s' "$body_value" | sed -n 's/^cairn-todo: todo\.\(.*\)$/\1/p')"
+    printf '%s\tOPEN\t%s\t%s\topen\tcairn.root\n' \
+        "$number" "$title_value" "$slug" >> "$root/projection.tsv"
+    printf '%s' "$body_value" > "$root/body.$slug"
+fi
+if [[ "$1 $2" == "issue edit" ]]; then
+    number="$3"
+    title_value=""
+    body_value=""
+    has_title=0
+    has_body=0
+    i=1
+    while (( i <= $# )); do
+        if [[ "${{!i}}" == "--title" ]]; then
+            title_arg=$((i + 1))
+            title_value="${{!title_arg}}"
+            has_title=1
+        elif [[ "${{!i}}" == "--body" ]]; then
+            body_arg=$((i + 1))
+            body_value="${{!body_arg}}"
+            has_body=1
+        fi
+        i=$((i + 1))
+    done
+    issue_slug=""
+    while IFS=$'\t' read -r existing_number state title slug status node_field; do
+        if [[ "$existing_number" == "$number" ]]; then
+            issue_slug="$slug"
+            break
+        fi
+    done < "$root/projection.tsv"
+    if (( has_body == 1 )) && [[ -n "$issue_slug" ]]; then
+        printf '%s' "$body_value" > "$root/body.$issue_slug"
+    fi
+fi
+if [[ "$1 $2" == "issue close" || "$1 $2" == "issue reopen" ]]; then
+    number="$3"
+    next_state="CLOSED"
+    [[ "$2" == "reopen" ]] && next_state="OPEN"
+    tmp="$root/projection.next"
+    : > "$tmp"
+    while IFS=$'\t' read -r existing_number state title slug status node_field; do
+        [ -n "$existing_number" ] || continue
+        [[ "$existing_number" == "$number" ]] && state="$next_state"
+        printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+            "$existing_number" "$state" "$title" "$slug" "$status" "$node_field" >> "$tmp"
+    done < "$root/projection.tsv"
+    mv "$tmp" "$root/projection.tsv"
 fi
 if [[ "$1 $2" == "issue create" || "$1 $2" == "issue edit" ]]; then
     i=1
@@ -75,10 +144,14 @@ impl Sandbox {
     }
 
     fn add_todo(&self, slug: &str, status: &str, title: &str) {
+        self.add_todo_with_fields(slug, status, title, "");
+    }
+
+    fn add_todo_with_fields(&self, slug: &str, status: &str, title: &str, fields: &str) {
         fs::write(
             self.dir.path().join(format!("meta/todos/todo.{slug}.md")),
             format!(
-                "---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n---\n\n\
+                "---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n{fields}---\n\n\
                  # {title}\n\n## Problem\n\nBody.\n\n## Acceptance\n\nAccept.\n"
             ),
         )
@@ -145,6 +218,21 @@ impl Sandbox {
              one-way mirror of a cairn todo; edits here are not read back, \
              dec.task-tracking-authority\n{markdown}"
         )
+    }
+
+    fn projected_body(&self, slug: &str) -> String {
+        fs::read_to_string(self.dir.path().join(format!("body.{slug}"))).unwrap()
+    }
+
+    fn issue_number(&self, slug: &str) -> String {
+        fs::read_to_string(self.dir.path().join("projection.tsv"))
+            .unwrap()
+            .lines()
+            .find_map(|line| {
+                let fields: Vec<_> = line.split('\t').collect();
+                (fields.get(3).copied() == Some(slug)).then(|| fields[0].to_owned())
+            })
+            .unwrap_or_else(|| panic!("no issue for todo.{slug}"))
     }
 
     fn set_projection_body(&self, slug: &str, body: &str) {
@@ -422,5 +510,71 @@ fn triage_comment_precedes_exclusion_label() {
     assert!(
         comment.is_some() && label.is_some() && comment < label,
         "comment must post before the exclusion label so failures retry, got {muts:?}"
+    );
+}
+
+#[test]
+fn first_run_projects_relationship_issue_numbers_in_stable_order() {
+    let sb = Sandbox::new("", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    sb.add_todo("zeta", "open", "Zeta Work");
+    sb.add_todo_with_fields(
+        "child",
+        "open",
+        "Child Work",
+        "blocked_by: [todo.zeta, todo.alpha]\nparent: todo.zeta\n\
+         related: [todo.zeta, todo.alpha]\n",
+    );
+
+    sb.run(false);
+
+    let alpha = sb.issue_number("alpha");
+    let zeta = sb.issue_number("zeta");
+    let child = sb.projected_body("child");
+    let relationship_section = child.split("## Relationships").nth(1).unwrap_or("");
+    assert!(
+        child.contains(&format!("- Sub-issue of: #{zeta}")),
+        "parent relationship must resolve to its issue number: {child}"
+    );
+    assert!(
+        child.contains(&format!("- Blocked by: #{alpha}, #{zeta}")),
+        "blocked-by links must be sorted by todo stem: {child}"
+    );
+    assert!(
+        child.contains(&format!("- Related: #{alpha}, #{zeta}")),
+        "related links must be sorted by todo stem: {child}"
+    );
+    assert!(
+        !relationship_section.contains("meta/todos/todo."),
+        "relationship links must not fall back to artefact paths: {child}"
+    );
+    assert!(
+        child.contains("# Child Work"),
+        "phase two must preserve the complete canonical todo body: {child}"
+    );
+}
+
+#[test]
+fn relationship_projection_is_a_second_run_noop() {
+    let sb = Sandbox::new("", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    sb.add_todo_with_fields(
+        "child",
+        "open",
+        "Child Work",
+        "blocked_by: [todo.alpha]\nrelated: [todo.alpha]\n",
+    );
+
+    sb.run(false);
+    let before = sb.mutations().len();
+    sb.run(false);
+    let mutations = sb.mutations();
+    let edits: Vec<_> = mutations[before..]
+        .iter()
+        .filter(|mutation| mutation.starts_with("issue edit") && mutation.contains("--body"))
+        .collect();
+    assert!(
+        edits.is_empty(),
+        "stable relationship rendering must not rebody on the second run: {edits:?}"
     );
 }
