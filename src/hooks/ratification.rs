@@ -9,8 +9,7 @@ use crate::{
     artefacts::registry::{
         ArtefactSet, Decision, Review,
         manifest::{
-            compute_decision_subject_hash, governed_canonical_files, normalise_repo_entry,
-            normalise_repo_path, parse_allowlist, rule_matches,
+            compute_decision_subject_hash, normalise_repo_entry, normalise_repo_path, rule_matches,
         },
     },
     map::{Finding, FindingSeverity},
@@ -19,8 +18,9 @@ use crate::{
 mod git;
 
 use git::{
-    candidate_accepted_local, candidate_decision_pointers, candidate_pointer_configuration_matches,
-    changed_paths, decision_was_not_local, git_output, inside_work_tree,
+    base_binding_surface_findings, candidate_accepted_local, candidate_decision_pointers,
+    candidate_pointer_configuration_matches, changed_paths, decision_was_not_local, git_output,
+    inside_work_tree,
 };
 
 const ALLOWLIST_PATH: &str = "docs/registries/binding-surface.md";
@@ -423,77 +423,6 @@ fn git_path_set<'a>(
             .filter_map(normalise_repo_path)
             .collect(),
     )
-}
-
-/// Classifies an accepted local decision against the MERGE-BASE allowlist.
-///
-/// The candidate range must not be able to weaken its own gate: reading the
-/// allowlist from the base tree means a commit that rewrites
-/// `docs/registries/binding-surface.md` is still judged by the rules that
-fn base_binding_surface_findings(
-    root: &Path,
-    base: &str,
-    decision: &Decision,
-    git_prefix: &str,
-) -> Vec<Finding> {
-    let allowlist_path = project_git_path(ALLOWLIST_PATH, git_prefix);
-    let Some(source) = git_output(root, ["show", &format!("{base}:{allowlist_path}")]) else {
-        return vec![finding(
-            "CAIRN_DECISION_TIER_BINDING_PATH",
-            &format!(
-                "cannot read `{ALLOWLIST_PATH}` at the merge base, so local decision `{}` cannot be classified",
-                decision.id
-            ),
-            Some(decision.path.clone()),
-        )];
-    };
-    let rules = match parse_allowlist(&source) {
-        Ok(rules) => rules,
-        Err(reason) => {
-            return vec![finding(
-                "CAIRN_DECISION_TIER_BINDING_PATH",
-                &format!("merge-base `{ALLOWLIST_PATH}` has {reason}"),
-                Some(decision.path.clone()),
-            )];
-        }
-    };
-    let mut findings = Vec::new();
-    for affect in &decision.affects {
-        let Some(rule) = normalise_repo_entry(affect) else {
-            continue;
-        };
-        let governed = match governed_canonical_files(root, &rule) {
-            Ok(paths) => paths,
-            Err(error) => {
-                findings.push(finding(
-                    "CAIRN_DECISION_TIER_BINDING_PATH",
-                    &format!(
-                        "affects entry `{affect}` of local decision `{}` cannot be classified: {}",
-                        decision.id, error.message
-                    ),
-                    Some(decision.path.clone()),
-                ));
-                continue;
-            }
-        };
-        let hit = governed
-            .iter()
-            .any(|file| rules.iter().any(|allow| rule_matches(allow, file)))
-            || rules
-                .iter()
-                .any(|allow| rule_matches(allow, affect.trim_end_matches('/')));
-        if hit {
-            findings.push(finding(
-                "CAIRN_DECISION_TIER_BINDING_PATH",
-                &format!(
-                    "local decision `{}` governs binding-surface path `{affect}` under the merge-base allowlist",
-                    decision.id
-                ),
-                Some(decision.path.clone()),
-            ));
-        }
-    }
-    findings
 }
 
 fn repository_path(root: &Path, path: &str) -> String {
