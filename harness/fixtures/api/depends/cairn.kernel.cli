@@ -1,1 +1,1 @@
-{"schema_version":11,"node":"cairn.kernel.cli","nodes":["cairn.brownfield","cairn.kernel.hooks","cairn.kernel.query","cairn.kernel.scanner","cairn.ui"]}
+{"schema_version":12,"node":"cairn.kernel.cli","nodes":["cairn.brownfield","cairn.kernel.hooks","cairn.kernel.query","cairn.kernel.scanner","cairn.ui"]}
