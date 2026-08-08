@@ -51,7 +51,8 @@ pub fn ratification_findings(
     if !inside_work_tree(root) {
         return Vec::new();
     }
-    let Some(candidates) = candidate_accepted_local(root, mode) else {
+    let Some(candidates) = candidate_accepted_local(root, &artefacts.decision_pointers, mode)
+    else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
             "cannot read candidate decisions while checking ratification evidence",

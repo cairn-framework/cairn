@@ -1066,7 +1066,7 @@
           "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
           "file": "src/artefacts/registry/mod.rs",
           "line": 42,
-          "end_line": 53
+          "end_line": 54
         },
         {
           "name": "load_contracts",
@@ -1178,7 +1178,7 @@
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
           "line": 331,
-          "end_line": 348
+          "end_line": 350
         },
         {
           "name": "ChangeRecord",
@@ -1305,8 +1305,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_reverse_provenance(decisions: &mut [Decision])",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 67,
-          "end_line": 100
+          "line": 69,
+          "end_line": 102
         },
         {
           "name": "contained_file_sha256",
@@ -1321,8 +1321,8 @@
           "kind": "function",
           "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 59,
-          "end_line": 62
+          "line": 60,
+          "end_line": 64
         },
         {
           "name": "dates",
@@ -2397,7 +2397,7 @@
           "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
           "line": 35,
-          "end_line": 122
+          "end_line": 123
         },
         {
           "name": "render_human",

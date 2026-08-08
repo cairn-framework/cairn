@@ -138,6 +138,49 @@ fn test_ratification_missing_base_with_local_decision_fails_closed() {
     cleanup(root);
 }
 
+#[test]
+fn test_ratification_non_default_decisions_pointer_refuses_uncovered_change() {
+    let root = git_root("non-default-pointer");
+    let artefacts = accepted_decision_at(
+        &root,
+        "docs/policies/decisions",
+        "src/subject.rs",
+        "subject\n",
+    );
+    commit(&root, "accept");
+    write(&root, "src/junk.rs", "junk\n");
+    commit(&root, "junk");
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Head);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_non_default_decisions_pointer_index_refuses_uncovered_change() {
+    let root = git_root("non-default-pointer-index");
+    let artefacts = accepted_decision_at(
+        &root,
+        "docs/policies/decisions",
+        "src/subject.rs",
+        "subject\n",
+    );
+    write(&root, "src/junk.rs", "junk\n");
+    run(&root, ["add", "."]);
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
+
 fn proposed_local_decision(root: &Path, subject_path: &str) -> ArtefactSet {
     let mut artefacts = accepted_decision(root, subject_path, "subject\n");
     let decision_path = "meta/decisions/dec.local.md";
@@ -152,28 +195,38 @@ fn proposed_local_decision(root: &Path, subject_path: &str) -> ArtefactSet {
 }
 
 fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> ArtefactSet {
+    accepted_decision_at(root, "meta/decisions", subject_path, subject)
+}
+
+fn accepted_decision_at(
+    root: &Path,
+    decisions_dir: &str,
+    subject_path: &str,
+    subject: &str,
+) -> ArtefactSet {
     write(root, subject_path, subject);
-    let decision_path = "meta/decisions/dec.local.md";
+    let decision_path = format!("{decisions_dir}/dec.local.md");
     let receipt_path = "meta/reviews/rev.correctness.md";
-    let decision = decision_source(subject_path, receipt_path);
-    write(root, decision_path, &decision);
+    let decision = decision_source(&decision_path, subject_path, receipt_path);
+    write(root, &decision_path, &decision);
     let hash = compute_subject_hash(
         root,
-        decision_path,
+        &decision_path,
         &decision,
-        &[decision_path.to_owned(), subject_path.to_owned()],
+        &[decision_path.clone(), subject_path.to_owned()],
     )
     .unwrap();
     write(root, receipt_path, "receipt\n");
     ArtefactSet {
+        decision_pointers: vec![decisions_dir.to_owned()],
         decisions: vec![Decision {
             id: "dec.local".to_owned(),
-            path: root.join(decision_path).to_string_lossy().into_owned(),
+            path: root.join(&decision_path).to_string_lossy().into_owned(),
             nodes: Vec::new(),
             status: DecisionStatus::Accepted,
             ratification: RatificationTier::Local,
             affects: vec![
-                decision_path.to_owned(),
+                decision_path.clone(),
                 subject_path.to_owned(),
                 receipt_path.to_owned(),
             ],
@@ -212,9 +265,9 @@ fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> Artefact
     }
 }
 
-fn decision_source(subject_path: &str, receipt_path: &str) -> String {
+fn decision_source(decision_path: &str, subject_path: &str, receipt_path: &str) -> String {
     format!(
-        "---\nid: dec.local\nstatus: accepted\nratification: local\naffects:\n  - meta/decisions/dec.local.md\n  - {subject_path}\n  - {receipt_path}\nreceipts:\n  - rev.correctness\n---\nDecision body.\n"
+        "---\nid: dec.local\nstatus: accepted\nratification: local\naffects:\n  - {decision_path}\n  - {subject_path}\n  - {receipt_path}\nreceipts:\n  - rev.correctness\n---\nDecision body.\n"
     )
 }
 

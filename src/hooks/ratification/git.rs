@@ -23,23 +23,22 @@ pub(super) fn inside_work_tree(root: &Path) -> bool {
 /// as a refusal.
 pub(super) fn candidate_accepted_local(
     root: &Path,
+    decision_pointers: &[String],
     mode: RatificationMode,
 ) -> Option<BTreeSet<String>> {
-    let listing = match mode {
-        RatificationMode::Index => git_output(root, ["ls-files", "-z", "--", "meta/decisions"])?,
-        RatificationMode::Head => git_output(
-            root,
-            [
-                "ls-tree",
-                "-r",
-                "--name-only",
-                "-z",
-                "HEAD",
-                "--",
-                "meta/decisions",
-            ],
-        )?,
+    let pointers = decision_pointers
+        .iter()
+        .map(|pointer| pointer.trim_start_matches("./").to_owned())
+        .collect::<Vec<_>>();
+    if pointers.is_empty() {
+        return Some(BTreeSet::new());
+    }
+    let mut args = match mode {
+        RatificationMode::Index => vec!["ls-files", "-z", "--"],
+        RatificationMode::Head => vec!["ls-tree", "-r", "--name-only", "-z", "HEAD", "--"],
     };
+    args.extend(pointers.iter().map(String::as_str));
+    let listing = git_output(root, args)?;
     let mut accepted = BTreeSet::new();
     for path in listing.split('\0').filter(|path| !path.is_empty()) {
         let spec = match mode {

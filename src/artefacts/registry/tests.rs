@@ -27,6 +27,27 @@ fn test_path_string_normalises_redundant_current_directory_components() {
 }
 
 #[test]
+fn test_load_artefacts_retains_configured_decision_pointers()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("decision-pointers")?;
+    let ast = parse_str(
+        "cairn.blueprint",
+        r#"System App "desc" id "app" {
+    decisions "./docs/policies/decisions"
+}
+"#,
+    )?;
+
+    let set = load_artefacts(&root, &ast, ContractSet::default());
+
+    assert_eq!(
+        set.decision_pointers,
+        vec!["./docs/policies/decisions".to_owned()]
+    );
+    Ok(())
+}
+
+#[test]
 fn test_load_artefacts_computes_reverse_provenance_and_ignores_authored_reverse_keys()
 -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("reverse-provenance")?;

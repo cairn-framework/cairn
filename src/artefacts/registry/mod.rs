@@ -43,6 +43,7 @@ pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> Artefac
     let ids = collect_ids(ast);
     let mut set = ArtefactSet {
         contracts,
+        decision_pointers: pointers(ast, "decisions"),
         ..ArtefactSet::default()
     };
     load_kinds(root, ast, &mut set);
@@ -57,6 +58,7 @@ pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> Artefac
 /// Thin wrapper over the kind table for callers (e.g. architecture hooks) that
 /// only need decisions without a full artefact load.
 pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet) {
+    set.decision_pointers = pointers(ast, "decisions");
     load_kind(root, ast, decisions_kind(), set);
     compute_reverse_provenance(&mut set.decisions);
 }
