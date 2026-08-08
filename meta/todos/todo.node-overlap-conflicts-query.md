@@ -77,13 +77,13 @@ the match.
   may be rendered as a current claim. `cairn ruling run <plan-digest>`
   records consent and is not itself an in-flight claim.
 - Require `--at <RFC3339>` for this view's coordination rows. Missing `--at`
-  or query error, never an implicit "now". The reader predicates compare
-  single-format UTC strings lexically, so reject or normalize non-UTC and
-  fractional inputs before calling them. Do not collapse malformed or missing
-  `expires_at`, or a release-head chain, into no-lease or stale: surface each
-  as its own classification. A malformed envelope that hardening rejects is
-  an explicit failed-read classification, never silent admission. Underlying
-  reader hardening belongs to `todo.coord-fact-store-hardening`.
+  is a usage or query error, never an implicit "now". The reader predicates
+  compare single-format UTC strings lexically, so reject or normalize non-UTC
+  and fractional inputs before calling them. Only valid envelopes produce
+  per-lease rows: `held`, `stale`, `no_lease`, or `release-head`. A malformed
+  lease fact, or a malformed or missing `expires_at`, is the store-level
+  failed-read and fail-closed outcome defined by
+  `todo.coord-fact-store-hardening`, never a no-lease or stale row.
 - An uninitialised store produces an explicit empty coordination row with
   `store_state` and a reason, not silent admission of every unit. A malformed
   or partially unreadable store fails closed.
@@ -136,12 +136,17 @@ mapping in `src/mcp/mod.rs`. Update `docs/commands.md` and
   the matching baseline todos and change operations, while excluding
   unrelated nodes. It also proves that the new `open`/`in_progress` filter
   does not alter the existing `--include-todos` neighbourhood listing.
+- The status matrix is explicit: `open` and `in_progress` are included in
+  coordination rows, `done` and `blocked` are excluded, and legacy
+  `cairn neighbourhood --include-todos` remains an all-status listing.
 - The same fixture has lease facts for one todo and a wave containing both
   admitted and held units. With the future accepted `--at <RFC3339>` flag,
   the response joins the lease holder, expiry, residue, fact ID, wave plan
   digest, unit write-sets, and held reasons to the matching node IDs. It
-  distinguishes held, stale, no-lease, malformed-expiry, missing-expiry,
-  and release-head classifications; an unleased wave preview is never
+  distinguishes valid-envelope `held`, `stale`, `no_lease`, and
+  `release-head` classifications. A malformed fact or missing or malformed
+  expiry produces the store-level failed-read and fail-closed outcome owned
+  by `todo.coord-fact-store-hardening`; an unleased wave preview is never
   called a claim.
 - The lease join and wave composition consume one `read_facts` snapshot. A
   regression fixture that changes the store between two potential reads must
