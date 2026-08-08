@@ -13,12 +13,102 @@ use std::path::Path;
 
 use serde_json::{Value, json};
 
+use crate::artefacts::registry::dates::date_to_days;
 use crate::coord::read::{StoreRead, read_facts};
 use crate::map::paths::is_component_prefix;
 use crate::query_api::wave::compose::compose_wave;
 use crate::scanner;
 
 use super::super::{QueryError, QueryRequest, QuerySince, SCHEMA_VERSION};
+
+/// An RFC 3339 instant normalized to UTC for temporal comparisons.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct Rfc3339Instant {
+    seconds: i64,
+    nanos: u32,
+}
+
+fn parse_digits(bytes: &[u8], start: usize, length: usize) -> Option<u32> {
+    bytes
+        .get(start..start.checked_add(length)?)?
+        .iter()
+        .try_fold(0_u32, |value, byte| {
+            byte.is_ascii_digit()
+                .then_some(value * 10 + u32::from(byte - b'0'))
+        })
+}
+
+fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant> {
+    let bytes = value.as_bytes();
+    if bytes.len() < 20
+        || bytes.get(10) != Some(&b'T')
+        || bytes.get(13) != Some(&b':')
+        || bytes.get(16) != Some(&b':')
+    {
+        return None;
+    }
+    let days = date_to_days(value.get(..10)?)?;
+    let hour = parse_digits(bytes, 11, 2)?;
+    let minute = parse_digits(bytes, 14, 2)?;
+    let second = parse_digits(bytes, 17, 2)?;
+    if hour > 23 || minute > 59 || second > 59 {
+        return None;
+    }
+
+    let mut cursor = 19;
+    let nanos = if bytes.get(cursor) == Some(&b'.') {
+        cursor += 1;
+        let start = cursor;
+        while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+            cursor += 1;
+        }
+        let length = cursor - start;
+        if !(1..=9).contains(&length) {
+            return None;
+        }
+        let fraction = parse_digits(bytes, start, length)?;
+        fraction * 10_u32.pow(u32::try_from(9 - length).ok()?)
+    } else {
+        0
+    };
+
+    let offset_seconds = match bytes.get(cursor) {
+        Some(b'Z') if cursor + 1 == bytes.len() => 0_i64,
+        Some(sign @ (b'+' | b'-'))
+            if cursor + 6 == bytes.len() && bytes.get(cursor + 3) == Some(&b':') =>
+        {
+            let hours = parse_digits(bytes, cursor + 1, 2)?;
+            let minutes = parse_digits(bytes, cursor + 4, 2)?;
+            if hours > 23 || minutes > 59 {
+                return None;
+            }
+            let seconds = i64::from(hours * 3_600 + minutes * 60);
+            if *sign == b'-' { -seconds } else { seconds }
+        }
+        _ => return None,
+    };
+    let local_seconds = days
+        .checked_mul(86_400)?
+        .checked_add(i64::from(hour * 3_600 + minute * 60 + second))?;
+    Some(Rfc3339Instant {
+        seconds: local_seconds.checked_sub(offset_seconds)?,
+        nanos,
+    })
+}
+
+// The stats window must compare instants, not their spellings. In particular,
+// a fractional second sorts before `Z` lexically even though it is later.
+fn compare_recorded_at(
+    left: (Option<Rfc3339Instant>, &str),
+    right: (Option<Rfc3339Instant>, &str),
+) -> std::cmp::Ordering {
+    match (left.0, right.0) {
+        (Some(left_instant), Some(right_instant)) => left_instant
+            .cmp(&right_instant)
+            .then_with(|| left.1.cmp(right.1)),
+        _ => left.1.cmp(right.1),
+    }
+}
 
 /// The rolling window over exclusions with merge evidence.
 const STATS_WINDOW: usize = 20;
@@ -115,7 +205,7 @@ pub(in crate::query_api) fn wave_stats_json(
     root: &Path,
     request: &QueryRequest,
 ) -> Result<Value, QueryError> {
-    let since = wave_stats_since(request);
+    let since = wave_stats_since(request).and_then(parse_rfc3339);
     let facts = match read_facts(root).map_err(coord_error)? {
         StoreRead::Uninitialised => {
             return Ok(json!({
@@ -131,11 +221,15 @@ pub(in crate::query_api) fn wave_stats_json(
         }
         StoreRead::Ready(facts) => facts,
     };
-    let mut evidenced: Vec<(&str, bool)> = facts
+    let mut evidenced: Vec<(Option<Rfc3339Instant>, &str, bool)> = facts
         .iter()
         .filter(|named| named.fact.kind == "outcome.touched_files")
-        .filter(|named| since.is_none_or(|since| named.fact.recorded_at.as_str() >= since))
         .filter_map(|named| {
+            let recorded_at = named.fact.recorded_at.as_str();
+            let instant = parse_rfc3339(recorded_at);
+            if since.is_some_and(|since| instant.is_none_or(|recorded| recorded < since)) {
+                return None;
+            }
             let prefixes = named.fact.payload.get("excluded_by_prefixes")?.as_array()?;
             let files = named.fact.payload.get("files")?.as_array()?;
             let overlapped = files.iter().filter_map(Value::as_str).any(|file| {
@@ -144,15 +238,15 @@ pub(in crate::query_api) fn wave_stats_json(
                     .filter_map(Value::as_str)
                     .any(|prefix| is_component_prefix(prefix, file))
             });
-            Some((named.fact.recorded_at.as_str(), !overlapped))
+            Some((instant, recorded_at, !overlapped))
         })
         .collect();
-    evidenced.sort_by_key(|(recorded_at, _)| *recorded_at);
+    evidenced.sort_by(|left, right| compare_recorded_at((left.0, left.1), (right.0, right.1)));
     let window: Vec<bool> = evidenced
         .iter()
         .rev()
         .take(STATS_WINDOW)
-        .map(|(_, proven_false)| *proven_false)
+        .map(|(_, _, proven_false)| *proven_false)
         .collect();
     let proven_false = window.iter().filter(|proven| **proven).count();
     let rate = if window.is_empty() {
@@ -230,6 +324,14 @@ mod tests {
     }
 
     #[test]
+    fn parse_rfc3339_normalizes_fraction_and_offset() {
+        assert_eq!(
+            parse_rfc3339("2026-08-07T03:45:12.500Z"),
+            parse_rfc3339("2026-08-07T05:45:12.5+02:00")
+        );
+    }
+
+    #[test]
     fn wave_stats_since_filters_out_older_touched_files_facts() {
         let dir = repo();
         record(
@@ -258,5 +360,36 @@ mod tests {
         assert_eq!(data["window"]["size"], 1);
         assert_eq!(data["proven_false"], 1);
         assert_eq!(data["false_overlap_rate"], 1.0);
+    }
+
+    #[test]
+    fn wave_stats_since_includes_fractional_second_after_exact_boundary() {
+        let dir = repo();
+        record(
+            dir.path(),
+            "2026-08-07T03:45:12Z",
+            serde_json::json!({
+                "files": ["src/exact.rs"],
+                "excluded_by_prefixes": ["src"],
+            }),
+        );
+        record(
+            dir.path(),
+            "2026-08-07T03:45:12.500Z",
+            serde_json::json!({
+                "files": ["src/fractional.rs"],
+                "excluded_by_prefixes": ["docs"],
+            }),
+        );
+        let request = QueryRequest {
+            since: Some(QuerySince::WaveStatsTimestamp(
+                "2026-08-07T03:45:12Z".to_owned(),
+            )),
+            ..QueryRequest::default()
+        };
+        let data = wave_stats_json(dir.path(), &request).expect("stats");
+        assert_eq!(data["window"]["size"], 2);
+        assert_eq!(data["proven_false"], 1);
+        assert_eq!(data["false_overlap_rate"], 0.5);
     }
 }
