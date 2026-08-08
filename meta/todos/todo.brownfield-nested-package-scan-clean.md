@@ -28,8 +28,8 @@ out: `dec.order-containment-rule` marked `superseded` with the `supersedes:`
 link added in the same commit. This todo was opened accordingly, and is `blocked`
 again since the 2026-08-07 decomposition below.
 
-Also update `src/map/integrity.rs:74-76`, whose doc comment states the
-contradiction rule this changes, when the code lands.
+Also update the `topological_order` doc comment in `src/map/integrity.rs`,
+whose contradiction rule this changes, when the code lands.
 
 In short, the rule: discovery keeps both observed edges and does not nest, and
 `CAIRN_ORDER_CYCLE` becomes advisory when every edge inside the cyclic component
@@ -54,12 +54,10 @@ body is stale.
   cycle enumeration and the containment fall-through need no provenance.
 - **Cycle enumeration (clause 5).** Replace the return-on-first-cycle behaviour
   in `cycle_findings` with clause 5's deterministic per-component findings.
-- **Containment fall-through (clause 7).** `topological_order` returns as soon as
-  dependency-only `cycle_findings` is non-empty (`src/map/integrity.rs:83-85`),
-  before the combined containment and dependency deadlock branch runs. Run the
-  containment pass whenever any dependency component is reported, advisory or
-  Error alike. Restricting it to advisory components leaves today's masking bug
-  in place.
+- **Containment fall-through (clause 7).** `topological_order` computes
+  dependency SCC findings and evaluates the combined containment and dependency
+  constraints over their quotient, even when dependency cycles are present.
+  This keeps an independent child-to-ancestor contradiction visible.
 - **Severity branch (clause 3, applied per component under clause 5).** Apply
   per-component severity inside graph cycle detection, where edge identity
   exists. Clause 4's provenance marker is its prerequisite, not part of it.

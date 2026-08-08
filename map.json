@@ -2463,6 +2463,7 @@
         "src/map/contract_coverage.rs",
         "src/map/graph.rs",
         "src/map/integrity.rs",
+        "src/map/integrity/tests.rs",
         "src/map/mod.rs",
         "src/map/module_size.rs",
         "src/map/paths.rs",
@@ -2528,8 +2529,8 @@
           "kind": "function",
           "signature": "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>",
           "file": "src/map/integrity.rs",
-          "line": 159,
-          "end_line": 161
+          "line": 171,
+          "end_line": 173
         },
         {
           "name": "dependents",
@@ -2640,8 +2641,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 231,
-          "end_line": 301
+          "line": 298,
+          "end_line": 361
         },
         {
           "name": "build",
