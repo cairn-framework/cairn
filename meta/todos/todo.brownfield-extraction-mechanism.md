@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: open
+status: done
 created: 2026-08-07
 parent: todo.brownfield-decision-extraction
 ---

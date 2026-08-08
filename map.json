@@ -1033,8 +1033,8 @@
           "kind": "function",
           "signature": "pub fn compute_subject_hash( repo_root: &Path, decision_repo_path: &str, decision_raw: &str, affects: &[String], ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 139,
-          "end_line": 192
+          "line": 153,
+          "end_line": 206
         },
         {
           "name": "count_tasks",
@@ -1065,8 +1065,8 @@
           "kind": "function",
           "signature": "pub fn load_artefacts(root: &Path, ast: &Ast, contracts: ContractSet) -> ArtefactSet",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 42,
-          "end_line": 53
+          "line": 47,
+          "end_line": 59
         },
         {
           "name": "load_contracts",
@@ -1081,8 +1081,8 @@
           "kind": "function",
           "signature": "pub fn normalise_repo_entry(raw: &str) -> Option<RepoPathRule>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 87,
-          "end_line": 95
+          "line": 101,
+          "end_line": 109
         },
         {
           "name": "normalise_repo_path",
@@ -1113,8 +1113,8 @@
           "kind": "function",
           "signature": "pub fn rule_matches(rule: &RepoPathRule, file: &str) -> bool",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 99,
-          "end_line": 110
+          "line": 113,
+          "end_line": 124
         },
         {
           "name": "set_field",
@@ -1178,7 +1178,7 @@
           "signature": "pub struct ArtefactSet",
           "file": "src/artefacts/registry/types.rs",
           "line": 331,
-          "end_line": 348
+          "end_line": 350
         },
         {
           "name": "ChangeRecord",
@@ -1241,8 +1241,8 @@
           "kind": "struct",
           "signature": "pub struct ManifestError",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 114,
-          "end_line": 117
+          "line": 128,
+          "end_line": 131
         },
         {
           "name": "Research",
@@ -1297,32 +1297,48 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_decision_subject_hash( root: &Path, decision: &super::Decision, ) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 205,
-          "end_line": 218
+          "line": 219,
+          "end_line": 232
         },
         {
           "name": "compute_reverse_provenance",
           "kind": "function",
           "signature": "pub(crate) fn compute_reverse_provenance(decisions: &mut [Decision])",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 67,
-          "end_line": 100
+          "line": 74,
+          "end_line": 107
         },
         {
           "name": "contained_file_sha256",
           "kind": "function",
           "signature": "pub(crate) fn contained_file_sha256(root: &Path, repo_path: &str) -> Result<String, ManifestError>",
           "file": "src/artefacts/registry/manifest.rs",
-          "line": 447,
-          "end_line": 457
+          "line": 461,
+          "end_line": 471
+        },
+        {
+          "name": "decision_pointers",
+          "kind": "function",
+          "signature": "pub(crate) fn decision_pointers(ast: &Ast) -> Vec<String>",
+          "file": "src/artefacts/registry/mod.rs",
+          "line": 41,
+          "end_line": 43
         },
         {
           "name": "load_decisions",
           "kind": "function",
           "signature": "pub(crate) fn load_decisions(root: &Path, ast: &Ast, set: &mut ArtefactSet)",
           "file": "src/artefacts/registry/mod.rs",
-          "line": 59,
-          "end_line": 62
+          "line": 65,
+          "end_line": 69
+        },
+        {
+          "name": "normalise_repo_pointer",
+          "kind": "function",
+          "signature": "pub(crate) fn normalise_repo_pointer(raw: &str) -> Option<String>",
+          "file": "src/artefacts/registry/manifest.rs",
+          "line": 91,
+          "end_line": 97
         },
         {
           "name": "dates",
@@ -2327,6 +2343,7 @@
         "src/hooks/mod.rs",
         "src/hooks/ratification.rs",
         "src/hooks/ratification/git.rs",
+        "src/hooks/ratification_pointer_tests.rs",
         "src/hooks/ratification_tests.rs",
         "src/hooks/render.rs",
         "src/hooks/tests.rs"
@@ -2364,8 +2381,8 @@
           "kind": "enum",
           "signature": "pub enum RatificationMode",
           "file": "src/hooks/ratification.rs",
-          "line": 26,
-          "end_line": 31
+          "line": 30,
+          "end_line": 35
         },
         {
           "name": "architecture_findings",
@@ -2388,32 +2405,32 @@
           "kind": "function",
           "signature": "pub fn detect_active_change_conflicts(changes_dir: &Path) -> Vec<Finding>",
           "file": "src/hooks/mod.rs",
-          "line": 159,
-          "end_line": 196
+          "line": 165,
+          "end_line": 202
         },
         {
           "name": "ratification_findings",
           "kind": "function",
           "signature": "pub fn ratification_findings( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
-          "line": 35,
-          "end_line": 122
+          "line": 39,
+          "end_line": 45
         },
         {
           "name": "render_human",
           "kind": "function",
           "signature": "pub fn render_human(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 33,
-          "end_line": 35
+          "line": 37,
+          "end_line": 39
         },
         {
           "name": "render_json",
           "kind": "function",
           "signature": "pub fn render_json(report: &HookReport) -> String",
           "file": "src/hooks/render.rs",
-          "line": 39,
-          "end_line": 66
+          "line": 43,
+          "end_line": 78
         },
         {
           "name": "run",
@@ -2437,7 +2454,7 @@
           "signature": "pub(crate) fn render_human_verbose(report: &HookReport, verbose: bool) -> String",
           "file": "src/hooks/render.rs",
           "line": 14,
-          "end_line": 28
+          "end_line": 32
         },
         {
           "name": "run_with_ratification_mode",
@@ -2445,7 +2462,15 @@
           "signature": "pub(crate) fn run_with_ratification_mode( kind: HookKind, root: &Path, changes_dir: &Path, scan_result: &scanner::ScanResult, ratification_mode: RatificationMode, ) -> HookReport",
           "file": "src/hooks/mod.rs",
           "line": 94,
-          "end_line": 155
+          "end_line": 161
+        },
+        {
+          "name": "ratification_findings_with_blueprint",
+          "kind": "function",
+          "signature": "pub(super) fn ratification_findings_with_blueprint( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, blueprint_path: &Path, ) -> Vec<Finding>",
+          "file": "src/hooks/ratification.rs",
+          "line": 48,
+          "end_line": 126
         }
       ]
     },
@@ -3603,8 +3628,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 455,
-          "end_line": 549
+          "line": 489,
+          "end_line": 584
         },
         {
           "name": "matches",
@@ -3675,8 +3700,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 556,
-          "end_line": 592
+          "line": 591,
+          "end_line": 627
         },
         {
           "name": "select_gate_recipe",
@@ -3852,7 +3877,7 @@
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
           "line": 63,
-          "end_line": 78
+          "end_line": 80
         },
         {
           "name": "SnapshotEdge",
@@ -3899,8 +3924,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 625,
-          "end_line": 640
+          "line": 660,
+          "end_line": 675
         },
         {
           "name": "cache",
@@ -7830,6 +7855,7 @@
         "tests/schema_validation.rs",
         "tests/status_todo_path_wire.rs",
         "tests/summariser_accept_baseline.rs",
+        "tests/support/sync_github_todos_stub.rs",
         "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
         "tests/watch.rs",
@@ -7838,7 +7864,16 @@
       "contracts": [
         "./meta/contracts/tests.md"
       ],
-      "symbols": []
+      "symbols": [
+        {
+          "name": "script",
+          "kind": "function",
+          "signature": "pub fn script(root: &Path) -> String",
+          "file": "tests/support/sync_github_todos_stub.rs",
+          "line": 103,
+          "end_line": 105
+        }
+      ]
     },
     {
       "id": "cairn.ui",
@@ -8422,9 +8457,9 @@
     {
       "code": "CAIRN_SPEC_RULE_UNIMPLEMENTED",
       "severity": "info",
-      "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:634) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
+      "message": "spec rule `ADR revisit_triggers appear relevant to recent changes` (spec:675) is pending but names no enforcer (deferred by dec.revisit-trigger-correlator-deferred)",
       "node": null,
-      "target": "spec:634 ADR revisit_triggers appear relevant to recent changes",
+      "target": "spec:675 ADR revisit_triggers appear relevant to recent changes",
       "path": "docs/registries/spec-rules.md"
     },
     {
@@ -8437,7 +8472,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.kernel.cli` carries 12 accepted decisions (threshold 10).",
+      "message": "Node `cairn.kernel.cli` carries 13 accepted decisions (threshold 10).",
       "node": "cairn.kernel.cli",
       "path": null
     },
@@ -8461,6 +8496,27 @@
       "message": "Node `cairn.ui` carries 12 accepted decisions (threshold 10).",
       "node": "cairn.ui",
       "path": null
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.brownfield-extraction-mechanism-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "meta/reviews/rev.brownfield-extraction-mechanism-alternatives.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.brownfield-extraction-mechanism-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "meta/reviews/rev.brownfield-extraction-mechanism-correctness.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.brownfield-extraction-mechanism-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.brownfield",
+      "path": "meta/reviews/rev.brownfield-extraction-mechanism-reversibility.md"
     },
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",

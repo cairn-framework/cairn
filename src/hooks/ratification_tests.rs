@@ -151,29 +151,39 @@ fn proposed_local_decision(root: &Path, subject_path: &str) -> ArtefactSet {
     artefacts
 }
 
-fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> ArtefactSet {
+pub(super) fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> ArtefactSet {
+    accepted_decision_at(root, "meta/decisions", subject_path, subject)
+}
+
+pub(super) fn accepted_decision_at(
+    root: &Path,
+    decisions_dir: &str,
+    subject_path: &str,
+    subject: &str,
+) -> ArtefactSet {
     write(root, subject_path, subject);
-    let decision_path = "meta/decisions/dec.local.md";
+    let decision_path = format!("{decisions_dir}/dec.local.md");
     let receipt_path = "meta/reviews/rev.correctness.md";
-    let decision = decision_source(subject_path, receipt_path);
-    write(root, decision_path, &decision);
+    let decision = decision_source(&decision_path, subject_path, receipt_path);
+    write(root, &decision_path, &decision);
     let hash = compute_subject_hash(
         root,
-        decision_path,
+        &decision_path,
         &decision,
-        &[decision_path.to_owned(), subject_path.to_owned()],
+        &[decision_path.clone(), subject_path.to_owned()],
     )
     .unwrap();
-    write(root, receipt_path, "receipt\n");
+    write(root, receipt_path, &review_source(&hash));
     ArtefactSet {
+        decision_pointers: vec![decisions_dir.to_owned()],
         decisions: vec![Decision {
             id: "dec.local".to_owned(),
-            path: root.join(decision_path).to_string_lossy().into_owned(),
+            path: root.join(&decision_path).to_string_lossy().into_owned(),
             nodes: Vec::new(),
             status: DecisionStatus::Accepted,
             ratification: RatificationTier::Local,
             affects: vec![
-                decision_path.to_owned(),
+                decision_path.clone(),
                 subject_path.to_owned(),
                 receipt_path.to_owned(),
             ],
@@ -212,15 +222,27 @@ fn accepted_decision(root: &Path, subject_path: &str, subject: &str) -> Artefact
     }
 }
 
-fn decision_source(subject_path: &str, receipt_path: &str) -> String {
+fn decision_source(decision_path: &str, subject_path: &str, receipt_path: &str) -> String {
     format!(
-        "---\nid: dec.local\nstatus: accepted\nratification: local\naffects:\n  - meta/decisions/dec.local.md\n  - {subject_path}\n  - {receipt_path}\nreceipts:\n  - rev.correctness\n---\nDecision body.\n"
+        "---\nid: dec.local\nnodes:\n  - app\nstatus: accepted\ndate: 2026-07-30\nratification: local\naffects:\n  - {decision_path}\n  - {subject_path}\n  - {receipt_path}\nreceipts:\n  - rev.correctness\n---\nDecision body.\n"
+    )
+}
+
+fn review_source(subject_hash: &str) -> String {
+    format!(
+        "---\nnode: app\ndate: 2026-07-30\nreviewer: model/lens\nreview_type: agent_cross_model\nsubject_hash: {subject_hash}\nlens_prompt_hash: sha256:0000000000000000000000000000000000000000000000000000000000000000\n---\n## Verdict\nPASS\n"
+    )
+}
+
+pub(super) fn pointer_blueprint(decisions_dir: &str) -> String {
+    format!(
+        "System App \"app\" id \"app\" {{\n    decisions \"./{decisions_dir}\"\n    reviews \"./meta/reviews\"\n}}\n"
     )
 }
 
 const BASE_ALLOWLIST: &str = "# Binding surface\n\n- docs/spec.md\n- docs/registries/\n- tools/agent-pack/content/\n- src/artefacts/registry/\n- cairn.blueprint\n";
 
-fn git_root(name: &str) -> PathBuf {
+pub(super) fn git_root(name: &str) -> PathBuf {
     git_root_with_allowlist(name, Some(BASE_ALLOWLIST))
 }
 
@@ -251,21 +273,26 @@ fn git_root_without_remote(name: &str) -> PathBuf {
     run(&root, ["init", "--quiet"]);
     run(&root, ["config", "user.email", "tests@example.com"]);
     run(&root, ["config", "user.name", "Tests"]);
+    write(
+        &root,
+        "cairn.blueprint",
+        &pointer_blueprint("meta/decisions"),
+    );
     root
 }
 
-fn write(root: &Path, path: &str, content: &str) {
+pub(super) fn write(root: &Path, path: &str, content: &str) {
     let path = root.join(path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, content).unwrap();
 }
 
-fn commit(root: &Path, message: &str) {
+pub(super) fn commit(root: &Path, message: &str) {
     run(root, ["add", "."]);
     run(root, ["commit", "--quiet", "-m", message]);
 }
 
-fn run<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) {
+pub(super) fn run<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) {
     assert!(
         Command::new("git")
             .current_dir(root)
@@ -286,7 +313,7 @@ fn output<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) -> String {
     String::from_utf8(output.stdout).unwrap()
 }
 
-fn cleanup(root: PathBuf) {
+pub(super) fn cleanup(root: PathBuf) {
     let _ = fs::remove_dir_all(root);
 }
 

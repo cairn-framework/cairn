@@ -362,6 +362,7 @@ usage = "usage: cairn hook <structural|interface|tension|architecture-decision|a
 existing = "refusing to replace an existing non-Cairn hook"
 pre-commit-conflict = "pre-commit configuration owns Git hooks. Add Cairn to that configuration instead of installing a raw hook."
 git-error = "unable to locate the Git hooks directory"
+block-remediate-pointer = "Run `cairn remediate --json` for prioritized fix actions."
 
 # -- Decision scaffold --------------------------------------------------
 

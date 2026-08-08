@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: open
+status: done
 created: 2026-08-07
 related: [res.chatgpt-architecture-review]
 ---
@@ -22,6 +22,9 @@ does not model factual numerals in prose.
    asserted count or version.
 3. Note whether a scanner finding should cover asserted-numeral drift;
    if yes, file it as its own unit rather than building it here.
+A dedicated scanner finding should cover asserted-numeral drift in follow-up
+unit `todo.contract-asserted-numeral-drift`, rather than being implemented
+here.
 
 ## Acceptance
 

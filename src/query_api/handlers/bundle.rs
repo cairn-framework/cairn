@@ -169,6 +169,7 @@ mod tests {
         let graph = build_graph(&ast, Path::new("."), &contracts, &mut claimed, Vec::new());
         ScanResult {
             graph,
+            blueprint_path: std::path::PathBuf::from("cairn.blueprint"),
             target_hashes: BTreeMap::new(),
             interface_hash: String::new(),
             blueprint_snapshot: crate::scanner::state::BlueprintSnapshot::default(),

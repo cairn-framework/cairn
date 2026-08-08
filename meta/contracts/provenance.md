@@ -10,7 +10,7 @@ Typed schemas and readers for the per-archived-change trace sidecar (`.cairn-tra
 ## Public interface
 - `mod.rs`: re-exports the trace surface: `TraceSidecar`, `StageRecord`, `TraceStage`, `TraceError`, `TRACE_SIDECAR_VERSION`, and `read_sidecar`.
 - `trace.rs`:
-  - `TRACE_SIDECAR_VERSION: u32` (currently `1`), the wire schema version.
+  - `TRACE_SIDECAR_VERSION: u32`, the wire schema version.
   - `TraceStage`: enum of `Propose`, `Apply`, `Accept`, `Archive`, serialised lowercase.
   - `StageRecord`: per-stage payload with optional `model_id`, `tokens_in`, `tokens_out`, `error_message`, plus required `latency_ms`, `success`, `started_at`, `ended_at`.
   - `TraceSidecar`: top-level payload carrying `version`, `phase`, a `BTreeMap<TraceStage, StageRecord>` of stages, and a reserved untyped `prompts` vector.
