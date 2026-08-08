@@ -8,6 +8,7 @@ node: cairn.suggested-edges
 Owns the per-change suggested-edges queue (`suggested-edges.json`): the mutable triage workflow for AI-suggested graph edges. Where the `provenance` module holds immutable trace records, this module owns the queue lifecycle: read, write, validate, and count. It supplies the `--strict` validation gate that blocks archive while suggestions remain untriaged.
 
 ## Public interface
+- `mod.rs`:
   - `SUGGESTED_EDGES_QUEUE_VERSION: u32`, the wire schema version.
   - `read_queue(path) -> Result<Option<SuggestedEdgesQueue>, QueueError>`: reads a queue, returning `Ok(None)` when the file is absent.
   - `queue_path_for_change(change_dir) -> PathBuf` and `read_from_change(change_dir)`: resolve and read the queue for a change directory.
