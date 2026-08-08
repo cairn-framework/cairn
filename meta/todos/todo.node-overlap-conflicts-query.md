@@ -44,10 +44,10 @@ the match.
 - The current lease read verb is `cairn lease list`, routed by
   `src/cli/commands/coord.rs`. It is the raw lease and driver-singleton
   source; `cairn coord verify|compact` remains store administration. The
-  current help spec is `FLAGS_HELP_ONLY`, so `--json`, `--at <RFC3339>`, and
-  `--since <filename>` are not shipped forms to rely on. This unit must add
-  the accepted flags, help spec, copy usage, and parser plumbing before using
-  those forms for the join.
+  `--json` is already emitted by `coordination_query`; `--at <RFC3339>` and
+  `--since <filename>` are not shipped accepted forms to rely on. This unit
+  must add those observation flags, their help spec, copy usage, and parser
+  plumbing before using them for the join.
 - Read the family-local store through
   `src/coord/read.rs::read_facts`. Lease `payload.unit_id` is already the full
   todo stem, such as `todo.driver-in-repo`; join it exactly to the stem
@@ -64,9 +64,10 @@ the match.
   through a facts-taking composer variant or equivalent. Two independent reads
   must not disagree when a grant lands between them.
 - Include the matching `units` and `held` rows from the shared composer behind
-  the current `cairn wave` command. The future unit must add accepted
-  `--at <RFC3339>` and JSON support to that command's help spec, copy usage,
-  and parser plumbing before treating the observation instant as a CLI form.
+  the current `cairn wave` command. Preserve its existing JSON rendering. The
+  future unit must add accepted `--at <RFC3339>` to that command's help spec,
+  copy usage, and parser plumbing before treating the observation instant as
+  a CLI form.
   Preserve the plan digest, unit IDs, write-set prefixes, and held reasons
   (`lease-held`, `write-sets-overlap`, `runs-alone`, and `parked`) with any
   blocking fact ID. A wave preview is live coordination context, not proof
