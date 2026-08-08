@@ -251,11 +251,21 @@ Want to re-derive modules from code? `cairn init --from-code`."""
 [init.from-code]
 done = "brownfield init complete; change written to meta/changes/{change_id}/"
 next-steps-header = "Next steps (review before you apply):"
+ignore-proposal-header = "Suggested initial ignores (written only with `--apply`):"
+ignore-applied-header = "Accepted initial ignores:"
+err-ignore-scan = "could not inspect the project while proposing initial ignores: {detail}"
+err-ignore-write = "could not write initial ignores: {detail}"
+err-ignore-inspect = "failed to inspect {path} while proposing ignores: {detail}"
+err-ignore-config-inspect = "failed to inspect {path}: {detail}"
+err-ignore-not-regular = "{path} is not a regular file"
+err-ignore-read = "failed to read {path}: {detail}"
+err-ignore-unsafe-path = "cannot scaffold initial ignore `{path}`: path contains unsupported characters"
+err-ignore-inline = "cannot scaffold initial ignores into an inline `ignore:` list; expand it first"
 # One action per line, in order. The human ladder and the `--json`
 # `next_actions` array are both rendered from this single list.
 next-actions = """
 Review `meta/changes/{change_id}/proposal.md` and correct the grouping, paths, edges, and contracts
-Apply the reviewed change: `cairn change apply {change_id}`
+Apply the reviewed change: `cairn change apply {change_id}`. On a fresh run, `cairn init --from-code --apply` writes the suggested ignore entries first. If you review this proposal first, add one line per suggested path to `cairn.config.yaml`, then run this apply command
 Wire cairn into your agent: `cairn init --wire`
 Reconcile the blueprint against your code: `cairn scan`
 Group any files still unowned: `cairn onboard`

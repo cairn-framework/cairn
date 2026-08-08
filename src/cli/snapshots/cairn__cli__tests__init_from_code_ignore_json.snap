@@ -1,0 +1,26 @@
+---
+source: src/cli/mod.rs
+expression: payload
+---
+{
+  "command": "init",
+  "data": {
+    "applied": false,
+    "change_id": "brownfield-init",
+    "change_path": "meta/changes/brownfield-init",
+    "ignore_suggestions": [
+      "node_modules",
+      "packages/api/dist",
+      "packages/web/dist"
+    ],
+    "next_actions": [
+      "Review `meta/changes/brownfield-init/proposal.md` and correct the grouping, paths, edges, and contracts",
+      "Apply the reviewed change: `cairn change apply brownfield-init`. On a fresh run, `cairn init --from-code --apply` writes the suggested ignore entries first. If you review this proposal first, add one line per suggested path to `cairn.config.yaml`, then run this apply command",
+      "Wire cairn into your agent: `cairn init --wire`",
+      "Reconcile the blueprint against your code: `cairn scan`",
+      "Group any files still unowned: `cairn onboard`",
+      "Check the commit gate: `cairn hook all`"
+    ]
+  },
+  "status": "ok"
+}

@@ -12,6 +12,7 @@ use crate::{
     artefacts::registry::{
         Decision, DecisionStatus, Research, Review, ReviewType, Todo, TodoStatus,
     },
+    brownfield::onboard::{self, ClusterSuggestion},
     hooks::{self, HookKind},
     map::{
         graph::{Finding, FindingSeverity, NodeRecord},
@@ -77,6 +78,23 @@ pub const fn registry() -> &'static [CommandMetadata] {
 }
 
 const BROWNFIELD_APPLIED_MARKER: &str = ".cairn/state/brownfield-init-applied";
+const BROWNFIELD_LOG_PATH: &str = ".cairn/log.md";
+/// Resolve an init-time archive path with the same symlink guard as the
+/// shared scaffold writer. The command seam cannot import the private wire
+/// module, so these fixed paths stay local to the init dispatcher.
+fn contained_brownfield_path(root: &Path, relative: &str) -> Result<PathBuf, String> {
+    let path = root.join(relative);
+    let mut current = root.to_path_buf();
+    for component in Path::new(relative).components() {
+        current.push(component);
+        if let Ok(metadata) = fs::symlink_metadata(&current)
+            && metadata.file_type().is_symlink()
+        {
+            return Err(copy::lookup("paths.err-symlink").replace("{file}", relative));
+        }
+    }
+    Ok(path)
+}
 
 /// Install the owned base pack, then append the optional orientation pointer.
 /// Both operations run only after project scaffolding or brownfield apply has
@@ -108,11 +126,337 @@ fn brownfield_next_actions(change_id: &str) -> Vec<String> {
         .collect()
 }
 
+/// Ask the onboarding classifier for the ignore suggestion associated with a
+/// path. Keeping this probe here makes init-time scaffolding reuse the same
+/// heuristic table as `cairn onboard`, rather than maintaining a second list.
+fn ignore_suggestion_for_path(path: &str) -> Option<String> {
+    let finding = Finding {
+        code: "CAIRN_RECONCILE_ORPHANED_FILE".to_owned(),
+        severity: FindingSeverity::Info,
+        message: String::new(),
+        node: None,
+        target: None,
+        path: Some(format!("{path}/.cairn-ignore-probe")),
+        deferred_by: None,
+        parked_by: None,
+    };
+    onboard::analyze(&[finding])
+        .clusters
+        .into_iter()
+        .find_map(|cluster| match cluster.suggestion {
+            ClusterSuggestion::Ignore(glob) => Some(glob),
+            ClusterSuggestion::Node { .. } => None,
+        })
+}
+
+fn relative_slash_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
+        .trim_matches('/')
+        .to_owned()
+}
+fn ignore_copy_error(key: &str, path: &str, detail: &str) -> String {
+    copy::lookup(key)
+        .replace("{path}", path)
+        .replace("{detail}", detail)
+}
+
+fn ignore_inspection_error(path: &Path, error: impl std::fmt::Display) -> String {
+    ignore_copy_error(
+        "init.from-code.err-ignore-inspect",
+        &path.display().to_string(),
+        &error.to_string(),
+    )
+}
+
+fn collect_initial_ignore_candidates(
+    root: &Path,
+    current: &Path,
+    candidates: &mut BTreeSet<String>,
+) -> Result<(), String> {
+    let entries = fs::read_dir(current).map_err(|error| ignore_inspection_error(current, error))?;
+    for entry in entries {
+        let entry = entry.map_err(|error| ignore_inspection_error(current, error))?;
+        let path = entry.path();
+        let metadata =
+            fs::symlink_metadata(&path).map_err(|error| ignore_inspection_error(&path, error))?;
+        if metadata.file_type().is_symlink() {
+            continue;
+        }
+        if metadata.is_file() {
+            if path.file_name().is_some_and(|name| name == "package.json") {
+                let parent = relative_slash_path(root, current);
+                let candidate = if parent.is_empty() {
+                    "node_modules".to_owned()
+                } else {
+                    format!("{parent}/node_modules")
+                };
+                candidates.insert(candidate);
+            }
+            continue;
+        }
+        if !metadata.is_dir() {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
+        if matches!(name, ".git" | ".cairn" | "meta") {
+            continue;
+        }
+        let relative = relative_slash_path(root, &path);
+        if let Some(ignore) = ignore_suggestion_for_path(&relative) {
+            candidates.insert(ignore);
+            continue;
+        }
+        collect_initial_ignore_candidates(root, &path, candidates)?;
+    }
+    Ok(())
+}
+
+/// Discover ignore entries without writing them. The `--apply` branch is the
+/// explicit confirmation that permits the same entries to be scaffolded into
+/// `cairn.config.yaml`.
+fn initial_ignore_suggestions(root: &Path) -> Result<Vec<String>, String> {
+    let mut candidates = BTreeSet::new();
+    collect_initial_ignore_candidates(root, root, &mut candidates)?;
+    Ok(candidates
+        .into_iter()
+        .filter(|candidate| is_safe_ignore_path(candidate))
+        .collect())
+}
+
+/// Validate the existing config shape before an apply can archive the
+/// brownfield proposal. This keeps malformed inline ignore syntax from
+/// turning a later scaffold failure into a partial apply.
+fn validate_initial_ignore_target(root: &Path, suggestions: &[String]) -> Result<(), String> {
+    if suggestions.is_empty() {
+        return Ok(());
+    }
+    if let Some(unsafe_path) = suggestions.iter().find(|path| !is_safe_ignore_path(path)) {
+        return Err(ignore_copy_error(
+            "init.from-code.err-ignore-unsafe-path",
+            unsafe_path,
+            "",
+        ));
+    }
+    let config_path = root.join("cairn.config.yaml");
+    let metadata = match fs::symlink_metadata(&config_path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => {
+            return Err(ignore_copy_error(
+                "init.from-code.err-ignore-config-inspect",
+                &config_path.display().to_string(),
+                &error.to_string(),
+            ));
+        }
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(ignore_copy_error(
+            "init.from-code.err-ignore-not-regular",
+            &config_path.display().to_string(),
+            "",
+        ));
+    }
+    let source = fs::read_to_string(&config_path).map_err(|error| {
+        ignore_copy_error(
+            "init.from-code.err-ignore-read",
+            &config_path.display().to_string(),
+            &error.to_string(),
+        )
+    })?;
+    if let Some(ignore_line) = source
+        .lines()
+        .find(|line| line.trim_start().starts_with("ignore:"))
+    {
+        let ignore_value = ignore_line.trim()["ignore:".len()..].trim();
+        if !ignore_value.is_empty() && ignore_value != "[]" {
+            return Err(copy::lookup("init.from-code.err-ignore-inline").to_owned());
+        }
+    }
+    Ok(())
+}
+
+fn is_safe_ignore_path(path: &str) -> bool {
+    !path.is_empty()
+        && path
+            .chars()
+            .all(|character| !character.is_control() && character != '"' && character != '\\')
+}
+
+fn yaml_quote(value: &str) -> String {
+    value.to_owned()
+}
+
+fn ignore_line_matches(line: &str, candidate: &str) -> bool {
+    let value = line.trim();
+    let Some(value) = value.strip_prefix("- ") else {
+        return false;
+    };
+    let value = value.trim();
+    let value = value
+        .strip_prefix('"')
+        .and_then(|value| value.strip_suffix('"'))
+        .unwrap_or(value);
+    value == candidate
+}
+
+fn ignore_block_end(lines: &[String], ignore_index: usize) -> usize {
+    let mut end = ignore_index + 1;
+    while end < lines.len() {
+        let line = &lines[end];
+        let trimmed = line.trim();
+        if !trimmed.is_empty()
+            && !line.starts_with(' ')
+            && !line.starts_with('\t')
+            && !trimmed.starts_with('#')
+        {
+            break;
+        }
+        end += 1;
+    }
+    end
+}
+
+fn ignore_block_has_entry(lines: &[String], ignore_index: Option<usize>, candidate: &str) -> bool {
+    let Some(ignore_index) = ignore_index else {
+        return false;
+    };
+    let end = ignore_block_end(lines, ignore_index);
+    lines[ignore_index + 1..end]
+        .iter()
+        .any(|line| ignore_line_matches(line, candidate))
+}
+
+fn ignore_block_indent(lines: &[String], ignore_index: usize) -> String {
+    let end = ignore_block_end(lines, ignore_index);
+    lines[ignore_index + 1..end]
+        .iter()
+        .find_map(|line| {
+            let trimmed = line.trim_start();
+            if !trimmed.starts_with('-') {
+                return None;
+            }
+            Some(line[..line.len() - trimmed.len()].to_owned())
+        })
+        .unwrap_or_else(|| "  ".to_owned())
+}
+
+fn append_initial_ignore_entries(
+    root: &Path,
+    suggestions: &[String],
+) -> Result<Vec<String>, String> {
+    if suggestions.is_empty() {
+        return Ok(Vec::new());
+    }
+    if let Some(unsafe_path) = suggestions.iter().find(|path| !is_safe_ignore_path(path)) {
+        return Err(ignore_copy_error(
+            "init.from-code.err-ignore-unsafe-path",
+            unsafe_path,
+            "",
+        ));
+    }
+    let config_path = root.join("cairn.config.yaml");
+    let source = match fs::symlink_metadata(&config_path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                return Err(ignore_copy_error(
+                    "init.from-code.err-ignore-not-regular",
+                    &config_path.display().to_string(),
+                    "",
+                ));
+            }
+            fs::read_to_string(&config_path).map_err(|error| {
+                ignore_copy_error(
+                    "init.from-code.err-ignore-read",
+                    &config_path.display().to_string(),
+                    &error.to_string(),
+                )
+            })?
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(error) => {
+            return Err(ignore_copy_error(
+                "init.from-code.err-ignore-config-inspect",
+                &config_path.display().to_string(),
+                &error.to_string(),
+            ));
+        }
+    };
+    let mut lines: Vec<String> = if source.is_empty() {
+        vec![
+            "ignore:".to_owned(),
+            "  - target".to_owned(),
+            "context: \"\"".to_owned(),
+            "rules: {}".to_owned(),
+        ]
+    } else {
+        source.lines().map(ToOwned::to_owned).collect()
+    };
+    let ignore_index = lines
+        .iter()
+        .position(|line| line.trim_start().starts_with("ignore:"));
+    let missing = suggestions
+        .iter()
+        .filter(|candidate| !ignore_block_has_entry(&lines, ignore_index, candidate))
+        .cloned()
+        .collect::<Vec<_>>();
+    if missing.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    if let Some(ignore_index) = ignore_index {
+        let ignore_value = lines[ignore_index].trim()["ignore:".len()..].trim();
+        if !ignore_value.is_empty() && ignore_value != "[]" {
+            return Err(copy::lookup("init.from-code.err-ignore-inline").to_owned());
+        }
+        if ignore_value == "[]" {
+            "ignore:".clone_into(&mut lines[ignore_index]);
+        }
+        let indent = ignore_block_indent(&lines, ignore_index);
+        let insert_at = ignore_block_end(&lines, ignore_index);
+        let rows = missing
+            .iter()
+            .map(|candidate| format!("{indent}- \"{}\"", yaml_quote(candidate)))
+            .collect::<Vec<_>>();
+        lines.splice(insert_at..insert_at, rows);
+    } else {
+        if !lines.is_empty() && !lines.last().is_some_and(String::is_empty) {
+            lines.push(String::new());
+        }
+        lines.push("ignore:".to_owned());
+        lines.extend(
+            missing
+                .iter()
+                .map(|candidate| format!("  - \"{}\"", yaml_quote(candidate))),
+        );
+    }
+
+    let content = format!("{}\n", lines.join("\n"));
+    atomic_write(root, &config_path, &content)?;
+    Ok(missing)
+}
+
+fn render_ignore_proposal(suggestions: &[String], header_key: &str) -> String {
+    if suggestions.is_empty() {
+        return String::new();
+    }
+    let mut rendered = copy::lookup(header_key).to_owned();
+    rendered.push('\n');
+    for suggestion in suggestions {
+        let _ = writeln!(rendered, "  - \"{}\"", yaml_quote(suggestion));
+    }
+    rendered
+}
+
 /// Report a completed discovery-only `cairn init --from-code`. Discovery is
-/// not the end of the cold start: the semantic review is, and the agent pack
-/// that would say so is not installed yet, so the ladder has to name the
-/// remaining steps itself.
-fn brownfield_init_report(change_id: &str, json: bool) -> CliResult {
+/// not the end of the cold start: the semantic review is, and the ignore list
+/// remains a proposal until the operator reruns with `--apply`.
+fn brownfield_init_report(change_id: &str, json: bool, ignore_suggestions: &[String]) -> CliResult {
     let actions = brownfield_next_actions(change_id);
     if json {
         // Same envelope family as the `--apply` branch of this command, which
@@ -126,12 +470,19 @@ fn brownfield_init_report(change_id: &str, json: bool) -> CliResult {
                     "change_id": change_id,
                     "change_path": format!("meta/changes/{change_id}"),
                     "applied": false,
+                    "ignore_suggestions": ignore_suggestions,
                     "next_actions": actions,
                 },
             })
         ));
     }
     let mut stdout = copy::lookup("init.from-code.done").replace("{change_id}", change_id);
+    let proposal =
+        render_ignore_proposal(ignore_suggestions, "init.from-code.ignore-proposal-header");
+    if !proposal.is_empty() {
+        stdout.push_str("\n\n");
+        stdout.push_str(&proposal);
+    }
     stdout.push_str("\n\n");
     stdout.push_str(copy::lookup("init.from-code.next-steps-header"));
     for (index, action) in actions.iter().enumerate() {
@@ -141,6 +492,9 @@ fn brownfield_init_report(change_id: &str, json: bool) -> CliResult {
     ok(stdout)
 }
 
+// Reason: apply completion threads the archive, wire, output, and ignore
+// policy values that must be resolved together at the CLI boundary.
+#[allow(clippy::too_many_arguments)]
 fn finish_brownfield_apply(
     mut result: CliResult,
     archive_path: Option<&Path>,
@@ -148,6 +502,7 @@ fn finish_brownfield_apply(
     change_id: &str,
     wire_file: Option<&str>,
     wire: bool,
+    applied_ignores: &[String],
     json: bool,
 ) -> CliResult {
     if result.code != 0 {
@@ -157,10 +512,6 @@ fn finish_brownfield_apply(
         );
         return result;
     }
-    let scaffold = init_project(root, wire);
-    if scaffold.code != 0 {
-        return scaffold;
-    }
     let Some(archive_path) = archive_path else {
         return err(
             1,
@@ -168,8 +519,14 @@ fn finish_brownfield_apply(
                 .replace("{detail}", "the archive command returned no destination"),
         );
     };
+    // Publish the archive completion marker before any resumable bootstrap
+    // work. If scaffolding or wiring fails, the next --apply resumes safely.
     if let Err(marker_error) = record_brownfield_apply(root, archive_path) {
         return marker_error;
+    }
+    let scaffold = init_project(root, wire);
+    if scaffold.code != 0 {
+        return scaffold;
     }
     let bootstrap = bootstrap_agent(root, wire_file, wire);
     if bootstrap.code != 0 {
@@ -178,11 +535,22 @@ fn finish_brownfield_apply(
     if json {
         return result;
     }
-    result.stdout = format!(
-        "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n{}\n{}",
-        result.stdout.trim_end(),
-        bootstrap.stdout
+    let applied_copy =
+        render_ignore_proposal(applied_ignores, "init.from-code.ignore-applied-header");
+    let mut stdout = format!(
+        "brownfield init complete; change `{change_id}` applied to cairn.blueprint\n\n{}",
+        result.stdout.trim_end()
     );
+    if !applied_copy.is_empty() {
+        stdout.push_str("\n\n");
+        stdout.push_str(applied_copy.trim_end());
+    }
+    if !bootstrap.stdout.trim().is_empty() {
+        stdout.push_str("\n\n");
+        stdout.push_str(bootstrap.stdout.trim_end());
+        stdout.push('\n');
+    }
+    result.stdout = stdout;
     result
 }
 
@@ -196,9 +564,14 @@ fn record_brownfield_apply(root: &Path, archive_path: &Path) -> Result<(), CliRe
                 .replace("{detail}", "the archived change name is invalid"),
         ));
     };
-    let parent = root.join(".cairn/state");
-    let marker = root.join(BROWNFIELD_APPLIED_MARKER);
-    atomic_write(&parent, &marker, name).map_err(|detail| {
+    let marker = contained_brownfield_path(root, BROWNFIELD_APPLIED_MARKER).map_err(|detail| {
+        err(
+            1,
+            &copy::lookup("init.err-completion-marker").replace("{detail}", &detail),
+        )
+    })?;
+    let parent = marker.parent().unwrap_or(root);
+    atomic_write(parent, &marker, name).map_err(|detail| {
         err(
             1,
             &copy::lookup("init.err-completion-marker").replace("{detail}", &detail),
@@ -311,6 +684,15 @@ pub fn run(args: &[String]) -> CliResult {
                 return preflight;
             }
         }
+        // The archive scan writes under `.cairn/`; reject symlinked archive
+        // paths before any apply-time scan or mutation can follow them.
+        if from_code && apply {
+            for relative in [BROWNFIELD_APPLIED_MARKER, BROWNFIELD_LOG_PATH] {
+                if let Err(path_error) = contained_brownfield_path(project_root, relative) {
+                    return error_output(parsed.json, "CAIRN_COMMAND_FAILED", &path_error);
+                }
+            }
+        }
         let force = parsed.command_args.iter().any(|a| a == "--force");
         if from_code
             && apply
@@ -326,15 +708,66 @@ pub fn run(args: &[String]) -> CliResult {
             );
         }
         if from_code {
+            let ignore_suggestions = match initial_ignore_suggestions(project_root) {
+                Ok(suggestions) => suggestions,
+                Err(detail) => {
+                    return error_output(
+                        parsed.json,
+                        "CAIRN_COMMAND_FAILED",
+                        &copy::lookup("init.from-code.err-ignore-scan")
+                            .replace("{detail}", &detail),
+                    );
+                }
+            };
+            if apply
+                && let Err(detail) =
+                    validate_initial_ignore_target(project_root, &ignore_suggestions)
+            {
+                return error_output(
+                    parsed.json,
+                    "CAIRN_COMMAND_FAILED",
+                    &copy::lookup("init.from-code.err-ignore-write").replace("{detail}", &detail),
+                );
+            }
             return match crate::brownfield::init::run_init_from_code(project_root, force) {
                 Ok(change_id) => {
                     if apply {
+                        let legacy_warning = legacy_blueprint_warning(project_root);
+                        let conflict_findings = hooks::detect_active_change_conflicts(
+                            &project_root.join("meta/changes"),
+                        );
+                        if !conflict_findings.is_empty() {
+                            return CliResult {
+                                code: 1,
+                                stdout: render_findings(
+                                    &conflict_findings,
+                                    parsed.json,
+                                    parsed.verbose,
+                                ),
+                                stderr: legacy_warning,
+                            };
+                        }
+                        // Write confirmed ignores before archive so its scan
+                        // reconciles the project with the proposed paths.
+                        let applied_ignores = match append_initial_ignore_entries(
+                            project_root,
+                            &ignore_suggestions,
+                        ) {
+                            Ok(entries) => entries,
+                            Err(detail) => {
+                                return error_output(
+                                    parsed.json,
+                                    "CAIRN_COMMAND_FAILED",
+                                    &copy::lookup("init.from-code.err-ignore-write")
+                                        .replace("{detail}", &detail),
+                                );
+                            }
+                        };
                         // Delegate to the archive command so `--apply` shares
                         // the conflict gate and path handling of `change apply`.
                         // Use the paths init actually wrote (it hardcodes
                         // cairn.blueprint and meta/changes), not --file /
                         // --changes-dir overrides.
-                        let legacy_warning = legacy_blueprint_warning(project_root);
                         let archive_parsed = delegated_archive_args(
                             &parsed,
                             project_root.join("cairn.blueprint"),
@@ -353,10 +786,11 @@ pub fn run(args: &[String]) -> CliResult {
                             &change_id,
                             wire_file,
                             wire,
+                            &applied_ignores,
                             parsed.json,
                         )
                     } else {
-                        brownfield_init_report(&change_id, parsed.json)
+                        brownfield_init_report(&change_id, parsed.json, &ignore_suggestions)
                     }
                 }
                 Err(e) => err(1, &e.to_string()),
@@ -1594,6 +2028,182 @@ mod tests {
         );
         Ok(())
     }
+    #[test]
+    fn test_cli_init_from_code_proposes_ignore_scaffolding_before_apply()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ignore-proposal")?;
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/web/dist"))?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+
+        let result = run_in(&root, &["init", "--from-code"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        assert!(
+            result.stdout.contains("packages/api/dist"),
+            "proposal must include detected generated directories: {}",
+            result.stdout
+        );
+        assert!(
+            result.stdout.contains("node_modules"),
+            "proposal must include package-manager output: {}",
+            result.stdout
+        );
+        assert!(
+            !root.join("cairn.config.yaml").exists(),
+            "proposal must not write config before --apply"
+        );
+
+        let json_root = from_code_root("init-from-code-ignore-json")?;
+        fs::write(json_root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(json_root.join("packages/web/dist"))?;
+        fs::create_dir_all(json_root.join("packages/api/dist"))?;
+        let json = run_in(&json_root, &["--json", "init", "--from-code"]);
+        assert_eq!(json.code, 0, "stderr: {}", json.stderr);
+        let payload: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+        assert_eq!(
+            payload["data"]["ignore_suggestions"],
+            serde_json::json!(["node_modules", "packages/api/dist", "packages/web/dist"])
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_writes_confirmed_ignore_scaffolding()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ignore-apply")?;
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/web/dist"))?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "ignore:\n  - custom-generated\ncontext: \"keep this\"\nrules: {}\n",
+        )?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let config = fs::read_to_string(root.join("cairn.config.yaml"))?;
+        assert!(config.contains("  - custom-generated"));
+        assert!(config.contains("  - \"packages/api/dist\""));
+        assert!(config.contains("  - \"packages/web/dist\""));
+        assert!(config.contains("  - \"node_modules\""));
+        assert!(config.contains("context: \"keep this\""));
+        let loaded = scanner::config::load(&root)?;
+        assert!(loaded.ignores.contains(&"packages/api/dist".to_owned()));
+        assert!(loaded.ignores.contains(&"packages/web/dist".to_owned()));
+        assert!(loaded.ignores.contains(&"node_modules".to_owned()));
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_scaffolds_ignores_without_existing_config()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ignore-no-config")?;
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+        fs::write(root.join("packages/api/dist/generated.js"), "generated\n")?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 0, "stderr: {}", result.stderr);
+        let config = fs::read_to_string(root.join("cairn.config.yaml"))?;
+        assert!(config.contains("  - target"));
+        assert!(config.contains("  - \"node_modules\""));
+        assert!(config.contains("  - \"packages/api/dist\""));
+        let loaded = scanner::config::load(&root)?;
+        assert!(loaded.ignores.contains(&"packages/api/dist".to_owned()));
+        let scan = scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+        assert!(
+            !scan.graph.findings.iter().any(|finding| {
+                finding.path.as_deref() == Some("packages/api/dist")
+                    || finding.message.contains("packages/api/dist")
+            }),
+            "archive scan must see the confirmed ignore before deriving findings"
+        );
+        let map = fs::read_to_string(root.join("map.md"))?;
+        assert!(
+            !map.contains("packages/api/dist"),
+            "persisted map must not retain the ignored orphan path: {map}"
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_cli_init_from_code_apply_conflict_does_not_write_ignores()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ignore-conflict")?;
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+        fs::write(root.join("packages/api/dist/generated.js"), "generated\n")?;
+        let original = "ignore:\n  - custom-generated\ncontext: \"keep this\"\nrules: {}\n";
+        fs::write(root.join("cairn.config.yaml"), original)?;
+
+        let conflicting = root.join("meta/changes/conflicting");
+        fs::create_dir_all(&conflicting)?;
+        fs::write(conflicting.join("proposal.md"), "# Conflicting proposal\n")?;
+        fs::write(
+            conflicting.join("blueprint.delta"),
+            "## ADDED Nodes\nModule Alpha \"Alpha\" id \"src.alpha\" {\n    path \"./src/alpha\"\n}\n",
+        )?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 1, "archive conflicts must fail closed");
+        assert!(
+            result.stdout.contains("CAIRN_CHANGE_BLUEPRINT_CONFLICT"),
+            "conflict must be reported before writing ignores: {}",
+            result.stdout
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("cairn.config.yaml"))?,
+            original,
+            "archive conflict must not leave config partially mutated"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_init_from_code_apply_rejects_inline_ignore_list_without_mutation()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-ignore-inline")?;
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/web/dist"))?;
+        let original = "ignore: [custom-generated]\ncontext: \"keep this\"\n";
+        fs::write(root.join("cairn.config.yaml"), original)?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 1, "inline ignore lists must fail closed");
+        assert!(
+            result.stdout.contains("inline `ignore:` list")
+                || result.stderr.contains("inline `ignore:` list"),
+            "error should explain how to recover: stdout={} stderr={}",
+            result.stdout,
+            result.stderr
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("cairn.config.yaml"))?,
+            original
+        );
+        assert!(
+            !root.join("meta/changes/brownfield-init").exists(),
+            "config validation must happen before discovery writes a change"
+        );
+        assert!(
+            !root.join(BROWNFIELD_APPLIED_MARKER).exists(),
+            "config validation must happen before completion is recorded"
+        );
+        let json_root = from_code_root("init-from-code-ignore-inline-json")?;
+        fs::write(json_root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(json_root.join("packages/web/dist"))?;
+        fs::write(json_root.join("cairn.config.yaml"), original)?;
+        let json = run_in(&json_root, &["--json", "init", "--from-code", "--apply"]);
+        assert_eq!(json.code, 1);
+        assert!(json.stderr.is_empty(), "JSON failures belong on stdout");
+        let envelope: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+        assert_eq!(envelope["findings"][0]["code"], "CAIRN_COMMAND_FAILED");
+        assert!(
+            envelope["findings"][0]["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("inline `ignore:` list"))
+        );
+        Ok(())
+    }
 
     #[test]
     fn test_cli_init_from_code_apply_json_emits_archive_envelope()
@@ -1603,10 +2213,18 @@ mod tests {
         for i in 0..3 {
             fs::write(root.join(format!("src/alpha/f{i}.rs")), "pub fn f() {}\n")?;
         }
+        fs::write(root.join("package.json"), "{}\n")?;
+        fs::create_dir_all(root.join("packages/api/dist"))?;
+        fs::write(root.join("packages/api/dist/generated.js"), "generated\n")?;
         let result = run_in(&root, &["--json", "init", "--from-code", "--apply"]);
         assert_eq!(result.code, 0, "stderr: {}", result.stderr);
         let parsed: serde_json::Value = serde_json::from_str(result.stdout.trim())
             .unwrap_or_else(|e| panic!("json mode must emit valid JSON ({e}): {}", result.stdout));
+        assert!(
+            fs::read_to_string(root.join("cairn.config.yaml"))?
+                .contains("  - \"packages/api/dist\""),
+            "JSON apply must still write confirmed ignore entries"
+        );
         assert_eq!(parsed["command"], "archive");
         assert!(result.stderr.is_empty(), "stderr: {}", result.stderr);
         Ok(())
@@ -1711,6 +2329,23 @@ mod tests {
     }
 
     #[test]
+    fn test_init_from_code_ignore_proposal_snapshots() -> Result<(), Box<dyn std::error::Error>> {
+        let suggestions = vec![
+            "node_modules".to_owned(),
+            "packages/api/dist".to_owned(),
+            "packages/web/dist".to_owned(),
+        ];
+        let human = brownfield_init_report("brownfield-init", false, &suggestions);
+        assert_eq!(human.code, 0);
+        insta::assert_snapshot!("init_from_code_ignore_human", human.stdout);
+
+        let json = brownfield_init_report("brownfield-init", true, &suggestions);
+        let payload: serde_json::Value = serde_json::from_str(&json.stdout)?;
+        insta::assert_json_snapshot!("init_from_code_ignore_json", payload);
+        Ok(())
+    }
+
+    #[test]
     fn test_init_from_code_copy_keys_resolve() {
         // `copy::lookup` falls back to the key itself, so a renamed or
         // mistyped key would print `init.from-code.done` at exit 0 on the
@@ -1719,6 +2354,16 @@ mod tests {
             "init.from-code.done",
             "init.from-code.next-steps-header",
             "init.from-code.next-actions",
+            "init.from-code.ignore-proposal-header",
+            "init.from-code.ignore-applied-header",
+            "init.from-code.err-ignore-scan",
+            "init.from-code.err-ignore-write",
+            "init.from-code.err-ignore-inspect",
+            "init.from-code.err-ignore-config-inspect",
+            "init.from-code.err-ignore-not-regular",
+            "init.from-code.err-ignore-read",
+            "init.from-code.err-ignore-unsafe-path",
+            "init.from-code.err-ignore-inline",
         ] {
             assert_ne!(copy::lookup(key), key, "missing copy key {key}");
         }
@@ -1861,12 +2506,95 @@ mod tests {
             stdout: String::new(),
             stderr: "conflict".to_owned(),
         };
-        let result =
-            finish_brownfield_apply(failed, None, &root, "brownfield-init", None, true, false);
+        let result = finish_brownfield_apply(
+            failed,
+            None,
+            &root,
+            "brownfield-init",
+            None,
+            true,
+            &[],
+            false,
+        );
         assert_eq!(result.code, 1);
         assert!(!root.join(".cairn/state/agent-pack.json").exists());
         assert!(!root.join(".claude/skills/cairn-dev/SKILL.md").exists());
         assert!(!root.join("AGENTS.md").exists());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_brownfield_apply_rejects_symlinked_state_before_archive()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::unix::fs::symlink;
+
+        let root = from_code_root("init-from-code-symlink-state")?;
+        let outside = tempfile::tempdir()?;
+        fs::create_dir_all(outside.path().join("state"))?;
+        fs::create_dir_all(root.join(".cairn"))?;
+        symlink(outside.path().join("state"), root.join(".cairn/state"))?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 1, "symlinked state must fail closed");
+        assert!(
+            result.stdout.contains("symlink") || result.stderr.contains("symlink"),
+            "error must identify the containment failure: stdout={} stderr={}",
+            result.stdout,
+            result.stderr
+        );
+        for relative in [
+            "state/brownfield-init-applied",
+            "state/interface-hashes.json",
+            "state/blueprint-snapshot.json",
+        ] {
+            assert!(
+                !outside.path().join(relative).exists(),
+                "no archive output may escape through the state symlink: {relative}"
+            );
+        }
+        assert!(
+            !root.join("meta/changes/archive").exists(),
+            "symlink preflight must reject before creating an archive"
+        );
+        let json = run_in(&root, &["--json", "init", "--from-code", "--apply"]);
+        assert_eq!(json.code, 1);
+        assert!(json.stderr.is_empty(), "JSON failures belong on stdout");
+        let envelope: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+        assert_eq!(envelope["findings"][0]["code"], "CAIRN_COMMAND_FAILED");
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_brownfield_apply_rejects_symlinked_log_before_archive()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::unix::fs::symlink;
+
+        let root = from_code_root("init-from-code-symlink-log")?;
+        let outside = tempfile::tempdir()?;
+        let outside_log = outside.path().join("log.md");
+        fs::write(&outside_log, "sentinel\n")?;
+        fs::create_dir_all(root.join(".cairn"))?;
+        symlink(&outside_log, root.join(".cairn/log.md"))?;
+
+        let result = run_in(&root, &["init", "--from-code", "--apply"]);
+        assert_eq!(result.code, 1, "symlinked log must fail closed");
+        assert!(
+            result.stdout.contains("symlink") || result.stderr.contains("symlink"),
+            "error must identify the containment failure: stdout={} stderr={}",
+            result.stdout,
+            result.stderr
+        );
+        assert_eq!(
+            fs::read_to_string(&outside_log)?,
+            "sentinel\n",
+            "archive must not write through a log symlink"
+        );
+        assert!(
+            !root.join("meta/changes/archive").exists(),
+            "symlink preflight must reject before creating an archive"
+        );
         Ok(())
     }
 

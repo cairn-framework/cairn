@@ -60,13 +60,12 @@ and its subpackages and carries the evidence for that ruling. The second
 implements the chosen rule and pins the round-trip. This todo flips to `done`
 when the second lands.
 
-2026-08-07: `todo.brownfield-nested-package-scan-clean` was itself decomposed
-under the sizing rule and is now `blocked` on three grandchildren
-(`todo.order-cycle-scc-enumeration`, `todo.blueprint-edge-provenance`,
-`todo.order-cycle-discovery-severity`). The flip-to-done rule above is
-unchanged; the chain is one level longer. The selectable work under this
-umbrella is the first two grandchildren, which are `open` and independent of
-each other.
+2026-08-08: `todo.order-cycle-scc-enumeration` landed as done in PR #618.
+The nested todo remains blocked on the remaining `todo.blueprint-edge-provenance`
+and `todo.order-cycle-discovery-severity` units; the severity unit remains
+blocked on both its enumeration and provenance prerequisites.
+The selectable work under this umbrella is the open provenance unit. The
+severity unit becomes selectable after provenance lands.
 
 ## Mission disposition
 
