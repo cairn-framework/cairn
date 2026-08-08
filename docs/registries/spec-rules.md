@@ -34,12 +34,12 @@ passes scan into tracked cairn state, the way the spec mandates (spec.md:24). Se
   deferred** (its build parked behind a prerequisite capability) with the
   rationale recorded in a decision artefact. The Info finding stays the honest
   tracker either way, so deferral needs no separate status. Example:
-  `spec:634` is deferred by `dec.revisit-trigger-correlator-deferred` pending a
+  `spec:675` is deferred by `dec.revisit-trigger-correlator-deferred` pending a
   relevance-judging capability, yet remains `pending` because the rule is Designed.
 - `declared`: named in the spec at Declared maturity (see
   `docs/registries/declared-items.md`), not yet designed enough to enforce.
   Exempt: listed for completeness, never flagged. This is the principled line
-  between `spec:634` (`pending`: the tension is Designed) and `spec:635`/`spec:636`
+  between `spec:675` (`pending`: the tension is Designed) and `spec:676`/`spec:677`
   (`declared`: their edge-divergence / docstring-drift checks depend on the
   semantic-analysis strategy that spec section 17 deliberately leaves uncommitted,
   so they are not yet designed enough to enforce).
