@@ -6,6 +6,7 @@ use super::*;
 use std::{
     collections::{BTreeMap, BTreeSet},
     io,
+    path::Component,
 };
 
 use crate::{
@@ -190,8 +191,25 @@ pub(super) fn info(
     }
 }
 
+/// Returns the lexical path spelling used on artefact records and findings.
+///
+/// `Path::components` removes redundant current-directory components and
+/// separators without touching the filesystem, so a walked path such as
+/// `././meta/todos/todo.example.md` is stored as `meta/todos/todo.example.md`.
 pub(super) fn path_string(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
+    let mut normalized = PathBuf::new();
+    let mut saw_component = false;
+    for component in path.components() {
+        saw_component = true;
+        if component == Component::CurDir {
+            continue;
+        }
+        normalized.push(component.as_os_str());
+    }
+    if normalized.as_os_str().is_empty() && saw_component {
+        normalized.push(".");
+    }
+    normalized.to_string_lossy().into_owned()
 }
 
 pub(super) fn is_url(value: &str) -> bool {

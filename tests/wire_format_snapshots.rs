@@ -83,7 +83,7 @@ fn wire_format_snapshots() -> Result<(), Box<dyn std::error::Error>> {
 
         // Webui envelopes have an independent schema lifecycle from query_api.
         assert_eq!(
-            version, 11,
+            version, 12,
             "{snapshot_name} must use the pinned webui wire schema version"
         );
 

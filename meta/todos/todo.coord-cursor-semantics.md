@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.query
-status: open
+status: done
 created: 2026-08-07
 related: [res.chatgpt-architecture-review, todo.coord-fact-store-hardening]
 ---

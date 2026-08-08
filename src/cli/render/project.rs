@@ -4,7 +4,7 @@
 use super::super::format::{flag_value, lines, node_arg, string_array_json, todos_json};
 use super::super::*;
 use super::{scan_error_count, scan_info_count, scan_warning_count};
-use crate::query_api::{QueryFlag, QueryRequest};
+use crate::query_api::{QueryFlag, QueryRequest, QuerySince};
 use std::collections::BTreeSet;
 
 /// Renders the beads (issues) linked to a node via their `cairn-node:<id>`
@@ -67,7 +67,7 @@ fn render_status_brief(
     );
     out.push('\n');
     for todo in open.iter().take(5) {
-        out.push_str(&super::super::format::todo_line(todo));
+        out.push_str(&super::super::format::todo_line(todo, root));
         out.push('\n');
     }
     let remaining = open.len().saturating_sub(5);
@@ -151,7 +151,7 @@ pub(crate) fn render_status(
         });
         format!(
             "{{\"active_changes\":[],\"open_todos\":{},\"recent_log_entries\":{},\"next_recommended\":{next_json}}}\n",
-            todos_json(&open),
+            todos_json(&open, root),
             string_array_json(&log_entries),
         )
     } else if parsed.brief {
@@ -166,7 +166,7 @@ pub(crate) fn render_status(
             lines(
                 &open
                     .iter()
-                    .map(super::super::format::todo_line)
+                    .map(|todo| super::super::format::todo_line(todo, root))
                     .collect::<Vec<_>>()
             ),
             lines(&log_entries),
@@ -232,7 +232,10 @@ pub(crate) fn render_wave(
     let request = QueryRequest {
         tool: if stats { "wave stats" } else { "wave" }.to_owned(),
         at: flag_value(&parsed.command_args, "--at").map(ToOwned::to_owned),
-        since: flag_value(&parsed.command_args, "--since").map(ToOwned::to_owned),
+        since: stats
+            .then(|| flag_value(&parsed.command_args, "--since"))
+            .flatten()
+            .map(|since| QuerySince::WaveStatsTimestamp(since.to_owned())),
         ..QueryRequest::default()
     };
     let changes_dir = root.join(&parsed.changes_dir);

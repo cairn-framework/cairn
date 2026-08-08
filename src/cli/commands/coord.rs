@@ -63,7 +63,8 @@ fn coordination_query(
         tool: tool.to_owned(),
         node: fact_id,
         at: flag_value(&parsed.command_args, "--at").map(ToOwned::to_owned),
-        since: flag_value(&parsed.command_args, "--since").map(ToOwned::to_owned),
+        since: flag_value(&parsed.command_args, "--since")
+            .map(|cursor| crate::query_api::QuerySince::CoordinationCursor(cursor.to_owned())),
         ..Default::default()
     };
     let changes_dir = root.join(&parsed.changes_dir);

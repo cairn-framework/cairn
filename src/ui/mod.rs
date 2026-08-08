@@ -80,7 +80,7 @@ static COPY_JSON: LazyLock<String> = LazyLock::new(|| {
     serde_json::to_string(&table).expect("TOML table must serialise to JSON")
 });
 
-const SCHEMA_VERSION: u32 = 11;
+const SCHEMA_VERSION: u32 = 12;
 
 /// Runtime options for the graph explorer server.
 #[derive(Clone, Debug, Eq, PartialEq)]
