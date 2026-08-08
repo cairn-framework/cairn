@@ -33,6 +33,15 @@ run() {
   fi
 }
 
+decode_base64() {
+  # BSD base64 uses -D, while GNU base64 accepts --decode.
+  if base64 --decode </dev/null >/dev/null 2>&1; then
+    base64 --decode
+  else
+    base64 -D
+  fi
+}
+
 # Ensure labels exist (idempotent; create fails silently when present).
 if [ "$DRY_RUN" -eq 0 ]; then
   gh label create "$LABEL" --description "Mirrored from meta/todos (read-only projection)" --color 5319e7 2>/dev/null || true
@@ -47,16 +56,14 @@ PROJECTION="$(gh issue list --label "$LABEL" --state all --limit 500 \
   --json number,state,title,body \
   --jq '.[] | [(.number|tostring), .state, .title,
         ((.body | capture("cairn-todo: todo\\.(?<s>[A-Za-z0-9._-]+)").s) // ""),
-        ((.body | capture("\nstatus: (?<st>[a-z_]+)").st) // ""),
-        ((.body | capture("\nnode: (?<n>[A-Za-z0-9._-]+)").n) // "")] | @tsv')"
-declare -A ISSUE_NUM ISSUE_STATE ISSUE_TITLE ISSUE_STATUS ISSUE_NODE
-while IFS=$'\t' read -r number state title slug status node_field; do
+        ((.body // "") | @base64)] | @tsv')"
+declare -A ISSUE_NUM ISSUE_STATE ISSUE_TITLE ISSUE_BODY_B64
+while IFS=$'\t' read -r number state title slug body_b64; do
   [ -n "$slug" ] || continue
   ISSUE_NUM["$slug"]="$number"
   ISSUE_STATE["$slug"]="$state"
   ISSUE_TITLE["$slug"]="$title"
-  ISSUE_STATUS["$slug"]="$status"
-  ISSUE_NODE["$slug"]="$node_field"
+  ISSUE_BODY_B64["$slug"]="$body_b64"
 done <<<"$PROJECTION"
 
 # Desired state from canonical todo files.
@@ -65,9 +72,9 @@ for file in "$TODO_DIR"/todo.*.md; do
   [ -e "$file" ] || continue
   slug="$(basename "$file" .md)"; slug="${slug#todo.}"
   SEEN["$slug"]=1
-  status="$(sed -n 's/^status:[[:space:]]*//p' "$file" | head -1)"
-  node="$(sed -n 's/^node:[[:space:]]*//p' "$file" | head -1)"
-  title="$(sed -n 's/^#[[:space:]]\{1,\}//p' "$file" | head -1)"
+  status="$(sed -n 's/^status:[[:space:]]*//p' "$file" | head -1 | sed 's/\r$//')"
+  node="$(sed -n 's/^node:[[:space:]]*//p' "$file" | head -1 | sed 's/\r$//')"
+  title="$(sed -n 's/^#[[:space:]]\{1,\}//p' "$file" | head -1 | sed 's/\r$//')"
   [ -n "$title" ] || title="$slug"
   case "$status" in
     done) want_state="CLOSED" ;;
@@ -75,13 +82,30 @@ for file in "$TODO_DIR"/todo.*.md; do
     *) echo "skip $file: unknown status '$status'" >&2; continue ;;
   esac
   want_title="[todo] $title"
+  frontmatter_end="$(awk '
+    NR == 1 {
+      line=$0
+      sub(/\r$/, "", line)
+      if (line == "---") { in_frontmatter=1; next }
+    }
+    in_frontmatter {
+      line=$0
+      sub(/\r$/, "", line)
+      if (line == "---") { print NR; exit }
+    }
+  ' "$file")"
+  if [ -n "$frontmatter_end" ]; then
+    todo_markdown="$(tail -n "+$((frontmatter_end + 1))" "$file"; printf '\034')"
+  else
+    todo_markdown="$(cat "$file"; printf '\034')"
+  fi
+  todo_markdown="${todo_markdown%$'\034'}"
   body="${MARKER_PREFIX}${slug}
 node: ${node}
 status: ${status}
 artefact: ${file}
-
-Mirrored from the canonical todo artefact. Files in git are the source of
-truth; edits here are never read back (dec.bead-github-sync)."
+one-way mirror of a cairn todo; edits here are not read back, dec.task-tracking-authority
+${todo_markdown}"
 
   if [ -z "${ISSUE_NUM[$slug]:-}" ]; then
     # New todo. A done todo with no issue needs no projection.
@@ -97,13 +121,17 @@ truth; edits here are never read back (dec.bead-github-sync)."
   fi
 
   number="${ISSUE_NUM[$slug]}"
+  issue_body=""
+  if [ -n "${ISSUE_BODY_B64[$slug]:-}" ]; then
+    issue_body="$(printf '%s' "${ISSUE_BODY_B64[$slug]}" | decode_base64; printf '\034')"
+    issue_body="${issue_body%$'\034'}"
+  fi
   if [ "${ISSUE_TITLE[$slug]}" != "$want_title" ]; then
     echo "retitle #$number: $slug"
     run gh issue edit "$number" --title "$want_title"
   fi
-  if [ "${ISSUE_STATUS[$slug]:-}" != "$status" ] || [ "${ISSUE_NODE[$slug]:-}" != "$node" ]; then
-    # Canonical status or node changed (or the derived body was edited on
-    # GitHub): rewrite the projected body so files win on the next sync.
+  if [ "$issue_body" != "$body" ]; then
+    # The canonical full render wins whenever the fetched issue body differs.
     echo "rebody #$number: $slug ($status, $node)"
     run gh issue edit "$number" --body "$body"
   fi

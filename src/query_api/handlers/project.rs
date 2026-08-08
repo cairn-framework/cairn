@@ -70,7 +70,7 @@ pub(crate) fn status_json(
         .iter()
         .filter(|todo| todo.status == TodoStatus::Open || todo.status == TodoStatus::InProgress)
         .map(|todo| StatusTodo {
-            path: todo.path.clone(),
+            path: relative_path(&todo.path, root),
             node: todo.node.clone(),
             status: todo_status(todo.status).to_owned(),
             created: todo.created.clone(),
