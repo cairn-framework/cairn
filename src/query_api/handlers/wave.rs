@@ -18,7 +18,7 @@ use crate::map::paths::is_component_prefix;
 use crate::query_api::wave::compose::compose_wave;
 use crate::scanner;
 
-use super::super::{QueryError, QueryRequest, SCHEMA_VERSION};
+use super::super::{QueryError, QueryRequest, QuerySince, SCHEMA_VERSION};
 
 /// The rolling window over exclusions with merge evidence.
 const STATS_WINDOW: usize = 20;
@@ -29,6 +29,13 @@ fn coord_error(message: String) -> QueryError {
         message,
         source_span: None,
         remediation: None,
+    }
+}
+
+fn wave_stats_since(request: &QueryRequest) -> Option<&str> {
+    match request.since.as_ref() {
+        Some(QuerySince::WaveStatsTimestamp(since)) => Some(since.as_str()),
+        _ => None,
     }
 }
 
@@ -108,6 +115,7 @@ pub(in crate::query_api) fn wave_stats_json(
     root: &Path,
     request: &QueryRequest,
 ) -> Result<Value, QueryError> {
+    let since = wave_stats_since(request);
     let facts = match read_facts(root).map_err(coord_error)? {
         StoreRead::Uninitialised => {
             return Ok(json!({
@@ -126,12 +134,7 @@ pub(in crate::query_api) fn wave_stats_json(
     let mut evidenced: Vec<(&str, bool)> = facts
         .iter()
         .filter(|named| named.fact.kind == "outcome.touched_files")
-        .filter(|named| {
-            request
-                .since
-                .as_deref()
-                .is_none_or(|since| named.fact.recorded_at.as_str() >= since)
-        })
+        .filter(|named| since.is_none_or(|since| named.fact.recorded_at.as_str() >= since))
         .filter_map(|named| {
             let prefixes = named.fact.payload.get("excluded_by_prefixes")?.as_array()?;
             let files = named.fact.payload.get("files")?.as_array()?;
@@ -170,4 +173,25 @@ pub(in crate::query_api) fn wave_stats_json(
         "false_overlap_rate": rate,
         "threshold": Value::Null,
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn wave_stats_uses_its_timestamp_since_variant() {
+        let timestamp = "2026-08-07T03:45:12Z";
+        let request = QueryRequest {
+            since: Some(QuerySince::WaveStatsTimestamp(timestamp.to_owned())),
+            ..QueryRequest::default()
+        };
+        assert_eq!(wave_stats_since(&request), Some(timestamp));
+
+        let request = QueryRequest {
+            since: Some(QuerySince::CoordinationCursor("fact.json".to_owned())),
+            ..QueryRequest::default()
+        };
+        assert_eq!(wave_stats_since(&request), None);
+    }
 }

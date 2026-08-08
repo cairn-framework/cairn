@@ -8,7 +8,7 @@ use std::{
 
 use serde_json::{Value, json};
 
-use crate::query_api::{self, QueryFlag, QueryRequest, SafetyClass};
+use crate::query_api::{self, QueryFlag, QueryRequest, QuerySince, SafetyClass};
 
 /// MCP server configuration.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -182,7 +182,7 @@ fn request_from_arguments(
         node: string_arg(arguments, "node").or_else(|| string_arg(arguments, "id")),
         symbol: string_arg(arguments, "symbol"),
         at: string_arg(arguments, "at"),
-        since: string_arg(arguments, "since"),
+        since: query_since(name, arguments),
         change: string_arg(arguments, "change").or_else(|| string_arg(arguments, "change_id")),
         old_id: string_arg(arguments, "old_id"),
         new_id: string_arg(arguments, "new_id"),
@@ -196,6 +196,21 @@ fn request_from_arguments(
             flags
         },
         mutating: allow_mutating_tools && bool_arg(arguments, "mutating"),
+    }
+}
+
+fn query_since(name: &str, arguments: &Value) -> Option<QuerySince> {
+    match name {
+        "ruling list"
+        | "lease list"
+        | "cairn_coordination_rulings"
+        | "cairn_coordination_leases" => {
+            string_arg(arguments, "cursor").map(QuerySince::CoordinationCursor)
+        }
+        "wave stats" | "cairn_wave_stats" => {
+            string_arg(arguments, "since").map(QuerySince::WaveStatsTimestamp)
+        }
+        _ => None,
     }
 }
 
@@ -229,7 +244,7 @@ fn tools_json(allow_mutating: bool) -> Vec<Value> {
             json!({
                 "name": tool.mcp_name,
                 "description": tool_description(tool.cli_name, tool.safety),
-                "inputSchema": input_schema(tool.request_schema),
+                "inputSchema": input_schema_for_tool(tool.cli_name, tool.request_schema),
                 "annotations": {
                     "readOnlyHint": tool.safety == SafetyClass::ReadOnly,
                     "destructiveHint": tool.safety == SafetyClass::Mutating,
@@ -247,16 +262,50 @@ fn tools_json(allow_mutating: bool) -> Vec<Value> {
         })
         .collect()
 }
-
+#[cfg(test)]
 fn input_schema(schema: &str) -> Value {
-    let properties = match schema {
-        "NodeRequest" | "ArtefactNodeRequest" => json!({
-            "node": { "type": "string" },
-        }),
-        "CoordinationRequest" => json!({
+    input_schema_for_tool("", schema)
+}
+
+fn input_schema_for_tool(tool: &str, schema: &str) -> Value {
+    let properties = match (tool, schema) {
+        ("wave", "CoordinationRequest") => json!({
             "at": { "type": "string" },
-            "since": { "type": "string" },
         }),
+        ("wave stats", "CoordinationRequest") => json!({
+            "at": { "type": "string" },
+            "since": { "type": "string", "description": "RFC 3339 recorded_at lower bound" },
+        }),
+        (_, "CoordinationRequest") => json!({
+            "at": { "type": "string" },
+            "cursor": { "type": "string", "description": "fact filename cursor" },
+        }),
+        ("wave", _) => json!({
+            "at": { "type": "string" },
+        }),
+        ("wave stats", _) => json!({
+            "at": { "type": "string" },
+            "since": { "type": "string", "description": "RFC 3339 recorded_at lower bound" },
+        }),
+        (_, "CoordinationShowRequest") => json!({
+            "node": { "type": "string" },
+            "at": { "type": "string" },
+        }),
+        ("ruling list" | "lease list", _) => json!({
+            "at": { "type": "string" },
+            "cursor": { "type": "string", "description": "fact filename cursor" },
+        }),
+        _ => input_schema_properties(schema),
+    };
+    json!({
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": true,
+    })
+}
+
+fn input_schema_properties(schema: &str) -> Value {
+    match schema {
         "CoordinationShowRequest" => json!({
             "node": { "type": "string" },
             "at": { "type": "string" },
@@ -319,12 +368,7 @@ fn input_schema(schema: &str) -> Value {
             "kind": { "type": "string", "enum": ["structural", "interface", "tension", "architecture-decision", "all"] },
         }),
         _ => json!({}),
-    };
-    json!({
-        "type": "object",
-        "properties": properties,
-        "additionalProperties": true,
-    })
+    }
 }
 
 fn tool_description(name: &str, safety: SafetyClass) -> String {
@@ -375,3 +419,40 @@ fn help_text() -> String {
 }
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod since_schema_tests {
+    use super::*;
+
+    #[test]
+    fn coordination_and_wave_stats_advertise_distinct_lower_bounds() {
+        let coordination = input_schema_for_tool("ruling list", "CoordinationRequest");
+        assert!(coordination["properties"]["cursor"].is_object());
+        assert!(coordination["properties"]["since"].is_null());
+
+        let stats = input_schema_for_tool("wave stats", "CoordinationRequest");
+        assert!(stats["properties"]["since"].is_object());
+        assert!(stats["properties"]["cursor"].is_null());
+
+        let coordination_request = request_from_arguments(
+            "cairn_coordination_rulings",
+            &json!({ "cursor": "fact" }),
+            false,
+        );
+        assert_eq!(
+            coordination_request.since,
+            Some(QuerySince::CoordinationCursor("fact".to_owned()))
+        );
+        let stats_request = request_from_arguments(
+            "cairn_wave_stats",
+            &json!({ "since": "2026-08-07T00:00:00Z" }),
+            false,
+        );
+        assert_eq!(
+            stats_request.since,
+            Some(QuerySince::WaveStatsTimestamp(
+                "2026-08-07T00:00:00Z".to_owned()
+            ))
+        );
+    }
+}
