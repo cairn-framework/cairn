@@ -64,8 +64,10 @@ frontmatter_scalar() {
       prefix = key ":"
       if (index(line, prefix) == 1) {
         value = substr(line, length(prefix) + 1)
-        sub(/^[[:space:]]*/, "", value)
         sub(/[[:space:]]*#.*$/, "", value)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+        sub(/^[\047"]+/, "", value)
+        sub(/[\047"]+$/, "", value)
         print value
         exit
       }
@@ -78,8 +80,11 @@ frontmatter_list() {
   local key="$1"
   local file="$2"
   awk -v key="$key" '
-    function trim(value) {
+    function clean(value) {
+      sub(/[[:space:]]*#.*$/, "", value)
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      sub(/^[\047"]+/, "", value)
+      sub(/[\047"]+$/, "", value)
       return value
     }
     NR == 1 {
@@ -101,15 +106,14 @@ frontmatter_list() {
         if (field != key) next
         value = line
         sub(/^[^:]*:[[:space:]]*/, "", value)
-        sub(/[[:space:]]*#.*$/, "", value)
         if (value ~ /^\[.*\]$/) {
           value = substr(value, 2, length(value) - 2)
           count = split(value, items, ",")
           for (i = 1; i <= count; i++) {
-            item = trim(items[i])
+            item = clean(items[i])
             if (item != "") print item
           }
-        } else if (value == "") {
+        } else if (clean(value) == "") {
           active = 1
         }
         next
@@ -117,7 +121,7 @@ frontmatter_list() {
       if (active && line ~ /^[[:space:]]*-[[:space:]]*/) {
         item = line
         sub(/^[[:space:]]*-[[:space:]]*/, "", item)
-        item = trim(item)
+        item = clean(item)
         if (item != "") print item
       }
     }
@@ -137,17 +141,26 @@ resolve_ref() {
   printf '%s' "$ref"
 }
 
-# Sort by canonical todo references before converting them to issue numbers.
-# This keeps rendering stable even when authored list order changes.
+# Resolve every todo reference before sorting. GitHub issue numbers are the
+# stable projection key, so an inventory whose numbers differ from slug order
+# cannot reshuffle links between runs.
 resolve_list() {
   local refs="$1"
   printf '%s\n' "$refs" |
-    sort -u |
     while IFS= read -r ref; do
       [ -n "$ref" ] || continue
-      resolve_ref "$ref"
-      printf '\n'
+      if [[ "$ref" == todo.* ]]; then
+        local slug="${ref#todo.}"
+        local number="${ISSUE_NUM[$slug]:-}"
+        if [ -n "$number" ]; then
+          printf '0\t%020d\t#%s\n' "$number" "$number"
+          continue
+        fi
+      fi
+      printf '1\t0\t%s\n' "$ref"
     done |
+    LC_ALL=C sort -t $'\t' -k1,1n -k2,2n -k3,3 |
+    cut -f3 |
     awk 'BEGIN { separator = "" } { printf "%s%s", separator, $0; separator = ", " } END { if (NR > 0) printf "\n" }'
 }
 
@@ -177,6 +190,12 @@ render_relationships() {
   if [ -n "$related_links" ]; then
     printf -- '- Related: %s\n' "$related_links"
   fi
+}
+has_relationships() {
+  local file="$1"
+  [ -n "$(frontmatter_scalar parent "$file")" ] ||
+    [ -n "$(frontmatter_list blocked_by "$file")" ] ||
+    [ -n "$(frontmatter_list related "$file")" ]
 }
 
 render_body() {
@@ -267,10 +286,10 @@ for file in "$TODO_DIR"/todo.*.md; do
   want_title="[todo] $title"
   base_body="$(render_body "$file" "$slug" "$status" "$node" 0)"
   base_body="${base_body%$'\034'}"
-  phase_one_body="$base_body"
-  if [ "$want_state" = "OPEN" ]; then
-    phase_one_body="$(render_body "$file" "$slug" "$status" "$node" 1)"
-    phase_one_body="${phase_one_body%$'\034'}"
+  if [ "$want_state" != "OPEN" ] || ! has_relationships "$file"; then
+    rebody_identity=1
+  else
+    rebody_identity=0
   fi
 
   if [ -z "${ISSUE_NUM[$slug]:-}" ]; then
@@ -291,9 +310,9 @@ for file in "$TODO_DIR"/todo.*.md; do
     issue_body="$(printf '%s' "${ISSUE_BODY_B64[$slug]}" | decode_base64; printf '\034')"
     issue_body="${issue_body%$'\034'}"
   fi
-  if [ "$issue_body" != "$phase_one_body" ]; then
+  if [ "$rebody_identity" -eq 1 ] && [ "$issue_body" != "$base_body" ]; then
     echo "rebody #$number: $slug ($status, $node)"
-    run gh issue edit "$number" --body "$phase_one_body"
+    run gh issue edit "$number" --body "$base_body"
   fi
   if [ "${ISSUE_TITLE[$slug]}" != "$want_title" ]; then
     echo "retitle #$number: $slug"

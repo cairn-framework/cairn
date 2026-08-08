@@ -1,4 +1,3 @@
-// cairn:allow-large-module reason: GitHub projector tests share gh stub state across phase one and phase two inventory scenarios and must stay co-located.
 //! Behavioural tests for scripts/sync-github-todos.sh.
 //!
 //! The script is a one-way projector from meta/todos/*.md to GitHub issues.
@@ -10,116 +9,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+#[path = "support/sync_github_todos_stub.rs"]
+mod sync_github_todos_stub;
 
 struct Sandbox {
     dir: tempfile::TempDir,
-}
-// Reason: the shell stub stays as one script literal so it exercises the
-// phase-one and phase-two gh command protocol in the same test process.
-#[allow(clippy::too_many_lines)]
-fn gh_stub(root: &Path) -> String {
-    format!(
-        r#"#!/usr/bin/env bash
-# Stub gh: serve canned lists, record every mutating call, and expose body payloads.
-root="{root}"
-args="$*"
-if [[ "$1 $2" == "issue list" ]]; then
-    [[ -e "$root/list-fails" ]] && exit 1
-    if [[ "$args" == *"--label"* ]]; then
-        while IFS=$'\t' read -r number state title slug status node_field; do
-            [ -n "$number" ] || continue
-            body_b64=""
-            if [[ -e "$root/body.$slug" ]]; then
-                body_b64="$(base64 < "$root/body.$slug" | tr -d '\n')"
-            fi
-            printf '%s\t%s\t%s\t%s\t%s\n' \
-                "$number" "$state" "$title" "$slug" "$body_b64"
-        done < "$root/projection.tsv"
-    else
-        cat "$root/unmapped.txt"
-    fi
-    exit 0
-fi
-if [[ "$1 $2" == "issue create" ]]; then
-    title_value=""
-    body_value=""
-    i=1
-    while (( i <= $# )); do
-        if [[ "${{!i}}" == "--title" ]]; then
-            title_arg=$((i + 1))
-            title_value="${{!title_arg}}"
-        elif [[ "${{!i}}" == "--body" ]]; then
-            body_arg=$((i + 1))
-            body_value="${{!body_arg}}"
-        fi
-        i=$((i + 1))
-    done
-    number="$(cat "$root/next-number" 2>/dev/null || printf '100')"
-    printf '%s' "$((number + 1))" > "$root/next-number"
-    slug="$(printf '%s' "$body_value" | sed -n 's/^cairn-todo: todo\.\(.*\)$/\1/p')"
-    printf '%s\tOPEN\t%s\t%s\topen\tcairn.root\n' \
-        "$number" "$title_value" "$slug" >> "$root/projection.tsv"
-    printf '%s' "$body_value" > "$root/body.$slug"
-fi
-if [[ "$1 $2" == "issue edit" ]]; then
-    number="$3"
-    title_value=""
-    body_value=""
-    has_title=0
-    has_body=0
-    i=1
-    while (( i <= $# )); do
-        if [[ "${{!i}}" == "--title" ]]; then
-            title_arg=$((i + 1))
-            title_value="${{!title_arg}}"
-            has_title=1
-        elif [[ "${{!i}}" == "--body" ]]; then
-            body_arg=$((i + 1))
-            body_value="${{!body_arg}}"
-            has_body=1
-        fi
-        i=$((i + 1))
-    done
-    issue_slug=""
-    while IFS=$'\t' read -r existing_number state title slug status node_field; do
-        if [[ "$existing_number" == "$number" ]]; then
-            issue_slug="$slug"
-            break
-        fi
-    done < "$root/projection.tsv"
-    if (( has_body == 1 )) && [[ -n "$issue_slug" ]]; then
-        printf '%s' "$body_value" > "$root/body.$issue_slug"
-    fi
-fi
-if [[ "$1 $2" == "issue close" || "$1 $2" == "issue reopen" ]]; then
-    number="$3"
-    next_state="CLOSED"
-    [[ "$2" == "reopen" ]] && next_state="OPEN"
-    tmp="$root/projection.next"
-    : > "$tmp"
-    while IFS=$'\t' read -r existing_number state title slug status node_field; do
-        [ -n "$existing_number" ] || continue
-        [[ "$existing_number" == "$number" ]] && state="$next_state"
-        printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
-            "$existing_number" "$state" "$title" "$slug" "$status" "$node_field" >> "$tmp"
-    done < "$root/projection.tsv"
-    mv "$tmp" "$root/projection.tsv"
-fi
-if [[ "$1 $2" == "issue create" || "$1 $2" == "issue edit" ]]; then
-    i=1
-    while (( i <= $# )); do
-        if [[ "${{!i}}" == "--body" ]]; then
-            body_arg=$((i + 1))
-            printf '%s' "${{!body_arg}}" > "$root/last-body"
-            break
-        fi
-        i=$((i + 1))
-    done
-fi
-echo "$args" >> "$root/mutations.log"
-"#,
-        root = root.display()
-    )
 }
 
 impl Sandbox {
@@ -134,7 +28,7 @@ impl Sandbox {
         fs::write(root.join("projection.tsv"), projection).unwrap();
         fs::write(root.join("unmapped.txt"), unmapped).unwrap();
         let stub_path = root.join("bin/gh");
-        fs::write(&stub_path, gh_stub(root)).unwrap();
+        fs::write(&stub_path, sync_github_todos_stub::script(root)).unwrap();
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -515,20 +409,23 @@ fn triage_comment_precedes_exclusion_label() {
 
 #[test]
 fn first_run_projects_relationship_issue_numbers_in_stable_order() {
-    let sb = Sandbox::new("", "");
+    let sb = Sandbox::new(
+        "7\tOPEN\t[todo] Zeta Work\tzeta\topen\tcairn.root\n\
+         42\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n",
+        "",
+    );
     sb.add_todo("alpha", "open", "Alpha Work");
     sb.add_todo("zeta", "open", "Zeta Work");
     sb.add_todo_with_fields(
         "child",
         "open",
         "Child Work",
-        "blocked_by: [todo.zeta, todo.alpha]\nparent: todo.zeta\n\
-         related: [todo.zeta, todo.alpha]\n",
+        "blocked_by:\n  - todo.zeta\n  - todo.alpha\nparent: \"todo.zeta\"\n\
+         related:\n  - todo.zeta\n  - todo.alpha\n",
     );
 
     sb.run(false);
 
-    let alpha = sb.issue_number("alpha");
     let zeta = sb.issue_number("zeta");
     let child = sb.projected_body("child");
     let relationship_section = child.split("## Relationships").nth(1).unwrap_or("");
@@ -537,12 +434,12 @@ fn first_run_projects_relationship_issue_numbers_in_stable_order() {
         "parent relationship must resolve to its issue number: {child}"
     );
     assert!(
-        child.contains(&format!("- Blocked by: #{alpha}, #{zeta}")),
-        "blocked-by links must be sorted by todo stem: {child}"
+        child.contains("- Blocked by: #7, #42"),
+        "blocked-by links must be sorted by issue number: {child}"
     );
     assert!(
-        child.contains(&format!("- Related: #{alpha}, #{zeta}")),
-        "related links must be sorted by todo stem: {child}"
+        child.contains("- Related: #7, #42"),
+        "related links must be sorted by issue number: {child}"
     );
     assert!(
         !relationship_section.contains("meta/todos/todo."),

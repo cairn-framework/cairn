@@ -24,8 +24,8 @@ This work is larger than full-body fidelity (`dec.github-todo-issue-body-fidelit
 
 ## Status note
 
-The prerequisite implementation landed in PR #570. This unit now owns the
-remaining GitHub projector work below.
+The prerequisite implementation landed in PR #570. This unit's GitHub
+projector remainder is complete in this change.
 
 ## Prerequisite
 
