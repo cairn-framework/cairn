@@ -173,10 +173,10 @@ view:
 6. Nothing is read back from GitHub, ever.
 7. `tests/sync_github_todos.rs` MUST assert the full create-body payload, a
    body-only edit producing `issue edit --body`, and a no-file-change second
-   run producing no `issue edit`. None of clauses 7.2, 7.3, or this one is
-   implemented yet: the script still writes the stub body and rebodies on
-   status or node only. `todo.github-todo-full-issue-body` is the pending
-   implementation.
+   run producing no `issue edit`. The full-body projector and these regression
+   assertions are implemented in `scripts/sync-github-todos.sh` and
+   `tests/sync_github_todos.rs`; the body comparison is inventory-backed and
+   idempotent.
 8. The projector emits no cross-artefact relationship links, subtask graph, or
    dependency graph. Relationship and subtask projection stay blocked until a
    typed relationship model is decided and implemented.
