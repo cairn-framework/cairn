@@ -7830,6 +7830,7 @@
         "tests/schema_validation.rs",
         "tests/status_todo_path_wire.rs",
         "tests/summariser_accept_baseline.rs",
+        "tests/support/sync_github_todos_stub.rs",
         "tests/sync_github_todos.rs",
         "tests/ui_mobile.rs",
         "tests/watch.rs",
@@ -7838,7 +7839,16 @@
       "contracts": [
         "./meta/contracts/tests.md"
       ],
-      "symbols": []
+      "symbols": [
+        {
+          "name": "script",
+          "kind": "function",
+          "signature": "pub fn script(root: &Path) -> String",
+          "file": "tests/support/sync_github_todos_stub.rs",
+          "line": 103,
+          "end_line": 105
+        }
+      ]
     },
     {
       "id": "cairn.ui",
