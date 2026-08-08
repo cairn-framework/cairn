@@ -1,6 +1,6 @@
 //! Reusable integrity algorithms.
 use super::graph::{Finding, FindingSeverity, Graph};
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque, btree_map::Entry};
 
 type DependencyAdjacency<'a> = (
     BTreeMap<&'a str, Vec<&'a str>>,
@@ -167,8 +167,8 @@ fn representative_cycle<'a>(graph: &'a Graph, component: &[&'a str]) -> Vec<&'a 
                 path.push(start);
                 return path;
             }
-            if !parent.contains_key(next) {
-                parent.insert(next, node);
+            if let Entry::Vacant(entry) = parent.entry(next) {
+                entry.insert(node);
                 queue.push_back(next);
             }
         }
