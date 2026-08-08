@@ -4,7 +4,7 @@
 use super::super::format::{flag_value, lines, node_arg, string_array_json, todos_json};
 use super::super::*;
 use super::{scan_error_count, scan_info_count, scan_warning_count};
-use crate::query_api::{QueryFlag, QueryRequest};
+use crate::query_api::{QueryFlag, QueryRequest, QuerySince};
 use std::collections::BTreeSet;
 
 /// Renders the beads (issues) linked to a node via their `cairn-node:<id>`
@@ -232,7 +232,10 @@ pub(crate) fn render_wave(
     let request = QueryRequest {
         tool: if stats { "wave stats" } else { "wave" }.to_owned(),
         at: flag_value(&parsed.command_args, "--at").map(ToOwned::to_owned),
-        since: flag_value(&parsed.command_args, "--since").map(ToOwned::to_owned),
+        since: stats
+            .then(|| flag_value(&parsed.command_args, "--since"))
+            .flatten()
+            .map(|since| QuerySince::WaveStatsTimestamp(since.to_owned())),
         ..QueryRequest::default()
     };
     let changes_dir = root.join(&parsed.changes_dir);
