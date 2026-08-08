@@ -67,6 +67,8 @@ pub struct ScanResult {
     pub artefacts: ArtefactSet,
     /// Loaded contracts.
     pub contracts: ContractSet,
+    /// Blueprint path relative to the scan root.
+    pub blueprint_path: PathBuf,
     /// Interface hash.
     pub interface_hash: String,
     /// Per-target reconciliation reports.
@@ -77,6 +79,38 @@ pub struct ScanResult {
     pub blueprint_snapshot: state::BlueprintSnapshot,
 }
 
+fn blueprint_path_relative_to_root(root: &Path, blueprint_path: &Path) -> PathBuf {
+    let root_components = normalized_components(&lexical_normalize(root));
+    let blueprint_components = normalized_components(&lexical_normalize(blueprint_path));
+    let mut relative = PathBuf::new();
+    let components = blueprint_components
+        .as_slice()
+        .strip_prefix(root_components.as_slice())
+        .unwrap_or(blueprint_components.as_slice());
+    for component in components {
+        relative.push(component);
+    }
+    relative
+}
+
+fn lexical_normalize(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir if normalized.file_name().is_some() => {
+                normalized.pop();
+            }
+            Component::ParentDir => normalized.push(".."),
+            _ => normalized.push(component.as_os_str()),
+        }
+    }
+    if normalized.as_os_str().is_empty() {
+        PathBuf::from(".")
+    } else {
+        normalized
+    }
+}
 fn normalized_components(path: &Path) -> Vec<std::ffi::OsString> {
     let normalized = path.to_string_lossy().replace('\\', "/");
     Path::new(&normalized)
@@ -542,6 +576,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         target_hashes,
         interface_hash,
         blueprint_snapshot: current_snapshot,
+        blueprint_path: blueprint_path_relative_to_root(root, blueprint_path),
         target_reports,
         contracts,
         artefacts,

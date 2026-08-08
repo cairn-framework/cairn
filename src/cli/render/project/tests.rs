@@ -60,6 +60,7 @@ pub(in crate::cli::render) fn scan_with_nodes(nodes: Vec<NodeRecord>) -> ScanRes
         },
         artefacts: crate::artefacts::registry::ArtefactSet::default(),
         contracts: crate::artefacts::contract::ContractSet::default(),
+        blueprint_path: std::path::PathBuf::from("cairn.blueprint"),
         interface_hash: String::new(),
         target_reports: Vec::new(),
         target_hashes: TargetHashes::default(),
@@ -83,6 +84,7 @@ fn scan_with_todos(todos: Vec<Todo>) -> ScanResult {
             ..Default::default()
         },
         contracts: crate::artefacts::contract::ContractSet::default(),
+        blueprint_path: std::path::PathBuf::from("cairn.blueprint"),
         interface_hash: String::new(),
         target_reports: Vec::new(),
         target_hashes: TargetHashes::default(),

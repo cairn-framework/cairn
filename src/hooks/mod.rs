@@ -118,11 +118,17 @@ pub(crate) fn run_with_ratification_mode(
         HookKind::Tension => (tensions.clone(), false),
         HookKind::ArchitectureDecision => (architecture.clone(), !architecture.is_empty()),
         HookKind::All => {
-            let ratification = ratification::ratification_findings(
-                root,
-                &scan_result.artefacts,
-                ratification_mode,
-            );
+            let blueprint_path = scan_result.blueprint_path.as_path();
+            let ratification = if blueprint_path == Path::new("cairn.blueprint") {
+                ratification::ratification_findings(root, &scan_result.artefacts, ratification_mode)
+            } else {
+                ratification::ratification_findings_with_blueprint(
+                    root,
+                    &scan_result.artefacts,
+                    ratification_mode,
+                    blueprint_path,
+                )
+            };
             let blocks = !structural.is_empty()
                 || !interface.is_empty()
                 || !conflict_findings.is_empty()
@@ -481,6 +487,8 @@ fn path_string(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
 
+#[cfg(test)]
+mod ratification_pointer_tests;
 #[cfg(test)]
 mod ratification_tests;
 #[cfg(test)]
