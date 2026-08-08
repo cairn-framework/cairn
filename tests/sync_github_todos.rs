@@ -9,48 +9,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+#[path = "support/sync_github_todos_stub.rs"]
+mod sync_github_todos_stub;
 
 struct Sandbox {
     dir: tempfile::TempDir,
-}
-fn gh_stub(root: &Path) -> String {
-    format!(
-        r#"#!/usr/bin/env bash
-# Stub gh: serve canned lists, record every mutating call, and expose body payloads.
-root="{root}"
-args="$*"
-if [[ "$1 $2" == "issue list" ]]; then
-    [[ -e "$root/list-fails" ]] && exit 1
-    if [[ "$args" == *"--label"* ]]; then
-        while IFS=$'\t' read -r number state title slug status node_field; do
-            [ -n "$number" ] || continue
-            body_b64=""
-            if [[ -e "$root/body.$slug" ]]; then
-                body_b64="$(base64 < "$root/body.$slug" | tr -d '\n')"
-            fi
-            printf '%s\t%s\t%s\t%s\t%s\n' \
-                "$number" "$state" "$title" "$slug" "$body_b64"
-        done < "$root/projection.tsv"
-    else
-        cat "$root/unmapped.txt"
-    fi
-    exit 0
-fi
-if [[ "$1 $2" == "issue create" || "$1 $2" == "issue edit" ]]; then
-    i=1
-    while (( i <= $# )); do
-        if [[ "${{!i}}" == "--body" ]]; then
-            body_arg=$((i + 1))
-            printf '%s' "${{!body_arg}}" > "$root/last-body"
-            break
-        fi
-        i=$((i + 1))
-    done
-fi
-echo "$args" >> "$root/mutations.log"
-"#,
-        root = root.display()
-    )
 }
 
 impl Sandbox {
@@ -65,7 +28,7 @@ impl Sandbox {
         fs::write(root.join("projection.tsv"), projection).unwrap();
         fs::write(root.join("unmapped.txt"), unmapped).unwrap();
         let stub_path = root.join("bin/gh");
-        fs::write(&stub_path, gh_stub(root)).unwrap();
+        fs::write(&stub_path, sync_github_todos_stub::script(root)).unwrap();
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -75,10 +38,14 @@ impl Sandbox {
     }
 
     fn add_todo(&self, slug: &str, status: &str, title: &str) {
+        self.add_todo_with_fields(slug, status, title, "");
+    }
+
+    fn add_todo_with_fields(&self, slug: &str, status: &str, title: &str, fields: &str) {
         fs::write(
             self.dir.path().join(format!("meta/todos/todo.{slug}.md")),
             format!(
-                "---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n---\n\n\
+                "---\nnode: cairn.root\nstatus: {status}\ncreated: 2026-07-12\n{fields}---\n\n\
                  # {title}\n\n## Problem\n\nBody.\n\n## Acceptance\n\nAccept.\n"
             ),
         )
@@ -145,6 +112,21 @@ impl Sandbox {
              one-way mirror of a cairn todo; edits here are not read back, \
              dec.task-tracking-authority\n{markdown}"
         )
+    }
+
+    fn projected_body(&self, slug: &str) -> String {
+        fs::read_to_string(self.dir.path().join(format!("body.{slug}"))).unwrap()
+    }
+
+    fn issue_number(&self, slug: &str) -> String {
+        fs::read_to_string(self.dir.path().join("projection.tsv"))
+            .unwrap()
+            .lines()
+            .find_map(|line| {
+                let fields: Vec<_> = line.split('\t').collect();
+                (fields.get(3).copied() == Some(slug)).then(|| fields[0].to_owned())
+            })
+            .unwrap_or_else(|| panic!("no issue for todo.{slug}"))
     }
 
     fn set_projection_body(&self, slug: &str, body: &str) {
@@ -422,5 +404,92 @@ fn triage_comment_precedes_exclusion_label() {
     assert!(
         comment.is_some() && label.is_some() && comment < label,
         "comment must post before the exclusion label so failures retry, got {muts:?}"
+    );
+}
+
+#[test]
+fn first_run_projects_relationship_issue_numbers_in_stable_order() {
+    let sb = Sandbox::new(
+        "7\tOPEN\t[todo] Zeta Work\tzeta\topen\tcairn.root\n\
+         42\tOPEN\t[todo] Alpha Work\talpha\topen\tcairn.root\n",
+        "",
+    );
+    sb.add_todo("alpha", "open", "Alpha Work");
+    sb.add_todo("zeta", "open", "Zeta Work");
+    sb.add_todo_with_fields(
+        "child",
+        "open",
+        "Child Work",
+        "blocked_by:\n  - id: todo.zeta\n  - id: todo.alpha\n\
+         parent: \"todo.zeta\"\nrelated:\n  -\n    id: todo.zeta\n  - id: todo.alpha\n",
+    );
+
+    sb.run(false);
+
+    let zeta = sb.issue_number("zeta");
+    let child = sb.projected_body("child");
+    let relationship_section = child.split("## Relationships").nth(1).unwrap_or("");
+    assert!(
+        child.contains(&format!("- Sub-issue of: #{zeta}")),
+        "parent relationship must resolve to its issue number: {child}"
+    );
+    assert!(
+        child.contains("- Blocked by: #7, #42"),
+        "blocked-by links must be sorted by issue number: {child}"
+    );
+    assert!(
+        child.contains("- Related: #7, #42"),
+        "related links must be sorted by issue number: {child}"
+    );
+    assert!(
+        !relationship_section.contains("meta/todos/todo."),
+        "relationship links must not fall back to artefact paths: {child}"
+    );
+    assert!(
+        child.contains("# Child Work"),
+        "phase two must preserve the complete canonical todo body: {child}"
+    );
+}
+
+#[test]
+fn relationship_projection_is_a_second_run_noop() {
+    let sb = Sandbox::new("", "");
+    sb.add_todo("alpha", "open", "Alpha Work");
+    sb.add_todo_with_fields(
+        "child",
+        "open",
+        "Child Work",
+        "blocked_by: [todo.alpha]\nrelated: [todo.alpha]\n",
+    );
+
+    sb.run(false);
+    let alpha = sb.issue_number("alpha");
+    let first_body = sb.projected_body("child");
+    assert!(
+        first_body.contains(&format!("- Related: #{alpha}")),
+        "phase two must resolve a newly created related sibling: {first_body}"
+    );
+    let before = sb.mutations().len();
+    sb.run(false);
+    let mutations = sb.mutations();
+    let edits: Vec<_> = mutations[before..]
+        .iter()
+        .filter(|mutation| mutation.starts_with("issue edit") && mutation.contains("--body"))
+        .collect();
+    assert!(
+        edits.is_empty(),
+        "stable relationship rendering must not rebody on the second run: {edits:?}"
+    );
+}
+
+#[test]
+fn empty_todo_relationship_stem_is_preserved() {
+    let sb = Sandbox::new("", "");
+    sb.add_todo_with_fields("alpha", "open", "Alpha Work", "related: [todo.]\n");
+    sb.run(false);
+    let body = sb.projected_body("alpha");
+    assert!(
+        body.contains("- Related: todo."),
+        "an empty todo stem must not abort resolution: {body}"
     );
 }

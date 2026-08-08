@@ -26,7 +26,7 @@ JSON serialisation contract.
 - `execute(root, blueprint_path, changes_dir, request)`: runs a query and
   composes context and rules.
 - `registry()`, `visible_tools(allow_mutating)`, `envelope_json(response)`,
-  `error_json(error)`, and `SCHEMA_VERSION` (currently 1).
+  `error_json(error)`, and `SCHEMA_VERSION`.
 
 ## Invariants
 
@@ -36,7 +36,8 @@ JSON serialisation contract.
   before execution; the canonical list lives in `serialise`.
 - A mutating tool runs only when `request.mutating` is set; `visible_tools`
   hides mutating tools unless explicitly allowed.
-- The registry has a fixed size (36 tools), asserted in tests.
+- The registry exposes one metadata row per supported tool; tests assert
+  registry membership and safety classes.
 
 ## Dependencies
 
@@ -50,4 +51,4 @@ also read artefact-registry record types.
 
 Unit tests live in `src/query_api/tests.rs` (`#[cfg(test)] mod tests` wired in
 `mod.rs`) covering execution and serialisation, plus a `#[cfg(test)]` module in
-`registry.rs` asserting registry membership, safety classes, and size.
+`registry.rs` asserting registry membership and safety classes.
