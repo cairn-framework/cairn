@@ -1,5 +1,7 @@
 //! Git-range tests for configured ratification decision pointers.
 
+#[cfg(unix)]
+use std::os::unix::fs::symlink;
 use std::{fs, path::Path};
 
 use super::ratification::{
@@ -54,6 +56,78 @@ fn test_ratification_non_default_decisions_pointer_index_refuses_uncovered_chang
             .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
         "{findings:?}"
     );
+    cleanup(root);
+}
+#[test]
+fn test_ratification_nested_scan_root_index_uses_repository_paths() {
+    let root = git_root("nested-scan-root-index");
+    let nested = root.join("nested");
+    write(
+        &root,
+        "nested/cairn.blueprint",
+        &pointer_blueprint("meta/decisions"),
+    );
+    write(
+        &root,
+        "nested/docs/registries/binding-surface.md",
+        "# Binding surface\n\n- docs/spec.md\n- docs/registries/\n- tools/agent-pack/content/\n- src/artefacts/registry/\n- cairn.blueprint\n",
+    );
+    commit(&root, "nested base");
+    run(&root, ["update-ref", "refs/remotes/origin/main", "HEAD"]);
+    let artefacts = accepted_decision(&nested, "src/subject.rs", "subject\n");
+    write(&nested, "src/junk.rs", "junk\n");
+    run(&root, ["add", "nested"]);
+    let findings = ratification_findings(&nested, &artefacts, RatificationMode::Index);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
+        "{findings:?}"
+    );
+    assert!(
+        findings
+            .iter()
+            .all(|finding| finding.code != "CAIRN_HOOK_MANIFEST_MISMATCH"),
+        "{findings:?}"
+    );
+    write(&nested, "src/subject.rs", "unstaged subject\n");
+    let unstaged_findings = ratification_findings(&nested, &artefacts, RatificationMode::Index);
+    assert!(
+        unstaged_findings
+            .iter()
+            .any(|finding| finding.message.contains("stage or stash")),
+        "{unstaged_findings:?}"
+    );
+    cleanup(root);
+}
+#[cfg(unix)]
+#[test]
+fn test_ratification_symlink_alias_parent_root_does_not_silently_pass() {
+    let root = git_root("symlink-alias-parent-root");
+    let nested = root.join("nested");
+    fs::create_dir_all(&nested).unwrap();
+    let alias = root
+        .parent()
+        .unwrap()
+        .join(format!("cairn-ratification-alias-{}", std::process::id()));
+    let _ = fs::remove_file(&alias);
+    symlink(&nested, &alias).unwrap();
+    let scan_root = alias.join("..");
+    let _ = accepted_decision(&scan_root, "src/subject.rs", "subject\n");
+    let artefacts = crate::scanner::load_project(&scan_root, &scan_root.join("cairn.blueprint"))
+        .unwrap()
+        .artefacts;
+    commit(&root, "accept");
+    write(&scan_root, "src/junk.rs", "junk\n");
+    commit(&root, "junk");
+    let findings = ratification_findings(&scan_root, &artefacts, RatificationMode::Head);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"),
+        "{findings:?}"
+    );
+    let _ = fs::remove_file(&alias);
     cleanup(root);
 }
 

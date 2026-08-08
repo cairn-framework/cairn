@@ -131,12 +131,11 @@ pub(super) fn candidate_pointer_configuration_matches(
 }
 
 fn candidate_path_context(root: &Path, blueprint_path: &Path) -> Option<(String, String)> {
-    let lexical_root = lexical_normalize(root);
     let git_root = fs::canonicalize(Path::new(
-        git_output(&lexical_root, ["rev-parse", "--show-toplevel"])?.trim(),
+        git_output(root, ["rev-parse", "--show-toplevel"])?.trim(),
     ))
     .ok()?;
-    let canonical_root = fs::canonicalize(&lexical_root).ok()?;
+    let canonical_root = fs::canonicalize(root).ok()?;
     let git_prefix = relative_path(&git_root, &canonical_root)?;
     let blueprint_relative = if blueprint_path.is_absolute() {
         let blueprint = lexical_normalize(blueprint_path);
@@ -220,13 +219,22 @@ pub(super) fn changed_paths(
     let args = match mode {
         RatificationMode::Index => vec![
             "diff",
+            "--no-relative",
             "-z",
             "--name-only",
             "--no-renames",
             "--cached",
             base,
         ],
-        RatificationMode::Head => vec!["diff", "-z", "--name-only", "--no-renames", base, "HEAD"],
+        RatificationMode::Head => vec![
+            "diff",
+            "--no-relative",
+            "-z",
+            "--name-only",
+            "--no-renames",
+            base,
+            "HEAD",
+        ],
     };
     let output = git_output(root, args)?;
     Some(
@@ -239,13 +247,14 @@ pub(super) fn changed_paths(
     )
 }
 pub(super) fn decision_was_not_local(
-    root: &Path,
+    filesystem_root: &Path,
+    scan_root: &Path,
     base: &str,
     decision: &Decision,
     git_prefix: &str,
 ) -> bool {
-    let path = project_git_path(&repository_path(root, &decision.path), git_prefix);
-    let Some(raw) = git_output(root, ["show", &format!("{base}:{path}")]) else {
+    let path = project_git_path(&repository_path(scan_root, &decision.path), git_prefix);
+    let Some(raw) = git_output(filesystem_root, ["show", &format!("{base}:{path}")]) else {
         return true;
     };
     let frontmatter = crate::artefacts::frontmatter::parse(&raw);

@@ -51,6 +51,16 @@ pub(super) fn ratification_findings_with_blueprint(
     mode: RatificationMode,
     blueprint_path: &Path,
 ) -> Vec<Finding> {
+    let filesystem_root = match root.canonicalize() {
+        Ok(root) => root,
+        Err(_) => {
+            return vec![finding(
+                "CAIRN_HOOK_AFFECTS_SUBSET",
+                "cannot resolve scan root while checking ratification evidence",
+                None,
+            )];
+        }
+    };
     // The trigger is read from the CANDIDATE tree (index in pre-commit, HEAD
     // in CI), never from the worktree: staging an acceptance and then editing
     // the unstaged copy back to `proposed` would otherwise empty this set and
@@ -62,11 +72,11 @@ pub(super) fn ratification_findings_with_blueprint(
     // be hiding an acceptance, so enumeration failure always fails closed
     // (never inferred from worktree contents, which the candidate tree is
     // free to contradict).
-    if !inside_work_tree(root) {
+    if !inside_work_tree(&filesystem_root) {
         return Vec::new();
     }
     let Some((candidate_pointers, git_prefix)) =
-        candidate_decision_pointers(root, blueprint_path, mode)
+        candidate_decision_pointers(&filesystem_root, blueprint_path, mode)
     else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
@@ -90,7 +100,8 @@ pub(super) fn ratification_findings_with_blueprint(
             None,
         )];
     }
-    let Some(candidates) = candidate_accepted_local(root, &candidate_pointers, &git_prefix, mode)
+    let Some(candidates) =
+        candidate_accepted_local(&filesystem_root, &candidate_pointers, &git_prefix, mode)
     else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
@@ -128,14 +139,14 @@ pub(super) fn ratification_findings_with_blueprint(
             .collect();
     }
 
-    let Some(base) = git_output(root, ["merge-base", "origin/main", "HEAD"]) else {
+    let Some(base) = git_output(&filesystem_root, ["merge-base", "origin/main", "HEAD"]) else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
             "cannot resolve merge-base for required ref `origin/main`",
             None,
         )];
     };
-    let Some(changed) = changed_paths(root, base.trim(), mode, &git_prefix) else {
+    let Some(changed) = changed_paths(&filesystem_root, base.trim(), mode, &git_prefix) else {
         return vec![finding(
             "CAIRN_HOOK_AFFECTS_SUBSET",
             "cannot read changed paths from ratification range",
@@ -145,32 +156,43 @@ pub(super) fn ratification_findings_with_blueprint(
 
     local_decisions
         .into_iter()
-        .filter(|decision| decision_was_not_local(root, base.trim(), decision, &git_prefix))
+        .filter(|decision| {
+            decision_was_not_local(&filesystem_root, root, base.trim(), decision, &git_prefix)
+        })
         .filter(|decision| changed.contains(&repository_path(root, &decision.path)))
         .flat_map(|decision| {
-            index_governed_overlap_findings(root, decision, &artefacts.reviews, mode, &git_prefix)
-                .into_iter()
-                .chain(decision_findings(
-                    root,
-                    base.trim(),
-                    decision,
-                    &artefacts.reviews,
-                    &changed,
-                    &git_prefix,
-                ))
+            index_governed_overlap_findings(
+                root,
+                &filesystem_root,
+                decision,
+                &artefacts.reviews,
+                mode,
+                &git_prefix,
+            )
+            .into_iter()
+            .chain(decision_findings(
+                root,
+                &filesystem_root,
+                base.trim(),
+                decision,
+                &artefacts.reviews,
+                &changed,
+                &git_prefix,
+            ))
         })
         .collect()
 }
 
 fn decision_findings(
-    root: &Path,
+    scan_root: &Path,
+    filesystem_root: &Path,
     base: &str,
     decision: &Decision,
     reviews: &[Review],
     changed: &BTreeSet<String>,
     git_prefix: &str,
 ) -> Vec<Finding> {
-    let path = repository_path(root, &decision.path);
+    let path = repository_path(scan_root, &decision.path);
     let rules = decision
         .affects
         .iter()
@@ -197,7 +219,7 @@ fn decision_findings(
         .iter()
         .map(|stem| reviews.iter().find(|review| review_stem(review) == stem))
         .collect::<Vec<_>>();
-    let actual = compute_decision_subject_hash(root, decision).ok();
+    let actual = compute_decision_subject_hash(scan_root, decision).ok();
     let receipts_match = !decision.receipts.is_empty()
         && actual.as_ref().is_some_and(|actual| {
             receipt_hashes.iter().all(|review| {
@@ -205,7 +227,10 @@ fn decision_findings(
             })
         });
     findings.extend(base_binding_surface_findings(
-        root, base, decision, git_prefix,
+        filesystem_root,
+        base,
+        decision,
+        git_prefix,
     ));
 
     if !receipts_match {
@@ -222,7 +247,8 @@ fn decision_findings(
 }
 
 fn index_governed_overlap_findings(
-    root: &Path,
+    scan_root: &Path,
+    filesystem_root: &Path,
     decision: &Decision,
     reviews: &[Review],
     mode: RatificationMode,
@@ -231,7 +257,10 @@ fn index_governed_overlap_findings(
     if mode != RatificationMode::Index {
         return Vec::new();
     }
-    let Some(unstaged) = git_output(root, ["diff", "-z", "--name-only", "--no-renames"]) else {
+    let Some(unstaged) = git_output(
+        filesystem_root,
+        ["diff", "--no-relative", "-z", "--name-only", "--no-renames"],
+    ) else {
         return vec![finding(
             "CAIRN_HOOK_MANIFEST_MISMATCH",
             "cannot read unstaged paths while checking ratification evidence",
@@ -243,7 +272,11 @@ fn index_governed_overlap_findings(
         .iter()
         .filter_map(|affect| normalise_repo_entry(affect))
         .collect::<Vec<_>>();
-    let Some(tracked) = git_path_set(root, ["ls-files", "-z"], git_prefix) else {
+    let Some(tracked) = git_path_set(
+        filesystem_root,
+        ["ls-files", "--full-name", "-z"],
+        git_prefix,
+    ) else {
         return vec![finding(
             "CAIRN_HOOK_MANIFEST_MISMATCH",
             "cannot read index paths while checking ratification evidence",
@@ -251,8 +284,14 @@ fn index_governed_overlap_findings(
         )];
     };
     let Some(untracked) = git_path_set(
-        root,
-        ["ls-files", "-z", "--others", "--exclude-standard"],
+        filesystem_root,
+        [
+            "ls-files",
+            "--full-name",
+            "-z",
+            "--others",
+            "--exclude-standard",
+        ],
         git_prefix,
     ) else {
         return vec![finding(
@@ -262,8 +301,15 @@ fn index_governed_overlap_findings(
         )];
     };
     let Some(ignored) = git_path_set(
-        root,
-        ["ls-files", "-z", "--others", "-i", "--exclude-standard"],
+        filesystem_root,
+        [
+            "ls-files",
+            "--full-name",
+            "-z",
+            "--others",
+            "-i",
+            "--exclude-standard",
+        ],
         git_prefix,
     ) else {
         return vec![finding(
@@ -278,7 +324,7 @@ fn index_governed_overlap_findings(
         .chain(ignored.iter())
         .cloned()
         .collect::<BTreeSet<_>>();
-    let governed = governed_paths(root, decision, reviews, &rules, &known_paths);
+    let governed = governed_paths(scan_root, decision, reviews, &rules, &known_paths);
     if let Some(path) = governed.iter().find(|path| {
         !tracked.contains(*path) || untracked.contains(*path) || ignored.contains(*path)
     }) {
