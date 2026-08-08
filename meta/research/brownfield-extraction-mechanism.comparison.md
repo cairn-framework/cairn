@@ -49,12 +49,18 @@ surfaces:
   question is answered and the artefact is accepted or deleted. It records an
   implementation-time underspecification, not a normal extracted decision,
   and it has no evidence index or prose-drafting contract.
-- `src/cli/commands/onboard.rs` currently loads a scanner result and passes its
-  findings to `brownfield::onboard::analyze`. `src/brownfield/onboard.rs`
+- `src/cli/commands/onboard.rs` currently loads a scanner result and passes
+  its findings to `brownfield::onboard::analyze`. `src/brownfield/onboard.rs`
   groups orphaned files by parent directory and deterministically classifies
   each group as an ignore or node suggestion, with human and JSON renderers.
   This is already a read-only brownfield analysis surface, but it currently
   sees scanner orphan findings rather than ADR-like documents.
+- The command change must also update `src/cli/mod.rs`'s onboard dispatch and
+  `CliOnlyCommand` description, the Brownfield onboarding row in
+  `docs/commands.md`, and `help.commands.onboard.usage` in
+  `docs/design-system/copy.toml`. The shipped Cairn-dev
+  `references/command-reference.md` in both canonical and `.claude` trees is
+  another invalidated command surface and must describe the new subcommand.
 - `src/brownfield/init.rs` calls `discovery::discover` and
   `src/brownfield/mod.rs::write_change` writes a proposal, a blueprint delta,
   and contract stubs under `meta/changes/brownfield-init`. The `init
@@ -76,6 +82,21 @@ surfaces:
   deterministic graph enforcement. `docs/agent/principles.md` states the
   positive boundary: AI may propose narrative summaries, while the reconciler
   and its reality fingerprint remain mechanically checkable.
+
+
+### Binding rule verified against the reconciler
+
+Discovery's path-derived candidate id is evidence metadata, not a blueprint
+node id. For each candidate code target and each indexed ADR-like path, the
+selected command must normalize the path relative to the project root and
+resolve it through the loaded blueprint's declared ownership. The existing
+reconciler implements this rule in `src/reconcile/generic.rs`: eligible leaf
+or `owns-files` nodes contribute normalized declared paths, those owners are
+sorted most-specific first, and `map::paths::is_component_prefix` selects the
+first matching owner. The resolved owner id is then checked against the loaded
+graph before it can populate a decision `nodes:` list. If no owner matches, the
+report keeps the evidence unbound rather than equating a path-derived
+candidate id with a graph node or manufacturing a binding.
 
 `dec.decision-ratification-tiers` makes a decision binding when it changes a
 shipped pack, an artefact schema, a registry, a spec invariant, or another
@@ -191,20 +212,32 @@ The hybrid gives each layer one responsibility:
 
 1. `cairn onboard decisions --json` extends the existing `onboard` surface.
    The existing command still reads scanner findings through `analyze`; the
-   new branch keeps the scanner-loaded graph for real node bindings, uses
-   deterministic discovery facts as bounded code evidence, indexes the
-   bounded ADR-like material, and emits stable JSON and human output. It does
-   not invent semantic decisions, call a model, or accept an artefact.
+   new branch keeps the scanner-loaded graph for real node bindings and uses
+   deterministic discovery facts as bounded code evidence. It resolves each
+   evidence path or code target through the verified most-specific blueprint
+   ownership rule, never equating a path-derived discovery id with a graph
+   node id. It indexes the bounded ADR-like material and emits stable JSON and
+   human output. It does not invent semantic decisions, call a model, or
+   accept an artefact.
 2. The authoring reference
    `tools/agent-pack/content/skills/cairn-dev/references/task-brownfield-decision-extraction.md`
-   runs under the existing `cairn-dev` skill. It invokes the evidence command,
-   asks the harness agent to interpret the returned evidence, and records the
-   research narrative and proposed decision body. The reference is mirrored
-   under `.claude/skills/cairn-dev/references/`, registered in
-   `tools/agent-pack/manifest.toml`, and added to the existing
-   `BASE_ASSETS` table in `src/cli/commands/pack_assets.rs`, which maps the
-   Claude asset to the OMP root.
-3. For each selected decision, the reference reuses
+   runs under the existing `cairn-dev` skill. Both canonical and `.claude`
+   `cairn-dev/SKILL.md` routers add the row
+   `Mine an existing codebase into proposed decisions | references/task-brownfield-decision-extraction.md`.
+   It invokes the evidence command, asks the harness agent to interpret the
+   returned evidence, and records the research narrative and proposed decision
+   body. The reference is ordinary guidance and therefore belongs in
+   `BASE_ASSETS`, not opt-in `LOOP_ASSETS`.
+3. The reference is mirrored under `.claude/skills/cairn-dev/references/`,
+   registered in `tools/agent-pack/manifest.toml` with canonical and existing
+   Claude and OMP adapter rows, and added to `BASE_ASSETS` in
+   `src/cli/commands/pack_assets.rs`, whose renderer maps the Claude asset to
+   the OMP root.
+4. The command change also updates `src/cli/mod.rs` onboard description and
+   dispatch, `src/cli/commands/onboard.rs`, `docs/commands.md`,
+   `docs/design-system/copy.toml`, and both shipped Cairn-dev
+   `references/command-reference.md` copies.
+5. For each selected decision, the reference reuses
    `cairn decision new <slug> --node <id> --informed-by <research-id>`.
    That command's `decision_stub` creates the slug-only decision file and
    `status: proposed` frontmatter. The reference fills the body and permitted
@@ -239,6 +272,12 @@ The selected command is `cairn onboard decisions --json`, not a new
 - use the loaded graph for node resolution and deterministic discovery facts
   only as bounded source evidence, never as an unbound replacement for a
   blueprint node;
+- resolve every evidence path or code target by normalizing it relative to
+  the project root and applying the existing reconciler ownership rule:
+  eligible leaf or `owns-files` nodes contribute normalized declared paths,
+  most-specific paths win, and `map::paths::is_component_prefix` selects the
+  owner. Check that owner id in the loaded graph before emitting it in
+  `nodes:`; a path-derived candidate id is never a graph node id;
 - inspect only the documented ADR-like locations and comment forms that the
   flow names, with explicit paths and headings in the report;
 - emit candidates and evidence in stable path and id order;
