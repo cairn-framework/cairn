@@ -118,9 +118,19 @@ frontmatter_list() {
         }
         next
       }
+      if (active && line ~ /^[[:space:]]+id[[:space:]]*:/) {
+        item = line
+        sub(/^[[:space:]]*id[[:space:]]*:[[:space:]]*/, "", item)
+        item = clean(item)
+        if (item != "") print item
+        next
+      }
       if (active && line ~ /^[[:space:]]*-[[:space:]]*/) {
         item = line
         sub(/^[[:space:]]*-[[:space:]]*/, "", item)
+        if (item ~ /^id[[:space:]]*:/) {
+          sub(/^id[[:space:]]*:[[:space:]]*/, "", item)
+        }
         item = clean(item)
         if (item != "") print item
       }
@@ -132,10 +142,12 @@ resolve_ref() {
   local ref="$1"
   if [[ "$ref" == todo.* ]]; then
     local slug="${ref#todo.}"
-    local number="${ISSUE_NUM[$slug]:-}"
-    if [ -n "$number" ]; then
-      printf '#%s' "$number"
-      return
+    if [ -n "$slug" ]; then
+      local number="${ISSUE_NUM[$slug]:-}"
+      if [ -n "$number" ]; then
+        printf '#%s' "$number"
+        return
+      fi
     fi
   fi
   printf '%s' "$ref"
@@ -151,10 +163,12 @@ resolve_list() {
       [ -n "$ref" ] || continue
       if [[ "$ref" == todo.* ]]; then
         local slug="${ref#todo.}"
-        local number="${ISSUE_NUM[$slug]:-}"
-        if [ -n "$number" ]; then
-          printf '0\t%020d\t#%s\n' "$number" "$number"
-          continue
+        if [ -n "$slug" ]; then
+          local number="${ISSUE_NUM[$slug]:-}"
+          if [ -n "$number" ]; then
+            printf '0\t%020d\t#%s\n' "$number" "$number"
+            continue
+          fi
         fi
       fi
       printf '1\t0\t%s\n' "$ref"

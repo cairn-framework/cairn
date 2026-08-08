@@ -420,8 +420,8 @@ fn first_run_projects_relationship_issue_numbers_in_stable_order() {
         "child",
         "open",
         "Child Work",
-        "blocked_by:\n  - todo.zeta\n  - todo.alpha\nparent: \"todo.zeta\"\n\
-         related:\n  - todo.zeta\n  - todo.alpha\n",
+        "blocked_by:\n  - id: todo.zeta\n  - id: todo.alpha\n\
+         parent: \"todo.zeta\"\nrelated:\n  -\n    id: todo.zeta\n  - id: todo.alpha\n",
     );
 
     sb.run(false);
@@ -463,6 +463,12 @@ fn relationship_projection_is_a_second_run_noop() {
     );
 
     sb.run(false);
+    let alpha = sb.issue_number("alpha");
+    let first_body = sb.projected_body("child");
+    assert!(
+        first_body.contains(&format!("- Related: #{alpha}")),
+        "phase two must resolve a newly created related sibling: {first_body}"
+    );
     let before = sb.mutations().len();
     sb.run(false);
     let mutations = sb.mutations();
@@ -473,5 +479,17 @@ fn relationship_projection_is_a_second_run_noop() {
     assert!(
         edits.is_empty(),
         "stable relationship rendering must not rebody on the second run: {edits:?}"
+    );
+}
+
+#[test]
+fn empty_todo_relationship_stem_is_preserved() {
+    let sb = Sandbox::new("", "");
+    sb.add_todo_with_fields("alpha", "open", "Alpha Work", "related: [todo.]\n");
+    sb.run(false);
+    let body = sb.projected_body("alpha");
+    assert!(
+        body.contains("- Related: todo."),
+        "an empty todo stem must not abort resolution: {body}"
     );
 }
