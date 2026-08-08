@@ -117,7 +117,10 @@ set -eu
 if [ "$1" = "test" ] && [ "${AUTO_PR_MUTATE_HEAD:-}" = "1" ]; then
   printf '%s\n' mutated >> tracked.txt
   git add tracked.txt
-  git commit --quiet -m mutate
+  if ! git -c user.name='Cairn Test' -c user.email='cairn-test@example.com' commit --quiet -m mutate; then
+    echo 'fake cargo could not move HEAD' >&2
+    exit 1
+  fi
 fi
 "#,
     );
@@ -219,7 +222,9 @@ fn auto_pr_refuses_to_merge_after_a_gate_moves_head() {
     assert!(!result.status.success(), "head drift must fail the merge");
     assert!(
         stdout.contains("checked-out head changed after gates"),
-        "head drift should be reported: {stdout}"
+        "head drift should be reported: stdout={} stderr={}",
+        stdout,
+        String::from_utf8_lossy(&result.stderr),
     );
     assert!(
         !fixture.merge_log.exists(),
