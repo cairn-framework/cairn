@@ -2894,8 +2894,8 @@
           "kind": "function",
           "signature": "pub const fn registry() -> &'static [ToolMetadata]",
           "file": "src/query_api/mod.rs",
-          "line": 246,
-          "end_line": 248
+          "line": 256,
+          "end_line": 258
         },
         {
           "name": "PendingTier",
@@ -2910,8 +2910,16 @@
           "kind": "enum",
           "signature": "pub enum QueryFlag",
           "file": "src/query_api/mod.rs",
-          "line": 128,
-          "end_line": 149
+          "line": 138,
+          "end_line": 159
+        },
+        {
+          "name": "QuerySince",
+          "kind": "enum",
+          "signature": "pub enum QuerySince",
+          "file": "src/query_api/mod.rs",
+          "line": 98,
+          "end_line": 103
         },
         {
           "name": "SafetyClass",
@@ -2942,48 +2950,48 @@
           "kind": "function",
           "signature": "pub fn envelope_json(response: &QueryResponse) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 414,
-          "end_line": 421
+          "line": 424,
+          "end_line": 431
         },
         {
           "name": "error_json",
           "kind": "function",
           "signature": "pub fn error_json(error: &QueryError) -> Value",
           "file": "src/query_api/mod.rs",
-          "line": 425,
-          "end_line": 432
+          "line": 435,
+          "end_line": 442
         },
         {
           "name": "execute",
           "kind": "function",
           "signature": "pub fn execute( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 277,
-          "end_line": 335
+          "line": 287,
+          "end_line": 345
         },
         {
           "name": "execute_with_scan",
           "kind": "function",
           "signature": "pub fn execute_with_scan( root: &Path, blueprint_path: &Path, changes_dir: &Path, request: &QueryRequest, scan_result: &scanner::ScanResult, ) -> Result<QueryResponse, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 343,
-          "end_line": 394
+          "line": 353,
+          "end_line": 404
         },
         {
           "name": "visible_tools",
           "kind": "function",
           "signature": "pub fn visible_tools(allow_mutating: bool) -> Vec<ToolMetadata>",
           "file": "src/query_api/mod.rs",
-          "line": 264,
-          "end_line": 270
+          "line": 274,
+          "end_line": 280
         },
         {
           "name": "EnvelopeFinding",
           "kind": "struct",
           "signature": "pub struct EnvelopeFinding",
           "file": "src/query_api/mod.rs",
-          "line": 171,
-          "end_line": 192
+          "line": 181,
+          "end_line": 202
         },
         {
           "name": "PendingBrief",
@@ -3046,24 +3054,24 @@
           "kind": "struct",
           "signature": "pub struct QueryError",
           "file": "src/query_api/mod.rs",
-          "line": 225,
-          "end_line": 234
+          "line": 235,
+          "end_line": 244
         },
         {
           "name": "QueryRequest",
           "kind": "struct",
           "signature": "pub struct QueryRequest",
           "file": "src/query_api/mod.rs",
-          "line": 98,
-          "end_line": 124
+          "line": 107,
+          "end_line": 134
         },
         {
           "name": "QueryResponse",
           "kind": "struct",
           "signature": "pub struct QueryResponse",
           "file": "src/query_api/mod.rs",
-          "line": 159,
-          "end_line": 168
+          "line": 169,
+          "end_line": 178
         },
         {
           "name": "RemediateResponse",
@@ -3078,8 +3086,8 @@
           "kind": "struct",
           "signature": "pub struct ResponseEnvelopeSchema",
           "file": "src/query_api/mod.rs",
-          "line": 206,
-          "end_line": 215
+          "line": 216,
+          "end_line": 225
         },
         {
           "name": "RoadmapItem",
@@ -3142,8 +3150,8 @@
           "kind": "struct",
           "signature": "pub struct VersionedDataSchema",
           "file": "src/query_api/mod.rs",
-          "line": 196,
-          "end_line": 202
+          "line": 206,
+          "end_line": 212
         },
         {
           "name": "WorkItem",
@@ -3270,8 +3278,8 @@
           "kind": "function",
           "signature": "pub(crate) fn lint_findings( root: &Path, blueprint_path: &Path, ) -> Result<Vec<Finding>, QueryError>",
           "file": "src/query_api/mod.rs",
-          "line": 404,
-          "end_line": 410
+          "line": 414,
+          "end_line": 420
         },
         {
           "name": "parse_pending_brief",
