@@ -32,4 +32,4 @@ Done. `topological_order` now sorts over a combined precedence graph
 (dependency edges + containment, children before parent, id tiebreak) via
 Kahn's algorithm; contradictory constraints are a `CAIRN_ORDER_CYCLE`
 finding. Ratified in `dec.order-containment-rule`. Tests in
-`src/map/integrity.rs`.
+`src/map/integrity/tests.rs`.

@@ -143,25 +143,13 @@ Recommended, then ratified 2026-07-29:
    `topological_order` (`src/map/integrity.rs`) make a naive severity branch
    unsound, and clause 3 is not satisfied until both are addressed:
 
-   - It reports one cycle per run. `cycle_findings` returns on the first cycle it
-     finds, so OmniRoute's five disjoint strongly connected components surface as
-     a single `CAIRN_ORDER_CYCLE`. Downgrading that one cycle would hide every
-     blocking cycle behind it. Cycle detection must enumerate all independent
-     cycles rather than stopping at the first, including after a blocking one is
-     found, so a scan can report an Error and an advisory together.
-   - It short-circuits containment. `topological_order` calls dependency-only
-     `cycle_findings` and returns immediately when it is non-empty
-     (`src/map/integrity.rs:83-85`), before the combined containment and dependency
-     deadlock branch further down ever runs. If the only dependency cycle is
-     discovery-only and becomes advisory, a hand-declared child-to-ancestor
-     contradiction would never be evaluated, and the scan would exit zero on
-     exactly the contradiction clause 6 promises still blocks. The containment
-     pass must therefore run whenever any dependency SCC is reported, advisory or
-     Error alike, rather than returning at the first one. Restricting the
-     fall-through to advisory components would leave the existing masking bug in
-     place: a hand-declared dependency cycle would still hide an independent
-     containment contradiction, and clause 6's promise that declared
-     contradictions still block would not hold across the two detection paths.
+  - It enumerates one cycle per cyclic SCC. `cycle_findings` deterministically
+    reports every independent dependency component, so a scan can report each
+    blocking cycle rather than hiding later components behind the first.
+  - It runs containment after dependency analysis. `topological_order` evaluates
+    the combined containment and dependency constraints over a dependency-SCC
+    quotient, even when dependency cycles were found, so a hand-declared
+    child-to-ancestor contradiction is still evaluated.
 
    Both properties need regression coverage;
    `todo.brownfield-nested-package-scan-clean` pins the fixtures.
