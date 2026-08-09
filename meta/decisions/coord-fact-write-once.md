@@ -3,7 +3,11 @@ id: dec.coord-fact-write-once
 nodes:
   - cairn.coord
   - cairn.persist
-status: proposed
+status: accepted
+receipts:
+  - rev.coord-fact-write-once-correctness
+  - rev.coord-fact-write-once-alternatives
+  - rev.coord-fact-write-once-reversibility
 date: 2026-08-09
 informed_by:
   - res.chatgpt-architecture-review

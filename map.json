@@ -8735,6 +8735,27 @@
     {
       "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
       "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.coord-fact-write-once-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.coord",
+      "path": "meta/reviews/rev.coord-fact-write-once-alternatives.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.coord-fact-write-once-correctness.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.coord",
+      "path": "meta/reviews/rev.coord-fact-write-once-correctness.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
+      "message": "Receipt-grade review `meta/reviews/rev.coord-fact-write-once-reversibility.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
+      "node": "cairn.coord",
+      "path": "meta/reviews/rev.coord-fact-write-once-reversibility.md"
+    },
+    {
+      "code": "CAIRN_REVIEW_SUBJECT_UNMATCHED",
+      "severity": "info",
       "message": "Receipt-grade review `meta/reviews/rev.rung-three-coordination-substrate-alternatives.md` carries a `subject_hash` matching no local-tier decision's recomputed manifest.",
       "node": "cairn.root",
       "path": "meta/reviews/rev.rung-three-coordination-substrate-alternatives.md"
