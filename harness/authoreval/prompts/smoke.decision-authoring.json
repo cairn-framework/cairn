@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "smoke.decision-authoring",
+  "instruction": "Author a cairn decision artefact in this project at `meta/decisions/cli-json-default.md`.\n\nIt records that every CLI command prints human-readable text by default and emits structured JSON only when `--json` is passed. It covers the node `cairn.kernel.cli`, it is accepted, and it is dated 2026-08-09.\n\nRequirements:\n- YAML frontmatter carrying `id`, `nodes`, `status`, and `date`.\n- The `id` is the filename slug with the typed `dec.` prefix.\n- Prose sections for context, the decision, and its consequences.\n- Do not add a `research` or `sources` pointer: this project's evidence corpus is deliberately unloaded, and citing it would break the baseline.\n- Change nothing else.\n\nReply with the complete file content.",
+  "expects": [
+    "meta/decisions/cli-json-default.md"
+  ],
+  "replay": {
+    "model": "offline-replay/v1",
+    "turns": [
+      {
+        "kind": "response",
+        "files": [
+          {
+            "path": "meta/decisions/cli-json-default.md",
+            "contents": "---\nid: dec.cli-json-default\nnodes: [cairn.kernel.cli]\nstatus: accepted\ndate: 2026-08-09\n---\n\n# CLI output is human-readable by default\n\n## Context\n\nThe CLI is read directly by people and consumed programmatically by agents.\nOne command cannot serve both shapes at once without a switch.\n\n## Decision\n\nEvery command prints human-readable text by default and emits structured JSON\nonly when `--json` is passed.\n\n## Consequences\n\nOne output path stays authoritative for people, and every programmatic\nconsumer opts in explicitly, so a formatting change cannot silently break a\nscript.\n"
+          }
+        ],
+        "tokens": {
+          "prompt": 1180,
+          "completion": 264
+        }
+      }
+    ]
+  }
+}

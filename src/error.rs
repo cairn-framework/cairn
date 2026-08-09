@@ -54,6 +54,11 @@ pub enum CairnError {
         /// Human-readable detail.
         message: String,
     },
+    /// Authorability eval instrument could not complete a run.
+    AuthorEval {
+        /// Human-readable detail.
+        message: String,
+    },
 }
 
 impl fmt::Display for CairnError {
@@ -83,6 +88,7 @@ impl fmt::Display for CairnError {
                 write!(f, "failed to read changes metadata at {path}: {detail}")
             }
             Self::Lsp { message } => write!(f, "lsp server error: {message}"),
+            Self::AuthorEval { message } => write!(f, "authorability eval error: {message}"),
         }
     }
 }
@@ -100,6 +106,7 @@ impl CairnError {
             Self::ScannerLoad { .. } => "CK001",
             Self::WriteOutput { .. } => "CO001",
             Self::Lsp { .. } => "CL001",
+            Self::AuthorEval { .. } => "CO008",
         }
     }
 }

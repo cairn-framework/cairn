@@ -111,6 +111,13 @@ System Cairn "Graph, decisions, and gates keeping extreme AI-agent software deve
         contract "./meta/contracts/lsp.md"
     }
 
+    Module AuthorEval "Authorability eval instrument: prompt in, scored record out" id "cairn.authoreval" {
+        path "./src/authoreval"
+        path "./src/bin/cairn-authoreval.rs"
+        path "./harness/authoreval"
+        contract "./meta/contracts/authoreval.md"
+    }
+
     Module Macros "Proc-macro crate for compile-time attributes" id "cairn.macros" @build @no-test-coverage {
         path "./cairn-macros"
         contract "./meta/contracts/macros.md"

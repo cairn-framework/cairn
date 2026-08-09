@@ -78,10 +78,12 @@ const FIELD_NAMES: &[&str] = &["code", "grammar_error_code", "parse_error_code"]
 /// an entry (because a test now covers it) requires no other change here;
 /// adding one requires justification in this comment block.
 ///
-/// - `CAIRN_ARTEFACT_*_READ_FAILED` / `CAIRN_ARTEFACT_MISSING_FIELD` /
-///   `CAIRN_ARTEFACT_POINTER_MISSING`: artefact-registry I/O failure paths
-///   (unreadable directory/file, missing pointer target) not currently
-///   exercised by any fixture that forces a read error.
+/// - `CAIRN_ARTEFACT_*_READ_FAILED` / `CAIRN_ARTEFACT_POINTER_MISSING`:
+///   artefact-registry I/O failure paths (unreadable directory/file, missing
+///   pointer target) not currently exercised by any fixture that forces a read
+///   error. (`CAIRN_ARTEFACT_MISSING_FIELD` left this list when
+///   `tests/authoreval_instrument.rs` began scoring a frontmatter-less
+///   decision written into a scratch fixture.)
 /// - `CAIRN_CONTRACT_READ_FAILED`, `CAIRN_CONFIG_READ_FAILED`,
 ///   `CAIRN_IGNORE_READ_FAILED`, `CAIRN_IO_READ_BLUEPRINT`: same shape,
 ///   other subsystems' unreadable-file paths. (`CAIRN_SOURCE_READ_FAILED`
@@ -108,7 +110,6 @@ const UNCOVERED_ALLOWLIST: &[&str] = &[
     // Artefact directory unreadable or missing
     "CAIRN_ARTEFACT_DIR_READ_FAILED",
     // Required field missing in frontmatter
-    "CAIRN_ARTEFACT_MISSING_FIELD",
     // Artefact pointer does not resolve to a file
     "CAIRN_ARTEFACT_POINTER_MISSING",
     // change-id parameter missing in CLI command

@@ -47,12 +47,13 @@ published result. The unit is partitioned into exactly two sub-todos, in
 dependency order: `todo.authorability-eval-instrument`, then
 `todo.authorability-eval-prompt-corpus`.
 
-Only `todo.authorability-eval-instrument` is open. The prompt corpus is
-`blocked` behind a typed `blocked_by` edge, because `blocked` is the status
-MISSION precedence reports and exits on, while it performs no `blocked_by`
-check. The instrument's Reconcile step flips `instrument` to `done` and then
-`prompt-corpus` to `open`, staged for its Land, so both reach main in that
-unit's single commit.
+`todo.authorability-eval-instrument` is `done` as of 2026-08-09: the
+instrument, its offline backend, its smoke prompt, and
+`dec.authoreval-instrument-placement` landed together, and its change was
+accepted and archived in the same commit. `todo.authorability-eval-prompt-corpus`
+was `blocked` behind a typed `blocked_by` edge until then and is now `open`;
+that transition was the instrument's own last Reconcile step, so both statuses
+reached main in its single commit.
 
 The change proposal this todo's `## Depends on` section requires is not a
 separate child. It belongs to the instrument, which creates the change, ticks
@@ -63,7 +64,8 @@ change and the work that completes it stay together. The prompt corpus adds
 prompts, a run, and a research artefact, no declared surface, so it needs no
 change of its own.
 
-This todo stays `blocked` until both children are `done`.
+This todo stays `blocked` until both children are `done`. One is; the prompt
+corpus is not.
 
 No implementation occurs in this decomposition, and the partition adds no
 scope: the two children cover exactly this todo's `## Authoring family` and

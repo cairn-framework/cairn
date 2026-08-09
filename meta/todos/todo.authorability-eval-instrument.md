@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-08-09
 parent: todo.blueprint-authorability-eval
 ---
@@ -30,11 +30,14 @@ parent depends on all five:
    the run used, so a record can never be read without knowing what produced
    it. Four outcomes, and every one emits a record: clean at first shot; clean
    after repair; the repair bound exhausted, carrying the hotspots from the
-   last failed scan; and the backend failing to answer
-   (timeout or invocation error, per question 2's failure classification),
-   carrying that error and no scan hotspots, since no scan ran. A prompt always
-   produces exactly one record, so a live run's records can be counted against
-   its corpus.
+   last failed scan; and the backend not delivering a usable answer (a timeout,
+   an invocation error, or a protocol violation, per question 2's failure
+   classification), carrying that error and no scan hotspots, because an
+   infrastructure or protocol failure is not evidence about authoring quality
+   even when an earlier attempt did scan. Every run that
+   completes produces exactly one record per prompt, so a live run's records can
+   be counted against its corpus; an instrument fault fails the run and produces
+   none.
 5. The failure taxonomy the parent's third acceptance bullet needs, so a failure
    is attributable to blueprint or artefact syntax, to generated guidance, or to
    a missing repair affordance.
