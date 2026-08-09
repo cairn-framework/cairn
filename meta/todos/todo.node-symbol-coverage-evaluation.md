@@ -9,8 +9,9 @@ created: 2026-08-09
 
 ## Goal
 
-After the ruling, extraction split, and query wiring land, measure the result
-against the same evidence that motivated `res.node-symbol-coverage.investigation`.
+After the ruling, transient extractor, and query wiring land, measure the
+result against the same evidence that motivated
+`res.node-symbol-coverage.investigation`.
 
 ## Scope
 

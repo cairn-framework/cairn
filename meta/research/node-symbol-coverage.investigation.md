@@ -13,15 +13,16 @@ date: 2026-08-09
 The measured gap is real. Interface-hash exportability and query-visible
 coverage are different predicates, and they should be separated. The change is
 L-sized and multi-seam, not an S fix: it crosses the generic reconciler,
-reconciler cache, scanner target assembly, graph storage, CLI and query
-consumers, and tests. The parent todo therefore decomposes into sub-todos and
-moves to `blocked`. No Rust implementation is included in this research PR.
+transient query extraction, scanner target context, CLI and query consumers,
+and tests. The parent todo therefore decomposes into sub-todos and moves to
+`blocked`. No Rust implementation is included in this research PR.
 
 The safe direction is to keep the current exported set as the input to
 interface hashes, dependency-interface bundles, contract interface checks, and
-persistent map snapshots. Add a second, query-only record set for exact
-navigation queries. The query-only set must not become a second hash source or
-leak private definitions into the existing interface surfaces.
+persistent map snapshots. Run a transient query-visible extraction over source
+files for exact navigation queries. The query result must not become a second
+persisted state, hash source, cache field, map field, or wire field, and must
+not leak private definitions into the existing interface surfaces.
 
 ## Two-predicate question
 
@@ -75,48 +76,63 @@ items.
 
 ## Concrete separation seam
 
-The smallest coherent design is an exported stream plus a query-visible stream
-that are produced during the same tree walk:
+The current `NodeRecord.symbols` field cannot simply be widened. It is the
+stored public-interface view used by bundles, contract checks, snapshots, and
+the web UI. Adding a second persisted query field would violate this todo's
+non-goal of no new stored state or second source of truth.
 
-1. Extend `LanguageSpec` with a query-visible policy, or with a callback that
-   answers both policies without duplicating parsing. Keep `is_exportable` as
-   the interface policy. For Rust, make the query path bypass the
-   `fast_path` `pub ` shortcut when no public marker exists. For Rust and
-   TypeScript, query visibility should admit the existing item kinds regardless
-   of public visibility. The walk must still exclude unsupported tree-sitter
-   nodes and preserve the existing TypeScript `export_statement` handling.
+The non-stored seam is a transient query extraction over the source files at
+query time:
 
-## Where the exported set feeds hashes
+1. Keep `ReconcileReport.symbols`, `node_symbols`, and
+   `node_symbol_records` as the exported compatibility fields. Keep
+   `TargetReport.symbols`, `hash`, and `symbol_records` and
+   `NodeRecord.symbols` exported-only. Do not add query fields to these
+   structs, do not serialize query records in the reconciler cache, and do not
+   add query records to `map.json`.
+2. Factor the generic tree walk so the exported reconciler and a
+   query-visible extractor share `exportable_kinds`, `name_and_kind`, and
+   `interface_symbol`. Add a language-specific query policy alongside
+   `is_exportable`, with Rust and TypeScript admitting in-node declarations
+   regardless of external visibility. Preserve TypeScript's
+   `export_statement` wrapper semantics so an exported declaration is not
+   emitted twice.
+3. Add a crate-internal query extraction entry point in the reconcile or
+   scanner seam. It receives the source root, language, and claimed relative
+   files, reparses those files, and returns a transient `Vec<SymbolRecord>`.
+   For Rust it must bypass the `fast_path` `pub ` shortcut, then apply the
+   query policy. The source files remain the only source of truth. The
+   existing exported report and hash path remains unchanged.
+4. Route navigation consumers through that transient result. The CLI
+   `symbols_block` in `src/cli/render/node.rs` needs root and target language
+   context. The query API `get` path in `src/query_api/mod.rs:485-503` needs
+   the same transient records before `node_json` emits its opt-in `Symbols`
+   field. `src/query_api/handlers/locate.rs:5-51` needs root and target
+   context to scan transient records. The typed `map::query::symbols` helper
+   must either accept the transient records explicitly or be kept as the
+   exported-only map query and have its navigation caller use the new helper;
+   this choice belongs in the ruling.
+5. Leave `src/cli/render/bundle.rs:59-71`,
+   `src/query_api/handlers/bundle.rs:72-85`, `src/scanner/checks.rs:236-277`,
+   `src/scanner/snapshot.rs:73-105`, and the web UI on
+   `NodeRecord.symbols`. Their dependency interfaces, contract checks, and
+   persistent snapshots therefore remain exported-only.
+6. Add tests for the transient extractor, the all-private Rust fast-path case,
+   the mixed Rust visibility case, TypeScript exported and unexported
+   declarations, and each navigation boundary. Existing hash and bundle
+   tests remain the preservation tests.
 
-The exported set must remain unchanged for interface identity:
+This design trades query-time parsing for the explicit no-new-state
+constraint. Persisting a second query view would require an explicit decision
+to supersede that constraint and is not recommended by this investigation.
 
-- `collect_public_symbols` builds signatures and `SymbolRecord` values from the
-  same accepted item.
-- `sequential_reconcile` sorts the flattened signatures and computes
-  `InterfaceFingerprint::from_sorted(&symbols)` at
-  `src/reconcile/generic.rs:260-298`.
-- `parallel_reconcile` does the same at `src/reconcile/generic.rs:301-377`.
-- `ReconcileReport.node_symbols` is documented as the per-node input to
-  interface fingerprints in `src/reconcile/mod.rs:60-62`.
-- `src/scanner/mod.rs:309-345` reads `node_symbols` and computes each
-  `TargetReport.hash` with `InterfaceFingerprint::from_symbols`.
-- The cached path repeats that exact hash calculation in
-  `src/scanner/cache.rs:249-299`.
 
-The existing private-symbol regression test in `tests/kernel.rs:925-968`
-confirms the intended invariant: changing private Rust names does not change
-the interface hash. A query-coverage fix must keep that test and its contract.
+## Existing consumer seam
 
-## Where the set feeds query-visible output
+The exported set's current consumers are:
 
-The structured exported records currently travel through the same report path:
-
-- `ReconcileReport.node_symbol_records` is populated beside `node_symbols`.
-- `src/scanner/mod.rs:314-323` copies the per-node records to
-  `TargetReport.symbol_records`, and lines 539-543 attach those records to
-  `map::graph::NodeRecord.symbols`.
-- `src/scanner/cache.rs:285-297` reconstructs the same field from the
-  serialized report cache.
+- `ReconcileReport.node_symbol_records`, scanner target assembly, and cache
+  reconstruction feed `NodeRecord.symbols`.
 - `src/cli/render/node.rs:291-321` renders `NodeRecord.symbols` for
   `cairn get <node> --symbols`.
 - `src/map/query.rs:198-209` returns `NodeRecord.symbols` through the typed
@@ -126,51 +142,19 @@ The structured exported records currently travel through the same report path:
 - `src/query_api/handlers/locate.rs:5-51` scans `node.symbols` and returns
   exact name, file, line, end line, kind, and signature matches.
 
-This same `NodeRecord.symbols` is not query-only today. It is also consumed by
+This same `NodeRecord.symbols` is also consumed by
 `src/cli/render/bundle.rs:59-71` and
 `src/query_api/handlers/bundle.rs:72-85` as dependency interfaces, by
 `src/scanner/checks.rs:236-277` for contract interface drift, and by
 `src/scanner/snapshot.rs:73-105` for the persistent `map.json` public-symbol
 snapshot. The web UI reads the snapshot and graph symbol field as module
-interface evidence. Widening this field in place would therefore publish
-crate-private implementation details through those surfaces and would change
-more than `get` and `locate`.
+interface evidence. The transient design changes only the navigation
+consumers, not this stored interface view.
 
-2. Split the generic extraction result. `parse_file` and the collection helper
-   should continue returning the exported signatures and exported records, and
-   additionally return query-visible `SymbolRecord` values. An item admitted by
-   the exported policy should occur in both streams. The interface signature
-   must be computed once and the exported stream must remain the input to
-   `InterfaceFingerprint`.
-3. Keep `ReconcileReport.symbols`, `node_symbols`, and
-   `node_symbol_records` as the exported compatibility fields. Add a clearly
-   named per-node query record map, such as `node_query_symbol_records`, and
-   carry it through sequential and parallel aggregation. Update the fixture
-   report constructor and the report serialization shape.
-4. Keep `TargetReport.symbols`, `hash`, and `symbol_records` as exported
-   interface data. Add a query-visible record field and copy it in both the
-   fresh and cached scanner paths. Bump the reconciler cache schema from the
-   current version 5 in `src/scanner/cache.rs:13-18`; old caches must be
-   discarded rather than silently serving a report without query records.
-5. Store both views on the graph node, preferably with a field whose name makes
-   the boundary explicit, such as `NodeRecord.query_symbols`. `symbols` stays
-   exported so bundles, contract checks, snapshots, and existing map consumers
-   retain their current meaning. The scanner attaches exported records to
-   `symbols` and query records to the new field in separate operations.
-6. Change only navigation consumers to read the query field: the CLI
-   `symbols_block`, `map::query::symbols`, `query_api::serialise::node_json` for
-   the `Symbols` flag, and `query_api::handlers::locate`. Keep both bundle
-   renderers, contract drift checking, and snapshot construction on exported
-   `symbols`. Add tests proving each boundary, not just a field assignment.
-
-The graph field addition is intentionally explicit. A side map hidden in one
-query handler would create a second source of truth and would fail for cached
-or serialized graphs. A blanket rename of `NodeRecord.symbols` would instead
-leak private symbols into dependency interfaces and persistent map output.
-
-The implementation will also touch the many `NodeRecord` test fixtures and the
-reconcile baseline fixtures. That mechanical spread, plus cache compatibility,
-is why this is not a one or two file change.
+The implementation will touch generic extraction, query context plumbing,
+and navigation tests, but it deliberately avoids a report/cache/schema
+migration. The query-time parse and multi-surface plumbing still make it
+multi-seam rather than S-sized.
 
 ## Rust evidence
 
@@ -241,30 +225,33 @@ changes do not alter the interface hash.
 
 ## Sizing and decomposition
 
-This is L-sized under the overnight rule because it is a multi-subsystem change,
-not because the predicate itself is difficult. The observable boundary spans:
+This is L-sized under the overnight rule because it is a multi-subsystem
+change, not because the predicate itself is difficult. The observable boundary
+spans:
 
-- generic Rust and TypeScript extraction;
-- `ReconcileReport` aggregation and serde;
-- fresh scanner and cache report reconstruction;
-- graph node storage and all node fixture constructors;
-- CLI and query API navigation paths;
-- preservation tests for bundles, contract drift, snapshots, and hashes; and
+- generic Rust and TypeScript extraction, including the Rust pre-parse gate;
+- a transient query extractor and scanner context plumbing that works with
+  both fresh and cached exported reports;
+- CLI and query API navigation paths that need root, language, and claimed-file
+  context;
+- typed query tests and preservation tests for bundles, contract drift,
+  snapshots, hashes, and the unchanged cache and map wire shapes; and
 - the frozen ripgrep and TypeScript evaluation evidence.
 
 The parent todo is therefore decomposed into these implementable sub-todos:
 
 - `todo.node-symbol-coverage-ruling`: author and ratify the decision that
-  defines exported interface symbols versus query-visible definition symbols,
-  including bundle and snapshot boundaries.
-- `todo.node-symbol-coverage-reconcile`: add the dual extraction streams to
-  `LanguageSpec`, the generic reconciler, `ReconcileReport`, cache schema, and
-  `TargetReport`, with tests that prove private items never enter hashes.
-- `todo.node-symbol-coverage-query`: carry query-visible records into graph
-  nodes and route `get --symbols` and `locate` to them while keeping bundles,
-  contract checks, and snapshots on exported records.
-- `todo.node-symbol-coverage-evaluation`: exercise Rust and TypeScript fixtures
-  plus the frozen context-bundle harness, and report recall against the pinned
-  ripgrep manifest.
+  defines exported interface symbols versus transient query-visible definition
+  extraction, including bundle and snapshot boundaries and the no-new-state
+  constraint.
+- `todo.node-symbol-coverage-reconcile`: factor shared extraction and add the
+  transient query extractor without adding query records to reports, caches,
+  graph nodes, or wire artifacts.
+- `todo.node-symbol-coverage-query`: pass source-root and target context to
+  `get --symbols` and `locate`, and keep all stored interface consumers on the
+  exported records.
+- `todo.node-symbol-coverage-evaluation`: exercise Rust and TypeScript
+  fixtures plus the frozen context-bundle harness, and report recall against
+  the pinned ripgrep manifest.
 
 No sizing claim here authorizes implementation without the ruling sub-todo.

@@ -9,20 +9,23 @@ created: 2026-08-09
 
 ## Goal
 
-After the ruling and reconciler stream split, expose query-visible records only
-through navigation queries. Use `res.node-symbol-coverage.investigation` to
-preserve the existing exported interface surfaces.
+After the ruling and transient extractor land, expose query-visible records
+only through navigation queries. Use
+`res.node-symbol-coverage.investigation` to preserve the existing exported
+interface surfaces.
 
 ## Scope
 
-Add an explicit query-visible field to the graph node or its typed query
-response, then update `src/cli/render/node.rs`, `src/map/query.rs`,
-`src/query_api/serialise.rs`, and `src/query_api/handlers/locate.rs` so
-`cairn get <node> --symbols` and exact `locate` return crate-private Rust and
-unexported TypeScript definitions. Keep
-`src/cli/render/bundle.rs`, `src/query_api/handlers/bundle.rs`,
-`src/scanner/checks.rs`, and `src/scanner/snapshot.rs` on the exported field.
-Update graph construction and all affected fixtures and wire tests.
+Add query-time context plumbing, not a stored graph field or report field, then
+update `src/cli/render/node.rs`, `src/map/query.rs`,
+`src/query_api/mod.rs`, `src/query_api/serialise.rs`, and
+`src/query_api/handlers/locate.rs` so `cairn get <node> --symbols` and exact
+`locate` invoke the transient extractor with the root, language, and claimed
+files. Keep `src/cli/render/bundle.rs`,
+`src/query_api/handlers/bundle.rs`, `src/scanner/checks.rs`, and
+`src/scanner/snapshot.rs` on the exported field. Do not add query records to
+`NodeRecord`, the cache, `map.json`, or any other persisted state. Update typed
+query tests and wire tests for the new context.
 
 ## Acceptance
 

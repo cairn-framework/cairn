@@ -51,12 +51,15 @@ implementation lands in this research PR.
 
 - Keep exported signatures, records, interface fingerprints, target hashes,
   dependency bundles, contract checks, and persistent map snapshots unchanged.
-- Add a query-visible extraction stream for Rust and TypeScript in the generic
-  reconciler, with cache-safe propagation through reports and scanner assembly.
-  The Rust query path must bypass the `pub ` pre-parse shortcut as well as the
+- Add a transient query-visible extraction stream for Rust and TypeScript in
+  the generic reconciler, with scanner context plumbing but no report, cache,
+  graph, or wire storage.
+- The Rust query path must bypass the `pub ` pre-parse shortcut as well as the
   visibility-modifier predicate.
-- Store both views explicitly and route only `get --symbols` and exact
-  `locate` to the query-visible view.
+- Keep the exported view stored and use a transient query-visible extraction
+  for navigation; do not add persisted query fields or duplicate state.
+- Route only `get --symbols` and exact `locate` to the transient query-visible
+  view.
 - Preserve exact-match lookup and do not add full-text, fuzzy, RAG, or stored
   duplicate state.
 - Re-run the frozen context-bundle harness against the pinned ripgrep manifest
@@ -66,10 +69,12 @@ implementation lands in this research PR.
 
 - `todo.node-symbol-coverage-ruling`: author and ratify the binding decision
   informed by `res.node-symbol-coverage.investigation`.
-- `todo.node-symbol-coverage-reconcile`: split extraction and report/cache
-  streams while preserving exported hashes.
-- `todo.node-symbol-coverage-query`: wire graph, CLI, and query API navigation
-  surfaces while keeping bundles and snapshots exported-only.
+- `todo.node-symbol-coverage-reconcile`: factor shared extraction and add the
+  transient query extractor without adding query records to reports, caches,
+  graph nodes, or wire artifacts.
+- `todo.node-symbol-coverage-query`: pass source-root and target context to
+  `get --symbols` and `locate`, while keeping stored interface consumers on
+  exported records.
 - `todo.node-symbol-coverage-evaluation`: run Rust and TypeScript fixtures and
   the frozen corpus evaluation.
 
