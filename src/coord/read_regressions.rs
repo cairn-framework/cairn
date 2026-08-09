@@ -249,3 +249,52 @@ fn reads_do_not_create_a_parsed_envelope_cache() {
         "full reads do not regenerate a parsed-envelope cache"
     );
 }
+
+#[test]
+fn verify_rejects_a_live_successor_with_an_archived_antecedent() {
+    let dir = repo();
+    let grant_path = append_fact(
+        dir.path(),
+        fact(
+            "lease.grant",
+            "2026-07-01T00:00:00Z",
+            serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-07-01T01:00:00Z",
+            }),
+        ),
+    )
+    .expect("appends grant");
+    let grant: Envelope =
+        serde_json::from_str(&std::fs::read_to_string(&grant_path).expect("grant bytes"))
+            .expect("grant json");
+    append_fact(
+        dir.path(),
+        NewFact {
+            kind: "lease.renew".to_owned(),
+            recorded_at: "2026-08-02T00:00:00Z".to_owned(),
+            recorded_by: Actor {
+                kind: "driver".to_owned(),
+                id: "t".to_owned(),
+            },
+            commit: "a".repeat(40),
+            supersedes: Some(grant.fact_id),
+            payload: serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-08-02T01:00:00Z",
+            }),
+        },
+    )
+    .expect("appends renewal");
+    let store = dir.path().join(".git/cairn/coord");
+    let name = grant_path.file_name().expect("grant name");
+    let archive = store.join("archive/2026-07");
+    std::fs::create_dir_all(&archive).expect("archive month");
+    std::fs::rename(&grant_path, archive.join(name)).expect("archives grant");
+
+    let error = crate::coord::verify::verify(dir.path()).expect_err("compacted antecedent fails");
+    assert!(
+        error.contains("supersedes") && error.contains("compacted"),
+        "{error}"
+    );
+}

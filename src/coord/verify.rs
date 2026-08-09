@@ -110,7 +110,7 @@ pub fn verify(root: &Path) -> Result<(), String> {
                     named.name
                 ));
             }
-            if live_ids.contains(named.fact.fact_id.as_str()) && !in_live {
+            if live_ids.contains(named.fact.fact_id.as_str()) && in_archive {
                 return Err(format!(
                     "live fact `{}` supersedes `{antecedent}`, which was compacted",
                     named.name
