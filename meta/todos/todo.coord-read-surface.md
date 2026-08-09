@@ -47,7 +47,7 @@ projection.
 - Wire snapshots rebased; `schema_version` bumped if the shape requires it.
 - Follow-up: `ruling show --json` still omits the contract's `cursor` and
   `truncated` fields.
-- Follow-up: after `coord compact`, ruling list/show and lease projections read
-  live facts only, so archived history drops out of the read surface; route
-  readers through the validated live+archive helper or amend the rung-3
-  history-channel wording.
+- Follow-up (`todo.coord-archive-read-surface`): after `coord compact`, ruling
+  list/show and lease projections read live facts only, so archived history
+  drops out of the read surface; route readers through the validated
+  live+archive helper or amend the rung-3 history-channel wording.
