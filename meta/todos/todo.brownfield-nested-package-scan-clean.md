@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: done
 created: 2026-07-27
 related: [todo.brownfield-parent-package-cycle, todo.brownfield-parent-child-edge-model]
 blocked_by: [todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance, todo.order-cycle-discovery-severity]
@@ -25,11 +25,11 @@ this todo without code.
 Satisfied 2026-07-29 by acceptance of `dec.brownfield-discovery-cycle-severity`
 (maintainer ratification, sheet of record PR #528, row W5), option A carried
 out: `dec.order-containment-rule` marked `superseded` with the `supersedes:`
-link added in the same commit. This todo was opened accordingly, and is `blocked`
-again since the 2026-08-07 decomposition below.
+link added in the same commit. The implementation units split on 2026-08-07
+all landed in PRs #618, #640, and #642, so this todo is now done.
 
-Also update the `topological_order` doc comment in `src/map/integrity.rs`,
-whose contradiction rule this changes, when the code lands.
+The `topological_order` doc comment in `src/map/integrity.rs`, whose
+contradiction rule this changes, was updated with the implementation.
 
 In short, the rule: discovery keeps both observed edges and does not nest, and
 `CAIRN_ORDER_CYCLE` becomes advisory when every edge inside the cyclic component
@@ -79,14 +79,11 @@ and the containment fall-through are a rewrite of `cycle_findings` and
 bullets below split cleanly along that seam, and one of them (the hand-declared
 masking bug) fails against today's code with no provenance work at all.
 
-blocked on sub-todos: todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance, todo.order-cycle-discovery-severity
-
-The first carries the enumeration half of clause 5 and clause 7 and needs no
-provenance, so it lands the pre-existing masking fix on its own. The second
-carries clause 4, the marker the
-decision names as the implementation prerequisite. The third carries clause 3 and
-the severity half of clause 5, depends on both, and is `blocked` accordingly.
-This todo flips to `done` when the third lands.
+The decomposition landed: `todo.order-cycle-scc-enumeration` in PR #618,
+`todo.blueprint-edge-provenance` in PR #640, and
+`todo.order-cycle-discovery-severity` in PR #642. The severity unit depended
+on the first two; with all three done, this parent round-trip outcome is
+complete and this todo is done.
 
 An earlier version of this body suggested edge provenance as the natural first
 half. The seam runs the other way round, because enumeration is independently

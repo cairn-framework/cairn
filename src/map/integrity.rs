@@ -1,5 +1,6 @@
 //! Reusable integrity algorithms.
 use super::graph::{Finding, FindingSeverity, Graph};
+use crate::blueprint::EdgeProvenance;
 use std::collections::{BTreeMap, BTreeSet, VecDeque, btree_map::Entry};
 
 type DependencyAdjacency<'a> = (
@@ -138,6 +139,19 @@ fn is_cyclic_component(component: &[&str], graph: &Graph) -> bool {
             .flatten()
             .any(|edge| edge.to == component[0])
 }
+fn component_severity(graph: &Graph, component: &[&str]) -> FindingSeverity {
+    let members: BTreeSet<&str> = component.iter().copied().collect();
+    let all_inferred = members
+        .iter()
+        .flat_map(|from| graph.outbound.get(*from).into_iter().flatten())
+        .filter(|edge| members.contains(edge.to.as_str()))
+        .all(|edge| edge.provenance == EdgeProvenance::Inferred);
+    if all_inferred {
+        FindingSeverity::Info
+    } else {
+        FindingSeverity::Error
+    }
+}
 
 fn representative_cycle<'a>(graph: &'a Graph, component: &[&'a str]) -> Vec<&'a str> {
     let start = component[0];
@@ -187,7 +201,7 @@ fn dependency_cycle_data(graph: &Graph) -> (Vec<Finding>, Vec<Vec<&str>>) {
         let path = representative_cycle(graph, component);
         findings.push(Finding {
             code: "CAIRN_ORDER_CYCLE".to_owned(),
-            severity: FindingSeverity::Error,
+            severity: component_severity(graph, component),
             message: format!("dependency cycle: {}", path.join(" -> ")),
             node: Some(component[0].to_owned()),
             target: None,
@@ -324,10 +338,11 @@ fn combined_constraint_cycle<'a>(graph: &'a Graph, components: &[Vec<&'a str>]) 
 ///    key order.
 ///
 /// Both edge kinds are hard constraints. Dependency cycles are reported as
-/// dependency findings, while this combined pass still checks for additional
-/// cycles involving containment edges. A contradiction between them (for
-/// example a node depending on its own container's parent chain) is reported
-/// as a cycle, the same as a pure dependency cycle.
+/// dependency findings, with discovery-only components advisory and
+/// hand-declared components blocking, while this combined pass still checks
+/// for additional cycles involving containment edges. A contradiction between
+/// them (for example a node depending on its own container's parent chain)
+/// remains an Error, the same as a hand-declared dependency cycle.
 ///
 /// # Errors
 ///
@@ -397,5 +412,7 @@ pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>> {
     }
     Ok(order)
 }
+#[cfg(test)]
+mod severity_tests;
 #[cfg(test)]
 mod tests;

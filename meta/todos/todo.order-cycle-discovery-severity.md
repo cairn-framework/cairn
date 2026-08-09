@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.map
-status: blocked
+status: done
 created: 2026-08-07
 parent: todo.brownfield-nested-package-scan-clean
 blocked_by: [todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance]
@@ -15,14 +15,15 @@ outcome: a brownfield first scan reports its observed coupling and exits zero.
 It carries clause 3 of `dec.brownfield-discovery-cycle-severity` and the
 severity half of clause 5.
 
-blocked on: todo.order-cycle-scc-enumeration (cairn.kernel.map),
-todo.blueprint-edge-provenance (cairn.kernel.blueprint)
+Prerequisites landed before this unit: `todo.order-cycle-scc-enumeration`
+(`cairn.kernel.map`) in PR #618 and `todo.blueprint-edge-provenance`
+(`cairn.kernel.blueprint`) in PR #640.
 
-Both are hard prerequisites, not sequencing preferences. Without per-component
-enumeration a downgrade hides every blocking cycle behind the first one
-(clause 7), and without edge provenance there is nothing to branch on
-(clause 4). When this todo lands,
-`todo.brownfield-nested-package-scan-clean` flips to `done`.
+They were hard prerequisites, not sequencing preferences. Without
+per-component enumeration a downgrade would hide every blocking cycle behind
+the first one (clause 7), and without edge provenance there would be nothing to
+branch on (clause 4). This unit landed in PR #642, and the parent
+`todo.brownfield-nested-package-scan-clean` flipped to `done` after it.
 
 ## Task
 

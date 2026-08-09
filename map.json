@@ -2609,6 +2609,7 @@
         "src/map/contract_coverage.rs",
         "src/map/graph.rs",
         "src/map/integrity.rs",
+        "src/map/integrity/severity_tests.rs",
         "src/map/integrity/tests.rs",
         "src/map/mod.rs",
         "src/map/module_size.rs",
@@ -2675,8 +2676,8 @@
           "kind": "function",
           "signature": "pub fn cycle_findings(graph: &Graph) -> Vec<Finding>",
           "file": "src/map/integrity.rs",
-          "line": 204,
-          "end_line": 206
+          "line": 218,
+          "end_line": 220
         },
         {
           "name": "dependents",
@@ -2787,8 +2788,8 @@
           "kind": "function",
           "signature": "pub fn topological_order(graph: &Graph) -> Result<Vec<String>, Vec<Finding>>",
           "file": "src/map/integrity.rs",
-          "line": 336,
-          "end_line": 399
+          "line": 351,
+          "end_line": 414
         },
         {
           "name": "build",
@@ -7994,6 +7995,7 @@
         "tests/kernel.rs",
         "tests/landing_assets.rs",
         "tests/mcp.rs",
+        "tests/order_cycle_severity.rs",
         "tests/output_token_efficiency_findings.rs",
         "tests/output_token_efficiency_status_brief.rs",
         "tests/pack_campaign.rs",
@@ -8582,13 +8584,6 @@
       "message": "todo `todo.driver-in-repo-workflow-artefacts` is open while declared blocker `todo.driver-in-repo-blueprint-node` is not done",
       "node": null,
       "path": "meta/todos/todo.driver-in-repo-workflow-artefacts.md"
-    },
-    {
-      "code": "CAIRN_TODO_STATUS_CONTRADICTION",
-      "severity": "info",
-      "message": "todo `todo.order-cycle-discovery-severity` is blocked while every declared blocker is done",
-      "node": null,
-      "path": "meta/todos/todo.order-cycle-discovery-severity.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",

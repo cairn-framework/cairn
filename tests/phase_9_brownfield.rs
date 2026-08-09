@@ -286,6 +286,63 @@ app.db -> app.api "imports" @inferred
         Ok(())
     }
 
+    /// Scenario: observed dependency cycles are reported without blocking the
+    /// first brownfield scan.
+    #[test]
+    fn test_init__observed_cycle_is_advisory_and_scan_succeeds()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_repo("observed-cycle-severity");
+        fs::create_dir_all(root.join("src/sub"))?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "ignore:\n  - target\ncontext: \"\"\nrules: {}\n",
+        )?;
+        for file in ["file0.ts", "file1.ts", "file2.ts"] {
+            let root_source = if file == "file0.ts" {
+                "import \"./sub/file0\";\nexport const root = 1;\n"
+            } else {
+                "export const root = 1;\n"
+            };
+            let sub_source = if file == "file0.ts" {
+                "import \"../file0\";\nexport const sub = 1;\n"
+            } else {
+                "export const sub = 1;\n"
+            };
+            fs::write(root.join("src").join(file), root_source)?;
+            fs::write(root.join("src/sub").join(file), sub_source)?;
+        }
+        bf_init::run_init_from_code(&root, false)?;
+        let apply = Command::new(env!("CARGO_BIN_EXE_cairn"))
+            .current_dir(&root)
+            .args(["change", "apply", "brownfield-init"])
+            .output()?;
+        assert!(
+            apply.status.success(),
+            "change apply failed: {}",
+            String::from_utf8_lossy(&apply.stderr)
+        );
+        let scan = Command::new(env!("CARGO_BIN_EXE_cairn"))
+            .current_dir(&root)
+            .arg("scan")
+            .output()?;
+        let stdout = String::from_utf8_lossy(&scan.stdout);
+        assert!(scan.status.success(), "scan failed: {stdout}");
+        assert!(
+            stdout.contains("Info: CAIRN_ORDER_CYCLE"),
+            "scan must report an advisory cycle: {stdout}"
+        );
+        let strict = Command::new(env!("CARGO_BIN_EXE_cairn"))
+            .current_dir(&root)
+            .args(["scan", "--strict"])
+            .output()?;
+        assert!(
+            strict.status.success(),
+            "strict scan must remain green for advisory-only cycles: {}",
+            String::from_utf8_lossy(&strict.stdout)
+        );
+        Ok(())
+    }
+
     /// Scenario: the map brownfield produces declares the contracts brownfield
     /// itself wrote, so a fresh project does not open on a wall of
     /// `CAIRN_CONTRACT_LEAF_UNCOVERED` warnings for artefacts that exist.
