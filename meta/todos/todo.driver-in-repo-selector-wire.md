@@ -3,6 +3,7 @@ node: cairn.kernel.query
 status: open
 created: 2026-08-09
 parent: todo.driver-in-repo
+blocked_by: [todo.driver-in-repo-blueprint-node]
 ---
 
 # Driver In Repo Selector Wire
@@ -76,14 +77,13 @@ composed. Its accepted contract does not make the Q8 ready-set milestone or
 wave filter a raw query behavior.
 
 ## Dependencies
-The blueprint-node sub-todo is first and supplies the query node and path
-boundary. This sub-todo is the explicit prerequisite for the reaction-loop
-sub-todo. The workflow-artefacts sub-todo is a separate passive artefact
-surface; this query does not evaluate it. The lease surface follows this
-selector seam under Q8 and is not part of this sub-todo. This child remains
-open, so the inter-child ordering is recorded in prose rather than unresolved
-`blocked_by` edges; the parent carries typed `blocked_by` edges to all four
-children.
+The blueprint-node dependency is a typed `blocked_by` edge on this child and
+supplies the query node and path boundary. This child is the explicit
+prerequisite for the reaction-loop child, represented by that child's typed
+`blocked_by` edge. The workflow-artefacts sub-todo is a separate passive
+artefact surface; this query does not evaluate it. The lease surface follows
+this selector seam under Q8 and is not part of this sub-todo. The parent
+carries typed `blocked_by` edges to all four children.
 
 ## Sizing
 M. The later implementation is one query and selection subsystem plus focused

@@ -3,6 +3,7 @@ node: cairn.kernel.artefacts
 status: open
 created: 2026-08-09
 parent: todo.driver-in-repo
+blocked_by: [todo.driver-in-repo-blueprint-node]
 ---
 
 # Driver In Repo Workflow Artefacts
@@ -11,11 +12,12 @@ parent: todo.driver-in-repo
 Define the declarative workflow artefact that the driver reads. It is typed,
 inert policy: Cairn parses, validates, stores, and exposes it, while the driver
 alone evaluates it. The shape includes a match predicate over dispatch units, a
-harness route with context guidance, limits for wave size, TTL, a per-unit
-spend cap, and a per-wave spend cap, an outcome-class routing table, and named
-deterministic `require:` gates. It also carries a `serialises:` list of path
-prefixes for hotspot policy. All vocabularies and slots are closed and
-executable logic is not embedded inline.
+harness route with context guidance and skill references, a per-harness
+capability descriptor, limits for wave size, TTL, a per-unit spend cap, and a
+per-wave spend cap, an outcome-class routing table, and named deterministic
+`require:` gates. It also carries a `serialises:` list of path prefixes for
+hotspot policy. All vocabularies and slots are closed and executable logic is
+not embedded inline.
 
 ## Parent constraints
 The parent todo is `todo.driver-in-repo`, under `## Task`, item 2:
@@ -48,6 +50,23 @@ terminal tokens and the no-orchestration rule as pack content. The Q4 routing
 table and its remaining derived outcome-class details stay provisional pending
 the owning decision.
 
+Accepted `dec.orchestrator-skills-layering`, clause 3, ratifies capability-aware
+delivery:
+
+> 3. **Delivery is capability-aware.** A harness that mounts skills
+> natively gets them mounted; a harness that cannot gets the referenced
+> skills rendered inline into the dispatch briefing. That is derived
+> subsumption from the single source at dispatch time, never a second
+> authored copy. The driver consults a per-harness capability descriptor
+> declared with the workflow's route or in a harness registry.
+
+The capability-descriptor and skill-reference requirements from
+`todo.orchestrator-skills-layering:15-24,38-49` are part of this sub-todo:
+the workflow schema declares the per-harness descriptor, names skills by id,
+Cairn validates those references at scan time, and no skill content is
+duplicated in a workflow artefact. If a harness has no capability descriptor,
+the referenced skills render inline rather than being silently dropped.
+
 Accepted `dec.rung-three-coordination-substrate`, clause 3, ratifies the
 hotspot policy requirement:
 
@@ -75,13 +94,12 @@ routing table. The parent `## Acceptance` requires that the substrate gain no
 orchestration behavior, so parsing and exposure must stay passive.
 
 ## Dependencies
-The blueprint-node sub-todo is first and supplies this artefact's owning
-surface. This child remains open, so its inter-child ordering is recorded in
-this prose rather than an unresolved `blocked_by` edge; the parent carries
-typed `blocked_by` edges to all four children. This unit is independent of the
-selector-wire contract, although the reaction-loop sub-todo consumes both this
-policy shape and the selector wire. The selector wire remains a passive query
-and must not evaluate workflows.
+The blueprint-node sub-todo is first and this child is typed
+`blocked_by` it. The parent carries typed `blocked_by` edges to all four
+children. This unit is independent of the selector-wire contract, although
+the reaction-loop sub-todo consumes both this policy shape and the selector
+wire. The selector wire remains a passive query and must not evaluate
+workflows.
 
 ## Sizing
 M. The later implementation is one artefact subsystem plus parser, validation,

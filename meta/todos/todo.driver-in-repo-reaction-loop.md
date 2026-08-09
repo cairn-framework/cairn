@@ -3,6 +3,7 @@ node: cairn.root
 status: open
 created: 2026-08-09
 parent: todo.driver-in-repo
+blocked_by: [todo.driver-in-repo-workflow-artefacts, todo.driver-in-repo-selector-wire, todo.driver-in-repo-blueprint-node]
 ---
 
 # Driver In Repo Reaction Loop
@@ -96,14 +97,12 @@ belong to `todo.parallel-dispatch-granularity`. Do not freeze those details in
 this sub-todo.
 
 ## Dependencies
-The blueprint-node sub-todo is first. This sub-todo consumes the workflow
-artefact policy and the selector-wire contract. The selector-wire sub-todo is
-an explicit prerequisite for the reaction loop because re-query and
-first-member equality rely on its ready-set evidence. Lease implementation
-details remain with the separate lease owner named above. This child remains
-open, so the inter-child ordering is recorded in prose rather than unresolved
-`blocked_by` edges; the parent carries typed `blocked_by` edges to all four
-children.
+The blueprint-node, workflow-artefacts, and selector-wire dependencies are
+typed `blocked_by` edges on this child. The selector-wire edge is an explicit
+prerequisite for the reaction loop because re-query and first-member equality
+rely on its ready-set evidence. Lease implementation details remain with the
+separate lease owner named above. The parent carries typed `blocked_by` edges
+to all four children.
 
 ## Sizing
 M. The later implementation is one driver-control subsystem with focused
