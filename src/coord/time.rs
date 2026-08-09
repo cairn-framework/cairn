@@ -8,6 +8,8 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::artefacts::registry::dates::date_to_days;
+
 /// Whole seconds per civil day.
 const SECS_PER_DAY: u64 = 86_400;
 
@@ -76,6 +78,105 @@ pub(crate) fn validate_rfc3339_utc(value: &str) -> Result<(), String> {
         return Err(format!("`{value}` has an invalid UTC time"));
     }
     Ok(())
+}
+
+/// An RFC 3339 instant normalized to UTC for temporal comparisons.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct Rfc3339Instant<'a> {
+    pub(crate) seconds: i64,
+    pub(crate) fraction: &'a [u8],
+}
+
+fn parse_digits(bytes: &[u8], start: usize, length: usize) -> Option<u32> {
+    bytes
+        .get(start..start.checked_add(length)?)?
+        .iter()
+        .try_fold(0_u32, |value, byte| {
+            byte.is_ascii_digit()
+                .then_some(value * 10 + u32::from(byte - b'0'))
+        })
+}
+
+fn parse_fraction(bytes: &[u8], mut cursor: usize) -> Option<(&[u8], usize)> {
+    if bytes.get(cursor) != Some(&b'.') {
+        return Some((&[], cursor));
+    }
+    cursor += 1;
+    let start = cursor;
+    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+        cursor += 1;
+    }
+    (start < cursor).then_some((&bytes[start..cursor], cursor))
+}
+
+fn parse_offset(bytes: &[u8], cursor: usize) -> Option<i64> {
+    match bytes.get(cursor) {
+        Some(zone) if zone.eq_ignore_ascii_case(&b'Z') && cursor + 1 == bytes.len() => Some(0),
+        Some(sign @ (b'+' | b'-'))
+            if cursor + 6 == bytes.len() && bytes.get(cursor + 3) == Some(&b':') =>
+        {
+            let hours = parse_digits(bytes, cursor + 1, 2)?;
+            let minutes = parse_digits(bytes, cursor + 4, 2)?;
+            if hours > 23 || minutes > 59 {
+                return None;
+            }
+            let seconds = i64::from(hours * 3_600 + minutes * 60);
+            Some(if *sign == b'-' { -seconds } else { seconds })
+        }
+        _ => None,
+    }
+}
+
+/// Parses an RFC 3339 instant, retaining arbitrary fractional precision.
+pub(crate) fn parse_rfc3339(value: &str) -> Option<Rfc3339Instant<'_>> {
+    let bytes = value.as_bytes();
+    if bytes.len() < 20
+        || bytes
+            .get(10)
+            .is_none_or(|byte| !byte.eq_ignore_ascii_case(&b'T'))
+        || bytes.get(13) != Some(&b':')
+        || bytes.get(16) != Some(&b':')
+    {
+        return None;
+    }
+    let days = date_to_days(value.get(..10)?)?;
+    let hour = parse_digits(bytes, 11, 2)?;
+    let minute = parse_digits(bytes, 14, 2)?;
+    let second = parse_digits(bytes, 17, 2)?;
+    if hour > 23 || minute > 59 || second > 59 {
+        return None;
+    }
+    let (fraction, cursor) = parse_fraction(bytes, 19)?;
+    let offset_seconds = parse_offset(bytes, cursor)?;
+    let local_seconds = days
+        .checked_mul(86_400)?
+        .checked_add(i64::from(hour * 3_600 + minute * 60 + second))?;
+    Some(Rfc3339Instant {
+        seconds: local_seconds.checked_sub(offset_seconds)?,
+        fraction,
+    })
+}
+
+fn compare_fractions(left: &[u8], right: &[u8]) -> std::cmp::Ordering {
+    let length = left.len().max(right.len());
+    (0..length)
+        .map(|index| {
+            (
+                left.get(index).copied().unwrap_or(b'0'),
+                right.get(index).copied().unwrap_or(b'0'),
+            )
+        })
+        .find_map(|(left, right)| (left != right).then_some(left.cmp(&right)))
+        .unwrap_or(std::cmp::Ordering::Equal)
+}
+
+pub(crate) fn compare_instants(
+    left: Rfc3339Instant<'_>,
+    right: Rfc3339Instant<'_>,
+) -> std::cmp::Ordering {
+    left.seconds
+        .cmp(&right.seconds)
+        .then_with(|| compare_fractions(left.fraction, right.fraction))
 }
 
 fn has_timestamp_separators(bytes: &[u8]) -> bool {

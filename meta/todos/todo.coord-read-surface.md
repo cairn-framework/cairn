@@ -29,11 +29,12 @@ projection.
 5. The three reader predicates as shared helpers: `held(unit, at)`,
    `stale(unit, at)` carrying holder, `expires_at` and residue, and
    `no_lease(unit)` as a distinct peer.
-6. Read cost: every read lists `facts/` in full and parses only names absent
-   from `cache/parsed.json`. **No incremental fold above a high-water mark.**
-   Filenames are second-precision and `atomic_write` renames after stamping, so
-   a same-second fact can land below an already-taken mark and be lost; the lost
-   fact would be a `lease.grant` and the driver would dispatch over a held claim.
+6. Read cost: every read lists and parses `facts/` in full. There is no
+   incremental fold above a high-water mark and no parsed-envelope cache.
+   Filenames are second-precision and atomic creation can land after listing
+   starts, so a same-second fact can sort below an already-taken mark and be
+   lost by a high-water reader. The full listing avoids that gap; the lost fact
+   would be a `lease.grant` and the driver would dispatch over a held claim.
 
 ## Acceptance
 

@@ -1,31 +1,18 @@
-//! The full fold: every read lists `facts/` in full, with a derived,
-//! disposable parse cache.
+//! The full fold: every read lists and parses `facts/` in full.
 //!
 //! Filenames are second-precision and renames land after listing starts, so
 //! no reader may fold incrementally above a high-water mark: within one
 //! second the sort order is decided by `<kind>-<fact_id>`, which has nothing
 //! to do with creation order, and a dropped lease grant is exactly the
-//! failure rung 3 exists to prevent. The cache saves parses, never listings:
-//! filename is an exact content key because facts are immutable, so parse
-//! cost is O(new facts) while a full listing stays the ground truth.
+//! failure rung 3 exists to prevent. The facts directory is the ground truth.
 
-use std::collections::BTreeMap;
 use std::path::Path;
-
-use crate::persist;
 
 use super::envelope::{
     Envelope, STORE_FORMAT, evidence_class_for, fact_id_for, validate_kind, validate_lease_payload,
 };
 use super::store;
-use super::time::{compact_rfc3339, validate_rfc3339_utc};
-use crate::artefacts::registry::sha256::sha256_hex;
-
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-struct CachedFact {
-    content_sha256: String,
-    fact: Envelope,
-}
+use super::time::{compact_rfc3339, compare_instants, parse_rfc3339, validate_rfc3339_utc};
 
 /// The outcome of reading a family store.
 pub enum StoreRead {
@@ -105,42 +92,6 @@ pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
     Ok(())
 }
 
-fn read_cached_fact(
-    path: &Path,
-    name: &str,
-    cache: &mut BTreeMap<String, CachedFact>,
-) -> Result<(Envelope, bool), String> {
-    let raw = std::fs::read(path).map_err(|error| format!("cannot read fact `{name}`: {error}"))?;
-    let content_sha256 = sha256_hex(&raw);
-    if let Some(hit) = cache.get(name)
-        && hit.content_sha256 == content_sha256
-    {
-        let raw_fact: Envelope = serde_json::from_slice(&raw)
-            .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
-        let raw_identity = fact_id_for(&raw_fact)?;
-        let cached_identity = fact_id_for(&hit.fact)?;
-        if raw_fact.fact_id != raw_identity
-            || hit.fact.fact_id != raw_fact.fact_id
-            || cached_identity != raw_identity
-        {
-            return Err(format!(
-                "cached fact `{name}` does not match the current fact bytes"
-            ));
-        }
-        return Ok((hit.fact.clone(), false));
-    }
-    let fact: Envelope = serde_json::from_slice(&raw)
-        .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
-    cache.insert(
-        name.to_owned(),
-        CachedFact {
-            content_sha256,
-            fact: fact.clone(),
-        },
-    );
-    Ok((fact, true))
-}
-
 /// Reads every fact in the family store for `root`.
 ///
 /// # Errors
@@ -163,9 +114,6 @@ pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String> {
     }
     store::check_format(store)?;
 
-    let cache_path = store.join("cache/parsed.json");
-    let mut cache: BTreeMap<String, CachedFact> =
-        persist::read_json(&cache_path).unwrap_or_default();
     let mut names = Vec::new();
     let entries = std::fs::read_dir(store.join("facts"))
         .map_err(|error| format!("cannot list coordination facts: {error}"))?;
@@ -181,18 +129,15 @@ pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String> {
     }
     names.sort();
 
-    let mut parsed_new = false;
     let mut facts = Vec::with_capacity(names.len());
     for name in names {
         let path = store.join("facts").join(&name);
-        let (fact, newly_parsed) = read_cached_fact(&path, &name, &mut cache)?;
-        parsed_new |= newly_parsed;
+        let raw =
+            std::fs::read(&path).map_err(|error| format!("cannot read fact `{name}`: {error}"))?;
+        let fact: Envelope = serde_json::from_slice(&raw)
+            .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
         validate(&name, &fact)?;
         facts.push(NamedFact { name, fact });
-    }
-    if parsed_new {
-        // Derived and disposable: a failed cache write never fails the read.
-        let _ = persist::write_json(&cache_path, &cache);
     }
     Ok(StoreRead::Ready(facts))
 }
@@ -251,15 +196,27 @@ fn lease_state(head: &NamedFact) -> LeaseState<'_> {
     }
 }
 
-/// True when `unit`'s folded chain has no release and `expires_at > at`.
-/// RFC 3339 UTC strings of one format compare lexicographically.
+fn compare_expiry_at(expiry: &str, at: &str) -> std::cmp::Ordering {
+    match (parse_rfc3339(expiry), parse_rfc3339(at)) {
+        (Some(expiry), Some(at)) => compare_instants(expiry, at),
+        _ => expiry.cmp(at),
+    }
+}
+
+fn expiry_is_after(expiry: &str, at: &str) -> bool {
+    compare_expiry_at(expiry, at) == std::cmp::Ordering::Greater
+}
+
+/// True when `unit`'s folded chain has no release and `expires_at` is after
+/// the caller's instant. Valid RFC 3339 spellings compare as instants; the
+/// historical lexical fallback remains for an invalid caller-only `--at`.
 #[must_use]
 pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool {
     lease_chain_head(facts, unit).is_some_and(|head| {
         head.fact.kind != "lease.release"
             && lease_state(head)
                 .expires_at
-                .is_some_and(|expiry| expiry > at)
+                .is_some_and(|expiry| expiry_is_after(expiry, at))
     })
 }
 
@@ -274,7 +231,7 @@ pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseSt
     let state = lease_state(head);
     state
         .expires_at
-        .is_some_and(|expiry| expiry <= at)
+        .is_some_and(|expiry| compare_expiry_at(expiry, at) != std::cmp::Ordering::Greater)
         .then_some(state)
 }
 

@@ -43,16 +43,20 @@ Unverified claims (verify first, then fix or record why not):
    append regression proves existing bytes remain unchanged. The proposed
    ruling vehicle is `dec.coord-fact-write-once`; it remains `status: proposed`
    for the driver's ratification panel.
-4. The cache and identity claims were confirmed and fixed. Cache entries bind
-   to fact-byte SHA-256 values, and live plus archived facts undergo identity
-   recomputation. The dated evidence and regression names are recorded in
+4. The cache and identity claims were resolved by elimination and direct
+   validation. Full reads no longer create or trust a parsed-envelope cache,
+   and live plus archived facts undergo identity recomputation. The dated
+   evidence and regression names are recorded in
    `res.chatgpt-architecture-review`.
 5. The decline-preimage sidecar claim was confirmed and fixed. Oversized
    diffs are write-once sidecars below `sidecars/`, not disposable `cache/`.
    The dated evidence and regression name are recorded in
    `res.chatgpt-architecture-review`.
 Panel follow-up (2026-08-09) also closed kind path traversal, fractional
-stored timestamps, cache-entry tampering, and live/archive filename drift.
+stored timestamps, renamed live facts, tampered archived facts, and valid
+RFC 3339 instant comparison for fractional and offset `--at` values. Archive
+re-append, cross-set duplicate, and no-replace compaction regressions are
+included.
 
 ## Acceptance
 

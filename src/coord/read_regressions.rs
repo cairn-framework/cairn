@@ -1,4 +1,4 @@
-//! Regression coverage for cache binding and malformed lease reads.
+//! Regression coverage for malformed lease reads and immutable fact names.
 use super::*;
 use crate::coord::append::{NewFact, append_fact};
 use crate::coord::envelope::{Actor, Envelope, fact_id_for};
@@ -123,48 +123,6 @@ fn malformed_lease_renew_fails_read_instead_of_being_unheld() {
 }
 
 #[test]
-fn parse_cache_entry_tampering_fails_even_when_fact_bytes_are_unchanged() {
-    let dir = repo();
-    let path = append_fact(
-        dir.path(),
-        fact(
-            "ruling.run",
-            "2026-08-07T03:45:12Z",
-            serde_json::json!({ "target": "plan-0123456789abcdef" }),
-        ),
-    )
-    .expect("appends");
-    let _ = read_facts(dir.path()).expect("seeds parse cache");
-    let store = dir.path().join(".git/cairn/coord");
-    let cache_path = store.join("cache/parsed.json");
-    let name = path.file_name().unwrap().to_string_lossy().to_string();
-    let mut cache: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&cache_path).expect("cache bytes"))
-            .expect("cache json");
-    let mut cached: Envelope =
-        serde_json::from_value(cache[&name]["fact"].clone()).expect("cached fact");
-    cached.payload = serde_json::json!({ "target": "plan-fedcba9876543210" });
-    cached.fact_id = String::new();
-    cached.fact_id = fact_id_for(&cached).expect("recomputes");
-    cache[&name]["fact"] = serde_json::to_value(cached).expect("serialises");
-    std::fs::write(
-        &cache_path,
-        format!(
-            "{}\n",
-            serde_json::to_string_pretty(&cache).expect("serialises")
-        ),
-    )
-    .expect("mutates cache");
-    let Err(error) = read_facts(dir.path()) else {
-        panic!("tampered cache succeeds");
-    };
-    assert!(
-        error.contains("cache") || error.contains("identity"),
-        "{error}"
-    );
-}
-
-#[test]
 fn renamed_valid_fact_fails_filename_validation() {
     let dir = repo();
     let path = append_fact(
@@ -221,4 +179,73 @@ fn fractional_park_and_unpark_timestamps_are_rejected() {
         };
         assert!(error.contains("recorded_at"), "{error}");
     }
+}
+
+#[test]
+fn fractional_at_after_expiry_is_stale() {
+    let dir = repo();
+    append_fact(
+        dir.path(),
+        fact(
+            "lease.grant",
+            "2026-08-07T03:45:12Z",
+            serde_json::json!({
+                "unit_id": "todo.example",
+                "expires_at": "2026-08-07T04:00:00Z",
+            }),
+        ),
+    )
+    .expect("valid grant");
+    let facts = match read_facts(dir.path()).expect("reads") {
+        StoreRead::Ready(facts) => facts,
+        StoreRead::Uninitialised => panic!("store initialised"),
+    };
+    let at = "2026-08-07T04:00:00.500Z";
+    assert!(!held(&facts, "todo.example", at));
+    assert!(stale(&facts, "todo.example", at).is_some());
+}
+
+#[test]
+fn offset_at_before_expiry_is_held() {
+    let dir = repo();
+    append_fact(
+        dir.path(),
+        fact(
+            "lease.grant",
+            "2026-08-07T03:45:12Z",
+            serde_json::json!({
+                "unit_id": "todo.example",
+                "expires_at": "2026-08-07T04:00:00Z",
+            }),
+        ),
+    )
+    .expect("valid grant");
+    let facts = match read_facts(dir.path()).expect("reads") {
+        StoreRead::Ready(facts) => facts,
+        StoreRead::Uninitialised => panic!("store initialised"),
+    };
+    let at = "2026-08-07T05:59:00+02:00";
+    assert!(held(&facts, "todo.example", at));
+    assert!(stale(&facts, "todo.example", at).is_none());
+}
+
+#[test]
+fn reads_do_not_create_a_parsed_envelope_cache() {
+    let dir = repo();
+    append_fact(
+        dir.path(),
+        fact(
+            "ruling.run",
+            "2026-08-07T03:45:12Z",
+            serde_json::json!({ "target": "plan-0123456789abcdef" }),
+        ),
+    )
+    .expect("appends");
+    read_facts(dir.path()).expect("reads");
+    assert!(
+        !dir.path()
+            .join(".git/cairn/coord/cache/parsed.json")
+            .exists(),
+        "full reads do not regenerate a parsed-envelope cache"
+    );
 }

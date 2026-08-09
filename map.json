@@ -585,8 +585,8 @@
           "kind": "enum",
           "signature": "pub enum StoreRead",
           "file": "src/coord/read.rs",
-          "line": 31,
-          "end_line": 36
+          "line": 18,
+          "end_line": 23
         },
         {
           "name": "acquire_epoch",
@@ -609,8 +609,8 @@
           "kind": "function",
           "signature": "pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String>",
           "file": "src/coord/verify.rs",
-          "line": 133,
-          "end_line": 197
+          "line": 143,
+          "end_line": 204
         },
         {
           "name": "git_common_dir",
@@ -625,8 +625,8 @@
           "kind": "function",
           "signature": "pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool",
           "file": "src/coord/read.rs",
-          "line": 257,
-          "end_line": 264
+          "line": 214,
+          "end_line": 221
         },
         {
           "name": "is_initialised",
@@ -641,32 +641,32 @@
           "kind": "function",
           "signature": "pub fn lease_chain_head<'a>(facts: &'a [NamedFact], unit: &str) -> Option<&'a NamedFact>",
           "file": "src/coord/read.rs",
-          "line": 215,
-          "end_line": 239
+          "line": 160,
+          "end_line": 184
         },
         {
           "name": "no_lease",
           "kind": "function",
           "signature": "pub fn no_lease(facts: &[NamedFact], unit: &str) -> bool",
           "file": "src/coord/read.rs",
-          "line": 283,
-          "end_line": 285
+          "line": 240,
+          "end_line": 242
         },
         {
           "name": "read_facts",
           "kind": "function",
           "signature": "pub fn read_facts(root: &Path) -> Result<StoreRead, String>",
           "file": "src/coord/read.rs",
-          "line": 150,
-          "end_line": 153
+          "line": 101,
+          "end_line": 104
         },
         {
           "name": "stale",
           "kind": "function",
           "signature": "pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseState<'a>>",
           "file": "src/coord/read.rs",
-          "line": 269,
-          "end_line": 279
+          "line": 226,
+          "end_line": 236
         },
         {
           "name": "store_root",
@@ -681,8 +681,8 @@
           "kind": "function",
           "signature": "pub fn verify(root: &Path) -> Result<(), String>",
           "file": "src/coord/verify.rs",
-          "line": 72,
-          "end_line": 124
+          "line": 77,
+          "end_line": 134
         },
         {
           "name": "append",
@@ -761,16 +761,16 @@
           "kind": "struct",
           "signature": "pub struct LeaseState<'a>",
           "file": "src/coord/read.rs",
-          "line": 201,
-          "end_line": 210
+          "line": 146,
+          "end_line": 155
         },
         {
           "name": "NamedFact",
           "kind": "struct",
           "signature": "pub struct NamedFact",
           "file": "src/coord/read.rs",
-          "line": 40,
-          "end_line": 45
+          "line": 27,
+          "end_line": 32
         },
         {
           "name": "NewFact",
@@ -833,16 +833,16 @@
           "kind": "function",
           "signature": "pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String>",
           "file": "src/coord/read.rs",
-          "line": 160,
-          "end_line": 198
+          "line": 111,
+          "end_line": 143
         },
         {
           "name": "validate",
           "kind": "function",
           "signature": "pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String>",
           "file": "src/coord/read.rs",
-          "line": 47,
-          "end_line": 106
+          "line": 34,
+          "end_line": 93
         },
         {
           "name": "validate_kind",

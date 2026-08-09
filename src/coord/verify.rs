@@ -59,6 +59,11 @@ fn park_is_matched(park: &Envelope, all: &[&NamedFact]) -> bool {
     })
 }
 
+fn move_once(source: &Path, target: &Path) -> Result<(), std::io::Error> {
+    std::fs::hard_link(source, target)?;
+    std::fs::remove_file(source)
+}
+
 /// Verifies store integrity for the family containing `root`.
 ///
 /// Checks that the live fact set is a superset of every prior observation,
@@ -78,6 +83,11 @@ pub fn verify(root: &Path) -> Result<(), String> {
     let archived = read_archive(&store)?;
     let live_ids: BTreeSet<&str> = live.iter().map(|f| f.fact.fact_id.as_str()).collect();
     let archived_ids: BTreeSet<&str> = archived.iter().map(|f| f.fact.fact_id.as_str()).collect();
+    if let Some(duplicate) = live_ids.intersection(&archived_ids).next() {
+        return Err(format!(
+            "fact identity `{duplicate}` appears in both live facts and archive"
+        ));
+    }
     let everything: Vec<&NamedFact> = live.iter().chain(archived.iter()).collect();
 
     // Append-only: every previously observed fact still exists somewhere.
@@ -186,13 +196,10 @@ pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String> {
         let target_dir = store.join("archive").join(month);
         std::fs::create_dir_all(&target_dir)
             .map_err(|error| format!("cannot create archive month: {error}"))?;
-        std::fs::rename(store.join("facts").join(&name), target_dir.join(&name))
-            .map_err(|error| format!("cannot archive `{name}`: {error}"))?;
+        move_once(&store.join("facts").join(&name), &target_dir.join(&name))
+            .map_err(|error| format!("cannot archive `{name}` without replacement: {error}"))?;
         moved.push(name);
     }
-    // The parse cache may now hold archived names; it is derived and
-    // disposable, so drop it rather than editing it.
-    let _ = std::fs::remove_file(store.join("cache/parsed.json"));
     Ok(moved)
 }
 
@@ -273,8 +280,6 @@ mod tests {
             .find(|entry| entry.file_name().to_string_lossy().contains(&grant))
             .expect("grant file exists");
         std::fs::remove_file(grant_file.path()).expect("removes");
-        // The parse cache is derived; drop it so the removal is what fails.
-        let _ = std::fs::remove_file(store.join("cache/parsed.json"));
         let error = verify(dir.path()).expect_err("removed antecedent fails");
         assert!(
             error.contains("disappeared") || error.contains("exists nowhere"),
@@ -341,7 +346,6 @@ mod tests {
         let month_dir = store.join("archive/2026-07");
         std::fs::create_dir_all(&month_dir).expect("archive month");
         std::fs::rename(park_file.path(), month_dir.join(&name)).expect("moves");
-        let _ = std::fs::remove_file(store.join("cache/parsed.json"));
         let error = verify(dir.path()).expect_err("compacted unmatched park fails");
         assert!(error.contains("unmatched `ruling.park`"), "{error}");
     }
@@ -419,5 +423,59 @@ mod tests {
             error.contains("filename") || error.contains("identity"),
             "{error}"
         );
+    }
+
+    #[test]
+    fn verify_rejects_a_fact_identity_present_in_live_and_archive() {
+        let dir = repo();
+        record(
+            dir.path(),
+            "ruling.run",
+            "2026-07-01T00:00:00Z",
+            None,
+            serde_json::json!({ "target": "plan-0123456789abcdef" }),
+        );
+        compact(dir.path(), "2026-08-01").expect("compacts");
+        let store = dir.path().join(".git/cairn/coord");
+        let archive = store.join("archive/2026-07");
+        let archived = std::fs::read_dir(&archive)
+            .expect("lists archive")
+            .find_map(Result::ok)
+            .expect("archived fact");
+        let name = archived.file_name();
+        std::fs::copy(archived.path(), store.join("facts").join(&name)).expect("duplicates fact");
+        let error = verify(dir.path()).expect_err("cross-set duplicate fails");
+        assert!(error.contains("both live facts and archive"), "{error}");
+    }
+
+    #[test]
+    fn compact_refuses_replacing_an_existing_archive_target() {
+        let dir = repo();
+        let path = crate::coord::append::append_fact(
+            dir.path(),
+            NewFact {
+                kind: "ruling.run".to_owned(),
+                recorded_at: "2026-07-01T00:00:00Z".to_owned(),
+                recorded_by: Actor {
+                    kind: "driver".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload: serde_json::json!({ "target": "plan-0123456789abcdef" }),
+            },
+        )
+        .expect("appends");
+        let name = path.file_name().expect("name").to_owned();
+        let bytes = std::fs::read(&path).expect("source bytes");
+        let store = dir.path().join(".git/cairn/coord");
+        let target_dir = store.join("archive/2026-07");
+        std::fs::create_dir_all(&target_dir).expect("archive month");
+        let target = target_dir.join(&name);
+        std::fs::write(&target, &bytes).expect("target");
+        let error = compact(dir.path(), "2026-08-01").expect_err("replacement refused");
+        assert!(error.contains("without replacement"), "{error}");
+        assert!(path.is_file(), "source remains live");
+        assert_eq!(std::fs::read(&target).expect("target bytes"), bytes);
     }
 }

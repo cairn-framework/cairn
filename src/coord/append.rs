@@ -95,6 +95,21 @@ fn validate_new_fact(fact: &NewFact) -> Result<&'static str, String> {
     Ok(evidence_class)
 }
 
+fn archive_contains(store: &Path, name: &str) -> Result<bool, String> {
+    let archive = store.join("archive");
+    let months = match std::fs::read_dir(&archive) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => return Err(format!("cannot list coordination archive: {error}")),
+    };
+    for month in months {
+        let month = month.map_err(|error| format!("cannot read archive entry: {error}"))?;
+        if month.path().is_dir() && month.path().join(name).is_file() {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
 fn write_fact(root: &Path, envelope: &Envelope) -> Result<PathBuf, String> {
     let store = store::store_root(root)?;
     store::ensure_initialised(&store)?;
@@ -104,7 +119,12 @@ fn write_fact(root: &Path, envelope: &Envelope) -> Result<PathBuf, String> {
         envelope.kind,
         envelope.fact_id
     );
-    let path = store.join("facts").join(name);
+    if archive_contains(&store, &name)? {
+        return Err(format!(
+            "fact `{name}` already exists in the archive; facts are write-once"
+        ));
+    }
+    let path = store.join("facts").join(&name);
     let body = serde_json::to_string_pretty(envelope)
         .map_err(|error| format!("fact does not serialise: {error}"))?;
     persist::atomic_write_once(&path, &format!("{body}\n")).map_err(|error| {
@@ -279,6 +299,20 @@ mod tests {
         assert!(
             error.contains("outside the sanctioned families")
                 || error.contains("safe coordination kind component"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn archived_duplicate_is_rejected_after_compaction() {
+        let dir = repo();
+        let candidate = fact("ruling.run", "driver");
+        append_fact(dir.path(), candidate).expect("first append");
+        crate::coord::verify::compact(dir.path(), "2026-09-01").expect("compacts");
+        let error = append_fact(dir.path(), fact("ruling.run", "driver"))
+            .expect_err("archived duplicate is rejected");
+        assert!(
+            error.contains("archive") && error.contains("write-once"),
             "{error}"
         );
     }

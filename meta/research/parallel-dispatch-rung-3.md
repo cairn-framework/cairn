@@ -545,6 +545,14 @@ the successor to `res.overharness-design-threads` thread c, and the facts
 directory is the canonical content the thread says stays git-adjacent while the
 derived store widens without gaining authority.
 
+#### Implementation reconciliation (2026-08-09)
+
+The S8 hardening round removed the parsed-envelope cache rather than carrying
+this optimization into the shipped reader. Full reads still list `facts/` in
+full and now parse every immutable fact directly; `cache/observed.json` remains
+only the append-only verification snapshot. The canonical fact bytes remain the
+sole read authority.
+
 ### The derived-fact metadata slate: adopt, not defer
 
 `evidence_class` is a **required** envelope field from format 1. The slate this
