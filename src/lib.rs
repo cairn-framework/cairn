@@ -13,6 +13,8 @@
 
 /// Contract artefact loading.
 pub mod artefacts;
+/// Authorability eval instrument: prompt in, scored record out.
+pub mod authoreval;
 /// Cairn blueprint parsing.
 pub mod blueprint;
 /// Phase 9 brownfield extraction heuristics and candidate types.

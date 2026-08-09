@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "interface_hash": "da9e21ad900f145a",
+  "interface_hash": "d725828923d4653e",
   "nodes": [
     {
       "id": "cairn",
@@ -11,6 +11,635 @@
       "files": [],
       "contracts": [],
       "symbols": []
+    },
+    {
+      "id": "cairn.authoreval",
+      "kind": "module",
+      "name": "AuthorEval",
+      "state": "synced",
+      "paths": [
+        "./src/authoreval",
+        "./src/bin/cairn-authoreval.rs",
+        "./harness/authoreval"
+      ],
+      "files": [
+        "harness/authoreval/prompts/smoke.decision-authoring.json",
+        "src/authoreval/backend/command.rs",
+        "src/authoreval/backend/mod.rs",
+        "src/authoreval/cli.rs",
+        "src/authoreval/loop_tests.rs",
+        "src/authoreval/mod.rs",
+        "src/authoreval/prompt.rs",
+        "src/authoreval/record.rs",
+        "src/authoreval/runner/mod.rs",
+        "src/authoreval/runner/progress.rs",
+        "src/authoreval/scorer.rs",
+        "src/authoreval/taxonomy.rs",
+        "src/authoreval/tests/cli.rs",
+        "src/authoreval/tests/mod.rs",
+        "src/authoreval/tests/prompt.rs",
+        "src/authoreval/tests/taxonomy.rs",
+        "src/authoreval/tests/workspace.rs",
+        "src/authoreval/workspace.rs",
+        "src/bin/cairn-authoreval.rs"
+      ],
+      "contracts": [
+        "./meta/contracts/authoreval.md"
+      ],
+      "symbols": [
+        {
+          "name": "RECORD_SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const RECORD_SCHEMA_VERSION u32",
+          "file": "src/authoreval/record.rs",
+          "line": 16,
+          "end_line": 16
+        },
+        {
+          "name": "BackendErrorClass",
+          "kind": "enum",
+          "signature": "pub enum BackendErrorClass",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 47,
+          "end_line": 54
+        },
+        {
+          "name": "BackendSpec",
+          "kind": "enum",
+          "signature": "pub enum BackendSpec",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 34,
+          "end_line": 46
+        },
+        {
+          "name": "FailureClass",
+          "kind": "enum",
+          "signature": "pub enum FailureClass",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 13,
+          "end_line": 22
+        },
+        {
+          "name": "FailureSubclass",
+          "kind": "enum",
+          "signature": "pub enum FailureSubclass",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 27,
+          "end_line": 36
+        },
+        {
+          "name": "Outcome",
+          "kind": "enum",
+          "signature": "pub enum Outcome",
+          "file": "src/authoreval/record.rs",
+          "line": 21,
+          "end_line": 32
+        },
+        {
+          "name": "from_args",
+          "kind": "function",
+          "signature": "pub fn from_args( args: &[String], default_cairn_bin: Option<&Utf8Path>, ) -> Result<Self, CairnError>",
+          "file": "src/authoreval/cli.rs",
+          "line": 77,
+          "end_line": 116
+        },
+        {
+          "name": "help_text",
+          "kind": "function",
+          "signature": "pub fn help_text() -> String",
+          "file": "src/authoreval/cli.rs",
+          "line": 31,
+          "end_line": 50
+        },
+        {
+          "name": "run_prompt_file",
+          "kind": "function",
+          "signature": "pub fn run_prompt_file(config: &RunConfig, prompt_path: &Utf8Path) -> Result<Record, CairnError>",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 75,
+          "end_line": 100
+        },
+        {
+          "name": "sibling_cairn_bin",
+          "kind": "function",
+          "signature": "pub fn sibling_cairn_bin() -> Option<Utf8PathBuf>",
+          "file": "src/authoreval/cli.rs",
+          "line": 60,
+          "end_line": 65
+        },
+        {
+          "name": "BackendIdentity",
+          "kind": "struct",
+          "signature": "pub struct BackendIdentity",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 37,
+          "end_line": 42
+        },
+        {
+          "name": "Hotspot",
+          "kind": "struct",
+          "signature": "pub struct Hotspot",
+          "file": "src/authoreval/record.rs",
+          "line": 56,
+          "end_line": 71
+        },
+        {
+          "name": "Invocation",
+          "kind": "struct",
+          "signature": "pub struct Invocation",
+          "file": "src/authoreval/cli.rs",
+          "line": 20,
+          "end_line": 27
+        },
+        {
+          "name": "Record",
+          "kind": "struct",
+          "signature": "pub struct Record",
+          "file": "src/authoreval/record.rs",
+          "line": 84,
+          "end_line": 106
+        },
+        {
+          "name": "RecordError",
+          "kind": "struct",
+          "signature": "pub struct RecordError",
+          "file": "src/authoreval/record.rs",
+          "line": 75,
+          "end_line": 80
+        },
+        {
+          "name": "RunConfig",
+          "kind": "struct",
+          "signature": "pub struct RunConfig",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 50,
+          "end_line": 61
+        },
+        {
+          "name": "TokenTotals",
+          "kind": "struct",
+          "signature": "pub struct TokenTotals",
+          "file": "src/authoreval/record.rs",
+          "line": 36,
+          "end_line": 43
+        },
+        {
+          "name": "DEFAULT_FIXTURE",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_FIXTURE",
+          "file": "src/authoreval/cli.rs",
+          "line": 16,
+          "end_line": 16
+        },
+        {
+          "name": "DEFAULT_MAX_REPAIRS",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_MAX_REPAIRS u32",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 26,
+          "end_line": 26
+        },
+        {
+          "name": "DEFAULT_TIMEOUT_MS",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_TIMEOUT_MS u64",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub(crate) const SCHEMA_VERSION u32",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 24,
+          "end_line": 24
+        },
+        {
+          "name": "add",
+          "kind": "function",
+          "signature": "pub(crate) const fn add(&mut self, prompt: u64, completion: u64)",
+          "file": "src/authoreval/record.rs",
+          "line": 47,
+          "end_line": 51
+        },
+        {
+          "name": "class",
+          "kind": "function",
+          "signature": "pub(crate) const fn class(&self) -> BackendErrorClass",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 130,
+          "end_line": 138
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub(crate) const fn new(script: ReplayScript) -> Self",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 221,
+          "end_line": 226
+        },
+        {
+          "name": "BackendError",
+          "kind": "enum",
+          "signature": "pub(crate) enum BackendError",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 104,
+          "end_line": 126
+        },
+        {
+          "name": "ReplayTurn",
+          "kind": "enum",
+          "signature": "pub(crate) enum ReplayTurn",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 186,
+          "end_line": 198
+        },
+        {
+          "name": "cairn_file_name",
+          "kind": "function",
+          "signature": "pub(crate) fn cairn_file_name() -> String",
+          "file": "src/authoreval/cli.rs",
+          "line": 54,
+          "end_line": 56
+        },
+        {
+          "name": "classify",
+          "kind": "function",
+          "signature": "pub(crate) fn classify(code: &str, persisted: bool) -> (FailureClass, FailureSubclass)",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 80,
+          "end_line": 91
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub(crate) fn run( config: &RunConfig, prompt: &Prompt, backend: &dyn AuthorevalBackend, ) -> Result<Record, CairnError>",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 103,
+          "end_line": 151
+        },
+        {
+          "name": "subclass_for",
+          "kind": "function",
+          "signature": "pub(crate) fn subclass_for(code: &str) -> FailureSubclass",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 68,
+          "end_line": 73
+        },
+        {
+          "name": "AuthorRequest",
+          "kind": "struct",
+          "signature": "pub(crate) struct AuthorRequest<'a>",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 58,
+          "end_line": 69
+        },
+        {
+          "name": "AuthorResponse",
+          "kind": "struct",
+          "signature": "pub(crate) struct AuthorResponse",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 93,
+          "end_line": 100
+        },
+        {
+          "name": "FileEdit",
+          "kind": "struct",
+          "signature": "pub(crate) struct FileEdit",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 73,
+          "end_line": 78
+        },
+        {
+          "name": "ReplayBackend",
+          "kind": "struct",
+          "signature": "pub(crate) struct ReplayBackend",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 214,
+          "end_line": 217
+        },
+        {
+          "name": "ReplayScript",
+          "kind": "struct",
+          "signature": "pub(crate) struct ReplayScript",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 202,
+          "end_line": 207
+        },
+        {
+          "name": "TokenUsage",
+          "kind": "struct",
+          "signature": "pub(crate) struct TokenUsage",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 82,
+          "end_line": 89
+        },
+        {
+          "name": "AuthorevalBackend",
+          "kind": "trait",
+          "signature": "pub(crate) trait AuthorevalBackend",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 171,
+          "end_line": 181
+        },
+        {
+          "name": "RECORD_SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const RECORD_SCHEMA_VERSION u32",
+          "file": "src/authoreval/record.rs",
+          "line": 16,
+          "end_line": 16
+        },
+        {
+          "name": "BackendErrorClass",
+          "kind": "enum",
+          "signature": "pub enum BackendErrorClass",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 47,
+          "end_line": 54
+        },
+        {
+          "name": "BackendSpec",
+          "kind": "enum",
+          "signature": "pub enum BackendSpec",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 34,
+          "end_line": 46
+        },
+        {
+          "name": "FailureClass",
+          "kind": "enum",
+          "signature": "pub enum FailureClass",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 13,
+          "end_line": 22
+        },
+        {
+          "name": "FailureSubclass",
+          "kind": "enum",
+          "signature": "pub enum FailureSubclass",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 27,
+          "end_line": 36
+        },
+        {
+          "name": "Outcome",
+          "kind": "enum",
+          "signature": "pub enum Outcome",
+          "file": "src/authoreval/record.rs",
+          "line": 21,
+          "end_line": 32
+        },
+        {
+          "name": "from_args",
+          "kind": "function",
+          "signature": "pub fn from_args( args: &[String], default_cairn_bin: Option<&Utf8Path>, ) -> Result<Self, CairnError>",
+          "file": "src/authoreval/cli.rs",
+          "line": 77,
+          "end_line": 116
+        },
+        {
+          "name": "help_text",
+          "kind": "function",
+          "signature": "pub fn help_text() -> String",
+          "file": "src/authoreval/cli.rs",
+          "line": 31,
+          "end_line": 50
+        },
+        {
+          "name": "run_prompt_file",
+          "kind": "function",
+          "signature": "pub fn run_prompt_file(config: &RunConfig, prompt_path: &Utf8Path) -> Result<Record, CairnError>",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 75,
+          "end_line": 100
+        },
+        {
+          "name": "sibling_cairn_bin",
+          "kind": "function",
+          "signature": "pub fn sibling_cairn_bin() -> Option<Utf8PathBuf>",
+          "file": "src/authoreval/cli.rs",
+          "line": 60,
+          "end_line": 65
+        },
+        {
+          "name": "BackendIdentity",
+          "kind": "struct",
+          "signature": "pub struct BackendIdentity",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 37,
+          "end_line": 42
+        },
+        {
+          "name": "Hotspot",
+          "kind": "struct",
+          "signature": "pub struct Hotspot",
+          "file": "src/authoreval/record.rs",
+          "line": 56,
+          "end_line": 71
+        },
+        {
+          "name": "Invocation",
+          "kind": "struct",
+          "signature": "pub struct Invocation",
+          "file": "src/authoreval/cli.rs",
+          "line": 20,
+          "end_line": 27
+        },
+        {
+          "name": "Record",
+          "kind": "struct",
+          "signature": "pub struct Record",
+          "file": "src/authoreval/record.rs",
+          "line": 84,
+          "end_line": 106
+        },
+        {
+          "name": "RecordError",
+          "kind": "struct",
+          "signature": "pub struct RecordError",
+          "file": "src/authoreval/record.rs",
+          "line": 75,
+          "end_line": 80
+        },
+        {
+          "name": "RunConfig",
+          "kind": "struct",
+          "signature": "pub struct RunConfig",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 50,
+          "end_line": 61
+        },
+        {
+          "name": "TokenTotals",
+          "kind": "struct",
+          "signature": "pub struct TokenTotals",
+          "file": "src/authoreval/record.rs",
+          "line": 36,
+          "end_line": 43
+        },
+        {
+          "name": "DEFAULT_FIXTURE",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_FIXTURE",
+          "file": "src/authoreval/cli.rs",
+          "line": 16,
+          "end_line": 16
+        },
+        {
+          "name": "DEFAULT_MAX_REPAIRS",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_MAX_REPAIRS u32",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 26,
+          "end_line": 26
+        },
+        {
+          "name": "DEFAULT_TIMEOUT_MS",
+          "kind": "const",
+          "signature": "pub(crate) const DEFAULT_TIMEOUT_MS u64",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub(crate) const SCHEMA_VERSION u32",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 24,
+          "end_line": 24
+        },
+        {
+          "name": "add",
+          "kind": "function",
+          "signature": "pub(crate) const fn add(&mut self, prompt: u64, completion: u64)",
+          "file": "src/authoreval/record.rs",
+          "line": 47,
+          "end_line": 51
+        },
+        {
+          "name": "class",
+          "kind": "function",
+          "signature": "pub(crate) const fn class(&self) -> BackendErrorClass",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 130,
+          "end_line": 138
+        },
+        {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub(crate) const fn new(script: ReplayScript) -> Self",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 221,
+          "end_line": 226
+        },
+        {
+          "name": "BackendError",
+          "kind": "enum",
+          "signature": "pub(crate) enum BackendError",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 104,
+          "end_line": 126
+        },
+        {
+          "name": "ReplayTurn",
+          "kind": "enum",
+          "signature": "pub(crate) enum ReplayTurn",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 186,
+          "end_line": 198
+        },
+        {
+          "name": "cairn_file_name",
+          "kind": "function",
+          "signature": "pub(crate) fn cairn_file_name() -> String",
+          "file": "src/authoreval/cli.rs",
+          "line": 54,
+          "end_line": 56
+        },
+        {
+          "name": "classify",
+          "kind": "function",
+          "signature": "pub(crate) fn classify(code: &str, persisted: bool) -> (FailureClass, FailureSubclass)",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 80,
+          "end_line": 91
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub(crate) fn run( config: &RunConfig, prompt: &Prompt, backend: &dyn AuthorevalBackend, ) -> Result<Record, CairnError>",
+          "file": "src/authoreval/runner/mod.rs",
+          "line": 103,
+          "end_line": 151
+        },
+        {
+          "name": "subclass_for",
+          "kind": "function",
+          "signature": "pub(crate) fn subclass_for(code: &str) -> FailureSubclass",
+          "file": "src/authoreval/taxonomy.rs",
+          "line": 68,
+          "end_line": 73
+        },
+        {
+          "name": "AuthorRequest",
+          "kind": "struct",
+          "signature": "pub(crate) struct AuthorRequest<'a>",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 58,
+          "end_line": 69
+        },
+        {
+          "name": "AuthorResponse",
+          "kind": "struct",
+          "signature": "pub(crate) struct AuthorResponse",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 93,
+          "end_line": 100
+        },
+        {
+          "name": "FileEdit",
+          "kind": "struct",
+          "signature": "pub(crate) struct FileEdit",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 73,
+          "end_line": 78
+        },
+        {
+          "name": "ReplayBackend",
+          "kind": "struct",
+          "signature": "pub(crate) struct ReplayBackend",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 214,
+          "end_line": 217
+        },
+        {
+          "name": "ReplayScript",
+          "kind": "struct",
+          "signature": "pub(crate) struct ReplayScript",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 202,
+          "end_line": 207
+        },
+        {
+          "name": "TokenUsage",
+          "kind": "struct",
+          "signature": "pub(crate) struct TokenUsage",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 82,
+          "end_line": 89
+        },
+        {
+          "name": "AuthorevalBackend",
+          "kind": "trait",
+          "signature": "pub(crate) trait AuthorevalBackend",
+          "file": "src/authoreval/backend/mod.rs",
+          "line": 171,
+          "end_line": 181
+        }
+      ]
     },
     {
       "id": "cairn.blueprint-source",
@@ -5160,16 +5789,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "CairnError",
@@ -5177,7 +5806,7 @@
           "signature": "pub enum CairnError",
           "file": "src/error.rs",
           "line": 17,
-          "end_line": 57
+          "end_line": 62
         },
         {
           "name": "VerificationState",
@@ -5192,8 +5821,8 @@
           "kind": "function",
           "signature": "pub fn code(&self) -> &'static str",
           "file": "src/error.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 101,
+          "end_line": 111
         },
         {
           "name": "install_panic_hook",
@@ -5240,8 +5869,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 88,
-          "end_line": 90
+          "line": 90,
+          "end_line": 92
         },
         {
           "name": "artefacts",
@@ -5252,204 +5881,212 @@
           "end_line": 15
         },
         {
+          "name": "authoreval",
+          "kind": "module",
+          "signature": "pub mod authoreval",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
           "name": "blueprint",
           "kind": "module",
           "signature": "pub mod blueprint",
           "file": "src/lib.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "brownfield",
           "kind": "module",
           "signature": "pub mod brownfield",
           "file": "src/lib.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "changes",
           "kind": "module",
           "signature": "pub mod changes",
           "file": "src/lib.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "cli",
           "kind": "module",
           "signature": "pub mod cli",
           "file": "src/lib.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "coord",
           "kind": "module",
           "signature": "pub mod coord",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 69,
+          "end_line": 69
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 66,
+          "end_line": 66
         },
         {
           "name": "ISSUE_BASE",
@@ -5464,16 +6101,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "CairnError",
@@ -5481,7 +6118,7 @@
           "signature": "pub enum CairnError",
           "file": "src/error.rs",
           "line": 17,
-          "end_line": 57
+          "end_line": 62
         },
         {
           "name": "VerificationState",
@@ -5496,8 +6133,8 @@
           "kind": "function",
           "signature": "pub fn code(&self) -> &'static str",
           "file": "src/error.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 101,
+          "end_line": 111
         },
         {
           "name": "install_panic_hook",
@@ -5544,8 +6181,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 88,
-          "end_line": 90
+          "line": 90,
+          "end_line": 92
         },
         {
           "name": "artefacts",
@@ -5556,204 +6193,212 @@
           "end_line": 15
         },
         {
+          "name": "authoreval",
+          "kind": "module",
+          "signature": "pub mod authoreval",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
           "name": "blueprint",
           "kind": "module",
           "signature": "pub mod blueprint",
           "file": "src/lib.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "brownfield",
           "kind": "module",
           "signature": "pub mod brownfield",
           "file": "src/lib.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "changes",
           "kind": "module",
           "signature": "pub mod changes",
           "file": "src/lib.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "cli",
           "kind": "module",
           "signature": "pub mod cli",
           "file": "src/lib.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "coord",
           "kind": "module",
           "signature": "pub mod coord",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 69,
+          "end_line": 69
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 66,
+          "end_line": 66
         },
         {
           "name": "ISSUE_BASE",
@@ -5768,16 +6413,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "CairnError",
@@ -5785,7 +6430,7 @@
           "signature": "pub enum CairnError",
           "file": "src/error.rs",
           "line": 17,
-          "end_line": 57
+          "end_line": 62
         },
         {
           "name": "VerificationState",
@@ -5800,8 +6445,8 @@
           "kind": "function",
           "signature": "pub fn code(&self) -> &'static str",
           "file": "src/error.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 101,
+          "end_line": 111
         },
         {
           "name": "install_panic_hook",
@@ -5848,8 +6493,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 88,
-          "end_line": 90
+          "line": 90,
+          "end_line": 92
         },
         {
           "name": "artefacts",
@@ -5860,204 +6505,212 @@
           "end_line": 15
         },
         {
+          "name": "authoreval",
+          "kind": "module",
+          "signature": "pub mod authoreval",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
           "name": "blueprint",
           "kind": "module",
           "signature": "pub mod blueprint",
           "file": "src/lib.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "brownfield",
           "kind": "module",
           "signature": "pub mod brownfield",
           "file": "src/lib.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "changes",
           "kind": "module",
           "signature": "pub mod changes",
           "file": "src/lib.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "cli",
           "kind": "module",
           "signature": "pub mod cli",
           "file": "src/lib.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "coord",
           "kind": "module",
           "signature": "pub mod coord",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 69,
+          "end_line": 69
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 66,
+          "end_line": 66
         },
         {
           "name": "ISSUE_BASE",
@@ -6072,16 +6725,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "CairnError",
@@ -6089,7 +6742,7 @@
           "signature": "pub enum CairnError",
           "file": "src/error.rs",
           "line": 17,
-          "end_line": 57
+          "end_line": 62
         },
         {
           "name": "VerificationState",
@@ -6104,8 +6757,8 @@
           "kind": "function",
           "signature": "pub fn code(&self) -> &'static str",
           "file": "src/error.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 101,
+          "end_line": 111
         },
         {
           "name": "install_panic_hook",
@@ -6152,8 +6805,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 88,
-          "end_line": 90
+          "line": 90,
+          "end_line": 92
         },
         {
           "name": "artefacts",
@@ -6164,204 +6817,212 @@
           "end_line": 15
         },
         {
+          "name": "authoreval",
+          "kind": "module",
+          "signature": "pub mod authoreval",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
           "name": "blueprint",
           "kind": "module",
           "signature": "pub mod blueprint",
           "file": "src/lib.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "brownfield",
           "kind": "module",
           "signature": "pub mod brownfield",
           "file": "src/lib.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "changes",
           "kind": "module",
           "signature": "pub mod changes",
           "file": "src/lib.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "cli",
           "kind": "module",
           "signature": "pub mod cli",
           "file": "src/lib.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "coord",
           "kind": "module",
           "signature": "pub mod coord",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 69,
+          "end_line": 69
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 66,
+          "end_line": 66
         },
         {
           "name": "ISSUE_BASE",
@@ -6376,16 +7037,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "CairnError",
@@ -6393,7 +7054,7 @@
           "signature": "pub enum CairnError",
           "file": "src/error.rs",
           "line": 17,
-          "end_line": 57
+          "end_line": 62
         },
         {
           "name": "VerificationState",
@@ -6408,8 +7069,8 @@
           "kind": "function",
           "signature": "pub fn code(&self) -> &'static str",
           "file": "src/error.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 101,
+          "end_line": 111
         },
         {
           "name": "install_panic_hook",
@@ -6456,8 +7117,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 88,
-          "end_line": 90
+          "line": 90,
+          "end_line": 92
         },
         {
           "name": "artefacts",
@@ -6468,204 +7129,212 @@
           "end_line": 15
         },
         {
+          "name": "authoreval",
+          "kind": "module",
+          "signature": "pub mod authoreval",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
           "name": "blueprint",
           "kind": "module",
           "signature": "pub mod blueprint",
           "file": "src/lib.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "brownfield",
           "kind": "module",
           "signature": "pub mod brownfield",
           "file": "src/lib.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "changes",
           "kind": "module",
           "signature": "pub mod changes",
           "file": "src/lib.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "cli",
           "kind": "module",
           "signature": "pub mod cli",
           "file": "src/lib.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "coord",
           "kind": "module",
           "signature": "pub mod coord",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 69,
+          "end_line": 69
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 66,
+          "end_line": 66
         },
         {
           "name": "ISSUE_BASE",
@@ -6680,16 +7349,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "CairnError",
@@ -6697,7 +7366,7 @@
           "signature": "pub enum CairnError",
           "file": "src/error.rs",
           "line": 17,
-          "end_line": 57
+          "end_line": 62
         },
         {
           "name": "VerificationState",
@@ -6712,8 +7381,8 @@
           "kind": "function",
           "signature": "pub fn code(&self) -> &'static str",
           "file": "src/error.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 101,
+          "end_line": 111
         },
         {
           "name": "install_panic_hook",
@@ -6760,8 +7429,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 88,
-          "end_line": 90
+          "line": 90,
+          "end_line": 92
         },
         {
           "name": "artefacts",
@@ -6772,204 +7441,212 @@
           "end_line": 15
         },
         {
+          "name": "authoreval",
+          "kind": "module",
+          "signature": "pub mod authoreval",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
           "name": "blueprint",
           "kind": "module",
           "signature": "pub mod blueprint",
           "file": "src/lib.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "brownfield",
           "kind": "module",
           "signature": "pub mod brownfield",
           "file": "src/lib.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "changes",
           "kind": "module",
           "signature": "pub mod changes",
           "file": "src/lib.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "cli",
           "kind": "module",
           "signature": "pub mod cli",
           "file": "src/lib.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "coord",
           "kind": "module",
           "signature": "pub mod coord",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 69,
+          "end_line": 69
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 66,
+          "end_line": 66
         },
         {
           "name": "ISSUE_BASE",
@@ -6984,16 +7661,16 @@
           "kind": "function",
           "signature": "pub const fn package_name() -> &'static str",
           "file": "src/lib.rs",
-          "line": 76,
-          "end_line": 78
+          "line": 78,
+          "end_line": 80
         },
         {
           "name": "package_version",
           "kind": "function",
           "signature": "pub const fn package_version() -> &'static str",
           "file": "src/lib.rs",
-          "line": 82,
-          "end_line": 84
+          "line": 84,
+          "end_line": 86
         },
         {
           "name": "CairnError",
@@ -7001,7 +7678,7 @@
           "signature": "pub enum CairnError",
           "file": "src/error.rs",
           "line": 17,
-          "end_line": 57
+          "end_line": 62
         },
         {
           "name": "VerificationState",
@@ -7016,8 +7693,8 @@
           "kind": "function",
           "signature": "pub fn code(&self) -> &'static str",
           "file": "src/error.rs",
-          "line": 95,
-          "end_line": 104
+          "line": 101,
+          "end_line": 111
         },
         {
           "name": "install_panic_hook",
@@ -7064,8 +7741,8 @@
           "kind": "function",
           "signature": "pub fn version_label() -> String",
           "file": "src/lib.rs",
-          "line": 88,
-          "end_line": 90
+          "line": 90,
+          "end_line": 92
         },
         {
           "name": "artefacts",
@@ -7076,204 +7753,212 @@
           "end_line": 15
         },
         {
+          "name": "authoreval",
+          "kind": "module",
+          "signature": "pub mod authoreval",
+          "file": "src/lib.rs",
+          "line": 17,
+          "end_line": 17
+        },
+        {
           "name": "blueprint",
           "kind": "module",
           "signature": "pub mod blueprint",
           "file": "src/lib.rs",
-          "line": 17,
-          "end_line": 17
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "brownfield",
           "kind": "module",
           "signature": "pub mod brownfield",
           "file": "src/lib.rs",
-          "line": 19,
-          "end_line": 19
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "changes",
           "kind": "module",
           "signature": "pub mod changes",
           "file": "src/lib.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "cli",
           "kind": "module",
           "signature": "pub mod cli",
           "file": "src/lib.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "coord",
           "kind": "module",
           "signature": "pub mod coord",
           "file": "src/lib.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "copy",
           "kind": "module",
           "signature": "pub mod copy",
           "file": "src/lib.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "error",
           "kind": "module",
           "signature": "pub mod error",
           "file": "src/lib.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "hooks",
           "kind": "module",
           "signature": "pub mod hooks",
           "file": "src/lib.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "lsp",
           "kind": "module",
           "signature": "pub mod lsp",
           "file": "src/lib.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 35,
+          "end_line": 35
         },
         {
           "name": "map",
           "kind": "module",
           "signature": "pub mod map",
           "file": "src/lib.rs",
-          "line": 35,
-          "end_line": 35
+          "line": 37,
+          "end_line": 37
         },
         {
           "name": "mcp",
           "kind": "module",
           "signature": "pub mod mcp",
           "file": "src/lib.rs",
-          "line": 37,
-          "end_line": 37
+          "line": 39,
+          "end_line": 39
         },
         {
           "name": "persist",
           "kind": "module",
           "signature": "pub mod persist",
           "file": "src/lib.rs",
-          "line": 39,
-          "end_line": 39
+          "line": 41,
+          "end_line": 41
         },
         {
           "name": "provenance",
           "kind": "module",
           "signature": "pub mod provenance",
           "file": "src/lib.rs",
-          "line": 41,
-          "end_line": 41
+          "line": 43,
+          "end_line": 43
         },
         {
           "name": "query_api",
           "kind": "module",
           "signature": "pub mod query_api",
           "file": "src/lib.rs",
-          "line": 43,
-          "end_line": 43
+          "line": 45,
+          "end_line": 45
         },
         {
           "name": "reconcile",
           "kind": "module",
           "signature": "pub mod reconcile",
           "file": "src/lib.rs",
-          "line": 45,
-          "end_line": 45
+          "line": 47,
+          "end_line": 47
         },
         {
           "name": "report",
           "kind": "module",
           "signature": "pub mod report",
           "file": "src/lib.rs",
-          "line": 47,
-          "end_line": 47
+          "line": 49,
+          "end_line": 49
         },
         {
           "name": "scanner",
           "kind": "module",
           "signature": "pub mod scanner",
           "file": "src/lib.rs",
-          "line": 49,
-          "end_line": 49
+          "line": 51,
+          "end_line": 51
         },
         {
           "name": "signal",
           "kind": "module",
           "signature": "pub mod signal",
           "file": "src/lib.rs",
-          "line": 51,
-          "end_line": 51
+          "line": 53,
+          "end_line": 53
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/lib.rs",
-          "line": 53,
-          "end_line": 53
+          "line": 55,
+          "end_line": 55
         },
         {
           "name": "suggested_edges",
           "kind": "module",
           "signature": "pub mod suggested_edges",
           "file": "src/lib.rs",
-          "line": 55,
-          "end_line": 55
+          "line": 57,
+          "end_line": 57
         },
         {
           "name": "summariser",
           "kind": "module",
           "signature": "pub mod summariser",
           "file": "src/lib.rs",
-          "line": 57,
-          "end_line": 57
+          "line": 59,
+          "end_line": 59
         },
         {
           "name": "ui",
           "kind": "module",
           "signature": "pub mod ui",
           "file": "src/lib.rs",
-          "line": 59,
-          "end_line": 59
+          "line": 61,
+          "end_line": 61
         },
         {
           "name": "verification",
           "kind": "module",
           "signature": "pub mod verification",
           "file": "src/lib.rs",
-          "line": 67,
-          "end_line": 67
+          "line": 69,
+          "end_line": 69
         },
         {
           "name": "watch",
           "kind": "module",
           "signature": "pub mod watch",
           "file": "src/lib.rs",
-          "line": 61,
-          "end_line": 61
+          "line": 63,
+          "end_line": 63
         },
         {
           "name": "workspace",
           "kind": "module",
           "signature": "pub mod workspace",
           "file": "src/lib.rs",
-          "line": 64,
-          "end_line": 64
+          "line": 66,
+          "end_line": 66
         }
       ]
     },
@@ -8002,6 +8687,9 @@
         "tests/artefact_filename_remediation.rs",
         "tests/artefacts_contract.rs",
         "tests/artefacts_frontmatter.rs",
+        "tests/authoreval_instrument.rs",
+        "tests/authoreval_protocol.rs",
+        "tests/authoreval_support/mod.rs",
         "tests/blueprint_lexer.rs",
         "tests/blueprint_parser.rs",
         "tests/change_format.rs",
@@ -8059,12 +8747,116 @@
       ],
       "symbols": [
         {
+          "name": "BROKEN_DECISION",
+          "kind": "const",
+          "signature": "pub const BROKEN_DECISION",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 39,
+          "end_line": 41
+        },
+        {
+          "name": "MODEL",
+          "kind": "const",
+          "signature": "pub const MODEL",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 19,
+          "end_line": 19
+        },
+        {
+          "name": "ORPHANED_DECISION",
+          "kind": "const",
+          "signature": "pub const ORPHANED_DECISION",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 47,
+          "end_line": 58
+        },
+        {
+          "name": "TARGET",
+          "kind": "const",
+          "signature": "pub const TARGET",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 22,
+          "end_line": 22
+        },
+        {
+          "name": "VALID_DECISION",
+          "kind": "const",
+          "signature": "pub const VALID_DECISION",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 24,
+          "end_line": 35
+        },
+        {
+          "name": "config",
+          "kind": "function",
+          "signature": "pub fn config(backend_max_repairs: u32) -> RunConfig",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 68,
+          "end_line": 76
+        },
+        {
+          "name": "fixture",
+          "kind": "function",
+          "signature": "pub fn fixture() -> Utf8PathBuf",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 64,
+          "end_line": 66
+        },
+        {
+          "name": "manifest_dir",
+          "kind": "function",
+          "signature": "pub fn manifest_dir() -> Utf8PathBuf",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 60,
+          "end_line": 62
+        },
+        {
+          "name": "run",
+          "kind": "function",
+          "signature": "pub fn run(max_repairs: u32, id: &str, turns: &[serde_json::Value]) -> Record",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 109,
+          "end_line": 113
+        },
+        {
+          "name": "scratch",
+          "kind": "function",
+          "signature": "pub fn scratch() -> (tempfile::TempDir, Utf8PathBuf)",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 103,
+          "end_line": 107
+        },
+        {
           "name": "script",
           "kind": "function",
           "signature": "pub fn script(root: &Path) -> String",
           "file": "tests/support/sync_github_todos_stub.rs",
           "line": 103,
           "end_line": 105
+        },
+        {
+          "name": "tree_digest",
+          "kind": "function",
+          "signature": "pub fn tree_digest(root: &Utf8Path) -> BTreeMap<String, String>",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 116,
+          "end_line": 137
+        },
+        {
+          "name": "write_prompt",
+          "kind": "function",
+          "signature": "pub fn write_prompt(dir: &Utf8Path, id: &str, turns: &[serde_json::Value]) -> Utf8PathBuf",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 86,
+          "end_line": 101
+        },
+        {
+          "name": "write_turn",
+          "kind": "function",
+          "signature": "pub fn write_turn(contents: &str) -> serde_json::Value",
+          "file": "tests/authoreval_support/mod.rs",
+          "line": 78,
+          "end_line": 84
         }
       ]
     },
@@ -8615,6 +9407,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.authoreval-instrument-evidence` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/authoreval-instrument-evidence.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.chatgpt-issue-audit` is not linked from any decision",
       "node": null,
       "path": "meta/research/chatgpt-issue-audit.md"
@@ -8700,7 +9499,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.root` carries 17 accepted decisions (threshold 10).",
+      "message": "Node `cairn.root` carries 18 accepted decisions (threshold 10).",
       "node": "cairn.root",
       "path": null
     },

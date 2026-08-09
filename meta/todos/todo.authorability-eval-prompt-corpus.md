@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: open
 created: 2026-08-09
 blocked_by: [todo.authorability-eval-instrument]
 parent: todo.blueprint-authorability-eval
@@ -47,11 +47,18 @@ belongs to `todo.agent-guidance-baseline` (done), not here: this unit measures
 authoring validity only.
 
 ## Dependencies
-`todo.authorability-eval-instrument`, as a typed `blocked_by` edge. There is
-nothing to run a corpus against until the runner and scorer exist. This todo is
-`blocked` rather than open because `blocked` is the status that MISSION
-precedence reports and exits on, while it performs no `blocked_by` check. The
-instrument's last Acceptance bullet owns the transition that opens this todo.
+`todo.authorability-eval-instrument`, as a typed `blocked_by` edge: there was
+nothing to run a corpus against until the runner and scorer existed. That
+dependency is discharged. The instrument landed on 2026-08-09 and flipped this
+todo to `open` in its own single commit, which is why the `blocked_by` edge
+above is now satisfied rather than pending.
+
+What it delivers, and what this unit therefore builds on: `cairn-authoreval run
+<prompt.json>...`, a prompt schema carrying `id`, `instruction`, the `expects`
+paths an answer must author, and an optional offline `replay` script, and one
+JSON Lines record per prompt. Real runs pass `--backend command --command
+<program> --model <name>`; the offline replay backend does not satisfy this
+unit's acceptance.
 
 ## Acceptance
 - Five to ten prompts exist, covering a module claiming named files, a

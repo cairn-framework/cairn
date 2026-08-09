@@ -231,6 +231,7 @@ _No codes allocated yet._
 - CO005 -- scan ran with no `cairn.blueprint` present (CAIRN_NO_BLUEPRINT) -- pre-registry provenance unknown -- audited 2026-07-16
 - CO006 -- local UI server failed to load the requested project (CAIRN_UI_PROJECT_LOAD_FAILED) -- pre-registry provenance unknown -- audited 2026-07-16
 - CO007 -- CLI locate command was invoked without a symbol argument (CAIRN_CLI_MISSING_SYMBOL) -- pre-registry provenance unknown -- audited 2026-07-17
+- CO008 -- authorability eval instrument could not complete a run -- todo.authorability-eval-instrument
 
 ## CL -- LSP / Language Server
 
