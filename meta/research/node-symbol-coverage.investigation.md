@@ -74,6 +74,25 @@ query-visible records carry its definitions. In a mixed file, exported records
 continue to feed the hash and query records include both exported and private
 items.
 
+## Hash path (exported set only)
+
+`collect_public_symbols` feeds the exported signature and record vectors used
+by both aggregation paths. `sequential_reconcile` sorts exported signatures
+and computes `InterfaceFingerprint::from_sorted(&symbols)` in
+`src/reconcile/generic.rs:284-292`; `parallel_reconcile` does the same in
+`src/reconcile/generic.rs:362-370`. Fresh scanner target assembly reads
+`node_symbols` and recomputes
+`InterfaceFingerprint::from_symbols(&owned_symbols)` at
+`src/scanner/mod.rs:314-343`. Cached target assembly repeats that exported
+calculation at `src/scanner/cache.rs:256-283`.
+
+That hash path is distinct from the graph attach expression
+`node.symbols.extend(report.symbol_records...)` at the lane anchor around
+`src/scanner/mod.rs:539-543`, and from the `get --symbols` and `locate`
+navigation consumers listed below. The transient query extractor must not
+enter any of these hash calculations.
+
+
 ## Concrete separation seam
 
 The current `NodeRecord.symbols` field cannot simply be widened. It is the
