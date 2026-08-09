@@ -53,6 +53,8 @@ implementation lands in this research PR.
   dependency bundles, contract checks, and persistent map snapshots unchanged.
 - Add a query-visible extraction stream for Rust and TypeScript in the generic
   reconciler, with cache-safe propagation through reports and scanner assembly.
+  The Rust query path must bypass the `pub ` pre-parse shortcut as well as the
+  visibility-modifier predicate.
 - Store both views explicitly and route only `get --symbols` and exact
   `locate` to the query-visible view.
 - Preserve exact-match lookup and do not add full-text, fuzzy, RAG, or stored

@@ -46,6 +46,46 @@ flattened signature vector and one record vector. `collect_public_symbols` at
 lines 137-160 applies the same callback before constructing either output.
 There is no independent query-visible predicate or record stream.
 
+There is a second Rust-specific gate before that predicate. The
+`LanguageSpec.fast_path` flag is true for Rust, and
+`parse_file` at `src/reconcile/generic.rs:104-111` returns empty vectors when
+the source contains no `pub ` byte sequence. An all-private binary therefore
+does not reach `rust_is_exportable` at all. A query-visible widening must
+bypass or replace this optimization for the query stream while retaining the
+exported stream's fast-path behavior only if it remains semantically safe.
+
+The measured failure is consequently the composition of two filters: the
+pre-parse `pub ` shortcut drops files with no public marker, and the
+visibility-modifier predicate drops private item nodes in files that do reach
+the parser. The implementation must test both cases.
+
+## Rust-specific pre-parse seam
+
+The fast path is an independent seam from `rust_is_exportable`. It is an
+optimization for the old public-only output, not an interface rule. If the
+query-visible set includes crate-private definitions, source discovery must
+parse Rust files that contain no `pub ` marker, or run a separate query walk
+that does so. A predicate-only edit would leave the all-private binary at zero
+coverage and would not satisfy the measured defect.
+
+The exported hash can remain empty for a genuinely all-private file, while the
+query-visible records carry its definitions. In a mixed file, exported records
+continue to feed the hash and query records include both exported and private
+items.
+
+## Concrete separation seam
+
+The smallest coherent design is an exported stream plus a query-visible stream
+that are produced during the same tree walk:
+
+1. Extend `LanguageSpec` with a query-visible policy, or with a callback that
+   answers both policies without duplicating parsing. Keep `is_exportable` as
+   the interface policy. For Rust, make the query path bypass the
+   `fast_path` `pub ` shortcut when no public marker exists. For Rust and
+   TypeScript, query visibility should admit the existing item kinds regardless
+   of public visibility. The walk must still exclude unsupported tree-sitter
+   nodes and preserve the existing TypeScript `export_statement` handling.
+
 ## Where the exported set feeds hashes
 
 The exported set must remain unchanged for interface identity:
@@ -96,17 +136,6 @@ interface evidence. Widening this field in place would therefore publish
 crate-private implementation details through those surfaces and would change
 more than `get` and `locate`.
 
-## Concrete separation seam
-
-The smallest coherent design is an exported stream plus a query-visible stream
-that are produced during the same tree walk:
-
-1. Extend `LanguageSpec` with a query-visible policy, or with a callback that
-   answers both policies without duplicating parsing. Keep `is_exportable` as
-the interface policy. For Rust and TypeScript, query visibility should admit
-   the existing item kinds regardless of public visibility. The walk must still
-   exclude unsupported tree-sitter nodes and preserve the existing TypeScript
-   `export_statement` handling.
 2. Split the generic extraction result. `parse_file` and the collection helper
    should continue returning the exported signatures and exported records, and
    additionally return query-visible `SymbolRecord` values. An item admitted by
@@ -155,11 +184,11 @@ flask fixture's 688 symbols across sixteen files and reports ripgrep recall of
 came from `bundle.dependencies[]`, not from `get --symbols`, which supports the
 interpretation that the graph substrate lacked definitions.
 
-A fresh lane-binary smoke fixture made the predicate failure reproducible
-without cloning the corpus. The fixture had two Rust files under one owned
-module, with five eligible item nodes: `mod defs`, `fn main`, `struct
-TypeList`, `fn new`, and `fn private_function`. Every item was crate-private.
-With the freshly built lane binary:
+A first fresh lane-binary smoke fixture made the all-private failure
+reproducible without cloning the corpus. The fixture had two Rust files under
+one owned module, with five eligible item nodes: `mod defs`, `fn main`,
+`struct TypeList`, `fn new`, and `fn private_function`. Every item was
+crate-private. With the freshly built lane binary:
 
 - `cairn get fixture.core --symbols` printed `Symbols for fixture.core:`
   followed by `(none)`.
@@ -171,9 +200,26 @@ With the freshly built lane binary:
   rerunning `cairn files fixture.core` produced the same hash, demonstrating
   the desired hash behavior even while query coverage was zero.
 
-This fixture is a measurement of current behavior, not a proposed test
-fixture. The eventual implementation should turn its observable query result
-into a deterministic regression test.
+Because that all-private fixture contains no `pub ` marker, it also exercises
+the Rust pre-parse shortcut at `src/reconcile/generic.rs:104-111`; it does not
+reach `rust_is_exportable`. To isolate the visibility predicate, a second
+version added one `pub fn exported()` and kept the private definitions:
+
+- `cairn get fixture.core --symbols` returned only `exported` at
+  `src/lib.rs:3`.
+- `cairn locate RenamedTypeList` still printed
+  `No public symbol definitions found for \`RenamedTypeList\`.`
+- The mixed target hash was `671b61de98147df2`. Renaming the private
+  definitions to `ChangedTypeList` and `changed_private_function` left that
+  hash unchanged.
+
+Together the two runs show both necessary implementation seams: parsing must
+not be skipped for query-only all-private files, and parsed private item nodes
+must bypass the exportability predicate only for the query stream.
+
+These fixtures are measurements of current behavior, not proposed test
+fixtures. The eventual implementation should turn their observable query
+results into deterministic regression tests.
 
 ## TypeScript disposition
 

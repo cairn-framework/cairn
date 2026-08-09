@@ -15,7 +15,10 @@ against the same evidence that motivated `res.node-symbol-coverage.investigation
 ## Scope
 
 Exercise deterministic Rust and TypeScript fixtures containing exported and
-private definitions. Re-run the frozen context-bundle evaluation harness from
+private definitions. Rust coverage must include an all-private file with no
+`pub ` marker, which currently exits through the pre-parse fast path, and a
+mixed file that reaches `rust_is_exportable`. Re-run the frozen context-bundle
+evaluation harness from
 `archive/strongholds/agent-context-bundle-evaluation/evidence.tar.gz` against
 the pinned ripgrep manifest and report the ripgrep recall delta. Keep the
 sealed confirmation split unopened. Verify that interface hashes are unchanged

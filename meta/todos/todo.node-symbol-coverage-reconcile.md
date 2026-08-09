@@ -11,7 +11,8 @@ created: 2026-08-09
 
 After `todo.node-symbol-coverage-ruling` is accepted, split extraction into
 exported and query-visible streams without changing interface hashes. Use
-`res.node-symbol-coverage.investigation` as the seam map.
+`res.node-symbol-coverage.investigation` as the seam map, including the Rust
+`pub ` pre-parse shortcut.
 
 ## Scope
 
@@ -21,8 +22,8 @@ cache and scanner report assembly needed to carry both streams. Keep
 `LanguageSpec::is_exportable`, `ReconcileReport.node_symbols`,
 `ReconcileReport.node_symbol_records`, `TargetReport.symbols`, and
 `TargetReport.symbol_records` as exported interface data. Add a named
-query-visible record stream, bump the cache schema, and cover sequential and
-parallel paths.
+query-visible record stream, ensure the query path parses Rust files with no
+`pub ` marker, bump the cache schema, and cover sequential and parallel paths.
 
 ## Acceptance
 
