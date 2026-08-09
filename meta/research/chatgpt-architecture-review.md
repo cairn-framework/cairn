@@ -53,8 +53,8 @@ resolved against the implementation and tests:
   regeneration code were removed. The former filename-only cache trust and
   missing identity check therefore cannot recur. Live and archived reads
   recompute `fact_id`; regressions
-  `coord::read_regressions::reads_do_not_create_a_parsed_envelope_cache`,
-  `coord::read_regressions::renamed_valid_fact_fails_filename_validation`, and
+  `coord::read::regressions::reads_do_not_create_a_parsed_envelope_cache`,
+  `coord::read::regressions::renamed_valid_fact_fails_filename_validation`, and
   `coord::verify::tests::verify_recomputes_fact_identity_before_accepting_the_store`
   cover the elimination and identity checks.
 - Oversized decline preimage diffs were written below disposable `cache/` while

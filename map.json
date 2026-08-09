@@ -568,7 +568,8 @@
         "src/coord/read_regressions.rs",
         "src/coord/store.rs",
         "src/coord/time.rs",
-        "src/coord/verify.rs"
+        "src/coord/verify.rs",
+        "src/coord/verify_regressions.rs"
       ],
       "contracts": [],
       "symbols": [
@@ -609,8 +610,8 @@
           "kind": "function",
           "signature": "pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String>",
           "file": "src/coord/verify.rs",
-          "line": 150,
-          "end_line": 214
+          "line": 170,
+          "end_line": 234
         },
         {
           "name": "git_common_dir",
@@ -681,8 +682,8 @@
           "kind": "function",
           "signature": "pub fn verify(root: &Path) -> Result<(), String>",
           "file": "src/coord/verify.rs",
-          "line": 77,
-          "end_line": 141
+          "line": 97,
+          "end_line": 161
         },
         {
           "name": "append",
@@ -779,6 +780,14 @@
           "file": "src/coord/append.rs",
           "line": 21,
           "end_line": 34
+        },
+        {
+          "name": "archived_fact_has_target",
+          "kind": "function",
+          "signature": "pub(crate) fn archived_fact_has_target( root: &Path, kind: &str, target: &str, ) -> Result<bool, String>",
+          "file": "src/coord/verify.rs",
+          "line": 55,
+          "end_line": 71
         },
         {
           "name": "check_format",
@@ -2050,6 +2059,7 @@
         "src/cli/commands/pack_report.rs",
         "src/cli/commands/project.rs",
         "src/cli/commands/ruling_run.rs",
+        "src/cli/commands/ruling_run_regressions.rs",
         "src/cli/commands/todo.rs",
         "src/cli/commands/todo/link.rs",
         "src/cli/commands/todo/link/tests.rs",
@@ -2417,14 +2427,6 @@
           "file": "src/cli/commands/gap.rs",
           "line": 13,
           "end_line": 69
-        },
-        {
-          "name": "run_ruling_run",
-          "kind": "function",
-          "signature": "pub(crate) fn run_ruling_run(parsed: &ParsedArgs, root: &Path, digest: &str) -> CliResult",
-          "file": "src/cli/commands/ruling_run.rs",
-          "line": 23,
-          "end_line": 78
         },
         {
           "name": "mermaid",

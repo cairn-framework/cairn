@@ -351,3 +351,17 @@ fn verify_fails_when_observation_snapshot_cannot_be_written() {
         "{error}"
     );
 }
+
+#[test]
+fn compact_rejects_invalid_calendar_dates_before_store_access() {
+    let dir = repo();
+    for before in ["2026/99/99", "2026-99-99"] {
+        let error =
+            crate::coord::verify::compact(dir.path(), before).expect_err("invalid date rejected");
+        assert!(error.contains("YYYY-MM-DD"), "{error}");
+    }
+    assert!(
+        !dir.path().join(".git/cairn").exists(),
+        "invalid dates do not initialise coordination storage"
+    );
+}

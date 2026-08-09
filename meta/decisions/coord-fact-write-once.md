@@ -37,11 +37,11 @@ Coordination fact paths are write-once. The append path MUST create the target
 without replacing it. If the target already exists, append MUST fail and leave
 the existing bytes unchanged. The implementation uses the write-once
 `persist::atomic_write_once` helper rather than the replace-capable
-`persist::atomic_write` helper. `atomic_write_once` deliberately retains the
-temporary file's non-group-writable mode, unlike `atomic_write_bytes`'s
-0o666 default, because immutable fact bytes are never group-writable. Temporary
-bytes MAY be created while preparing the operation, but only an exclusive target
-creation makes the fact visible.
+`persist::atomic_write` helper. `persist::atomic_write_once` currently retains
+the temporary file's non-group-writable mode, unlike `atomic_write_bytes`'s
+`0o666` default. This is descriptive of the selected helper, not a separate
+write-once requirement. Temporary bytes MAY be created while preparing the
+operation, but only an exclusive target creation makes the fact visible.
 
 ## Three-tier contract
 
@@ -52,10 +52,11 @@ creation makes the fact visible.
    (`persist::atomic_write_once`) enforces uniqueness within the live set.
 3. **CROSS-SET uniqueness: DETECTED fail-closed, NOT atomically enforced.**
    `verify` detects a fact identity present in both live and archived sets and
-   fails closed. The append reorder and rollback narrow the race window, but a
-   crash between create and rollback can leave dual identical copies until
-   `verify` heals. Advisory locking when the driver becomes a second adapter is
-   the named follow-up that owns cross-set enforcement.
+   fails closed. The append reorder and rollback narrow the race window, but
+   any failure between create and rollback can leave dual identical copies until
+   `verify` detects and refuses the duplicate. Advisory locking when the driver
+   becomes a second adapter is the named follow-up that owns cross-set
+   enforcement.
 
 This rule applies only to fact files under `facts/` and their immutable moved
 copies under `archive/`; it excludes lease tokens under `leases/` and
@@ -74,10 +75,10 @@ the substrate's disjoint-writer rule with one compactor at a time. The
 lock-free append order reserves the live path first, then checks the archive;
 if compaction wins that interval, append removes its just-created live copy,
 ignoring `NotFound`, and fails closed. The reorder and rollback narrow, but do
-not close, that race interval. A crash between create and rollback can leave
-dual identical copies until `verify` heals (detects and fails closed on) the
-duplicate. Advisory locking when the driver becomes a second adapter is the
-named follow-up that owns cross-set enforcement.
+not close, that race interval. Any failure between create and rollback can
+leave dual identical copies until `verify` detects and refuses the duplicate.
+Advisory locking when the driver becomes a second adapter is the named
+follow-up that owns cross-set enforcement.
 
 ## Rationale and consequences
 The fact identity and filename are part of the audit surface. Replacing a

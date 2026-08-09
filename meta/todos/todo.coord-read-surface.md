@@ -45,3 +45,5 @@ projection.
 - A test asserts a read against a missing store returns
   `store_state: "uninitialised"` and creates nothing.
 - Wire snapshots rebased; `schema_version` bumped if the shape requires it.
+- Follow-up: `ruling show --json` still omits the contract's `cursor` and
+  `truncated` fields.
