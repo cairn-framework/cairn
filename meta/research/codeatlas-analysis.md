@@ -116,6 +116,13 @@ quantifying the spec's "tight defaults, heavy is opt-in" principle
 (docs/spec.md line 759). Deferred: no todo yet; revisit when a large
 brownfield dogfood repo exists to measure against.
 
+2026-08-09 (`res.autodocs-arm-a-brownfield-run`): the deferral still stands.
+`todo.autodocs-head-to-head` claimed its Arm A run would unblock this item; it
+does not. AutoDocs at 284 tracked files is a medium repository, not the large
+target this item asks for, and the run took no JSON output token counts, which
+is the quantity this item is actually about. Arm A supplies a first
+real-repository baseline and a repeatable procedure, nothing more.
+
 ### 8. Not-found recovery (small, mostly built)
 
 `MapGraph::resolve` (`src/map/graph.rs:142-200`) already auto-resolves
