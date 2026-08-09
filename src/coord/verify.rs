@@ -11,7 +11,7 @@ use std::path::Path;
 use crate::persist;
 
 use super::envelope::Envelope;
-use super::read::{NamedFact, StoreRead, read_store};
+use super::read::{NamedFact, StoreRead, read_store, validate};
 use super::store;
 
 /// Lists archived fact names and their parsed envelopes.
@@ -43,6 +43,7 @@ fn read_archive(store: &Path) -> Result<Vec<NamedFact>, String> {
                 .map_err(|error| format!("cannot read archived fact `{name}`: {error}"))?;
             let fact: Envelope = serde_json::from_str(&raw)
                 .map_err(|error| format!("archived fact `{name}` does not parse: {error}"))?;
+            validate(&name, &fact)?;
             out.push(NamedFact { name, fact });
         }
     }
@@ -248,14 +249,20 @@ mod tests {
             "lease.grant",
             "2026-08-01T00:00:00Z",
             None,
-            serde_json::json!({ "unit_id": "todo.x" }),
+            serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-08-01T01:00:00Z",
+            }),
         );
         record(
             dir.path(),
             "lease.renew",
             "2026-08-02T00:00:00Z",
             Some(grant.clone()),
-            serde_json::json!({ "unit_id": "todo.x" }),
+            serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-08-02T01:00:00Z",
+            }),
         );
         verify(dir.path()).expect("clean store verifies");
 
@@ -273,6 +280,40 @@ mod tests {
             error.contains("disappeared") || error.contains("exists nowhere"),
             "{error}"
         );
+    }
+
+    #[test]
+    fn verify_recomputes_fact_identity_before_accepting_the_store() {
+        let dir = repo();
+        let path = append_fact(
+            dir.path(),
+            NewFact {
+                kind: "ruling.run".to_owned(),
+                recorded_at: "2026-08-07T03:45:12Z".to_owned(),
+                recorded_by: Actor {
+                    kind: "driver".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload: serde_json::json!({ "target": "plan-0123456789abcdef" }),
+            },
+        )
+        .expect("appends");
+        let mut raw: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&path).expect("fact bytes"))
+                .expect("fact json");
+        raw["payload"]["target"] = serde_json::json!("plan-fedcba9876543210");
+        std::fs::write(
+            &path,
+            format!(
+                "{}\n",
+                serde_json::to_string_pretty(&raw).expect("serialises")
+            ),
+        )
+        .expect("mutates fact");
+        let error = verify(dir.path()).expect_err("tampered identity fails verification");
+        assert!(error.contains("identity"), "{error}");
     }
 
     #[test]
@@ -313,14 +354,20 @@ mod tests {
             "lease.grant",
             "2026-07-01T00:00:00Z",
             None,
-            serde_json::json!({ "unit_id": "todo.x" }),
+            serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-07-01T01:00:00Z",
+            }),
         );
         record(
             dir.path(),
             "lease.renew",
             "2026-08-05T00:00:00Z",
             Some(old),
-            serde_json::json!({ "unit_id": "todo.x" }),
+            serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-08-05T01:00:00Z",
+            }),
         );
         record(
             dir.path(),

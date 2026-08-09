@@ -410,7 +410,10 @@ mod tests {
             },
             commit: "a".repeat(40),
             supersedes: None,
-            payload: serde_json::json!({ "unit_id": "todo.x" }),
+            payload: serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-08-07T04:45:13Z",
+            }),
         };
         append_fact(dir.path(), lease).expect("lease appends");
         lease = NewFact {

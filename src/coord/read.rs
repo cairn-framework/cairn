@@ -14,8 +14,18 @@ use std::path::Path;
 
 use crate::persist;
 
-use super::envelope::{Envelope, STORE_FORMAT, known_evidence_class};
+use super::envelope::{
+    Envelope, STORE_FORMAT, fact_id_for, known_evidence_class, validate_lease_payload,
+};
 use super::store;
+use super::time::validate_rfc3339_utc;
+use crate::artefacts::registry::sha256::sha256_hex;
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+struct CachedFact {
+    content_sha256: String,
+    fact: Envelope,
+}
 
 /// The outcome of reading a family store.
 pub enum StoreRead {
@@ -35,7 +45,7 @@ pub struct NamedFact {
 }
 
 /// Validates one parsed fact; any failure fails the whole read.
-fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
+pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
     if fact.format != STORE_FORMAT {
         return Err(format!(
             "fact `{name}` carries unknown format {}; failing closed",
@@ -48,7 +58,42 @@ fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
             fact.evidence_class
         ));
     }
+    validate_rfc3339_utc(&fact.recorded_at)
+        .map_err(|error| format!("fact `{name}` has malformed `recorded_at`: {error}"))?;
+    validate_lease_payload(&fact.kind, &fact.payload)
+        .map_err(|error| format!("fact `{name}` is malformed: {error}"))?;
+    let expected = fact_id_for(fact)?;
+    if fact.fact_id != expected {
+        return Err(format!(
+            "fact `{name}` has invalid identity `{}`; expected `{expected}`",
+            fact.fact_id
+        ));
+    }
     Ok(())
+}
+
+fn read_cached_fact(
+    path: &Path,
+    name: &str,
+    cache: &mut BTreeMap<String, CachedFact>,
+) -> Result<(Envelope, bool), String> {
+    let raw = std::fs::read(path).map_err(|error| format!("cannot read fact `{name}`: {error}"))?;
+    let content_sha256 = sha256_hex(&raw);
+    if let Some(hit) = cache.get(name)
+        && hit.content_sha256 == content_sha256
+    {
+        return Ok((hit.fact.clone(), false));
+    }
+    let fact: Envelope = serde_json::from_slice(&raw)
+        .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
+    cache.insert(
+        name.to_owned(),
+        CachedFact {
+            content_sha256,
+            fact: fact.clone(),
+        },
+    );
+    Ok((fact, true))
 }
 
 /// Reads every fact in the family store for `root`.
@@ -74,8 +119,8 @@ pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String> {
     store::check_format(store)?;
 
     let cache_path = store.join("cache/parsed.json");
-    let mut cache: BTreeMap<String, Envelope> = persist::read_json(&cache_path).unwrap_or_default();
-
+    let mut cache: BTreeMap<String, CachedFact> =
+        persist::read_json(&cache_path).unwrap_or_default();
     let mut names = Vec::new();
     let entries = std::fs::read_dir(store.join("facts"))
         .map_err(|error| format!("cannot list coordination facts: {error}"))?;
@@ -94,28 +139,18 @@ pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String> {
     let mut parsed_new = false;
     let mut facts = Vec::with_capacity(names.len());
     for name in names {
-        let fact = if let Some(hit) = cache.get(&name) {
-            hit.clone()
-        } else {
-            let raw = std::fs::read_to_string(store.join("facts").join(&name))
-                .map_err(|error| format!("cannot read fact `{name}`: {error}"))?;
-            let fact: Envelope = serde_json::from_str(&raw)
-                .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
-            cache.insert(name.clone(), fact.clone());
-            parsed_new = true;
-            fact
-        };
+        let path = store.join("facts").join(&name);
+        let (fact, newly_parsed) = read_cached_fact(&path, &name, &mut cache)?;
+        parsed_new |= newly_parsed;
         validate(&name, &fact)?;
         facts.push(NamedFact { name, fact });
     }
-
     if parsed_new {
         // Derived and disposable: a failed cache write never fails the read.
         let _ = persist::write_json(&cache_path, &cache);
     }
     Ok(StoreRead::Ready(facts))
 }
-
 /// The rendered view of a lease chain head, for the stale projection.
 #[derive(Clone, Debug)]
 pub struct LeaseState<'a> {
@@ -209,7 +244,6 @@ mod tests {
     use super::*;
     use crate::coord::append::{NewFact, append_fact};
     use crate::coord::envelope::Actor;
-
     fn repo() -> tempfile::TempDir {
         let dir = tempfile::TempDir::new().expect("tempdir");
         let output = std::process::Command::new("git")
@@ -270,7 +304,10 @@ mod tests {
             fact(
                 "lease.grant",
                 "2026-08-07T03:45:12Z",
-                serde_json::json!({ "unit_id": "todo.example" }),
+                serde_json::json!({
+                    "unit_id": "todo.example",
+                    "expires_at": "2026-08-07T04:00:00Z",
+                }),
             ),
         )
         .expect("lease appends");
@@ -394,3 +431,6 @@ mod tests {
         assert!(!no_lease(&facts, "todo.x"));
     }
 }
+#[cfg(test)]
+#[path = "read_regressions.rs"]
+mod regressions;

@@ -565,6 +565,7 @@
         "src/coord/git.rs",
         "src/coord/mod.rs",
         "src/coord/read.rs",
+        "src/coord/read_regressions.rs",
         "src/coord/store.rs",
         "src/coord/time.rs",
         "src/coord/verify.rs"
@@ -576,16 +577,16 @@
           "kind": "const",
           "signature": "pub const STORE_FORMAT u32",
           "file": "src/coord/envelope.rs",
-          "line": 12,
-          "end_line": 12
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "StoreRead",
           "kind": "enum",
           "signature": "pub enum StoreRead",
           "file": "src/coord/read.rs",
-          "line": 21,
-          "end_line": 26
+          "line": 31,
+          "end_line": 36
         },
         {
           "name": "acquire_epoch",
@@ -600,16 +601,16 @@
           "kind": "function",
           "signature": "pub fn append_fact(root: &Path, fact: NewFact) -> Result<PathBuf, String>",
           "file": "src/coord/append.rs",
-          "line": 41,
-          "end_line": 99
+          "line": 43,
+          "end_line": 58
         },
         {
           "name": "compact",
           "kind": "function",
           "signature": "pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String>",
           "file": "src/coord/verify.rs",
-          "line": 132,
-          "end_line": 196
+          "line": 133,
+          "end_line": 197
         },
         {
           "name": "git_common_dir",
@@ -624,8 +625,8 @@
           "kind": "function",
           "signature": "pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool",
           "file": "src/coord/read.rs",
-          "line": 177,
-          "end_line": 184
+          "line": 212,
+          "end_line": 219
         },
         {
           "name": "is_initialised",
@@ -640,32 +641,32 @@
           "kind": "function",
           "signature": "pub fn lease_chain_head<'a>(facts: &'a [NamedFact], unit: &str) -> Option<&'a NamedFact>",
           "file": "src/coord/read.rs",
-          "line": 135,
-          "end_line": 159
+          "line": 170,
+          "end_line": 194
         },
         {
           "name": "no_lease",
           "kind": "function",
           "signature": "pub fn no_lease(facts: &[NamedFact], unit: &str) -> bool",
           "file": "src/coord/read.rs",
-          "line": 203,
-          "end_line": 205
+          "line": 238,
+          "end_line": 240
         },
         {
           "name": "read_facts",
           "kind": "function",
           "signature": "pub fn read_facts(root: &Path) -> Result<StoreRead, String>",
           "file": "src/coord/read.rs",
-          "line": 60,
-          "end_line": 63
+          "line": 105,
+          "end_line": 108
         },
         {
           "name": "stale",
           "kind": "function",
           "signature": "pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseState<'a>>",
           "file": "src/coord/read.rs",
-          "line": 189,
-          "end_line": 199
+          "line": 224,
+          "end_line": 234
         },
         {
           "name": "store_root",
@@ -680,8 +681,8 @@
           "kind": "function",
           "signature": "pub fn verify(root: &Path) -> Result<(), String>",
           "file": "src/coord/verify.rs",
-          "line": 71,
-          "end_line": 123
+          "line": 72,
+          "end_line": 124
         },
         {
           "name": "append",
@@ -744,40 +745,40 @@
           "kind": "struct",
           "signature": "pub struct Actor",
           "file": "src/coord/envelope.rs",
-          "line": 16,
-          "end_line": 21
+          "line": 17,
+          "end_line": 22
         },
         {
           "name": "Envelope",
           "kind": "struct",
           "signature": "pub struct Envelope",
           "file": "src/coord/envelope.rs",
-          "line": 25,
-          "end_line": 44
+          "line": 26,
+          "end_line": 45
         },
         {
           "name": "LeaseState",
           "kind": "struct",
           "signature": "pub struct LeaseState<'a>",
           "file": "src/coord/read.rs",
-          "line": 121,
-          "end_line": 130
+          "line": 156,
+          "end_line": 165
         },
         {
           "name": "NamedFact",
           "kind": "struct",
           "signature": "pub struct NamedFact",
           "file": "src/coord/read.rs",
-          "line": 30,
-          "end_line": 35
+          "line": 40,
+          "end_line": 45
         },
         {
           "name": "NewFact",
           "kind": "struct",
           "signature": "pub struct NewFact",
           "file": "src/coord/append.rs",
-          "line": 18,
-          "end_line": 31
+          "line": 20,
+          "end_line": 33
         },
         {
           "name": "check_format",
@@ -800,16 +801,16 @@
           "kind": "function",
           "signature": "pub(crate) fn evidence_class_for(kind: &str) -> Option<&'static str>",
           "file": "src/coord/envelope.rs",
-          "line": 48,
-          "end_line": 61
+          "line": 49,
+          "end_line": 62
         },
         {
           "name": "fact_id_for",
           "kind": "function",
           "signature": "pub(crate) fn fact_id_for(envelope: &Envelope) -> Result<String, String>",
           "file": "src/coord/envelope.rs",
-          "line": 70,
-          "end_line": 78
+          "line": 100,
+          "end_line": 108
         },
         {
           "name": "head_commit",
@@ -832,16 +833,32 @@
           "kind": "function",
           "signature": "pub(crate) fn known_evidence_class(class: &str) -> bool",
           "file": "src/coord/envelope.rs",
-          "line": 64,
-          "end_line": 66
+          "line": 65,
+          "end_line": 67
         },
         {
           "name": "read_store",
           "kind": "function",
           "signature": "pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String>",
           "file": "src/coord/read.rs",
+          "line": 115,
+          "end_line": 153
+        },
+        {
+          "name": "validate",
+          "kind": "function",
+          "signature": "pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String>",
+          "file": "src/coord/read.rs",
+          "line": 48,
+          "end_line": 73
+        },
+        {
+          "name": "validate_lease_payload",
+          "kind": "function",
+          "signature": "pub(crate) fn validate_lease_payload( kind: &str, payload: &serde_json::Value, ) -> Result<(), String>",
+          "file": "src/coord/envelope.rs",
           "line": 70,
-          "end_line": 117
+          "end_line": 96
         },
         {
           "name": "time",
@@ -4511,44 +4528,52 @@
           "end_line": 64
         },
         {
+          "name": "atomic_write_once",
+          "kind": "function",
+          "signature": "pub fn atomic_write_once(path: &Path, content: &str) -> io::Result<()>",
+          "file": "src/persist.rs",
+          "line": 75,
+          "end_line": 85
+        },
+        {
           "name": "parse_json",
           "kind": "function",
           "signature": "pub fn parse_json<T: serde::de::DeserializeOwned>(content: &str, path: &Path) -> io::Result<T>",
           "file": "src/persist.rs",
-          "line": 110,
-          "end_line": 117
+          "line": 131,
+          "end_line": 138
         },
         {
           "name": "read_json",
           "kind": "function",
           "signature": "pub fn read_json<T: serde::de::DeserializeOwned>(path: &Path) -> io::Result<T>",
           "file": "src/persist.rs",
-          "line": 96,
-          "end_line": 99
+          "line": 117,
+          "end_line": 120
         },
         {
           "name": "read_toml",
           "kind": "function",
           "signature": "pub fn read_toml<T: serde::de::DeserializeOwned>(path: &Path) -> io::Result<T>",
           "file": "src/persist.rs",
-          "line": 125,
-          "end_line": 133
+          "line": 146,
+          "end_line": 154
         },
         {
           "name": "read_versioned_json",
           "kind": "function",
           "signature": "pub fn read_versioned_json(path: &Path) -> io::Result<Option<(u32, String)>>",
           "file": "src/persist.rs",
-          "line": 149,
-          "end_line": 164
+          "line": 170,
+          "end_line": 185
         },
         {
           "name": "write_json",
           "kind": "function",
           "signature": "pub fn write_json<T: serde::Serialize>(path: &Path, value: &T) -> io::Result<()>",
           "file": "src/persist.rs",
-          "line": 76,
-          "end_line": 88
+          "line": 97,
+          "end_line": 109
         }
       ]
     },
@@ -8584,13 +8609,6 @@
       "message": "todo `todo.driver-in-repo-workflow-artefacts` is open while declared blocker `todo.driver-in-repo-blueprint-node` is not done",
       "node": null,
       "path": "meta/todos/todo.driver-in-repo-workflow-artefacts.md"
-    },
-    {
-      "code": "CAIRN_RESEARCH_ORPHAN",
-      "severity": "info",
-      "message": "research `res.chatgpt-architecture-review` is not linked from any decision",
-      "node": null,
-      "path": "meta/research/chatgpt-architecture-review.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",

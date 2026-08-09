@@ -239,12 +239,12 @@ fn decline_reason(
     )
 }
 
-/// Spills an oversized recomputed preimage to a sidecar under the store's
-/// derived cache; returns the store-relative path.
+/// Spills an oversized recomputed preimage to an immutable fact sidecar;
+/// returns the store-relative path.
 fn spill_preimage(root: &Path, digest: &str, recomputed: &str) -> Result<String, String> {
     let store = crate::coord::store::store_root(root)?;
-    let name = format!("cache/preimage-{digest}.diff");
-    crate::persist::atomic_write(&store.join(&name), recomputed)
+    let name = format!("facts/preimage-{digest}.diff");
+    crate::persist::atomic_write_once(&store.join(&name), recomputed)
         .map_err(|error| format!("cannot spill preimage diff: {error}"))?;
     Ok(name)
 }
@@ -348,6 +348,26 @@ mod tests {
         assert!(
             !dir.path().join(".git/cairn").exists(),
             "a refused digest writes nothing"
+        );
+    }
+
+    #[test]
+    fn oversized_decline_preimage_is_not_written_under_disposable_cache() {
+        let dir = project();
+        let content = "x".repeat(4097);
+        let path =
+            spill_preimage(dir.path(), "plan-0123456789abcdef", &content).expect("spills preimage");
+        assert!(
+            path.starts_with("facts/"),
+            "immutable facts must not reference cache sidecars: {path}"
+        );
+        let store = crate::coord::store::store_root(dir.path()).expect("store root");
+        assert!(store.join(&path).is_file(), "sidecar exists at {path}");
+        assert!(
+            !store
+                .join("cache/preimage-plan-0123456789abcdef.diff")
+                .exists(),
+            "cache remains disposable"
         );
     }
 

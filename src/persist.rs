@@ -63,6 +63,27 @@ pub fn atomic_write_bytes(path: &Path, content: &[u8]) -> io::Result<()> {
     Ok(())
 }
 
+/// Writes `content` once without replacing an existing target.
+///
+/// The temporary file is linked into place, so target creation is exclusive
+/// while the complete bytes remain available to readers.
+///
+/// # Errors
+///
+/// Returns an I/O error when the temporary file cannot be written, the target
+/// already exists, or the link cannot be created.
+pub fn atomic_write_once(path: &Path, content: &str) -> io::Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    let mut tmp = tempfile::NamedTempFile::new_in(parent)?;
+    tmp.write_all(content.as_bytes())?;
+    tmp.as_file().sync_all()?;
+    fs::hard_link(tmp.path(), path)?;
+    Ok(())
+}
+
 /// Serialises `value` as pretty-printed JSON and writes it atomically to `path`.
 ///
 /// A trailing newline is appended so the on-disk format matches the project's

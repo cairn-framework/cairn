@@ -6,6 +6,7 @@
 //! `evidence_class` fails closed, mirroring the `read_versioned_json`
 //! discipline in `persist`.
 
+use super::time::validate_rfc3339_utc;
 use serde::{Deserialize, Serialize};
 
 /// The store format this build writes and accepts.
@@ -63,6 +64,35 @@ pub(crate) fn evidence_class_for(kind: &str) -> Option<&'static str> {
 /// Returns true when `class` is one of the three sanctioned classes.
 pub(crate) fn known_evidence_class(class: &str) -> bool {
     matches!(class, "deterministic" | "attested" | "observed")
+}
+
+/// Validates the payload fields required by lease-chain projections.
+pub(crate) fn validate_lease_payload(
+    kind: &str,
+    payload: &serde_json::Value,
+) -> Result<(), String> {
+    if !kind.starts_with("lease.") {
+        return Ok(());
+    }
+    let Some(unit_id) = payload.get("unit_id").and_then(serde_json::Value::as_str) else {
+        return Err(format!("lease fact `{kind}` is missing string `unit_id`"));
+    };
+    if unit_id.is_empty() {
+        return Err(format!("lease fact `{kind}` has an empty `unit_id`"));
+    }
+    if matches!(kind, "lease.grant" | "lease.renew") {
+        let Some(expires_at) = payload
+            .get("expires_at")
+            .and_then(serde_json::Value::as_str)
+        else {
+            return Err(format!(
+                "lease fact `{kind}` is missing string `expires_at`"
+            ));
+        };
+        validate_rfc3339_utc(expires_at)
+            .map_err(|error| format!("lease fact `{kind}` has malformed `expires_at`: {error}"))?;
+    }
+    Ok(())
 }
 
 /// Computes the fact id: first 12 hex of SHA-256 over the canonical JSON

@@ -10,9 +10,11 @@ use std::path::{Path, PathBuf};
 
 use crate::persist;
 
-use super::envelope::{Actor, Envelope, STORE_FORMAT, evidence_class_for, fact_id_for};
+use super::envelope::{
+    Actor, Envelope, STORE_FORMAT, evidence_class_for, fact_id_for, validate_lease_payload,
+};
 use super::store;
-use super::time::compact_rfc3339;
+use super::time::{compact_rfc3339, validate_rfc3339_utc};
 
 /// A fact as a caller states it; the appender derives everything else.
 pub struct NewFact {
@@ -36,9 +38,26 @@ pub struct NewFact {
 /// # Errors
 ///
 /// Refuses a console-actor `lease.*` or `driver.singleton.*` fact, an
-/// unknown fact kind or actor kind, a malformed commit, and any store or
-/// write failure.
+/// unknown fact kind or actor kind, malformed timestamps, lease payloads, or
+/// commits, and any store or write failure.
 pub fn append_fact(root: &Path, fact: NewFact) -> Result<PathBuf, String> {
+    let evidence_class = validate_new_fact(&fact)?;
+    let mut envelope = Envelope {
+        format: STORE_FORMAT,
+        fact_id: String::new(),
+        kind: fact.kind,
+        recorded_at: fact.recorded_at,
+        recorded_by: fact.recorded_by,
+        commit: fact.commit,
+        evidence_class: evidence_class.to_owned(),
+        supersedes: fact.supersedes,
+        payload: fact.payload,
+    };
+    envelope.fact_id = fact_id_for(&envelope)?;
+    write_fact(root, &envelope)
+}
+
+fn validate_new_fact(fact: &NewFact) -> Result<&'static str, String> {
     if !matches!(
         fact.recorded_by.kind.as_str(),
         "maintainer" | "driver" | "console"
@@ -68,20 +87,13 @@ pub fn append_fact(root: &Path, fact: NewFact) -> Result<PathBuf, String> {
             fact.commit
         ));
     }
+    validate_rfc3339_utc(&fact.recorded_at)
+        .map_err(|error| format!("malformed `recorded_at`: {error}"))?;
+    validate_lease_payload(&fact.kind, &fact.payload)?;
+    Ok(evidence_class)
+}
 
-    let mut envelope = Envelope {
-        format: STORE_FORMAT,
-        fact_id: String::new(),
-        kind: fact.kind,
-        recorded_at: fact.recorded_at,
-        recorded_by: fact.recorded_by,
-        commit: fact.commit,
-        evidence_class: evidence_class.to_owned(),
-        supersedes: fact.supersedes,
-        payload: fact.payload,
-    };
-    envelope.fact_id = fact_id_for(&envelope)?;
-
+fn write_fact(root: &Path, envelope: &Envelope) -> Result<PathBuf, String> {
     let store = store::store_root(root)?;
     store::ensure_initialised(&store)?;
     let name = format!(
@@ -91,10 +103,18 @@ pub fn append_fact(root: &Path, fact: NewFact) -> Result<PathBuf, String> {
         envelope.fact_id
     );
     let path = store.join("facts").join(name);
-    let body = serde_json::to_string_pretty(&envelope)
+    let body = serde_json::to_string_pretty(envelope)
         .map_err(|error| format!("fact does not serialise: {error}"))?;
-    persist::atomic_write(&path, &format!("{body}\n"))
-        .map_err(|error| format!("cannot write fact: {error}"))?;
+    persist::atomic_write_once(&path, &format!("{body}\n")).map_err(|error| {
+        if error.kind() == std::io::ErrorKind::AlreadyExists {
+            format!(
+                "fact `{}` already exists; facts are write-once",
+                path.display()
+            )
+        } else {
+            format!("cannot write fact: {error}")
+        }
+    })?;
     Ok(path)
 }
 
@@ -143,6 +163,65 @@ mod tests {
         assert!(
             !dir.path().join(".git/cairn/coord").exists(),
             "a refused append initialises nothing"
+        );
+    }
+    #[test]
+    fn malformed_recorded_at_is_rejected_before_store_initialisation() {
+        let dir = repo();
+        let mut candidate = fact("ruling.run", "maintainer");
+        candidate.recorded_at = "not-a-timestamp".to_owned();
+        let error = append_fact(dir.path(), candidate).expect_err("malformed time refused");
+        assert!(error.contains("recorded_at"), "{error}");
+        assert!(
+            !dir.path().join(".git/cairn").exists(),
+            "validation must precede all store writes"
+        );
+    }
+
+    #[test]
+    fn malformed_lease_grant_is_rejected_before_store_initialisation() {
+        let dir = repo();
+        let error = append_fact(
+            dir.path(),
+            NewFact {
+                kind: "lease.grant".to_owned(),
+                recorded_at: "2026-08-07T03:45:12Z".to_owned(),
+                recorded_by: Actor {
+                    kind: "driver".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload: serde_json::json!({
+                    "unit_id": "todo.example",
+                    "expires_at": "not-a-timestamp",
+                }),
+            },
+        )
+        .expect_err("malformed lease grant refused");
+        assert!(
+            error.contains("lease") && error.contains("expires_at"),
+            "{error}"
+        );
+        assert!(
+            !dir.path().join(".git/cairn").exists(),
+            "validation must precede all store writes"
+        );
+    }
+
+    #[test]
+    fn duplicate_fact_is_rejected_without_replacing_original_bytes() {
+        let dir = repo();
+        let candidate = fact("ruling.run", "maintainer");
+        let path = append_fact(dir.path(), candidate).expect("first append");
+        std::fs::write(&path, b"sentinel").expect("tamper existing fact");
+        let error = append_fact(dir.path(), fact("ruling.run", "maintainer"))
+            .expect_err("duplicate fact refused");
+        assert!(error.contains("already exists"), "{error}");
+        assert_eq!(
+            std::fs::read(path).expect("remaining bytes"),
+            b"sentinel",
+            "write-once guard preserves existing bytes"
         );
     }
 

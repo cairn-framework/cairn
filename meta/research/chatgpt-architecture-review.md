@@ -45,6 +45,23 @@ acceptance, and the `wave stats` timestamp reading of `since`. One
 external numeral is wrong by local count: the report says PR #589
 carried 141 files; `git diff 9edfdac^1 9edfdac^2 --stat` shows 147.
 
+## S8 follow-up verification (2026-08-09)
+
+The two claims routed as unverified to `todo.coord-fact-store-hardening` were
+confirmed against the implementation and closed with tests:
+
+- Parse-cache envelopes were trusted by filename alone, and `coord verify`
+  did not recompute `fact_id`. The cache now binds each entry to the SHA-256
+  of the fact bytes, and every live or archived fact is checked against a
+  recomputed identity. Regressions:
+  `coord::read::tests::parse_cache_is_bound_to_fact_bytes_not_only_the_filename`
+  and
+  `coord::verify::tests::verify_recomputes_fact_identity_before_accepting_the_store`.
+- Oversized decline preimage diffs were written below disposable `cache/`
+  while immutable facts referenced those paths. The sidecar now lives below
+  the immutable `facts/` area and is created write-once. Regression:
+  `cli::commands::ruling_run::tests::oversized_decline_preimage_is_not_written_under_disposable_cache`.
+
 ## Units filed on this evidence
 
 - todo.coord-fact-store-hardening (cairn.coord): defects 1, 2, 3, 6 plus
