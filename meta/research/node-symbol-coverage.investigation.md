@@ -133,6 +133,8 @@ The exported set's current consumers are:
 
 - `ReconcileReport.node_symbol_records`, scanner target assembly, and cache
   reconstruction feed `NodeRecord.symbols`.
+- `src/scanner/mod.rs` at the lane anchor around lines 539-543 attaches
+  exported records with `node.symbols.extend(report.symbol_records...)`.
 - `src/cli/render/node.rs:291-321` renders `NodeRecord.symbols` for
   `cairn get <node> --symbols`.
 - `src/map/query.rs:198-209` returns `NodeRecord.symbols` through the typed
@@ -156,10 +158,31 @@ and navigation tests, but it deliberately avoids a report/cache/schema
 migration. The query-time parse and multi-surface plumbing still make it
 multi-seam rather than S-sized.
 
+## Adjacent compatibility surfaces
+
+The ruling child must resolve these adjacent surfaces before implementation:
+
+- `src/ui/server.rs:228-233` serves `/api/node/<node>/symbols` by dispatching
+  `get` with `QueryFlag::Symbols`. If the UI route widens, it must share the
+  one transient helper and gain UI regression coverage; the ruling may instead
+  preserve this route as exported-only.
+- Human `cairn get <node> --symbols` bypasses `query_api`, so its
+  `src/cli/render/node.rs:291-321` path must share the same helper as the
+  structured query path rather than receiving a separate parser.
+- `map::query::symbols(graph, node)` is a public typed API. It cannot host a
+  source-root extractor without a signature decision; the ruling owns whether
+  it accepts transient records or remains exported-only.
+- The public-only wording inventory must be reconciled or deliberately
+  preserved by the ruling:
+  `docs/commands.md:52-53`, `docs/integration-contract.md:55`,
+  `docs/spec.md:146,156,770`, `src/artefacts/registry.rs:367`, and
+  `docs/design-system/copy.toml:686,1127,1131`.
+
+
 ## Rust evidence
 
 The prior frozen evaluation record is explicit. `res.loop-efficiency-observations`
-(2026-07-25 entry, lines 444-461) records that the pinned ripgrep revision
+2026-07-25 entry, lines 444-461, records that the pinned ripgrep revision
 `4649aa9700619f94cf9c66876e9549d83420e16c` produced one symbol for
 `crates.core.flags` although `defs.rs` alone declared 104 structs, and that
 `cairn locate TypeList` returned an empty array. The same record contrasts the
@@ -167,6 +190,14 @@ flask fixture's 688 symbols across sixteen files and reports ripgrep recall of
 0/9 for the primitive and topology-first compositions. The one apparent hit
 came from `bundle.dependencies[]`, not from `get --symbols`, which supports the
 interpretation that the graph substrate lacked definitions.
+
+The archive manifest at
+`archive/strongholds/agent-context-bundle-evaluation/manifest.json:12-14`
+pins that fixture to the full commit SHA above. The fixture commands below are
+local, unverified observations until `todo.node-symbol-coverage-evaluation`
+reproduces them as committed tests or an equivalent recorded run.
+
+### Local, unverified reproduction
 
 A first fresh lane-binary smoke fixture made the all-private failure
 reproducible without cloning the corpus. The fixture had two Rust files under
@@ -211,10 +242,19 @@ results into deterministic regression tests.
 `ts_is_exportable` accepts an `export_statement` or a declaration with a
 `visibility_modifier` or `export` child. Unexported top-level interfaces,
 functions, and variables are therefore absent from the current report even
-though they are useful definition sites inside the owned module. An analogous
-TypeScript fixture containing `PublicUser`, `InternalUser`, `helper`, and a
-local variable returned only `PublicUser`; `cairn locate InternalUser` returned
-no match.
+though they are useful definition sites inside the owned module.
+
+The following TypeScript fixture is a local, unverified observation pending
+the evaluation child. A fixture containing `PublicUser`, `InternalUser`,
+`helper`, and a local variable returned only `PublicUser`;
+`cairn locate InternalUser` returned no match.
+
+`variable_declaration` is listed in `EXPORTABLE_KINDS`, but a tree-sitter
+`variable_declaration` has no direct `name` field. A query policy must either
+resolve its declarator explicitly or leave variables out by a recorded ruling;
+`lexical_declaration` is currently absent from the list. The wrapper and
+declaration paths must emit one record for an exported declaration, not both an
+`export_statement` wrapper and its child.
 
 TypeScript should follow the same separation, not receive a Rust-only special
 case. The exported predicate remains the module interface policy. The query

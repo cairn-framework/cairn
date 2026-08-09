@@ -1,7 +1,9 @@
 ---
 node: cairn.reconcile
-status: open
+status: blocked
 created: 2026-08-09
+blocked_by: [todo.node-symbol-coverage-ruling, todo.node-symbol-coverage-query]
+parent: todo.node-symbol-coverage
 ---
 
 # Node Symbol Coverage Evaluation
@@ -25,6 +27,11 @@ the pinned ripgrep manifest and report the ripgrep recall delta. Keep the
 sealed confirmation split unopened. Verify that interface hashes are unchanged
 for the repository and that query output contains the expected definition
 sites.
+
+Treat the lane smoke outputs and TypeScript analogue in the research artefact
+as local, unverified observations until this child records reproducible
+fixture evidence. If the ruling widens the UI route, include its browser or
+wire regression in the same measurement.
 
 ## Acceptance
 

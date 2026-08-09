@@ -2,6 +2,7 @@
 node: cairn.reconcile
 status: blocked
 created: 2026-07-25
+blocked_by: [todo.node-symbol-coverage-ruling, todo.node-symbol-coverage-reconcile, todo.node-symbol-coverage-query, todo.node-symbol-coverage-evaluation]
 ---
 
 # Node Symbol Coverage

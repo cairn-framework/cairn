@@ -1,7 +1,9 @@
 ---
 node: cairn.reconcile
-status: open
+status: blocked
 created: 2026-08-09
+blocked_by: [todo.node-symbol-coverage-ruling, todo.node-symbol-coverage-reconcile]
+parent: todo.node-symbol-coverage
 ---
 
 # Node Symbol Coverage Query
@@ -26,6 +28,13 @@ files. Keep `src/cli/render/bundle.rs`,
 `src/scanner/snapshot.rs` on the exported field. Do not add query records to
 `NodeRecord`, the cache, `map.json`, or any other persisted state. Update typed
 query tests and wire tests for the new context.
+
+The human CLI path bypasses `query_api`; it must call the same single transient
+helper as structured `get` and `locate`. If the ruling widens
+`src/ui/server.rs:228-233`, that route must use the helper and gain a UI
+regression test; otherwise preserve its exported-only behavior. Query-time
+read or parse failures must map to `QueryError`, with a TOCTOU test covering a
+file changed or removed after the scan.
 
 ## Acceptance
 

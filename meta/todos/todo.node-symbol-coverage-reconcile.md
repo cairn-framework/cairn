@@ -1,7 +1,9 @@
 ---
 node: cairn.reconcile
-status: open
+status: blocked
 created: 2026-08-09
+blocked_by: [todo.node-symbol-coverage-ruling]
+parent: todo.node-symbol-coverage
 ---
 
 # Node Symbol Coverage Reconcile
@@ -27,6 +29,13 @@ data. The query extractor must parse Rust files with no `pub ` marker, apply
 the query policy for Rust and TypeScript, and never add query records to the
 reconciler report, cache serialization, map snapshot, or graph node. Cover
 both sequential and parallel exported paths without changing their hashes.
+
+Keep Python and Go query behavior unchanged with regression coverage. For
+TypeScript, resolve `variable_declaration` through its declarator or leave it
+excluded by the ruling, keep `lexical_declaration` excluded unless explicitly
+added, and ensure an `export_statement` wrapper plus its child yields one
+record. Sort transient records with the same deterministic ordering as
+`src/reconcile/generic.rs:284-289`.
 
 ## Acceptance
 

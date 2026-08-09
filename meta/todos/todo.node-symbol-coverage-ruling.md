@@ -2,6 +2,7 @@
 node: cairn.reconcile
 status: open
 created: 2026-08-09
+parent: todo.node-symbol-coverage
 ---
 
 # Node Symbol Coverage Ruling
@@ -22,6 +23,14 @@ queries may use the query-visible set. Cover both Rust and TypeScript and state
 the cache and wire compatibility expectations.
 The query-visible records are transient and source-derived. The decision must
 not add a report, cache, graph, map, or wire field for them.
+
+The ruling must also decide whether `/api/node/<node>/symbols` in
+`src/ui/server.rs:228-233` widens, whether the public
+`map::query::symbols(graph, node)` API changes signature, and whether the Rust
+`pub ` fast path is preserved or bypassed for `pub(crate)`, `pub(super)`, and
+`pub(in ...)` files. Reconcile the public-only docs and copy inventory named in
+`res.node-symbol-coverage.investigation`, and require hash regressions for the
+chosen fast-path rule.
 
 ## Acceptance
 
