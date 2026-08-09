@@ -43,6 +43,20 @@ temporary file's non-group-writable mode, unlike `atomic_write_bytes`'s
 bytes MAY be created while preparing the operation, but only an exclusive target
 creation makes the fact visible.
 
+## Three-tier contract
+
+1. **CONTENT IMMUTABILITY: unconditional.** Content-derived naming and
+   congruence validation make it impossible for different bytes to exist under
+   one fact name; the worst crash case is two byte-identical copies.
+2. **LIVE-SET uniqueness: ENFORCED.** The exclusive create
+   (`persist::atomic_write_once`) enforces uniqueness within the live set.
+3. **CROSS-SET uniqueness: DETECTED fail-closed, NOT atomically enforced.**
+   `verify` detects a fact identity present in both live and archived sets and
+   fails closed. The append reorder and rollback narrow the race window, but a
+   crash between create and rollback can leave dual identical copies until
+   `verify` heals. Advisory locking when the driver becomes a second adapter is
+   the named follow-up that owns cross-set enforcement.
+
 This rule applies only to fact files under `facts/` and their immutable moved
 copies under `archive/`; it excludes lease tokens under `leases/` and
 `singleton/`, the derived `cache/observed.json`, and immutable `sidecars/`, each
@@ -52,6 +66,18 @@ identical to a new append attempt. Compaction now moves a live fact from
 refuses a fact identity that appears in both live and archived sets. A later
 re-append is a new observation with a new `recorded_at`, filename, and identity,
 so it does not clash with the archived path.
+
+## Concurrency assumption
+
+Compaction is a maintenance verb assumed not concurrent with append, extending
+the substrate's disjoint-writer rule with one compactor at a time. The
+lock-free append order reserves the live path first, then checks the archive;
+if compaction wins that interval, append removes its just-created live copy,
+ignoring `NotFound`, and fails closed. The reorder and rollback narrow, but do
+not close, that race interval. A crash between create and rollback can leave
+dual identical copies until `verify` heals (detects and fails closed on) the
+duplicate. Advisory locking when the driver becomes a second adapter is the
+named follow-up that owns cross-set enforcement.
 
 ## Rationale and consequences
 The fact identity and filename are part of the audit surface. Replacing a

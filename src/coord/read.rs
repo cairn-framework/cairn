@@ -32,6 +32,13 @@ pub struct NamedFact {
 }
 /// Validates one parsed fact; any failure fails the whole read.
 pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
+    validate_format_and_evidence(name, fact)?;
+    validate_actor_and_timestamp(name, fact)?;
+    validate_payload_and_identity(name, fact)?;
+    Ok(())
+}
+
+fn validate_format_and_evidence(name: &str, fact: &Envelope) -> Result<(), String> {
     if fact.format != STORE_FORMAT {
         return Err(format!(
             "fact `{name}` carries unknown format {}; failing closed",
@@ -52,6 +59,10 @@ pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
             fact.evidence_class
         ));
     }
+    Ok(())
+}
+
+fn validate_actor_and_timestamp(name: &str, fact: &Envelope) -> Result<(), String> {
     if !matches!(
         fact.recorded_by.kind.as_str(),
         "maintainer" | "driver" | "console"
@@ -69,6 +80,10 @@ pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
     }
     validate_rfc3339_utc(&fact.recorded_at)
         .map_err(|error| format!("fact `{name}` has malformed `recorded_at`: {error}"))?;
+    Ok(())
+}
+
+fn validate_payload_and_identity(name: &str, fact: &Envelope) -> Result<(), String> {
     validate_lease_payload(&fact.kind, &fact.payload)
         .map_err(|error| format!("fact `{name}` is malformed: {error}"))?;
     let expected = fact_id_for(fact)?;
@@ -319,7 +334,7 @@ mod tests {
         };
         assert_eq!(facts.len(), 2, "both same-second facts fold");
         assert!(facts[0].name < facts[1].name, "sorted by filename");
-        // A second read hits the cache and still returns both.
+        // A second read re-lists immutable facts and still returns both.
         let StoreRead::Ready(again) = read_facts(dir.path()).expect("re-reads") else {
             panic!("store is initialised");
         };

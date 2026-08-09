@@ -71,6 +71,9 @@ resolved against the implementation and tests:
   instants, so fractional post-expiry observations are stale and equivalent
   offset observations before expiry remain held. Archive append exclusivity,
   cross-set duplicate refusal, and no-replace compaction are regression-tested.
+- Verification now fails closed on malformed or unwritable
+  `cache/observed.json` snapshots instead of treating them as an empty
+  baseline or dropping a write error; regressions cover both failures.
 
 Content-hash binding for sidecar bytes is out of scope for this unit because the
 sidecar is a regenerable human-readable diagnostic; revisit if that

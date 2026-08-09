@@ -92,7 +92,13 @@ pub fn verify(root: &Path) -> Result<(), String> {
 
     // Append-only: every previously observed fact still exists somewhere.
     let observed_path = store.join("cache/observed.json");
-    let mut observed: BTreeSet<String> = persist::read_json(&observed_path).unwrap_or_default();
+    let mut observed: BTreeSet<String> = match persist::read_json(&observed_path) {
+        Ok(observed) => observed,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => BTreeSet::new(),
+        Err(error) => {
+            return Err(format!("cannot read coordination observation: {error}"));
+        }
+    };
     let present: BTreeSet<String> = everything.iter().map(|f| f.name.clone()).collect();
     if let Some(missing) = observed.difference(&present).next() {
         return Err(format!(
@@ -129,7 +135,8 @@ pub fn verify(root: &Path) -> Result<(), String> {
     }
 
     observed.extend(present);
-    let _ = persist::write_json(&observed_path, &observed);
+    persist::write_json(&observed_path, &observed)
+        .map_err(|error| format!("cannot record coordination observation: {error}"))?;
     Ok(())
 }
 
@@ -200,6 +207,9 @@ pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String> {
             .map_err(|error| format!("cannot archive `{name}` without replacement: {error}"))?;
         moved.push(name);
     }
+    // Remove a legacy parsed cache left by builds before cache elimination;
+    // current reads neither create nor trust this file.
+    let _ = std::fs::remove_file(store.join("cache/parsed.json"));
     Ok(moved)
 }
 

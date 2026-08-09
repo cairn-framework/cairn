@@ -110,7 +110,30 @@ fn archive_contains(store: &Path, name: &str) -> Result<bool, String> {
     }
     Ok(false)
 }
+
+fn remove_fact_if_present(path: &Path) -> Result<(), String> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(format!(
+            "cannot roll back fact `{}`: {error}",
+            path.display()
+        )),
+    }
+}
+
 fn write_fact(root: &Path, envelope: &Envelope) -> Result<PathBuf, String> {
+    write_fact_with_archive_probe(root, envelope, archive_contains)
+}
+
+fn write_fact_with_archive_probe<F>(
+    root: &Path,
+    envelope: &Envelope,
+    archive_probe: F,
+) -> Result<PathBuf, String>
+where
+    F: Fn(&Path, &str) -> Result<bool, String>,
+{
     let store = store::store_root(root)?;
     store::ensure_initialised(&store)?;
     let name = format!(
@@ -119,11 +142,6 @@ fn write_fact(root: &Path, envelope: &Envelope) -> Result<PathBuf, String> {
         envelope.kind,
         envelope.fact_id
     );
-    if archive_contains(&store, &name)? {
-        return Err(format!(
-            "fact `{name}` already exists in the archive; facts are write-once"
-        ));
-    }
     let path = store.join("facts").join(&name);
     let body = serde_json::to_string_pretty(envelope)
         .map_err(|error| format!("fact does not serialise: {error}"))?;
@@ -137,6 +155,21 @@ fn write_fact(root: &Path, envelope: &Envelope) -> Result<PathBuf, String> {
             format!("cannot write fact: {error}")
         }
     })?;
+    let archived = match archive_probe(&store, &name) {
+        Ok(archived) => archived,
+        Err(error) => {
+            return match remove_fact_if_present(&path) {
+                Ok(()) => Err(error),
+                Err(rollback) => Err(format!("{error}; {rollback}")),
+            };
+        }
+    };
+    if archived {
+        remove_fact_if_present(&path)?;
+        return Err(format!(
+            "fact `{name}` already exists in the archive; facts are write-once"
+        ));
+    }
     Ok(path)
 }
 
@@ -171,6 +204,23 @@ mod tests {
             supersedes: None,
             payload: serde_json::json!({ "target": "todo.example" }),
         }
+    }
+
+    fn envelope_for(fact: NewFact) -> Envelope {
+        let evidence_class = validate_new_fact(&fact).expect("valid fact");
+        let mut envelope = Envelope {
+            format: STORE_FORMAT,
+            fact_id: String::new(),
+            kind: fact.kind,
+            recorded_at: fact.recorded_at,
+            recorded_by: fact.recorded_by,
+            commit: fact.commit,
+            evidence_class: evidence_class.to_owned(),
+            supersedes: fact.supersedes,
+            payload: fact.payload,
+        };
+        envelope.fact_id = fact_id_for(&envelope).expect("fact identity");
+        envelope
     }
 
     #[test]
@@ -307,7 +357,7 @@ mod tests {
     fn archived_duplicate_is_rejected_after_compaction() {
         let dir = repo();
         let candidate = fact("ruling.run", "driver");
-        append_fact(dir.path(), candidate).expect("first append");
+        let first = append_fact(dir.path(), candidate).expect("first append");
         crate::coord::verify::compact(dir.path(), "2026-09-01").expect("compacts");
         let error = append_fact(dir.path(), fact("ruling.run", "driver"))
             .expect_err("archived duplicate is rejected");
@@ -315,5 +365,36 @@ mod tests {
             error.contains("archive") && error.contains("write-once"),
             "{error}"
         );
+        assert!(
+            !first.exists(),
+            "rejected archive duplicate rolls back its live reservation"
+        );
+    }
+    #[test]
+    fn archive_race_rolls_back_reserved_live_copy() {
+        let dir = repo();
+        let envelope = envelope_for(fact("ruling.run", "driver"));
+        let result = write_fact_with_archive_probe(dir.path(), &envelope, |store, name| {
+            let source = store.join("facts").join(name);
+            let archive = store.join("archive/2026-08");
+            std::fs::create_dir_all(&archive).expect("archive month");
+            std::fs::rename(&source, archive.join(name)).expect("compaction wins");
+            archive_contains(store, name)
+        });
+        let error = result.expect_err("archive race rejects duplicate");
+        assert!(
+            error.contains("archive") && error.contains("write-once"),
+            "{error}"
+        );
+        let live = std::fs::read_dir(dir.path().join(".git/cairn/coord/facts"))
+            .expect("lists live facts")
+            .filter_map(Result::ok)
+            .count();
+        assert_eq!(live, 0, "rollback removes the reserved live copy");
+        let archived = std::fs::read_dir(dir.path().join(".git/cairn/coord/archive/2026-08"))
+            .expect("lists archived facts")
+            .filter_map(Result::ok)
+            .count();
+        assert_eq!(archived, 1, "compaction leaves one immutable copy");
     }
 }

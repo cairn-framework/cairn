@@ -53,13 +53,18 @@ Unverified claims (verify first, then fix or record why not):
    The dated evidence and regression name are recorded in
    `res.chatgpt-architecture-review`.
 Panel follow-up (2026-08-09) also closed kind path traversal, fractional
-stored timestamps, renamed live facts, tampered archived facts, and valid
-RFC 3339 instant comparison for fractional and offset `--at` values. Archive
-re-append, cross-set duplicate, and no-replace compaction regressions are
-included.
+stored timestamps, renamed live facts, tampered archived facts, valid
+RFC 3339 instant comparison for fractional and offset `--at` values, and the
+archive reservation rollback race. Archive re-append, cross-set duplicate,
+and no-replace compaction regressions are included. The proposed decision
+records the single-compactor maintenance assumption; add an advisory lock or
+exclusivity retry before a future driver adapter supports concurrent
+append/compact maintenance.
+Verification observation snapshots also fail closed when malformed or
+unwritable, with focused regressions for both cases.
 
 ## Acceptance
 
-- Regression tests encode the three verified behaviours (they fail if
-  the guards are removed); items 4 and 5 are each either fixed with a
-  test or recorded as refuted in the research; gates green.
+- Regression tests encode all five delivered behaviours and the adjudicated
+  archive race and live-chain checks (they fail if the guards are removed);
+  gates green.

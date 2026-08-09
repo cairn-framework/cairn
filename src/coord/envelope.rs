@@ -73,15 +73,19 @@ pub(crate) fn validate_kind(kind: &str) -> Result<(), String> {
             "fact kind `{kind}` is not a safe coordination kind component"
         ));
     }
-    let parts: Vec<&str> = kind.split('.').collect();
-    let valid_shape = match parts.as_slice() {
-        [family, suffix] if matches!(*family, "ruling" | "lease") => {
+    let mut parts = kind.split('.');
+    let first = parts.next();
+    let second = parts.next();
+    let third = parts.next();
+    let has_fourth = parts.next().is_some();
+    let valid_shape = match (first, second, third, has_fourth) {
+        (Some("ruling" | "lease"), Some(suffix), None, false)
+        | (Some("driver"), Some("singleton"), Some(suffix), false) => {
             !suffix.is_empty() && suffix.bytes().all(allowed)
         }
-        ["driver", "singleton", suffix] => !suffix.is_empty() && suffix.bytes().all(allowed),
-        ["outcome", suffix] => {
-            *suffix == "unit"
-                || *suffix == "touched_files"
+        (Some("outcome"), Some(suffix), None, false) => {
+            suffix == "unit"
+                || suffix == "touched_files"
                 || (suffix.starts_with("run_") && suffix.len() > 4 && suffix.bytes().all(allowed))
         }
         _ => false,

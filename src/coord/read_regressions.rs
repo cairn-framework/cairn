@@ -298,3 +298,56 @@ fn verify_rejects_a_live_successor_with_an_archived_antecedent() {
         "{error}"
     );
 }
+
+#[test]
+fn verify_fails_when_observation_snapshot_is_malformed() {
+    let dir = repo();
+    append_fact(
+        dir.path(),
+        fact(
+            "ruling.run",
+            "2026-08-07T03:45:12Z",
+            serde_json::json!({ "target": "plan-0123456789abcdef" }),
+        ),
+    )
+    .expect("appends");
+    let snapshot = dir.path().join(".git/cairn/coord/cache/observed.json");
+    std::fs::write(&snapshot, "not json").expect("corrupts observation");
+
+    let error = crate::coord::verify::verify(dir.path()).expect_err("malformed snapshot fails");
+    assert!(
+        error.contains("observation") || error.contains("parse"),
+        "{error}"
+    );
+}
+
+#[test]
+fn verify_fails_when_observation_snapshot_cannot_be_written() {
+    let dir = repo();
+    append_fact(
+        dir.path(),
+        fact(
+            "ruling.run",
+            "2026-08-07T03:45:12Z",
+            serde_json::json!({ "target": "plan-0123456789abcdef" }),
+        ),
+    )
+    .expect("appends");
+    let cache = dir.path().join(".git/cairn/coord/cache");
+    let snapshot = cache.join("observed.json");
+    std::fs::write(&snapshot, "[]").expect("seeds observation");
+    let original_permissions = std::fs::metadata(&cache)
+        .expect("cache metadata")
+        .permissions();
+    let mut readonly_permissions = original_permissions.clone();
+    readonly_permissions.set_readonly(true);
+    std::fs::set_permissions(&cache, readonly_permissions).expect("blocks cache writes");
+    let result = crate::coord::verify::verify(dir.path());
+    std::fs::set_permissions(&cache, original_permissions).expect("restores cache writes");
+
+    let error = result.expect_err("snapshot write fails");
+    assert!(
+        error.contains("observation") || error.contains("Permission denied"),
+        "{error}"
+    );
+}
