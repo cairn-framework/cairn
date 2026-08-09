@@ -3,6 +3,7 @@ node: cairn.root
 status: blocked
 created: 2026-08-03
 related: [dec.orchestration-placement, dec.control-plane-programme, todo.console-orchestration-ux-design, todo.console-signed-widening, todo.parallel-dispatch-granularity, todo.review-gate-machine-check, res.skill-absorption]
+blocked_by: [todo.driver-in-repo-blueprint-node, todo.driver-in-repo-workflow-artefacts, todo.driver-in-repo-reaction-loop, todo.driver-in-repo-selector-wire]
 ---
 
 # Driver In Repo

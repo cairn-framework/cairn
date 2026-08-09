@@ -2,6 +2,7 @@
 node: cairn.root
 status: open
 created: 2026-08-09
+parent: todo.driver-in-repo
 ---
 
 # Driver In Repo Reaction Loop
@@ -30,7 +31,10 @@ The parent todo is `todo.driver-in-repo`, under `## Task`, item 3:
 > and dispatches the next unit. Nothing in that sequence is a core
 > behaviour.
 
-The parent `## Grill rulings`, Q3, fixes the token and derived-class boundary:
+The parent `## Grill rulings`, Q3, is provisional grill direction for the
+derived classes pending an accepted owning decision. The three terminal token
+strings are independently ratified by accepted `dec.orchestrator-skills-layering`,
+clause 4, which also ratifies the no-orchestration rule:
 
 > **Q3, outcome vocabulary: the harness emits only the three ratified
 > terminal tokens** (`ITERATION COMPLETE`, `LOOP EXHAUSTED`,
@@ -46,11 +50,45 @@ The parent `## Grill rulings`, Q3, fixes the token and derived-class boundary:
 > gains no source-side split: finer routing keys on repo evidence, not
 > on new tokens.
 
-The parent `## Acceptance` requires this sequence end to end, including an
-outcome that must not advance the loop, and retains fail-closed handling for a
-dirty park, off-main HEAD, surviving branch or PR, nonzero session exit, a
-non-token final line, exhausted without the todo `done` on main, and a
-completion where the todo became `blocked`.
+The Q3-derived classes, routing keys, and storage details remain provisional
+pending that owning decision. The parent `## Acceptance` requires this sequence
+end to end, including an outcome that must not advance the loop, and retains
+fail-closed handling for a dirty park, off-main HEAD, surviving branch or PR,
+nonzero session exit, a non-token final line, exhausted without the todo `done`
+on main, and a completion where the todo became `blocked`.
+
+The parent `## Grill rulings`, **Stall and no-return handling**, is also part of
+this scope:
+
+> **Stall and no-return handling.** Abort reasons are driver-observed,
+> never agent claims: `crashed` (session exit without a token, seen by
+> supervision immediately), `stalled` (renewal is driver-performed and
+> conditional on observed progress, output or commits on the unit
+> branch; no progress means renewal withheld, TTL expiry, supervised
+> kill, residue quarantined, bounded retry then human moment). A driver
+> restart re-reads lease facts and derives, from an explicit
+> observation time, which leases expired while it was away. Invariant,
+> stated honestly: lease expiry bounds ambiguity, not completion, and
+> not driver availability. Renewal can extend a productive unit
+> indefinitely, so the enforceable bound is this: while a driver
+> supervises, once renewal is withheld the unit reaches a recorded
+> terminal outcome within its final lease term plus the supervised-kill
+> grace. With no live driver, an expired lease renders as stale and
+> unclassified until a driver returns and classifies it; the console
+> never promises a terminal fact that has not been recorded, and a
+> driver outage is itself a rendered state (no driver attached).
+
+The parent `## Grill rulings`, Q9, leaves two task-3 obligations explicit:
+
+> (3) Authorised-caller trust model: deferred as an unmitigated risk with a
+> named revisit trigger (first observed verb abuse, or any multi-tenant use).
+> Q3 verification catches a token without a landed flip; it does not catch an
+> authorised caller falsely flipping a todo `done`, and no current machinery
+> does. The future mitigation shape is independent landed-PR or acceptance
+> evidence checked beyond todo status.
+
+> (4) Outcome-fact retention and compaction: deferred into task 3's design as
+> a storage detail.
 
 The parent `## Lease shape` says that concrete lease schema, store layout,
 sanctioned verb shapes, hotspot ownership, and promotion trigger mechanics
@@ -62,7 +100,10 @@ The blueprint-node sub-todo is first. This sub-todo consumes the workflow
 artefact policy and the selector-wire contract. The selector-wire sub-todo is
 an explicit prerequisite for the reaction loop because re-query and
 first-member equality rely on its ready-set evidence. Lease implementation
-details remain with the separate lease owner named above.
+details remain with the separate lease owner named above. This child remains
+open, so the inter-child ordering is recorded in prose rather than unresolved
+`blocked_by` edges; the parent carries typed `blocked_by` edges to all four
+children.
 
 ## Sizing
 M. The later implementation is one driver-control subsystem with focused

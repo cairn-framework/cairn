@@ -2,18 +2,21 @@
 node: cairn.kernel.query
 status: open
 created: 2026-08-09
+parent: todo.driver-in-repo
 ---
 
 # Driver In Repo Selector Wire
 
 ## Scope
-Establish the passive ready-set query contract used by the later driver. The
-wire returns the commit and schema version plus every dispatchable unit at
+Establish the passive raw ready-set query contract used by the later driver.
+The wire returns the commit and schema version plus every dispatchable unit at
 that commit, with a stable unit id, node closure, selection ground, and
-reproducible evidence lines. Its first-member rule must prove equality with
-the one-unit selection a manual Orient step makes at the same commit. Every
-additional member carries the same eligibility evidence and pairwise write-set
-disjointness. The query performs no dispatch or orchestration.
+reproducible evidence lines. Wave composition is a separate consumer step: it
+applies first-member equality with the one-unit selection a manual Orient step
+makes at the same commit, then filters additional wave members by pairwise
+write-set disjointness. Those pairwise rules apply to the composed wave, not to
+the raw ready set, whose eligible units may overlap. The query performs no
+dispatch or orchestration.
 
 ## Parent constraints
 The parent todo is `todo.driver-in-repo`, under `## Task`, item 4:
@@ -40,7 +43,8 @@ The parent task records the finding-first constraint:
 > and first-member equality); until it does, the driver dispatches
 > todo-sourced units only.
 
-The parent `## Grill rulings`, Q8, fixes the seam order and query milestone:
+The parent `## Grill rulings`, Q8, is provisional grill direction pending an
+accepted owning decision:
 
 > **Q8, core seam order: selector wire, then lease surface, then
 > findings blast radius; `cairn watch` widening deferred indefinitely**
@@ -53,22 +57,38 @@ The parent `## Grill rulings`, Q8, fixes the seam order and query milestone:
 > additional member satisfies the same eligibility evidence plus
 > pairwise write-set disjointness.
 
-The same Q8 ruling says `cairn watch` remains finding-change only, the driver
-re-reads authoritative queries before acting, and polling is sufficient until
-measurably painful. The parent `## Acceptance` requires the dry-run wave to
-print each unit's id, selection ground, and evidence lines.
+The same Q8 passage provides provisional direction that `cairn watch` remains
+finding-change only, the driver re-reads authoritative queries before acting,
+and polling is sufficient until measurably painful. The parent `## Acceptance`
+requires the dry-run wave to print each unit's id, selection ground, and
+evidence lines.
+
+`todo.parallel-dispatch-granularity` records that its Q1 and Q2 answers are
+provisional grill direction, while the pre-existing ratified slate constraint
+keeps its own authority: derive write-sets from node closure over committed
+state and promote to declared write-sets only on measured false-overlap
+evidence. The Q1 set-valued filtering and first-member equality remain
+provisional pending an owning decision.
+
+Accepted `dec.rung-three-coordination-substrate`, clause 1, is authoritative
+for recompute-equality plan identity and commit provenance when a wave is
+composed. Its accepted contract does not make the Q8 ready-set milestone or
+wave filter a raw query behavior.
 
 ## Dependencies
 The blueprint-node sub-todo is first and supplies the query node and path
 boundary. This sub-todo is the explicit prerequisite for the reaction-loop
 sub-todo. The workflow-artefacts sub-todo is a separate passive artefact
 surface; this query does not evaluate it. The lease surface follows this
-selector seam under Q8 and is not part of this sub-todo.
+selector seam under Q8 and is not part of this sub-todo. This child remains
+open, so the inter-child ordering is recorded in prose rather than unresolved
+`blocked_by` edges; the parent carries typed `blocked_by` edges to all four
+children.
 
 ## Sizing
 M. The later implementation is one query and selection subsystem plus focused
-wire, first-member-equality, evidence, and disjointness tests, kept under
-roughly 600 changed lines. It must remain a passive query.
+raw-wire, first-member-equality, wave-filter, evidence, and disjointness tests,
+kept under roughly 600 changed lines. It must remain a passive query.
 
 ## Non-goals
 Do not dispatch units, claim leases, evaluate workflows, widen `cairn watch`,

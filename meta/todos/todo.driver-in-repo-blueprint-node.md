@@ -2,6 +2,7 @@
 node: cairn.root
 status: open
 created: 2026-08-09
+parent: todo.driver-in-repo
 ---
 
 # Driver In Repo Blueprint Node
