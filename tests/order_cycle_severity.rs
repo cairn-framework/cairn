@@ -32,7 +32,7 @@ fn scan(root: &Path) -> Output {
 }
 
 #[test]
-fn scan_reports_mixed_component_severity_and_exits_nonzero() {
+fn test_scan_reports_mixed_component_severity_and_exits_nonzero() {
     let root = temp_repo("mixed");
     write_project(
         &root,
@@ -66,7 +66,7 @@ d -> c "declared"
 }
 
 #[test]
-fn scan_reports_inferred_cycle_and_hand_containment_contradiction() {
+fn test_scan_reports_inferred_cycle_and_hand_containment_contradiction() {
     let root = temp_repo("containment");
     write_project(
         &root,
