@@ -194,6 +194,7 @@ mod tests {
                 from: "app".to_owned(),
                 to: "app.db".to_owned(),
                 description: "uses".to_owned(),
+                provenance: crate::blueprint::EdgeProvenance::HandDeclared,
             }],
         );
         let snapshot = build(&graph, "abc123");

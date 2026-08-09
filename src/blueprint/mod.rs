@@ -5,6 +5,6 @@ pub mod error;
 pub mod lexer;
 pub mod parser;
 
-pub use ast::{Ast, Edge, Field, Node, NodeKind, Span};
+pub use ast::{Ast, Edge, EdgeProvenance, Field, Node, NodeKind, Span};
 pub use error::{ParseError, ParseErrorKind};
 pub use parser::parse_file;

@@ -89,6 +89,33 @@ pub struct Field {
     pub span: Span,
 }
 
+/// Edge provenance recorded in the blueprint.
+///
+/// An absent edge marker is intentionally represented as [`Self::HandDeclared`]
+/// so existing blueprints retain their meaning without a migration.
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+pub enum EdgeProvenance {
+    /// Edge declared by a human without a provenance marker.
+    #[default]
+    HandDeclared,
+    /// Edge inferred from observed brownfield dependencies.
+    Inferred,
+}
+
+impl EdgeProvenance {
+    /// Marker text used by the canonical blueprint grammar.
+    pub(crate) const MARKER: &'static str = "inferred";
+
+    /// Returns the marker text for this provenance, if one is required.
+    #[must_use]
+    pub(crate) const fn marker(self) -> Option<&'static str> {
+        match self {
+            Self::HandDeclared => None,
+            Self::Inferred => Some(Self::MARKER),
+        }
+    }
+}
+
 /// Dependency edge.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Edge {
@@ -98,6 +125,8 @@ pub struct Edge {
     pub to: String,
     /// Edge description.
     pub description: String,
+    /// Edge provenance marker.
+    pub provenance: EdgeProvenance,
     /// Edge span.
     pub span: Span,
 }

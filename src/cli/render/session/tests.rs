@@ -52,6 +52,7 @@ fn render_context_lists_labeled_dependencies() {
             from: "app.a".to_owned(),
             to: "app.b".to_owned(),
             description: "calls".to_owned(),
+            provenance: crate::blueprint::EdgeProvenance::HandDeclared,
         }],
     );
     let rendered =

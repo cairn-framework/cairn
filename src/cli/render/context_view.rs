@@ -355,11 +355,13 @@ mod tests {
                     from: "app.k.a".to_owned(),
                     to: "app.x".to_owned(),
                     description: "calls".to_owned(),
+                    provenance: crate::blueprint::EdgeProvenance::HandDeclared,
                 },
                 EdgeRef {
                     from: "app.k.a".to_owned(),
                     to: "app.k.b".to_owned(),
                     description: "internal".to_owned(),
+                    provenance: crate::blueprint::EdgeProvenance::HandDeclared,
                 },
             ],
         );

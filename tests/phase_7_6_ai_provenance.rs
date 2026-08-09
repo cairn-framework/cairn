@@ -470,7 +470,7 @@ mod query {
     /// inbound edge from `inb`. The response carries both neighbours.
     #[test]
     fn test_query_neighbourhood_reports_both_edge_directions() {
-        use cairn::blueprint::{NodeKind, Span};
+        use cairn::blueprint::{EdgeProvenance, NodeKind, Span};
         use cairn::map::graph::{EdgeRef, NodeRecord, NodeState};
         use std::collections::BTreeMap;
 
@@ -501,6 +501,7 @@ mod query {
                 from: "anchor".to_owned(),
                 to: "out".to_owned(),
                 description: "calls".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         let mut inbound = BTreeMap::new();
@@ -510,6 +511,7 @@ mod query {
                 from: "inb".to_owned(),
                 to: "anchor".to_owned(),
                 description: "depends-on".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         let mut names = BTreeMap::new();

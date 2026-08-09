@@ -527,7 +527,7 @@ fn collect_inner(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::blueprint::{NodeKind, Span};
+    use crate::blueprint::{EdgeProvenance, NodeKind, Span};
     use crate::map::graph::{EdgeRef, FindingSeverity, NodeRecord, NodeState};
     use std::collections::BTreeMap;
 
@@ -589,6 +589,7 @@ mod tests {
                 from: "a".to_owned(),
                 to: "b".to_owned(),
                 description: "calls".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         outbound.insert(
@@ -597,6 +598,7 @@ mod tests {
                 from: "c".to_owned(),
                 to: "d".to_owned(),
                 description: "calls".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         let mut inbound = BTreeMap::new();
@@ -606,6 +608,7 @@ mod tests {
                 from: "a".to_owned(),
                 to: "b".to_owned(),
                 description: "calls".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         inbound.insert(
@@ -614,6 +617,7 @@ mod tests {
                 from: "c".to_owned(),
                 to: "d".to_owned(),
                 description: "calls".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         let graph = Graph {
@@ -670,6 +674,7 @@ mod tests {
                 from: "anchor".to_owned(),
                 to: "out".to_owned(),
                 description: "calls".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         let mut inbound = BTreeMap::new();
@@ -679,6 +684,7 @@ mod tests {
                 from: "inb".to_owned(),
                 to: "anchor".to_owned(),
                 description: "depends-on".to_owned(),
+                provenance: EdgeProvenance::HandDeclared,
             }],
         );
         let mut names = BTreeMap::new();
@@ -704,6 +710,7 @@ mod tests {
             from: from.to_owned(),
             to: to.to_owned(),
             description: desc.to_owned(),
+            provenance: EdgeProvenance::HandDeclared,
         }
     }
 

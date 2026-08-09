@@ -42,6 +42,10 @@ change into the archive.
 - `create_rename_change` refuses when the old node is missing or the target id
   already exists.
 
+- Blueprint delta edges carry `EdgeProvenance`: an absent marker is
+  `HandDeclared`, while `@inferred` is `Inferred`; apply and generated rename
+  changes preserve that provenance.
+
 ## Dependencies
 
 Outgoing blueprint edges: `cairn.kernel.changes -> cairn.kernel.scanner`

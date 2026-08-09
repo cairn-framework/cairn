@@ -20,7 +20,9 @@ all higher kernel modules use to understand a Cairn project.
 - `Node`: declaration with `kind`, `name`, `description`, `id`, `tags`, `paths`,
   `owns_files`, `contracts`, `raw_fields`, nested `children`, and `span`.
 - `NodeKind`: enum over `System`, `Container`, `Module`, `Actor`.
-- `Edge`: dependency edge with `from`, `to`, `description`, and `span`.
+- `Edge`: dependency edge with `from`, `to`, `description`, `provenance`, and
+  `span`. `provenance` is `HandDeclared` when the optional `@inferred` marker is
+  absent and `Inferred` when the marker is present.
 - `Field`: retained non-contract field metadata (`name`, `values`, `span`).
 - `Span`: one-based `file`, `line`, `column`, `end_line`, `end_column`.
 - `ParseError` / `ParseErrorKind`: error type with a stable `code` (for example
@@ -36,6 +38,8 @@ all higher kernel modules use to understand a Cairn project.
 - A word is `is_ascii_alphanumeric` or one of `_`, `-`, `.`.
 - `parse_file` and `parse_str` are pure with respect to the AST: identical source
   yields an identical `Ast`.
+- An absent edge marker parses as `EdgeProvenance::HandDeclared`, preserving
+  existing blueprint meaning; `@inferred` parses as `EdgeProvenance::Inferred`.
 
 ## Dependencies
 

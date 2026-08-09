@@ -29,6 +29,7 @@ fn mk_edge(from: &str, to: &str, desc: &str) -> Edge {
         from: from.to_owned(),
         to: to.to_owned(),
         description: desc.to_owned(),
+        provenance: crate::blueprint::EdgeProvenance::HandDeclared,
         span: span(),
     }
 }
@@ -51,6 +52,14 @@ fn test_same_edge_different_description_is_not_equal() {
 #[test]
 fn test_same_edge_different_from_is_not_equal() {
     assert!(!same_edge(&mk_edge("a", "b", "c"), &mk_edge("x", "b", "c")));
+}
+
+#[test]
+fn test_same_edge_different_provenance_is_not_equal() {
+    let hand = mk_edge("a", "b", "calls");
+    let mut inferred = hand.clone();
+    inferred.provenance = crate::blueprint::EdgeProvenance::Inferred;
+    assert!(!same_edge(&hand, &inferred));
 }
 
 // ── replace_exact_id ──────────────────────────────────────────────────────

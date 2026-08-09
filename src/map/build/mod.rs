@@ -140,6 +140,7 @@ fn validate_edges(graph: &mut Graph, edges: &[Edge]) {
             from: edge.from.clone(),
             to: edge.to.clone(),
             description: edge.description.clone(),
+            provenance: edge.provenance,
         };
         graph
             .outbound

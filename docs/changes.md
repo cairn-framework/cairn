@@ -50,7 +50,7 @@ app.auth -> app.old "legacy"
 app.auth -> app.billing "calls" => app.identity -> app.billing "calls"
 ```
 
-Added and modified nodes use normal blueprint node declarations. Removed nodes name node IDs. Renamed nodes use `old -> new`. Edge operations use normal edge syntax, and renamed edges use `old edge => new edge`.
+Added and modified nodes use normal blueprint node declarations. Removed nodes name node IDs. Renamed nodes use `old -> new`. Edge operations use normal edge syntax with an optional trailing `@inferred` marker; unmarked edges are hand-declared, and apply preserves provenance. Renamed edges use `old edge => new edge`.
 
 ## Artefact Operations
 

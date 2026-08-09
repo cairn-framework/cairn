@@ -38,6 +38,7 @@ fn edge(from: &str, to: &str) -> Edge {
         from: from.to_owned(),
         to: to.to_owned(),
         description: "dep".to_owned(),
+        provenance: crate::blueprint::EdgeProvenance::HandDeclared,
         span: span(),
     }
 }

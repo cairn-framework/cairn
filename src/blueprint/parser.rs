@@ -3,7 +3,7 @@
 use std::{fs, path::Path};
 
 use super::{
-    ast::{Ast, Edge, Field, Node, NodeKind, Span},
+    ast::{Ast, Edge, EdgeProvenance, Field, Node, NodeKind, Span},
     error::{ParseError, ParseErrorKind},
     lexer::{Token, TokenKind, tokenize},
 };
@@ -154,12 +154,30 @@ impl Parser {
         self.expect_kind(&TokenKind::Arrow, "`->`")?;
         let to = self.expect_word("edge target id")?;
         let description = self.expect_string("edge description")?;
+        let provenance = self.edge_provenance()?;
         Ok(Edge {
             from,
             to,
             description,
+            provenance,
             span,
         })
+    }
+
+    fn edge_provenance(&mut self) -> Result<EdgeProvenance, ParseError> {
+        let TokenKind::Tag(tag) = self.peek().kind.clone() else {
+            return Ok(EdgeProvenance::HandDeclared);
+        };
+        let token = self.next().clone();
+        if tag == EdgeProvenance::MARKER {
+            Ok(EdgeProvenance::Inferred)
+        } else {
+            Err(ParseError::unexpected(
+                token.span,
+                format!("`@{}`", EdgeProvenance::MARKER),
+                describe(&token.kind),
+            ))
+        }
     }
 
     fn field_values(&mut self) -> Result<Vec<String>, ParseError> {
@@ -273,5 +291,28 @@ fn describe(kind: &TokenKind) -> String {
         TokenKind::Colon => "`:`".to_owned(),
         TokenKind::Arrow => "`->`".to_owned(),
         TokenKind::Eof => "end of input".to_owned(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blueprint::ast::EdgeProvenance;
+
+    #[test]
+    fn parses_marked_and_unmarked_edge_provenance() {
+        let marked = parse_str("test", "app.api -> app.db \"calls\" @inferred").unwrap();
+        assert_eq!(
+            marked.edges[0].provenance,
+            EdgeProvenance::Inferred,
+            "the explicit edge marker is discovery provenance"
+        );
+
+        let unmarked = parse_str("test", "app.api -> app.db \"calls\"").unwrap();
+        assert_eq!(
+            unmarked.edges[0].provenance,
+            EdgeProvenance::HandDeclared,
+            "an absent marker remains hand-declared"
+        );
     }
 }

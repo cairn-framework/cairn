@@ -60,9 +60,16 @@ Edges live after the node tree and reference stable IDs.
 saas.api.auth -> saas.db "Reads user records"
 ```
 
-Both endpoints must exist. The description is required.
+Both endpoints must exist. The description is required. `@inferred` marks an
+edge emitted from observed brownfield dependencies. Edges without the marker
+are hand-declared, and change application preserves the marker when it writes
+the blueprint.
 
-During Rust reconciliation, Cairn compares these declared edges with observed `use` paths and `mod` declarations. A declared edge with no matching observed dependency is reported as an advisory rationale tension. An observed dependency with no declared edge is also reported as a rationale tension and includes the source location when available.
+During Rust reconciliation, Cairn compares these declared edges with observed
+`use` paths and `mod` declarations. A declared edge with no matching observed
+dependency is reported as an advisory rationale tension. An observed dependency
+with no declared edge is also reported as a rationale tension and includes the
+source location when available.
 
 Ambiguous observations, such as an import name that could map to more than one owning node, are informational warnings. They do not create structural errors.
 

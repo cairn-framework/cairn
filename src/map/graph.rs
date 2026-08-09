@@ -3,7 +3,7 @@
 
 use std::{collections::BTreeMap, error::Error, fmt};
 
-use crate::blueprint::{NodeKind, Span};
+use crate::blueprint::{EdgeProvenance, NodeKind, Span};
 use schemars::{r#gen::SchemaGenerator, schema::Schema};
 
 fn nullable_string_schema(generator: &mut SchemaGenerator) -> Schema {
@@ -137,6 +137,8 @@ pub struct EdgeRef {
     pub to: String,
     /// Description.
     pub description: String,
+    /// Edge provenance marker.
+    pub provenance: EdgeProvenance,
 }
 
 /// Queryable map graph.

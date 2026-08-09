@@ -4,6 +4,11 @@ use super::*;
 use super::{
     apply::apply_blueprint_delta, delta::parse_blueprint_delta, validate::validate_change,
 };
+use crate::{
+    artefacts::contract::ContractSet,
+    blueprint::{EdgeProvenance, parser::parse_str},
+    map::build_graph,
+};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 // ── helpers ───────────────────────────────────────────────────────────────
@@ -43,6 +48,7 @@ fn edge(from: &str, to: &str) -> Edge {
         from: from.to_owned(),
         to: to.to_owned(),
         description: "dep".to_owned(),
+        provenance: crate::blueprint::EdgeProvenance::HandDeclared,
         span: crate::blueprint::Span::point("test", 1, 1),
     }
 }
@@ -198,6 +204,128 @@ app.api -> app "reports"
 
     assert!(rendered.contains("System App"));
     assert!(rendered.contains("app.api -> app \"reports\""));
+    Ok(())
+}
+
+#[test]
+fn test_marked_edge_survives_apply_writer_round_trip() -> Result<(), Box<dyn std::error::Error>> {
+    let delta = parse_blueprint_delta(
+        "change.delta",
+        "## ADDED Edges\napp.api -> app.db \"calls\" @inferred\n",
+    )?;
+    let rendered = apply_blueprint_delta("", &delta)?;
+    assert!(
+        rendered.contains("app.api -> app.db \"calls\" @inferred"),
+        "canonical apply output must retain edge provenance: {rendered:?}"
+    );
+    let reparsed = parse_str("cairn.blueprint", &rendered)?;
+    assert_eq!(reparsed.edges[0].provenance, EdgeProvenance::Inferred);
+    Ok(())
+}
+
+#[test]
+fn test_unmarked_existing_edge_rename_stays_byte_compatible()
+-> Result<(), Box<dyn std::error::Error>> {
+    let base = r#"System App "desc" id "app" {
+Module Api "api" id "app.api" {}
+Module Db "db" id "app.db" {}
+}
+app.api -> app.db "calls"
+"#;
+    let delta = parse_blueprint_delta("change.delta", "## RENAMED Nodes\n- app.api -> app.http\n")?;
+    let rendered = apply_blueprint_delta(base, &delta)?;
+    assert_eq!(
+        rendered,
+        r#"System App "desc" id "app" {
+Module Api "api" id "app.http" {}
+Module Db "db" id "app.db" {}
+}
+app.http -> app.db "calls"
+"#
+    );
+    let reparsed = parse_str("cairn.blueprint", &rendered)?;
+    assert_eq!(reparsed.edges.len(), 1);
+    assert_eq!(reparsed.edges[0].provenance, EdgeProvenance::HandDeclared);
+    Ok(())
+}
+
+#[test]
+fn test_create_rename_change_preserves_inferred_edge_marker()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("rename-inferred-edge")?;
+    let base = r#"System App "desc" id "app" {
+Module Api "api" id "app.api" {}
+Module Db "db" id "app.db" {}
+}
+app.api -> app.db "calls" @inferred
+"#;
+    fs::write(root.join("cairn.blueprint"), base)?;
+    fs::write(
+        root.join("cairn.config.yaml"),
+        "ignore:\n  - target\ncontext: \"\"\nrules: {}\n",
+    )?;
+
+    let change = create_rename_change(&root, &root.join("cairn.blueprint"), "app.api", "app.http")?;
+    let delta_source = fs::read_to_string(change.path.join("blueprint.delta"))?;
+    assert!(
+        delta_source.contains(
+            r#"app.api -> app.db "calls" @inferred => app.http -> app.db "calls" @inferred"#
+        ),
+        "rename delta must preserve edge provenance: {delta_source}"
+    );
+    let reparsed_delta = parse_blueprint_delta("blueprint.delta", &delta_source)?;
+    assert_eq!(reparsed_delta.renamed_edges.len(), 1);
+    assert_eq!(
+        reparsed_delta.renamed_edges[0].from.provenance,
+        EdgeProvenance::Inferred
+    );
+    assert_eq!(
+        reparsed_delta.renamed_edges[0].to.provenance,
+        EdgeProvenance::Inferred
+    );
+
+    let rendered = apply_blueprint_delta(base, &change.delta)?;
+    let reparsed = parse_str("cairn.blueprint", &rendered)?;
+    assert_eq!(reparsed.edges.len(), 1);
+    assert_eq!(reparsed.edges[0].from, "app.http");
+    assert_eq!(reparsed.edges[0].provenance, EdgeProvenance::Inferred);
+    Ok(())
+}
+
+#[test]
+fn test_brownfield_edge_apply_reaches_graph_with_both_directions()
+-> Result<(), Box<dyn std::error::Error>> {
+    let delta = parse_blueprint_delta(
+        "brownfield.delta",
+        r#"## ADDED Nodes
+Module Api "api" id "app.api" {}
+Module Db "db" id "app.db" {}
+
+## ADDED Edges
+app.api -> app.db "imports" @inferred
+app.db -> app.api "imports" @inferred
+"#,
+    )?;
+    let rendered = apply_blueprint_delta("", &delta)?;
+    let ast = parse_str("cairn.blueprint", &rendered)?;
+    let graph = build_graph(
+        &ast,
+        std::path::Path::new("."),
+        &ContractSet::default(),
+        &mut std::collections::BTreeMap::new(),
+        Vec::new(),
+    );
+
+    let forward = &graph.outbound["app.api"][0];
+    assert_eq!(forward.from, "app.api");
+    assert_eq!(forward.to, "app.db");
+    assert_eq!(forward.description, "imports");
+    assert_eq!(forward.provenance, EdgeProvenance::Inferred);
+    let reverse = &graph.outbound["app.db"][0];
+    assert_eq!(reverse.from, "app.db");
+    assert_eq!(reverse.to, "app.api");
+    assert_eq!(reverse.description, "imports");
+    assert_eq!(reverse.provenance, EdgeProvenance::Inferred);
     Ok(())
 }
 
