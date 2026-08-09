@@ -131,9 +131,10 @@ owns every line of orchestration console implementation the mockups
 specify. `todo.console-state-legibility` is independent and can run first
 or in parallel: it fixes the shipped read-only surface and makes the
 mockup comparison honest by removing "the console showed nothing useful"
-as a confound. `todo.driver-in-repo` is open (the placement decision
-was accepted 2026-08-04) and does not wait on this unit; the lease
-ruling is recorded in `todo.parallel-dispatch-granularity`, whose rung
+as a confound. `todo.driver-in-repo` is blocked on its four decomposition
+sub-todos (blueprint node, workflow artefacts, reaction loop, selector wire)
+and remains independent of this unit; the lease ruling is recorded in
+`todo.parallel-dispatch-granularity`, whose rung
 3 design document still owns the remaining schema details.
 
 ## Grill rulings (2026-08-04, maintainer in session)

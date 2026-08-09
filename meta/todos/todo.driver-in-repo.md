@@ -1,8 +1,9 @@
 ---
 node: cairn.root
-status: open
+status: blocked
 created: 2026-08-03
 related: [dec.orchestration-placement, dec.control-plane-programme, todo.console-orchestration-ux-design, todo.console-signed-widening, todo.parallel-dispatch-granularity, todo.review-gate-machine-check, res.skill-absorption]
+blocked_by: [todo.driver-in-repo-blueprint-node, todo.driver-in-repo-workflow-artefacts, todo.driver-in-repo-reaction-loop, todo.driver-in-repo-selector-wire]
 ---
 
 # Driver In Repo
@@ -63,6 +64,19 @@ executes one assigned action and returns its outcome.
    this driver under `dec.control-plane-programme`'s ownership split. It
    is blocked on `todo.console-orchestration-ux-design` and does not gate
    this unit's non-UI work.
+## Decomposition (2026-08-09)
+
+Sizing: L under the repository sizing rule. The driver/core seam is partitioned
+into exactly the four later sub-todos for blueprint nodes, declarative workflow
+artefacts, the reaction loop, and the selector wire. The blueprint-node
+sub-todo is first, and selector-wire is the prerequisite of reaction-loop.
+These sub-todos stay open. No implementation occurs in this decomposition.
+This split covers exactly parent `## Task` items 1 through 4. Parent item 5,
+the steering surface, remains outside this non-UI decomposition as stated in
+the parent body.
+
+blocked on sub-todos: todo.driver-in-repo-blueprint-node, todo.driver-in-repo-workflow-artefacts, todo.driver-in-repo-reaction-loop, todo.driver-in-repo-selector-wire
+
 
 ## Acceptance
 

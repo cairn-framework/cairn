@@ -2,15 +2,15 @@
 node: cairn.kernel.artefacts
 status: blocked
 created: 2026-08-07
-blocked_by: [todo.driver-in-repo]
 related: [dec.rung-three-coordination-substrate]
+blocked_by: [todo.driver-in-repo-workflow-artefacts]
 ---
 
 # Workflow serialises validation
 
 Carved out of `todo.hotspot-node-ownership` task 2 on 2026-08-07: no workflow
 artefact type exists yet, so the `serialises:` list has nowhere to live until
-`todo.driver-in-repo` task 1 introduces it.
+`todo.driver-in-repo-workflow-artefacts` defines it under the driver's task 2.
 
 ## Task
 
@@ -26,4 +26,6 @@ that each prefix exists and evaluates nothing further, per
   that a valid one is stored and never evaluated by the core.
 - No per-unit authoring is introduced anywhere.
 
-2026-08-07 audit (todo.roadmap-assumption-audit): status set blocked this session: declared blocker todo.driver-in-repo is not done, and lint confirmed the contradiction.
+2026-08-07 audit (todo.roadmap-assumption-audit): status set blocked this session:
+the workflow artefact dependency was not yet defined, and lint recorded the
+unresolved dependency while the parent driver unit remained blocked.
