@@ -1,6 +1,6 @@
 ---
 node: cairn.reconcile
-status: open
+status: blocked
 created: 2026-07-25
 ---
 
@@ -34,40 +34,53 @@ ripgrep hit comes from `bundle.dependencies[]`, which carries dependency symbols
 that `get --symbols` never returns, so that exception is itself evidence of the
 coverage gap rather than a counter-example to it.
 
-## Scope
+## Investigation outcome
 
-- Decide whether interface-hash exportability and query-visible symbol coverage
-  should remain the same predicate. They serve different jobs: an interface hash
-  wants the public surface that downstream nodes can break against, while a
-  navigating agent wants the definition sites inside the node it was routed to.
-- If they separate, keep the interface hash on the exported set so no existing
-  drift or ghost semantics change, and widen only the query-visible set.
-- Cover the same question for TypeScript, whose `src/reconcile/typescript.rs:94`
-  predicate has the same shape (`visibility_modifier` or `export`).
-- Re-run the frozen context-bundle evaluation harness in
-  `archive/strongholds/agent-context-bundle-evaluation/evidence.tar.gz` against
-  the delivered change and report the ripgrep recall delta.
+The measured coverage gap is real, but the fix is L-sized and multi-seam, not
+an S fix. `res.node-symbol-coverage.investigation` maps the separation:
+interface hashes must keep the current exported predicate, while exact
+navigation queries need a distinct query-visible record stream. The existing
+`NodeRecord.symbols` also feeds dependency-interface bundles, contract
+interface drift checks, persistent map snapshots, and the web UI, so widening
+that field in place would leak private definitions into interface surfaces.
 
-## Non-goals
+The parent is decomposed and blocked until the child units complete. No Rust
+implementation lands in this research PR.
 
-- No RAG, full-text, or fuzzy symbol search. `locate` stays exact-match.
-- No new stored state or second source of truth.
-- No change to interface-hash drift, ghost, or synced semantics unless the
-  decision below explicitly sanctions it.
+## Re-scoped implementation boundary
+
+- Keep exported signatures, records, interface fingerprints, target hashes,
+  dependency bundles, contract checks, and persistent map snapshots unchanged.
+- Add a query-visible extraction stream for Rust and TypeScript in the generic
+  reconciler, with cache-safe propagation through reports and scanner assembly.
+- Store both views explicitly and route only `get --symbols` and exact
+  `locate` to the query-visible view.
+- Preserve exact-match lookup and do not add full-text, fuzzy, RAG, or stored
+  duplicate state.
+- Re-run the frozen context-bundle harness against the pinned ripgrep manifest
+  after implementation and report the recall delta.
+
+## Child units
+
+- `todo.node-symbol-coverage-ruling`: author and ratify the binding decision
+  informed by `res.node-symbol-coverage.investigation`.
+- `todo.node-symbol-coverage-reconcile`: split extraction and report/cache
+  streams while preserving exported hashes.
+- `todo.node-symbol-coverage-query`: wire graph, CLI, and query API navigation
+  surfaces while keeping bundles and snapshots exported-only.
+- `todo.node-symbol-coverage-evaluation`: run Rust and TypeScript fixtures and
+  the frozen corpus evaluation.
 
 ## Acceptance
 
-- A decision artefact records the ruling before implementation: this changes the
-  public behaviour of `cairn get --symbols` and `cairn locate`, which
-  `todo.agent-context-bundle-evaluation` requires to be escalated to a decision.
-- Rust and TypeScript nodes return their in-node definition sites for the
-  queries an agent uses to navigate.
-- Interface-hash output is unchanged for every node in this repository, proven
-  by a clean `cairn scan` with no drift findings introduced.
-- The re-run reports ripgrep recall from the same frozen manifest, so the gain
-  is measured on the corpus that surfaced the gap.
+The child units must prove query-visible definition coverage for Rust and
+TypeScript, unchanged interface hashes, exported-only interface consumers, and
+the frozen ripgrep recall delta. The parent remains blocked until all child
+units and their gates are complete.
 
-Informed by: res.loop-efficiency-observations
+Research: `res.node-symbol-coverage.investigation`.
+
+Informed by: `res.loop-efficiency-observations`.
 
 ## Mission disposition
 
