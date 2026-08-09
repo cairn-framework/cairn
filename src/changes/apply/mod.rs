@@ -106,7 +106,11 @@ pub(super) fn replace_node(nodes: &mut [Node], replacement: &Node) -> Result<(),
 }
 
 pub(super) fn same_edge(left: &Edge, right: &Edge) -> bool {
-    left.from == right.from && left.to == right.to && left.description == right.description
+    super::same_edge(left, right)
+}
+
+pub(super) fn same_edge_for_modify(left: &Edge, right: &Edge) -> bool {
+    super::same_edge_for_modify(left, right)
 }
 
 pub(super) fn serialize_node(node: &Node, indent: usize, output: &mut String) {
@@ -168,11 +172,7 @@ pub(super) fn serialize_field_values(values: &[String]) -> String {
 }
 
 pub(super) fn replace_exact_id(value: &str, old_id: &str, new_id: &str) -> String {
-    if value == old_id {
-        new_id.to_owned()
-    } else {
-        value.to_owned()
-    }
+    super::replace_exact_id(value, old_id, new_id)
 }
 
 pub(super) fn apply_artefact_operations(artefacts: &[ArtefactOperation]) -> Result<(), String> {

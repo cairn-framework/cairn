@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.blueprint
-status: open
+status: done
 created: 2026-08-07
 parent: todo.brownfield-nested-package-scan-clean
 related: [dec.brownfield-discovery-cycle-severity, dec.brownfield-init-round-trip]
@@ -75,3 +75,11 @@ unit only makes provenance representable and round-trippable.
 Any change to which edges discovery emits (clause 1 of the decision is that it
 keeps emitting all of them), any nesting change (clause 2), and any severity
 change. Severity is `todo.order-cycle-discovery-severity`.
+
+## Deferred follow-up
+
+The deferred wire work is tracked in
+`meta/todos/todo.edge-provenance-wire-projection.md`
+(`todo.edge-provenance-wire-projection`): version and thread edge provenance
+through `SnapshotEdge`, `map.json`, `/api/graph`, context JSON, and export
+wires under their respective schema-version decisions.

@@ -36,7 +36,7 @@ pub use heuristics::{
     EDGE_OBSERVATION_THRESHOLD, MIN_CANDIDATE_FILE_COUNT, classify_score, coupling_score,
 };
 
-use crate::error::CairnError;
+use crate::{blueprint::EdgeProvenance, error::CairnError};
 use discovery::{DiscoveredCandidate, Extraction};
 use std::fmt::Write as _;
 
@@ -155,8 +155,11 @@ pub fn blueprint_delta(extraction: &Extraction) -> String {
         for edge in &candidate.edges {
             let _ = writeln!(
                 edges,
-                "{} -> {} {:?}",
-                candidate.id, edge.target, edge.description
+                "{} -> {} {:?} @{}",
+                candidate.id,
+                edge.target,
+                edge.description,
+                EdgeProvenance::MARKER
             );
         }
     }
@@ -428,21 +431,28 @@ mod tests {
     }
 
     #[test]
-    fn test_blueprint_delta_edge_in_canonical_edges_section() {
-        let mut c = candidate("app.payments", "Payments", "payments/");
-        c.edges.push(DiscoveredEdge {
-            target: "app.auth".to_owned(),
-            description: "auth dep".to_owned(),
+    fn test_blueprint_delta_marks_discovered_edges() {
+        let mut api = candidate("app.api", "Api", "api/");
+        api.edges.push(DiscoveredEdge {
+            target: "app.db".to_owned(),
+            description: "imports".to_owned(),
             confidence: 0.8,
         });
-        let delta = blueprint_delta(&extraction(vec![c]));
+        let mut db = candidate("app.db", "Db", "db/");
+        db.edges.push(DiscoveredEdge {
+            target: "app.api".to_owned(),
+            description: "imports".to_owned(),
+            confidence: 0.8,
+        });
+        let delta = blueprint_delta(&extraction(vec![api, db]));
+        assert!(delta.contains("## ADDED Edges"));
         assert!(
-            delta.contains("## ADDED Edges"),
-            "delta must use the canonical ADDED Edges header: {delta:?}"
+            delta.contains(r#"app.api -> app.db "imports" @inferred"#),
+            "forward discovered edge must carry the provenance marker: {delta:?}"
         );
         assert!(
-            delta.contains(r#"app.payments -> app.auth "auth dep""#),
-            "edge must appear in canonical form: {delta:?}"
+            delta.contains(r#"app.db -> app.api "imports" @inferred"#),
+            "reverse discovered edge must carry the provenance marker: {delta:?}"
         );
     }
 

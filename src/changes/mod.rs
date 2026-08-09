@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     artefacts::frontmatter,
-    blueprint::{Edge, Node, NodeKind, parser::parse_str},
+    blueprint::{Edge, EdgeProvenance, Node, NodeKind, parser::parse_str},
     map::Graph,
     scanner,
 };
@@ -24,14 +24,123 @@ mod validate;
 
 use crate::persist;
 use apply::{
-    append_archive_log, apply_archive, archive_path, mutation_paths, replace_exact_id,
-    restore_snapshots, snapshot_paths,
+    append_archive_log, apply_archive, archive_path, mutation_paths, restore_snapshots,
+    snapshot_paths,
 };
 use artefact_ops::parse_artefact_operations;
 pub use delta::parse_blueprint_delta;
 use rename::{artefact_content_refs, copy_referencing_artefacts, proposal_title, read_to_string};
 pub(crate) use types::*;
 pub use validate::validate_change;
+
+/// Writes one canonical edge declaration, including its optional provenance.
+pub(crate) fn write_edge_line(
+    out: &mut impl std::fmt::Write,
+    from: &str,
+    to: &str,
+    description: &str,
+    provenance: EdgeProvenance,
+) -> std::fmt::Result {
+    if let Some(marker) = provenance.marker() {
+        writeln!(out, "{from} -> {to} {description:?} @{marker}")
+    } else {
+        writeln!(out, "{from} -> {to} {description:?}")
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct EdgeIdentity<'a> {
+    from: &'a str,
+    to: &'a str,
+    description: &'a str,
+    provenance: EdgeProvenance,
+}
+
+pub(crate) fn edge_identity<'a>(
+    from: &'a str,
+    to: &'a str,
+    description: &'a str,
+    provenance: EdgeProvenance,
+) -> EdgeIdentity<'a> {
+    EdgeIdentity {
+        from,
+        to,
+        description,
+        provenance,
+    }
+}
+
+pub(crate) fn edge_identity_for_edge(edge: &Edge) -> EdgeIdentity<'_> {
+    edge_identity(&edge.from, &edge.to, &edge.description, edge.provenance)
+}
+
+/// Compares full edge identity for remove and rename operations.
+pub(crate) fn same_edge(left: &Edge, right: &Edge) -> bool {
+    same_edge_fields(edge_identity_for_edge(left), edge_identity_for_edge(right))
+}
+
+pub(crate) fn same_edge_fields(left: EdgeIdentity<'_>, right: EdgeIdentity<'_>) -> bool {
+    left == right
+}
+
+/// Compares the stable identity used by an edge modification.
+///
+/// A modification may change the description, but endpoints and provenance
+/// must match. Marker changes therefore require an explicit delta edge.
+pub(crate) fn same_edge_for_modify(left: &Edge, right: &Edge) -> bool {
+    same_edge_fields_for_modify(edge_identity_for_edge(left), edge_identity_for_edge(right))
+}
+
+pub(crate) fn same_edge_fields_for_modify(left: EdgeIdentity<'_>, right: EdgeIdentity<'_>) -> bool {
+    left.from == right.from && left.to == right.to && left.provenance == right.provenance
+}
+
+pub(crate) fn replace_exact_id(value: &str, old_id: &str, new_id: &str) -> String {
+    if value == old_id {
+        new_id.to_owned()
+    } else {
+        value.to_owned()
+    }
+}
+
+pub(crate) fn id_after_node_renames(mut id: String, renames: &[Rename]) -> String {
+    for rename in renames {
+        id = replace_exact_id(&id, &rename.from, &rename.to);
+    }
+    id
+}
+
+/// Rewrites edge endpoints through the node rename map used by a delta.
+pub(crate) fn edge_after_node_renames(mut edge: Edge, renames: &[Rename]) -> Edge {
+    edge.from = id_after_node_renames(edge.from, renames);
+    edge.to = id_after_node_renames(edge.to, renames);
+    edge
+}
+
+fn write_edge_rename_line(
+    out: &mut impl std::fmt::Write,
+    edge: &crate::map::graph::EdgeRef,
+    new_from: &str,
+    new_to: &str,
+) -> std::fmt::Result {
+    let mut old_edge = String::new();
+    let _ = write_edge_line(
+        &mut old_edge,
+        &edge.from,
+        &edge.to,
+        &edge.description,
+        edge.provenance,
+    );
+    let mut new_edge = String::new();
+    let _ = write_edge_line(
+        &mut new_edge,
+        new_from,
+        new_to,
+        &edge.description,
+        edge.provenance,
+    );
+    writeln!(out, "{} => {}", old_edge.trim_end(), new_edge.trim_end())
+}
 
 /// Discovers active changes under `changes_dir` (the resolved
 /// `--changes-dir` path, `meta/changes` by default).
@@ -233,11 +342,7 @@ pub fn create_rename_change(
         for edge in changed_edges {
             let new_from = replace_exact_id(&edge.from, old_id, new_id);
             let new_to = replace_exact_id(&edge.to, old_id, new_id);
-            let _ = writeln!(
-                delta,
-                "{} -> {} {:?} => {} -> {} {:?}",
-                edge.from, edge.to, edge.description, new_from, new_to, edge.description
-            );
+            let _ = write_edge_rename_line(&mut delta, &edge, &new_from, &new_to);
         }
     }
     persist::atomic_write(&change_path.join("blueprint.delta"), &delta)
@@ -363,5 +468,7 @@ pub fn active_changes_lines(changes: &[Change]) -> Vec<String> {
         .collect()
 }
 
+#[cfg(test)]
+mod edge_provenance_tests;
 #[cfg(test)]
 mod tests;

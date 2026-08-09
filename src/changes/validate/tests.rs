@@ -57,6 +57,7 @@ fn graph_with_edge(from: &str, to: &str, description: &str) -> Graph {
             from: from.to_owned(),
             to: to.to_owned(),
             description: description.to_owned(),
+            provenance: crate::blueprint::EdgeProvenance::HandDeclared,
         });
     g
 }
@@ -66,6 +67,7 @@ fn bp_edge(from: &str, to: &str, description: &str) -> BpEdge {
         from: from.to_owned(),
         to: to.to_owned(),
         description: description.to_owned(),
+        provenance: crate::blueprint::EdgeProvenance::HandDeclared,
         span: Span::point("cairn.blueprint", 1, 1),
     }
 }
@@ -277,6 +279,44 @@ fn test_removed_edge_existing_succeeds() {
         errors.is_empty(),
         "removing an existing edge must produce no errors; got: {errors:?}"
     );
+}
+
+#[test]
+fn test_removed_edge_provenance_is_part_of_identity() {
+    let mut change = empty_change();
+    let mut removed = bp_edge("app.a", "app.b", "uses");
+    removed.provenance = crate::blueprint::EdgeProvenance::Inferred;
+    change.delta.removed_edges = vec![removed];
+    let graph = graph_with_edge("app.a", "app.b", "uses");
+    let errors = validate_change(&change, &graph);
+    assert!(
+        errors.iter().any(|e| e.contains("does not exist")),
+        "an inferred removal must not match a hand-declared edge: {errors:?}"
+    );
+}
+
+#[test]
+fn test_modified_edge_preserves_marker_identity_while_changing_description() {
+    let mut change = empty_change();
+    let mut modified = bp_edge("app.a", "app.b", "updated");
+    modified.provenance = crate::blueprint::EdgeProvenance::Inferred;
+    change.delta.modified_edges = vec![modified];
+    let mut graph = graph_with_edge("app.a", "app.b", "uses");
+    graph.outbound.get_mut("app.a").unwrap()[0].provenance =
+        crate::blueprint::EdgeProvenance::Inferred;
+    assert!(validate_change(&change, &graph).is_empty());
+}
+
+#[test]
+fn test_removed_edge_post_rename_spelling_matches_pre_delta_graph() {
+    let mut change = empty_change();
+    change.delta.renamed_nodes = vec![Rename {
+        from: "app.a".to_owned(),
+        to: "app.http".to_owned(),
+    }];
+    change.delta.removed_edges = vec![bp_edge("app.http", "app.b", "uses")];
+    let graph = graph_with_edge("app.a", "app.b", "uses");
+    assert!(validate_change(&change, &graph).is_empty());
 }
 
 // ── Artefact operations ───────────────────────────────────────────────────

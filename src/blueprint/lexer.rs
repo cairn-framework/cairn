@@ -259,6 +259,16 @@ mod tests {
     }
 
     #[test]
+    fn tokenize_inferred_edge_marker() {
+        let tokens = tokenize("test", "app.api -> app.db \"calls\" @inferred").unwrap();
+        assert!(
+            tokens
+                .iter()
+                .any(|token| token.kind == TokenKind::Tag("inferred".to_owned()))
+        );
+    }
+
+    #[test]
     fn tokenize_unterminated_string_is_error() {
         let err = tokenize("test", "\"unterminated").unwrap_err();
         assert!(matches!(*err.kind, ParseErrorKind::UnterminatedString));

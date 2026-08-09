@@ -226,6 +226,7 @@ mod tests {
             from: "app.api".to_owned(),
             to: "app.db".to_owned(),
             description: String::new(),
+            provenance: crate::blueprint::EdgeProvenance::HandDeclared,
             span: span(),
         };
         let mut scan = scan_with(

@@ -35,6 +35,7 @@ fn make_graph(ids: &[&str], edges: &[(&str, &str)]) -> Graph {
             from: (*from).to_owned(),
             to: (*to).to_owned(),
             description: "dep".to_owned(),
+            provenance: crate::blueprint::EdgeProvenance::HandDeclared,
         };
         outbound
             .entry((*from).to_owned())

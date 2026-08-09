@@ -14,7 +14,7 @@ System <TypeLabel> "<description>" id "<dotted-id>" [@tag...] {
 }
 
 # Edges
-from.id -> to.id "relationship label"
+from.id -> to.id "relationship label" [@inferred]
 ```
 
 ## Node declarations
@@ -70,10 +70,10 @@ Actor <TypeLabel> "<description>" id "<parent-id>.<name>" [@tag...] {
 Edges are declared outside any block, at file scope:
 
 ```
-from.node.id -> to.node.id "description of the relationship"
+from.node.id -> to.node.id "description of the relationship" [@inferred]
 ```
 
-Both node IDs must exist in the node declarations above. Edges form a directed graph used for dependency analysis, cycle detection, and topological ordering.
+Both node IDs must exist in the node declarations above. Edges form a directed graph used for dependency analysis, cycle detection, and topological ordering. The optional `@inferred` marker records an edge emitted from observed brownfield dependencies. Edges without the marker are hand-declared. Canonical change application preserves the marker.
 
 ## ID conventions
 

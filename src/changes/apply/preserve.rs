@@ -28,10 +28,11 @@ use crate::blueprint::{
     lexer::{TokenKind, tokenize},
     parser::parse_str,
 };
-use crate::changes::BlueprintDelta;
+use crate::changes::{BlueprintDelta, edge_after_node_renames, write_edge_line};
 
 use super::{
-    remove_node, rename_node_id, replace_exact_id, replace_node, same_edge, serialize_node,
+    remove_node, rename_node_id, replace_exact_id, replace_node, same_edge, same_edge_for_modify,
+    serialize_node,
 };
 
 /// The inclusive source line range a node declaration occupies, plus the same
@@ -127,17 +128,26 @@ fn mutate_ast(ast: Ast, delta: &BlueprintDelta) -> Result<Ast, String> {
         }
     }
     for edge in &delta.removed_edges {
-        edges.retain(|candidate| !same_edge(candidate, edge));
+        let source = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+        edges.retain(|candidate| !same_edge(candidate, &source));
     }
     for rename in &delta.renamed_edges {
-        edges.retain(|candidate| !same_edge(candidate, &rename.from));
-        edges.push(rename.to.clone());
+        let source = edge_after_node_renames(rename.from.clone(), &delta.renamed_nodes);
+        let replacement = edge_after_node_renames(rename.to.clone(), &delta.renamed_nodes);
+        edges.retain(|candidate| !same_edge(candidate, &source));
+        edges.push(replacement);
     }
     for edge in &delta.modified_edges {
-        edges.retain(|candidate| !(candidate.from == edge.from && candidate.to == edge.to));
-        edges.push(edge.clone());
+        let target = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+        edges.retain(|candidate| !same_edge_for_modify(candidate, &target));
+        edges.push(target);
     }
-    edges.extend(delta.added_edges.clone());
+    edges.extend(
+        delta
+            .added_edges
+            .iter()
+            .map(|edge| edge_after_node_renames(edge.clone(), &delta.renamed_nodes)),
+    );
     Ok(Ast { nodes, edges })
 }
 
@@ -293,27 +303,17 @@ fn patch_id(line: &str, old: &str, new: &str) -> Option<String> {
 
 /// Emits a top-level edge's post-delta form, keeping untouched edges verbatim.
 fn render_edge(edge: &Edge, delta: &BlueprintDelta, original: &str, out: &mut String) {
-    let mut from = edge.from.clone();
-    let mut to = edge.to.clone();
-    for rename in &delta.renamed_nodes {
-        from = replace_exact_id(&from, &rename.from, &rename.to);
-        to = replace_exact_id(&to, &rename.from, &rename.to);
-    }
-    let renamed = Edge {
-        from,
-        to,
-        description: edge.description.clone(),
-        span: edge.span.clone(),
-    };
-    let removed = delta.removed_edges.iter().any(|e| same_edge(&renamed, e))
-        || delta
-            .renamed_edges
-            .iter()
-            .any(|rename| same_edge(&renamed, &rename.from))
-        || delta
-            .modified_edges
-            .iter()
-            .any(|modified| modified.from == renamed.from && modified.to == renamed.to);
+    let renamed = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+    let removed = delta.removed_edges.iter().any(|candidate| {
+        let source = edge_after_node_renames(candidate.clone(), &delta.renamed_nodes);
+        same_edge(&renamed, &source)
+    }) || delta.renamed_edges.iter().any(|rename| {
+        let source = edge_after_node_renames(rename.from.clone(), &delta.renamed_nodes);
+        same_edge(&renamed, &source)
+    }) || delta.modified_edges.iter().any(|modified| {
+        let target = edge_after_node_renames(modified.clone(), &delta.renamed_nodes);
+        same_edge_for_modify(&renamed, &target)
+    });
     if removed {
         return; // the replacement edge, if any, is appended at the end
     }
@@ -340,18 +340,27 @@ fn append_additions(out: &mut String, delta: &BlueprintDelta) {
         serialize_node(node, 0, out);
     }
     for rename in &delta.renamed_edges {
-        write_edge(out, &rename.to);
+        let edge = edge_after_node_renames(rename.to.clone(), &delta.renamed_nodes);
+        write_edge(out, &edge);
     }
     for edge in &delta.modified_edges {
-        write_edge(out, edge);
+        let edge = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+        write_edge(out, &edge);
     }
     for edge in &delta.added_edges {
-        write_edge(out, edge);
+        let edge = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+        write_edge(out, &edge);
     }
 }
 
 fn write_edge(out: &mut String, edge: &Edge) {
-    let _ = writeln!(out, "{} -> {} {:?}", edge.from, edge.to, edge.description);
+    let _ = write_edge_line(
+        out,
+        &edge.from,
+        &edge.to,
+        &edge.description,
+        edge.provenance,
+    );
 }
 
 /// Copies the inclusive source line range `[start, end]` into `out` verbatim.

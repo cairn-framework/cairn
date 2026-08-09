@@ -2,7 +2,7 @@
 //! Tests for summariser prompt construction and size limits.
 
 use super::*;
-use crate::blueprint::NodeKind;
+use crate::blueprint::{EdgeProvenance, NodeKind};
 use crate::map::graph::{EdgeRef, Finding, FindingSeverity, Graph, NodeRecord, NodeState};
 use std::collections::BTreeMap;
 
@@ -68,6 +68,7 @@ fn test_build_request_populates_map_facts() {
             from: "app.auth".to_owned(),
             to: "app.db".to_owned(),
             description: "persists sessions".to_owned(),
+            provenance: EdgeProvenance::HandDeclared,
         }],
     );
     graph.inbound.insert(
@@ -76,6 +77,7 @@ fn test_build_request_populates_map_facts() {
             from: "app.api".to_owned(),
             to: "app.auth".to_owned(),
             description: "delegates login".to_owned(),
+            provenance: EdgeProvenance::HandDeclared,
         }],
     );
     let config = Config::default();

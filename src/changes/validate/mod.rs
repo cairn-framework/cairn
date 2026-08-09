@@ -66,36 +66,59 @@ pub(super) fn validate_edges(
         .chain(delta.modified_edges.iter())
         .chain(delta.renamed_edges.iter().map(|rename| &rename.to))
     {
-        if !available_nodes.contains(&edge.from) || !available_nodes.contains(&edge.to) {
+        let target = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+        if !available_nodes.contains(&target.from) || !available_nodes.contains(&target.to) {
             errors.push(format!(
                 "edge `{}` -> `{}` references missing endpoint",
-                edge.from, edge.to
+                target.from, target.to
             ));
         }
     }
     for edge in delta
         .removed_edges
         .iter()
-        .chain(delta.modified_edges.iter())
         .chain(delta.renamed_edges.iter().map(|rename| &rename.from))
     {
-        if !graph_edge_exists(graph, edge) {
+        let source = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+        if !graph_edge_exists(graph, &source, &delta.renamed_nodes) {
             errors.push(format!(
                 "edge `{}` -> `{}` ({}) does not exist",
-                edge.from, edge.to, edge.description
+                source.from, source.to, source.description
+            ));
+        }
+    }
+    for edge in &delta.modified_edges {
+        let source = edge_after_node_renames(edge.clone(), &delta.renamed_nodes);
+        if !graph_edge_matches_modified(graph, &source, &delta.renamed_nodes) {
+            errors.push(format!(
+                "edge `{}` -> `{}` ({}) does not exist",
+                source.from, source.to, source.description
             ));
         }
     }
 }
 
-pub(super) fn graph_edge_exists(graph: &Graph, edge: &Edge) -> bool {
-    graph.outbound.get(&edge.from).is_some_and(|edges| {
-        edges
-            .iter()
-            .any(|existing| existing.to == edge.to && existing.description == edge.description)
+pub(super) fn graph_edge_exists(graph: &Graph, edge: &Edge, renames: &[Rename]) -> bool {
+    graph.outbound.values().flatten().any(|existing| {
+        let from = id_after_node_renames(existing.from.clone(), renames);
+        let to = id_after_node_renames(existing.to.clone(), renames);
+        same_edge_fields(
+            edge_identity(&from, &to, &existing.description, existing.provenance),
+            edge_identity(&edge.from, &edge.to, &edge.description, edge.provenance),
+        )
     })
 }
 
+pub(super) fn graph_edge_matches_modified(graph: &Graph, edge: &Edge, renames: &[Rename]) -> bool {
+    graph.outbound.values().flatten().any(|existing| {
+        let from = id_after_node_renames(existing.from.clone(), renames);
+        let to = id_after_node_renames(existing.to.clone(), renames);
+        same_edge_fields_for_modify(
+            edge_identity(&from, &to, "", existing.provenance),
+            edge_identity(&edge.from, &edge.to, "", edge.provenance),
+        )
+    })
+}
 pub(super) fn mark_node_touch(touched: &mut BTreeSet<String>, id: &str, errors: &mut Vec<String>) {
     if !touched.insert(id.to_owned()) {
         errors.push(format!("node `{id}` has conflicting operations"));

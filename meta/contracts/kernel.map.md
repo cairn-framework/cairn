@@ -23,8 +23,10 @@ API, hooks, changes) reads from.
   `validate_path_ties`, `validate_contracts`, `validate_test_coverage`, and
   `validate_contract_coverage`.
 - `Graph`, `NodeRecord`, `EdgeRef`, `NodeState`, `Finding`, `FindingSeverity`:
-  re-exported graph types. `Finding` carries a stable `code`, severity, and
-  span, and implements `Display` plus `Error`.
+  re-exported graph types. `EdgeRef.provenance` carries
+  `EdgeProvenance::HandDeclared` for unmarked edges and
+  `EdgeProvenance::Inferred` for `@inferred` edges. `Finding` carries a stable
+  `code`, severity, and span, and implements `Display` plus `Error`.
 - `integrity::cycle_findings` and `integrity::topological_order`: deterministic
   Kosaraju SCC enumeration and a topological sort that returns cycle findings
   for dependency or combined dependency and containment constraints.

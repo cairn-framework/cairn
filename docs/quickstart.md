@@ -115,7 +115,7 @@ System Project "My project" id "myproject" {
 myproject.backend.api -> myproject.backend.db "reads and writes"
 ```
 
-Each `Module` names a piece of your architecture. The `path` line tells Cairn where the corresponding source files live (declare paths for test directories too, so test files are not flagged as orphans). Dependency edges are declared after the blocks as `from.id -> to.id "label"`.
+Each `Module` names a piece of your architecture. The `path` line tells Cairn where the corresponding source files live (declare paths for test directories too, so test files are not flagged as orphans). Dependency edges are declared after the blocks as `from.id -> to.id "label"`; brownfield-discovered edges add the optional `@inferred` marker.
 
 For the full grammar reference, see [docs/blueprint.md](blueprint.md).
 

@@ -85,7 +85,7 @@ mod init {
     use super::{populate_source_dir, temp_repo};
     use cairn::brownfield::{discovery, init as bf_init, write_change};
     use std::fs;
-
+    use std::process::Command;
     /// Scenario: Discovery does not require an existing blueprint.
     #[test]
     fn test_init__discovery_does_not_require_existing_blueprint() {
@@ -228,6 +228,62 @@ mod init {
             blueprint.contains(r#"id "src.alpha""#) && blueprint.contains(r#"id "src.beta""#),
             "blueprint must gain the discovered nodes: {blueprint}"
         );
+    }
+
+    /// Scenario: CLI change apply carries brownfield edge provenance into the graph.
+    #[test]
+    fn test_init__cli_change_apply_preserves_inferred_edge_provenance()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = temp_repo("edge-provenance-cli");
+        fs::create_dir_all(root.join("meta/changes/edge-provenance"))?;
+        fs::write(
+            root.join("cairn.blueprint"),
+            "System App \"app\" id \"app\" {}\n",
+        )?;
+        fs::write(
+            root.join("cairn.config.yaml"),
+            "ignore:\n  - target\ncontext: \"\"\nrules: {}\n",
+        )?;
+        fs::write(
+            root.join("meta/changes/edge-provenance/proposal.md"),
+            "# Proposal: edge provenance\n",
+        )?;
+        fs::write(
+            root.join("meta/changes/edge-provenance/blueprint.delta"),
+            r#"## ADDED Nodes
+Module Api "api" id "app.api" {}
+Module Db "db" id "app.db" {}
+
+## ADDED Edges
+app.api -> app.db "imports" @inferred
+app.db -> app.api "imports" @inferred
+"#,
+        )?;
+
+        let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+            .current_dir(&root)
+            .args(["change", "apply", "edge-provenance"])
+            .output()?;
+        assert!(
+            output.status.success(),
+            "change apply failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+
+        let blueprint = fs::read_to_string(root.join("cairn.blueprint"))?;
+        assert!(blueprint.contains("app.api -> app.db \"imports\" @inferred"));
+        assert!(blueprint.contains("app.db -> app.api \"imports\" @inferred"));
+
+        let scan = cairn::scanner::load_project(&root, &root.join("cairn.blueprint"))?;
+        assert_eq!(
+            scan.graph.outbound["app.api"][0].provenance,
+            cairn::blueprint::EdgeProvenance::Inferred
+        );
+        assert_eq!(
+            scan.graph.outbound["app.db"][0].provenance,
+            cairn::blueprint::EdgeProvenance::Inferred
+        );
+        Ok(())
     }
 
     /// Scenario: the map brownfield produces declares the contracts brownfield
