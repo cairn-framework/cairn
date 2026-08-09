@@ -7995,6 +7995,7 @@
         "tests/kernel.rs",
         "tests/landing_assets.rs",
         "tests/mcp.rs",
+        "tests/order_cycle_severity.rs",
         "tests/output_token_efficiency_findings.rs",
         "tests/output_token_efficiency_status_brief.rs",
         "tests/pack_campaign.rs",
