@@ -48,7 +48,7 @@ Unverified claims (verify first, then fix or record why not):
    recomputation. The dated evidence and regression names are recorded in
    `res.chatgpt-architecture-review`.
 5. The decline-preimage sidecar claim was confirmed and fixed. Oversized
-   diffs are write-once sidecars below `facts/`, not disposable `cache/`.
+   diffs are write-once sidecars below `sidecars/`, not disposable `cache/`.
    The dated evidence and regression name are recorded in
    `res.chatgpt-architecture-review`.
 

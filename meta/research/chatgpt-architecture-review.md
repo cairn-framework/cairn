@@ -59,7 +59,7 @@ confirmed against the implementation and closed with tests:
   `coord::verify::tests::verify_recomputes_fact_identity_before_accepting_the_store`.
 - Oversized decline preimage diffs were written below disposable `cache/`
   while immutable facts referenced those paths. The sidecar now lives below
-  the immutable `facts/` area and is created write-once. Regression:
+  the immutable `sidecars/` subtree and is created write-once. Regression:
   `cli::commands::ruling_run::tests::oversized_decline_preimage_is_not_written_under_disposable_cache`.
 
 ## Units filed on this evidence

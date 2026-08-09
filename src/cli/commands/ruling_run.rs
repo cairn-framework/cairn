@@ -239,11 +239,11 @@ fn decline_reason(
     )
 }
 
-/// Spills an oversized recomputed preimage to an immutable fact sidecar;
-/// returns the store-relative path.
+/// Spills an oversized recomputed preimage to the immutable `sidecars/`
+/// subtree; returns the store-relative path.
 fn spill_preimage(root: &Path, digest: &str, recomputed: &str) -> Result<String, String> {
     let store = crate::coord::store::store_root(root)?;
-    let name = format!("facts/preimage-{digest}.diff");
+    let name = format!("sidecars/preimage-{digest}.diff");
     crate::persist::atomic_write_once(&store.join(&name), recomputed)
         .map_err(|error| format!("cannot spill preimage diff: {error}"))?;
     Ok(name)
@@ -354,11 +354,26 @@ mod tests {
     #[test]
     fn oversized_decline_preimage_is_not_written_under_disposable_cache() {
         let dir = project();
+        crate::coord::append::append_fact(
+            dir.path(),
+            crate::coord::append::NewFact {
+                kind: "ruling.run".to_owned(),
+                recorded_at: "2026-08-07T03:45:12Z".to_owned(),
+                recorded_by: crate::coord::envelope::Actor {
+                    kind: "driver".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload: serde_json::json!({ "target": "plan-0123456789abcdef" }),
+            },
+        )
+        .expect("fact appends");
         let content = "x".repeat(4097);
         let path =
             spill_preimage(dir.path(), "plan-0123456789abcdef", &content).expect("spills preimage");
         assert!(
-            path.starts_with("facts/"),
+            path.starts_with("sidecars/"),
             "immutable facts must not reference cache sidecars: {path}"
         );
         let store = crate::coord::store::store_root(dir.path()).expect("store root");
@@ -369,6 +384,12 @@ mod tests {
                 .exists(),
             "cache remains disposable"
         );
+        let crate::coord::read::StoreRead::Ready(facts) =
+            crate::coord::read::read_facts(dir.path()).expect("sidecar does not poison reads")
+        else {
+            panic!("store is initialised");
+        };
+        assert_eq!(facts.len(), 1, "the fact remains readable");
     }
 
     #[test]
