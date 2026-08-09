@@ -8,10 +8,11 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
+use crate::artefacts::registry::dates::date_to_days;
 use crate::persist;
 
 use super::envelope::Envelope;
-use super::read::{NamedFact, StoreRead, read_store};
+use super::read::{NamedFact, StoreRead, read_store, validate};
 use super::store;
 
 /// Lists archived fact names and their parsed envelopes.
@@ -33,20 +34,40 @@ fn read_archive(store: &Path) -> Result<Vec<NamedFact>, String> {
         {
             let entry = entry.map_err(|error| format!("cannot read archive entry: {error}"))?;
             let name = entry.file_name().to_string_lossy().to_string();
-            if !std::path::Path::new(&name)
+            let is_json = std::path::Path::new(&name)
                 .extension()
-                .is_some_and(|extension| extension.eq_ignore_ascii_case("json"))
-            {
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("json"));
+            if !is_json {
                 continue;
             }
             let raw = std::fs::read_to_string(entry.path())
                 .map_err(|error| format!("cannot read archived fact `{name}`: {error}"))?;
             let fact: Envelope = serde_json::from_str(&raw)
                 .map_err(|error| format!("archived fact `{name}` does not parse: {error}"))?;
+            validate(&name, &fact)?;
             out.push(NamedFact { name, fact });
         }
     }
     Ok(out)
+}
+
+/// Checks archived facts without mutating the verification observation cache.
+pub(crate) fn archived_fact_has_target(
+    root: &Path,
+    kind: &str,
+    target: &str,
+) -> Result<bool, String> {
+    let store = store::store_root(root)?;
+    let archived = read_archive(&store)?;
+    Ok(archived.iter().any(|named| {
+        named.fact.kind == kind
+            && named
+                .fact
+                .payload
+                .get("target")
+                .and_then(serde_json::Value::as_str)
+                == Some(target)
+    }))
 }
 
 /// True when `park` has a matching `ruling.unpark` anywhere in the store.
@@ -56,6 +77,11 @@ fn park_is_matched(park: &Envelope, all: &[&NamedFact]) -> bool {
             && candidate.fact.payload.get("target") == park.payload.get("target")
             && candidate.fact.recorded_at >= park.recorded_at
     })
+}
+
+fn move_once(source: &Path, target: &Path) -> Result<(), std::io::Error> {
+    std::fs::hard_link(source, target)?;
+    std::fs::remove_file(source)
 }
 
 /// Verifies store integrity for the family containing `root`.
@@ -77,11 +103,22 @@ pub fn verify(root: &Path) -> Result<(), String> {
     let archived = read_archive(&store)?;
     let live_ids: BTreeSet<&str> = live.iter().map(|f| f.fact.fact_id.as_str()).collect();
     let archived_ids: BTreeSet<&str> = archived.iter().map(|f| f.fact.fact_id.as_str()).collect();
+    if let Some(duplicate) = live_ids.intersection(&archived_ids).next() {
+        return Err(format!(
+            "fact identity `{duplicate}` appears in both live facts and archive"
+        ));
+    }
     let everything: Vec<&NamedFact> = live.iter().chain(archived.iter()).collect();
 
     // Append-only: every previously observed fact still exists somewhere.
     let observed_path = store.join("cache/observed.json");
-    let mut observed: BTreeSet<String> = persist::read_json(&observed_path).unwrap_or_default();
+    let mut observed: BTreeSet<String> = match persist::read_json(&observed_path) {
+        Ok(observed) => observed,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => BTreeSet::new(),
+        Err(error) => {
+            return Err(format!("cannot read coordination observation: {error}"));
+        }
+    };
     let present: BTreeSet<String> = everything.iter().map(|f| f.name.clone()).collect();
     if let Some(missing) = observed.difference(&present).next() {
         return Err(format!(
@@ -99,7 +136,7 @@ pub fn verify(root: &Path) -> Result<(), String> {
                     named.name
                 ));
             }
-            if live_ids.contains(named.fact.fact_id.as_str()) && !in_live {
+            if live_ids.contains(named.fact.fact_id.as_str()) && in_archive {
                 return Err(format!(
                     "live fact `{}` supersedes `{antecedent}`, which was compacted",
                     named.name
@@ -118,7 +155,8 @@ pub fn verify(root: &Path) -> Result<(), String> {
     }
 
     observed.extend(present);
-    let _ = persist::write_json(&observed_path, &observed);
+    persist::write_json(&observed_path, &observed)
+        .map_err(|error| format!("cannot record coordination observation: {error}"))?;
     Ok(())
 }
 
@@ -130,10 +168,10 @@ pub fn verify(root: &Path) -> Result<(), String> {
 ///
 /// Returns a malformed date, a read failure, or a rename failure.
 pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String> {
-    let cutoff: String = before.chars().filter(char::is_ascii_digit).collect();
-    if before.len() != 10 || cutoff.len() != 8 {
+    if date_to_days(before).is_none() {
         return Err(format!("`{before}` is not a YYYY-MM-DD date"));
     }
+    let cutoff: String = before.chars().filter(char::is_ascii_digit).collect();
     let store = store::store_root(root)?;
     let live = match read_store(&store)? {
         StoreRead::Uninitialised => return Ok(Vec::new()),
@@ -185,153 +223,16 @@ pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String> {
         let target_dir = store.join("archive").join(month);
         std::fs::create_dir_all(&target_dir)
             .map_err(|error| format!("cannot create archive month: {error}"))?;
-        std::fs::rename(store.join("facts").join(&name), target_dir.join(&name))
-            .map_err(|error| format!("cannot archive `{name}`: {error}"))?;
+        move_once(&store.join("facts").join(&name), &target_dir.join(&name))
+            .map_err(|error| format!("cannot archive `{name}` without replacement: {error}"))?;
         moved.push(name);
     }
-    // The parse cache may now hold archived names; it is derived and
-    // disposable, so drop it rather than editing it.
+    // Remove a legacy parsed cache left by builds before cache elimination;
+    // current reads neither create nor trust this file.
     let _ = std::fs::remove_file(store.join("cache/parsed.json"));
     Ok(moved)
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::coord::append::{NewFact, append_fact};
-    use crate::coord::envelope::Actor;
-
-    fn repo() -> tempfile::TempDir {
-        let dir = tempfile::TempDir::new().expect("tempdir");
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
-            .args(["init", "-q"])
-            .output()
-            .expect("git runs");
-        assert!(output.status.success());
-        dir
-    }
-
-    fn record(
-        root: &Path,
-        kind: &str,
-        recorded_at: &str,
-        supersedes: Option<String>,
-        payload: serde_json::Value,
-    ) -> String {
-        let path = append_fact(
-            root,
-            NewFact {
-                kind: kind.to_owned(),
-                recorded_at: recorded_at.to_owned(),
-                recorded_by: Actor {
-                    kind: "driver".to_owned(),
-                    id: "t".to_owned(),
-                },
-                commit: "a".repeat(40),
-                supersedes,
-                payload,
-            },
-        )
-        .expect("appends");
-        let raw = std::fs::read_to_string(&path).expect("bytes");
-        let fact: Envelope = serde_json::from_str(&raw).expect("parses");
-        fact.fact_id
-    }
-
-    #[test]
-    fn verify_passes_a_clean_store_and_fails_a_removed_antecedent() {
-        let dir = repo();
-        let grant = record(
-            dir.path(),
-            "lease.grant",
-            "2026-08-01T00:00:00Z",
-            None,
-            serde_json::json!({ "unit_id": "todo.x" }),
-        );
-        record(
-            dir.path(),
-            "lease.renew",
-            "2026-08-02T00:00:00Z",
-            Some(grant.clone()),
-            serde_json::json!({ "unit_id": "todo.x" }),
-        );
-        verify(dir.path()).expect("clean store verifies");
-
-        let store = dir.path().join(".git/cairn/coord");
-        let grant_file = std::fs::read_dir(store.join("facts"))
-            .expect("lists")
-            .filter_map(Result::ok)
-            .find(|entry| entry.file_name().to_string_lossy().contains(&grant))
-            .expect("grant file exists");
-        std::fs::remove_file(grant_file.path()).expect("removes");
-        // The parse cache is derived; drop it so the removal is what fails.
-        let _ = std::fs::remove_file(store.join("cache/parsed.json"));
-        let error = verify(dir.path()).expect_err("removed antecedent fails");
-        assert!(
-            error.contains("disappeared") || error.contains("exists nowhere"),
-            "{error}"
-        );
-    }
-
-    #[test]
-    fn verify_fails_a_compacted_unmatched_park_and_compact_refuses_to_move_one() {
-        let dir = repo();
-        record(
-            dir.path(),
-            "ruling.park",
-            "2026-07-01T00:00:00Z",
-            None,
-            serde_json::json!({ "target": "todo.parked" }),
-        );
-        // A sanctioned compact refuses to move the unmatched park.
-        let moved = compact(dir.path(), "2026-08-01").expect("compacts");
-        assert!(moved.is_empty(), "unmatched park stays live: {moved:?}");
-        verify(dir.path()).expect("still clean");
-
-        // Force the violation by hand, as a misbehaving tool would.
-        let store = dir.path().join(".git/cairn/coord");
-        let park_file = std::fs::read_dir(store.join("facts"))
-            .expect("lists")
-            .find_map(Result::ok)
-            .expect("park file exists");
-        let name = park_file.file_name().to_string_lossy().to_string();
-        let month_dir = store.join("archive/2026-07");
-        std::fs::create_dir_all(&month_dir).expect("archive month");
-        std::fs::rename(park_file.path(), month_dir.join(&name)).expect("moves");
-        let _ = std::fs::remove_file(store.join("cache/parsed.json"));
-        let error = verify(dir.path()).expect_err("compacted unmatched park fails");
-        assert!(error.contains("unmatched `ruling.park`"), "{error}");
-    }
-
-    #[test]
-    fn compact_moves_old_facts_but_keeps_live_chain_antecedents() {
-        let dir = repo();
-        let old = record(
-            dir.path(),
-            "lease.grant",
-            "2026-07-01T00:00:00Z",
-            None,
-            serde_json::json!({ "unit_id": "todo.x" }),
-        );
-        record(
-            dir.path(),
-            "lease.renew",
-            "2026-08-05T00:00:00Z",
-            Some(old),
-            serde_json::json!({ "unit_id": "todo.x" }),
-        );
-        record(
-            dir.path(),
-            "ruling.run",
-            "2026-07-02T00:00:00Z",
-            None,
-            serde_json::json!({ "target": "plan-0123456789abcdef" }),
-        );
-        let moved = compact(dir.path(), "2026-08-01").expect("compacts");
-        assert_eq!(moved.len(), 1, "only the unchained old ruling moves");
-        assert!(moved[0].contains("ruling.run"), "{moved:?}");
-        verify(dir.path()).expect("archive keeps the store verifiable");
-    }
-}
+#[path = "verify_regressions.rs"]
+mod tests;

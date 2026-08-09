@@ -38,12 +38,46 @@ Confirmed against the tree:
 - Contract drift is real: meta/contracts/kernel.query.md:39 says 36
   tools; src/query_api/registry.rs:528 asserts 50.
 
-Not verified in-session (recorded as claims): parse-cache envelope trust
-without byte binding, `coord verify` skipping identity recomputation,
-decline-preimage sidecars under `cache/`, uppercase-hex digest
-acceptance, and the `wave stats` timestamp reading of `since`. One
-external numeral is wrong by local count: the report says PR #589
-carried 141 files; `git diff 9edfdac^1 9edfdac^2 --stat` shows 147.
+Not verified in-session (recorded as claims): uppercase-hex digest acceptance
+and the `wave stats` timestamp reading of `since`. One external numeral is
+wrong by local count: the report says PR #589 carried 141 files;
+`git diff 9edfdac^1 9edfdac^2 --stat` shows 147.
+
+## S8 follow-up verification (2026-08-09)
+
+The two claims routed as unverified to `todo.coord-fact-store-hardening` were
+resolved against the implementation and tests:
+
+- Parse-cache trust was eliminated rather than preserved. Full reads now parse
+  immutable fact bytes directly, and the parsed-envelope cache plus its
+  regeneration code were removed. The former filename-only cache trust and
+  missing identity check therefore cannot recur. Live and archived reads
+  recompute `fact_id`; regressions
+  `coord::read::regressions::reads_do_not_create_a_parsed_envelope_cache`,
+  `coord::read::regressions::renamed_valid_fact_fails_filename_validation`, and
+  `coord::verify::tests::verify_recomputes_fact_identity_before_accepting_the_store`
+  cover the elimination and identity checks.
+- Oversized decline preimage diffs were written below disposable `cache/` while
+  immutable facts referenced those paths. The sidecar now lives below the
+  immutable `sidecars/` subtree, keyed by digest and observation second, and is
+  created write-once. Regression:
+  `cli::commands::ruling_run::tests::repeat_oversized_declines_use_observation_sidecars`.
+- Panel follow-up also closed path, timestamp, and filename gaps. Kinds now use
+  a safe family-shaped path component, stored coordination timestamps are
+  whole-second UTC, and live plus archived filenames must match their content
+  identity. Regressions cover kind traversal, fractional lease and park/unpark
+  inputs, renamed live facts, and tampered archived facts.
+- Terminal follow-up compares valid RFC 3339 `--at` and lease expiry values as
+  instants, so fractional post-expiry observations are stale and equivalent
+  offset observations before expiry remain held. Archive append exclusivity,
+  cross-set duplicate refusal, and no-replace compaction are regression-tested.
+- Verification now fails closed on malformed or unwritable
+  `cache/observed.json` snapshots instead of treating them as an empty
+  baseline or dropping a write error; regressions cover both failures.
+
+Content-hash binding for sidecar bytes is out of scope for this unit because the
+sidecar is a regenerable human-readable diagnostic; revisit if that
+regeneration guarantee changes.
 
 ## Units filed on this evidence
 

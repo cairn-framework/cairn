@@ -336,38 +336,24 @@ mod tests {
         );
     }
     #[test]
-    fn same_second_cursor_replays_fractional_second_facts() {
+    fn fractional_second_facts_are_rejected_by_coordination_store() {
         let dir = repo();
-        let first_name = record(
+        let error = append_fact(
             dir.path(),
-            "ruling.run",
-            "2026-08-07T03:45:12Z",
-            serde_json::json!({ "target": "cursor-whole-second" }),
-        );
-        let late_name = record(
-            dir.path(),
-            "ruling.run",
-            "2026-08-07T03:45:12.500Z",
-            serde_json::json!({ "target": "cursor-fractional-second" }),
-        );
-        assert!(
-            late_name < first_name,
-            "fractional filename should sort lower"
-        );
-
-        let mut request = request("ruling list", None, None);
-        request.since = Some(QuerySince::CoordinationCursor(first_name));
-        let data = coordination_rulings_json(dir.path(), &request).expect("reads");
-        let names: Vec<&str> = data["rulings"]
-            .as_array()
-            .expect("rulings")
-            .iter()
-            .filter_map(|fact| fact["name"].as_str())
-            .collect();
-        assert!(
-            names.contains(&late_name.as_str()),
-            "fractional same-second fact was lost behind the cursor"
-        );
+            NewFact {
+                kind: "ruling.run".to_owned(),
+                recorded_at: "2026-08-07T03:45:12.500Z".to_owned(),
+                recorded_by: Actor {
+                    kind: "maintainer".to_owned(),
+                    id: "t".to_owned(),
+                },
+                commit: "a".repeat(40),
+                supersedes: None,
+                payload: serde_json::json!({ "target": "cursor-fractional-second" }),
+            },
+        )
+        .expect_err("fractional stored timestamp refused");
+        assert!(error.contains("recorded_at"), "{error}");
     }
 
     #[test]
@@ -410,7 +396,10 @@ mod tests {
             },
             commit: "a".repeat(40),
             supersedes: None,
-            payload: serde_json::json!({ "unit_id": "todo.x" }),
+            payload: serde_json::json!({
+                "unit_id": "todo.x",
+                "expires_at": "2026-08-07T04:45:13Z",
+            }),
         };
         append_fact(dir.path(), lease).expect("lease appends");
         lease = NewFact {

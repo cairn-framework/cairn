@@ -1,21 +1,18 @@
-//! The full fold: every read lists `facts/` in full, with a derived,
-//! disposable parse cache.
+//! The full fold: every read lists and parses `facts/` in full.
 //!
 //! Filenames are second-precision and renames land after listing starts, so
 //! no reader may fold incrementally above a high-water mark: within one
 //! second the sort order is decided by `<kind>-<fact_id>`, which has nothing
 //! to do with creation order, and a dropped lease grant is exactly the
-//! failure rung 3 exists to prevent. The cache saves parses, never listings:
-//! filename is an exact content key because facts are immutable, so parse
-//! cost is O(new facts) while a full listing stays the ground truth.
+//! failure rung 3 exists to prevent. The facts directory is the ground truth.
 
-use std::collections::BTreeMap;
 use std::path::Path;
 
-use crate::persist;
-
-use super::envelope::{Envelope, STORE_FORMAT, known_evidence_class};
+use super::envelope::{
+    Envelope, STORE_FORMAT, evidence_class_for, fact_id_for, validate_kind, validate_lease_payload,
+};
 use super::store;
+use super::time::{compact_rfc3339, compare_instants, parse_rfc3339, validate_rfc3339_utc};
 
 /// The outcome of reading a family store.
 pub enum StoreRead {
@@ -33,19 +30,78 @@ pub struct NamedFact {
     /// The parsed envelope.
     pub fact: Envelope,
 }
-
 /// Validates one parsed fact; any failure fails the whole read.
-fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
+pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
+    validate_format_and_evidence(name, fact)?;
+    validate_actor_and_timestamp(name, fact)?;
+    validate_payload_and_identity(name, fact)?;
+    Ok(())
+}
+
+fn validate_format_and_evidence(name: &str, fact: &Envelope) -> Result<(), String> {
     if fact.format != STORE_FORMAT {
         return Err(format!(
             "fact `{name}` carries unknown format {}; failing closed",
             fact.format
         ));
     }
-    if !known_evidence_class(&fact.evidence_class) {
+    validate_kind(&fact.kind)
+        .map_err(|error| format!("fact `{name}` has invalid kind: {error}"))?;
+    let Some(expected_evidence_class) = evidence_class_for(&fact.kind) else {
         return Err(format!(
-            "fact `{name}` carries unknown evidence class `{}`; failing closed",
+            "fact `{name}` carries an unsanctioned kind `{}`; failing closed",
+            fact.kind
+        ));
+    };
+    if fact.evidence_class != expected_evidence_class {
+        return Err(format!(
+            "fact `{name}` carries evidence class `{}`; expected `{expected_evidence_class}`",
             fact.evidence_class
+        ));
+    }
+    Ok(())
+}
+
+fn validate_actor_and_timestamp(name: &str, fact: &Envelope) -> Result<(), String> {
+    if !matches!(
+        fact.recorded_by.kind.as_str(),
+        "maintainer" | "driver" | "console"
+    ) {
+        return Err(format!(
+            "fact `{name}` carries unknown actor kind `{}`",
+            fact.recorded_by.kind
+        ));
+    }
+    if fact.commit.len() != 40 || !fact.commit.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(format!(
+            "fact `{name}` carries a non-40-hex commit `{}`",
+            fact.commit
+        ));
+    }
+    validate_rfc3339_utc(&fact.recorded_at)
+        .map_err(|error| format!("fact `{name}` has malformed `recorded_at`: {error}"))?;
+    Ok(())
+}
+
+fn validate_payload_and_identity(name: &str, fact: &Envelope) -> Result<(), String> {
+    validate_lease_payload(&fact.kind, &fact.payload)
+        .map_err(|error| format!("fact `{name}` is malformed: {error}"))?;
+    let expected = fact_id_for(fact)?;
+    if fact.fact_id != expected {
+        return Err(format!(
+            "fact `{name}` has invalid identity `{}`; expected `{expected}`",
+            fact.fact_id
+        ));
+    }
+    let expected_name = format!(
+        "{}-{}-{}.json",
+        compact_rfc3339(&fact.recorded_at),
+        fact.kind,
+        fact.fact_id
+    );
+    if name != expected_name {
+        return Err(format!(
+            "fact `{name}` filename does not match its content; expected `{expected_name}`"
         ));
     }
     Ok(())
@@ -73,9 +129,6 @@ pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String> {
     }
     store::check_format(store)?;
 
-    let cache_path = store.join("cache/parsed.json");
-    let mut cache: BTreeMap<String, Envelope> = persist::read_json(&cache_path).unwrap_or_default();
-
     let mut names = Vec::new();
     let entries = std::fs::read_dir(store.join("facts"))
         .map_err(|error| format!("cannot list coordination facts: {error}"))?;
@@ -91,31 +144,18 @@ pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String> {
     }
     names.sort();
 
-    let mut parsed_new = false;
     let mut facts = Vec::with_capacity(names.len());
     for name in names {
-        let fact = if let Some(hit) = cache.get(&name) {
-            hit.clone()
-        } else {
-            let raw = std::fs::read_to_string(store.join("facts").join(&name))
-                .map_err(|error| format!("cannot read fact `{name}`: {error}"))?;
-            let fact: Envelope = serde_json::from_str(&raw)
-                .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
-            cache.insert(name.clone(), fact.clone());
-            parsed_new = true;
-            fact
-        };
+        let path = store.join("facts").join(&name);
+        let raw =
+            std::fs::read(&path).map_err(|error| format!("cannot read fact `{name}`: {error}"))?;
+        let fact: Envelope = serde_json::from_slice(&raw)
+            .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
         validate(&name, &fact)?;
         facts.push(NamedFact { name, fact });
     }
-
-    if parsed_new {
-        // Derived and disposable: a failed cache write never fails the read.
-        let _ = persist::write_json(&cache_path, &cache);
-    }
     Ok(StoreRead::Ready(facts))
 }
-
 /// The rendered view of a lease chain head, for the stale projection.
 #[derive(Clone, Debug)]
 pub struct LeaseState<'a> {
@@ -171,15 +211,27 @@ fn lease_state(head: &NamedFact) -> LeaseState<'_> {
     }
 }
 
-/// True when `unit`'s folded chain has no release and `expires_at > at`.
-/// RFC 3339 UTC strings of one format compare lexicographically.
+fn compare_expiry_at(expiry: &str, at: &str) -> std::cmp::Ordering {
+    match (parse_rfc3339(expiry), parse_rfc3339(at)) {
+        (Some(expiry), Some(at)) => compare_instants(expiry, at),
+        _ => expiry.cmp(at),
+    }
+}
+
+fn expiry_is_after(expiry: &str, at: &str) -> bool {
+    compare_expiry_at(expiry, at) == std::cmp::Ordering::Greater
+}
+
+/// True when `unit`'s folded chain has no release and `expires_at` is after
+/// the caller's instant. Valid RFC 3339 spellings compare as instants; the
+/// historical lexical fallback remains for an invalid caller-only `--at`.
 #[must_use]
 pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool {
     lease_chain_head(facts, unit).is_some_and(|head| {
         head.fact.kind != "lease.release"
             && lease_state(head)
                 .expires_at
-                .is_some_and(|expiry| expiry > at)
+                .is_some_and(|expiry| expiry_is_after(expiry, at))
     })
 }
 
@@ -194,7 +246,7 @@ pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseSt
     let state = lease_state(head);
     state
         .expires_at
-        .is_some_and(|expiry| expiry <= at)
+        .is_some_and(|expiry| compare_expiry_at(expiry, at) != std::cmp::Ordering::Greater)
         .then_some(state)
 }
 
@@ -209,7 +261,6 @@ mod tests {
     use super::*;
     use crate::coord::append::{NewFact, append_fact};
     use crate::coord::envelope::Actor;
-
     fn repo() -> tempfile::TempDir {
         let dir = tempfile::TempDir::new().expect("tempdir");
         let output = std::process::Command::new("git")
@@ -270,7 +321,10 @@ mod tests {
             fact(
                 "lease.grant",
                 "2026-08-07T03:45:12Z",
-                serde_json::json!({ "unit_id": "todo.example" }),
+                serde_json::json!({
+                    "unit_id": "todo.example",
+                    "expires_at": "2026-08-07T04:00:00Z",
+                }),
             ),
         )
         .expect("lease appends");
@@ -280,7 +334,7 @@ mod tests {
         };
         assert_eq!(facts.len(), 2, "both same-second facts fold");
         assert!(facts[0].name < facts[1].name, "sorted by filename");
-        // A second read hits the cache and still returns both.
+        // A second read re-lists immutable facts and still returns both.
         let StoreRead::Ready(again) = read_facts(dir.path()).expect("re-reads") else {
             panic!("store is initialised");
         };
@@ -394,3 +448,6 @@ mod tests {
         assert!(!no_lease(&facts, "todo.x"));
     }
 }
+#[cfg(test)]
+#[path = "read_regressions.rs"]
+mod regressions;

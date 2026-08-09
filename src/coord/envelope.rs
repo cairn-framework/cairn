@@ -6,6 +6,7 @@
 //! `evidence_class` fails closed, mirroring the `read_versioned_json`
 //! discipline in `persist`.
 
+use super::time::validate_rfc3339_utc;
 use serde::{Deserialize, Serialize};
 
 /// The store format this build writes and accepts.
@@ -59,10 +60,71 @@ pub(crate) fn evidence_class_for(kind: &str) -> Option<&'static str> {
         None
     }
 }
+/// Validates a fact kind before it can become part of a filesystem path.
+pub(crate) fn validate_kind(kind: &str) -> Result<(), String> {
+    let allowed = |byte: u8| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_';
+    if kind.is_empty()
+        || !kind.bytes().all(|byte| allowed(byte) || byte == b'.')
+        || kind.starts_with('.')
+        || kind.ends_with('.')
+        || kind.contains("..")
+    {
+        return Err(format!(
+            "fact kind `{kind}` is not a safe coordination kind component"
+        ));
+    }
+    let mut parts = kind.split('.');
+    let first = parts.next();
+    let second = parts.next();
+    let third = parts.next();
+    let has_fourth = parts.next().is_some();
+    let valid_shape = match (first, second, third, has_fourth) {
+        (Some("ruling" | "lease"), Some(suffix), None, false)
+        | (Some("driver"), Some("singleton"), Some(suffix), false) => {
+            !suffix.is_empty() && suffix.bytes().all(allowed)
+        }
+        (Some("outcome"), Some(suffix), None, false) => {
+            suffix == "unit"
+                || suffix == "touched_files"
+                || (suffix.starts_with("run_") && suffix.len() > 4 && suffix.bytes().all(allowed))
+        }
+        _ => false,
+    };
+    if !valid_shape {
+        return Err(format!(
+            "fact kind `{kind}` is not a safe coordination kind component"
+        ));
+    }
+    Ok(())
+}
 
-/// Returns true when `class` is one of the three sanctioned classes.
-pub(crate) fn known_evidence_class(class: &str) -> bool {
-    matches!(class, "deterministic" | "attested" | "observed")
+/// Validates the payload fields required by lease-chain projections.
+pub(crate) fn validate_lease_payload(
+    kind: &str,
+    payload: &serde_json::Value,
+) -> Result<(), String> {
+    if !kind.starts_with("lease.") {
+        return Ok(());
+    }
+    let Some(unit_id) = payload.get("unit_id").and_then(serde_json::Value::as_str) else {
+        return Err(format!("lease fact `{kind}` is missing string `unit_id`"));
+    };
+    if unit_id.is_empty() {
+        return Err(format!("lease fact `{kind}` has an empty `unit_id`"));
+    }
+    if matches!(kind, "lease.grant" | "lease.renew") {
+        let Some(expires_at) = payload
+            .get("expires_at")
+            .and_then(serde_json::Value::as_str)
+        else {
+            return Err(format!(
+                "lease fact `{kind}` is missing string `expires_at`"
+            ));
+        };
+        validate_rfc3339_utc(expires_at)
+            .map_err(|error| format!("lease fact `{kind}` has malformed `expires_at`: {error}"))?;
+    }
+    Ok(())
 }
 
 /// Computes the fact id: first 12 hex of SHA-256 over the canonical JSON

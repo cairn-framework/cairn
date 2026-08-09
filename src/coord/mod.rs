@@ -13,7 +13,7 @@ pub mod envelope;
 pub mod epoch;
 /// Git subprocess helpers: resolving the family's shared git directory.
 pub mod git;
-/// The full-listing fold and its disposable parse cache.
+/// The full-listing fold over immutable coordination facts.
 pub mod read;
 /// Store root resolution and lazy initialisation.
 pub mod store;
