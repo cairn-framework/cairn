@@ -601,8 +601,8 @@
           "kind": "function",
           "signature": "pub fn append_fact(root: &Path, fact: NewFact) -> Result<PathBuf, String>",
           "file": "src/coord/append.rs",
-          "line": 43,
-          "end_line": 58
+          "line": 44,
+          "end_line": 59
         },
         {
           "name": "compact",
@@ -625,8 +625,8 @@
           "kind": "function",
           "signature": "pub fn held(facts: &[NamedFact], unit: &str, at: &str) -> bool",
           "file": "src/coord/read.rs",
-          "line": 212,
-          "end_line": 219
+          "line": 257,
+          "end_line": 264
         },
         {
           "name": "is_initialised",
@@ -641,32 +641,32 @@
           "kind": "function",
           "signature": "pub fn lease_chain_head<'a>(facts: &'a [NamedFact], unit: &str) -> Option<&'a NamedFact>",
           "file": "src/coord/read.rs",
-          "line": 170,
-          "end_line": 194
+          "line": 215,
+          "end_line": 239
         },
         {
           "name": "no_lease",
           "kind": "function",
           "signature": "pub fn no_lease(facts: &[NamedFact], unit: &str) -> bool",
           "file": "src/coord/read.rs",
-          "line": 238,
-          "end_line": 240
+          "line": 283,
+          "end_line": 285
         },
         {
           "name": "read_facts",
           "kind": "function",
           "signature": "pub fn read_facts(root: &Path) -> Result<StoreRead, String>",
           "file": "src/coord/read.rs",
-          "line": 105,
-          "end_line": 108
+          "line": 150,
+          "end_line": 153
         },
         {
           "name": "stale",
           "kind": "function",
           "signature": "pub fn stale<'a>(facts: &'a [NamedFact], unit: &str, at: &str) -> Option<LeaseState<'a>>",
           "file": "src/coord/read.rs",
-          "line": 224,
-          "end_line": 234
+          "line": 269,
+          "end_line": 279
         },
         {
           "name": "store_root",
@@ -761,8 +761,8 @@
           "kind": "struct",
           "signature": "pub struct LeaseState<'a>",
           "file": "src/coord/read.rs",
-          "line": 156,
-          "end_line": 165
+          "line": 201,
+          "end_line": 210
         },
         {
           "name": "NamedFact",
@@ -777,8 +777,8 @@
           "kind": "struct",
           "signature": "pub struct NewFact",
           "file": "src/coord/append.rs",
-          "line": 20,
-          "end_line": 33
+          "line": 21,
+          "end_line": 34
         },
         {
           "name": "check_format",
@@ -809,8 +809,8 @@
           "kind": "function",
           "signature": "pub(crate) fn fact_id_for(envelope: &Envelope) -> Result<String, String>",
           "file": "src/coord/envelope.rs",
-          "line": 100,
-          "end_line": 108
+          "line": 128,
+          "end_line": 136
         },
         {
           "name": "head_commit",
@@ -829,36 +829,36 @@
           "end_line": 71
         },
         {
-          "name": "known_evidence_class",
-          "kind": "function",
-          "signature": "pub(crate) fn known_evidence_class(class: &str) -> bool",
-          "file": "src/coord/envelope.rs",
-          "line": 65,
-          "end_line": 67
-        },
-        {
           "name": "read_store",
           "kind": "function",
           "signature": "pub(crate) fn read_store(store: &Path) -> Result<StoreRead, String>",
           "file": "src/coord/read.rs",
-          "line": 115,
-          "end_line": 153
+          "line": 160,
+          "end_line": 198
         },
         {
           "name": "validate",
           "kind": "function",
           "signature": "pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String>",
           "file": "src/coord/read.rs",
-          "line": 48,
-          "end_line": 73
+          "line": 47,
+          "end_line": 106
+        },
+        {
+          "name": "validate_kind",
+          "kind": "function",
+          "signature": "pub(crate) fn validate_kind(kind: &str) -> Result<(), String>",
+          "file": "src/coord/envelope.rs",
+          "line": 64,
+          "end_line": 95
         },
         {
           "name": "validate_lease_payload",
           "kind": "function",
           "signature": "pub(crate) fn validate_lease_payload( kind: &str, payload: &serde_json::Value, ) -> Result<(), String>",
           "file": "src/coord/envelope.rs",
-          "line": 70,
-          "end_line": 96
+          "line": 98,
+          "end_line": 124
         },
         {
           "name": "time",

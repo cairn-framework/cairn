@@ -57,11 +57,10 @@ pub(crate) fn rfc3339_utc(t: SystemTime) -> String {
     format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z")
 }
 
-/// Validates the UTC spelling emitted by [`rfc3339_utc`], with optional
-/// fractional seconds accepted by RFC 3339.
+/// Validates the whole-second UTC spelling emitted by [`rfc3339_utc`].
 pub(crate) fn validate_rfc3339_utc(value: &str) -> Result<(), String> {
     let bytes = value.as_bytes();
-    if bytes.len() < 20 || !has_timestamp_separators(bytes) || !digits_at(bytes) {
+    if bytes.len() != 20 || !has_timestamp_separators(bytes) || !digits_at(bytes) {
         return Err(format!("`{value}` is not an RFC 3339 UTC timestamp"));
     }
     let year = decimal(bytes, 0, 4);
@@ -80,16 +79,13 @@ pub(crate) fn validate_rfc3339_utc(value: &str) -> Result<(), String> {
 }
 
 fn has_timestamp_separators(bytes: &[u8]) -> bool {
-    let fractional = bytes.len() > 21
-        && bytes[19] == b'.'
-        && bytes.last() == Some(&b'Z')
-        && bytes[20..bytes.len() - 1].iter().all(u8::is_ascii_digit);
-    bytes[4] == b'-'
+    bytes.len() == 20
+        && bytes[4] == b'-'
         && bytes[7] == b'-'
         && bytes[10] == b'T'
         && bytes[13] == b':'
         && bytes[16] == b':'
-        && ((bytes.len() == 20 && bytes[19] == b'Z') || fractional)
+        && bytes[19] == b'Z'
 }
 
 fn digits_at(bytes: &[u8]) -> bool {
@@ -149,5 +145,11 @@ mod tests {
     #[test]
     fn compact_form_strips_separators_only() {
         assert_eq!(compact_rfc3339("2026-08-07T03:45:12Z"), "20260807T034512Z");
+    }
+    #[test]
+    fn fractional_seconds_are_rejected_for_stored_timestamps() {
+        let error = validate_rfc3339_utc("2026-08-07T03:45:12.500Z")
+            .expect_err("stored coordination timestamps are whole seconds");
+        assert!(error.contains("RFC 3339 UTC timestamp"), "{error}");
     }
 }

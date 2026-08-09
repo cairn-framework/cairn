@@ -15,10 +15,10 @@ use std::path::Path;
 use crate::persist;
 
 use super::envelope::{
-    Envelope, STORE_FORMAT, fact_id_for, known_evidence_class, validate_lease_payload,
+    Envelope, STORE_FORMAT, evidence_class_for, fact_id_for, validate_kind, validate_lease_payload,
 };
 use super::store;
-use super::time::validate_rfc3339_utc;
+use super::time::{compact_rfc3339, validate_rfc3339_utc};
 use crate::artefacts::registry::sha256::sha256_hex;
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -43,7 +43,6 @@ pub struct NamedFact {
     /// The parsed envelope.
     pub fact: Envelope,
 }
-
 /// Validates one parsed fact; any failure fails the whole read.
 pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
     if fact.format != STORE_FORMAT {
@@ -52,10 +51,33 @@ pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
             fact.format
         ));
     }
-    if !known_evidence_class(&fact.evidence_class) {
+    validate_kind(&fact.kind)
+        .map_err(|error| format!("fact `{name}` has invalid kind: {error}"))?;
+    let Some(expected_evidence_class) = evidence_class_for(&fact.kind) else {
         return Err(format!(
-            "fact `{name}` carries unknown evidence class `{}`; failing closed",
+            "fact `{name}` carries an unsanctioned kind `{}`; failing closed",
+            fact.kind
+        ));
+    };
+    if fact.evidence_class != expected_evidence_class {
+        return Err(format!(
+            "fact `{name}` carries evidence class `{}`; expected `{expected_evidence_class}`",
             fact.evidence_class
+        ));
+    }
+    if !matches!(
+        fact.recorded_by.kind.as_str(),
+        "maintainer" | "driver" | "console"
+    ) {
+        return Err(format!(
+            "fact `{name}` carries unknown actor kind `{}`",
+            fact.recorded_by.kind
+        ));
+    }
+    if fact.commit.len() != 40 || !fact.commit.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(format!(
+            "fact `{name}` carries a non-40-hex commit `{}`",
+            fact.commit
         ));
     }
     validate_rfc3339_utc(&fact.recorded_at)
@@ -67,6 +89,17 @@ pub(crate) fn validate(name: &str, fact: &Envelope) -> Result<(), String> {
         return Err(format!(
             "fact `{name}` has invalid identity `{}`; expected `{expected}`",
             fact.fact_id
+        ));
+    }
+    let expected_name = format!(
+        "{}-{}-{}.json",
+        compact_rfc3339(&fact.recorded_at),
+        fact.kind,
+        fact.fact_id
+    );
+    if name != expected_name {
+        return Err(format!(
+            "fact `{name}` filename does not match its content; expected `{expected_name}`"
         ));
     }
     Ok(())
@@ -82,6 +115,18 @@ fn read_cached_fact(
     if let Some(hit) = cache.get(name)
         && hit.content_sha256 == content_sha256
     {
+        let raw_fact: Envelope = serde_json::from_slice(&raw)
+            .map_err(|error| format!("fact `{name}` does not parse: {error}"))?;
+        let raw_identity = fact_id_for(&raw_fact)?;
+        let cached_identity = fact_id_for(&hit.fact)?;
+        if raw_fact.fact_id != raw_identity
+            || hit.fact.fact_id != raw_fact.fact_id
+            || cached_identity != raw_identity
+        {
+            return Err(format!(
+                "cached fact `{name}` does not match the current fact bytes"
+            ));
+        }
         return Ok((hit.fact.clone(), false));
     }
     let fact: Envelope = serde_json::from_slice(&raw)

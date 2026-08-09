@@ -60,10 +60,38 @@ pub(crate) fn evidence_class_for(kind: &str) -> Option<&'static str> {
         None
     }
 }
-
-/// Returns true when `class` is one of the three sanctioned classes.
-pub(crate) fn known_evidence_class(class: &str) -> bool {
-    matches!(class, "deterministic" | "attested" | "observed")
+/// Validates a fact kind before it can become part of a filesystem path.
+pub(crate) fn validate_kind(kind: &str) -> Result<(), String> {
+    let allowed = |byte: u8| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_';
+    if kind.is_empty()
+        || !kind.bytes().all(|byte| allowed(byte) || byte == b'.')
+        || kind.starts_with('.')
+        || kind.ends_with('.')
+        || kind.contains("..")
+    {
+        return Err(format!(
+            "fact kind `{kind}` is not a safe coordination kind component"
+        ));
+    }
+    let parts: Vec<&str> = kind.split('.').collect();
+    let valid_shape = match parts.as_slice() {
+        [family, suffix] if matches!(*family, "ruling" | "lease") => {
+            !suffix.is_empty() && suffix.bytes().all(allowed)
+        }
+        ["driver", "singleton", suffix] => !suffix.is_empty() && suffix.bytes().all(allowed),
+        ["outcome", suffix] => {
+            *suffix == "unit"
+                || *suffix == "touched_files"
+                || (suffix.starts_with("run_") && suffix.len() > 4 && suffix.bytes().all(allowed))
+        }
+        _ => false,
+    };
+    if !valid_shape {
+        return Err(format!(
+            "fact kind `{kind}` is not a safe coordination kind component"
+        ));
+    }
+    Ok(())
 }
 
 /// Validates the payload fields required by lease-chain projections.

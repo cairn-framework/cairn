@@ -51,6 +51,8 @@ Unverified claims (verify first, then fix or record why not):
    diffs are write-once sidecars below `sidecars/`, not disposable `cache/`.
    The dated evidence and regression name are recorded in
    `res.chatgpt-architecture-review`.
+Panel follow-up (2026-08-09) also closed kind path traversal, fractional
+stored timestamps, cache-entry tampering, and live/archive filename drift.
 
 ## Acceptance
 

@@ -33,10 +33,10 @@ fn read_archive(store: &Path) -> Result<Vec<NamedFact>, String> {
         {
             let entry = entry.map_err(|error| format!("cannot read archive entry: {error}"))?;
             let name = entry.file_name().to_string_lossy().to_string();
-            if !std::path::Path::new(&name)
+            let is_json = std::path::Path::new(&name)
                 .extension()
-                .is_some_and(|extension| extension.eq_ignore_ascii_case("json"))
-            {
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("json"));
+            if !is_json {
                 continue;
             }
             let raw = std::fs::read_to_string(entry.path())
@@ -200,7 +200,7 @@ pub fn compact(root: &Path, before: &str) -> Result<Vec<String>, String> {
 mod tests {
     use super::*;
     use crate::coord::append::{NewFact, append_fact};
-    use crate::coord::envelope::Actor;
+    use crate::coord::envelope::{Actor, fact_id_for};
 
     fn repo() -> tempfile::TempDir {
         let dir = tempfile::TempDir::new().expect("tempdir");
@@ -380,5 +380,44 @@ mod tests {
         assert_eq!(moved.len(), 1, "only the unchained old ruling moves");
         assert!(moved[0].contains("ruling.run"), "{moved:?}");
         verify(dir.path()).expect("archive keeps the store verifiable");
+    }
+    #[test]
+    fn archived_fact_identity_and_filename_are_validated() {
+        let dir = repo();
+        record(
+            dir.path(),
+            "ruling.run",
+            "2026-07-01T00:00:00Z",
+            None,
+            serde_json::json!({ "target": "plan-0123456789abcdef" }),
+        );
+        compact(dir.path(), "2026-08-01").expect("compacts");
+        let archive = dir.path().join(".git/cairn/coord/archive/2026-07");
+        let path = std::fs::read_dir(&archive)
+            .expect("lists archive")
+            .find_map(Result::ok)
+            .expect("archived fact")
+            .path();
+        let mut fact: Envelope =
+            serde_json::from_str(&std::fs::read_to_string(&path).expect("fact bytes"))
+                .expect("fact json");
+        fact.payload = serde_json::json!({ "target": "plan-fedcba9876543210" });
+        fact.fact_id = String::new();
+        fact.fact_id = fact_id_for(&fact).expect("recomputes");
+        std::fs::write(
+            &path,
+            format!(
+                "{}\n",
+                serde_json::to_string_pretty(&fact).expect("serialises")
+            ),
+        )
+        .expect("mutates archive");
+        let Err(error) = verify(dir.path()) else {
+            panic!("tampered archive succeeds");
+        };
+        assert!(
+            error.contains("filename") || error.contains("identity"),
+            "{error}"
+        );
     }
 }

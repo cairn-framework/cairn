@@ -406,7 +406,7 @@ mod tests {
     }
 
     #[test]
-    fn wave_stats_since_includes_fractional_second_after_exact_boundary() {
+    fn wave_stats_since_includes_whole_second_after_fractional_query_boundary() {
         let dir = repo();
         record(
             dir.path(),
@@ -418,15 +418,15 @@ mod tests {
         );
         record(
             dir.path(),
-            "2026-08-07T03:45:12.500Z",
+            "2026-08-07T03:45:13Z",
             serde_json::json!({
-                "files": ["src/fractional.rs"],
+                "files": ["src/later.rs"],
                 "excluded_by_prefixes": ["docs"],
             }),
         );
         let request = QueryRequest {
             since: Some(QuerySince::WaveStatsTimestamp(
-                "2026-08-07T03:45:12Z".to_owned(),
+                "2026-08-07T03:45:11.500Z".to_owned(),
             )),
             ..QueryRequest::default()
         };

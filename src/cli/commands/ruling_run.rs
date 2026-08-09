@@ -147,7 +147,7 @@ fn record_decline(
     if recomputed.len() <= 4096 {
         payload["preimage_diff"] = serde_json::json!(recomputed);
     } else {
-        let sidecar = match spill_preimage(root, digest, &recomputed) {
+        let sidecar = match spill_preimage(root, digest, &observed_at, &recomputed) {
             Ok(path) => path,
             Err(message) => return err(1, &message),
         };
@@ -240,10 +240,17 @@ fn decline_reason(
 }
 
 /// Spills an oversized recomputed preimage to the immutable `sidecars/`
-/// subtree; returns the store-relative path.
-fn spill_preimage(root: &Path, digest: &str, recomputed: &str) -> Result<String, String> {
+/// subtree, keyed by digest and observation second; returns the store-relative
+/// path.
+fn spill_preimage(
+    root: &Path,
+    digest: &str,
+    recorded_at: &str,
+    recomputed: &str,
+) -> Result<String, String> {
     let store = crate::coord::store::store_root(root)?;
-    let name = format!("sidecars/preimage-{digest}.diff");
+    let compacted = crate::coord::time::compact_rfc3339(recorded_at);
+    let name = format!("sidecars/preimage-{digest}-{compacted}.diff");
     crate::persist::atomic_write_once(&store.join(&name), recomputed)
         .map_err(|error| format!("cannot spill preimage diff: {error}"))?;
     Ok(name)
@@ -351,33 +358,59 @@ mod tests {
         );
     }
 
-    #[test]
-    fn oversized_decline_preimage_is_not_written_under_disposable_cache() {
-        let dir = project();
+    fn append_sidecar_read_fact(root: &Path, recorded_at: &str, sidecar: &str) {
         crate::coord::append::append_fact(
-            dir.path(),
+            root,
             crate::coord::append::NewFact {
-                kind: "ruling.run".to_owned(),
-                recorded_at: "2026-08-07T03:45:12Z".to_owned(),
+                kind: "outcome.run_declined".to_owned(),
+                recorded_at: recorded_at.to_owned(),
                 recorded_by: crate::coord::envelope::Actor {
                     kind: "driver".to_owned(),
                     id: "t".to_owned(),
                 },
                 commit: "a".repeat(40),
                 supersedes: None,
-                payload: serde_json::json!({ "target": "plan-0123456789abcdef" }),
+                payload: serde_json::json!({
+                    "target": "plan-0123456789abcdef",
+                    "reason": "unit-set-moved",
+                    "preimage_diff_sidecar": sidecar,
+                }),
             },
         )
-        .expect("fact appends");
+        .expect("decline fact appends");
+    }
+
+    #[test]
+    fn repeat_oversized_declines_use_observation_sidecars() {
+        let dir = project();
         let content = "x".repeat(4097);
-        let path =
-            spill_preimage(dir.path(), "plan-0123456789abcdef", &content).expect("spills preimage");
+        let path = spill_preimage(
+            dir.path(),
+            "plan-0123456789abcdef",
+            "2026-08-07T03:45:12Z",
+            &content,
+        )
+        .expect("spills preimage");
+        let retry = spill_preimage(
+            dir.path(),
+            "plan-0123456789abcdef",
+            "2026-08-07T03:45:13Z",
+            &content,
+        )
+        .expect("a later observation gets a distinct sidecar");
+        append_sidecar_read_fact(dir.path(), "2026-08-07T03:45:12Z", &path);
+        append_sidecar_read_fact(dir.path(), "2026-08-07T03:45:13Z", &retry);
+        assert_ne!(path, retry, "observation seconds key retries");
         assert!(
             path.starts_with("sidecars/"),
             "immutable facts must not reference cache sidecars: {path}"
         );
         let store = crate::coord::store::store_root(dir.path()).expect("store root");
         assert!(store.join(&path).is_file(), "sidecar exists at {path}");
+        assert!(
+            store.join(&retry).is_file(),
+            "retry sidecar exists at {retry}"
+        );
         assert!(
             !store
                 .join("cache/preimage-plan-0123456789abcdef.diff")
@@ -389,9 +422,8 @@ mod tests {
         else {
             panic!("store is initialised");
         };
-        assert_eq!(facts.len(), 1, "the fact remains readable");
+        assert_eq!(facts.len(), 2, "both decline facts remain readable");
     }
-
     #[test]
     fn a_holding_digest_records_consent_and_a_moved_one_declines() {
         let dir = project();

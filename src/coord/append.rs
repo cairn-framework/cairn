@@ -11,7 +11,8 @@ use std::path::{Path, PathBuf};
 use crate::persist;
 
 use super::envelope::{
-    Actor, Envelope, STORE_FORMAT, evidence_class_for, fact_id_for, validate_lease_payload,
+    Actor, Envelope, STORE_FORMAT, evidence_class_for, fact_id_for, validate_kind,
+    validate_lease_payload,
 };
 use super::store;
 use super::time::{compact_rfc3339, validate_rfc3339_utc};
@@ -67,6 +68,7 @@ fn validate_new_fact(fact: &NewFact) -> Result<&'static str, String> {
             fact.recorded_by.kind
         ));
     }
+    validate_kind(&fact.kind)?;
     if fact.recorded_by.kind == "console"
         && (fact.kind.starts_with("lease.") || fact.kind.starts_with("driver.singleton."))
     {
@@ -179,6 +181,17 @@ mod tests {
     }
 
     #[test]
+    fn path_separator_in_kind_is_rejected_before_store_initialisation() {
+        let dir = repo();
+        let error = append_fact(dir.path(), fact("ruling.x/../../escaped", "maintainer"))
+            .expect_err("path traversal kind refused");
+        assert!(error.contains("kind") || error.contains("path"), "{error}");
+        assert!(
+            !dir.path().join(".git/cairn").exists(),
+            "kind validation must precede all store writes"
+        );
+    }
+    #[test]
     fn malformed_lease_grant_is_rejected_before_store_initialisation() {
         let dir = repo();
         let error = append_fact(
@@ -263,6 +276,10 @@ mod tests {
     fn unsanctioned_kind_is_refused() {
         let dir = repo();
         let error = append_fact(dir.path(), fact("gossip.rumour", "driver")).expect_err("refused");
-        assert!(error.contains("outside the sanctioned families"), "{error}");
+        assert!(
+            error.contains("outside the sanctioned families")
+                || error.contains("safe coordination kind component"),
+            "{error}"
+        );
     }
 }
