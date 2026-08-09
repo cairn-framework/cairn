@@ -69,10 +69,12 @@ parse Rust files that contain no `pub ` marker, or run a separate query walk
 that does so. A predicate-only edit would leave the all-private binary at zero
 coverage and would not satisfy the measured defect.
 
-The exported hash can remain empty for a genuinely all-private file, while the
-query-visible records carry its definitions. In a mixed file, exported records
-continue to feed the hash and query records include both exported and private
-items.
+The exported symbol set can be empty for a genuinely all-private file, while
+`InterfaceFingerprint::from_symbols` still produces a stable nonempty digest.
+The all-private fixture's `bd60acb658c79e45` hash demonstrates this. In a mixed
+file, exported records continue to feed the hash and query records include
+both exported and private items.
+
 
 ## Hash path (exported set only)
 
@@ -194,8 +196,8 @@ The ruling child must resolve these adjacent surfaces before implementation:
 - The public-only wording inventory must be reconciled or deliberately
   preserved by the ruling:
   `docs/commands.md:52-53`, `docs/integration-contract.md:55`,
-  `docs/spec.md:146,156,770`, `src/artefacts/registry.rs:367`, and
-  `docs/design-system/copy.toml:686,1127,1131`.
+  `docs/spec.md:146,156,770`, `src/query_api/registry.rs:367`, and
+  `docs/design-system/copy.toml:79,697,1138,1142`.
 
 
 ## Rust evidence
