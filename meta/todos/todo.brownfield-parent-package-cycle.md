@@ -53,12 +53,14 @@ On a real brownfield project (a package root with subpackages that import it),
 
 Too large for one reviewable PR, per verified fact 2.
 
-blocked on sub-todos: todo.brownfield-parent-child-edge-model, todo.brownfield-nested-package-scan-clean
+At decomposition time, it was blocked on sub-todos:
+`todo.brownfield-parent-child-edge-model`,
+`todo.brownfield-nested-package-scan-clean`.
 
 The first rules on how brownfield models mutual imports between a package root
 and its subpackages and carries the evidence for that ruling. The second
-implements the chosen rule and pins the round-trip. This todo flips to `done`
-when the second lands.
+implements the chosen rule and pins the round trip. The original completion
+condition was that this todo would flip to `done` when the second landed.
 
 2026-08-08: `todo.order-cycle-scc-enumeration` landed as done in PR #618.
 The remaining provenance and severity units landed in PRs #640 and #642.
