@@ -66,7 +66,7 @@ fn with_containment(mut graph: Graph, links: &[(&str, &str)]) -> Graph {
 }
 
 #[test]
-fn all_inferred_component_is_advisory() {
+fn test_cycle_findings_all_inferred_component_is_advisory() {
     let graph = make_graph_with_provenance(
         &["a", "b"],
         &[
@@ -80,7 +80,7 @@ fn all_inferred_component_is_advisory() {
 }
 
 #[test]
-fn mixed_components_report_both_severities() {
+fn test_cycle_findings_mixed_components_report_both_severities() {
     let graph = make_graph_with_provenance(
         &["a", "b", "c", "d"],
         &[
@@ -102,7 +102,7 @@ fn mixed_components_report_both_severities() {
 }
 
 #[test]
-fn component_severity_checks_every_internal_edge() {
+fn test_cycle_findings_mixed_internal_edges_remain_error() {
     let graph = make_graph_with_provenance(
         &["a", "b", "c"],
         &[
@@ -122,7 +122,7 @@ fn component_severity_checks_every_internal_edge() {
 }
 
 #[test]
-fn inferred_component_is_stable_under_permutation() {
+fn test_cycle_findings_inferred_component_is_stable_under_permutation() {
     let first = make_graph_with_provenance(
         &["c", "a", "b"],
         &[
@@ -146,7 +146,7 @@ fn inferred_component_is_stable_under_permutation() {
 }
 
 #[test]
-fn inferred_self_loop_is_advisory() {
+fn test_cycle_findings_inferred_self_loop_is_advisory() {
     let graph =
         make_graph_with_provenance(&["self"], &[("self", "self", EdgeProvenance::Inferred)]);
     let findings = cycle_findings(&graph);
@@ -155,7 +155,7 @@ fn inferred_self_loop_is_advisory() {
 }
 
 #[test]
-fn containment_contradiction_stays_blocking() {
+fn test_topological_order_containment_contradiction_stays_blocking() {
     let graph = with_containment(
         make_graph_with_provenance(
             &["ancestor", "child", "cycle-a", "cycle-b"],

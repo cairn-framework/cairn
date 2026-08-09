@@ -193,16 +193,17 @@ the edges.
 
 ## Consequences
 
-- `todo.brownfield-nested-package-scan-clean` is rewritten; it stayed blocked
-  until ratification and opened 2026-07-29. Its implementation surface moves
-  off `derive_import_edges`: the work is edge provenance, cycle enumeration,
-  and a severity branch, not a change to what discovery emits.
+- `todo.brownfield-nested-package-scan-clean` was rewritten after ratification
+  and split under the sizing rule on 2026-08-07. Its implementation surface
+  moved off `derive_import_edges`: the work was edge provenance, cycle
+  enumeration, and a severity branch, not a change to what discovery emits.
+  Those units landed in PRs #618, #640, and #642.
 - The acceptance shared by `todo.brownfield-parent-package-cycle` and
   `todo.brownfield-nested-package-scan-clean`, that `cairn scan` reports no
   `CAIRN_ORDER_CYCLE` and exits zero after a brownfield round-trip, is corrected
-  to the claim this decision can deliver: the finding may still be reported, it is
-  non-blocking when every edge inside the cyclic component is discovery-observed,
-  and the scan exits zero.
+  to the claim this decision can deliver: the finding may still be reported, it
+  is non-blocking when every edge inside the cyclic component is
+  discovery-observed, and the scan exits zero.
 - If the maintainer rejects clause 3, the fallback is to accept that a brownfield
   first scan of a repository with observed coupling usually exits 1 by design, and
   to say so in the brownfield quickstart, since neither measured edge rule avoids
@@ -212,11 +213,11 @@ the edges.
   package-root cycles are.
 - 2026-08-07 pointer correction, no clause changed:
   `todo.brownfield-nested-package-scan-clean` was decomposed under the sizing
-  rule and is now `blocked`. The enumeration half of clause 5 and clause 7 are
-  carried by `todo.order-cycle-scc-enumeration`, clause 4 by
+  rule. The enumeration half of clause 5 and clause 7 landed in
+  `todo.order-cycle-scc-enumeration`, clause 4 landed in
   `todo.blueprint-edge-provenance`, and clause 3 plus the severity half of
-  clause 5 by `todo.order-cycle-discovery-severity`. Where clause 7 says that
-  todo pins the fixtures, read the three of them.
+  clause 5 landed in `todo.order-cycle-discovery-severity`. All three units
+  are done, and their completed tests pin the fixtures named by clause 7.
 
 ## Revisit triggers
 

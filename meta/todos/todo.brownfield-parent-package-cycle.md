@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: done
 created: 2026-07-26
 related: [todo.brownfield-contract-pointer, todo.brownfield-parent-child-edge-model, todo.brownfield-nested-package-scan-clean]
 ---
@@ -61,14 +61,14 @@ implements the chosen rule and pins the round-trip. This todo flips to `done`
 when the second lands.
 
 2026-08-08: `todo.order-cycle-scc-enumeration` landed as done in PR #618.
-The nested todo remains blocked on the remaining `todo.blueprint-edge-provenance`
-and `todo.order-cycle-discovery-severity` units; the severity unit remains
-blocked on both its enumeration and provenance prerequisites.
-The selectable work under this umbrella is the open provenance unit. The
-severity unit becomes selectable after provenance lands.
+The remaining provenance and severity units landed in PRs #640 and #642.
+`todo.brownfield-nested-package-scan-clean` then landed as done, completing
+the nested-package round trip and this parent todo.
 
 ## Mission disposition
 
-2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It keeps the parent-package cycle gate explicit while its prerequisite remains unresolved.
+2026-08-02: keep against dec.cairn-mission. Serves fit-for-purpose. It kept
+the parent-package cycle gate explicit while its prerequisites were unresolved.
 
-2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked; sole child is todo.brownfield-nested-package-scan-clean, and this parent flips done when it lands. Superseded in part the same day by the decomposition note above: that child is now blocked on three grandchildren, so the open work sits one level deeper.
+2026-08-09 completion audit: the nested-package child and all three
+implementation units are done, so this parent todo is done.

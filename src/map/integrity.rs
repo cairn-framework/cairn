@@ -141,11 +141,9 @@ fn is_cyclic_component(component: &[&str], graph: &Graph) -> bool {
 }
 fn component_severity(graph: &Graph, component: &[&str]) -> FindingSeverity {
     let members: BTreeSet<&str> = component.iter().copied().collect();
-    let all_inferred = graph
-        .outbound
+    let all_inferred = members
         .iter()
-        .filter(|(from, _)| members.contains(from.as_str()))
-        .flat_map(|(_, edges)| edges.iter())
+        .flat_map(|from| graph.outbound.get(*from).into_iter().flatten())
         .filter(|edge| members.contains(edge.to.as_str()))
         .all(|edge| edge.provenance == EdgeProvenance::Inferred);
     if all_inferred {
