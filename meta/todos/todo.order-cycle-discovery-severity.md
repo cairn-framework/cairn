@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.map
-status: blocked
+status: done
 created: 2026-08-07
 parent: todo.brownfield-nested-package-scan-clean
 blocked_by: [todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance]

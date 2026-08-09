@@ -105,7 +105,7 @@ Brownfield extraction is a starting point, not a finished architecture. It canno
 - Infer semantic relationships that are not visible in the filesystem or imports.
 - Distinguish a well-designed module from a grab-bag of unrelated files in the same directory.
 - Detect architectural layers (e.g., hexagonal ports and adapters) without code-level evidence.
-- Propose dependency edges. Discovery never fabricates an edge it cannot observe, so the first draft has nodes only; declare edges as you review. (Earlier versions emitted all-pairs "sibling" edges, which guaranteed a false dependency cycle on first scan.)
+- Propose dependency edges from imports observed in candidate source files. Discovery never fabricates an edge it cannot observe, so review the generated edges before applying the change. An observed dependency cycle remains visible as a non-blocking advisory on the first scan; a hand-declared cycle remains blocking.
 
 Always review generated proposals before archiving. The confidence score is a heuristic, not a correctness proof.
 

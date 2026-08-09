@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: done
 created: 2026-07-27
 related: [todo.brownfield-parent-package-cycle, todo.brownfield-parent-child-edge-model]
 blocked_by: [todo.order-cycle-scc-enumeration, todo.blueprint-edge-provenance, todo.order-cycle-discovery-severity]
