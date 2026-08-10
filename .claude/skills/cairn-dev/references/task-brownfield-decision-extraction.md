@@ -1,39 +1,43 @@
 # Brownfield decision extraction
 
-Goal: turn decisions an existing codebase already made implicitly into proposed
-Decision artefacts the maintainer can accept or reject.
+Goal: turn decisions a codebase already made implicitly into proposed Decision
+artefacts the maintainer can accept or reject.
 
-Cairn indexes a bounded evidence set and binds each path to the blueprint node
-that owns it. It performs no inference (`dec.brownfield-extraction-mechanism`).
-You select which evidence expresses a real decision and write the proposal.
+Cairn indexes an evidence set and binds each path to the node that owns it. It
+performs no inference (`dec.brownfield-extraction-mechanism`).
 
 ## 0. Prerequisites
 
 Use this only in an onboarded project whose `cairn.blueprint` loads without
 structural errors: the command errors rather than binding a draft against a stub.
-Before authoring, check that the System block declares both artefact directories
-(`cairn init` seeds only `todos`):
+Check that both artefact directories are declared (`cairn init` seeds only
+`todos`):
 
 ```
 decisions "./meta/decisions"
 research "./meta/research"
 ```
 
-Without these pointers Cairn neither validates the files nor lists the draft in
-`cairn pending`.
+Without them Cairn neither validates the files nor lists the draft in `cairn
+pending`. Cairn collects these pointers from any node at any depth
+(`src/artefacts/registry/io.rs`, `pointers`), so a System block is a convention,
+not a parser requirement. `cairn init --from-code --apply` writes no System block:
+its output is a flat list of Containers and Modules. Wrap that list in a System and
+declare both pointers there, keeping a project-wide claim off any single Container
+or Module.
 
 ## 1. Index the evidence
 
 ```bash
-cairn onboard decisions            # human-readable report
-cairn onboard decisions --json     # the stable index for this workflow
+cairn onboard decisions        # human-readable report
+cairn onboard decisions --json # the stable wire
 ```
 
-The index reads a closed evidence set and nothing else: files under `docs/adr/`
-and `docs/decisions/`, README sections headed Decision, Rationale, or Invariant,
+It reads a closed set and nothing else: files under `docs/adr/` and
+`docs/decisions/`, README sections headed Decision, Rationale, or Invariant,
 source comments carrying the literal `// invariant:` or `# invariant:` marker, and
-the code targets brownfield discovery reports. It does not read arbitrary prose,
-call a model, draft narrative, or touch the blueprint.
+the code targets brownfield discovery reports. It reads no other prose, drafts no
+narrative, calls no model, and touches no blueprint.
 
 ## 2. Read the wire
 
@@ -48,31 +52,38 @@ Under `data`: `schema_version`, `bound`, `unbound`, `bound_count`,
 | `detail` | the document title, heading text, invariant text, or candidate id |
 
 A `bound` entry adds `node`: the most-specific blueprint node declaring that path,
-already validated against the loaded graph. That id is the `--node` argument in
-step 4. An `unbound` entry carries no `node` key at all: either no eligible
-declared path claims it, or equally specific declarations tie and the resolver
-refuses to pick a winner. Disambiguate blueprint ownership first, or leave it.
+already validated against the graph, and the `--node` argument in step 4.
+An `unbound` entry carries no `node` key: either no eligible declared path claims
+it, or equally specific declarations tie and the resolver refuses to pick.
+Disambiguate ownership first, or leave it.
 
-A `code-target` entry's `detail` is the path-derived discovery candidate id, which
-is evidence only. Never pass it as a node id: only the `node` field is a node.
+A `code-target` `detail` is a path-derived discovery candidate id, evidence only.
+Never pass it as a node id: only the `node` field is a node.
 
 ## 3. Select what is really a decision
 
-The index is bounded, not selective, and most entries are context. Read each
-candidate at its `path` and `line`, and keep only what records a choice with
-consequences: an option taken over a named alternative, a constraint the code must
-keep, a trade-off someone accepted. Drop restatements of what the code obviously
-does.
+The index is bounded, not selective: most entries are context. Read every
+candidate at its `path` and `line`, including ones you will not draft. The wire is
+one flat list with no status and no supersession: on `rancher/turtles`, ADR 0009
+reversed accepted ADR 0005, ADRs 0008 and 0011 retired half of ADR 0003, and
+ADR 0011 superseded ADR 0010, and the wire showed none of those relationships. A
+draft written from a single entry was wrong and was withdrawn once all 19 were
+read (`res.brownfield-extraction-external-run`). This step is a guard, not
+advice.
 
-One decision per choice. Evidence spread over several paths arguing one choice is
-one decision citing several paths.
+Keep only what records a choice with consequences: an option taken over a named
+alternative, a constraint the code must keep, a trade-off accepted. Drop
+restatements of what the code obviously does.
+
+One decision per choice: evidence over several paths arguing one choice is one
+decision citing all of them.
 
 ## 4. Record the evidence, then write the draft
 
 Record the selected evidence as a Research artefact first, so the draft cites
-evidence rather than asserting it. There is no research writer command: hand-author
-`meta/research/<slug>.md`, quoting the evidence and keeping every `path` and `line`
-the report gave you. List the node ids the bound entries resolved one per line, and
+evidence rather than asserting it. There is no research writer command:
+hand-author `meta/research/<slug>.md`, quoting the evidence and keeping every
+`path` and `line` the report gave. List the resolved node ids one per line, and
 carry no trailing comment in the frontmatter: a comment after an inline `[a, b]`
 list makes that list parse as empty.
 
@@ -86,40 +97,37 @@ date: <YYYY-MM-DD>
 ---
 ```
 
-`method: primary` is load-bearing: research with no `meta/sources/` citation and no
-`method: primary` raises the Error finding `CAIRN_RESEARCH_MISSING_SOURCES`. The
-evidence is first-hand, so that is the honest claim. Never invent a source artefact
-to satisfy the check.
+`method: primary` is load-bearing: research with neither a `meta/sources/` citation
+nor `method: primary` raises `CAIRN_RESEARCH_MISSING_SOURCES`. The evidence is
+first-hand, so that is honest. Never invent a source.
 
-Then create the decision with the existing writer:
+Then create the decision:
 
 ```bash
 cairn decision new <slug> --node <id> --informed-by res.<slug>
 ```
 
-`<id>` is the `node` field from the bound entry, verbatim. The writer does not
-re-resolve ownership, and a later scan only checks that the node exists, so a wrong
-but real node id survives every gate. The command writes the typed frontmatter,
-`status: proposed`, and the standard sections. Edit the generated body and the
-permitted provenance fields only. Do not write a decision file by hand and do not
-add a second writer. Keep the report's evidence paths and node ids in the body, so
-a reader can re-derive the draft from the same evidence.
+`<id>` is the bound entry's `node` field, verbatim. The writer does not re-resolve
+ownership, and a scan only checks the node exists, so a wrong but real id survives
+every gate. It writes the typed frontmatter, `status: proposed`, and the standard
+sections. Edit the generated body and the permitted provenance fields only. Never
+hand-write a decision file and do not add a second writer. Keep the report's
+evidence paths and node ids in the body, so the draft stays re-derivable.
 
-You may set, on the generated draft:
+You may set on the draft:
 
 - `informed_by`, pointing at the research artefact above;
-- `revisit_triggers`, as queryable conditions for reconsideration;
-- `ratification: local` or `ratification: binding`, or no `ratification` field at
-  all. An absent value defaults to `binding`, and an explicit `local` claim is
-  subject to the full tier shape rules, not a shortcut around them.
+- `revisit_triggers`, as queryable reconsideration conditions;
+- `ratification: local` or `ratification: binding`, or no field at all: absent
+  defaults to `binding`, and an explicit `local` claim is subject to the full tier
+  shape rules.
 
 Leave every extracted decision at `status: proposed`.
 Do not set `status: accepted`, `ratified_by`, `receipts`, or `supersedes`.
 
-Do not use `cairn gap`. An extracted decision is a choice already made, not an
-unresolved implementation question; `cairn gap` would write a separate `gap: true`
-proposal and stand a `CAIRN_GAP_UNRESOLVED` warning until that question is
-resolved and accepted, or the file is deleted.
+Do not use `cairn gap`. An extracted decision is a choice already made, not an open
+question; `cairn gap` writes a `gap: true` proposal and stands a
+`CAIRN_GAP_UNRESOLVED` warning until it is resolved and accepted, or deleted.
 
 ## 5. Hand the draft to the maintainer
 
@@ -132,7 +140,7 @@ rejection. Never accept your own extracted decision.
 
 ```bash
 cairn scan
-cairn pending          # every extracted draft, still proposed
+cairn pending   # every extracted draft, still proposed
 ```
 
 Plus the repository's own gates.

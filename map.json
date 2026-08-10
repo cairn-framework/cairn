@@ -9589,6 +9589,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.reference-budget-headroom` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/reference-budget-headroom.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.roadmap-audit-health` is not linked from any decision",
       "node": null,
       "path": "meta/research/roadmap-audit-health.md"
