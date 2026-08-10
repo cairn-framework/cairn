@@ -397,6 +397,12 @@ export function auditPage(opts) {
       return label.toLowerCase() === `${id.toLowerCase()}, ${expected}`;
     });
 
+  // Wire-legibility helper (todo.console-wire-legibility): rendered, laid
+  // out (offsetParent), non-empty, and not clipped by its own box in either
+  // axis. Ellipsis clamps and clipped wraps fail the scroll/client compare.
+  const visibleUntruncated = (el) =>
+    !!el && !!el.offsetParent && !!(el.textContent || "").trim() && el.scrollWidth <= el.clientWidth + 1 && el.scrollHeight <= el.clientHeight + 1;
+
   const landmarks = {
     shell: !!document.querySelector(".instrument-shell"),
     statusBezel: !!document.querySelector(".status-bezel"),
@@ -429,6 +435,35 @@ export function auditPage(opts) {
     pendingRubric: !!document.querySelector(".channel-bar .pending-detail-tier"),
     pendingEvidence: !!document.querySelector(".channel-bar .pending-detail-evidence"),
     pendingReopen: !!document.querySelector(".channel-bar .pending-detail-reopen code"),
+    // Wire-legibility landmarks (todo.console-wire-legibility): evidence the
+    // browser downloaded must be rendered, visible, and untruncated. When the
+    // harness injects the fixture's expected title, the rendered text must
+    // match it, so a placeholder cannot satisfy the check.
+    nextRecommendedTitle: (() => {
+      const el = document.querySelector(".status-bezel .status-next-title");
+      if (!visibleUntruncated(el)) return false;
+      const expected = String(window.__evalExpectedNextTitle || "").trim();
+      return !expected || (el.textContent || "").trim() === expected;
+    })(),
+    nextRecommendedRule: visibleUntruncated(document.querySelector(".status-bezel .status-next-rule")),
+    bezelCleanQualified: !!document.querySelector('.status-annunciator[data-drift-state="clean-qualified"]'),
+    bezelSeveritySummary: visibleUntruncated(document.querySelector(".status-annunciator-summary")),
+    // Backlog rows must print the todo title (prose with spaces) through the
+    // prose-title class, not the todo.* filename stem, and every prose title
+    // must be visually untruncated.
+    backlogTitleProse: (() => {
+      const prose = [...document.querySelectorAll(".channel-tier .channel-item .channel-code.channel-title-prose")].filter((el) => /\s/.test((el.textContent || "").trim()));
+      return prose.length > 0 && prose.every(visibleUntruncated);
+    })(),
+    // A COLLAPSED pending row (no expanded detail inside it) must show the
+    // ruling summary and the rubric tier, wrapped rather than truncated.
+    pendingCollapsedSummary: [...document.querySelectorAll(".pending-item")]
+      .filter((row) => !row.querySelector(".pending-detail"))
+      .some((row) => {
+        const summary = row.querySelector(".pending-collapsed .pending-detail-summary");
+        const tier = row.querySelector(".pending-collapsed .pending-detail-tier");
+        return visibleUntruncated(summary) && visibleUntruncated(tier);
+      }),
   };
 
   return {

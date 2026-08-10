@@ -98,6 +98,35 @@
   font-size: var(--t-small);
 }
 
+/* Next recommended unit: full-width second bezel row naming the selected
+   work item and the rule that selected it; long titles wrap, never clip. */
+.status-bezel .status-next {
+  grid-column: 1 / -1;
+  margin: 0 0 var(--s-1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-2);
+  min-width: 0;
+  font-size: var(--t-small);
+}
+
+.status-bezel .status-next-label,
+.status-bezel .status-next-rule {
+  color: var(--ink-aged);
+  font-size: var(--t-micro);
+}
+
+.status-bezel .status-next-rule {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.status-bezel .status-next-title {
+  color: var(--ink-char);
+  overflow-wrap: anywhere;
+}
+
 .status-bezel .status-severity {
   display: inline-flex;
   align-items: center;
@@ -989,6 +1018,20 @@ marker path {
   flex: 0 0 auto;
 }
 
+/* Prose work-item titles (backlog rows): the fixed-width mono code clamp
+   does not apply; the title flexes and wraps instead of truncating. */
+.channel-code.channel-title-prose {
+  width: auto;
+  max-width: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--font-ui);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+
 .channel-inline-meta {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1040,6 +1083,24 @@ marker path {
   white-space: nowrap;
   min-height: var(--s-7);
   min-width: 0;
+}
+
+/* Collapsed pending row: the ruling summary and rubric tier stay readable
+   without expanding the row, so wrapping beats the channel ellipsis rules. */
+.channel-item .pending-collapsed {
+  display: grid;
+  gap: var(--s-1);
+  margin: 0 0 var(--s-2);
+}
+
+.channel-item .pending-collapsed .pending-detail-summary,
+.channel-item .pending-collapsed .pending-detail-tier {
+  margin: 0;
+  color: var(--ink-char);
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 
@@ -2761,7 +2822,10 @@ marker path {
   min-width: 0;
 }
 
-.console-lane .channel-code {
+/* The lane's density ellipsis applies to codes and body text; prose
+   backlog titles keep the wrapping the base .channel-title-prose rule
+   gives them. */
+.console-lane .channel-code:not(.channel-title-prose) {
   flex: 0 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2774,6 +2838,7 @@ marker path {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 
 .console-lane .channel-focus {
   margin-left: auto;

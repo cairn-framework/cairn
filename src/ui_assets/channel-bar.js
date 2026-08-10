@@ -53,10 +53,11 @@ function itemLabel(item, kind) {
   }
 
   if (kind === "backlog") {
+    const stem = item?.stem || slugFromPath(item?.path);
     return {
-      title: item?.stem || slugFromPath(item?.path) || copy("webui.channel.backlog"),
+      title: item?.title || stem || copy("webui.channel.backlog"),
       meta: item?.status || copy("webui.none"),
-      body: item?.path || "",
+      body: stem,
     };
   }
 
@@ -113,18 +114,26 @@ function pendingList(labelKey, values) {
     </section>`;
 }
 
+function PendingSummary({ item }) {
+  return html`<p class="pending-detail-summary">${item?.ruling_summary || copy("webui.channel.pending-no-summary")}</p>`;
+}
+
+function PendingTier({ item }) {
+  return item?.rubric?.tier ? html`<p class="pending-detail-tier">${copy("webui.channel.pending-tier")}: ${item.rubric.tier}</p>` : null;
+}
+
 function PendingDetail({ item }) {
   const evidence = item?.evidence;
   const receipts = Array.isArray(evidence?.receipts) ? evidence.receipts : [];
   return html`
     <div class="pending-detail" data-pending-detail="true">
       <p class="plate-meta pending-detail-label">${copy("webui.channel.pending-ruling")}</p>
-      <p class="pending-detail-summary">${item?.ruling_summary || copy("webui.channel.pending-no-summary")}</p>
+      <${PendingSummary} item=${item} />
       ${
         item?.rubric
           ? html`
               <p class="plate-meta pending-detail-label">${copy("webui.channel.pending-briefing")}</p>
-              ${item.rubric.tier ? html`<p class="pending-detail-tier">${copy("webui.channel.pending-tier")}: ${item.rubric.tier}</p>` : null}
+              <${PendingTier} item=${item} />
               ${pendingList("webui.channel.pending-unblocks", item.rubric.unblocks)}
               ${pendingList("webui.channel.pending-alignment", item.rubric.alignment)}
               ${pendingList("webui.channel.pending-options", item.rubric.options)}
@@ -177,7 +186,7 @@ function ChannelItem({ item, kind, onFocus }) {
     >
       <div class="channel-row">
         ${label.badge ? html`<span class=${clsx("channel-severity", label.badge.tone)}>${label.badge.text}</span>` : null}
-        <span class="channel-code" title=${label.title}>${label.title}</span>
+        <span class=${clsx("channel-code", kind === "backlog" && "channel-title-prose")} title=${label.title}>${label.title}</span>
         <span class="plate-meta channel-body-text" title=${label.body}>${label.body}</span>
         ${label.meta ? html`<span class="plate-meta channel-inline-meta" title=${label.metaTitle || label.meta}>${label.meta}</span>` : null}
         ${
@@ -211,6 +220,14 @@ function ChannelItem({ item, kind, onFocus }) {
             : null
         }
       </div>
+      ${
+        pending && !expanded
+          ? html`<div class="pending-collapsed">
+              <${PendingSummary} item=${item} />
+              <${PendingTier} item=${item} />
+            </div>`
+          : null
+      }
       ${pending && expanded ? html`<${PendingDetail} item=${item} />` : null}
     </article>`;
 }

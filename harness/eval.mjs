@@ -49,17 +49,17 @@ const WEIGHTS = {
 };
 
 const SCENARIOS = [
-  { name: "overview-desktop", width: 1440, height: 900, mobile: false },
+  { name: "overview-desktop", width: 1440, height: 900, mobile: false, requireNextRecommended: true, requireCleanQualified: true },
   { name: "inspector-desktop", width: 1440, height: 900, mobile: false, action: "selectNode" },
   { name: "findings-desktop", width: 1440, height: 900, mobile: false, action: "openFindings" },
   { name: "tablet-portrait", width: 834, height: 1112, mobile: true, checkTap: true },
   { name: "mobile-portrait", width: 390, height: 844, mobile: true, checkTap: true },
   { name: "command-palette", width: 1440, height: 900, mobile: false, action: "openPalette" },
-  { name: "backlog-tiers", width: 1440, height: 900, mobile: false, server: "demo", action: "openBacklog", requireBacklog: true, requireParent: true },
-  { name: "console-desktop", width: 1440, height: 900, mobile: false, action: "openConsole", requireConsole: true },
-  { name: "console-narrow", width: 683, height: 1024, mobile: true, action: "openConsole", requireConsole: true },
-  { name: "console-mobile", width: 390, height: 844, mobile: true, action: "openConsole", requireConsole: true },
-  { name: "pending-inbox", width: 1440, height: 900, mobile: false, action: "openPending", requirePending: true },
+  { name: "backlog-tiers", width: 1440, height: 900, mobile: false, server: "demo", action: "openBacklog", requireBacklog: true, requireParent: true, requireTitleProse: true },
+  { name: "console-desktop", width: 1440, height: 900, mobile: false, action: "openConsole", requireConsole: true, requireTitleProse: true },
+  { name: "console-narrow", width: 683, height: 1024, mobile: true, action: "openConsole", requireConsole: true, requireTitleProse: true },
+  { name: "console-mobile", width: 390, height: 844, mobile: true, action: "openConsole", requireConsole: true, requireTitleProse: true },
+  { name: "pending-inbox", width: 1440, height: 900, mobile: false, action: "openPending", requirePending: true, requirePendingCollapsed: true },
   { name: "blueprint-mode", width: 1440, height: 900, mobile: false, select: "cairn.root", action: "openBlueprint" },
   // Functional-state coverage: paths the clean self-scan never produces. The
   // "demo" server serves harness/fixtures-demo (findings + ghost/orphaned).
@@ -168,6 +168,7 @@ function missingLandmarks(scenario, lm) {
     if (!lm.pendingRubric) miss.push("pendingRubric");
     if (!lm.pendingEvidence) miss.push("pendingEvidence");
     if (!lm.pendingReopen) miss.push("pendingReopen");
+    if (scenario.requirePendingCollapsed && !lm.pendingCollapsedSummary) miss.push("pendingCollapsedSummary");
   }
   if (scenario.action === "openBlueprint") {
     if (!lm.evidenceRail) miss.push("evidenceRail");
@@ -176,6 +177,15 @@ function missingLandmarks(scenario, lm) {
   if (scenario.action === "openDecision") {
     if (!lm.evidenceRail) miss.push("evidenceRail");
     if (!lm.lineagePlate) miss.push("lineagePlate");
+  }
+  if (scenario.requireNextRecommended) {
+    if (!lm.nextRecommendedTitle) miss.push("nextRecommendedTitle");
+    if (!lm.nextRecommendedRule) miss.push("nextRecommendedRule");
+  }
+  if (scenario.requireTitleProse && !lm.backlogTitleProse) miss.push("backlogTitleProse");
+  if (scenario.requireCleanQualified) {
+    if (!lm.bezelCleanQualified) miss.push("bezelCleanQualified");
+    if (!lm.bezelSeveritySummary) miss.push("bezelSeveritySummary");
   }
   return miss;
 }
@@ -193,6 +203,17 @@ async function main() {
     }
   } catch {
     demoFindingNode = "";
+  }
+
+  // Expected next-recommended title from the base status fixture: the
+  // landmark compares the rendered bezel title against this, so a
+  // placeholder render cannot satisfy the check.
+  let expectedNextTitle = "";
+  try {
+    const status = JSON.parse(String(readFileSync(join(FIXTURES, "api/status"), "utf8")));
+    expectedNextTitle = String(status?.next_recommended?.title || "").trim();
+  } catch {
+    expectedNextTitle = "";
   }
 
   const scenarios = SCENARIOS.map((scenario) =>
@@ -311,6 +332,9 @@ async function main() {
       let actionFailed = false;
       if (ready) {
         await evalJs(KILL_ANIM_EXPR);
+        if (scenario.requireNextRecommended) {
+          await evalJs(`window.__evalExpectedNextTitle=${JSON.stringify(expectedNextTitle)};`);
+        }
         if (scenario.action) {
           await evalJs(
             "delete window.__evalExpectedFindingNode; delete window.__evalExpectedPaletteBaseCount; delete window.__evalExpectedDecisionTitle;",

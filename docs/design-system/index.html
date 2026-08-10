@@ -886,7 +886,7 @@ module saas.api.auth {
         <p>Instrument shell, status bezel, query rail, graph canvas, node module, evidence rail, node depth plate, lineage plate, blueprint plate, channel bar, state legend, and console lane.</p>
         <ul>
           <li><code>.instrument-shell</code></li>
-          <li><code>.status-bezel</code></li>
+          <li><code>.status-bezel</code> and <code>.status-next</code> (label, title, rule): the next-recommended row</li>
           <li><code>.query-rail</code></li>
           <li><code>.graph-canvas</code></li>
           <li><code>.node-module</code> and <code>.synced</code> / <code>.ghost</code> / <code>.orphaned</code> / <code>.drift</code> variants</li>
@@ -894,7 +894,7 @@ module saas.api.auth {
           <li><code>.node-depth-plate</code></li>
           <li><code>.lineage-plate</code></li>
           <li><code>.blueprint-plate</code></li>
-          <li><code>.channel-bar</code></li>
+          <li><code>.channel-bar</code> and <code>.channel-title-prose</code> (backlog title) / <code>.pending-collapsed</code> (collapsed ruling summary and tier)</li>
           <li><code>.state-legend</code></li>
           <li><code>.console-workspace</code> and <code>.console-lane</code> (head, title, source, body): the over-harness console's three-lane read-only composition; lane bodies scroll internally</li>
         </ul>
@@ -919,6 +919,11 @@ module saas.api.auth {
               <span class="status-severity info">1 Info</span>
             </span>
           </div>
+          <p class="status-next">
+            <span class="status-next-label">Next recommended</span>
+            <strong class="status-next-title">Render the evidence the browser already downloaded</strong>
+            <span class="status-next-rule">cairn.ui · Selected as the top open todo</span>
+          </p>
         </div>
 
         <div class="query-rail">
@@ -1052,6 +1057,29 @@ state: stable</pre>
               <p class="channel-title">node-paths.md</p>
               <p class="plate-meta channel-meta">agent-context-bundle · Synced</p>
               <p class="channel-body-text">Reconcile this file in module metadata.</p>
+            </article>
+            <div class="channel-tier">
+              <div class="channel-group">
+                <article class="channel-item">
+                  <div class="channel-row">
+                    <span class="channel-code channel-title-prose">Render the evidence the browser already downloaded</span>
+                    <span class="plate-meta channel-body-text">todo.console-wire-legibility</span>
+                    <span class="plate-meta channel-inline-meta">open</span>
+                    <button class="query-action channel-focus" type="button">Show node</button>
+                  </div>
+                </article>
+              </div>
+            </div>
+            <article class="channel-item pending-item">
+              <div class="channel-row">
+                <span class="channel-code">dec.bootstrap-fixture-corpus-split</span>
+                <span class="plate-meta channel-inline-meta">3d old · unratified</span>
+                <button class="query-action pending-toggle" type="button">Open</button>
+              </div>
+              <div class="pending-collapsed">
+                <p class="pending-detail-summary">The bootstrap test fixture keeps two kinds of files apart: rule files that cairn loads and checks, and evidence files cited in prose.</p>
+                <p class="pending-detail-tier">Tier: local. It touches one test area and replaces nothing.</p>
+              </div>
             </article>
           </div>
         </div>

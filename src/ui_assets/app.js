@@ -394,7 +394,7 @@ function App() {
 
   return html`
     <main class="instrument-shell" aria-label=${copy("webui.app")} data-compact=${compact}>
-      <${StatusBezel} nodeCount=${nodes.length} dependencyCount=${dependencyCount} findings=${findings} blueprintPath=${blueprint.path} />
+      <${StatusBezel} nodeCount=${nodes.length} dependencyCount=${dependencyCount} findings=${findings} blueprintPath=${blueprint.path} nextRecommended=${status.next_recommended} />
       ${
         notices.length
           ? html`
