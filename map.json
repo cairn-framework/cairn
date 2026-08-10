@@ -2930,8 +2930,8 @@
           "kind": "function",
           "signature": "pub fn all_command_names() -> Vec<&'static str>",
           "file": "src/cli/mod.rs",
-          "line": 1595,
-          "end_line": 1613
+          "line": 1603,
+          "end_line": 1621
         },
         {
           "name": "blank_command_failure_detail",
@@ -2978,8 +2978,8 @@
           "kind": "function",
           "signature": "pub fn run(args: &[String]) -> CliResult",
           "file": "src/cli/mod.rs",
-          "line": 626,
-          "end_line": 943
+          "line": 634,
+          "end_line": 951
         },
         {
           "name": "run",
@@ -3114,8 +3114,8 @@
           "kind": "const",
           "signature": "pub(crate) const RETIRED_TOP_LEVEL",
           "file": "src/cli/mod.rs",
-          "line": 1590,
-          "end_line": 1590
+          "line": 1598,
+          "end_line": 1598
         },
         {
           "name": "blueprint_root",
@@ -3130,8 +3130,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1629,
-          "end_line": 1644
+          "line": 1637,
+          "end_line": 1652
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -9557,6 +9557,13 @@
       "message": "research `res.brownfield-extraction-external-run` is not linked from any decision",
       "node": null,
       "path": "meta/research/brownfield-extraction-external-run.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.brownfield-node-modules-ignore-suppression` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/brownfield-node-modules-ignore-suppression.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",

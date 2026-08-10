@@ -5,7 +5,7 @@ expression: human.stdout
 brownfield init complete; change written to meta/changes/brownfield-init/
 
 Suggested initial ignores (written only with `--apply`):
-  - "node_modules"
+  - "vendor"
   - "packages/api/dist"
   - "packages/web/dist"
 
