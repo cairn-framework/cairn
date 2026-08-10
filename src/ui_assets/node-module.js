@@ -1,4 +1,4 @@
-import { clsx, html, parseState } from "./utils.js";
+import { clsx, copy, html, parseState } from "./utils.js";
 
 /**
  * Data:
@@ -11,6 +11,7 @@ import { clsx, html, parseState } from "./utils.js";
  */
 function NodeModule({ node, isSelected, isNeighbour, onSelect, compact, optionId }) {
   const state = parseState(node.state);
+  const stateLabel = copy(`webui.states.${state}`);
   const fullId = String(node.id || "");
   const shortId = fullId.split(".").pop();
   const nodeName = String(node.name || "").trim();
@@ -34,7 +35,7 @@ function NodeModule({ node, isSelected, isNeighbour, onSelect, compact, optionId
         }
       }}
       title=${fullId}
-      aria-label=${fullId}
+      aria-label=${`${fullId}, ${stateLabel}`}
     >
       <p class="node-id">${shortId}</p>
       ${

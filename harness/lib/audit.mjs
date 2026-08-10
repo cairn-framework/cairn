@@ -381,6 +381,21 @@ export function auditPage(opts) {
     !!selectedColour &&
     !!inkAged &&
     norm(inkAged) !== norm(selectedColour);
+  // Accessible-name contract: "<node id>, <state label>", where the label is
+  // the rendered copy.toml string for the module's own state class (Synced,
+  // Planned for ghost, Orphaned, Drift). Derived from the class so a wrong
+  // or stale label fails; a copy-load failure yields a bare id and fails too.
+  const stateNamedModules = Array.from(document.querySelectorAll(".node-module"));
+  const nodeStateNamed =
+    stateNamedModules.length > 0 &&
+    stateNamedModules.every((mod) => {
+      const id = mod.getAttribute("data-node-id") || "";
+      const label = mod.getAttribute("aria-label") || "";
+      const state = ["synced", "ghost", "orphaned", "drift"].find((cls) => mod.classList.contains(cls));
+      if (!state) return false;
+      const expected = state === "ghost" ? "planned" : state;
+      return label.toLowerCase() === `${id.toLowerCase()}, ${expected}`;
+    });
 
   const landmarks = {
     shell: !!document.querySelector(".instrument-shell"),
@@ -392,6 +407,7 @@ export function auditPage(opts) {
     graphSvg: !!document.querySelector(".graph-svg"),
     nodeModules: document.querySelectorAll(".node-module").length,
     selectedNode: document.querySelectorAll(".node-module.selected").length,
+    nodeStateNamed,
     dimmedNodeRecessed,
     evidenceRail: !!document.querySelector(".evidence-rail"),
     depthPlate: !!document.querySelector(".node-depth-plate"),

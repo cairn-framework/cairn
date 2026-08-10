@@ -549,7 +549,12 @@ marker path {
 .node-module.synced .state-dot { background: var(--synced); }
 .node-module.ghost .state-dot { background: var(--ghost); }
 .node-module.orphaned .state-dot { background: var(--orphaned); }
-.node-module.drift .state-dot { background: var(--drift); animation: driftBlink var(--dur-settle) var(--ease-settle) infinite; }
+.node-module.drift .state-dot {
+  background: var(--drift);
+  border-radius: 0;
+  transform: rotate(45deg);
+  animation: driftBlink var(--dur-settle) var(--ease-settle) infinite;
+}
 
 .instrument-workspace[data-evidence-state='collapsed'] {
   grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
@@ -1097,9 +1102,15 @@ marker path {
   background: var(--ghost-wash);
 }
 
-.state-legend .legend-item.orphaned .legend-key,
-.state-legend .legend-item.drift .legend-key {
+.state-legend .legend-item.orphaned .legend-key {
   background: var(--orphaned);
+  transform: rotate(var(--ui-orphan-tilt));
+}
+
+.state-legend .legend-item.drift .legend-key {
+  background: var(--drift);
+  border-radius: 0;
+  transform: rotate(45deg);
 }
 
 .state-legend .legend-label {
@@ -1275,6 +1286,8 @@ marker path {
   .node-shell,
   .node-module,
   .node-shell .node-module,
+  .node-module.drift,
+  .node-module.drift .state-dot,
   .dependency-link path,
   .evidence-rail .rail-body > *,
   .channel-body,

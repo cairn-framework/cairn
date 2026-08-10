@@ -134,6 +134,7 @@ function missingLandmarks(scenario, lm) {
     if (!lm.graphCanvas) miss.push("graphCanvas");
     if (!lm.graphSvg) miss.push("graphSvg");
     if (!lm.nodeModules) miss.push("nodeModules");
+    if (!lm.nodeStateNamed) miss.push("nodeStateNamed");
   }
   if (scenario.action === "selectNode" || scenario.select) {
     if (!lm.selectedNode) miss.push("selectedNode");
@@ -245,6 +246,28 @@ async function main() {
       }
       return false;
     };
+
+    // Reduced-motion contract (todo.console-state-grammar): with
+    // prefers-reduced-motion emulated and BEFORE the kill-switch style is
+    // injected, the stylesheet's own reduce block must already stop the
+    // drift animations, in both consumers: the webui (modules wrapped in
+    // .node-shell) and the unwrapped design-system live reference. The two
+    // differ in which reduced-motion selector wins the cascade.
+    const DRIFT_ANIM_EXPR =
+      "(function(){var m=document.querySelector('.node-module');if(!m)return 'no-module';m.classList.add('drift');var d=m.querySelector('.state-dot');var a=getComputedStyle(m).animationName;var b=d?getComputedStyle(d).animationName:'none';m.classList.remove('drift');return a+'|'+b;})()";
+    let reducedMotionViolations = 0;
+    for (const target of [
+      { name: "webui-wrapped", url: `${replay.url}/`, readyExpr: READY_EXPR },
+      { name: "reference-unwrapped", url: `file://${join(ROOT, "docs/design-system/index.html")}`, readyExpr: "!!document.querySelector('.node-module .state-dot')" },
+    ]) {
+      await client.send("Page.navigate", { url: target.url }, sessionId);
+      const targetReady = await waitUntil(target.readyExpr, 10000);
+      const anims = targetReady ? await evalJs(DRIFT_ANIM_EXPR) : "render-failed";
+      if (anims !== "none|none") {
+        reducedMotionViolations += 1;
+        console.error(`harness: reduced-motion violation in ${target.name}: ${anims}`);
+      }
+    }
 
     const results = [];
     for (const scenario of scenarios) {
@@ -383,6 +406,7 @@ async function main() {
       missing_landmarks: results.reduce((s, r) => s + r.missingLandmarks.length, 0),
       scenarios_ready: results.reduce((s, r) => s + (r.ready ? 1 : 0), 0),
       scenarios_total: results.length,
+      reduced_motion_violations: reducedMotionViolations,
     };
 
     writeFileSync(
@@ -395,6 +419,10 @@ async function main() {
 
     if (secondary.scenarios_ready === 0) {
       console.error("harness: no scenario rendered; check fixtures and chrome");
+      return 1;
+    }
+    if (reducedMotionViolations > 0) {
+      console.error("harness: drift animations run under prefers-reduced-motion");
       return 1;
     }
     return 0;

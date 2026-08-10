@@ -369,11 +369,6 @@ marker path {
   z-index: 4;
 }
 
-.state-legend .legend-item.orphaned .legend-key,
-.state-legend .legend-item.drift .legend-key {
-  transform: rotate(var(--ui-orphan-tilt));
-}
-
 .plate-meta {
   margin: 0;
   color: var(--ink-aged);

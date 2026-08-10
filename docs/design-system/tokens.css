@@ -147,8 +147,11 @@
 
   --ghost: var(--ink-mist);
   --ghost-wash: rgba(80, 75, 66, 0.2);
-  --orphaned: var(--drift);
-  --orphan-wash: var(--drift-wash);
+  /* Orphaned deliberately shares the error family (ember): an undeclared
+     file is a defect signal. Its static channel on the canvas is the tilt,
+     not the hue. */
+  --orphaned: var(--ci-ember);
+  --orphan-wash: rgba(217, 138, 112, 0.14);
   --font-serif: "Source Serif 4", "Times New Roman", serif;
   --font-sans: var(--ci-font-ui);
   --font-ui: var(--ci-font-ui);
@@ -299,8 +302,8 @@
 
   --ghost: #6d685f;
   --ghost-wash: rgba(108, 101, 89, 0.2);
-  --orphaned: var(--drift);
-  --orphan-wash: var(--drift-wash);
+  --orphaned: #a96343;
+  --orphan-wash: rgba(169, 99, 67, 0.14);
   --planned: var(--ci-signal-deep);
   --planned-wash: rgba(40, 125, 101, 0.08);
 
