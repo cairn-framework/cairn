@@ -1,9 +1,12 @@
 ---
 node: cairn.reconcile
-status: open
+status: blocked
 created: 2026-07-31
 related: [src.reddit-ontology-pointers, dec.domain-expandability]
-blocked_by: [todo.todo-relationship-schema-implementation, todo.parallel-dispatch-granularity]
+blocked_by:
+  - todo.todo-relationship-schema-implementation
+  - todo.parallel-dispatch-granularity
+  - todo.driver-v2-read-surface-audit
 ---
 
 # Build/CI observation overlay: one bounded dogfood experiment
@@ -47,3 +50,21 @@ extractor plus version, observed_at, freshness, completeness.
 2026-08-02: blocked against dec.cairn-mission. Serves extendable. Its dependency-gated horizon has declared blockers, so it remains parked without false readiness.
 
 2026-08-07 audit (todo.roadmap-assumption-audit): status set open this session: both declared blockers (todo.todo-relationship-schema-implementation, todo.parallel-dispatch-granularity) are done, and lint confirmed the contradiction. Scope itself still reads current.
+
+2026-08-10 loop iteration: status set `blocked` on
+`todo.driver-v2-read-surface-audit`, which stems the unchecked tasks 1 and 2 of
+`meta/changes/driver-v2-selection`. The horizon clause above stays as written;
+that edge is its machine-visible counterpart, because a clause naming chains in
+prose cannot gate selection and every session reaching this unit re-argues it.
+The two edges the 2026-08-07 audit found satisfied are retained as resolved
+blockers rather than deleted. Nothing was implemented against the gate.
+
+`todo.driver-in-repo` is deliberately NOT an edge here, which is the question
+this note exists to settle. That change retired its tasks 3 and 4 into it on
+2026-08-04 (`dec.orchestration-placement`), so it is arguably live driver work.
+It is excluded on two grounds: `res.inversion-convergence-minutes` R5 parked
+driver-in-repo outside the slate that authored the clause, so the clause never
+named it, and it is itself `blocked` on four children, so the edge would park a
+bounded experiment behind a large programme with no clearing date. If a later
+session wants that dependency, it is a decision, not a re-reading of this
+clause.
