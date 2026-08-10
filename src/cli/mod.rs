@@ -1612,15 +1612,30 @@ pub fn all_command_names() -> Vec<&'static str> {
     names
 }
 
+/// Copy key authoring the `onboard` description, which names two command forms
+/// and so lives in the copy table rather than the table below.
+const ONBOARD_DESCRIPTION_KEY: &str = "help.commands.onboard.description";
+
 /// Returns the human-readable description for a CLI command.
 ///
-/// Sourced from `query_api::registry()` for every query-api tool and from
-/// the CLI-only table otherwise. The registry is the single source of truth,
-/// so adding a registry operation makes it appear in CLI help with no
-/// hand-maintained list edit.
+/// Sourced from `query_api::registry()` for every query-api tool, then from the
+/// copy table for `onboard`, and from the CLI-only table otherwise. The registry
+/// is the single source of truth, so adding a registry operation makes it appear
+/// in CLI help with no hand-maintained list edit.
+///
+/// The copy lookup is deliberately scoped to `onboard` rather than applied to
+/// every command: a blanket copy-first listing would silently restate other
+/// commands' descriptions from copy values written for their per-command pages.
 pub(crate) fn command_description(name: &str) -> &'static str {
     if let Some(tool) = registry().iter().find(|t| t.cli_name == name) {
         return tool.description;
+    }
+    if name == "onboard" {
+        let authored = copy::lookup(ONBOARD_DESCRIPTION_KEY);
+        // `lookup` echoes the key when the table does not author it.
+        if authored != ONBOARD_DESCRIPTION_KEY {
+            return authored;
+        }
     }
     CLI_ONLY_COMMANDS
         .iter()

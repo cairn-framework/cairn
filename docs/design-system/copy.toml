@@ -288,6 +288,17 @@ err-write = "failed to write {file}: {detail}"
 err-temp-collision = "too many temp file collisions"
 err-from-code-conflict = "usage: cairn init --from-code --apply --wire [path]"
 
+# -- Brownfield onboarding ------------------------------------------------
+
+# The deterministic decision-evidence index behind `cairn onboard decisions`.
+[onboard.decisions]
+heading = "Decision evidence"
+bound-heading = "Bound evidence"
+unbound-heading = "Unbound evidence"
+unbound-note = "No declared blueprint path claims these. Declare an owner before drafting a decision from them."
+empty = "No decision evidence found. Nothing under docs/adr/ or docs/decisions/, no README Decision, Rationale, or Invariant section, and no invariant comment."
+no-blueprint = "cairn onboard decisions requires an onboarded blueprint; {path} does not exist. Run cairn init --from-code first."
+
 # -- Path containment -----------------------------------------------------
 
 # Shared by every command that writes into a user's project: the pack
@@ -849,7 +860,9 @@ args = "  <node>  Centre node id"
 usage = "cairn next [options]"
 
 [help.commands.onboard]
-usage = "cairn onboard [options]"
+usage = "cairn onboard [decisions] [options]"
+args = "  [decisions]  Index decision evidence and bind each path to the blueprint node that owns it; omit it to keep the orphan report"
+description = "Suggest blueprint entries for orphaned files, or index decision evidence with `cairn onboard decisions`"
 
 [help.commands.order]
 usage = "cairn order [options]"

@@ -9,7 +9,10 @@
 //! - `walk`: the bounded survey itself, recording source files and package roots
 //! - `init`: `cairn init --from-code` handler
 //! - `refine`: `cairn refine` handler
+//! - `decisions`: the deterministic decision-evidence index
 
+/// Brownfield decision evidence: the deterministic `onboard decisions` index.
+pub mod decisions;
 /// Brownfield discovery: turns a filesystem survey into module candidates.
 pub mod discovery;
 mod heuristics;

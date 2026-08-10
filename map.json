@@ -670,6 +670,10 @@
         "./src/brownfield"
       ],
       "files": [
+        "src/brownfield/decisions/collect.rs",
+        "src/brownfield/decisions/mod.rs",
+        "src/brownfield/decisions/render.rs",
+        "src/brownfield/decisions/tests.rs",
         "src/brownfield/discovery.rs",
         "src/brownfield/heuristics.rs",
         "src/brownfield/import_edges.rs",
@@ -745,6 +749,22 @@
           "end_line": 5
         },
         {
+          "name": "SCHEMA_VERSION",
+          "kind": "const",
+          "signature": "pub const SCHEMA_VERSION u32",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 29,
+          "end_line": 29
+        },
+        {
+          "name": "as_str",
+          "kind": "function",
+          "signature": "pub const fn as_str(self) -> &'static str",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 63,
+          "end_line": 70
+        },
+        {
           "name": "confidence",
           "kind": "function",
           "signature": "pub const fn confidence(&self) -> CandidateConfidence",
@@ -775,6 +795,14 @@
           "file": "src/brownfield/onboard.rs",
           "line": 51,
           "end_line": 59
+        },
+        {
+          "name": "EvidenceKind",
+          "kind": "enum",
+          "signature": "pub enum EvidenceKind",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 49,
+          "end_line": 58
         },
         {
           "name": "ImportRef",
@@ -813,8 +841,8 @@
           "kind": "function",
           "signature": "pub fn blueprint_delta(extraction: &Extraction) -> String",
           "file": "src/brownfield/mod.rs",
-          "line": 138,
-          "end_line": 176
+          "line": 141,
+          "end_line": 179
         },
         {
           "name": "build_request",
@@ -862,7 +890,7 @@
           "signature": "pub fn discover(root: &Path) -> Result<Extraction, CairnError>",
           "file": "src/brownfield/discovery.rs",
           "line": 81,
-          "end_line": 123
+          "end_line": 84
         },
         {
           "name": "enrich_candidate",
@@ -889,6 +917,14 @@
           "end_line": 87
         },
         {
+          "name": "index",
+          "kind": "function",
+          "signature": "pub fn index(root: &Path, graph: &Graph) -> Result<EvidenceIndex, CairnError>",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 171,
+          "end_line": 199
+        },
+        {
           "name": "load_templates",
           "kind": "function",
           "signature": "pub fn load_templates(root: &Path) -> Vec<ContractTemplate>",
@@ -905,6 +941,22 @@
           "end_line": 73
         },
         {
+          "name": "new",
+          "kind": "function",
+          "signature": "pub fn new(graph: &'graph Graph) -> Self",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 119,
+          "end_line": 131
+        },
+        {
+          "name": "owner_of",
+          "kind": "function",
+          "signature": "pub fn owner_of(&self, path: &str) -> Option<&'graph str>",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 141,
+          "end_line": 159
+        },
+        {
           "name": "record_answer",
           "kind": "function",
           "signature": "pub fn record_answer( change_dir: &Path, session: &InterviewSession, answer: &str, ) -> Result<InterviewSession, CairnError>",
@@ -915,10 +967,26 @@
         {
           "name": "render_human",
           "kind": "function",
+          "signature": "pub fn render_human(report: &EvidenceIndex) -> String",
+          "file": "src/brownfield/decisions/render.rs",
+          "line": 11,
+          "end_line": 55
+        },
+        {
+          "name": "render_human",
+          "kind": "function",
           "signature": "pub fn render_human(report: &OnboardReport) -> String",
           "file": "src/brownfield/onboard.rs",
           "line": 117,
           "end_line": 176
+        },
+        {
+          "name": "render_json",
+          "kind": "function",
+          "signature": "pub fn render_json(report: &EvidenceIndex) -> String",
+          "file": "src/brownfield/decisions/render.rs",
+          "line": 59,
+          "end_line": 79
         },
         {
           "name": "render_json",
@@ -973,8 +1041,8 @@
           "kind": "function",
           "signature": "pub fn stub_contract(candidate: &DiscoveredCandidate) -> String",
           "file": "src/brownfield/mod.rs",
-          "line": 49,
-          "end_line": 56
+          "line": 52,
+          "end_line": 59
         },
         {
           "name": "suggest_edges",
@@ -997,8 +1065,8 @@
           "kind": "function",
           "signature": "pub fn write_change( root: &std::path::Path, change_id: &str, extraction: &Extraction, templates: &[templates::ContractTemplate], ) -> Result<(), CairnError>",
           "file": "src/brownfield/mod.rs",
-          "line": 96,
-          "end_line": 134
+          "line": 99,
+          "end_line": 137
         },
         {
           "name": "write_suggested_edges",
@@ -1009,68 +1077,84 @@
           "end_line": 127
         },
         {
+          "name": "decisions",
+          "kind": "module",
+          "signature": "pub mod decisions",
+          "file": "src/brownfield/mod.rs",
+          "line": 15,
+          "end_line": 15
+        },
+        {
           "name": "discovery",
           "kind": "module",
           "signature": "pub mod discovery",
           "file": "src/brownfield/mod.rs",
-          "line": 14,
-          "end_line": 14
+          "line": 17,
+          "end_line": 17
         },
         {
           "name": "init",
           "kind": "module",
           "signature": "pub mod init",
           "file": "src/brownfield/mod.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 24,
+          "end_line": 24
         },
         {
           "name": "interview",
           "kind": "module",
           "signature": "pub mod interview",
           "file": "src/brownfield/mod.rs",
-          "line": 23,
-          "end_line": 23
+          "line": 26,
+          "end_line": 26
         },
         {
           "name": "onboard",
           "kind": "module",
           "signature": "pub mod onboard",
           "file": "src/brownfield/mod.rs",
-          "line": 25,
-          "end_line": 25
+          "line": 28,
+          "end_line": 28
         },
         {
           "name": "refine",
           "kind": "module",
           "signature": "pub mod refine",
           "file": "src/brownfield/mod.rs",
-          "line": 27,
-          "end_line": 27
+          "line": 30,
+          "end_line": 30
         },
         {
           "name": "suggest",
           "kind": "module",
           "signature": "pub mod suggest",
           "file": "src/brownfield/mod.rs",
-          "line": 29,
-          "end_line": 29
+          "line": 32,
+          "end_line": 32
         },
         {
           "name": "summarise",
           "kind": "module",
           "signature": "pub mod summarise",
           "file": "src/brownfield/mod.rs",
-          "line": 31,
-          "end_line": 31
+          "line": 34,
+          "end_line": 34
         },
         {
           "name": "templates",
           "kind": "module",
           "signature": "pub mod templates",
           "file": "src/brownfield/mod.rs",
-          "line": 33,
-          "end_line": 33
+          "line": 36,
+          "end_line": 36
+        },
+        {
+          "name": "BoundEvidence",
+          "kind": "struct",
+          "signature": "pub struct BoundEvidence",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 89,
+          "end_line": 94
         },
         {
           "name": "Candidate",
@@ -1113,6 +1197,22 @@
           "end_line": 68
         },
         {
+          "name": "Evidence",
+          "kind": "struct",
+          "signature": "pub struct Evidence",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 75,
+          "end_line": 85
+        },
+        {
+          "name": "EvidenceIndex",
+          "kind": "struct",
+          "signature": "pub struct EvidenceIndex",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 98,
+          "end_line": 103
+        },
+        {
           "name": "Extraction",
           "kind": "struct",
           "signature": "pub struct Extraction",
@@ -1145,6 +1245,14 @@
           "end_line": 47
         },
         {
+          "name": "OwnerResolver",
+          "kind": "struct",
+          "signature": "pub struct OwnerResolver<'graph>",
+          "file": "src/brownfield/decisions/mod.rs",
+          "line": 112,
+          "end_line": 114
+        },
+        {
           "name": "Turn",
           "kind": "struct",
           "signature": "pub struct Turn",
@@ -1175,6 +1283,14 @@
           "file": "src/brownfield/heuristics.rs",
           "line": 135,
           "end_line": 150
+        },
+        {
+          "name": "from_survey",
+          "kind": "function",
+          "signature": "pub(super) fn from_survey(root: &Path, survey: &walk::Survey) -> Extraction",
+          "file": "src/brownfield/discovery.rs",
+          "line": 90,
+          "end_line": 131
         },
         {
           "name": "normalise_separators",
@@ -3013,8 +3129,8 @@
           "kind": "function",
           "signature": "pub(crate) fn command_description(name: &str) -> &'static str",
           "file": "src/cli/mod.rs",
-          "line": 1621,
-          "end_line": 1629
+          "line": 1629,
+          "end_line": 1644
         },
         {
           "name": "current_timestamp_rfc3339",
@@ -8718,6 +8834,7 @@
         "tests/kernel.rs",
         "tests/landing_assets.rs",
         "tests/mcp.rs",
+        "tests/onboard_owner_parity.rs",
         "tests/order_cycle_severity.rs",
         "tests/output_token_efficiency_findings.rs",
         "tests/output_token_efficiency_status_brief.rs",
@@ -9453,6 +9570,13 @@
       "message": "research `res.node-symbol-coverage.investigation` is not linked from any decision",
       "node": null,
       "path": "meta/research/node-symbol-coverage.investigation.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.onboard-decision-evidence-scope` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/onboard-decision-evidence-scope.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
