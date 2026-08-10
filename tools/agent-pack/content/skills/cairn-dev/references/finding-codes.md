@@ -36,12 +36,6 @@ These findings cause `cairn hook structural` and `cairn hook all` to exit 1 (fai
 **Meaning:** The dependency edge graph contains a cycle. Cairn requires a DAG (directed acyclic graph).
 **Remediation:** Remove or redirect one of the edges in the cycle. Use `cairn deps <node> --transitive` to trace the dependency chain.
 
-### CAIRN_CLI_MISSING_NODE
-
-**Severity:** Error
-**Meaning:** A CLI command that requires a node argument was called without one.
-**Remediation:** Provide a node ID as the argument: `cairn get <node.id>`.
-
 ### CAIRN_BLUEPRINT_CHANGE_NO_DECISION (CA002)
 
 **Severity:** Error
@@ -96,13 +90,13 @@ These findings are surfaced in `cairn lint` and `cairn scan` output but do not b
 **Meaning:** A source artefact has `verification: unverified` in its frontmatter, meaning its contents have not been checked against the original.
 **Remediation:** Verify the source against the original and update the frontmatter to `verification: verified` (with a `sha256` field), `verification: external` (for URL-based sources), or `verification: tracked` (for a live in-repo path read as it stands).
 
-## CLI errors (not scan findings)
-
-These are reported when a command is invoked incorrectly. They are not produced by `cairn scan` or `cairn lint`.
+## CLI invocation errors (not scan findings)
 
 ### CAIRN_CLI_MISSING_NODE
 
-See the Error findings section above.
+**Severity:** Error, reported at invocation (usage error, exit 2); never produced by `cairn scan` or `cairn lint` and never blocks a hook.
+**Meaning:** A CLI command that requires a node argument was called without one.
+**Remediation:** Provide a node ID as the argument: `cairn get <node.id>`.
 
 ## Registry format
 

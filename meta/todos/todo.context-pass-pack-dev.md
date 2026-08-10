@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-08-10
 parent: todo.context-pass-skill-pack
 related: [res.skill-absorption, res.reference-budget-headroom]
@@ -47,3 +47,14 @@ mirrors (`loop-mode.md` belongs to todo.context-pass-pack-loop).
 - Cross-seam pointers between `loop-mode.md` and the references this child
   owns still resolve after the pass.
 - `scripts/check-voice-markers.sh` clean (zero FAIL) over every touched file.
+
+## Measurement (recorded on completion, 2026-08-11)
+
+First-turn terms for this surface, per
+`tools/agent-pack/tests/first_turn_budget_tests.rs`: router (`SKILL.md`)
+4,742 bytes before, 3,888 after; cairn-dev advertised metadata (name 9 +
+description 273) 282 bytes, unchanged (the description's trigger wording was
+kept deliberately). This surface's share of the first-turn total: 5,024
+bytes before, 4,170 after, a 17 percent cut. Per-reference sizes and the
+local compression evidence live in `res.context-pass-pack-dev.measurement`;
+every reference sits within the 6,000-byte ceiling.

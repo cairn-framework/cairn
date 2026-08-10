@@ -16,20 +16,12 @@ Run them in that order. `locate` takes an exact symbol name, so start from a nam
 the bug report actually contains (a function, type, error string, or CLI flag). If
 the report names no symbol, start at `cairn context` and narrow by area instead.
 
-## When the graph stops helping
+## From graph to source
 
-The graph tells you who owns what and what depends on it. It does not tell you
-what the code does. Switch to reading source once you have the owning node and
-its files:
-
-- Read the implementation. `cairn get <node> --symbols --json` gives each symbol's
-  `file`, `line`, and `end_line`. Read that window, not the whole file.
-- Use your editor's language server (definition, references, type) to follow call
-  chains inside a node. Cairn edges are module-level; they do not resolve a
-  specific caller.
-- Reach for text search only when a symbol is not in the graph at all: private
-  Rust items are excluded from the graph's symbol set, so `locate` returning
-  nothing does not mean the symbol does not exist.
+The graph tells you who owns what and what depends on it; it does not tell you
+what the code does. Once you have the owning node, read the symbol spans it
+declares and follow call chains with the language server; the discipline is in
+`graph-navigation.md`.
 
 ## Fix it
 
@@ -44,10 +36,6 @@ its files:
 
 ## Verify
 
-```bash
-cairn scan
-cairn hook all
-```
-
-Plus the repository's own gates. Prove the fix at the boundary the bug was
-reported at: if it was reported as a CLI misbehaviour, run the command.
+Run the router's gate plus the repository's own gates, and prove the fix at
+the boundary the bug was reported at: if it was reported as a CLI
+misbehaviour, run the command.

@@ -27,17 +27,12 @@ Two questions the graph answers that reading code does not:
 - **What would this change break.** The inbound transitive dependency set is the
   blast radius, computed from declared edges rather than guessed from imports.
 
-## When the graph stops helping
+## From graph to source
 
-The graph is structural. It carries no control flow, no data flow, and no runtime
-behaviour. Once you know which nodes are involved:
-
-- Read the entry points and the contract, not every file.
-  `cairn contract <node>` gives the declared interface; `cairn get <node>
-  --symbols --json` gives each symbol with `file`, `line`, and `end_line` so you
-  can read exact spans.
-- Use the language server to follow a call chain across nodes; edges tell you a
-  dependency exists, not where it is exercised.
+The graph is structural: no control flow, no data flow, no runtime behaviour.
+Once you know which nodes are involved, read the entry points and the contract
+(`cairn contract <node>`), not every file, and follow call chains with the
+language server; the discipline is in `graph-navigation.md`.
 
 ## Reporting
 
