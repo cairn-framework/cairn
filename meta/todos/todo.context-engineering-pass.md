@@ -1,11 +1,29 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: blocked
 created: 2026-08-07
 related: [res.skill-absorption]
+blocked_by:
+  - todo.context-pass-agents-md
+  - todo.context-pass-skill-pack
 ---
 
 # Context engineering pass over AGENTS.md and the skill pack
+
+blocked on sub-todos: todo.context-pass-agents-md (cairn.root, owns item 1),
+todo.context-pass-skill-pack (cairn.kernel.cli, owns items 2 and 3).
+Decomposed 2026-08-10 under the sizing rule: items 2 and 3 are one surface
+(every canonical file under `tools/agent-pack/content/` has a byte-identical
+generated counterpart under `.claude/` `skills/` and `commands/`, enforced by
+the determinism drift tests), item 4
+is folded into each child's acceptance per surface. The Task and Acceptance
+below are discharged per surface by the children, except the combined
+metric: the iteration completing the last child flips this todo to done AND
+records here the combined before/after token count of the always-loaded
+surface (AGENTS.md plus the pack first-turn surface as computed by
+`tools/agent-pack/tests/first_turn_budget_tests.rs`), summed from the
+per-child measurements, so item 4's original combined metric survives the
+split.
 
 Source: `src.context-engineering-claude5`. Anthropic removed over 80 percent of
 Claude Code's system prompt for Claude 5 generation models with no measured
