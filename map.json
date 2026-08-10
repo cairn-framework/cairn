@@ -2870,8 +2870,8 @@
           "kind": "function",
           "signature": "pub fn run_accept_gate( project_root: &Path, change_id: Option<&str>, json: bool, dry_run: bool, ) -> CliResult",
           "file": "src/cli/accept/mod.rs",
-          "line": 18,
-          "end_line": 86
+          "line": 19,
+          "end_line": 94
         },
         {
           "name": "run_check",

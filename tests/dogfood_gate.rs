@@ -1,7 +1,9 @@
-//! Regression guard for cairn-9ey: the dogfood gate must run the working
-//! tree's freshly-built cairn, never a PATH-installed (and possibly stale)
-//! binary. With a stale `~/.cargo/bin/cairn`, the pre-push gate can false-green
-//! by linting with an old binary that lacks the working tree's newer checks.
+//! Regression guard for the stale-PATH-binary defect class (cairn-9ey): a gate
+//! that reaches cairn through `PATH` grades whatever binary happens to be
+//! installed, so a stale `~/.cargo/bin/cairn` can false-green by linting with an
+//! old binary that lacks the working tree's newer checks. The pre-push dogfood
+//! gate must reach cairn only through `cargo run --bin cairn`; the
+//! `cairn change accept` gate must reach it only through the running executable.
 
 use std::path::Path;
 
@@ -286,5 +288,106 @@ fn auto_pr_reports_stash_restore_conflict() {
             .trim()
             .is_empty(),
         "a conflicted stash must remain available"
+    );
+}
+
+/// A minimal cairn project carrying one change, plus a fake `cairn` on `PATH`
+/// that records every invocation instead of doing any work.
+#[cfg(unix)]
+struct AcceptGateFixture {
+    root: tempfile::TempDir,
+    marker: std::path::PathBuf,
+}
+
+#[cfg(unix)]
+fn accept_gate_fixture() -> AcceptGateFixture {
+    let root = tempfile::tempdir().expect("temporary project");
+    let path = root.path();
+    fs::create_dir_all(path.join("src")).expect("source directory");
+    fs::create_dir_all(path.join("meta/contracts")).expect("contract directory");
+    fs::create_dir_all(path.join("meta/changes/demo")).expect("change directory");
+    fs::create_dir_all(path.join("fake-bin")).expect("fake bin directory");
+    // A project that reconciles cleanly, so the lint leg's verdict reports what
+    // the binary under test actually found rather than a fixture defect.
+    fs::write(
+        path.join("cairn.blueprint"),
+        "System Demo \"Fixture project\" id \"demo\" @fixture {\n\n    \
+         Module Core \"Fixture module\" id \"demo.core\" {\n        \
+         path \"./src\"\n        \
+         contract \"./meta/contracts/core.md\"\n    }\n}\n",
+    )
+    .expect("blueprint");
+    fs::write(
+        path.join("meta/contracts/core.md"),
+        "---\nnode: demo.core\n---\n\n# Core\n\nThe fixture module exists.\n",
+    )
+    .expect("contract");
+    fs::write(
+        path.join("src/main.rs"),
+        "fn main() {}\n\n#[cfg(test)]\nmod tests {\n    #[test]\n    fn it_runs() {}\n}\n",
+    )
+    .expect("source file");
+    fs::write(path.join("meta/changes/demo/proposal.md"), "# demo\n").expect("proposal");
+    // An empty gate list keeps the language battery out of the way so the run
+    // exercises exactly the lint leg under test.
+    fs::write(path.join("cairn.config.yaml"), "gates: []\n").expect("gate config");
+    let marker = path.join("stale-cairn-invocations.log");
+    // The stale stand-in fails, so reaching it would flip the gate's verdict as
+    // well as leaving the marker behind.
+    executable(
+        &path.join("fake-bin/cairn"),
+        &format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$*\" >> {}\nexit 1\n",
+            marker.display()
+        ),
+    );
+    AcceptGateFixture { root, marker }
+}
+
+#[cfg(unix)]
+fn run_accept(fixture: &AcceptGateFixture, with_stale_path: bool) -> std::process::Output {
+    let inherited = std::env::var("PATH").expect("PATH");
+    let path = if with_stale_path {
+        format!(
+            "{}:{inherited}",
+            fixture.root.path().join("fake-bin").display()
+        )
+    } else {
+        inherited
+    };
+    Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .args(["change", "accept", "demo"])
+        .current_dir(fixture.root.path())
+        .env("PATH", path)
+        .output()
+        .expect("run cairn change accept")
+}
+
+#[cfg(unix)]
+#[test]
+fn accept_gate_never_invokes_path_cairn() {
+    let fixture = accept_gate_fixture();
+    let stale = run_accept(&fixture, true);
+    let stdout = String::from_utf8_lossy(&stale.stdout);
+    assert!(
+        stdout.contains("[PASSED] cairn lint --strict demo"),
+        "the lint leg must run against the clean fixture and pass: {stdout}"
+    );
+    assert!(
+        !fixture.marker.exists(),
+        "accept must not resolve `cairn` from PATH; the stale binary was invoked with: {}",
+        fs::read_to_string(&fixture.marker).unwrap_or_default()
+    );
+
+    let clean = run_accept(&fixture, false);
+    assert_eq!(
+        stale.status.code(),
+        clean.status.code(),
+        "a stale PATH cairn must not change the accept verdict"
+    );
+    assert_eq!(
+        stdout,
+        String::from_utf8_lossy(&clean.stdout),
+        "a stale PATH cairn must not change the accept battery report"
     );
 }

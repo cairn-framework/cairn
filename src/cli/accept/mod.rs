@@ -2,7 +2,8 @@
 
 mod gates;
 
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 
 use crate::cli::{CliResult, format::esc};
@@ -57,7 +58,14 @@ pub fn run_accept_gate(
             run_step(
                 &mut findings,
                 &format!("cairn lint --strict {id}"),
-                || run_command("cairn", &["lint", "--strict", id], project_root, json),
+                || {
+                    run_command(
+                        running_cairn_bin()?,
+                        &["lint", "--strict", id],
+                        project_root,
+                        json,
+                    )
+                },
                 "validation failed",
                 "could not run validation",
             );
@@ -282,8 +290,20 @@ fn truncate_stderr(s: &str, max_bytes: usize) -> String {
     format!("{}...", &s[..end])
 }
 
+/// The cairn binary the lint leg must grade: the one already running the gate.
+///
+/// Resolving `cairn` from `PATH` grades whatever binary happens to be
+/// installed, so a stale `~/.cargo/bin/cairn` can fail a correct tree or pass a
+/// broken one (`todo.accept-gate-stale-path-binary`). This is the shippable
+/// counterpart of `scripts/dogfood.sh` reaching cairn only through
+/// `cargo run --bin cairn`: that manifest-bound form is specific to this repo,
+/// while acceptance also runs in adopter projects that contain no cairn crate.
+fn running_cairn_bin() -> Result<PathBuf, std::io::Error> {
+    std::env::current_exe()
+}
+
 fn run_command(
-    cmd: &str,
+    cmd: impl AsRef<OsStr>,
     args: &[&str],
     project_root: &Path,
     quiet: bool,

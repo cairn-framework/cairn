@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-08-09
 ---
 
@@ -25,12 +25,25 @@ failed `cairn change accept` on two unrelated changes.
 None.
 
 ## Acceptance
-- `cairn change accept` runs its lint leg against the working-tree binary, by
-  the same mechanism `scripts/dogfood.sh` uses.
+- `cairn change accept` runs its lint leg against the binary already running the
+  gate (`std::env::current_exe`), never a `cairn` resolved from `PATH`.
 - A regression test asserts the accept gate does not resolve `cairn` from
   `PATH`, in the shape `tests/dogfood_gate.rs` already uses.
 - Running `cairn change accept` with a deliberately stale `cairn` earlier on
   `PATH` produces the same verdict as running it without one.
+
+## Acceptance amendment, 2026-08-10
+Clause 1 originally required "the same mechanism `scripts/dogfood.sh` uses",
+namely `cargo run --bin cairn`. That mechanism is repo-local and cannot ship:
+`cairn change accept` runs in the adopter's project root, which holds no cairn
+crate, so adopter-local `cargo run` either fails or grades an unrelated binary
+of the same name. `std::env::current_exe` carries the same intent in shippable
+form. It never consults `PATH` and grades the binary the user invoked.
+
+The measured commands and results are recorded in
+`res.authoreval-instrument-evidence` section 2, subsection "Resolution,
+2026-08-10", which also states the residual limit. Clauses 2 and 3 are
+unchanged and are the behavioural test of the fix.
 
 ## Sizing
 S.
