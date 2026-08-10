@@ -1,43 +1,36 @@
 # Cairn: Agent Orientation
 
-Cairn is a graph-based architecture map for codebases. It models systems, containers, modules, and actors as nodes connected by dependency edges: a navigable structural graph. Each node has depth (code targets, contracts, artefacts like decisions/todos/research) and temporal history (changes, archive trail, decision lineage). The graph is the source of truth for what exists, how it connects, and why it's shaped that way.
+Cairn is a graph-based architecture map for codebases: systems, containers, modules, and actors as nodes joined by dependency edges, each node carrying code targets, contracts, artefacts (decisions, todos, research), and temporal history. The graph is the source of truth for what exists, how it connects, and why it is shaped that way.
 
-Two chains meet at a hinge: the **provenance chain** (evidence flowing in: Source → Research → Decision) and the **authority chain** (rules flowing out: Decision → Blueprint → Contract → Code). The Decision carries obligations in both directions. Do not describe the architecture as a flat stack of layers; the two-chain topology is load-bearing, not decorative.
+Two chains meet at a hinge: the **provenance chain** (evidence flowing in: Source → Research → Decision) and the **authority chain** (rules flowing out: Decision → Blueprint → Contract → Code). Describe the architecture through this two-chain topology, never as a flat stack of layers.
 
-## Your task context
+## Start here
 
-Your change directory (`meta/changes/<change-id>/`) contains everything you need: `proposal.md` (why), `design.md` (how), `tasks.md` (what), and `specs/` (acceptance criteria). Work from these files. The quality gates in `scripts/pre-archive-rust-gates.sh` gives you the build/lint requirements.
+Start at `.claude/skills/cairn-dev/SKILL.md`. It is a short router: it names the target-authority precedence, the first orientation query, and the gate, then points at the one reference your task needs. Load the reference the router sends you to, not all of them.
 
-Start at `.claude/skills/cairn-dev/SKILL.md`. It is a short router: it names the target-authority precedence, the first orientation query, and the gate, then points at the one reference your task needs (bug investigation, refactoring, architecture discovery, feature implementation, blueprint syntax, finding codes, artefact schemas, the command reference, graph navigation, or loop mode). Load the reference the router sends you to, not all of them.
+If your task has a change directory (`meta/changes/<change-id>/`), work from its `proposal.md` (why), `design.md` (how), `tasks.md` (what), and `specs/` (acceptance criteria).
 
 ## Where things live
 
 | Path | What |
 |---|---|
-| `docs/conventions.md` | Rust code conventions (error codes, module size, state versioning, testing, docs). Authoritative; do not duplicate. |
-| `docs/registries/` | `declared-items.md`, `error-codes.md`. Check when adding new public items or error codes to avoid collisions. |
-| `archive/openspec/changes-archive/<other-phase>/specs/` | Other phases' acceptance criteria. Check only if your design.md references them. |
-| `archive/openspec/specs/<area>/spec.md` | Consolidated per-area specs, distinct from the per-phase acceptance criteria above. |
+| `docs/conventions.md` | Rust conventions (error codes, module size, state versioning, testing, docs). Authoritative. Section 10 gives artefact placement; section 11 routes new prose to its owning layer, so check it before adding prose anywhere. |
+| `docs/registries/` | `declared-items.md`, `error-codes.md`. Check when adding public items or error codes to avoid collisions. |
+| `archive/openspec/changes-archive/<phase>/specs/` | Other phases' acceptance criteria. Relevant only when your design.md references them. |
+| `archive/openspec/specs/<area>/spec.md` | Consolidated per-area specs, distinct from the per-phase criteria above. |
 | `docs/spec.md` | Narrative model and history. Fallback for what the graph cannot answer; never bulk-loaded for routine work (`dec.spec-authority-retirement`). |
-| `docs/design-system/` | Canonical design tokens, components, and live reference for any UI work. |
+| `docs/design-system/` | Canonical tokens, components, fonts, and live reference for any UI work. |
 | `docs/` | Marketing landing page (GitHub Pages target); pulls from the design system like any UI surface. |
 | `cairn.blueprint` | Root blueprint: cairn describing itself (dogfood). The graph's source of truth. |
-| `tests/fixtures/cairn-bootstrap/` | Bootstrap fixture for tests; may lag behind the root blueprint, gate-asserted to scan clean (`tests/examples_gate.rs`). |
+| `tests/fixtures/cairn-bootstrap/` | Bootstrap fixture for tests; may lag the root blueprint, gate-asserted to scan clean (`tests/examples_gate.rs`). |
 
-## Check if relevant, don't read by default
-
-- **Conventions**: `docs/conventions.md` covers cross-cutting rules (error codes, naming, module limits). Check when making structural or naming decisions.
-- **Registries**: `docs/registries/` covers declared items and error codes across all phases. Check when adding new public items or error codes to avoid collisions.
-- **Where new content goes**: `docs/conventions.md` section 11 routes rules, plans, design, rationale, and procedure to their owning layer. Check before adding prose anywhere.
-- **Specs from other phases**: `archive/openspec/changes-archive/<other-phase>/specs/` is only relevant if your design.md references another phase's requirements.
-
-When implementing a feature phase, check `docs/conventions.md` for the test-first pre-phase convention. If a paired `phase-<N>.0-tests` change exists, remove the matching `#[cairn_planned(phase = <N>)]` attribute as the feature lands rather than rewriting those tests from scratch. The attribute is structured (proc-macro), not a comment; do not parse the `#[ignore]` reason string.
+When implementing a feature phase with a paired `phase-<N>.0-tests` change, remove the matching `#[cairn_planned(phase = <N>)]` attribute as the feature lands rather than rewriting those tests from scratch. The attribute is structured (proc-macro), not a comment; do not parse the `#[ignore]` reason string.
 
 ## Terminology
 
-CAIRN spec is v0.8. The phase 2.6 terminology rename is applied and archived (merge commit `3f15946`); use `blueprint`/`.blueprint` (not `DSL`/`.dsl`) and `map`/`map.md` (not `ontology`/`index.md`) in all new prose, code identifiers, and spec drafts. If you see `DSL` or `.dsl` string literals in `src/cli/mod.rs` or `src/blueprint/parser.rs`, that is intentional legacy-file detection with a migration warning; do not "fix" it.
+CAIRN spec is v0.8. Use `blueprint`/`.blueprint` (not `DSL`/`.dsl`) and `map`/`map.md` (not `ontology`/`index.md`) in all new prose, code identifiers, and spec drafts; the phase 2.6 rename is applied and archived (merge commit `3f15946`). `DSL`/`.dsl` string literals in `src/cli/mod.rs` and `src/blueprint/parser.rs` are intentional legacy-file detection; leave them.
 
-Everything else is kept deliberately; do not propose flattening this taxonomy, it encodes distinctions the framework depends on:
+Preserve these distinctions; the taxonomy encodes them deliberately, so do not propose flattening it:
 
 - `reconciler` (pluggable interface), `scanner` (engine), `scan` (verb/CLI): three distinct concepts.
 - `artefact`: typed-schema kernel primitive (umbrella kept; direct types are contract, decision, todo, research, review, source).
@@ -45,129 +38,47 @@ Everything else is kept deliberately; do not propose flattening this taxonomy, i
 - `change` / `changes/`: carries delta semantics (ADDED/MODIFIED/REMOVED/RENAMED); `proposal.md` lives inside it.
 - `neighbourhood`: graph-theoretic query primitive.
 - `provenance chain` / `authority chain`: spec §3 spine (see above).
-- `interface hash`, `ghost`/`synced`/`orphaned`, `drift`, `divergence`, `verified`/`external`/`unverified`, `hinge`: all kept.
+- `interface hash`, `ghost`/`synced`/`orphaned`, `drift`, `divergence`, `verified`/`external`/`unverified`, `hinge`: preserve these distinctions.
 
 ## Project state and artefacts
 
-For project status, outstanding work, or the reasoning behind a decision, **query
-cairn directly**. Do not infer state from markdown files, strongholds, or memory;
-the graph is the source of truth.
+For project status, outstanding work, or the reasoning behind a decision, query cairn directly: `cairn status` and `cairn context` to orient, `cairn change list` and `cairn frontier` for what is next, `cairn get` / `cairn neighbourhood` / `cairn decisions` for a node, `cairn lint --json` for structured findings. The graph is the source of truth, never markdown files, strongholds, or memory; anything under `docs/` or `archive/` is secondary context. The router's command reference lists every command.
 
-```bash
-cairn status              # project summary: nodes, findings, backlog. Start here.
-cairn context              # structured project overview; alternate agent entry point.
-cairn change list          # active change proposals.
-cairn frontier             # buildable-now ghost nodes vs blocked, tiered by dependency depth.
-cairn get <id>             # inspect a module, e.g. cairn get cairn.kernel.scanner.
-cairn neighbourhood <id>   # a module's dependencies and dependents.
-cairn decisions <node>     # provenance chain for a node.
-cairn research <node>      # research linked to a node.
-cairn sources <node>       # external material a node cites.
-cairn scan                 # check for orphaned files or drift; run before committing.
-cairn scan --strict        # CI/agent verification gate; exits non-zero on Error or Warning findings.
-cairn lint --json          # structured findings output for scripts or agents.
-cairn onboard               # group orphaned files by directory with ignore/node suggestions.
-cairn feedback "<msg>"      # record friction in .cairn/feedback.md for triage into native todos (via `cairn todo new`) or upstream issues.
-cairn ui --port 3000        # browse the graph in a browser (human use).
-```
+`cairn scan --strict` is the verification gate (non-zero on Error or Warning), and a clean `cairn scan` (zero findings) is the target state: every new source file falls under a node `path` in `cairn.blueprint`, else extend a module or declare a new one. Record friction with `cairn feedback "<msg>"`.
 
-Module IDs follow dotted notation rooted at `cairn` (e.g. `cairn.kernel.map`, `cairn.reconcile`, `cairn.ui`); run `cairn get <id>` to verify a node exists, or open `cairn.blueprint` for the full list.
-
-When adding new source files or directories, check whether they fall under an existing module's `path` declaration in `cairn.blueprint`; if not, add them to an existing module or declare a new one. A clean `cairn scan` (zero findings) is the target state.
-
-If asked "what's next", start with `cairn status` and `cairn change list`, then
-`cairn frontier` for buildable-now ghost nodes, then your issue tracker. Any
-file under `docs/` or `archive/` is secondary context, never current state.
-
-When **creating** a decision, research finding, or source, place it in `meta/` following
-the convention in docs/conventions.md section 10 ("Artefact organization and provenance
-links"):
-
-- `meta/decisions/<slug>.md` (id `dec.<slug>`): requires `id`, `nodes:`, `status`, `date`.
-  Chain to evidence via `informed_by: [res.X, src.Y]`.
-- `meta/research/<slug>.md` (id `res.<slug>`): requires `id`, `nodes:`. Cite sources via
-  `sources: [src.Z]`.
-- `meta/sources/<slug>.md` (id `src.<slug>`): requires `id`, `file:`, `verification:`. No
-  `nodes:` field; anchors transitively through citations.
-
-Filenames are slug-only; the typed prefix lives only in the `id:` frontmatter
-(docs/conventions.md section 10). Files are FLAT (no subfolders). Use slug
-namespacing for grouping (id `res.gas-city.analysis`, filename
-`gas-city.analysis.md`, not `research/gas-city/analysis.md`).
+When creating a decision, research finding, or source, follow docs/conventions.md section 10: files go flat under `meta/decisions/`, `meta/research/`, or `meta/sources/`, filename slug-only with the typed prefix only in the `id:` frontmatter (`dec.<slug>`, `res.<slug>`, `src.<slug>`; group via slug namespacing, never subfolders). Decisions require `id`, `nodes:`, `status`, `date` and chain to evidence via `informed_by:`; research requires `id`, `nodes:` and cites `sources:`; sources require `id`, `file:`, `verification:` and carry no `nodes:` field.
 
 ## Put decisions to the maintainer in-session
 
-When a decision does need the maintainer's signature, put it to them in the
-session rather than leaving it to be discovered: the ruling in one or two
-sentences, your recommendation, what accepting changes, and what rejecting
-costs. They accept or reject from that summary, so opening
-`meta/decisions/<slug>.md` is optional rather than the price of signing. This
-holds in any in-harness session (OMP, Claude Code, or a successor). `cairn
-pending` is the queue of the four pre-hoc classes and outcome reviews, and the
-artefact stays the authority for detail; state the recommendation as a forced
-choice, never a hedge.
+When a decision needs the maintainer's signature, put it to them in the session rather than leaving it to be discovered: the ruling in one or two sentences, your recommendation, what accepting changes, what rejecting costs, stated as a forced choice, never a hedge. `cairn pending` is the queue; the artefact stays the authority for detail. This holds in any in-harness session.
 
-Which decisions still need that signature is governed by
-`dec.reviewer-panel-ratification`: a convergent binding ruling is accepted on
-adversarial panel receipts, and only its four pre-hoc classes (a genuinely
-balanced fork, maintainer-external stakes, mission or regime changes, and
-reversal of a personally signed ruling) go to the maintainer before
-acceptance. Panel acceptances are put to the maintainer as outcome summaries,
-not requests; the veto stands open afterwards.
+Which decisions still need that signature is governed by `dec.reviewer-panel-ratification`: a convergent binding ruling is accepted on adversarial panel receipts, and only its four pre-hoc classes (a genuinely balanced fork, maintainer-external stakes, mission or regime changes, reversal of a personally signed ruling) go to the maintainer before acceptance. Panel acceptances are put to the maintainer as outcome summaries, not requests; the veto stands open afterwards.
 
 ## UI and visual work: use the design system
 
-Any UI change (the webui at `src/ui_assets/`, any landing or marketing page, any new surface) pulls from the canonical design system at `docs/design-system/`. Do not re-invent styling.
-
-- **Tokens are authoritative.** Colors, type, spacing, radius, shadow, and motion come from `docs/design-system/tokens.css`. Do not hardcode hex values or rem values in components, pages, or stylesheets.
-- **Reuse components before inventing.** Classes defined in `docs/design-system/components.css` must be reused by class name before a new component is introduced. If something close already exists, extend it rather than parallel-building.
-- **Font authority, per lane.** The design system runs two lanes and they do not share faces. **Product lane** (the webui at `src/ui_assets/`, consoles, anything a user operates): Source Serif 4 for headings and long-form copy, IBM Plex Mono for code and technical vocabulary, IBM Plex Sans for UI chrome. **Marketing lane** (`docs/index.html` and any outward page): Archivo for every printed element (condensed width for placards, normal for body), Courier Prime for every entry, identifier, path, and command. No serif appears on the marketing lane. All five are wired up in `docs/design-system/fonts.css`. Authority for the split: `dec.marketing-visual-world`.
-- **When adding a new token or component**, update `docs/design-system/tokens.css` or `docs/design-system/components.css`, update the live reference at `docs/design-system/index.html`, and note the addition in `docs/design-system/README.md`. All four move in the same commit.
-- **Live reference.** Open `docs/design-system/index.html` directly in a browser. It is the source of truth for visual output; if the page does not render as intended, the system is wrong, not the page. See `docs/design-system/README.md` for consumption patterns (marketing via `<link>`, Rust webui via `include_str!`).
-- **Em-dashes are banned in user-facing copy.** Replace with a period, colon, comma, or parenthesis as context dictates. This applies to UI strings, marketing copy, and any prose that reaches a reader. Full guidance: `docs/agent/voice.md`.
+Any UI change (the webui at `src/ui_assets/`, any landing or marketing page, any new surface) pulls from the canonical design system at `docs/design-system/`; reuse its classes and tokens before inventing. Tokens in `tokens.css` are authoritative: take every colour, size, and motion value from them, never hardcoded hex or rem, on every surface (`scripts/check-design-tokens.sh` gates the main CSS surfaces; the rule covers the rest). Font lanes are split per `dec.marketing-visual-world` (product vs marketing; faces and consumption patterns in `docs/design-system/fonts.css` and `README.md`). A new token or component lands with `tokens.css`/`components.css`, the live reference `index.html`, and the README in the same commit; the live reference is the source of truth for visual output. Voice rules for all user-facing copy, including the em-dash ban: `docs/agent/voice.md`.
 
 ## Guardrails
 
-- Implement only what your tasks.md specifies. Do not add features from other phases.
-- Do not modify files outside your change scope unless your design.md explicitly requires it.
-- If a task is ambiguous, prefer the simpler interpretation. Check `proposal.md` and `design.md` before guessing.
-- All Rust code must pass the gates in `scripts/pre-archive-rust-gates.sh` `apply_prompt` before marking a task complete.
-- No `unsafe` code unless your phase design document justifies it.
-- No `#[allow(...)]` without a `// Reason:` comment.
+- Implement only what your tasks.md specifies, inside your change scope; prefer the simpler reading of an ambiguous task, checking `proposal.md` and `design.md` before guessing.
+- All Rust code passes the gates in `scripts/pre-archive-rust-gates.sh` before a task is marked complete.
+- Justify any `unsafe` code in the phase design document, and give every `#[allow(...)]` a `// Reason:` comment; without those pairings, neither is accepted.
 - Never bypass hooks: `git commit --no-verify`, `git push --no-verify`, and the `SKIP=hookid` env var are forbidden. If a hook fails, fix the underlying issue.
-- Archived phases under `archive/openspec/changes-archive/` are historical record; do not rewrite them.
+- Treat archived phases under `archive/openspec/changes-archive/` as read-only historical record; correct the present in a new artefact instead of rewriting them.
 - No em-dashes in any prose in this repository (docs, decisions, code comments, commit messages included); the pre-commit hook enforces this across all `*.md` files (`archive/` and `docs/research/` excepted). Replace with a period, colon, comma, or parenthesis.
 
-See `docs/agent/principles.md` for the positive-form counterpart to these guardrails: typed artefacts encode obligations, authoring is template-driven and tag-extensible, and AI assists authoring but never substitutes for the reconciler's deterministic enforcement.
+See `docs/agent/principles.md` for the positive-form counterpart to these guardrails.
 
 ## Pre-submit review: mandatory
 
-Before submitting any PR, run a self-review simplification pass (remove dead code, fix naming) followed by an adversarial review pass (catches bugs, logic errors, convention violations); in Claude Code these are `/reforge` then `/debate` (or `/palantir-debate`), in other harnesses run the equivalent read-only reviewer subagents in sequence. Fix anything surfaced before submitting. This applies to every PR in a stack, not just the top; skip only for a single-line documentation change.
+Before submitting any PR, run a self-review simplification pass (remove dead code, fix naming) followed by an adversarial review pass (catches bugs, logic errors, convention violations); in Claude Code these are `/reforge` then `/debate` (or `/palantir-debate`), in other harnesses run the equivalent read-only reviewer subagents in sequence. Fix anything surfaced before submitting. This applies to every PR in a stack; skip only for a single-line documentation change.
 
 When asked for a `/debate`, or a sign-off question merits one, structure the response as three self-contained paragraphs: **For** (steel-man the strongest argument in favour), **Against** (steel-man the strongest counter-argument), **Verdict** (the decision, and why it outweighs the opposing view, ending on a forced decision line, not a hedge).
 
 ## Task tracking: native Todo artefacts are the front door
 
-This repo's own development uses cairn's native Todo artefact (spec section 8.2,
-"Todo (authority)"), the same mechanism a fresh `cairn init` user gets
-(`dec.native-todos-first`). Add work with `cairn todo new <slug> --node <id>`,
-which scaffolds `meta/todos/todo.<slug>.md`; there is no separate claim/close
-verb, status changes (`open`, `in_progress`, `done`, `blocked`) go through the
-sanctioned write verb `cairn todo set <slug> <status>` (surgical frontmatter
-edit; `dec.cli-agent-workflow-consolidation`), not ad-hoc file edits. Inspect with `cairn
-todos <node>` or `cairn status`.
+This repo's own development uses cairn's native Todo artefact (`dec.native-todos-first`). Add work with `cairn todo new <slug> --node <id>`; move status (`open`, `in_progress`, `done`, `blocked`) only through the sanctioned write verb `cairn todo set <slug> <status>` (`dec.cli-agent-workflow-consolidation`), never ad-hoc file edits. Inspect with `cairn todos <node>`.
 
 ## Developing cairn itself: the dev loop
 
-To develop cairn itself, run the Cairn Dev Loop. `/cairn-loop` is the
-adapter-native invocation, but it is only transport: the sole normative
-procedure is `cairn-dev` loop mode
-(`.claude/skills/cairn-dev/references/loop-mode.md`) plus exactly the required
-asset closure it declares (`cairn-loop-scope`, `cairn-loop-implement`,
-`cairn-loop-recovery`, `cairn-loop-reconcile`, `cairn-loop-landing`). One unit
-per session, fail-closed recovery, single squash commit
-(`dec.loop-command-harness-model` clause 8, as
-relocated by `dec.unified-cairn-dev-entry`). Loop mode runs only on explicit
-selection; the `cairn-dev` router never enters it from broad matching. A short
-descriptive overview lives in `docs/agent/cairn-dev-workflow.md` and is never
-normative; where the two disagree, loop mode wins.
+To develop cairn itself, run the Cairn Dev Loop: the sole normative procedure is `cairn-dev` loop mode (`.claude/skills/cairn-dev/references/loop-mode.md`) plus exactly the required asset closure it declares; `/cairn-loop` is transport, and `docs/agent/cairn-dev-workflow.md` is descriptive, never normative. Loop mode runs only on explicit selection; the router never enters it from broad matching.
