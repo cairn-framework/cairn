@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: done
 created: 2026-07-16
 blocked_by: [todo.authorability-eval-instrument, todo.authorability-eval-prompt-corpus]
 ---
@@ -74,19 +74,23 @@ change and the work that completes it stay together. The prompt corpus adds
 prompts, a run, and a research artefact, no declared surface, so it needs no
 change of its own.
 
-This todo stays `blocked` until both children are `done`. One is; the prompt
-corpus is not.
+Both children are `done` as of 2026-08-10, so this todo is `done`. The corpus
+landed six prompts, one unattended run over the whole corpus against the real
+harness backend at `anthropic/claude-sonnet-4-5`, and the published result in
+`res.authoreval-corpus-baseline`. The Acceptance section below carries the
+contract that was met, including the staged-delta exemption amended into it.
 
 No implementation occurs in this decomposition, and the partition adds no
 scope: the two children cover exactly this todo's `## Authoring family` and
 `## Acceptance` sections and nothing outside them.
 
-blocked on sub-todos: todo.authorability-eval-instrument, todo.authorability-eval-prompt-corpus
-
 ## Acceptance
 
 - The authoring corpus and scorer run unattended on demand.
-- The production parser, scanner, and lint surfaces grade outputs.
+- The production parser, scanner, and lint surfaces grade outputs, except a
+  staged `blueprint.delta`, which neither `scan --strict` nor `lint --json`
+  validates. That one output is published as unmeasured rather than graded
+  (amended 2026-08-10 against `res.authoreval-corpus-baseline` section 2).
 - Results identify whether failures belong to syntax, generated guidance, or
   missing repair affordances.
 - No CI scheduling, issue filing, or dataset apparatus is added before the
@@ -100,11 +104,11 @@ harness or scripts surface.
 
 ## Status note
 
-BLOCKED on the two sub-todos above, since 2026-08-09. The earlier gate is
+DONE as of 2026-08-10, when the second sub-todo landed. Both earlier gates are
 discharged: `todo.bootstrap-fixture-repair-or-delete` took the REPAIR verdict
 (ratified 2026-07-29, PR #528 sheet W10) and the repair landed. The fixture
 scans clean and `tests/examples_gate.rs` asserts it stays that way
-(`test_bootstrap_fixture_scans_clean`), so iterations to a clean scan is
+(`test_bootstrap_fixture_scans_clean`), so iterations to a clean scan was
 measurable from zero.
 
 Substrate constraint for prompt design: the fixture's evidence corpus
@@ -115,7 +119,9 @@ pointer while `meta/sources/` stays unreached breaks the clean baseline
 (`CAIRN_RESEARCH_MISSING_SOURCES` at Error, or
 `CAIRN_RESEARCH_UNKNOWN_SOURCE` at Warning when the research cites the
 unloaded sources). Keep eval prompts inside the loaded authority corpus
-(modules, contracts, decisions, todos, reviews).
+(modules, contracts, decisions, todos, reviews), with one exception amended
+2026-08-10: the required `blueprint.delta` prompt authors into `meta/changes/`,
+which the scanner does not load, so that prompt's record is published ungraded.
 
 ## Mission disposition
 

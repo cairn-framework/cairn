@@ -23,6 +23,12 @@
         "./harness/authoreval"
       ],
       "files": [
+        "harness/authoreval/prompts/corpus.blueprint-delta-rename.json",
+        "harness/authoreval/prompts/corpus.contract-container.json",
+        "harness/authoreval/prompts/corpus.decision-multi-node.json",
+        "harness/authoreval/prompts/corpus.module-claiming-files.json",
+        "harness/authoreval/prompts/corpus.review-attestation.json",
+        "harness/authoreval/prompts/corpus.todo-open-work.json",
         "harness/authoreval/prompts/smoke.decision-authoring.json",
         "src/authoreval/backend/command.rs",
         "src/authoreval/backend/mod.rs",
@@ -8687,6 +8693,7 @@
         "tests/artefact_filename_remediation.rs",
         "tests/artefacts_contract.rs",
         "tests/artefacts_frontmatter.rs",
+        "tests/authoreval_corpus.rs",
         "tests/authoreval_instrument.rs",
         "tests/authoreval_protocol.rs",
         "tests/authoreval_support/mod.rs",
@@ -9403,6 +9410,13 @@
       "message": "todo `todo.driver-in-repo-workflow-artefacts` is open while declared blocker `todo.driver-in-repo-blueprint-node` is not done",
       "node": null,
       "path": "meta/todos/todo.driver-in-repo-workflow-artefacts.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.authoreval-corpus-baseline` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/authoreval-corpus-baseline.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
