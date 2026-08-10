@@ -112,3 +112,26 @@ step instead of fading. The honest measurement found three defects where clause
 floor on this surface: `res.console-contrast-composited-measurement`. Remaining
 here: clause 1 in `todo.console-wire-legibility`, the rest of clause 2 in
 `todo.console-state-grammar`, both now unblocked.
+
+2026-08-11, second child delivered: `todo.console-state-grammar` landed the
+rest of clause 2. `--orphaned` now resolves to the ember family in both
+themes (a darkened ember in light, matching how the light block darkens
+amber) instead of aliasing `--drift`, and the legend key and tilt selectors
+were split so the two keys render differently, not only the tokens. Drift
+gained a static channel: a diamond (border-radius 0 plus a 45deg rotation)
+on `.node-module.drift .state-dot` and on
+`.state-legend .legend-item.drift .legend-key`; the orphan key tilt moved
+from the webui override sheet into `components.css` so both consumers carry
+both static channels. `.node-module.drift` and `.node-module.drift
+.state-dot` were added to the reduced-motion block so `driftPulse` and
+`driftBlink` stop in both consumers, wrapped or not; the harness now asserts
+this before injecting its animation kill-switch, in the webui and in the
+unwrapped live reference (`reduced_motion_violations`). Node state reaches
+the accessible name (`<id>, <state label>` in `node-module.js`), asserted by
+a new `nodeStateNamed` harness landmark on every map scenario. As the plan
+predicted from `res.console-contrast-composited-measurement`, greyscale
+separation comes from the shape channels, not hue: ember and amber sit at
+nearly identical luma. Greyscale captures of the four states were taken
+in-session against both consumers and not retained; the committed checks are
+the harness landmarks plus the reduced-motion assertion. Remaining here:
+clause 1 in `todo.console-wire-legibility`.
