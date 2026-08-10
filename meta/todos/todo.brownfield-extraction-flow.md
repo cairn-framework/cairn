@@ -5,6 +5,7 @@ created: 2026-08-07
 blocked_by:
   - todo.brownfield-onboard-decisions-index
   - todo.brownfield-extraction-authoring-reference
+  - todo.brownfield-extraction-maintainer-ruling
   - todo.brownfield-extraction-external-validation
 parent: todo.brownfield-decision-extraction
 ---
@@ -28,6 +29,17 @@ reference and its pack wiring), and
 todo.brownfield-extraction-external-validation (the end-to-end drafted-artefact
 assertion and the external-repository run). The iteration completing the last
 child flips this parent to done.
+
+That three-child list is the original decomposition and is kept as the record.
+todo.brownfield-extraction-external-validation was itself decomposed on
+2026-08-10 under the same rule, into todo.brownfield-extraction-drafting-test
+and todo.brownfield-extraction-external-run. The maintainer ruling its criteria
+terminate in could not sit under it: no iteration can produce a maintainer's
+signature, and a child parked `blocked` under that unit would let a sibling
+landing close it with the ruling unmet, because landing closes a parent whose
+last OPEN child lands. So todo.brownfield-extraction-maintainer-ruling hangs
+here instead and is the blocker that keeps this todo open, after validation
+completes, until that ruling lands.
 
 ## Task
 

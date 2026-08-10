@@ -109,3 +109,5 @@ The deterministic command belongs to
   the maintainer for acceptance or rejection.
 - `cairn scan --strict` exits 0.
 - On landing, set `todo.brownfield-extraction-external-validation` to `open`.
+  Applied at this todo's landing, then superseded: that todo was decomposed on
+  2026-08-10. Historical record, not an instruction to repeat.
