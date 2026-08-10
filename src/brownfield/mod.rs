@@ -5,11 +5,12 @@
 //! Submodules:
 //! - `heuristics`: coupling score, confidence buckets, `Candidate` type
 //! - `onboard`: orphan grouping and classification
-//! - `discovery`: filesystem traversal for cold-start candidate extraction
+//! - `discovery`: cold-start candidate assembly from a filesystem survey
+//! - `walk`: the bounded survey itself, recording source files and package roots
 //! - `init`: `cairn init --from-code` handler
 //! - `refine`: `cairn refine` handler
 
-/// Brownfield discovery: filesystem traversal for module candidates.
+/// Brownfield discovery: turns a filesystem survey into module candidates.
 pub mod discovery;
 mod heuristics;
 /// Brownfield edge derivation from observed imports.
@@ -30,6 +31,9 @@ pub mod suggest;
 pub mod summarise;
 /// Brownfield templated authoring: contract template resolution.
 pub mod templates;
+/// Brownfield filesystem survey: bounded walk recording source files per
+/// directory and the package roots that anchor candidates.
+mod walk;
 
 pub use heuristics::{
     CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, Candidate, CandidateConfidence, DIRECTORY_DEPTH_LIMIT,
