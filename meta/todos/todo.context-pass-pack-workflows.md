@@ -1,0 +1,36 @@
+---
+node: cairn.kernel.cli
+status: open
+created: 2026-08-10
+parent: todo.context-pass-skill-pack
+related: [res.skill-absorption]
+---
+
+# Context pass: workflow skills (explore, propose, apply, archive)
+
+Child of todo.context-pass-skill-pack, split 2026-08-10 under the sizing rule.
+Owns the four standalone workflow skills:
+`tools/agent-pack/content/skills/cairn-explore/SKILL.md`,
+`cairn-propose/SKILL.md`, `cairn-apply/SKILL.md`, `cairn-archive/SKILL.md`,
+plus their generated `.claude/` mirrors.
+
+## Task
+
+1. Apply the full writing-for-agents framework from `res.skill-absorption`
+   (context-pointer audit, step-versus-reference classification with reference
+   pushed behind pointers, checkable completion criteria on steps, positive-form
+   rules with hard guardrails paired, whole-sentence no-op deletion, restatement
+   collapse) to each file above.
+2. Skill descriptions (the advertised metadata that always loads) are audited
+   as context pointers first: they decide whether the right skill triggers.
+3. Record this surface's advertised-metadata byte count before and after in
+   this todo on completion, feeding the parent's combined metric.
+
+## Acceptance
+
+- Mirror, manifest, determinism, and budget tests green:
+  `cargo test -p cairn-agent-pack`.
+- No procedure lost: each deleted line is restated once at its owning layer or
+  demonstrably answerable from a routed reference; hard guardrails stay paired
+  with their positive target.
+- `scripts/check-voice-markers.sh` clean (zero FAIL) over every touched file.

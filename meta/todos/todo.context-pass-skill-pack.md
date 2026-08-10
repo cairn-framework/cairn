@@ -1,12 +1,26 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: blocked
 created: 2026-08-10
 parent: todo.context-engineering-pass
 related: [res.skill-absorption, res.reference-budget-headroom]
+blocked_by:
+  - todo.context-pass-pack-dev
+  - todo.context-pass-pack-loop
+  - todo.context-pass-pack-workflows
 ---
 
 # Context engineering pass over the shipped agent pack
+
+blocked on sub-todos: todo.context-pass-pack-dev (cairn-dev router plus its
+nine non-loop references), todo.context-pass-pack-loop (loop-mode plus the
+five loop skills and commands/cairn-loop.md), todo.context-pass-pack-workflows
+(explore, propose, apply, archive). Decomposed 2026-08-10 under the sizing
+rule: a single pass over all 22 canonical files plus mirrors is not one small
+reviewable PR. Each child carries the framework, the mirror discipline, the
+budget rule where it applies, and its share of the measurement; the iteration
+completing the last child flips this todo to done and records the combined
+pack first-turn measurement here.
 
 Child of todo.context-engineering-pass (items 2 and 3, one surface: every
 canonical file under `tools/agent-pack/content/` has a byte-identical
