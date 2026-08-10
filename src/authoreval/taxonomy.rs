@@ -72,13 +72,32 @@ pub(crate) fn subclass_for(code: &str) -> FailureSubclass {
         .unwrap_or(FailureSubclass::Unknown)
 }
 
-/// Classifies one finding code.
+/// Classifies one finding.
 ///
 /// `persisted` is true only when the same code was present in the immediately
-/// preceding failed scan, which cannot happen before attempt 2. Precedence is
-/// fixed: persistence first, then the code table.
-pub(crate) fn classify(code: &str, persisted: bool) -> (FailureClass, FailureSubclass) {
-    let subclass = subclass_for(code);
+/// preceding failed scan, which cannot happen before attempt 2. `parse_span` is
+/// `Some` only for the finding synthesised from a `lint --json` `error`
+/// envelope that reported a position inside a source file, carrying that
+/// file's path. Precedence is fixed: persistence first, then the code table,
+/// then the parse span.
+///
+/// The span is a fallback for the envelope alone, never for a wire finding: an
+/// untabled code published on the wire must stay [`FailureSubclass::Unknown`]
+/// so the table's coverage gap stays visible. The envelope has no coverage to
+/// gap. Its code is `CAIRN_COMMAND_FAILED`, a generic wrapper that would be
+/// wrong to table, and its span is the only attribution it carries. Reading an
+/// unparseable blueprint as generated guidance would defeat the measurement.
+pub(crate) fn classify(
+    code: &str,
+    parse_span: Option<&str>,
+    persisted: bool,
+) -> (FailureClass, FailureSubclass) {
+    let mut subclass = subclass_for(code);
+    if subclass == FailureSubclass::Unknown
+        && parse_span.is_some_and(|span| span.ends_with(".blueprint"))
+    {
+        subclass = FailureSubclass::Blueprint;
+    }
     let class = if persisted {
         FailureClass::MissingRepairAffordance
     } else {

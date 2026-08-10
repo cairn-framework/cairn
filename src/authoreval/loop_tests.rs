@@ -164,30 +164,200 @@ fn assert_repair_is_the_wire_verbatim(repair: &[Finding]) {
     );
 }
 
-#[test]
-fn test_a_lint_envelope_without_findings_fails_closed() {
-    use std::os::unix::fs::PermissionsExt as _;
+/// The error envelope body used by the wire-shape tests below.
+const ENVELOPE: &str =
+    r#""error":{"code":"CAIRN_COMMAND_FAILED","message":"boom","source_span":"cairn.blueprint"}"#;
 
+/// A stand-in `cairn` whose `scan` exits 0 and whose `lint --json` prints
+/// `wire`, so a wire read as clean really would score clean.
+fn stub_cairn_wire(dir: &Utf8Path, name: &str, wire: &str) -> Utf8PathBuf {
+    shell_script(
+        dir,
+        name,
+        &format!(
+            "#!/bin/sh\ncase \"$1\" in\n  scan) exit 0 ;;\n  lint) printf '%s' '{wire}' ; exit 0 ;;\nesac\nexit 2\n"
+        ),
+    )
+}
+
+#[test]
+fn test_a_lint_envelope_populating_neither_findings_nor_error_fails_closed() {
     let dir = tempfile::tempdir().expect("temp");
     let root = Utf8PathBuf::from_path_buf(dir.path().to_path_buf()).expect("utf-8");
     let fixture = root.join("fixture");
     std::fs::create_dir_all(&fixture).expect("fixture dir");
 
-    let script = root.join("cairn-stub.sh");
-    std::fs::write(
-        &script,
-        "#!/bin/sh\ncase \"$1\" in scan) exit 1 ;; lint) printf '%s' '{}' ; exit 0 ;; esac\nexit 2\n",
-    )
-    .expect("write stub");
-    let mut perms = std::fs::metadata(&script).expect("stat").permissions();
-    perms.set_mode(0o755);
-    std::fs::set_permissions(&script, perms).expect("chmod");
+    for (name, wire) in [
+        ("cairn-empty-wire.sh", "{}"),
+        ("cairn-null-wire.sh", r#"{"findings":null,"error":null}"#),
+    ] {
+        let script = stub_cairn_wire(&root, name, wire);
+        let error = super::scorer::score(&script, &fixture)
+            .expect_err("a wire populating neither must fail closed");
+        assert!(
+            error.to_string().contains("neither findings nor an error"),
+            "`{wire}` gave an unexpected error: {error}"
+        );
+    }
+}
 
-    let error = super::scorer::score(&script, &fixture)
-        .expect_err("a wire with no findings key must fail closed");
+#[test]
+fn test_a_lint_envelope_populating_both_findings_and_error_fails_closed() {
+    let dir = tempfile::tempdir().expect("temp");
+    let root = Utf8PathBuf::from_path_buf(dir.path().to_path_buf()).expect("utf-8");
+    let fixture = root.join("fixture");
+    std::fs::create_dir_all(&fixture).expect("fixture dir");
+
+    let both = stub_cairn_wire(
+        &root,
+        "cairn-both.sh",
+        &format!(r#"{{"findings":[],{ENVELOPE}}}"#),
+    );
+    let error = super::scorer::score(&both, &fixture)
+        .expect_err("a wire populating both must fail closed, never score clean");
     assert!(
-        error.to_string().contains("no `findings` key"),
+        error.to_string().contains("both findings and an error"),
         "unexpected error: {error}"
+    );
+
+    // A `null` is an absent value, not a populated one. Rejecting these would
+    // fail a wire that merely always carries both names.
+    let null_error = stub_cairn_wire(
+        &root,
+        "cairn-null-error.sh",
+        r#"{"findings":[],"error":null}"#,
+    );
+    let verdict = super::scorer::score(&null_error, &fixture).expect("a null error is absent");
+    assert!(verdict.clean && verdict.findings.is_empty());
+
+    let null_findings = stub_cairn_wire(
+        &root,
+        "cairn-null-findings.sh",
+        &format!(r#"{{"findings":null,{ENVELOPE}}}"#),
+    );
+    let verdict =
+        super::scorer::score(&null_findings, &fixture).expect("a null findings list is absent");
+    assert!(!verdict.clean, "an envelope is always a dirty verdict");
+    assert_eq!(verdict.findings.len(), 1);
+}
+
+/// The parse message `cairn lint --json` published for a blueprint that put
+/// `path` in a module header, observed on 2026-08-10.
+const PARSE_MESSAGE: &str = "cairn.blueprint:57:101: expected `{`, encountered word `path`";
+
+/// A stand-in `cairn` for a workspace whose blueprint will not parse: both
+/// surfaces fail, and `lint` publishes an `error` envelope in place of
+/// `findings`.
+fn stub_cairn_unparseable(dir: &Utf8Path) -> Utf8PathBuf {
+    shell_script(
+        dir,
+        "cairn-parse-error.sh",
+        r#"#!/bin/sh
+case "$1" in
+  scan) exit 1 ;;
+  lint)
+    printf '%s' '{"error":{"code":"CAIRN_COMMAND_FAILED","message":"cairn.blueprint:57:101: expected `{`, encountered word `path`","remediation":null,"source_span":"cairn.blueprint"}}'
+    exit 1
+    ;;
+esac
+exit 2
+"#,
+    )
+}
+
+/// Runs one prompt against the unparseable stub, allowing `max_repairs`
+/// repairs and scripting `attempts` identical responses.
+///
+/// Returns the record and every finding list the backend was handed.
+fn run_against_unparseable(
+    root: &Utf8Path,
+    max_repairs: u32,
+    attempts: usize,
+) -> (super::record::Record, Vec<Vec<Finding>>) {
+    let fixture = root.join("fixture");
+    std::fs::create_dir_all(&fixture).expect("fixture dir");
+    std::fs::write(fixture.join("seed.txt"), "seed").expect("seed");
+
+    let prompt = Prompt {
+        schema_version: 1,
+        id: "unparseable".to_owned(),
+        instruction: "author it".to_owned(),
+        expects: vec!["out.md".to_owned()],
+        replay: None,
+    };
+    let response = AuthorResponse {
+        files: vec![FileEdit {
+            path: "out.md".to_owned(),
+            contents: "x".to_owned(),
+        }],
+        tokens: TokenUsage::default(),
+    };
+    let backend = RecordingBackend::new(vec![response; attempts]);
+
+    let config = RunConfig {
+        fixture,
+        cairn_bin: stub_cairn_unparseable(root),
+        backend: BackendSpec::Replay,
+        max_repairs,
+        timeout_ms: 30_000,
+    };
+
+    let record = super::runner::run(&config, &prompt, &backend).expect("record");
+    let requests = backend.requests.borrow().clone();
+    (record, requests)
+}
+
+#[test]
+fn test_an_unparseable_blueprint_is_scored_rather_than_aborting_the_run() {
+    let dir = tempfile::tempdir().expect("temp");
+    let root = Utf8PathBuf::from_path_buf(dir.path().to_path_buf()).expect("utf-8");
+
+    let (record, _) = run_against_unparseable(&root, 0, 1);
+
+    assert_eq!(
+        record.outcome,
+        super::record::Outcome::RepairBoundExhausted,
+        "an unparseable answer is a scored attempt, and never reads as a clean scan"
+    );
+    assert!(!record.first_shot_valid);
+    assert_eq!(record.hotspots.len(), 1, "one envelope, one hotspot");
+
+    let hotspot = &record.hotspots[0];
+    assert_eq!(
+        (hotspot.class, hotspot.subclass),
+        (
+            super::taxonomy::FailureClass::Syntax,
+            super::taxonomy::FailureSubclass::Blueprint
+        ),
+        "a parse failure is blueprint syntax; generated guidance would misattribute it"
+    );
+    assert_eq!(hotspot.code, "CAIRN_COMMAND_FAILED", "cairn's own code");
+    assert_eq!(hotspot.severity, "error");
+    assert_eq!(hotspot.count, 1);
+    assert_eq!(hotspot.path.as_deref(), Some("cairn.blueprint"));
+}
+
+#[test]
+fn test_a_parse_envelope_is_fed_back_as_cairns_own_code_and_message() {
+    let dir = tempfile::tempdir().expect("temp");
+    let root = Utf8PathBuf::from_path_buf(dir.path().to_path_buf()).expect("utf-8");
+
+    let (_, requests) = run_against_unparseable(&root, 1, 2);
+
+    assert_eq!(requests.len(), 2, "one first shot and one repair");
+    assert_eq!(
+        requests[1],
+        vec![Finding {
+            severity: "error".to_owned(),
+            code: "CAIRN_COMMAND_FAILED".to_owned(),
+            message: PARSE_MESSAGE.to_owned(),
+            node: None,
+            path: Some("cairn.blueprint".to_owned()),
+            deferred_by: None,
+            parked_by: None,
+            from_envelope: true,
+        }],
+        "the repair feedback is the envelope's own code and message, unrewritten"
     );
 }
 

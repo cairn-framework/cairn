@@ -49,8 +49,24 @@ subprocess JSON protocol, not by implementing a Rust trait.
   fixture scans clean, so a response that authors nothing, or something
   unrelated, would otherwise earn `clean_first_shot` for no authoring.
 - Scoring calls `cairn scan --strict` for the verdict and `cairn lint --json`
-  for the findings. No finding logic is reimplemented here. A lint envelope with
-  no `findings` key fails closed rather than reading as a clean scan.
+  for the findings. No finding logic is reimplemented here. A lint envelope
+  publishing an `error` instead of `findings` is the response's own defect,
+  most often an unparseable blueprint, so it scores as a dirty verdict carrying
+  one synthesised finding built from the envelope's own code and message; a
+  response that leaves the blueprint unparseable is therefore a scored attempt,
+  not an instrument fault. Presence is read as a populated value, not as a key:
+  a `null` under either name is the same as its absence, so a wire the future
+  gives an always-present `error: null` still scores normally. A wire
+  populating neither, or both at once, fails closed rather than being read as
+  a clean scan or a guess.
+- A hotspot's subclass comes from the finding-code table alone. The one
+  exception is the synthesised envelope finding: an envelope carries a wrapper
+  code the table cannot usefully map, so its `source_span` attributes it
+  instead, and only when the envelope reported a position inside that span
+  (`<span>:line:col`). Cairn labels every project load failure with the
+  blueprint path, so an unpositioned one, a corrupt state snapshot for
+  instance, must not read as blueprint syntax. An untabled code the wire really
+  published stays `unknown`, keeping the table's coverage gap visible.
 - A relative scoring-binary path is absolutised before any spawn, because every
   scoring call sets the child's working directory. A bare program name is left
   alone: it means a `PATH` lookup.
@@ -63,7 +79,11 @@ subprocess JSON protocol, not by implementing a Rust trait.
   standard streams is out of contract: only the direct child is reaped.
 - Repair feedback is the previous failed scan's findings verbatim, sorted, and
   nothing else, mirroring the lint wire field for field including `deferred_by`
-  and `parked_by`. Rewriting them would measure the instrument, not cairn.
+  and `parked_by`. Rewriting them would measure the instrument, not cairn. The
+  one finding the wire did not publish is the synthesised envelope finding: it
+  carries the envelope's code and message unchanged, maps `source_span` to
+  `path`, takes severity `error`, and drops `remediation`, which has no field
+  on the wire.
 - A run that completes emits exactly one record per prompt, whatever the
   outcome. An instrument fault emits none: it fails the run.
 - A first-shot-clean run carries no hotspots. A backend failure carries the

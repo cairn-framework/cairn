@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: blocked
+status: open
 created: 2026-08-09
 blocked_by: [todo.authorability-eval-instrument, todo.authoreval-lint-error-envelope]
 parent: todo.blueprint-authorability-eval
@@ -62,20 +62,24 @@ unit's acceptance.
 
 `todo.authoreval-lint-error-envelope`, on node `cairn.authoreval`, added
 2026-08-10 as a second typed `blocked_by` edge. It is a prerequisite, not a
-child of this todo, so completing it does not complete this one.
+child of this todo, so completing it did not complete this one. It is
+discharged as of 2026-08-10 and this todo is `open` again.
 
-The precise blocking claim, because a weaker one is false. A corpus whose
-module prompt does not pre-teach where a `path` declaration goes cannot
-complete one unattended run: this model misplaced `path` into the module header
-five times out of five, an unparseable blueprint aborts the invocation, and the
-abort discards the records of every prompt that already succeeded. A corpus
-whose module prompt does teach it completes today, measured. That route is
-refused, not unavailable: 5 of 5 is the parent's headline finding for the
-blueprint format, and a prompt that hands over the grammar to keep the harness
-alive reports a first-shot number that is an artefact of the coaching. The
-prerequisite buys the honest version of both, since a recorded parse failure is
-a scored blueprint syntax hotspot. Evidence and options are in that todo,
-measurements in `res.authoreval-corpus-first-run` section 1.
+This prerequisite answered the following blocking claim. A corpus whose module
+prompt does not pre-teach where a `path` declaration goes could not complete one
+unattended run: this model misplaced `path` into the module header five times
+out of five, an unparseable blueprint aborted the invocation, and the abort
+discarded the records of every prompt that already succeeded. A run with the
+grammar pre-taught did complete; that route was measured and then refused,
+because 5 of 5 is the parent's headline finding for the blueprint format, and a
+prompt that hands over the grammar to keep the harness alive reports a
+first-shot number that is an artefact of the coaching. The scorer now reads the
+`error` envelope `lint --json` publishes for an unparseable workspace as a dirty
+verdict carrying one synthesised finding, so such an answer is a scored attempt
+classified `syntax` / `blueprint`, and the run continues to the rest of the
+corpus. Write the module prompt without the grammar hint: a parse failure now
+measures rather than aborts. Measurements in `res.authoreval-corpus-first-run`
+section 1.
 
 ## Prior attempt, 2026-08-10
 
