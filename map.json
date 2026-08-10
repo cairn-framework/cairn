@@ -681,7 +681,8 @@
         "src/brownfield/refine.rs",
         "src/brownfield/suggest.rs",
         "src/brownfield/summarise.rs",
-        "src/brownfield/templates.rs"
+        "src/brownfield/templates.rs",
+        "src/brownfield/walk.rs"
       ],
       "contracts": [
         "./meta/contracts/brownfield.md"
@@ -812,8 +813,8 @@
           "kind": "function",
           "signature": "pub fn blueprint_delta(extraction: &Extraction) -> String",
           "file": "src/brownfield/mod.rs",
-          "line": 134,
-          "end_line": 172
+          "line": 138,
+          "end_line": 176
         },
         {
           "name": "build_request",
@@ -860,8 +861,8 @@
           "kind": "function",
           "signature": "pub fn discover(root: &Path) -> Result<Extraction, CairnError>",
           "file": "src/brownfield/discovery.rs",
-          "line": 90,
-          "end_line": 134
+          "line": 81,
+          "end_line": 123
         },
         {
           "name": "enrich_candidate",
@@ -972,8 +973,8 @@
           "kind": "function",
           "signature": "pub fn stub_contract(candidate: &DiscoveredCandidate) -> String",
           "file": "src/brownfield/mod.rs",
-          "line": 45,
-          "end_line": 52
+          "line": 49,
+          "end_line": 56
         },
         {
           "name": "suggest_edges",
@@ -996,8 +997,8 @@
           "kind": "function",
           "signature": "pub fn write_change( root: &std::path::Path, change_id: &str, extraction: &Extraction, templates: &[templates::ContractTemplate], ) -> Result<(), CairnError>",
           "file": "src/brownfield/mod.rs",
-          "line": 92,
-          "end_line": 130
+          "line": 96,
+          "end_line": 134
         },
         {
           "name": "write_suggested_edges",
@@ -1012,64 +1013,64 @@
           "kind": "module",
           "signature": "pub mod discovery",
           "file": "src/brownfield/mod.rs",
-          "line": 13,
-          "end_line": 13
+          "line": 14,
+          "end_line": 14
         },
         {
           "name": "init",
           "kind": "module",
           "signature": "pub mod init",
           "file": "src/brownfield/mod.rs",
-          "line": 20,
-          "end_line": 20
+          "line": 21,
+          "end_line": 21
         },
         {
           "name": "interview",
           "kind": "module",
           "signature": "pub mod interview",
           "file": "src/brownfield/mod.rs",
-          "line": 22,
-          "end_line": 22
+          "line": 23,
+          "end_line": 23
         },
         {
           "name": "onboard",
           "kind": "module",
           "signature": "pub mod onboard",
           "file": "src/brownfield/mod.rs",
-          "line": 24,
-          "end_line": 24
+          "line": 25,
+          "end_line": 25
         },
         {
           "name": "refine",
           "kind": "module",
           "signature": "pub mod refine",
           "file": "src/brownfield/mod.rs",
-          "line": 26,
-          "end_line": 26
+          "line": 27,
+          "end_line": 27
         },
         {
           "name": "suggest",
           "kind": "module",
           "signature": "pub mod suggest",
           "file": "src/brownfield/mod.rs",
-          "line": 28,
-          "end_line": 28
+          "line": 29,
+          "end_line": 29
         },
         {
           "name": "summarise",
           "kind": "module",
           "signature": "pub mod summarise",
           "file": "src/brownfield/mod.rs",
-          "line": 30,
-          "end_line": 30
+          "line": 31,
+          "end_line": 31
         },
         {
           "name": "templates",
           "kind": "module",
           "signature": "pub mod templates",
           "file": "src/brownfield/mod.rs",
-          "line": 32,
-          "end_line": 32
+          "line": 33,
+          "end_line": 33
         },
         {
           "name": "Candidate",
@@ -1092,16 +1093,16 @@
           "kind": "struct",
           "signature": "pub struct DiscoveredCandidate",
           "file": "src/brownfield/discovery.rs",
-          "line": 30,
-          "end_line": 47
+          "line": 21,
+          "end_line": 38
         },
         {
           "name": "DiscoveredEdge",
           "kind": "struct",
           "signature": "pub struct DiscoveredEdge",
           "file": "src/brownfield/discovery.rs",
-          "line": 51,
-          "end_line": 58
+          "line": 42,
+          "end_line": 49
         },
         {
           "name": "EnrichedCandidate",
@@ -1116,8 +1117,8 @@
           "kind": "struct",
           "signature": "pub struct Extraction",
           "file": "src/brownfield/discovery.rs",
-          "line": 62,
-          "end_line": 67
+          "line": 53,
+          "end_line": 58
         },
         {
           "name": "InterviewSession",

@@ -24,8 +24,8 @@ directory cohesion, and clustering orphaned files into actionable suggestions.
   `render_json`.
 - `mod` top level: `stub_contract`, `write_change`, and `blueprint_delta` build
   a brownfield change directory (proposal, blueprint delta, stub contracts).
-- Further submodules: `discovery`, `init`, `refine`, `suggest`, `summarise`,
-  `interview`, `templates`.
+- Further submodules: `discovery`, `walk`, `init`, `refine`, `suggest`,
+  `summarise`, `interview`, `templates`.
 
 ## Invariants
 
@@ -37,6 +37,16 @@ directory cohesion, and clustering orphaned files into actionable suggestions.
   directories matching `IGNORE_PATTERNS` classify as ignore candidates.
 - Blueprint node names are emitted as barewords (`bareword`), since the grammar's
   name slot is a bareword, not a string.
+- Discovery anchors candidates on package roots: a directory holding a package
+  manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`) accounts
+  for every source file below it that no nearer package root claims, the depth
+  budget restarts at each package root under an absolute traversal ceiling, and
+  where package roots nest the innermost wins. A directory no package root
+  claims still qualifies on holding three source files directly. Nothing inside
+  a package-root candidate is proposed separately, so a source file directly
+  under a workspace root dropped for enclosing another package is claimed by
+  nothing and reconciles as an orphan
+  (`dec.brownfield-package-root-discovery`).
 
 ## Dependencies
 

@@ -42,9 +42,16 @@ The discovery engine walks the filesystem and identifies directories that look l
 
 | Threshold | Value | Description |
 |---|---|---|
-| Minimum files | 3 | A directory must contain at least 3 source files to become a candidate. |
-| Maximum depth | 4 | Directories deeper than 4 levels below the repo root are skipped. |
+| Minimum files | 3 | A directory that no package claims must contain at least 3 source files directly to become a candidate. |
+| Maximum depth | 4 | Directories deeper than 4 levels below their package root, or below the repo root outside any package, are skipped. |
 | Supported languages | Rust, TypeScript, JavaScript, Python, Go | File extensions that count toward the minimum. |
+
+A directory holding a package manifest (`package.json`, `pyproject.toml`,
+`Cargo.toml`, `go.mod`) is a candidate root on its own: it accounts for every
+source file below it that no nearer package root claims, however deep, and the
+minimum-files threshold does not apply to it. Where package roots nest, the
+innermost one wins, so a workspace root never absorbs the packages inside it.
+Nothing below a package root is proposed as a separate candidate.
 
 ### Confidence scoring
 
