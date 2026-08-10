@@ -20,11 +20,11 @@ plus their generated `.claude/` mirrors.
    (context-pointer audit, step-versus-reference classification with reference
    pushed behind pointers, checkable completion criteria on steps, positive-form
    rules with hard guardrails paired, whole-sentence no-op deletion, restatement
-   collapse) to each file above.
-2. Skill descriptions (the advertised metadata that always loads) are audited
-   as context pointers first: they decide whether the right skill triggers.
-3. Record this surface's advertised-metadata byte count before and after in
-   this todo on completion, feeding the parent's combined metric.
+   collapse) to each file above, starting with the skill descriptions, which
+   decide whether the right skill triggers.
+2. Record this surface's first-turn terms before and after in this todo on
+   completion: the four skills' advertised name-plus-description bytes, as
+   computed by `tools/agent-pack/tests/first_turn_budget_tests.rs`.
 
 ## Acceptance
 

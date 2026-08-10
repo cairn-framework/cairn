@@ -26,9 +26,12 @@ SKILL.md), `commands/cairn-loop.md`, plus their generated `.claude/` mirrors.
    lives at its owning layer once, the others point. The declared exit-token
    table and the required asset closure list are contracts and stay verbatim.
 3. `commands/cairn-loop.md` stays pure transport per
-   `dec.unified-cairn-dev-entry`: it resolves to loop mode and adds nothing.
-4. Record this surface's byte count before and after in this todo on
-   completion, feeding the parent's combined metric.
+   `dec.unified-cairn-dev-entry`; `router_route_tests.rs` gates it.
+4. Record this surface's first-turn terms before and after in this todo on
+   completion: the five loop skills' advertised name-plus-description bytes,
+   as computed by `tools/agent-pack/tests/first_turn_budget_tests.rs`.
+   loop-mode.md is a routed reference outside that metric; its raw byte
+   count is local evidence only.
 
 ## Acceptance
 
@@ -38,4 +41,6 @@ SKILL.md), `commands/cairn-loop.md`, plus their generated `.claude/` mirrors.
   demonstrably answerable from a routed reference; the fail-closed rows,
   terminal tokens, and branch-deletion guardrails survive verbatim or
   strengthened.
+- Cross-seam pointers between `loop-mode.md` and the cairn-dev references
+  owned by todo.context-pass-pack-dev still resolve after the pass.
 - `scripts/check-voice-markers.sh` clean (zero FAIL) over every touched file.

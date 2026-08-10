@@ -10,7 +10,7 @@ related: [res.skill-absorption, res.reference-budget-headroom]
 
 Child of todo.context-pass-skill-pack, split 2026-08-10 under the sizing rule.
 Owns the cairn-dev router surface: `tools/agent-pack/content/skills/cairn-dev/SKILL.md`
-and its nine non-loop references (`task-bug-investigation.md`,
+and its ten non-loop references (`task-bug-investigation.md`,
 `task-refactoring.md`, `task-architecture-discovery.md`,
 `task-feature-implementation.md`, `task-brownfield-decision-extraction.md`,
 `graph-navigation.md`, `blueprint-syntax.md`, `command-reference.md`,
@@ -32,9 +32,10 @@ mirrors (`loop-mode.md` belongs to todo.context-pass-pack-loop).
    (5,947), and `finding-codes.md` (5,860) are pressed against the ceiling:
    any addition there is a compression pass, not an append
    (`res.reference-budget-headroom`).
-4. Record this surface's first-turn measurement (the router feeds the pack's
-   advertised first-turn surface) in this todo on completion, feeding the
-   parent's combined metric.
+4. Record this surface's first-turn terms before and after in this todo on
+   completion: the router bytes plus the cairn-dev advertised metadata, as
+   computed by `tools/agent-pack/tests/first_turn_budget_tests.rs`. Reference
+   compression is local evidence outside that metric.
 
 ## Acceptance
 
@@ -43,4 +44,6 @@ mirrors (`loop-mode.md` belongs to todo.context-pass-pack-loop).
 - No procedure lost: each deleted line is restated once at its owning layer or
   demonstrably answerable from a routed reference; hard guardrails stay paired
   with their positive target; steps keep checkable completion criteria.
+- Cross-seam pointers between `loop-mode.md` and the references this child
+  owns still resolve after the pass.
 - `scripts/check-voice-markers.sh` clean (zero FAIL) over every touched file.

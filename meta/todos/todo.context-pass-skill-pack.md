@@ -13,7 +13,7 @@ blocked_by:
 # Context engineering pass over the shipped agent pack
 
 blocked on sub-todos: todo.context-pass-pack-dev (cairn-dev router plus its
-nine non-loop references), todo.context-pass-pack-loop (loop-mode plus the
+ten non-loop references), todo.context-pass-pack-loop (loop-mode plus the
 five loop skills and commands/cairn-loop.md), todo.context-pass-pack-workflows
 (explore, propose, apply, archive). Decomposed 2026-08-10 under the sizing
 rule: a single pass over all 22 canonical files plus mirrors is not one small
