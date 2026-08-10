@@ -56,7 +56,7 @@ recording the reason in the same artefact and retiring the draft to
 The maintainer's two steps, in this order. Record the ruling in
 `res.brownfield-extraction-external-run` first, then run
 
-```
+```bash
 cairn todo set brownfield-extraction-maintainer-ruling open
 ```
 

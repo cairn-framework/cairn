@@ -26,6 +26,10 @@ against that commit.
 ```bash
 git clone --depth 1 https://github.com/rancher/turtles.git
 git rev-parse HEAD    # d54023d5c399a5bdc95581c54255974e4ff6522a
+
+# The clone took the default-branch tip, which was that SHA at run time. A
+# replay should fetch the commit instead, because the branch has moved since:
+#   git fetch --depth 1 origin d54023d5c399a5bdc95581c54255974e4ff6522a
 ```
 
 Shape at that commit, as counted in the clone:

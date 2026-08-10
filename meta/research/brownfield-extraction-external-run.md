@@ -29,6 +29,12 @@ everything the run produced, so the clone can be deleted at any time.
 ```bash
 git clone --depth 1 https://github.com/rancher/turtles.git
 cd turtles && git rev-parse HEAD     # d54023d5c399a5bdc95581c54255974e4ff6522a
+# The clone took the default-branch tip, which was that SHA at run time. To
+# replay against the same tree, fetch the commit rather than the branch:
+#   git init turtles && cd turtles
+#   git remote add origin https://github.com/rancher/turtles.git
+#   git fetch --depth 1 origin d54023d5c399a5bdc95581c54255974e4ff6522a
+#   git checkout FETCH_HEAD
 
 cairn init --from-code --apply       # 11 added_nodes, 11 added_artefacts
 cairn scan
@@ -138,7 +144,11 @@ permitted provenance fields only. Path in the clone:
 annotation before the run: the file predates this run by three years and the
 whole `docs/adr/` tree is ordinary project documentation.
 
-Verbatim, as it stood when the run ended:
+Verbatim, as it stood when the run ended. Every id inside the fence
+(`dec.proxy-types-over-unstructured`, `docs.adr`, `res.adr-evidence-survey`) is
+an id in the external project's graph, not in this repository's; the fence is
+an archival copy, not a cairn artefact, and nothing here resolves those
+pointers. The research artefact they name is reproduced at section 6.2.
 
 ```markdown
 ---
@@ -385,10 +395,11 @@ non-goals the response is a follow-up todo, not a widening of this unit:
 > the onboard surface acquires a different ownership or mutation contract,
 > making a decision subcommand ambiguous or unsafe
 
-`cairn onboard decisions` mutated nothing in the clone. The only writes in the
-whole run came from `cairn init --from-code --apply` and `cairn decision new`,
-both of which own their writes explicitly. The no-subcommand orphan report and
-the `decisions` subcommand stayed distinct.
+`cairn onboard decisions` wrote nothing: it read the tree and printed. The run
+as a whole did write to the clone, through `cairn init --from-code --apply`,
+`cairn decision new`, `mkdir`, the hand edits, and one `rm`, but each of those
+owns its writes explicitly and none of them is the decisions subcommand. The
+no-subcommand orphan report and the `decisions` subcommand stayed distinct.
 
 ### Trigger 4: NOT FIRED
 
@@ -718,6 +729,73 @@ Recorded here because it is a property of the mechanism, not of this project.
 4. **No implementation check.** ADR 0004 describes a `rancher-kubeconfig` flag
    and a `RancherClient` that exist in no Go source at this commit. The index
    reports the document as evidence either way.
+```
+
+### 6.3 The blueprint the two hand edits produced
+
+Section 1 names the two hand edits; this is their result, and it is the input
+the 30-bound report depends on. `cairn init --from-code --apply` wrote
+everything from `Container V1` down as a flat top-level list with no System
+block and no `docs.adr` node; edit 1 appended that node, edit 2 added the
+System wrapper and moved the artefact pointers onto it.
+
+```text
+# cairn.blueprint
+# Seeded by `cairn init --from-code --apply`, then wrapped in a System block by
+# hand so the project can declare its artefact directories, and given one node
+# that owns `docs/adr` so the decision-evidence index can bind those documents.
+System Turtles "Rancher Turtles: Cluster API operator integrated with Rancher" id "turtles" {
+    decisions "./meta/decisions"
+    research "./meta/research"
+
+    Container V1 "Discovered module at api/rancher/k3s/v1" id "api.rancher.k3s.v1" {
+        path "./api/rancher/k3s/v1"
+        contract "./meta/contracts/api_rancher_k3s_v1.md"
+    }
+    Container V3 "Discovered module at api/rancher/management/v3" id "api.rancher.management.v3" {
+        path "./api/rancher/management/v3"
+        contract "./meta/contracts/api_rancher_management_v3.md"
+    }
+    Container V1 "Discovered module at api/rancher/provisioning/v1" id "api.rancher.provisioning.v1" {
+        path "./api/rancher/provisioning/v1"
+        contract "./meta/contracts/api_rancher_provisioning_v1.md"
+    }
+    Container V1alpha1 "Discovered module at api/v1alpha1" id "api.v1alpha1" {
+        path "./api/v1alpha1"
+        contract "./meta/contracts/api_v1alpha1.md"
+    }
+    Module Examples "Discovered module at examples" id "examples" {
+        path "./examples"
+        contract "./meta/contracts/examples.md"
+    }
+    Module Controllers "Discovered module at internal/controllers" id "internal.controllers" {
+        path "./internal/controllers"
+        contract "./meta/contracts/internal_controllers.md"
+    }
+    Module Clusterctl "Discovered module at internal/controllers/clusterctl" id "internal.controllers.clusterctl" {
+        path "./internal/controllers/clusterctl"
+        contract "./meta/contracts/internal_controllers_clusterctl.md"
+    }
+    Module Provider "Discovered module at internal/provider" id "internal.provider" {
+        path "./internal/provider"
+        contract "./meta/contracts/internal_provider.md"
+    }
+    Module Sync "Discovered module at internal/sync" id "internal.sync" {
+        path "./internal/sync"
+        contract "./meta/contracts/internal_sync.md"
+    }
+    Module Test "Discovered module at test" id "test" {
+        path "./test"
+        contract "./meta/contracts/test.md"
+    }
+    Module Predicates "Discovered module at util/predicates" id "util.predicates" {
+        path "./util/predicates"
+        contract "./meta/contracts/util_predicates.md"
+    }
+    Module Adr "Architecture decision records" id "docs.adr" @no-contract {
+        path "./docs/adr"
+    }
+}
 ```
 
 ## 7. What the run says about the mechanism
