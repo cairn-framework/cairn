@@ -51,9 +51,17 @@ dependency order: `todo.authorability-eval-instrument`, then
 instrument, its offline backend, its smoke prompt, and
 `dec.authoreval-instrument-placement` landed together, and its change was
 accepted and archived in the same commit. `todo.authorability-eval-prompt-corpus`
-was `blocked` behind a typed `blocked_by` edge until then and is now `open`;
-that transition was the instrument's own last Reconcile step, so both statuses
-reached main in its single commit.
+was `blocked` behind a typed `blocked_by` edge until then and reopened in that
+commit. On 2026-08-10 it went `blocked` again behind a second prerequisite,
+`todo.authoreval-lint-error-envelope` (node `cairn.authoreval`): an
+unparseable blueprint aborts the whole authoreval run and discards every
+record, and this model misplaced `path` into the module header five times out
+of five, so a corpus whose module prompt does not pre-teach the grammar cannot
+complete one unattended run. Pre-teaching it does complete, and was refused
+because it coaches away the finding. Evidence in
+`res.authoreval-corpus-first-run`.
+That prerequisite is not a third child of this todo; it is an instrument fix
+the corpus waits on.
 
 The change proposal this todo's `## Depends on` section requires is not a
 separate child. It belongs to the instrument, which creates the change, ticks

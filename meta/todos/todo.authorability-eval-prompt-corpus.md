@@ -1,8 +1,8 @@
 ---
 node: cairn.root
-status: open
+status: blocked
 created: 2026-08-09
-blocked_by: [todo.authorability-eval-instrument]
+blocked_by: [todo.authorability-eval-instrument, todo.authoreval-lint-error-envelope]
 parent: todo.blueprint-authorability-eval
 ---
 
@@ -60,6 +60,30 @@ JSON Lines record per prompt. Real runs pass `--backend command --command
 <program> --model <name>`; the offline replay backend does not satisfy this
 unit's acceptance.
 
+`todo.authoreval-lint-error-envelope`, on node `cairn.authoreval`, added
+2026-08-10 as a second typed `blocked_by` edge. It is a prerequisite, not a
+child of this todo, so completing it does not complete this one.
+
+The precise blocking claim, because a weaker one is false. A corpus whose
+module prompt does not pre-teach where a `path` declaration goes cannot
+complete one unattended run: this model misplaced `path` into the module header
+five times out of five, an unparseable blueprint aborts the invocation, and the
+abort discards the records of every prompt that already succeeded. A corpus
+whose module prompt does teach it completes today, measured. That route is
+refused, not unavailable: 5 of 5 is the parent's headline finding for the
+blueprint format, and a prompt that hands over the grammar to keep the harness
+alive reports a first-shot number that is an artefact of the coaching. The
+prerequisite buys the honest version of both, since a recorded parse failure is
+a scored blueprint syntax hotspot. Evidence and options are in that todo,
+measurements in `res.authoreval-corpus-first-run` section 1.
+
+## Prior attempt, 2026-08-10
+
+A first attempt built the corpus and ran it. Nothing from it landed. Read
+`res.authoreval-corpus-first-run` before rebuilding the corpus: all six
+intended prompt shapes are verified satisfiable, and two of them need more than
+the obvious file.
+
 ## Acceptance
 - Five to ten prompts exist, covering a module claiming named files, a
   `blueprint.delta`, a decision covering named nodes, and at least one further
@@ -80,6 +104,15 @@ unit's acceptance.
   repair affordance. A prompt that never reached a clean scan reports the
   iterations and tokens it spent under its outcome state, not a clean-scan
   figure it never earned.
+- The `blueprint.delta` prompt's record is reported as unmeasured and excluded
+  from first-shot validity and from any per-format hotspot count. Amended
+  2026-08-10 against `res.authoreval-corpus-first-run` section 2: the scorer
+  runs `scan --strict` and `lint --json`, neither of which validates a delta, so
+  a delta naming a node that does not exist scores identically to a correct one.
+  A validator exists behind `cairn change apply`, which the scorer never
+  invokes. Reaching it means changing shipped scoring behaviour, which this
+  unit's non-goals forbid, so the prompt stays in the corpus (the parent's
+  family names it) and its number stays out of the metrics.
 - `cairn scan --strict` exits 0 on this repository after the artefact lands.
 - No change directory is created: this unit adds prompts, one run, and one
   research artefact, no declared code or scripts surface. The instrument's own
