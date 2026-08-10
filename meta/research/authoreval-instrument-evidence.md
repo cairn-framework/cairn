@@ -71,6 +71,35 @@ was not converted.
 
 Filed as `todo.accept-gate-stale-path-binary` against `cairn.kernel.cli`.
 
+### Resolution, 2026-08-10
+
+Delivered on `todo.accept-gate-stale-path-binary`. The paragraph above proposed
+converting acceptance to the mechanism `scripts/dogfood.sh` uses; measurement
+while delivering the fix showed that mechanism cannot ship. `cairn change
+accept` runs in the adopter's project root, while `scripts/dogfood.sh` reaches
+cairn through the cairn crate's own manifest. In an adopter tree:
+
+```
+cargo run --manifest-path <rust-adopter>/Cargo.toml --bin cairn -- lint --strict demo
+# exit 101: no bin target named `cairn` in default-run packages
+cargo run --manifest-path <non-rust-adopter>/Cargo.toml --bin cairn -- lint --strict demo
+# exit 101: manifest path does not exist
+```
+
+A Rust adopter that happens to declare its own `cairn` binary target is worse
+again: the command succeeds and grades that unrelated target. Adopter-local
+`cargo run` cannot reliably select cairn's binary in either direction.
+
+Acceptance therefore resolves the lint leg through `std::env::current_exe`,
+which never consults `PATH` and grades the binary the user invoked. The two
+mechanisms differ in form and agree in intent: a gate reaches cairn through the
+build it is part of, never through whatever `PATH` offers. Residual limit: a
+path is not an image handle, so a binary replaced between process start and the
+lint spawn would run the replacement. That window is seconds wide against a
+persistent stale-install condition, and closing it means running lint in
+process, which the todo's non-goals rule out. The todo's acceptance clause was
+amended in the same commit.
+
 ## 3. `docs/conventions.md` requires `thiserror` and nothing uses it
 
 Section "Error Types" states that all Cairn error types MUST use
