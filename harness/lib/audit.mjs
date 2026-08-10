@@ -100,19 +100,102 @@ export function auditPage(opts) {
     return (hi + 0.05) / (lo + 0.05);
   }
   function effectiveBg(el) {
+    const layers = [];
     let node = el;
     while (node && node !== document.documentElement) {
-      const c = parseColor(getComputedStyle(node).backgroundColor);
-      if (c && c.a >= 0.999) return c;
+      const colour = parseColor(getComputedStyle(node).backgroundColor);
+      if (colour && colour.a > 0) layers.push(colour);
       node = node.parentElement;
     }
-    const bodyC = parseColor(getComputedStyle(document.body).backgroundColor);
-    if (bodyC && bodyC.a >= 0.999) return bodyC;
-    return { r: 20, g: 19, b: 16, a: 1 }; // stone-1 fallback
+    let painted = { r: 20, g: 19, b: 16, a: 1 }; // stone-1 fallback
+    for (let i = layers.length - 1; i >= 0; i -= 1) {
+      painted = composite(layers[i], painted, layers[i].a);
+    }
+    return painted;
+  }
+  function backgroundWithin(el, stopExclusive) {
+    const layers = [];
+    let node = el;
+    while (node && node !== stopExclusive) {
+      const colour = parseColor(getComputedStyle(node).backgroundColor);
+      if (colour && colour.a > 0) layers.push(colour);
+      node = node.parentElement;
+    }
+    let painted = { r: 0, g: 0, b: 0, a: 0 };
+    for (let i = layers.length - 1; i >= 0; i -= 1) {
+      painted = composite(layers[i], painted, layers[i].a);
+    }
+    return painted;
+  }
+  // Return the text element's own opacity separately from ancestor opacity.
+  // An ancestor fades the entire subtree, including its painted background, so
+  // applying the combined alpha to the foreground alone does not describe the
+  // pixels. `outermostFaded` identifies the backdrop outside that group.
+  function opacityContext(el) {
+    const own = parseFloat(getComputedStyle(el).opacity);
+    let ancestors = 1;
+    let fadedAncestors = 0;
+    let outermostFaded = null;
+    let node = el.parentElement;
+    while (node && node.nodeType === 1) {
+      const v = parseFloat(getComputedStyle(node).opacity);
+      if (!Number.isNaN(v)) {
+        ancestors *= v;
+        if (v < 1) {
+          outermostFaded = node;
+          fadedAncestors += 1;
+        }
+      }
+      node = node.parentElement;
+    }
+    return {
+      own: Number.isNaN(own) ? 1 : own,
+      ancestors,
+      outermostFaded,
+      fadedAncestors,
+    };
+  }
+  // Porter-Duff source-over. Keeping alpha matters inside an opacity group:
+  // flattening a translucent card to opaque before group compositing paints the
+  // outside backdrop twice.
+  function composite(fg, bg, alpha) {
+    const a = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha;
+    const bgAlpha = bg.a === undefined ? 1 : bg.a;
+    const outAlpha = a + bgAlpha * (1 - a);
+    if (outAlpha === 0) return { r: 0, g: 0, b: 0, a: 0 };
+    return {
+      r: (fg.r * a + bg.r * bgAlpha * (1 - a)) / outAlpha,
+      g: (fg.g * a + bg.g * bgAlpha * (1 - a)) / outAlpha,
+      b: (fg.b * a + bg.b * bgAlpha * (1 - a)) / outAlpha,
+      a: outAlpha,
+    };
+  }
+  // Resolve the final foreground and background pixels. Element opacity applies
+  // to the foreground. Ancestor opacity then flattens both it and the local
+  // background onto the backdrop outside the outermost faded group.
+  function renderedPair(el, fg, localBg) {
+    const opacity = opacityContext(el);
+    let paintedFg = composite(fg, localBg, fg.a * opacity.own);
+    let paintedBg = localBg;
+    if (opacity.ancestors < 1) {
+      const outside = effectiveBg(opacity.outermostFaded?.parentElement);
+      paintedFg = composite(paintedFg, outside, paintedFg.a * opacity.ancestors);
+      paintedBg = composite(localBg, outside, localBg.a * opacity.ancestors);
+    }
+    const ownBg = parseColor(getComputedStyle(el).backgroundColor);
+    const ownBackgroundOpacity = opacity.own < 1 && !!ownBg && ownBg.a > 0;
+    return {
+      fg: paintedFg,
+      bg: paintedBg,
+      alpha: opacity.own * opacity.ancestors,
+      nestedOpacity: opacity.fadedAncestors > 1,
+      ownBackgroundOpacity,
+    };
   }
   function isVisible(el, cs, rect) {
     if (cs.display === "none" || cs.visibility === "hidden") return false;
-    if (parseFloat(cs.opacity) === 0) return false;
+    const opacity = opacityContext(el);
+    if (opacity.own * opacity.ancestors === 0) return false;
     if (rect.width <= 0 || rect.height <= 0) return false;
     if (rect.bottom < 0 || rect.right < 0) return false;
     return true;
@@ -169,14 +252,24 @@ export function auditPage(opts) {
       textElements += 1;
       const fg = parseColor(cs.color);
       if (fg && fg.a > 0) {
-        const bg = effectiveBg(el);
-        const ratio = contrastRatio(fg, bg);
+        const opacity = opacityContext(el);
+        const localBg = opacity.ancestors < 1
+          ? backgroundWithin(el, opacity.outermostFaded?.parentElement)
+          : effectiveBg(el);
+        const painted = renderedPair(el, fg, localBg);
+        const ratio = contrastRatio(painted.fg, painted.bg);
         const fontPx = parseFloat(cs.fontSize);
         const bold = (parseInt(cs.fontWeight, 10) || 400) >= 700;
         const large = fontPx >= 24 || (fontPx >= 18.66 && bold);
+        if (painted.nestedOpacity) {
+          contrastSigs.add(`nested-opacity|${sig(el)}`);
+        }
+        if (painted.ownBackgroundOpacity) {
+          contrastSigs.add(`own-background-opacity|${sig(el)}`);
+        }
         const min = large ? 3.0 : 4.5;
         if (ratio < min - 0.05) {
-          contrastSigs.add(`${norm(fg)}|${norm(bg)}|${large ? "L" : "N"}|${ratio.toFixed(2)}`);
+          contrastSigs.add(`${norm(painted.fg)}|${norm(painted.bg)}|${large ? "L" : "N"}|${ratio.toFixed(2)}`);
         }
       }
       const clip = (v) => v === "hidden" || v === "clip";
@@ -200,48 +293,94 @@ export function auditPage(opts) {
   }
 
   // SVG graph-label contrast: graph nodes/edges paint text via `fill`, which the
-  // HTML pass above skips. The graph is the heart of the tool, so check each
-  // rendered <text> against the rect that paints behind it (the node card),
-  // falling back to the canvas background for edge labels and dividers.
+  // HTML pass above skips. Check each rendered <text> against the rect behind it,
+  // compositing translucent fills over the canvas.
   const svgContrastSigs = new Set();
   const canvasEl = document.querySelector(".graph-canvas");
-  const canvasBg =
-    (canvasEl && parseColor(getComputedStyle(canvasEl).backgroundColor)) || { r: 20, g: 19, b: 16, a: 1 };
+  const canvasBg = canvasEl ? effectiveBg(canvasEl) : { r: 20, g: 19, b: 16, a: 1 };
   for (const t of document.querySelectorAll("svg text")) {
     const text = (t.textContent || "").trim();
     if (!text) continue;
     const cs = getComputedStyle(t);
-    if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) === 0) continue;
+    if (cs.display === "none" || cs.visibility === "hidden") continue;
+    const opacity = opacityContext(t);
+    if (opacity.own * opacity.ancestors === 0) continue;
     const rect = t.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) continue;
     const fg = parseColor(cs.fill);
     if (!fg || fg.a <= 0) continue;
+    const fillOpacity = parseFloat(cs.fillOpacity);
+    fg.a *= Number.isNaN(fillOpacity) ? 1 : Math.max(0, Math.min(1, fillOpacity));
+    if (fg.a <= 0) continue;
     let bg = null;
     let g = t.parentElement;
     let hops = 0;
     while (g && hops < 4 && !bg) {
       for (const r of g.children) {
         if (r.tagName.toLowerCase() !== "rect") continue;
-        const rc = parseColor(getComputedStyle(r).fill);
-        if (!rc || rc.a < 0.5) continue;
+        const rectStyle = getComputedStyle(r);
+        const rc = parseColor(rectStyle.fill);
+        if (!rc || rc.a <= 0) continue;
+        const fillOpacity = parseFloat(rectStyle.fillOpacity);
+        const rectOpacity = parseFloat(rectStyle.opacity);
+        rc.a *= (Number.isNaN(fillOpacity) ? 1 : fillOpacity) *
+          (Number.isNaN(rectOpacity) ? 1 : rectOpacity);
+        if (rc.a <= 0) continue;
         const rr = r.getBoundingClientRect();
         if (rr.left <= rect.left + 1 && rr.right >= rect.right - 1 && rr.top <= rect.top + 1 && rr.bottom >= rect.bottom - 1) {
-          bg = rc;
+          bg = opacity.ancestors < 1 ? rc : composite(rc, canvasBg, rc.a);
         }
       }
       g = g.parentElement;
       hops += 1;
     }
-    if (!bg) bg = canvasBg;
-    const ratio = contrastRatio(fg, bg);
+    if (!bg) bg = opacity.ancestors < 1 ? { r: 0, g: 0, b: 0, a: 0 } : canvasBg;
+    const painted = renderedPair(t, fg, bg);
+    const ratio = contrastRatio(painted.fg, painted.bg);
     const fontPx = parseFloat(cs.fontSize);
     const bold = (parseInt(cs.fontWeight, 10) || 400) >= 700;
     const large = fontPx >= 24 || (fontPx >= 18.66 && bold);
     const min = large ? 3.0 : 4.5;
     if (ratio < min - 0.05) {
-      svgContrastSigs.add(`${norm(fg)}|${norm(bg)}|${large ? "L" : "N"}|${ratio.toFixed(2)}`);
+      svgContrastSigs.add(`${norm(painted.fg)}|${norm(painted.bg)}|${large ? "L" : "N"}|${ratio.toFixed(2)}`);
+    }
+    if (painted.nestedOpacity) {
+      svgContrastSigs.add(`nested-opacity|${sig(t)}`);
+    }
+    if (painted.ownBackgroundOpacity) {
+      svgContrastSigs.add(`own-background-opacity|${sig(t)}`);
     }
   }
+
+  const dimmedModule = document.querySelector(".node-shell.dimmed .node-module");
+  const selectedModule = document.querySelector(".node-shell.selected .node-module");
+  let inkAged = null;
+  if (document.createElement) {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--ink-aged)";
+    probe.style.display = "none";
+    document.body.appendChild(probe);
+    inkAged = parseColor(getComputedStyle(probe).color);
+    probe.remove();
+  }
+  const selectedColour = selectedModule ? parseColor(getComputedStyle(selectedModule).color) : null;
+  const dimmedTextNodes = dimmedModule
+    ? [dimmedModule, ...(dimmedModule.querySelectorAll
+      ? dimmedModule.querySelectorAll(".node-id, .node-name, .node-description")
+      : [])]
+    : [];
+  const dimmedTextPasses = dimmedTextNodes.length > 0 && dimmedTextNodes.every((node) => {
+    const colour = parseColor(getComputedStyle(node).color);
+    const bg = effectiveBg(node);
+    return !!colour && !!inkAged &&
+      norm(colour) === norm(inkAged) &&
+      contrastRatio(colour, bg) >= 4.5;
+  });
+  const dimmedNodeRecessed =
+    dimmedTextPasses &&
+    !!selectedColour &&
+    !!inkAged &&
+    norm(inkAged) !== norm(selectedColour);
 
   const landmarks = {
     shell: !!document.querySelector(".instrument-shell"),
@@ -253,6 +392,7 @@ export function auditPage(opts) {
     graphSvg: !!document.querySelector(".graph-svg"),
     nodeModules: document.querySelectorAll(".node-module").length,
     selectedNode: document.querySelectorAll(".node-module.selected").length,
+    dimmedNodeRecessed,
     evidenceRail: !!document.querySelector(".evidence-rail"),
     depthPlate: !!document.querySelector(".node-depth-plate"),
     blueprintPlate: !!document.querySelector(".blueprint-plate"),

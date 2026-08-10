@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: blocked
+status: open
 created: 2026-08-10
 blocked_by:
   - todo.console-contrast-honesty
@@ -19,6 +19,17 @@ is `todo.console-contrast-honesty` and the wire rendering is
 Blocked on `todo.console-contrast-honesty` because that unit makes the contrast
 audit composite ancestor opacity. Landing colour and token changes before the
 measurement is honest grades them against a checker that overstates contrast.
+
+2026-08-10, on `todo.console-contrast-honesty` landing: the measurement is now
+honest, and it produced a constraint this unit inherits
+(`res.console-contrast-composited-measurement`). Against `--stone-3` the ink
+ramp has exactly two usable levels above 4.5:1, `--ink-char` at 10.86:1 and
+`--ink-aged` at 5.22:1; `--ink-faded` is `#a29d90` against `--ink-aged`'s
+`#a49f92`, so it is the same level, and `--ink-mist` and `--ink-ghost` sit at
+1.77:1 and 1.37:1. Dimming already spends the one step available. So the state
+separation this unit needs cannot come from further ink steps: use a non-text
+channel (border, keel, dot, shape) or author a new token against a measured
+ratio.
 
 ## Task
 

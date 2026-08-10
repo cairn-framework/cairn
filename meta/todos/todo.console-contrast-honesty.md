@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: open
+status: done
 created: 2026-08-10
 parent: todo.console-state-legibility
 ---

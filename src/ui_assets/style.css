@@ -143,12 +143,17 @@ marker path {
   z-index: 3;
 }
 
-.node-shell.dimmed {
-  opacity: 0.55;
+/* Mirrors the canonical rule in docs/design-system/components.css: dimming is
+   an ink step plus loss of lift, never ancestor `opacity`, which would fade
+   node text below the 4.5:1 floor. */
+.node-shell.dimmed .node-module {
+  color: var(--ink-aged);
+  box-shadow: none;
 }
 
-.node-shell.focused.dimmed {
-  opacity: 1;
+.node-shell.dimmed .node-module .node-id,
+.node-shell.dimmed .node-module .node-description {
+  color: var(--ink-aged);
 }
 
 .node-shell.ghost {

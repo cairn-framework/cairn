@@ -1,4 +1,4 @@
-.PHONY: check status status-phases status-worktrees status-untracked install-hooks biome-check biome-fix tokens-check a11y-check
+.PHONY: check status status-phases status-worktrees status-untracked install-hooks biome-check biome-fix tokens-check a11y-check harness-test
 
 check:
 	cargo fmt --check
@@ -8,6 +8,7 @@ check:
 	biome check --error-on-warnings src/ui_assets/app.js src/ui_assets/style.css
 	sh scripts/check-design-tokens.sh
 	sh scripts/check-a11y.sh
+	node --test harness/lib/*.test.mjs
 
 # One-screen project status. Sub-targets are independently runnable so a failure
 # in one (e.g. corrupt worktree state) doesn't suppress the others.
@@ -50,6 +51,9 @@ tokens-check:
 
 a11y-check:
 	sh scripts/check-a11y.sh
+
+harness-test:
+	node --test harness/lib/*.test.mjs
 
 biome-fix:
 	biome check --write --unsafe src/ui_assets/app.js
