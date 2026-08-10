@@ -1,17 +1,33 @@
 ---
 node: cairn.brownfield
-status: open
+status: blocked
 created: 2026-08-07
-blocked_by: [todo.brownfield-extraction-mechanism]
+blocked_by:
+  - todo.brownfield-onboard-decisions-index
+  - todo.brownfield-extraction-authoring-reference
+  - todo.brownfield-extraction-external-validation
 parent: todo.brownfield-decision-extraction
 ---
 
 # Implement the brownfield decision-extraction flow
 
 Implementation unit split out of `todo.brownfield-decision-extraction` under
-the sizing rule. Blocked until `todo.brownfield-extraction-mechanism` rules on
-which mechanism does the drafting; this unit builds exactly what that ruling
-names and nothing else.
+the sizing rule. `todo.brownfield-extraction-mechanism` is done and
+`dec.brownfield-extraction-mechanism` (accepted 2026-08-08, binding) rules the
+mechanism: a deterministic `cairn onboard decisions` evidence index plus a
+shipped `cairn-dev` authoring reference.
+
+That ruling names 26 affected paths across the CLI, brownfield modules, copy
+table, docs, agent-pack content, manifest, adapter mirrors, and three test
+suites, and it also requires validation against an external repository. That is
+more than one small reviewable PR, so this unit was decomposed on 2026-08-10
+under the sizing rule and is blocked on sub-todos:
+todo.brownfield-onboard-decisions-index (clause 1, the deterministic command),
+todo.brownfield-extraction-authoring-reference (clauses 2 and 3, the shipped
+reference and its pack wiring), and
+todo.brownfield-extraction-external-validation (the end-to-end drafted-artefact
+assertion and the external-repository run). The iteration completing the last
+child flips this parent to done.
 
 ## Task
 
