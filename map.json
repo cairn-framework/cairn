@@ -9407,6 +9407,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.authoreval-corpus-first-run` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/authoreval-corpus-first-run.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.authoreval-instrument-evidence` is not linked from any decision",
       "node": null,
       "path": "meta/research/authoreval-instrument-evidence.md"
