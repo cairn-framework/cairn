@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: open
+status: done
 created: 2026-08-03
 related: [dec.orchestration-placement, dec.control-plane-programme, dec.webui-write-authority, todo.console-signed-widening, todo.console-state-legibility, todo.driver-in-repo, todo.parallel-dispatch-granularity]
 ---
@@ -21,7 +21,8 @@ input.
 ships no console code, no CSS, and no harness change.** Implementation
 lives in `todo.console-state-legibility` (the read-only legibility fixes,
 which need no signature) and in `todo.console-signed-widening` (the
-orchestration surface, blocked on this unit).
+orchestration surface, blocked on `todo.console-round-three-closeout`,
+which holds this unit's maintainer criterion).
 
 ## Evidence already gathered (2026-08-03)
 
@@ -35,7 +36,14 @@ of it was observed against the live webui and the journey mockup.
 2. **Execution state has no representation anywhere.** `lease` appears in
    no Rust source and no UI asset, so `dec.control-plane-programme`
    clause 1's lease truth is unimplemented and the console has no fact to
-   render for active, waiting, or blocked.
+   render for active, waiting, or blocked. *Superseded 2026-08-10: the
+   read surface shipped as `cairn lease list` and `cairn ruling list`
+   (`src/cli/commands/coord.rs`,
+   `src/query_api/handlers/coordination.rs`) under
+   `dec.rung-three-coordination-substrate` and `dec.coord-fact-write-once`.
+   The console still renders none of it, which is what
+   `todo.console-signed-widening` implements; the matrix rows were
+   refreshed the same day.*
 3. **The signal colour is spent on the default state.** On the demo
    fixture, 23 of 24 nodes render the same mint keel and dot, so mint
    means "this node exists". The journey concept inverts this: neutral
@@ -122,11 +130,17 @@ of it was observed against the live webui and the journey mockup.
   which of its questions the mockups answered.
 - The webui write-authority decision is enqueued in `cairn pending`.
 - No file under `src/` or `harness/` changed in this unit.
+- The maintainer close-out of the mockup rounds is NOT an acceptance criterion
+  of this unit: it moved to `todo.console-round-three-closeout` on 2026-08-10.
+  The driver-state criterion above is read against the amended round-2 scope,
+  and that amendment is part of what the close-out puts to the maintainer.
 
 ## Sequencing
 
 Tasks 1 to 5 need no signature and no code. Task 6 ends in a maintainer
-signature. `todo.console-signed-widening` is blocked on this unit and
+signature. `todo.console-signed-widening` is blocked on
+`todo.console-round-three-closeout` (2026-08-10, when this unit's
+maintainer criterion moved there) and
 owns every line of orchestration console implementation the mockups
 specify. `todo.console-state-legibility` is independent and can run first
 or in parallel: it fixes the shipped read-only surface and makes the
@@ -256,8 +270,10 @@ the round as aligned:
   no ruling, and every specimen labels run as not wired.
 - Task 5 residue discharged: the write-set overlap case renders in
   `orchestration-plan-dispatch.html`'s held list (a unit queuing behind
-  a wave member's claim because both would change
-  `docs/registries/declared-items.md`, plain register, no new scenario
+  a wave member's claim because both would change the shared
+  `docs/registries/` prefix, which is all a phase-0 preview may name
+  (`dec.rung-three-coordination-substrate` clause 5), plain register, no
+  new scenario
   mock), and the handoff is recorded in
   `todo.parallel-dispatch-granularity` under "Mockup evidence received".
 - Task 3 under the prototype-first ruling:
@@ -270,7 +286,11 @@ the round as aligned:
 
 Remaining for the round-3 close-out: the maintainer ratifies the
 amended round 2 scope (the provisional subsection above) and this
-round's record, and says aligned.
+round's record, and says aligned. That act moved to
+`todo.console-round-three-closeout` on 2026-08-10, which
+`todo.console-signed-widening` now declares as its blocker: no
+orchestration console implementation starts before the maintainer says
+aligned.
 
 ### Tooling (impeccable, installed 2026-08-05)
 
