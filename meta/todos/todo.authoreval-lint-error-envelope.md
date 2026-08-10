@@ -1,6 +1,6 @@
 ---
 node: cairn.authoreval
-status: open
+status: done
 created: 2026-08-10
 ---
 

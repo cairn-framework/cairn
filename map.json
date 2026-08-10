@@ -266,10 +266,10 @@
         {
           "name": "classify",
           "kind": "function",
-          "signature": "pub(crate) fn classify(code: &str, persisted: bool) -> (FailureClass, FailureSubclass)",
+          "signature": "pub(crate) fn classify( code: &str, parse_span: Option<&str>, persisted: bool, ) -> (FailureClass, FailureSubclass)",
           "file": "src/authoreval/taxonomy.rs",
-          "line": 80,
-          "end_line": 91
+          "line": 90,
+          "end_line": 110
         },
         {
           "name": "run",
@@ -562,10 +562,10 @@
         {
           "name": "classify",
           "kind": "function",
-          "signature": "pub(crate) fn classify(code: &str, persisted: bool) -> (FailureClass, FailureSubclass)",
+          "signature": "pub(crate) fn classify( code: &str, parse_span: Option<&str>, persisted: bool, ) -> (FailureClass, FailureSubclass)",
           "file": "src/authoreval/taxonomy.rs",
-          "line": 80,
-          "end_line": 91
+          "line": 90,
+          "end_line": 110
         },
         {
           "name": "run",

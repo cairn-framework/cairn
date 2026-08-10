@@ -133,7 +133,11 @@ fn hotspots(findings: &[Finding], persisted: &BTreeSet<String>) -> Vec<Hotspot> 
                 }
             })
             .or_insert_with(|| {
-                let (class, subclass) = classify(&finding.code, persisted.contains(&finding.code));
+                let (class, subclass) = classify(
+                    &finding.code,
+                    finding.envelope_parse_span(),
+                    persisted.contains(&finding.code),
+                );
                 Hotspot {
                     class,
                     subclass,
