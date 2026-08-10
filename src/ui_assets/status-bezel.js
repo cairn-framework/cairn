@@ -37,15 +37,43 @@ function DriftIndicator({ counts }) {
   if (counts.infos) parts.push(`${counts.infos} ${copy("webui.findings-infos")}`);
 
   const tone = drift ? (counts.errors ? "error" : "warning") : "info";
+  // The clean claim is scoped to blocking severities: with zero errors and
+  // warnings but standing infos, the chip says so instead of contradicting
+  // the non-zero findings count (todo.console-wire-legibility task 4).
+  const state = drift ? "drift" : counts.infos ? "clean-qualified" : "clean";
   return html`
-    <p class="status-annunciator status-annunciator-chip" role="status">
-      <${SeverityChip} tone=${tone}>${copy(drift ? "webui.status-drift" : "webui.status-clean")}</${SeverityChip}>
-      ${drift ? html`<span class="status-annunciator-summary">${parts.join(" · ")}</span>` : null}
+    <p class="status-annunciator status-annunciator-chip" role="status" data-drift-state=${state}>
+      <${SeverityChip} tone=${tone}>${copy(`webui.status-${state}`)}</${SeverityChip}>
+      ${parts.length ? html`<span class="status-annunciator-summary">${parts.join(" · ")}</span>` : null}
     </p>
   `;
 }
 
-function StatusBezel({ nodeCount, dependencyCount, findings = [], blueprintPath }) {
+const NEXT_RULE_KEYS = {
+  finding: "webui.next-rule-finding",
+  todo: "webui.next-rule-todo",
+  bead: "webui.next-rule-bead",
+};
+
+function NextRecommended({ item }) {
+  // decision_summary can be empty for an empty todo body; fall back to the
+  // item's command or node rather than dropping an actionable recommendation.
+  const title = item ? item.title || item.command || item.node || "" : "";
+  if (!title) {
+    return null;
+  }
+  const ruleKey = NEXT_RULE_KEYS[String(item.source || "").toLowerCase()];
+  const rule = [item.node, ruleKey ? copy(ruleKey) : ""].filter(Boolean).join(" · ");
+  return html`
+    <p class="status-next">
+      <span class="status-next-label">${copy("webui.next-recommended")}</span>
+      <strong class="status-next-title">${title}</strong>
+      ${rule ? html`<span class="status-next-rule">${rule}</span>` : null}
+    </p>
+  `;
+}
+
+function StatusBezel({ nodeCount, dependencyCount, findings = [], blueprintPath, nextRecommended = null }) {
   const counts = countBySeverity(findings);
   const projectName = copy("webui.project-name");
   const pathLabel = blueprintPath ? blueprintPath : copy("webui.blueprint-path-unknown");
@@ -61,6 +89,7 @@ function StatusBezel({ nodeCount, dependencyCount, findings = [], blueprintPath 
         <span class="status-cell"><strong>${dependencyCount}</strong><span>${copy("webui.dependencies")}</span></span>
       </div>
       <${DriftIndicator} counts=${counts} />
+      <${NextRecommended} item=${nextRecommended} />
     </header>
   `;
 }

@@ -120,6 +120,12 @@ Layout overhaul (2026-07) adjustments:
 - `--ui-shell-max-width` widened to `min(100%, 1720px)` and `--ui-channel-height` raised to `200px` so the shell fills wide viewports and channel bar items stay readable.
 - Added `--ci-ember: #d98a70` and pointed `--error` at it so error and warning severities read as distinct colours (ember vs amber) while staying in the warm drift family; contrast-checked at 4.5:1+ on all chassis surfaces.
 
+Wire legibility (2026-08, `todo.console-wire-legibility`) adjustments:
+
+- `.status-bezel .status-next` (with `.status-next-label`, `.status-next-title`, `.status-next-rule`): a full-width second bezel row naming the recommended work item and the rule that selected it; long titles wrap rather than clip.
+- `.channel-item .pending-collapsed`: the collapsed pending row's ruling summary and rubric tier, wrapping instead of inheriting the channel ellipsis rules.
+- `.channel-code.channel-title-prose`: backlog rows print the work item's prose title in the UI face, flexing and wrapping instead of taking the fixed-width mono code clamp; inside console lanes the title still wraps while codes and body text keep the lane's density ellipsis.
+
 ## Component class inventory
 
 Canonical webui classes in this stage:

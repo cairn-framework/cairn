@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: blocked
+status: done
 created: 2026-08-03
 blocked_by:
   - todo.console-contrast-honesty
@@ -135,3 +135,20 @@ nearly identical luma. Greyscale captures of the four states were taken
 in-session against both consumers and not retained; the committed checks are
 the harness landmarks plus the reduced-motion assertion. Remaining here:
 clause 1 in `todo.console-wire-legibility`.
+
+2026-08-11, third child delivered: `todo.console-wire-legibility` landed
+clause 1, closing this parent. The bezel gained a full-width `.status-next`
+row naming `status.next_recommended` with the rule that selected it (source
+mapped to copy: finding, todo, bead). Backlog rows render `item.title` as the
+title with the stem as secondary identifier; a new
+`.channel-code.channel-title-prose` component class lifts the fixed-width mono
+clamp so prose titles flex and wrap, in the channel bar and inside console
+lanes. The collapsed pending row renders `ruling_summary` and `rubric.tier`
+in a `.pending-collapsed` block. The bezel clean copy is scoped to blocking
+severities ("No blocking issues" plus the severity summary whenever any
+finding stands), so the chip and the findings count cannot contradict. All
+strings resolve through `copy()`; six new harness landmarks assert the four
+readouts, measuring visual truncation (scroll vs client box), and fail
+against the pre-change renderers (red run: 6 missing landmarks across
+overview-desktop, backlog-tiers, the three console scenarios, and
+pending-inbox).
