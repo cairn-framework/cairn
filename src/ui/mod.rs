@@ -304,6 +304,53 @@ mod tests {
         );
     }
 
+    /// Scenario: a dimmed node must never be faded with ancestor `opacity`.
+    /// `opacity` fades node text along with the card, and the flattened
+    /// chalk/card group renders at 4.42:1, below the 4.5 floor. The rule is declared
+    /// canonically in the design system and mirrored in the local overrides,
+    /// and the server concatenates all three layers, so the invariant is only
+    /// meaningful against the stylesheet actually served.
+    #[test]
+    fn test_ui_dimmed_node_is_never_faded_by_ancestor_opacity() {
+        let mut css = String::with_capacity(STYLE_CSS.len());
+        let mut rest = STYLE_CSS.as_str();
+        while let Some(start) = rest.find("/*") {
+            css.push_str(&rest[..start]);
+            rest = match rest[start + 2..].find("*/") {
+                Some(end) => &rest[start + 2 + end + 2..],
+                None => "",
+            };
+        }
+        css.push_str(rest);
+
+        let mut checked = 0_usize;
+        let mut saw_ink_aged = false;
+        for chunk in css.split('}') {
+            let Some((selector, body)) = chunk.split_once('{') else {
+                continue;
+            };
+            if !selector.contains(".node-shell") || !selector.contains("dimmed") {
+                continue;
+            }
+            checked += 1;
+            assert!(
+                !body.contains("opacity"),
+                "dimming must recess by ink step, not ancestor opacity: `{}` declares `{}`",
+                selector.trim(),
+                body.trim()
+            );
+            saw_ink_aged |= body.contains("color: var(--ink-aged)");
+        }
+        assert!(
+            checked > 0,
+            "served stylesheet declares no dimmed-node rule; the invariant would pass vacuously"
+        );
+        assert!(
+            saw_ink_aged,
+            "served dimmed-node rules must recess text to the measured --ink-aged step"
+        );
+    }
+
     #[test]
     fn test_ui_project_load_failure_serves_cached_scan() -> Result<(), Box<dyn Error>> {
         let root = temp_root("project-load-cache")?;

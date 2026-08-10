@@ -1,6 +1,6 @@
 ---
 node: cairn.ui
-status: blocked
+status: open
 created: 2026-08-10
 blocked_by:
   - todo.console-contrast-honesty

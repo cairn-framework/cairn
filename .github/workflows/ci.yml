@@ -75,6 +75,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: harness unit tests
+        run: node --test harness/lib/*.test.mjs
       - name: visual harness
         env:
           CHROME_PATH: /usr/bin/google-chrome-stable

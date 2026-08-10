@@ -102,3 +102,13 @@ live surface.
 the 2026-08-03 wording proved wrong against the source. The child todos carry
 the full detail, and `res.console-state-legibility-decomposition` records the
 item-by-item read, what it confirmed, and what it corrected.
+
+2026-08-10, first child delivered: `todo.console-contrast-honesty` landed
+clause 3 and the `opacity` item of clause 2. The audit now composites the
+ancestor opacity chain in both passes, and `.node-shell.dimmed` recesses by ink
+step instead of fading. The honest measurement found three defects where clause
+3 predicted one (`.node-name` at 4.42:1, `.node-description` at 2.61:1,
+`.node-id` at 2.57:1) and showed the ink ramp has only two levels above the AA
+floor on this surface: `res.console-contrast-composited-measurement`. Remaining
+here: clause 1 in `todo.console-wire-legibility`, the rest of clause 2 in
+`todo.console-state-grammar`, both now unblocked.

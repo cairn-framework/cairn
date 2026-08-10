@@ -137,6 +137,7 @@ function missingLandmarks(scenario, lm) {
   }
   if (scenario.action === "selectNode" || scenario.select) {
     if (!lm.selectedNode) miss.push("selectedNode");
+    if (!lm.dimmedNodeRecessed) miss.push("dimmedNodeRecessed");
   }
   if (scenario.action === "openFindings" || scenario.action === "openFinding") {
     if (!lm.channelBar) miss.push("channelBar");
