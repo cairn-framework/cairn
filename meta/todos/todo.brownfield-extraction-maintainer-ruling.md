@@ -2,8 +2,6 @@
 node: cairn.brownfield
 status: blocked
 created: 2026-08-10
-blocked_by:
-  - todo.brownfield-extraction-external-validation
 parent: todo.brownfield-extraction-flow
 ---
 
@@ -23,27 +21,48 @@ because landing closes a parent whose last OPEN child lands and a parked child
 is never open. Here the criterion sits at the level whose own acceptance already
 requires an accepted draft.
 
-The single `blocked_by` edge on `todo.brownfield-extraction-external-validation`
-carries the ordering. Validation is done only when both the fixture test and the
-external run are done, so this todo is not reachable before the drafts exist and
-the fixture criterion is met. The edge is a status-line away from being bypassed
-by hand, so the precondition is also an acceptance clause below: an iteration
-that finds this todo `open` while validation is not `done` sets it back to
-`blocked` with `cairn todo set` and stops, rather than landing it.
+A `blocked_by` edge on `todo.brownfield-extraction-external-validation` carried
+the ordering until that todo became `done` on 2026-08-10. Validation was done
+only when both the fixture test and the external run were done, so this todo was
+not reachable before the drafts existed and the fixture criterion was met. That
+edge is now removed as resolved, and this todo sits blocked with no declared
+blocker: the silent park under `dec.todo-relationship-model` clause 4. The
+precondition survives as an acceptance clause below, because a status line is a
+hand edit away: an iteration that finds this todo `open` while validation is not
+`done` sets it back to `blocked` with `cairn todo set` and stops.
 
-When validation lands, the iteration that completes it removes this resolved
-edge, leaving this todo blocked with no declared blocker, the silent park under
-`dec.todo-relationship-model` clause 4, and hands the maintainer the command
-that returns it to selection once they have ruled:
+**The drafts this ruling covers.** One draft survived the external run:
 
-```
+- `dec.proxy-types-over-unstructured`, path in the external clone
+  `meta/decisions/proxy-types-over-unstructured.md`, retained verbatim in
+  `meta/research/brownfield-extraction-external-run.md` section 4.1. It derives
+  from `docs/adr/0009-use-structured-proxy-types.md` in `rancher/turtles` at
+  commit `d54023d5c399a5bdc95581c54255974e4ff6522a`, a path that carried no
+  cairn-specific annotation before the run.
+
+A second draft, `dec.deletion-via-owner-references-and-imported-annotation`,
+was written and withdrawn before landing: reading the rest of the ADR set
+disproved half its premise. It is recorded in section 4.2 of the same research
+artefact and is not part of this ruling.
+
+The evidence behind the surviving draft is
+`res.brownfield-extraction-external-run` (the run, the counts, the bindings,
+and the fired-or-not verdict on every revisit trigger) and, quoted inside it at
+section 6.2, the external `res.adr-evidence-survey`. Acceptance means editing
+the retained block in section 4.1 to `status: accepted`; rejection means
+recording the reason in the same artefact and retiring the draft to
+`status: deprecated`.
+
+The maintainer's two steps, in this order. Record the ruling in
+`res.brownfield-extraction-external-run` first, then run
+
+```bash
 cairn todo set brownfield-extraction-maintainer-ruling open
 ```
 
-The command travels with the drafts because a blocked todo is skipped before its
-body is read. If the edge is left in place, the resulting blocked-with-all-done
-state raises `CAIRN_TODO_STATUS_CONTRADICTION`, which is the intended loud
-signal rather than a silent stall.
+The command travels with the draft because a blocked todo is skipped before its
+body is read. A reopen without the record leaves the next iteration with a
+selectable todo and no ruling.
 
 ## Task
 

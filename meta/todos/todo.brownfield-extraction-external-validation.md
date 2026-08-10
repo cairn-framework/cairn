@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: done
 created: 2026-08-10
 blocked_by:
   - todo.brownfield-extraction-drafting-test
