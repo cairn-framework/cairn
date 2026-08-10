@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: done
 created: 2026-08-09
 blocked_by: [todo.authorability-eval-instrument, todo.authoreval-lint-error-envelope]
 parent: todo.blueprint-authorability-eval
@@ -17,6 +17,10 @@ publish what it showed.
   nodes, and the artefact frontmatter forms the fixture already loads.
 - Every prompt stays inside the fixture's loaded authority corpus (modules,
   contracts, decisions, todos, reviews), per the parent's substrate constraint.
+  One exception, amended 2026-08-10: the required `blueprint.delta` prompt
+  authors into `meta/changes/`, which the fixture's scanner does not load. That
+  directory is an allowed authoring surface for that prompt alone. The ban on
+  `meta/research/` and `meta/sources/` is absolute and unchanged.
 - One unattended run against the real harness backend and a named model, never
   the instrument's offline smoke backend, producing the records the instrument
   defines.
@@ -93,8 +97,9 @@ the obvious file.
   `blueprint.delta`, a decision covering named nodes, and at least one further
   loaded artefact frontmatter form (a contract, a todo, or a review).
 - Every prompt targets only the loaded authority kinds (modules, contracts,
-  decisions, todos, reviews) and requests no `research` or `sources` pointer,
-  asserted against the corpus itself rather than inferred from a scan.
+  decisions, todos, reviews), plus `meta/changes/` for the required staged
+  delta, and requests no `research` or `sources` pointer, asserted against the
+  corpus itself rather than inferred from a scan.
 - Each run starts from a fixture copy that scans clean, so a dirty start is
   never mistaken for a model failure.
 - One unattended run over the whole corpus completes against the real harness
@@ -130,3 +135,15 @@ cost is not review surface.
 Do not change shipped guidance, the blueprint grammar, or any repair affordance
 in response to the results. Naming the failure classes is this unit's output;
 acting on them is a later unit with its own evidence.
+
+## Outcome, 2026-08-10
+Delivered. Six prompts under `harness/authoreval/prompts/corpus.*.json`, one
+unattended run over the whole corpus against the `--backend command` seam at
+`anthropic/claude-sonnet-4-5`, and the published result in
+`res.authoreval-corpus-baseline`. `tests/authoreval_corpus.rs` asserts the shape
+coverage, that no declared or reference-answer path leaves this corpus's allowed
+authoring surfaces (the fixture's loaded authority kinds, plus the staged change
+directory the required `blueprint.delta` needs), and the satisfiability of every
+shape against the real scorer, so the corpus cannot silently rot into an
+unmeasurable stimulus. `res.authoreval-corpus-baseline` owns the findings and
+the limits of what they license.
