@@ -86,6 +86,7 @@ Error responses from the MCP/query path:
 | `docstring <node>` | `cairn_docstring` | Generate a docstring for a node |
 | `export` | `cairn_export` | Export project data (JSON or Markdown) |
 | `onboard` | `cairn_onboard` | Suggest blueprint entries for orphaned files |
+| `onboard decisions` | n/a | Decision evidence bound to the blueprint node that owns each path, plus unbound evidence. CLI-only |
 | `ui_meta` | `cairn_ui_meta` | Available query commands and their request/response schemas |
 | `blueprint` | `cairn_blueprint` | Raw blueprint file content |
 | `ui` | - | Launch the web UI server |
@@ -190,6 +191,7 @@ cairn hook structural --json
 cairn init --from-code           # Generate proposals
 cairn islands --json             # Find disconnected components
 cairn onboard --json             # Suggest classifications for orphans
+cairn onboard decisions --json   # Index decision evidence before drafting
 ```
 
 ## Stability guarantees

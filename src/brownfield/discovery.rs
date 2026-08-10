@@ -79,9 +79,17 @@ impl Default for Extraction {
 ///
 /// Returns `CairnError::ChangeDiscovery` when directory traversal fails.
 pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
+    let survey = walk::survey(root)?;
+    Ok(from_survey(root, &survey))
+}
+
+/// Assemble candidates from a survey the caller already walked.
+///
+/// Same rule as `discover`; it exists so a caller needing both the candidates
+/// and the survey's wider file set walks the tree once.
+pub(super) fn from_survey(root: &Path, survey: &walk::Survey) -> Extraction {
     let mut candidates = Vec::new();
     let mut used_ids = BTreeSet::new();
-    let survey = walk::survey(root)?;
 
     for (dir, files) in survey.candidates(root, MIN_FILES) {
         let rel = dir.strip_prefix(root).unwrap_or(dir);
@@ -116,10 +124,10 @@ pub fn discover(root: &Path) -> Result<Extraction, CairnError> {
     }
     import_edges::derive_import_edges(root, &mut candidates);
 
-    Ok(Extraction {
+    Extraction {
         candidates,
         schema_version: 1,
-    })
+    }
 }
 
 fn node_id_from_path(path: &str) -> String {

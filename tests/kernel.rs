@@ -1626,6 +1626,314 @@ fn test_onboard_groups_orphans_and_classifies() -> Result<(), Box<dyn std::error
     Ok(())
 }
 
+/// Writes a fixture carrying one document, one README `Decision` section, an
+/// invariant comment inside a declared path, and an invariant comment in a
+/// directory too small to become a discovery candidate.
+fn write_decision_evidence_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    fs::create_dir_all(root.join("docs/adr"))?;
+    fs::create_dir_all(root.join("docs/decisions"))?;
+    fs::create_dir_all(root.join("src/core"))?;
+    fs::create_dir_all(root.join("src/tiny"))?;
+    fs::write(
+        root.join("docs/adr/0001-postgres.md"),
+        "# ADR 1: Use Postgres\n\nWe picked Postgres.\n",
+    )?;
+    fs::write(
+        root.join("docs/decisions/retry-policy.md"),
+        "# Retry policy is exponential\n",
+    )?;
+    fs::write(
+        root.join("README.md"),
+        "# Demo\n\n## Decision\n\nWe ship weekly.\n\n## Notes\n\nNothing binding here.\n",
+    )?;
+    fs::write(
+        root.join("src/core/a.rs"),
+        "pub fn a() {}\n// invariant: ids are stable\n",
+    )?;
+    fs::write(root.join("src/core/b.rs"), "pub fn b() {}\n")?;
+    fs::write(root.join("src/core/c.rs"), "pub fn c() {}\n")?;
+    fs::write(
+        root.join("src/tiny/one.py"),
+        "# invariant: tiny dirs still count\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System Demo "demo" id "demo" {
+    Module Core "core" id "demo.core" {
+        path "./src/core"
+    }
+    Module Docs "docs" id "demo.docs" {
+        path "./docs/adr"
+    }
+}
+"#,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn test_onboard_decisions_binds_evidence_to_declared_owners()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("onboard-decisions")?;
+    write_decision_evidence_fixture(&root)?;
+
+    let text = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["onboard", "decisions"])
+        .output()?;
+    assert!(
+        text.status.success(),
+        "onboard decisions stderr: {}",
+        String::from_utf8_lossy(&text.stderr)
+    );
+    let stdout = String::from_utf8(text.stdout)?;
+    assert!(
+        stdout.contains("docs/adr/0001-postgres.md") && stdout.contains("demo.docs"),
+        "the ADR must be reported against its owning node: {stdout}"
+    );
+    assert!(
+        stdout.contains("README.md:3"),
+        "the README Decision section must be reported: {stdout}"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_onboard_decisions_json_wire_splits_bound_from_unbound()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("onboard-decisions-json")?;
+    write_decision_evidence_fixture(&root)?;
+
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "onboard", "decisions"])
+        .output()?;
+    assert!(
+        json.status.success(),
+        "JSON onboard decisions should succeed"
+    );
+    let wire = String::from_utf8(json.stdout)?;
+    let parsed: serde_json::Value = serde_json::from_str(&wire)?;
+    assert_eq!(parsed["command"], "onboard decisions");
+    assert_eq!(parsed["status"], "ok");
+    let data = &parsed["data"];
+    assert_eq!(data["schema_version"], 1);
+
+    let bound: BTreeMap<&str, &str> = data["bound"]
+        .as_array()
+        .expect("bound is an array")
+        .iter()
+        .map(|item| {
+            (
+                item["path"].as_str().expect("path is a string"),
+                item["node"]
+                    .as_str()
+                    .expect("bound evidence carries a node"),
+            )
+        })
+        .collect();
+    assert_eq!(bound.get("docs/adr/0001-postgres.md"), Some(&"demo.docs"));
+    assert_eq!(bound.get("src/core/a.rs"), Some(&"demo.core"));
+    assert_eq!(
+        bound.get("src/core"),
+        Some(&"demo.core"),
+        "the discovery code target binds to its declaring node"
+    );
+
+    let unbound: Vec<&str> = data["unbound"]
+        .as_array()
+        .expect("unbound is an array")
+        .iter()
+        .map(|item| item["path"].as_str().expect("path is a string"))
+        .collect();
+    assert!(
+        unbound.contains(&"docs/decisions/retry-policy.md") && unbound.contains(&"README.md"),
+        "evidence no declared path claims stays unbound: {unbound:?}"
+    );
+    assert!(
+        unbound.contains(&"src/tiny/one.py"),
+        "an invariant below the discovery candidate threshold is still evidence: {unbound:?}"
+    );
+    assert!(
+        data["unbound"]
+            .as_array()
+            .expect("unbound is an array")
+            .iter()
+            .all(|item| item.get("node").is_none()),
+        "unbound evidence must never carry an invented node binding"
+    );
+
+    let lines: BTreeMap<&str, Option<u64>> = data["bound"]
+        .as_array()
+        .expect("bound is an array")
+        .iter()
+        .chain(data["unbound"].as_array().expect("unbound is an array"))
+        .map(|item| {
+            (
+                item["path"].as_str().expect("path is a string"),
+                item["line"].as_u64(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        lines.get("src/core/a.rs"),
+        Some(&Some(2)),
+        "evidence inside a file carries its one-based line"
+    );
+    assert_eq!(lines.get("README.md"), Some(&Some(3)));
+    assert_eq!(
+        lines.get("docs/adr/0001-postgres.md"),
+        Some(&None),
+        "whole-file evidence carries a null line"
+    );
+
+    let repeat = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "onboard", "decisions"])
+        .output()?;
+    assert_eq!(
+        String::from_utf8(repeat.stdout)?,
+        wire,
+        "the index is deterministic: the same tree must produce the same wire"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_onboard_decisions_binds_under_a_nested_blueprint_path()
+-> Result<(), Box<dyn std::error::Error>> {
+    let outer = temp_root("onboard-decisions-nested")?;
+    let root = outer.join("project");
+    fs::create_dir_all(&root)?;
+    write_decision_evidence_fixture(&root)?;
+
+    // `--file` decides the project root, so evidence paths stay relative to the
+    // blueprint's directory rather than the process working directory.
+    let json = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&outer)
+        .args([
+            "--json",
+            "--file",
+            "project/cairn.blueprint",
+            "onboard",
+            "decisions",
+        ])
+        .output()?;
+    assert!(
+        json.status.success(),
+        "nested blueprint stderr: {}",
+        String::from_utf8_lossy(&json.stderr)
+    );
+    let parsed: serde_json::Value = serde_json::from_str(&String::from_utf8(json.stdout)?)?;
+    let bound: BTreeMap<&str, &str> = parsed["data"]["bound"]
+        .as_array()
+        .expect("bound is an array")
+        .iter()
+        .map(|item| {
+            (
+                item["path"].as_str().expect("path is a string"),
+                item["node"].as_str().expect("bound carries a node"),
+            )
+        })
+        .collect();
+    assert_eq!(
+        bound.get("src/core/a.rs"),
+        Some(&"demo.core"),
+        "paths are relative to the blueprint's root, not the process cwd: {bound:?}"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_onboard_decisions_rejects_a_structurally_invalid_blueprint()
+-> Result<(), Box<dyn std::error::Error>> {
+    let root = temp_root("onboard-decisions-invalid")?;
+    write_decision_evidence_fixture(&root)?;
+    // A duplicate node id is a structural error, so no binding may be reported
+    // against the partial graph it produces.
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System Demo "demo" id "demo" {
+    Module Core "core" id "demo.core" {
+        path "./src/core"
+    }
+    Module Twin "twin" id "demo.core" {
+        path "./docs/adr"
+    }
+}
+"#,
+    )?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["onboard", "decisions"])
+        .output()?;
+    assert_ne!(
+        output.status.code(),
+        Some(0),
+        "a structural error must not yield an evidence index"
+    );
+    let combined = format!(
+        "{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        !combined.contains("Bound evidence"),
+        "no evidence may be bound against a partial graph: {combined}"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_onboard_unsupported_subcommand_is_a_usage_error() -> Result<(), Box<dyn std::error::Error>>
+{
+    let root = temp_root("onboard-bad-subcommand")?;
+    write_decision_evidence_fixture(&root)?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["onboard", "nonsense"])
+        .output()?;
+    assert_eq!(output.status.code(), Some(2), "usage errors exit 2");
+    assert_eq!(
+        String::from_utf8(output.stderr)?.trim(),
+        "usage: cairn onboard [decisions] [options]"
+    );
+    assert!(
+        String::from_utf8(output.stdout)?.is_empty(),
+        "an unsupported subcommand must not fall back to the orphan report"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_onboard_decisions_requires_a_loadable_blueprint() -> Result<(), Box<dyn std::error::Error>>
+{
+    let root = temp_root("onboard-decisions-no-blueprint")?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["onboard", "decisions"])
+        .output()?;
+    assert_eq!(output.status.code(), Some(1));
+    assert!(
+        String::from_utf8(output.stderr)?.contains("requires an onboarded blueprint"),
+        "the decisions branch must fail clearly without a blueprint"
+    );
+    assert!(
+        !root.join("cairn.blueprint").exists(),
+        "the decisions branch must not synthesise a stub blueprint"
+    );
+
+    Ok(())
+}
+
 #[test]
 fn test_provenance_lint_warns_for_uncovered_nodes() -> Result<(), Box<dyn std::error::Error>> {
     let root = temp_root("provenance-lint")?;

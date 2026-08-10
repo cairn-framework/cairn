@@ -144,6 +144,7 @@ operators are not supported. Prefer simple commands without spaces in args.
 | `cairn init --from-code [--apply [--wire [path]]]` | Discover modules from existing code; wiring requires `--apply` |
 | `cairn refine` | Re-run brownfield discovery and write a timestamped change |
 | `cairn onboard` | Suggest blueprint entries for orphaned files |
+| `cairn onboard decisions [--json]` | Index decision evidence and bind each path to the blueprint node that owns it |
 
 ### Hooks and gates
 

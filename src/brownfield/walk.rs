@@ -112,6 +112,17 @@ impl Survey {
         planned
     }
 
+    /// Every source file the survey observed, ordered by directory then path.
+    ///
+    /// Broader than `candidates`: a directory below the candidate threshold
+    /// still holds source files, and a consumer indexing file contents rather
+    /// than proposing nodes needs all of them.
+    pub(super) fn source_files(&self) -> impl Iterator<Item = &Path> {
+        self.dir_files
+            .values()
+            .flat_map(|files| files.iter().map(PathBuf::as_path))
+    }
+
     /// The package root owning `dir`: `dir` itself when it holds a manifest,
     /// otherwise the nearest ancestor that does.
     fn package_of<'a>(&'a self, dir: &Path) -> Option<&'a Path> {

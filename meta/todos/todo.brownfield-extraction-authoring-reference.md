@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: blocked
+status: open
 created: 2026-08-10
 blocked_by: [todo.brownfield-onboard-decisions-index]
 parent: todo.brownfield-extraction-flow
@@ -56,6 +56,16 @@ evidence in a primary research artefact, and writes the decision body with:
 ```
 cairn decision new <slug> --node <id> --informed-by <research-id>
 ```
+
+`todo.brownfield-onboard-decisions-index` landed that wire on 2026-08-10, so the
+reference describes what exists rather than a guess. Under `data` it carries
+`schema_version`, `bound`, `unbound`, `bound_count`, and `unbound_count`. Every
+entry carries `kind` (one of `document`, `readme-section`, `invariant-comment`,
+`code-target`), `path`, `line` (null for whole-file evidence), and `detail`; a
+`bound` entry adds `node`, and an `unbound` entry carries no `node` key at all.
+The `node` on a bound entry is the `--node` argument to pass below. A
+`code-target` entry's `detail` is the path-derived discovery candidate id, which
+is evidence only: the reference must never pass it as a node id.
 
 The onboard report validates the binding; `cairn decision new` does not
 re-resolve graph ownership. The reference preserves the report's evidence paths

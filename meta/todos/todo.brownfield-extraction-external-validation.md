@@ -31,6 +31,13 @@ bindings produced, and the unbound evidence, citing a `meta/sources/` artefact
 with the `file:` and `verification:` fields the source schema requires
 (`docs/conventions.md` section 10).
 
+The source classes are the landed `kind` labels: `document`, `readme-section`,
+`invariant-comment`, and `code-target`. Per
+`res.onboard-decision-evidence-scope`, the `invariant-comment` count is scoped
+to every source file the bounded survey observed, while `code-target` is scoped
+to discovery candidates only, so the two counts are not comparable and an
+`invariant-comment` count above the candidate count is expected, not a defect.
+
 Verify the review handoff the shipped reference owns
 (`todo.brownfield-extraction-authoring-reference`): the
 `cairn onboard decisions` report that produced a draft is kept with it, and the

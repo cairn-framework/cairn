@@ -438,3 +438,34 @@ fn hook_install_help_lists_file() {
     assert!(text.contains("--pre-push"), "{text}");
     assert!(text.contains("--json"), "{text}");
 }
+
+#[test]
+fn onboard_description_comes_from_the_copy_table_on_both_surfaces() {
+    let authored = copy::lookup("help.commands.onboard.description");
+    assert_ne!(
+        authored, "help.commands.onboard.description",
+        "the copy table must author the onboard description"
+    );
+    assert!(
+        authored.contains("onboard decisions"),
+        "the description must name the supported decisions form: {authored}"
+    );
+    assert_eq!(
+        crate::cli::command_description("onboard"),
+        authored,
+        "the global --help listing must render the authored copy, not the CLI-only table fallback"
+    );
+    // The copy lookup is scoped to onboard: `pack` authors a per-command
+    // description too, and the global listing must keep showing its own table
+    // string rather than silently adopting that value.
+    assert_ne!(
+        crate::cli::command_description("pack"),
+        copy::lookup("help.commands.pack.description"),
+        "resolving copy for every command would restate unrelated descriptions"
+    );
+    let page = command_help_text("onboard").expect("onboard help");
+    assert!(
+        page.contains(authored),
+        "the per-command page must render the same authored copy:\n{page}"
+    );
+}
