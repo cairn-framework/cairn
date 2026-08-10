@@ -320,6 +320,125 @@ fn candidate_child_symlink_refuses(mode: RatificationMode, name: &str) {
     cleanup(root);
 }
 
+#[test]
+fn test_ratification_untracked_candidate_blueprint_is_silent() {
+    let root = git_root("untracked-candidate-blueprint");
+    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    // A freshly onboarded repository: `cairn.blueprint` sits in the worktree
+    // and is tracked by neither the index nor HEAD, so no commit under this
+    // gate can accept a local decision.
+    run(&root, ["rm", "--quiet", "--cached", "cairn.blueprint"]);
+    run(&root, ["commit", "--quiet", "-m", "untrack blueprint"]);
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert!(findings.is_empty(), "{findings:?}");
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_staged_blueprint_deletion_refuses() {
+    let root = git_root("staged-blueprint-deletion");
+    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    // HEAD still tracks the blueprint, so a staged deletion is a commit that
+    // removes the gate's own input, never a repository that never had one.
+    run(&root, ["rm", "--quiet", "--cached", "cairn.blueprint"]);
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"
+                && finding.message.contains("candidate blueprint")),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_unparseable_candidate_blueprint_refuses() {
+    let root = git_root("unparseable-candidate-blueprint");
+    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    // The candidate blueprint is present but unreadable: still a refusal.
+    write(&root, "cairn.blueprint", "System App \"app\" id {\n");
+    run(&root, ["add", "."]);
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"
+                && finding.message.contains("candidate blueprint")),
+        "{findings:?}"
+    );
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_untracked_blueprint_with_staged_acceptance_refuses() {
+    let root = git_root("untracked-blueprint-staged-acceptance");
+    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    // An untracked blueprint must not become a way to stage a local acceptance
+    // past the gate. Silence is for a candidate tree that accepts nothing.
+    untrack_blueprint(&root);
+    run(&root, ["add", "meta", "src/subject.rs"]);
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert_refusal(&findings, "tracks no blueprint");
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_absent_blueprint_sees_quoted_acceptance_off_pointer() {
+    let root = git_root("absent-blueprint-acceptance-off-pointer");
+    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    // With no candidate blueprint there is no declared decisions directory, so
+    // the search is repository-wide and the parser, not the search, decides
+    // what counts: quoting and indentation must not hide an acceptance.
+    untrack_blueprint(&root);
+    write(
+        &root,
+        "Elsewhere/Dec.Local.md",
+        "---\nid: dec.elsewhere\n  status: \"accepted\"\n  ratification: 'local'\n---\nBody.\n",
+    );
+    run(&root, ["add", "Elsewhere"]);
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert_refusal(&findings, "tracks no blueprint");
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_untracked_blueprint_with_unreadable_head_refuses() {
+    let root = git_root("untracked-blueprint-unreadable-head");
+    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    untrack_blueprint(&root);
+    // A HEAD Git cannot answer for is never evidence of absence.
+    fs::write(root.join(".git/HEAD"), "ref: refs/heads/gone\n").unwrap();
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Index);
+    assert_refusal(&findings, "candidate blueprint");
+    cleanup(root);
+}
+
+#[test]
+fn test_ratification_untracked_blueprint_head_mode_is_silent() {
+    let root = git_root("untracked-blueprint-head-mode");
+    let artefacts = accepted_decision(&root, "src/subject.rs", "subject\n");
+    untrack_blueprint(&root);
+    let findings = ratification_findings(&root, &artefacts, RatificationMode::Head);
+    assert!(findings.is_empty(), "{findings:?}");
+    cleanup(root);
+}
+
+fn untrack_blueprint(root: &Path) {
+    run(root, ["rm", "--quiet", "--cached", "cairn.blueprint"]);
+    run(root, ["commit", "--quiet", "-m", "untrack blueprint"]);
+}
+
+fn assert_refusal(findings: &[crate::map::Finding], message: &str) {
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "CAIRN_HOOK_AFFECTS_SUBSET"
+                && finding.message.contains(message)),
+        "{findings:?}"
+    );
+}
+
 fn write_pointer_blueprint(root: &Path) {
     write(
         root,

@@ -104,22 +104,145 @@ fn accepted_local_from_listing(
     Some(accepted)
 }
 
+/// What the candidate tree holds where the blueprint is declared.
+pub(super) enum CandidateBlueprint {
+    /// The candidate blueprint parsed: its decision pointers and the git prefix.
+    Pointers(Vec<String>, String),
+    /// Nothing this commit can do needs the gate. See `blueprint_absence`.
+    NothingToGate,
+    /// A refusal, carrying the finding message that explains it.
+    Unreadable(&'static str),
+}
+
+const UNREADABLE: &str =
+    "cannot read or parse the candidate blueprint while checking ratification evidence";
+const UNDECLARED: &str = "candidate tree accepts a local decision but tracks no blueprint declaring where decisions live";
+
 pub(super) fn candidate_decision_pointers(
     root: &Path,
     blueprint_path: &Path,
     mode: RatificationMode,
-) -> Option<(Vec<String>, String)> {
-    let (git_blueprint_path, git_prefix) = candidate_path_context(root, blueprint_path)?;
+) -> CandidateBlueprint {
+    let Some((git_blueprint_path, git_prefix)) = candidate_path_context(root, blueprint_path)
+    else {
+        return CandidateBlueprint::Unreadable(UNREADABLE);
+    };
     let spec = match mode {
         RatificationMode::Index => format!(":{git_blueprint_path}"),
         RatificationMode::Head => format!("HEAD:{git_blueprint_path}"),
     };
-    let source = git_output(root, ["show", &spec])?;
-    let ast = crate::blueprint::parser::parse_str(&git_blueprint_path, &source).ok()?;
-    Some((
+    let Some(source) = git_output(root, ["show", &spec]) else {
+        return blueprint_absence(root, &git_blueprint_path, mode);
+    };
+    let Ok(ast) = crate::blueprint::parser::parse_str(&git_blueprint_path, &source) else {
+        return CandidateBlueprint::Unreadable(UNREADABLE);
+    };
+    CandidateBlueprint::Pointers(
         crate::artefacts::registry::decision_pointers(&ast),
         git_prefix,
-    ))
+    )
+}
+
+/// Classifies a failed candidate blueprint read as benign absence or refusal.
+///
+/// Two conditions must both hold for silence. The blueprint is tracked in
+/// neither the candidate tree nor `HEAD`, which rules out a staged deletion of
+/// a previously tracked blueprint. And the candidate tree accepts nothing at
+/// tier local anywhere: a commit that does accept something still needs the
+/// gate, blueprint or no blueprint. Anything else, a Git that will not answer
+/// included, is a refusal.
+fn blueprint_absence(
+    root: &Path,
+    git_blueprint_path: &str,
+    mode: RatificationMode,
+) -> CandidateBlueprint {
+    if tracked_in_tree(root, git_blueprint_path, mode) != Some(false)
+        || tracked_in_tree(root, git_blueprint_path, RatificationMode::Head) != Some(false)
+    {
+        return CandidateBlueprint::Unreadable(UNREADABLE);
+    }
+    match candidate_accepts_local_anywhere(root, mode) {
+        Some(false) => CandidateBlueprint::NothingToGate,
+        Some(true) => CandidateBlueprint::Unreadable(UNDECLARED),
+        None => CandidateBlueprint::Unreadable(UNREADABLE),
+    }
+}
+
+/// Whether the candidate tree accepts anything at tier local, searched across
+/// the whole tree.
+///
+/// A candidate with no blueprint declares no decisions directory, so the search
+/// cannot be scoped by pointer, and it is never scoped by the worktree, which
+/// the candidate tree is free to contradict. `git grep` only narrows the tree
+/// to files carrying both frontmatter KEYS, never their values: the parser,
+/// which normalises quoting and indentation, is the sole classifier of what
+/// counts as accepted at tier local.
+fn candidate_accepts_local_anywhere(root: &Path, mode: RatificationMode) -> Option<bool> {
+    // `--full-name` and `:(top)` make the search and its output repository-wide
+    // and repository-relative, whatever nested directory the scan root is.
+    let mut args = vec![
+        "grep",
+        "--full-name",
+        "--all-match",
+        "-l",
+        "-z",
+        "-a",
+        "-E",
+        "-e",
+        "^[[:space:]]*status[[:space:]]*:",
+        "-e",
+        "^[[:space:]]*ratification[[:space:]]*:",
+    ];
+    match mode {
+        RatificationMode::Index => args.insert(1, "--cached"),
+        RatificationMode::Head => args.push("HEAD"),
+    }
+    args.extend(["--", ":(top)"]);
+    // `git grep` exits 1 on no match, which is an answer, not a refusal.
+    let listing = git_output_matching(root, args)?;
+    for entry in listing.split('\0').filter(|entry| !entry.is_empty()) {
+        let spec = match mode {
+            RatificationMode::Index => format!(":{entry}"),
+            // Tree grep already prints each hit as `HEAD:<path>`.
+            RatificationMode::Head => entry.to_owned(),
+        };
+        let raw = git_output(root, ["show", &spec])?;
+        let frontmatter = crate::artefacts::frontmatter::parse(&raw);
+        if matches!(
+            (
+                frontmatter.values.get("status").map(String::as_str),
+                frontmatter.values.get("ratification").map(String::as_str),
+            ),
+            (Some("accepted"), Some("local"))
+        ) {
+            return Some(true);
+        }
+    }
+    Some(false)
+}
+
+/// Whether the named tree tracks `git_blueprint_path`; `None` when Git refused.
+///
+/// An unborn `HEAD` is a refusal, not an answer: `ls-tree` fails there exactly
+/// as it does on a broken ref or an unreadable object database, and this gate
+/// does not guess which.
+fn tracked_in_tree(root: &Path, git_blueprint_path: &str, mode: RatificationMode) -> Option<bool> {
+    let pathspec = literal_pathspec(git_blueprint_path);
+    let args = match mode {
+        RatificationMode::Index => vec!["ls-files", "--full-name", "-z", "--", pathspec.as_str()],
+        RatificationMode::Head => vec![
+            "ls-tree",
+            "-r",
+            "--full-tree",
+            "--name-only",
+            "-z",
+            "HEAD",
+            "--",
+            pathspec.as_str(),
+        ],
+    };
+    let listing = git_output(root, args)?;
+    Some(listing.split('\0').any(|path| path == git_blueprint_path))
 }
 
 pub(super) fn candidate_pointer_configuration_matches(
@@ -281,6 +404,19 @@ pub(super) fn git_output<'a>(
         .success()
         .then(|| String::from_utf8(output.stdout).ok())
         .flatten()
+}
+/// `git_output`, but treating `git grep`'s "no match" exit status as an empty
+/// answer rather than a refusal. Every other failure stays `None`.
+fn git_output_matching<'a>(root: &Path, args: impl IntoIterator<Item = &'a str>) -> Option<String> {
+    let output = Command::new("git")
+        .current_dir(root)
+        .args(args)
+        .output()
+        .ok()?;
+    match output.status.code() {
+        Some(0 | 1) => String::from_utf8(output.stdout).ok(),
+        _ => None,
+    }
 }
 /// Classifies an accepted local decision against the MERGE-BASE allowlist.
 ///

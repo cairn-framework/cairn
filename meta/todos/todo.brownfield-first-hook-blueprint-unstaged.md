@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.hooks
-status: open
+status: done
 created: 2026-08-09
 ---
 
@@ -67,3 +67,14 @@ Pick one and implement it:
   is staged still errors; and that a genuinely unreadable candidate blueprint
   still errors.
 - Re-running Arm A end to end reaches step 6 without an Error finding.
+
+## Resolution
+
+2026-08-10: first option implemented, with one refinement the Scope above did
+not anticipate. Taken literally it opens a second hole: with the blueprint
+tracked nowhere, a staged accepted local decision also went silent, durably,
+because the later commit that adds the blueprint is filtered out by
+`decision_was_not_local` against the merge base. Silence therefore requires a
+second condition, that the candidate tree accepts nothing at tier local
+anywhere in it. Evidence and the shape of that probe:
+`res.candidate-blueprint-absence-classification`.

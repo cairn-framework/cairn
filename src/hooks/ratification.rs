@@ -18,9 +18,9 @@ use crate::{
 mod git;
 
 use git::{
-    base_binding_surface_findings, candidate_accepted_local, candidate_decision_pointers,
-    candidate_pointer_configuration_matches, changed_paths, decision_was_not_local, git_output,
-    inside_work_tree,
+    CandidateBlueprint, base_binding_surface_findings, candidate_accepted_local,
+    candidate_decision_pointers, candidate_pointer_configuration_matches, changed_paths,
+    decision_was_not_local, git_output, inside_work_tree,
 };
 
 const ALLOWLIST_PATH: &str = "docs/registries/binding-surface.md";
@@ -65,10 +65,11 @@ pub(super) fn ratification_findings_with_blueprint(
     // accepted local decision gates anything, so a repository that merely
     // proposes one still needs no merge base.
     // Outside a Git work tree nothing can be committed, so there is nothing to
-    // gate; that is the ONLY silent case. Inside one, an unanswerable Git may
-    // be hiding an acceptance, so enumeration failure always fails closed
-    // (never inferred from worktree contents, which the candidate tree is
-    // free to contradict).
+    // gate; likewise when neither the candidate tree nor `HEAD` tracks a
+    // blueprint. Those are the only two silent cases: inside a work tree an
+    // unanswerable Git may hide an acceptance, so every other enumeration
+    // failure fails closed (never inferred from worktree contents, which the
+    // candidate tree is free to contradict).
     if !inside_work_tree(&filesystem_root) {
         return Vec::new();
     }
@@ -132,15 +133,14 @@ fn candidate_local_decisions<'a>(
     mode: RatificationMode,
     blueprint_path: &Path,
 ) -> Result<Option<(Vec<&'a Decision>, String)>, Vec<Finding>> {
-    let Some((candidate_pointers, git_prefix)) =
-        candidate_decision_pointers(filesystem_root, blueprint_path, mode)
-    else {
-        return Err(vec![finding(
-            "CAIRN_HOOK_AFFECTS_SUBSET",
-            "cannot read or parse the candidate blueprint while checking ratification evidence",
-            None,
-        )]);
-    };
+    let (candidate_pointers, git_prefix) =
+        match candidate_decision_pointers(filesystem_root, blueprint_path, mode) {
+            CandidateBlueprint::Pointers(pointers, prefix) => (pointers, prefix),
+            CandidateBlueprint::NothingToGate => return Ok(None),
+            CandidateBlueprint::Unreadable(message) => {
+                return Err(vec![finding("CAIRN_HOOK_AFFECTS_SUBSET", message, None)]);
+            }
+        };
     let Some(pointer_configuration_matches) =
         candidate_pointer_configuration_matches(&artefacts.decision_pointers, &candidate_pointers)
     else {

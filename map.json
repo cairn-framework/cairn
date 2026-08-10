@@ -3245,7 +3245,7 @@
           "signature": "pub(super) fn ratification_findings_with_blueprint( root: &Path, artefacts: &ArtefactSet, mode: RatificationMode, blueprint_path: &Path, ) -> Vec<Finding>",
           "file": "src/hooks/ratification.rs",
           "line": 48,
-          "end_line": 126
+          "end_line": 127
         }
       ]
     },
@@ -9431,6 +9431,13 @@
       "message": "research `res.authoreval-instrument-evidence` is not linked from any decision",
       "node": null,
       "path": "meta/research/authoreval-instrument-evidence.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
+      "message": "research `res.candidate-blueprint-absence-classification` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/candidate-blueprint-absence-classification.md"
     },
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
