@@ -10,7 +10,7 @@ use std::{
 };
 
 use cairn::{
-    artefacts::contract,
+    artefacts::{contract, frontmatter},
     blueprint::{lexer, parser},
     map::{build_graph, query},
     reconcile::{CodeReconciler, ReconcileRequest, Reconciler, spec_for, target::Language},
@@ -1929,6 +1929,143 @@ fn test_onboard_decisions_requires_a_loadable_blueprint() -> Result<(), Box<dyn 
     assert!(
         !root.join("cairn.blueprint").exists(),
         "the decisions branch must not synthesise a stub blueprint"
+    );
+
+    Ok(())
+}
+
+/// Writes a fixture repository that carries ordinary ADR-like material and a
+/// blueprint declaring both artefact directories the extraction flow needs. No
+/// cairn artefact directory exists yet: the flow creates it.
+fn write_extraction_flow_fixture(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    fs::create_dir_all(root.join("docs/adr"))?;
+    fs::create_dir_all(root.join("src/core"))?;
+    fs::write(
+        root.join("docs/adr/0001-postgres.md"),
+        "# ADR 1: Use Postgres\n\nWe picked Postgres over MySQL for its transactional guarantees.\n",
+    )?;
+    fs::write(
+        root.join("README.md"),
+        "# Demo\n\n## Decision\n\nWe ship weekly.\n",
+    )?;
+    fs::write(
+        root.join("src/core/a.rs"),
+        "pub fn a() {}\n// invariant: ids are stable\n",
+    )?;
+    fs::write(
+        root.join("cairn.blueprint"),
+        r#"System Demo "demo" id "demo" {
+    decisions "./meta/decisions"
+    research "./meta/research"
+
+    Module Core "core" id "demo.core" {
+        path "./src/core"
+    }
+    Module Docs "docs" id "demo.docs" {
+        path "./docs/adr"
+    }
+}
+"#,
+    )?;
+    Ok(())
+}
+
+// The report is covered elsewhere; what is asserted here is the artefact the
+// flow produces at the end of it.
+#[test]
+fn test_decision_extraction_flow_drafts_a_bound_proposal() -> Result<(), Box<dyn std::error::Error>>
+{
+    let root = temp_root("brownfield-extraction-flow")?;
+    write_extraction_flow_fixture(&root)?;
+    assert!(
+        !root.join("meta").exists(),
+        "the fixture carries no cairn artefact directory before the run"
+    );
+
+    let index = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "onboard", "decisions"])
+        .output()?;
+    assert!(
+        index.status.success(),
+        "onboard decisions stderr: {}",
+        String::from_utf8_lossy(&index.stderr)
+    );
+    let parsed: serde_json::Value = serde_json::from_str(&String::from_utf8(index.stdout)?)?;
+    let adr = parsed["data"]["bound"]
+        .as_array()
+        .expect("bound is an array")
+        .iter()
+        .find(|item| item["path"] == "docs/adr/0001-postgres.md")
+        .expect("the ADR is bound evidence");
+    let node = adr["node"]
+        .as_str()
+        .expect("bound evidence carries a node")
+        .to_string();
+
+    // The research artefact is part of the flow: without it the draft's
+    // `informed_by` dangles. `method: primary` is the honest claim for
+    // first-hand evidence read out of the project itself.
+    fs::create_dir_all(root.join("meta/research"))?;
+    fs::write(
+        root.join("meta/research/postgres-over-mysql.md"),
+        format!(
+            "---\nid: res.postgres-over-mysql\nnodes:\n  - {node}\nmethod: primary\ndate: 2026-08-10\n---\n\n# Evidence for choosing Postgres\n\n`docs/adr/0001-postgres.md` records Postgres taken over MySQL.\n"
+        ),
+    )?;
+
+    let draft = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args([
+            "decision",
+            "new",
+            "postgres-over-mysql",
+            "--node",
+            &node,
+            "--informed-by",
+            "res.postgres-over-mysql",
+        ])
+        .output()?;
+    assert!(
+        draft.status.success(),
+        "decision new stderr: {}",
+        String::from_utf8_lossy(&draft.stderr)
+    );
+
+    let written = fs::read_to_string(root.join("meta/decisions/postgres-over-mysql.md"))?;
+    let draft_front = frontmatter::parse(&written);
+    assert_eq!(
+        draft_front.lists.get("nodes").map(Vec::as_slice),
+        Some([node.clone()].as_slice()),
+        "the draft binds the node the bound entry published, verbatim: {written}"
+    );
+    assert_eq!(
+        draft_front.values.get("status").map(String::as_str),
+        Some("proposed"),
+        "an extracted decision is left for the maintainer to accept: {written}"
+    );
+    assert_eq!(
+        draft_front.lists.get("informed_by").map(Vec::as_slice),
+        Some(["res.postgres-over-mysql".to_owned()].as_slice()),
+        "the draft cites the research artefact rather than asserting the evidence: {written}"
+    );
+
+    // `get` resolves names and unique dotted suffixes too, so success alone
+    // would also accept a label. The returned id is what proves the draft
+    // bound the declared node id itself.
+    let resolved = Command::new(env!("CARGO_BIN_EXE_cairn"))
+        .current_dir(&root)
+        .args(["--json", "get", &node])
+        .output()?;
+    assert!(
+        resolved.status.success(),
+        "the drafted binding names a node the fixture blueprint declares: {node}"
+    );
+    let resolved_node: serde_json::Value =
+        serde_json::from_str(&String::from_utf8(resolved.stdout)?)?;
+    assert_eq!(
+        resolved_node["id"], node,
+        "the drafted binding is the declared node id, not a name or a suffix alias"
     );
 
     Ok(())
