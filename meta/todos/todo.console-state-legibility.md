@@ -1,7 +1,11 @@
 ---
 node: cairn.ui
-status: open
+status: blocked
 created: 2026-08-03
+blocked_by:
+  - todo.console-contrast-honesty
+  - todo.console-state-grammar
+  - todo.console-wire-legibility
 related: [dec.webui-write-authority, dec.webui-design-token-gate, dec.webui-a11y-static-audit-gate, todo.console-orchestration-ux-design]
 ---
 
@@ -14,6 +18,23 @@ signature and neither is orchestration-facing. Evidence and measurements
 live in `todo.console-orchestration-ux-design`; this unit is the
 implementation half.
 
+This unit was decomposed on 2026-08-10 under the sizing rule: it carries nine
+distinct changes across the webui, the shared design system in
+`docs/design-system/` (which the marketing lane also consumes, and where two
+affected rules also live, not only in the webui overrides), and the
+visual harness. That is more than one small reviewable PR.
+
+blocked on sub-todos: todo.console-contrast-honesty, todo.console-state-grammar, todo.console-wire-legibility
+
+The three partition the task list below without remainder: clause 3 plus the
+`opacity` item of clause 2 go to `todo.console-contrast-honesty`, the rest of
+clause 2 goes to `todo.console-state-grammar`, and clause 1 goes to
+`todo.console-wire-legibility`. The other two both depend on
+`todo.console-contrast-honesty` and on nothing else, so that the contrast
+measurement is honest before anything is graded against it; they do not depend
+on each other and are ordered only by slug. The iteration completing the last
+child flips this parent to done.
+
 ## Task
 
 1. **Render the evidence the browser already downloaded.**
@@ -24,20 +45,27 @@ implementation half.
      `item.stem` and `item.path`, which is why the backlog lane is a list
      of `meta/todos/todo.*.md` filenames. Render the title.
    - `/api/pending` items carry `ruling_summary`, `rubric.tier`, and
-     `rubric.unblocks`; the lane renders `item.id` truncated to a few
-     characters. Render the summary and tier.
+     `rubric.unblocks`. `PendingDetail` already renders all three. The
+     collapsed row built by `itemLabel` carries the id, node ids, age,
+     ratification, and subject hash, but not the summary or the tier.
+     Put those two on that row.
    - The bezel reads "No issues" above a findings count, because `drift`
      in `app.js` means error-or-warning only and severity is never
      stated. Qualify the copy so the two readouts cannot contradict.
 2. **Fix the state grammar in place.**
-   - Replace the `opacity: 0.55` dimming in `style.css` with ink token
-     steps, so dimmed text stays above 4.5:1.
-   - Split `--orphaned` from `--drift`: they are the same amber today and
-     the legend renders both keys identically.
-   - Replace the drift animation (`driftPulse`, `driftBlink`) with a
-     channel that survives greyscale and `prefers-reduced-motion`, which
-     `components.css` disables and `harness/eval.mjs` emulates. Motion
-     becomes decoration, not state.
+   - Replace the `opacity: 0.55` dimming with ink token steps, so dimmed
+     text stays above 4.5:1. It is declared both canonically in
+     `components.css` and again in `style.css`, and the served sheet
+     concatenates the canonical layer first, so both must change.
+   - Split `--orphaned` from `--drift`: they are the same amber today,
+     and one selector in `components.css` paints both legend keys from
+     `--orphaned`, so the token split alone would not separate them.
+   - Replace the drift animation (`driftPulse`, `driftBlink`, both in the
+     shared `components.css`) with a channel that survives greyscale and
+     `prefers-reduced-motion`. The current selectors do not stop both
+     animations in both consumers, and the harness hides that by forcing
+     animation off before it measures. Motion becomes decoration, not
+     state.
    - Put node state into the accessible name. The `.state-dot` is
      `aria-hidden` and the option's accessible name is the node id, so no
      state reaches a screen reader at all.
@@ -69,3 +97,8 @@ nothing useful" as a confound when the mockups are compared against the
 live surface.
 
 2026-08-07 audit (todo.roadmap-assumption-audit): keep; blocker of todo.ui-asset-refresh.
+
+2026-08-10 decomposition: the Task bullets above were corrected in place where
+the 2026-08-03 wording proved wrong against the source. The child todos carry
+the full detail, and `res.console-state-legibility-decomposition` records the
+item-by-item read, what it confirmed, and what it corrected.
