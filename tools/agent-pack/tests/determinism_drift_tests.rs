@@ -125,7 +125,7 @@ destination = "output.txt"
     );
 }
 
-const EXPECTED_CANONICAL: [(&str, &str, &str); 21] = [
+const EXPECTED_CANONICAL: [(&str, &str, &str); 22] = [
     (
         "cairn-apply",
         "default",
@@ -171,6 +171,11 @@ const EXPECTED_CANONICAL: [(&str, &str, &str); 21] = [
         "cairn-dev-reference-task-architecture-discovery",
         "default",
         "content/skills/cairn-dev/references/task-architecture-discovery.md",
+    ),
+    (
+        "cairn-dev-reference-task-brownfield-decision-extraction",
+        "default",
+        "content/skills/cairn-dev/references/task-brownfield-decision-extraction.md",
     ),
     (
         "cairn-dev-reference-task-bug-investigation",
@@ -225,7 +230,7 @@ const EXPECTED_CANONICAL: [(&str, &str, &str); 21] = [
     ),
 ];
 
-const EXPECTED_CLAUDE: [(&str, &str, &str); 21] = [
+const EXPECTED_CLAUDE: [(&str, &str, &str); 22] = [
     (
         "cairn-apply",
         "default",
@@ -271,6 +276,11 @@ const EXPECTED_CLAUDE: [(&str, &str, &str); 21] = [
         "cairn-dev-reference-task-architecture-discovery",
         "default",
         ".claude/skills/cairn-dev/references/task-architecture-discovery.md",
+    ),
+    (
+        "cairn-dev-reference-task-brownfield-decision-extraction",
+        "default",
+        ".claude/skills/cairn-dev/references/task-brownfield-decision-extraction.md",
     ),
     (
         "cairn-dev-reference-task-bug-investigation",

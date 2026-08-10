@@ -53,6 +53,7 @@ this file.
 | Restructure code without changing behaviour | `references/task-refactoring.md` |
 | Understand how a system fits together | `references/task-architecture-discovery.md` |
 | Build something new, or extend a module | `references/task-feature-implementation.md` |
+| Mine an existing codebase into proposed decisions | `references/task-brownfield-decision-extraction.md` |
 | Write or edit `cairn.blueprint` | `references/blueprint-syntax.md` |
 | Interpret a finding code | `references/finding-codes.md` |
 | Write a decision, research, source, or todo | `references/artefact-schemas.md` |

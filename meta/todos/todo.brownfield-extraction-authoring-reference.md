@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-08-10
 blocked_by: [todo.brownfield-onboard-decisions-index]
 parent: todo.brownfield-extraction-flow

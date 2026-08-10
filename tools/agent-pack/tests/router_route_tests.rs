@@ -285,3 +285,41 @@ fn every_manifest_destination_is_tracked_by_git() {
          will not ship: {untracked:?} (add with `git add -f`)"
     );
 }
+
+#[test]
+fn the_brownfield_extraction_reference_keeps_drafts_proposed() {
+    // The reference hands a model the decision writer, so the clauses that stop
+    // it from self-ratifying an inferred decision are the shipped contract
+    // (`dec.brownfield-extraction-mechanism` clauses 2 and 3). A green scan
+    // proves artefact integrity, never that these sentences survived an edit.
+    let raw = std::fs::read_to_string(
+        pack_dir()
+            .join("content/skills/cairn-dev/references/task-brownfield-decision-extraction.md"),
+    )
+    .unwrap();
+    // Matched against whitespace-collapsed prose: a reflowed line break inside a
+    // clause is not a lost clause, and failing on one would teach the next author
+    // to widen the paragraph rather than keep the rule.
+    let body = raw.split_whitespace().collect::<Vec<_>>().join(" ");
+    for clause in [
+        "cairn onboard decisions --json",
+        "cairn decision new <slug> --node <id> --informed-by res.<slug>",
+        "method: primary",
+        "Never pass it as a node id",
+        "Leave every extracted decision at `status: proposed`.",
+        "Do not set `status: accepted`, `ratified_by`, `receipts`, or `supersedes`.",
+        "Do not use `cairn gap`",
+        "keep the `cairn onboard decisions` report that produced each draft with it",
+        "put the draft to the maintainer for acceptance or rejection",
+        "Never accept your own extracted decision.",
+        // A second decision writer is the failure mode the ruling names: every
+        // draft goes through the existing command.
+        "do not add a second writer",
+    ] {
+        assert!(
+            body.contains(clause),
+            "the brownfield extraction reference no longer carries its required \
+             clause: {clause:?}"
+        );
+    }
+}

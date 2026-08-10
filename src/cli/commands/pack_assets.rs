@@ -100,6 +100,12 @@ const BASE_ASSETS: &[AssetTemplate] = &[
         include_str!("../../../.claude/skills/cairn-dev/references/task-feature-implementation.md"),
     ),
     asset(
+        ".claude/skills/cairn-dev/references/task-brownfield-decision-extraction.md",
+        include_str!(
+            "../../../.claude/skills/cairn-dev/references/task-brownfield-decision-extraction.md"
+        ),
+    ),
+    asset(
         ".claude/skills/cairn-explore/SKILL.md",
         include_str!("../../../.claude/skills/cairn-explore/SKILL.md"),
     ),
