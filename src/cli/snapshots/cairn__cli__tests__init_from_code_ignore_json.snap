@@ -9,7 +9,7 @@ expression: payload
     "change_id": "brownfield-init",
     "change_path": "meta/changes/brownfield-init",
     "ignore_suggestions": [
-      "node_modules",
+      "vendor",
       "packages/api/dist",
       "packages/web/dist"
     ],

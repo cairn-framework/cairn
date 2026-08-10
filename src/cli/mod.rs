@@ -171,6 +171,21 @@ fn ignore_inspection_error(path: &Path, error: impl std::fmt::Display) -> String
     )
 }
 
+/// `node_modules` is already ignored by the scanner's built-in list and by
+/// brownfield discovery, so a path-specific entry adds nothing an adopter can
+/// act on. Suppress it wherever init would scaffold one; every other
+/// classifier pattern (`dist`, `build`, `vendor`, `__pycache__`) still earns
+/// its line.
+///
+/// The match is exact and case-sensitive on purpose. The onboard classifier
+/// compares segments case-insensitively but returns the original casing, so a
+/// directory literally named `NODE_MODULES` still reaches here; the scanner's
+/// `is_ignored` and discovery's `is_ignored_dir` are both exact matches, so
+/// that entry is load-bearing rather than redundant and must survive.
+fn is_redundant_ignore_candidate(candidate: &str) -> bool {
+    candidate == "node_modules" || candidate.ends_with("/node_modules")
+}
+
 fn collect_initial_ignore_candidates(
     root: &Path,
     current: &Path,
@@ -186,15 +201,6 @@ fn collect_initial_ignore_candidates(
             continue;
         }
         if metadata.is_file() {
-            if path.file_name().is_some_and(|name| name == "package.json") {
-                let parent = relative_slash_path(root, current);
-                let candidate = if parent.is_empty() {
-                    "node_modules".to_owned()
-                } else {
-                    format!("{parent}/node_modules")
-                };
-                candidates.insert(candidate);
-            }
             continue;
         }
         if !metadata.is_dir() {
@@ -225,7 +231,9 @@ fn initial_ignore_suggestions(root: &Path) -> Result<Vec<String>, String> {
     collect_initial_ignore_candidates(root, root, &mut candidates)?;
     Ok(candidates
         .into_iter()
-        .filter(|candidate| is_safe_ignore_path(candidate))
+        .filter(|candidate| {
+            is_safe_ignore_path(candidate) && !is_redundant_ignore_candidate(candidate)
+        })
         .collect())
 }
 
@@ -2059,11 +2067,6 @@ mod tests {
             result.stdout
         );
         assert!(
-            result.stdout.contains("node_modules"),
-            "proposal must include package-manager output: {}",
-            result.stdout
-        );
-        assert!(
             !root.join("cairn.config.yaml").exists(),
             "proposal must not write config before --apply"
         );
@@ -2077,7 +2080,81 @@ mod tests {
         let payload: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
         assert_eq!(
             payload["data"]["ignore_suggestions"],
-            serde_json::json!(["node_modules", "packages/api/dist", "packages/web/dist"])
+            serde_json::json!(["packages/api/dist", "packages/web/dist"])
+        );
+        Ok(())
+    }
+
+    /// `node_modules` is already in the scanner's built-in ignore list, so a
+    /// path-specific entry is config the adopter cannot verify and did not
+    /// need. Neither route may emit one: the manifest route fires on a
+    /// `package.json` whose sibling directory does not exist, and the
+    /// classifier route fires on the directory when it does.
+    #[test]
+    fn test_cli_init_from_code_never_suggests_node_modules()
+    -> Result<(), Box<dyn std::error::Error>> {
+        fn fixture(name: &str, installed: bool) -> Result<PathBuf, Box<dyn std::error::Error>> {
+            let root = from_code_root(name)?;
+            fs::write(root.join("package.json"), "{}\n")?;
+            fs::create_dir_all(root.join("packages/api/dist"))?;
+            fs::write(root.join("packages/api/package.json"), "{}\n")?;
+            if installed {
+                for parent in ["node_modules", "packages/api/node_modules"] {
+                    fs::create_dir_all(root.join(parent).join("left-pad"))?;
+                }
+            }
+            Ok(root)
+        }
+
+        for (label, installed) in [("absent", false), ("present", true)] {
+            let proposed = fixture(&format!("init-from-code-node-modules-{label}"), installed)?;
+            let json = run_in(&proposed, &["--json", "init", "--from-code"]);
+            assert_eq!(json.code, 0, "{label}: stderr: {}", json.stderr);
+            let payload: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+            assert_eq!(
+                payload["data"]["ignore_suggestions"],
+                serde_json::json!(["packages/api/dist"]),
+                "{label}: node_modules must not be proposed"
+            );
+
+            let applied = fixture(
+                &format!("init-from-code-node-modules-{label}-apply"),
+                installed,
+            )?;
+            let result = run_in(&applied, &["init", "--from-code", "--apply"]);
+            assert_eq!(result.code, 0, "{label}: stderr: {}", result.stderr);
+            let config = fs::read_to_string(applied.join("cairn.config.yaml"))?;
+            assert!(
+                !config.contains("node_modules"),
+                "{label}: config must not scaffold node_modules: {config}"
+            );
+            assert!(
+                config.contains("packages/api/dist"),
+                "{label}: unrelated suggestions must survive: {config}"
+            );
+        }
+        Ok(())
+    }
+
+    /// The boundary of the suppression above. A directory literally named
+    /// `NODE_MODULES` classifies as an ignore candidate (the classifier
+    /// lowercases before matching) but is ignored by neither the scanner's
+    /// built-in list nor discovery, both of which match exactly. Its entry is
+    /// load-bearing, so widening the suppression to be case-insensitive would
+    /// silently drop an ignore the adopter needs.
+    #[test]
+    fn test_cli_init_from_code_keeps_uppercase_node_modules_suggestion()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = from_code_root("init-from-code-node-modules-uppercase")?;
+        fs::create_dir_all(root.join("packages/NODE_MODULES/left-pad"))?;
+
+        let json = run_in(&root, &["--json", "init", "--from-code"]);
+        assert_eq!(json.code, 0, "stderr: {}", json.stderr);
+        let payload: serde_json::Value = serde_json::from_str(json.stdout.trim())?;
+        assert_eq!(
+            payload["data"]["ignore_suggestions"],
+            serde_json::json!(["packages/NODE_MODULES"]),
+            "an entry the scanner does not ignore must still be proposed"
         );
         Ok(())
     }
@@ -2100,12 +2177,10 @@ mod tests {
         assert!(config.contains("  - custom-generated"));
         assert!(config.contains("  - \"packages/api/dist\""));
         assert!(config.contains("  - \"packages/web/dist\""));
-        assert!(config.contains("  - \"node_modules\""));
         assert!(config.contains("context: \"keep this\""));
         let loaded = scanner::config::load(&root)?;
         assert!(loaded.ignores.contains(&"packages/api/dist".to_owned()));
         assert!(loaded.ignores.contains(&"packages/web/dist".to_owned()));
-        assert!(loaded.ignores.contains(&"node_modules".to_owned()));
         Ok(())
     }
 
@@ -2121,7 +2196,6 @@ mod tests {
         assert_eq!(result.code, 0, "stderr: {}", result.stderr);
         let config = fs::read_to_string(root.join("cairn.config.yaml"))?;
         assert!(config.contains("  - target"));
-        assert!(config.contains("  - \"node_modules\""));
         assert!(config.contains("  - \"packages/api/dist\""));
         let loaded = scanner::config::load(&root)?;
         assert!(loaded.ignores.contains(&"packages/api/dist".to_owned()));
@@ -2346,7 +2420,7 @@ mod tests {
     #[test]
     fn test_init_from_code_ignore_proposal_snapshots() -> Result<(), Box<dyn std::error::Error>> {
         let suggestions = vec![
-            "node_modules".to_owned(),
+            "vendor".to_owned(),
             "packages/api/dist".to_owned(),
             "packages/web/dist".to_owned(),
         ];
