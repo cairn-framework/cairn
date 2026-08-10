@@ -323,3 +323,41 @@ fn the_brownfield_extraction_reference_keeps_drafts_proposed() {
         );
     }
 }
+
+#[test]
+fn the_brownfield_extraction_reference_carries_the_external_run_guards() {
+    // Two prose defects the external `rancher/turtles` run hit
+    // (`res.brownfield-extraction-external-run` sections 1 and 7): step 0 assumed
+    // a System block the brownfield entry point never writes, and section 3's
+    // read-every-candidate step was load-bearing without saying why. Both cost
+    // that run real work, and both are invisible to a green scan, so pin them.
+    let raw = std::fs::read_to_string(
+        pack_dir()
+            .join("content/skills/cairn-dev/references/task-brownfield-decision-extraction.md"),
+    )
+    .unwrap();
+    let body = raw.split_whitespace().collect::<Vec<_>>().join(" ");
+    for clause in [
+        // Gap 1: the fact, the action it implies, and why the wrapper is advice
+        // rather than a parser rule. The action is the half that closes the gap.
+        "`cairn init --from-code --apply` writes no System block",
+        "Cairn collects these pointers from any node at any depth",
+        "so a System block is a convention, not a parser requirement",
+        "Wrap that list in a System and declare both pointers there",
+        // Gap 2: the instruction, the wire property that makes it load-bearing,
+        // and the run that proves it. All three chains, because one surviving
+        // example would read as an anecdote rather than as a pattern.
+        "Read every candidate at its `path` and `line`",
+        "one flat list with no status and no supersession",
+        "ADR 0009 reversed accepted ADR 0005",
+        "ADRs 0008 and 0011 retired half of ADR 0003",
+        "ADR 0011 superseded ADR 0010",
+        "was withdrawn once all 19 were read",
+    ] {
+        assert!(
+            body.contains(clause),
+            "the brownfield extraction reference no longer warns about a gap the \
+             external run found: {clause:?}"
+        );
+    }
+}

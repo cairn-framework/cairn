@@ -50,3 +50,14 @@ Terminology section stays, justified as the ubiquitous-language cache.
   the pass touches, so absorbed guidance lands in the repo voice.
 
 2026-08-07 audit (todo.roadmap-assumption-audit): keep; no stale assumptions found this pass.
+
+2026-08-10 measurement (`res.reference-budget-headroom`, from
+todo.brownfield-extraction-reference-gaps): three of the ten routed references
+are pressed against their shipped ceiling, so item 2 has less room than it looks
+for those three and normal headroom elsewhere. `JIT_REFERENCE_BUDGET_BYTES` is
+6,000 (`tools/agent-pack/tests/first_turn_budget_tests.rs`), and
+`task-brownfield-decision-extraction.md` sat at 5,701 bytes, so two required
+passages only fitted after compressing wording in the same file.
+`finding-codes.md` (5,860) and `artefact-schemas.md` (5,947) have less headroom
+still. Any addition to those three is a compression pass, not an append, and the
+four qualifiers that first pass dropped are the reason to budget it deliberately.
