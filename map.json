@@ -2859,6 +2859,7 @@
         "tools/agent-pack/content/skills/cairn-dev/references/graph-navigation.md",
         "tools/agent-pack/content/skills/cairn-dev/references/loop-mode.md",
         "tools/agent-pack/content/skills/cairn-dev/references/task-architecture-discovery.md",
+        "tools/agent-pack/content/skills/cairn-dev/references/task-brownfield-decision-extraction.md",
         "tools/agent-pack/content/skills/cairn-dev/references/task-bug-investigation.md",
         "tools/agent-pack/content/skills/cairn-dev/references/task-feature-implementation.md",
         "tools/agent-pack/content/skills/cairn-dev/references/task-refactoring.md",

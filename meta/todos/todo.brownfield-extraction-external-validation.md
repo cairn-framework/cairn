@@ -1,6 +1,6 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: open
 created: 2026-08-10
 blocked_by:
   - todo.brownfield-onboard-decisions-index
