@@ -9582,6 +9582,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.console-design-unit-closeout-audit` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/console-design-unit-closeout-audit.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.node-symbol-coverage.investigation` is not linked from any decision",
       "node": null,
       "path": "meta/research/node-symbol-coverage.investigation.md"

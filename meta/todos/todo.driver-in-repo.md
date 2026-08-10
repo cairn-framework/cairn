@@ -62,7 +62,7 @@ executes one assigned action and returns its outcome.
    todo-sourced units only.
 5. Steering surface: `todo.console-signed-widening` wires the console to
    this driver under `dec.control-plane-programme`'s ownership split. It
-   is blocked on `todo.console-orchestration-ux-design` and does not gate
+   is blocked on `todo.console-round-three-closeout` (2026-08-10) and does not gate
    this unit's non-UI work.
 ## Decomposition (2026-08-09)
 

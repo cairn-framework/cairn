@@ -3,7 +3,7 @@ node: cairn.ui
 status: blocked
 created: 2026-08-03
 related: [dec.control-plane-programme, todo.overharness-console-ux, dec.orchestration-placement]
-blocked_by: [todo.console-orchestration-ux-design]
+blocked_by: [todo.console-round-three-closeout]
 ---
 
 # Console Signed Widening
@@ -61,9 +61,12 @@ current gate is in the last section.
 `dec.product-perimeter`), so this console is the driver's steering
 surface. Two prerequisites remain:
 
-1. `todo.console-orchestration-ux-design`, recorded in `blocked_by:`:
-   the journeys, the state-source matrix, and the evaluated mockups
-   that tasks 3 to 5 above implement.
+1. `todo.console-round-three-closeout`, recorded in `blocked_by:`: the
+   maintainer's round-3 close-out on the design unit's journeys,
+   state-source matrix, and mockups, which tasks 3 to 5 above implement.
+   `todo.console-orchestration-ux-design` completed its agent-actionable
+   scope on 2026-08-10 and handed that one criterion to this todo, so
+   the blocker moved with the criterion and the gate is unchanged.
 2. `dec.webui-write-authority`, accepted 2026-08-06, authored by task 6
    of that design unit. It retired the read-only rule and named the
    sanctioned verbs this unit implements: `cairn ruling retry`,
@@ -74,4 +77,4 @@ surface. Two prerequisites remain:
    and the plan identity `cairn ruling run` takes as its argument, which
    clause 2 deliberately left to that design.
 
-2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked on todo.console-orchestration-ux-design; child of the driver programme.
+2026-08-07 audit (todo.roadmap-assumption-audit): correctly blocked on todo.console-orchestration-ux-design; child of the driver programme. Blocker moved to todo.console-round-three-closeout on 2026-08-10 when that unit's maintainer criterion was extracted; the gate is unchanged in effect.

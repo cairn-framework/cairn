@@ -47,8 +47,10 @@ Added 2026-08-03, from the console's needs: rung 3's lease model must
 also answer what the steering surface has to render. What is a claim held
 on, a node or a work item, when one unit touches several nodes? What is a
 claim's identity, its expiry, and its renewal? What does a stale claim
-look like to a reader, and how does it differ from no claim at all? The
-word `lease` appears in no Rust source today, so this is genuinely open.
+look like to a reader, and how does it differ from no claim at all? At the
+time the word `lease` appeared in no Rust source; the read surface has since
+shipped as `cairn lease list`, and this unit owns the remaining store and
+schema detail.
 `todo.console-orchestration-ux-design` contributes mockup evidence for
 these questions and consumes the ruling; it does not author a competing
 one.
@@ -133,9 +135,11 @@ task 5 owed. Claim identity, holder, expiry, and renewal render on
 no-claim contrast is the backlog's `no lease recorded` cross-check line;
 and the write-set overlap case renders in the dispatch preview's held
 list (`studio/mocks/orchestration-plan-dispatch.html`): a unit queuing
-behind a wave member's claim because both would change
-`docs/registries/declared-items.md`, one of this task's named
-serialisation hotspots, stated in the plain register (same files, one at
+behind a wave member's claim because both would change the shared
+`docs/registries/` prefix, one of this task's named serialisation hotspots
+and all a phase-0 preview may name
+(`dec.rung-three-coordination-substrate` clause 5), stated in the plain
+register (same files, one at
 a time). Rung 3's design document consumes these screens as its evidence
 base; the 2026-08-03 addendum's questions are now answered in pixels.
 

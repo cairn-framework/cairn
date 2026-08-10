@@ -31,6 +31,11 @@ The brownfield decomposition worked around this by hanging the maintainer-gated
 todo one level up and encoding order in a single `blocked_by` edge. That is a
 per-unit workaround, not a fix, and it costs a level of nesting each time.
 
+Second occurrence, 2026-08-10: `todo.console-orchestration-ux-design` reached
+Scope with only a maintainer act outstanding, so the iteration extracted that
+criterion to `todo.console-round-three-closeout` rather than take the reroute
+path Land would have closed as `done`. Same shape, same cost.
+
 **2. There is no landing path for a unit that lands unfinished.** Loop mode
 routes `REROUTED` straight to Land, and `cairn-loop-scope` section 4 tells a
 rerouted unit to set its own todo `blocked` and land the tracker edits. Landing

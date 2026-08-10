@@ -95,18 +95,19 @@ fields recorded; nothing here is inferred at render time.
 | finding `error` | fact | `GET /api/lint` | filled lamp word ERROR; first sort position; channel row | `--error` |
 | finding `warning` | fact | `GET /api/lint` | hollow lamp word WARNING; second sort position | `--warning` |
 | finding `info` | fact | `GET /api/lint` | no lamp, plain meta text; last sort position | `--info` |
-| lease held | fact | **proposed cairn query**: the lease-facts read surface (a Q8 refactor seam; schema owned by rung 3 of `todo.parallel-dispatch-granularity`; fields fixed by Q2: unit id, holder harness and session, commit at grant, `granted_at`, `expires_at`, renewal) | claim tag on the unit row (mono holder id); expiry readout (`expires HH:MM`); recorded-fields table in detail view | `--hinge-wash` |
-| outcome recorded | fact | **proposed cairn query**: the outcome-facts read surface, paired with the lease surface above (facts recorded by the driver through a sanctioned verb, `todo.driver-in-repo` task 3; harness tokens `ITERATION COMPLETE`, `LOOP EXHAUSTED`, `LOOP HALTED`, plus driver-derived class, keyed by unit id and commit) | verbatim token text (mono); timestamp and commit readout; history rail position | neutral chalk |
+| lease held | fact | `cairn lease list` (`src/cli/commands/coord.rs::run_lease_command`, `src/query_api/handlers/coordination.rs::coordination_leases_json`); fields fixed by Q2: unit id, holder harness and session, commit at grant, `granted_at`, `expires_at`, renewal | claim tag on the unit row (mono holder id); expiry readout (`expires HH:MM`); recorded-fields table in detail view | `--hinge-wash` |
+| outcome recorded | fact | `cairn ruling list` (same modules), the outcome-facts read surface paired with the lease surface above (facts recorded through a sanctioned verb; harness tokens `ITERATION COMPLETE`, `LOOP EXHAUSTED`, `LOOP HALTED`, plus driver-derived class, keyed by unit id and commit) | verbatim token text (mono); timestamp and commit readout; history rail position | neutral chalk |
 
 Lease and outcome rows name cairn queries and not a driver contract, per
 the Q2 correction: both are cairn truth the driver writes through
-sanctioned verbs. Neither read surface exists yet; naming and shape stay
-with the owning todos, and this matrix consumes whatever they rule.
-The owning todos define each future surface's schema and its versioning;
-the spine's existing `schema_version` discipline (stamped onto every query
-response in `src/query_api/mod.rs:317-318` and `:376-377`, stripped at the
-HTTP boundary in `src/ui/server.rs:299-302`) is the in-repo precedent
-available to them, not a contract these rows can claim before it is ruled.
+sanctioned verbs.
+
+**Corrected 2026-08-10.** Written 2026-08-05, these rows said the two read
+surfaces did not exist. `cairn lease list` and `cairn ruling list` shipped on
+2026-08-07 under `dec.rung-three-coordination-substrate`, and
+`dec.coord-fact-write-once` (2026-08-09) later hardened the store behind them,
+so the rows now name the commands. Schema ownership and the existing
+`schema_version` discipline stay with the owning todos.
 
 ## Family: derived projection (computed at query time, never stored)
 
@@ -118,7 +119,7 @@ never claims to be a recorded fact.
 |---|---|---|---|---|
 | ready (frontier) | projection | `GET /api/frontier` `ready[]` `{node, name, tier, has_contract, blocking: []}`; `cairn frontier --json` (`src/query_api/handlers/graph.rs:146-158`) | ready-band membership; tier ordinal readout; derivation mark on the band header (`derived · observed HH:MM`) | neutral; band title carries no signal |
 | blocked (frontier) | projection | `GET /api/frontier` `blocked[]` with `blocking` ids | blocked-band membership; `blocked by N` count with mono ids; derivation mark on the band header (`derived · observed HH:MM`) | neutral |
-| stale lease | projection | **console-derived** from the proposed cairn lease-facts read surface (`expires_at` and renewal fields, row above) plus an explicit observation time (clause 3: the core evaluates no expiry) | `stale` chip with `observed HH:MM`; residue rows (branch, attempt history, last activity); explicit `no outcome recorded` line | `--drift` accent on chip edge |
+| stale lease | projection | **console-derived** from `cairn lease list` (`expires_at` and renewal fields, row above) plus an explicit observation time (clause 3: the core evaluates no expiry) | `stale` chip with `observed HH:MM`; residue rows (branch, attempt history, last activity); explicit `no outcome recorded` line | `--drift` accent on chip edge |
 | next recommended | projection | `GET /api/status` `next_recommended`; `cairn status --json` | single `next` slot position; source attribution line (`from cairn status`); derivation mark with observation time; empty slot states that no recommendation exists | neutral |
 | dependency tier | projection | `GET /api/roadmap` `tiers[]`; frontier `tier` field | stratum band position; tier ordinal label; derivation mark on the band header | neutral |
 
@@ -131,8 +132,9 @@ never as crashed, never as a terminal outcome that was not recorded.
 Carrier: run cards in the runs rail and the bezel annunciator. Source for
 every row: **a proposed, versioned driver-owned contract** (v1; owner
 `todo.driver-in-repo`; the console consumes it read-only and renders nothing
-when it is absent). No query exists today; `lease` and driver liveness appear
-nowhere in `src/` (verified 2026-08-05).
+when it is absent). No query exists today for live execution state, and driver
+liveness appears nowhere in `src/`. Lease and outcome facts are not execution
+state: they are read through the two commands above (corrected 2026-08-10).
 
 | State | Clause 3 kind | Contract field (proposed) | Non-colour channels | Colour |
 |---|---|---|---|---|
