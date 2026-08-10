@@ -9554,6 +9554,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.brownfield-extraction-external-run` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/brownfield-extraction-external-run.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.candidate-blueprint-absence-classification` is not linked from any decision",
       "node": null,
       "path": "meta/research/candidate-blueprint-absence-classification.md"
