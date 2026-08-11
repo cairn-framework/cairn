@@ -6,6 +6,9 @@ pub(crate) mod checks;
 pub(crate) mod claims;
 pub mod config;
 pub(crate) mod contract_baselines;
+pub(crate) mod contract_numerals;
+#[cfg(test)]
+mod contract_numerals_tests;
 pub(crate) mod contract_shape;
 pub(crate) mod gate_recipe;
 #[cfg(test)]
@@ -573,6 +576,7 @@ pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, St
         &baselines,
         &current_snapshot,
     );
+    contract_numerals::check_contract_numeral_drift(&mut graph, &contracts, root);
     ratification::check_ratification(&mut graph, &artefacts, root);
     // Last: parked classification must see the complete finding set.
     todo_defers::check_todo_defers(&mut graph, &artefacts, root);

@@ -79,6 +79,7 @@ does not count.
 | Blueprint shape change lacks a covering decision | - | `CAIRN_BLUEPRINT_CHANGE_NO_DECISION` | enforced |
 | Spec rule has no emitting enforcer | spec:24 | `CAIRN_SPEC_RULE_UNIMPLEMENTED` | enforced |
 | Contract has not been reviewed against its node's current declared shape | - | `CAIRN_CONTRACT_NODE_SHAPE_DRIFT` | enforced |
+| Contract asserted `NAME = N` numeral must match the node's source constant | - | `CAIRN_CONTRACT_NUMERAL_DRIFT` | enforced |
 | Tracked source path must resolve | spec:515 | `CAIRN_SOURCE_READ_FAILED` | enforced |
 | Tracked source canonical path must stay under the repository root | spec:515 | `CAIRN_SOURCE_READ_FAILED` | enforced |
 | Tracked source must not declare a sha256 | spec:515 | `CAIRN_SOURCE_SHA256_UNEXPECTED` | enforced |

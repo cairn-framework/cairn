@@ -82,6 +82,7 @@ All codes follow the pattern **`CXNNN`**:
 - CK033 -- contract has not been reviewed against its node's current declared shape (CAIRN_CONTRACT_NODE_SHAPE_DRIFT) -- todo.contract-blueprint-staleness
 - CK034 -- node uses a tag that is absent from the opt-in `tags:` registry (CAIRN_TAG_UNREGISTERED) -- todo.tag-registry
 - CK035 -- cairn.config.yaml has a malformed opt-in `tags:` registry (CAIRN_CONFIG_TAGS_INVALID) -- todo.tag-registry
+- CK036 -- contract asserts a `NAME = N` numeral that disagrees with, or no longer has, a `const NAME` integer literal in the node's claimed Rust files (CAIRN_CONTRACT_NUMERAL_DRIFT) -- todo.contract-asserted-numeral-drift
 
 ## CA -- Artefacts
 
