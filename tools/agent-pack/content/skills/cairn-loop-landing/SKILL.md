@@ -1,19 +1,19 @@
 ---
 name: cairn-loop-landing
-description: "The landing and merge procedure for one /cairn-loop iteration: stage explicit paths, land one commit, open one PR, run the two-lens pre-submit review, then fail-closed squash-merge with re-verification. Loaded by the cairn-loop command at its Land and Cleanup steps; declares the terminal exit tokens the router keys on."
+description: "Landing and merge procedure for one cairn-dev loop iteration: stage explicit paths, land one commit, open one PR, run the two-lens pre-submit review, then fail-closed squash-merge with re-verification. Loaded by cairn-dev loop mode at its Land and Cleanup steps; not for ordinary development sessions."
 ---
 
 # cairn-loop-landing
 
 Land one loop unit as exactly one squash commit on main, then merge it with
 fail-closed re-verification. This skill is the **sole** landing procedure for
-the `/cairn-loop` command. The command owns selection and the verdict table;
-this skill owns the publish-and-merge procedure and the terminal tokens a
-successful or failed landing returns.
+cairn-dev loop mode, which owns selection and the verdict table; this skill
+owns the publish-and-merge procedure and the terminal tokens a successful or
+failed landing returns.
 
 ## Exit tokens
 
-This skill declares the terminal tokens the router's End step keys on. It
+This skill declares the terminal tokens loop mode's End step keys on. It
 returns exactly one, as its final line:
 
 - `ITERATION COMPLETE` - the unit merged (or was safely deferred earlier; not
@@ -23,23 +23,23 @@ returns exactly one, as its final line:
   or the post-merge `cairn scan --strict` is non-zero. Touch nothing; report
   and halt.
 
-The command's End step passes the emitted token through verbatim.
+Loop mode's End step passes the emitted token through verbatim.
 
 ## Inputs
 
-Always required (the command passes these in):
+Always required (loop mode passes these in):
 
 - `slug` - the unit's branch tail: `todo.<slug>`, `<finding-code>.<node>`, or
-  `split.<slug>` (the exact name Isolation derived).
-- `CAIRN` - the bound cairn binary per the command's Repo bindings.
+  `split.<slug>` (the exact name loop mode's Isolation rule derived).
+- `CAIRN` - the bound cairn binary per loop mode's Repo bindings.
 
 `pr` is path-dependent:
 
 - **Normal Land** (this skill creates the PR): do **not** pass `pr`. After
   `gh pr create`, capture the new PR number (`gh pr view --json number
   --jq .number` against the pushed head) and bind it for Cleanup.
-- **Open-PR recovery** (enters at Cleanup; the PR already exists): the
-  command passes `pr`. Skip Land publish; go straight to Pre-submit review /
+- **Open-PR recovery** (enters at Cleanup; the PR already exists): loop mode
+  passes `pr`. Skip Land publish; go straight to Pre-submit review /
   Cleanup with the given `pr`.
 
 ## Land: exactly one commit
@@ -53,8 +53,7 @@ same commit.
 
 Stage only the files the unit touched, by explicit path: source edits, tests,
 artefacts, and the paths apply moved or generated (read them from
-`git status --short` after apply; they are part of the unit). `git add -A` and
-`git add .` are banned everywhere in this loop.
+`git status --short` after apply; they are part of the unit).
 
 Tracker completion is part of the unit: before committing, set the selected
 todo's status to `done` (`$CAIRN todo set <slug> done`) and, when it was the
@@ -93,9 +92,9 @@ runs verbatim:
 set -euo pipefail   # fail closed: any failing command below stops the script;
                     # a nonzero exit here means report and output LOOP HALTED
 pr=""; slug=""; CAIRN=""                # BIND: PR number, the unit's branch
-                                        # tail (todo.<slug>, <finding-code>.<node>,
-                                        # or split.<slug>), and the cairn binary
-                                        # per Repo bindings; the ONLY substitution point
+                                        # tail per Inputs, and the cairn binary
+                                        # per Repo bindings; the ONLY
+                                        # substitution point
 [ -n "$pr" ] && [ -n "$slug" ] && [ -n "$CAIRN" ] || exit 1  # refuses to run until bound
 state=$(gh pr view "$pr" --json state --jq .state)
 case "$state" in

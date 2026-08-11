@@ -235,15 +235,12 @@ For a lint-finding unit there is no todo body; use the finding and its
 
 ## Scope
 
-Load `cairn-loop-scope`. It owns orientation queries, decision compliance, the
-success criterion, and the reroute rule. On `SCOPED`, continue. On `REROUTED`, the
-tracker edits it produced are this iteration: go to Land.
+Load `cairn-loop-scope`. On `SCOPED`, continue. On `REROUTED`, the tracker
+edits it produced are this iteration: go to Land.
 
 ## Implement and test
 
-Load `cairn-loop-implement`. It owns branch derivation and creation, the smallest
-change satisfying the criterion, blueprint upkeep, and the test rule. On
-`IMPLEMENTED`, continue.
+Load `cairn-loop-implement`. On `IMPLEMENTED`, continue.
 
 ## Verify: the gate
 
@@ -255,14 +252,7 @@ bypass hooks.
 
 ## Reconcile the plan
 
-Load `cairn-loop-reconcile`. It owns the record-and-amend step: the Research
-artefact for what this unit's evidence showed, the Decision when a rule changed,
-the corrections to downstream todo bodies and change specs the evidence
-invalidated, and the `$CAIRN todo set` moves that block or open dependants. It
-leaves its edits in the worktree for Land to stage inside the same commit, so
-the next fresh session reads the reconciled plan from main with no external
-memory. It never selects work, never repeats, and never emits a terminal token.
-On `RECONCILED`, continue.
+Load `cairn-loop-reconcile`. On `RECONCILED`, continue.
 
 This step runs on every iteration that reaches it, including one that changed no
 rule: "nothing needed reconciling, because ..." is a result, and skipping the
@@ -270,10 +260,8 @@ step is not the same as reaching it and finding nothing.
 
 ## Land and Cleanup
 
-Load `cairn-loop-landing`. It owns explicit-path staging, tracker completion, one
-logical commit, push, one PR, the two-lens pre-submit review, and the fail-closed
-squash-merge with re-verification. Always pass `slug` and `CAIRN`. On the normal
-Land path do not pass `pr`. On the open-PR recovery row, pass the existing `pr` and
+Load `cairn-loop-landing`. Always pass `slug` and `CAIRN`. On the normal Land
+path do not pass `pr`. On the open-PR recovery row, pass the existing `pr` and
 enter at Cleanup. Pass its returned token through as this iteration's final line.
 
 ## End

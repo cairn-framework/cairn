@@ -1,6 +1,6 @@
 ---
 name: cairn-loop-scope
-description: The scoping procedure for one cairn-dev loop iteration: orient on the selected unit's node, respect accepted decisions, write one verifiable success criterion, and reroute to a prerequisite rather than expanding. Loaded by cairn-dev loop mode at its Scope step; declares the typed exits that step routes on. Not for ordinary development sessions.
+description: "Scoping procedure for one cairn-dev loop iteration: orient on the unit's node, respect accepted decisions, write one verifiable success criterion, reroute to a prerequisite rather than expand. Loaded by cairn-dev loop mode at its Scope step; not for ordinary development sessions."
 license: MIT
 compatibility: Requires Cairn CLI.
 ---

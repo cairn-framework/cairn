@@ -391,7 +391,8 @@ export function auditPage(opts) {
     stateNamedModules.every((mod) => {
       const id = mod.getAttribute("data-node-id") || "";
       const label = mod.getAttribute("aria-label") || "";
-      const state = ["synced", "ghost", "orphaned", "drift"].find((cls) => mod.classList.contains(cls));
+      const classes = typeof mod.className === "string" ? mod.className.trim().split(/\s+/) : [];
+      const state = ["synced", "ghost", "orphaned", "drift"].find((cls) => classes.includes(cls));
       if (!state) return false;
       const expected = state === "ghost" ? "planned" : state;
       return label.toLowerCase() === `${id.toLowerCase()}, ${expected}`;

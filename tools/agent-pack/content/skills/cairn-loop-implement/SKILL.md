@@ -1,6 +1,6 @@
 ---
 name: cairn-loop-implement
-description: The implement-and-test procedure for one cairn-dev loop iteration: derive and create the unit branch, make the smallest change satisfying the success criterion, keep the blueprint honest, and cover changed behaviour with a test. Loaded by cairn-dev loop mode at its Implement step; declares the typed exits that step routes on. Not for ordinary development sessions.
+description: "Implement-and-test procedure for one cairn-dev loop iteration: derive and create the unit branch, make the smallest change satisfying the success criterion, keep the blueprint honest, cover changed behaviour with a test. Loaded by cairn-dev loop mode at its Implement step; not for ordinary development sessions."
 license: MIT
 compatibility: Requires Cairn CLI.
 ---
@@ -18,9 +18,9 @@ Declared exits, exactly one, as the last line you return to loop mode:
 
 ## 1. Get on the right branch
 
-The branch is `loop/<tail>`, where `<tail>` is the derived form from loop mode's
-Isolation rule: `todo.<slug>`, `<finding-code>.<node>`, or `split.<slug>`. Every
-later step (push, PR, Cleanup) uses this exact name.
+The branch is `loop/<tail>`, where `<tail>` is the derived form from loop
+mode's Isolation rule: `todo.<slug>`, `<finding-code>.<node>`, or
+`split.<slug>`. Every later step (push, PR, Cleanup) uses this exact name.
 
 If it is already checked out (adopted at verdict time, or created earlier this
 session during MISSION materialisation or decomposition), continue on it.
