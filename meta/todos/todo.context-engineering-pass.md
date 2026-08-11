@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: blocked
+status: done
 created: 2026-08-07
 related: [res.skill-absorption]
 blocked_by:
@@ -9,6 +9,10 @@ blocked_by:
 ---
 
 # Context engineering pass over AGENTS.md and the skill pack
+
+Done 2026-08-11 under the sizing rule's last-child clause; see the Combined
+always-loaded measurement section below. Original decomposition note kept
+below for the record.
 
 blocked on sub-todos: todo.context-pass-agents-md (cairn.root, owns item 1),
 todo.context-pass-skill-pack (cairn.kernel.cli, owns items 2 and 3).
@@ -79,3 +83,24 @@ passages only fitted after compressing wording in the same file.
 `finding-codes.md` (5,860) and `artefact-schemas.md` (5,947) have less headroom
 still. Any addition to those three is a compression pass, not an append, and the
 four qualifiers that first pass dropped are the reason to budget it deliberately.
+
+## Combined always-loaded measurement (recorded 2026-08-11, last child done)
+
+Both children are done (todo.context-pass-agents-md, and
+todo.context-pass-skill-pack via its three sub-todos, PRs #702, #703, and the
+pack-workflows iteration of 2026-08-11), so this todo is done with them under
+the sizing rule's last-child clause. AGENTS.md figures are its child's
+recorded measurement; pack figures are the budget test's byte terms plus a
+direct `o200k_base` re-measurement of the same three terms (advertised skill
+metadata, cairn-dev router body, `src/cli/agent_guide.md`) at the pre-pass
+commit 2536d8ea and after the last child:
+
+| Surface | Before (tokens; bytes) | After (tokens; bytes) |
+|---|---|---|
+| AGENTS.md | 3,687; 15,263 | 2,427; 10,047 |
+| Pack first-turn surface | 2,160; 9,364 | 1,887; 8,214 |
+| Combined always-loaded | 5,847; 24,627 | 4,314; 18,261 |
+
+A 26 percent token reduction (1,533 tokens) over the surface every session
+pays before routing anywhere. Per-surface evidence: the two child todos and
+res.context-pass-pack-{dev,loop,workflows}.measurement.

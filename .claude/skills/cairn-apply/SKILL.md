@@ -34,9 +34,9 @@ Apply a change: implement its tasks, prove the outcome, and accept it.
 3. **Implement the tasks in order**
 
    For each unchecked task, implement it and mark it complete in tasks.md. Run
-   whatever narrow test or check covers just that task as you go. Do not commit
-   after every task: the repository decides commit granularity, and most expect
-   one reviewable commit per change.
+   whatever narrow test or check covers just that task as you go. Let the
+   repository decide commit granularity; most expect one reviewable commit per
+   change, not one per task.
 
 4. **Run the host repository's own gates**
 
@@ -47,8 +47,8 @@ Apply a change: implement its tasks, prove the outcome, and accept it.
    2. The `gates:` list in `cairn.config.yaml`, if the project configures one.
    3. The project's ordinary build and test commands for its language.
 
-   Never run a battery from another language. If you cannot tell what the gates
-   are, ask rather than guessing.
+   Run only batteries from the project's own language. If you cannot tell what
+   the gates are, ask rather than guessing.
 
 5. **Prove the outcome at its own claim boundary**
 
@@ -110,7 +110,8 @@ any network call with a side effect; any command touching infrastructure or
 production data; `git reset --hard`, `git clean`, or `git stash drop`.
 
 Never: bypass a hook (`--no-verify`, `SKIP=`), weaken a gate to make it pass,
-delete or skip a failing test to go green, or commit a secret.
+skip a required test, delete or skip a failing test to go green (tests are the
+contract with future maintainers), or commit a secret.
 
 When an operation is denied or the situation is ambiguous, preserve state and
 stop cleanly. Leave the working tree as you found it or better, never partially
@@ -135,8 +136,7 @@ proving each claim at its own boundary, and returning control.
 
 **Guardrails**
 
-- Do NOT skip tests. They are the contract with future maintainers.
-- Do NOT hardcode values that belong in the project's design tokens or config.
-- Do NOT use em-dashes in user-facing copy.
+- Do not hardcode values that belong in the project's design tokens or config.
 - Prefer updating existing files over creating new ones.
 - Fix problems at their source, not the symptom.
+- No em-dashes in user-facing copy.

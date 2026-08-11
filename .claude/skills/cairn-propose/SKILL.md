@@ -1,6 +1,6 @@
 ---
 name: cairn-propose
-description: Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.
+description: Propose a new change: scaffold it and write proposal, design, and tasks in one step. Use when the user describes what to build or fix and wants a complete change proposal ready for implementation.
 license: MIT
 compatibility: Requires Cairn CLI.
 metadata:
@@ -9,35 +9,29 @@ metadata:
   generatedBy: "1.0"
 ---
 
-Propose a new change: create it and write its artifacts in one step.
-
-I'll create a change with:
-- proposal.md (the outcome, how it will be proven, and what is excluded)
-- design.md (how)
-- tasks.md (implementation steps)
-
-When ready to implement, ask me to apply the change (the `cairn-apply` skill).
-
----
+Propose a new change: create it and write its artifacts in one step. The result
+is `meta/changes/<name>/` holding proposal.md (the outcome, how it will be
+proven, and what is excluded), design.md (how), and tasks.md (implementation
+steps). Implementation is the `cairn-apply` skill.
 
 **Input**: a change name (kebab-case) or a description of what to build.
 
 **Steps**
 
-1. **If the request is unclear, ask what they want to build**
+1. **Settle what they want to build**: ask when the request is unclear:
 
    > "What change do you want to work on? Describe what you want to build or fix."
 
    Derive a kebab-case name from the description ("add user authentication" ->
-   `add-user-auth`).
-
-   Do NOT proceed without understanding the intended outcome.
+   `add-user-auth`). Proceed only once the intended outcome is understood. If a
+   change with that name exists, ask whether to continue it or start a new one.
 
 2. **Create the change directory**
    ```bash
    cairn change new "<name>"
    ```
-   This scaffolds `meta/changes/<name>/` with proposal.md, design.md, tasks.md.
+   This scaffolds `meta/changes/<name>/` with proposal.md, design.md, tasks.md,
+   and an empty specs/ directory.
 
 3. **Read the scaffolded files** to pick up the structure.
 
@@ -66,27 +60,22 @@ When ready to implement, ask me to apply the change (the `cairn-apply` skill).
    real boundary is out of reach, say so in the proposal and name what would be
    needed, rather than silently substituting a unit test for it.
 
-5. **Write the remaining artifacts**
+5. **Write the remaining artifacts**: design.md (the approach and the delta
+   operations: ADDED, MODIFIED, REMOVED, RENAMED), then tasks.md (the design
+   turned into actionable checkboxes, ending with the task that produces the
+   evidence named in step 4).
 
-   a. **design.md**: the approach and the delta operations (ADDED, MODIFIED,
-      REMOVED, RENAMED).
-   b. **tasks.md**: the design turned into actionable checkboxes. The last task
-      should be producing the evidence named in step 4.
-
-6. **Show final status**
-
-   Summarise the change name and location, the artifacts created, the outcome and
-   its acceptance boundary, and prompt: "Ask me to apply the change to start
-   working on the tasks."
+6. **Report**: the change name and location, the artifacts created, the outcome
+   and its acceptance boundary, then prompt: "Ask me to apply the change to
+   start working on the tasks."
 
 **Artifact guidelines**
 
 - Follow the scaffolded structure from `cairn change new`.
 - Plain English, no em-dashes (use periods, colons, commas, or parentheses).
-- The audience is a staff engineer reading the change in six months.
-- Keep each artifact concise and focused.
-- Do not restate an accepted decision as if this proposal were deciding it. Cite
-  it (`cairn rationale <node>` lists what already binds the node) and move on.
+- Write for a staff engineer reading the change in six months: concise and
+  focused.
+- Cite accepted decisions (`cairn rationale <node>` lists what already binds the
+  node) rather than restating them as if this proposal were deciding them.
 - If context is critically unclear, ask. Otherwise make a reasonable decision and
   record it, to keep momentum.
-- If a change with that name exists, ask whether to continue it or start a new one.

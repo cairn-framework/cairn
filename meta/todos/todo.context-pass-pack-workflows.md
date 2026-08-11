@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-08-10
 parent: todo.context-pass-skill-pack
 related: [res.skill-absorption]
@@ -34,3 +34,19 @@ plus their generated `.claude/` mirrors.
   demonstrably answerable from a routed reference; hard guardrails stay paired
   with their positive target.
 - `scripts/check-voice-markers.sh` clean (zero FAIL) over every touched file.
+
+## Measurement (recorded on completion, 2026-08-11)
+
+Advertised name-plus-description bytes, computed as
+`tools/agent-pack/tests/first_turn_budget_tests.rs` measures them:
+
+| Skill | Before | After |
+|---|---|---|
+| cairn-explore | 316 | 284 |
+| cairn-propose | 227 | 209 |
+| cairn-apply | 159 | 159 |
+| cairn-archive | 119 | 119 |
+| Total | 821 | 771 |
+
+File-size evidence and the compression rationale:
+res.context-pass-pack-workflows.measurement.
