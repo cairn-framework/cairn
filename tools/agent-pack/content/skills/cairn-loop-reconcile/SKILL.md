@@ -1,6 +1,6 @@
 ---
 name: cairn-loop-reconcile
-description: The plan-reconciliation procedure for one cairn-dev loop iteration: record what this unit's evidence changed, amend the todos, specs, and decisions it invalidated, and move dependants through the sanctioned write verbs. Loaded by cairn-dev loop mode after Verify and before Land; declares the typed exits that step routes on. Not for ordinary development sessions.
+description: "Plan-reconciliation procedure for one cairn-dev loop iteration: record what the unit's evidence changed, amend the todos, specs, and decisions it invalidated, move dependants through the sanctioned write verbs. Loaded by cairn-dev loop mode after Verify and before Land; not for ordinary development sessions."
 license: MIT
 compatibility: Requires Cairn CLI.
 ---

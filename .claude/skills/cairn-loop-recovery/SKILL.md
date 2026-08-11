@@ -1,20 +1,19 @@
 ---
 name: cairn-loop-recovery
-description: "The state-recovery procedure for one /cairn-loop iteration: resume a dirty surviving loop branch, recover an open loop PR, clear interrupted cleanup, quarantine or adopt an orphaned loop branch, and author a recover-todo. Loaded by the cairn-loop command from its preflight verdict table; declares the exit tokens the router keys on. Fail-closed: an unclassifiable state halts."
+description: "State-recovery procedure for one cairn-dev loop iteration: resume a dirty surviving loop branch, recover an open loop PR, clear interrupted cleanup, adopt or quarantine an orphaned loop branch, author a recover-todo. Loaded by cairn-dev loop mode from its preflight verdict table. Fail-closed: an unclassifiable state halts."
 ---
 
 # cairn-loop-recovery
 
-Recover cairn-loop state for the preflight verdict the command's table
-selected. The command owns the verdict table (state classification and the
-fail-closed backstops); this skill owns the **procedure** each recovery row
-expands into. The command points a recovering iteration here; run the section
-matching the verdict and return the token it declares.
+Recover loop state for the preflight verdict loop mode's table selected. Loop
+mode owns the verdict table (state classification and the fail-closed
+backstops); this skill owns the **procedure** each recovery row expands into.
+Run the section matching the verdict and return the token it declares.
 
 ## Exit tokens
 
-This skill declares the mid-iteration tokens the router keys on. Return
-exactly one, as the final line, then let the command's flow continue:
+This skill declares the mid-iteration tokens loop mode routes on. Return
+exactly one, as the final line, then let loop mode's flow continue:
 
 - `RECOVERED` - the state was recovered; continue the iteration at the phase
   the calling verdict names (Verify for in-place recovery, Scope for an
@@ -37,10 +36,10 @@ Finishing that unit IS this iteration. Recover in place:
 2. Decide coherence: complete the unfinished work, or trim incomplete work
    back to a single coherent landed unit. Prefer trimming over expanding when
    the diff has sprawled beyond one reviewable PR.
-3. Return `RECOVERED`. The command continues at Verify, then Land via
+3. Return `RECOVERED`. Loop mode continues at Verify, then Land via
    `cairn-loop-landing`. Do not invoke landing from this skill.
 
-Invariant (a fail-closed backstop, owned by the command): **no checkout of
+Invariant (a fail-closed backstop, owned by loop mode): **no checkout of
 any kind until the tree is clean.** If intent is unclear, do not guess; emit
 `LOOP HALTED`.
 
@@ -65,7 +64,7 @@ ref and the park remain:
    checked out (clean tree, so a pure ref move).
 2. `git branch -D <branch>` (the merged PR at the same tip is the deletion
    evidence).
-3. Return `RECOVERED`; the command continues preflight toward fresh-work
+3. Return `RECOVERED`; loop mode continues preflight toward fresh-work
    selection.
 
 ## 4. Clean tree, a surviving `loop/*` branch covered by `todo.recover-<slug>`
@@ -92,7 +91,7 @@ iteration's unit); the maintainer resolves it through the todo.
 
 - If its slug maps to an **open todo or live finding**: adopt it as this
   iteration's unit. `git checkout loop/<slug>` (clean tree, pure ref move) and
-  return `RECOVERED`; the command continues at Scope.
+  return `RECOVERED`; loop mode continues at Scope.
 - Otherwise **preserving it IS this iteration's unit**: author
   `todo.recover-<slug>` (status `blocked`) so a local branch ref is not the
   only thing keeping those commits alive. Body must record:
@@ -104,10 +103,6 @@ iteration's unit); the maintainer resolves it through the todo.
   recover-todo, commit, PR, merge). The landing skill's terminal token is
   this iteration's final line; do not emit a recovery token after the
   hand-off.
-
-A local branch ref is the only thing keeping those commits alive: never delete
-without a MERGED PR at the same tip or an explicit maintainer discard note in
-the todo.
 
 ## Guardrails
 

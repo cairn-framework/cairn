@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: open
+status: done
 created: 2026-08-10
 parent: todo.context-pass-skill-pack
 related: [res.skill-absorption]
@@ -44,3 +44,21 @@ SKILL.md), `commands/cairn-loop.md`, plus their generated `.claude/` mirrors.
 - Cross-seam pointers between `loop-mode.md` and the cairn-dev references
   owned by todo.context-pass-pack-dev still resolve after the pass.
 - `scripts/check-voice-markers.sh` clean (zero FAIL) over every touched file.
+
+## Measurement (recorded on completion, task item 4)
+
+Advertised name plus description bytes for the five loop skills, per the
+terms of `tools/agent-pack/tests/first_turn_budget_tests.rs`:
+
+| Skill | Before | After |
+|---|---|---|
+| cairn-loop-scope | 362 | 298 |
+| cairn-loop-implement | 386 | 334 |
+| cairn-loop-recovery | 398 | 345 |
+| cairn-loop-reconcile | 384 | 331 |
+| cairn-loop-landing | 340 | 321 |
+| Total | 1,870 | 1,629 |
+
+loop-mode.md raw bytes (local evidence only, outside the metric): 17,661
+before, 16,870 after. Per-file body sizes and the compression rationale:
+`res.context-pass-pack-loop.measurement`.

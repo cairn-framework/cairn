@@ -1,6 +1,6 @@
 ---
 name: cairn-loop-scope
-description: The scoping procedure for one cairn-dev loop iteration: orient on the selected unit's node, respect accepted decisions, write one verifiable success criterion, and reroute to a prerequisite rather than expanding. Loaded by cairn-dev loop mode at its Scope step; declares the typed exits that step routes on. Not for ordinary development sessions.
+description: "Scoping procedure for one cairn-dev loop iteration: orient on the unit's node, respect accepted decisions, write one verifiable success criterion, reroute to a prerequisite rather than expand. Loaded by cairn-dev loop mode at its Scope step; not for ordinary development sessions."
 license: MIT
 compatibility: Requires Cairn CLI.
 ---
@@ -45,10 +45,10 @@ contradicting an accepted decision, that is not a coding problem:
   artefact, create a blocked tracker item, and return `REROUTED` so the package
   lands.
 - If it needs a ruling only the maintainer can give, do the same and say so
-  plainly in the artefact. Never self-ratify a binding decision. A local-tier
-  decision may be accepted only through the receipt protocol: two independent lens
-  receipts bound to the subject hash and a `ratified_by: machine` marker when the
-  loop signs (`todo.decision-ratification-tiers`).
+  plainly in the artefact. Never self-ratify a binding decision; local-tier
+  acceptance goes only through the receipt protocol, stated in full in
+  `cairn-loop-reconcile` under "Never contradict an accepted decision
+  silently" (`todo.decision-ratification-tiers`).
 
 ## 3. Write one verifiable success criterion
 
