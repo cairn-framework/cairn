@@ -23,10 +23,10 @@ incident note.
 
 | File | Before | After |
 |---|---|---|
-| references/loop-mode.md | 17,661 | 16,870 |
-| cairn-loop-scope/SKILL.md | 3,873 | 3,782 |
+| references/loop-mode.md | 17,661 | 16,757 |
+| cairn-loop-scope/SKILL.md | 3,873 | 3,809 |
 | cairn-loop-implement/SKILL.md | 3,437 | 3,385 |
-| cairn-loop-recovery/SKILL.md | 6,190 | 5,902 |
+| cairn-loop-recovery/SKILL.md | 6,190 | 5,897 |
 | cairn-loop-reconcile/SKILL.md | 6,260 | 6,207 |
 | cairn-loop-landing/SKILL.md | 6,694 | 6,563 |
 | commands/cairn-loop.md | 2,336 | 2,336 |
@@ -49,8 +49,9 @@ was reached and left unchanged: it is already pure transport per
 - Restatement collapse: loop-mode's Scope, Implement, Reconcile, and Land
   sections stop summarising the procedures of the skills they load (Land keeps
   only its call convention: parameters and entry point); the receipt-protocol
-  statement lives once in `cairn-loop-reconcile` ("Never contradict an
-  accepted decision silently") with `cairn-loop-scope` pointing at it; the
+  statement stays inline in both `cairn-loop-reconcile` and `cairn-loop-scope`
+  (review judged a cross-skill heading pointer more brittle than the ~35-byte
+  saving in an unmetered body); the
   branch-name derivation rule is owned by loop-mode's Isolation rule, with
   landing's Inputs keeping the three tail forms as its parameter contract; the
   staging ban lives once in landing's Guardrails, paired with its positive
@@ -73,13 +74,15 @@ loop worktree the content was read from, writing six files outside
 `../cairn-loop` in breach of loop-mode's Isolation rule. The writes were
 wholly this session's own authored hunks; they were transplanted to the loop
 worktree as a patch (which applied cleanly, proving identical bases) and the
-main checkout was restored to its committed state. Standing consequence for
-OMP sessions in this repo: address every edit by absolute path when the loop
-worktree is not the session's working directory.
+main checkout was restored to its committed state.
 
 ## Limits
 
-Byte counts are a proxy for context load. No CLI behaviour changed and no
+Byte counts are a proxy for context load. One behaviour change rode along out
+of necessity: the CI `webui` job failed on main itself and the landing gate
+requires CI green, so this PR also carries the `harness/lib/audit.mjs`
+classList fix recorded in `todo.webui-harness-ancestor-opacity-tests`
+(status done). No other behaviour changed and no
 accepted rule changed; the deleted sentences are collapsed restatements whose
 surviving copies the owning files point to. This research informs the parent's
 combined measurement and any future budget tightening, nothing else.

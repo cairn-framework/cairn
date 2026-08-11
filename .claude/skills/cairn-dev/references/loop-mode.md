@@ -252,9 +252,7 @@ bypass hooks.
 
 ## Reconcile the plan
 
-Load `cairn-loop-reconcile`. It owns the record-and-amend step and leaves its
-edits in the worktree for Land to stage inside the same commit. On
-`RECONCILED`, continue.
+Load `cairn-loop-reconcile`. On `RECONCILED`, continue.
 
 This step runs on every iteration that reaches it, including one that changed no
 rule: "nothing needed reconciling, because ..." is a result, and skipping the

@@ -1,6 +1,6 @@
 ---
 name: cairn-loop-recovery
-description: "State-recovery procedure for one cairn-dev loop iteration: resume a dirty surviving loop branch, recover an open loop PR, clear interrupted cleanup, adopt or quarantine an orphaned loop branch, author a recover-todo. Loaded by cairn-dev loop mode from its preflight verdict table. Fail-closed: an unclassifiable state halts."
+description: "State-recovery procedure for one cairn-dev loop iteration: resume a dirty surviving loop branch, recover an open loop PR, clear interrupted cleanup, adopt or quarantine an orphaned loop branch, author a recover-todo. Loaded by cairn-dev loop mode from its preflight verdict table; not for ordinary development sessions."
 ---
 
 # cairn-loop-recovery

@@ -54,11 +54,11 @@ terms of `tools/agent-pack/tests/first_turn_budget_tests.rs`:
 |---|---|---|
 | cairn-loop-scope | 362 | 298 |
 | cairn-loop-implement | 386 | 334 |
-| cairn-loop-recovery | 398 | 345 |
+| cairn-loop-recovery | 398 | 340 |
 | cairn-loop-reconcile | 384 | 331 |
 | cairn-loop-landing | 340 | 321 |
-| Total | 1,870 | 1,629 |
+| Total | 1,870 | 1,624 |
 
 loop-mode.md raw bytes (local evidence only, outside the metric): 17,661
-before, 16,870 after. Per-file body sizes and the compression rationale:
+before, 16,757 after. Per-file body sizes and the compression rationale:
 `res.context-pass-pack-loop.measurement`.

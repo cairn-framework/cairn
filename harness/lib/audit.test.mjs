@@ -31,6 +31,10 @@ class El {
     this.clientHeight = this.rect.height;
   }
 
+  get classList() {
+    return { contains: (cls) => this.classSet.has(cls) };
+  }
+
   append(...kids) {
     for (const kid of kids) {
       kid.parentElement = this;
