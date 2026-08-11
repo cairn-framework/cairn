@@ -16,9 +16,9 @@ directory cohesion, and clustering orphaned files into actionable suggestions.
 
 - `heuristics` (re-exported): `Candidate` (path-derived `id` via
   `Candidate::new`), `CandidateConfidence` bucket enum, `coupling_score` and
-  `classify_score`, and the threshold constants `MIN_CANDIDATE_FILE_COUNT` (3),
-  `DIRECTORY_DEPTH_LIMIT` (4), `EDGE_OBSERVATION_THRESHOLD` (2), `CONFIDENCE_HIGH`
-  (2.0), `CONFIDENCE_MEDIUM` (1.0).
+  `classify_score`, and the threshold constants `MIN_CANDIDATE_FILE_COUNT = 3`,
+  `DIRECTORY_DEPTH_LIMIT = 4`, `EDGE_OBSERVATION_THRESHOLD = 2`,
+  `CONFIDENCE_HIGH` (2.0), `CONFIDENCE_MEDIUM` (1.0).
 - `onboard`: `analyze(&[Finding]) -> OnboardReport`, grouping orphan findings
   into `OrphanCluster`s with a `ClusterSuggestion`, plus `render_human` and
   `render_json`.

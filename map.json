@@ -4429,6 +4429,8 @@
         "src/scanner/config/tags_tests.rs",
         "src/scanner/config/tests.rs",
         "src/scanner/contract_baselines.rs",
+        "src/scanner/contract_numerals.rs",
+        "src/scanner/contract_numerals_tests.rs",
         "src/scanner/contract_shape.rs",
         "src/scanner/gate_recipe.rs",
         "src/scanner/inference_tests.rs",
@@ -4541,8 +4543,8 @@
           "kind": "function",
           "signature": "pub fn load_project(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 491,
-          "end_line": 589
+          "line": 494,
+          "end_line": 593
         },
         {
           "name": "matches",
@@ -4613,8 +4615,8 @@
           "kind": "function",
           "signature": "pub fn scan(root: &Path, blueprint_path: &Path) -> Result<ScanResult, String>",
           "file": "src/scanner/mod.rs",
-          "line": 596,
-          "end_line": 632
+          "line": 600,
+          "end_line": 636
         },
         {
           "name": "select_gate_recipe",
@@ -4685,24 +4687,24 @@
           "kind": "module",
           "signature": "pub mod outputs",
           "file": "src/scanner/mod.rs",
-          "line": 13,
-          "end_line": 13
+          "line": 16,
+          "end_line": 16
         },
         {
           "name": "snapshot",
           "kind": "module",
           "signature": "pub mod snapshot",
           "file": "src/scanner/mod.rs",
-          "line": 15,
-          "end_line": 15
+          "line": 18,
+          "end_line": 18
         },
         {
           "name": "state",
           "kind": "module",
           "signature": "pub mod state",
           "file": "src/scanner/mod.rs",
-          "line": 16,
-          "end_line": 16
+          "line": 19,
+          "end_line": 19
         },
         {
           "name": "BlueprintSnapshot",
@@ -4789,8 +4791,8 @@
           "kind": "struct",
           "signature": "pub struct ScanResult",
           "file": "src/scanner/mod.rs",
-          "line": 65,
-          "end_line": 82
+          "line": 68,
+          "end_line": 85
         },
         {
           "name": "SnapshotEdge",
@@ -4837,8 +4839,8 @@
           "kind": "struct",
           "signature": "pub struct TargetReport",
           "file": "src/scanner/mod.rs",
-          "line": 46,
-          "end_line": 61
+          "line": 49,
+          "end_line": 64
         },
         {
           "name": "TargetHashes",
@@ -4853,8 +4855,8 @@
           "kind": "function",
           "signature": "pub(crate) fn compute_blueprint_snapshot(ast: &blueprint::Ast) -> state::BlueprintSnapshot",
           "file": "src/scanner/mod.rs",
-          "line": 665,
-          "end_line": 680
+          "line": 669,
+          "end_line": 684
         },
         {
           "name": "parse",
@@ -4897,28 +4899,36 @@
           "end_line": 8
         },
         {
+          "name": "contract_numerals",
+          "kind": "module",
+          "signature": "pub(crate) mod contract_numerals",
+          "file": "src/scanner/mod.rs",
+          "line": 9,
+          "end_line": 9
+        },
+        {
           "name": "contract_shape",
           "kind": "module",
           "signature": "pub(crate) mod contract_shape",
           "file": "src/scanner/mod.rs",
-          "line": 9,
-          "end_line": 9
+          "line": 12,
+          "end_line": 12
         },
         {
           "name": "gate_recipe",
           "kind": "module",
           "signature": "pub(crate) mod gate_recipe",
           "file": "src/scanner/mod.rs",
-          "line": 10,
-          "end_line": 10
+          "line": 13,
+          "end_line": 13
         },
         {
           "name": "todo_defers",
           "kind": "module",
           "signature": "pub(crate) mod todo_defers",
           "file": "src/scanner/mod.rs",
-          "line": 21,
-          "end_line": 21
+          "line": 24,
+          "end_line": 24
         },
         {
           "name": "DEFAULT_DECISION_ACCUMULATION_THRESHOLD",

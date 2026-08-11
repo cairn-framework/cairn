@@ -42,6 +42,9 @@ machine state plus generated outputs. `load_project` is the pure read path;
   cache writes silently swallow errors.
 - Blueprint-change gating skips dependency-edge drift until a schema-v2
   snapshot exists, so an upgrade does not flag every edge as new.
+- Asserted-numeral drift is opt-in: only a contract inline code span of the
+  form `NAME = N` binds to a `const NAME` integer literal in the node's
+  claimed Rust files; version-semantics prose is never flagged.
 
 ## Dependencies
 
@@ -56,7 +59,8 @@ read scanner runs.
 
 - Unit tests live in `src/scanner/tests.rs` (wired as `#[cfg(test)] mod tests`)
   covering scan orchestration and divergence detection, plus `#[cfg(test)]`
-  modules in `cache.rs`, `checks.rs`, `outputs.rs`, `state.rs`,
-  `tag_registry_tests.rs`, `config/tests.rs`, and `config/tags_tests.rs`
+  modules in `cache.rs`, `checks.rs`, `contract_numerals_tests.rs`, `outputs.rs`,
+  `state.rs`, `tag_registry_tests.rs`, `config/tests.rs`, and
+  `config/tags_tests.rs`
   covering caching, scan-time checks, output rendering, snapshot migration,
   tag registry validation, and config parsing.

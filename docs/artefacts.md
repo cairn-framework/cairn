@@ -12,7 +12,11 @@ node: app.auth
 # Auth Contract
 ```
 
-`node` must match the node that declared the `contract` pointer.
+`node` must match the node that declared the `contract` pointer. A contract may
+bind a numeral to code with an inline code span of the form `NAME = N`
+(a `SCREAMING_SNAKE` constant name and an unsigned integer); the scanner
+verifies it against the `const NAME` integer literal in the node's claimed
+Rust files and reports `CAIRN_CONTRACT_NUMERAL_DRIFT` when they disagree.
 
 ## Todo
 
