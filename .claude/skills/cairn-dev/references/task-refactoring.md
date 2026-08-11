@@ -19,18 +19,12 @@ tests must still pass, and the reason a refactor is riskier than its diff looks.
 
 `cairn rationale` is not optional here. A shape that looks accidental is often
 load-bearing, and an accepted decision explaining it outranks your judgement. If
-you intend to contradict one, write a superseding decision; do not just refactor
-past it.
+you intend to contradict one, write a superseding decision first.
 
-## When the graph stops helping
+## From graph to source
 
-- Renaming or moving a symbol across files is a language-server job. Use its
-  rename refactor so every call site moves; text substitution silently misses
-  re-exports and shadowed names.
-- Cairn edges are module-level. To find the specific call sites inside a node, use
-  the language server's references, not `cairn deps`.
-- Read spans, not files: `cairn get <node> --symbols --json` gives `line` and
-  `end_line` per symbol.
+Renames, moves, and call-site lists are language-server jobs, and spans beat
+whole-file reads; the discipline is in `graph-navigation.md`.
 
 ## Moving files between nodes
 
@@ -45,13 +39,8 @@ A refactor that moves files changes ownership, so the blueprint moves with it:
 ## Verify
 
 Behaviour preservation is the claim, so the evidence is the existing suite
-passing unchanged, plus:
+passing unchanged, plus the router's gate.
 
-```bash
-cairn scan
-cairn hook all
-```
-
-Do not add new behaviour in a refactor. If you find a bug while refactoring, land
-the refactor first and fix the bug separately, so the diff that changes behaviour
-is reviewable on its own.
+Keep the refactor free of new behaviour. If you find a bug while refactoring,
+land the refactor first and fix the bug separately, so the diff that changes
+behaviour is reviewable on its own.

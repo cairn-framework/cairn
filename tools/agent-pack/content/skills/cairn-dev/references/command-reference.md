@@ -95,7 +95,7 @@ The brownfield flow generates a proposal, not final state. Review the generated
 `blueprint.delta` and contracts before accepting.
 
 Any other `onboard` subcommand is a usage error, exit 2. Load
-`references/task-brownfield-decision-extraction.md` for the extraction workflow.
+`task-brownfield-decision-extraction.md` for the extraction workflow.
 
 ## Other
 

@@ -9603,6 +9603,13 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
+      "message": "research `res.context-pass-pack-dev.measurement` is not linked from any decision",
+      "node": null,
+      "path": "meta/research/context-pass-pack-dev.measurement.md"
+    },
+    {
+      "code": "CAIRN_RESEARCH_ORPHAN",
+      "severity": "info",
       "message": "research `res.node-symbol-coverage.investigation` is not linked from any decision",
       "node": null,
       "path": "meta/research/node-symbol-coverage.investigation.md"

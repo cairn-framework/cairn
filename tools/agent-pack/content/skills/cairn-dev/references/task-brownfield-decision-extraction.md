@@ -138,9 +138,5 @@ rejection. Never accept your own extracted decision.
 
 ## Verify
 
-```bash
-cairn scan
-cairn pending   # every extracted draft, still proposed
-```
-
-Plus the repository's own gates.
+`cairn pending` lists every draft, still `proposed`; then the router's gate
+plus the repository's own gates.

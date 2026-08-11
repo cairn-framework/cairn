@@ -35,12 +35,13 @@ will prove it there. For substantial work, capture that in a change first with t
   conventions rather than hardcoding.
 - Changed behaviour gets a test.
 
-## When the graph stops helping
+## From graph to source
 
-The graph tells you where the feature belongs and what it may touch. It does not
-design the feature. Read the contract and the neighbouring implementation to match
-existing patterns, using `--symbols` spans rather than whole files, and use the
-language server to check that a new signature does not break an existing caller.
+The graph tells you where the feature belongs and what it may touch; it does not
+design the feature. Read the contract and the neighbouring implementation to
+match existing patterns, and use the language server to check that a new
+signature breaks no existing caller; the span and language-server discipline is
+in `graph-navigation.md`.
 
 ## Extending a ghost node
 
@@ -52,11 +53,7 @@ from ghost to synced.
 
 ## Verify
 
-```bash
-cairn scan
-cairn hook all
-```
-
-Plus the repository's own gates, plus evidence at the boundary the feature is
-claimed at. If structure changed or you made a non-obvious tradeoff, record a
-decision in `meta/decisions/` (`cairn decision new <slug> --node <id>`).
+Run the router's gate plus the repository's own gates, plus evidence at the
+boundary the feature is claimed at. If structure changed or you made a
+non-obvious tradeoff, record a decision in `meta/decisions/`
+(`cairn decision new <slug> --node <id>`).

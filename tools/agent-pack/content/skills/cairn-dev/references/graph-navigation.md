@@ -7,10 +7,16 @@ and `cairn locate <symbol> --json` both give `file`, `line`, and `end_line`.
 
 Read that window, not the file. A node can own thousands of lines; the span is
 usually tens. Whole-file reads are the single largest avoidable cost in a cairn
-session, and they bury the relevant lines in noise.
+session, and they bury the relevant lines in noise. The human renderers print a
+narrower view than `--json`; when you need the span fields, ask for `--json`.
 
-The human renderers print a narrower view than `--json`. When you need the span
-fields, ask for `--json`.
+Cairn edges are module-level: they tell you a dependency exists, not where it
+is exercised. To follow a call chain, list the call sites of a symbol, or
+rename or move one, use your editor's language server (definition, references,
+type, rename); text substitution silently misses re-exports and shadowed
+names. Reach for text search only when a symbol is outside the graph's symbol
+set entirely (private Rust items are excluded), so `cairn locate` returning
+nothing does not mean the symbol does not exist.
 
 ## When a node id will not resolve
 
@@ -25,8 +31,8 @@ reports an unknown node, walk this ladder in order and stop at the first hit:
    interactive convenience for forming a corrected command; it is never an
    accepted resolution form inside loop mode, which fails closed instead.
 3. **Path lookup.** If you know a file the node owns, the owning node is
-   authoritative: `cairn context --json` lists every node with its `paths` and
-   `files`. The node whose `path` prefixes your file is the one you want.
+   authoritative: `cairn context --json` lists every node with its `paths`. The
+   node whose `path` prefixes your file is the one you want.
 4. **Filesystem search.** Only when the three above fail. If a file has no owning
    node, that is not a lookup failure, it is a
    `CAIRN_RECONCILE_ORPHANED_FILE` finding: the blueprint does not claim the file.
