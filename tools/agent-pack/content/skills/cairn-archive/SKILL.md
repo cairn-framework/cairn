@@ -9,9 +9,7 @@ metadata:
   generatedBy: "1.0"
 ---
 
-Archive a completed change - move it to the archive and finalize.
-
-I'll help you archive a change that has been fully implemented and accepted.
+Archive a completed change: move it to the dated archive.
 
 **Prerequisites**
 
@@ -29,47 +27,39 @@ I'll help you archive a change that has been fully implemented and accepted.
    ls meta/changes/
    ```
 
-2. **Verify completion**
-
-   Check that all tasks are complete:
-   ```bash
-   cat meta/changes/<change-id>/tasks.md
-   ```
+2. **Verify completion**: every task in `meta/changes/<change-id>/tasks.md` is
+   checked. When one is not, stop and report: a change with pending tasks stays
+   active.
 
 3. **Run final verification**
 
    Re-run the project's own gates so the archive lands on a clean tree. Use the
-   same commands the repository documents for itself; do not substitute another
-   language's battery.
+   same commands the repository documents for itself, in its own language.
 
 4. **Archive the change**
 
-   Run the archive command. It validates the change, applies the blueprint
-   delta, refreshes generated output, logs the archival, and moves the change
-   into the dated archive directory:
+   Run the archive command. It validates the change against the current graph,
+   applies the blueprint delta, refreshes generated output, logs the archival,
+   and moves the change into the dated archive directory:
    ```bash
    cairn change archive <change-id>
    ```
 
-5. **Update any references**
-
-   Check if the change is referenced in:
-   - `cairn.blueprint` (changes blocks)
-   - README.md
-   - Other documentation
-
-   Update or remove stale references.
+5. **Update any references**: check `cairn.blueprint` (changes blocks),
+   README.md, and other documentation; update or remove stale references.
 
 6. **Commit the archive**
 
+   Read the touched paths from `git status --short` first, then stage exactly
+   those (never `git add -A` or `git add .`, which would sweep in unrelated
+   untracked files):
    ```bash
-   git add -A
+   git add <each path the archive touched>
    git commit -m "archive(change): move <change-id> to archive"
    ```
 
 **Guardrails**
 
-- Do NOT archive a change with pending tasks
-- Do NOT archive a change that fails acceptance gates
-- Preserve the change directory structure in the archive (proposal.md, design.md, tasks.md, specs/)
-- The archive is permanent history - do not edit archived changes
+- Preserve the change directory structure in the archive (proposal.md,
+  design.md, tasks.md, specs/).
+- The archive is permanent history: never edit archived changes.

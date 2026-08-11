@@ -1,6 +1,6 @@
 ---
 node: cairn.kernel.cli
-status: blocked
+status: done
 created: 2026-08-10
 parent: todo.context-engineering-pass
 related: [res.skill-absorption, res.reference-budget-headroom]
@@ -11,6 +11,29 @@ blocked_by:
 ---
 
 # Context engineering pass over the shipped agent pack
+
+All three sub-todos are done (pack-dev PR #702, pack-loop PR #703,
+pack-workflows this iteration, 2026-08-11); this todo is done with them.
+Original decomposition note kept below for the record.
+
+## Combined pack first-turn measurement (task 4, recorded 2026-08-11)
+
+Computed exactly as `first_turn_and_advertised_metadata_fit_the_baseline_ceiling`
+does (advertised name-plus-description metadata across all pack skills, plus
+the cairn-dev router body, plus `src/cli/agent_guide.md`), before the pass
+(commit 2536d8ea) and after the last child:
+
+| Term | Before | After |
+|---|---|---|
+| Advertised metadata (all skills) | 2,973 | 2,677 |
+| Router (cairn-dev/SKILL.md) | 4,742 | 3,888 |
+| Emitted guide (agent_guide.md) | 1,649 | 1,649 |
+| First-turn total | 9,364 | 8,214 |
+
+The budget ceiling is 12,000 bytes; the pass moved the pack from 78 to 68
+percent of it. Per-child terms live in each child todo; per-file evidence in
+res.context-pass-pack-dev.measurement, res.context-pass-pack-loop.measurement,
+and res.context-pass-pack-workflows.measurement.
 
 blocked on sub-todos: todo.context-pass-pack-dev (cairn-dev router plus its
 ten non-loop references), todo.context-pass-pack-loop (loop-mode plus the
