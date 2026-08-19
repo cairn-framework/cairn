@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: in_progress
+status: done
 created: 2026-07-30
 ---
 
@@ -143,6 +143,22 @@ publication, change lifecycle read surface) were relocated to `v0.10.0`.
 
 ## Outcome
 
-Pending: filled in after the release PR merges and `v0.10.0` is tagged (GitHub
-Release with assets, crates.io version, Homebrew formula, `cargo package`
-embedding every `src/ui_assets` file, and a refreshed local install).
+Released 2026-08-19 from `88688b1b` (PR #708), tagged `v0.10.0`. The tag
+triggered `release.yml`; every job succeeded (build matrix across five targets,
+host, `custom-cargo-publish`, `publish-homebrew-formula`, and announce).
+Verified against the live artefacts, not inferred from the pipeline exiting
+green:
+
+- `cairn --version` reports `cairn 0.10.0`; the local install was refreshed from
+  the tagged source (`cargo install --path . --force`).
+- GitHub Release `v0.10.0` is published, not a draft, carrying 18 assets.
+- crates.io reports `cairn-framework` `0.10.0` (created 2026-08-19, not yanked).
+- The Homebrew tap formula reads `version "0.10.0"`.
+- `cargo package --list` embeds all 18 `src/ui_assets` files.
+- On merged `main`, `cairn scan --strict` and `cairn hook all` exit 0.
+
+This todo tracked releasing at the next good milestone rather than on a date, and
+that milestone is now shipped. One follow-up remains tracked separately:
+`dec.brownfield-package-root-discovery` was parked `proposed` at the cut (its
+behaviour shipped in #669 with tests) and its convergent-receipt ratification is
+carried by `todo.brownfield-package-root-discovery-ratification`.
