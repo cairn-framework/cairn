@@ -2,7 +2,7 @@
 id: dec.autodocs-head-to-head-arm-b
 nodes:
   - cairn.brownfield
-status: accepted
+status: superseded
 date: 2026-07-27
 informed_by: [res.autodocs-head-to-head-feasibility]
 revisit_triggers:

@@ -256,13 +256,12 @@ Specification v0.8 ([docs/spec.md](docs/spec.md)). The kernel, artefact registry
 
 ## Roadmap
 
-Last reviewed for v0.9.0 (2026-07-27). This is the near-term shape, not a schedule or a commitment. The graph is the live source of truth: run `cairn frontier` for what is buildable now, and `cairn status` for the current backlog and findings.
+Last reviewed for v0.10.0 (2026-08-19). This is the near-term shape, not a schedule or a commitment. The graph is the live source of truth: run `cairn frontier` for what is buildable now, and `cairn status` for the current backlog and findings.
 
-**Just landed.** The agent pack lifecycle with harness adapters for Claude and OMP, the `cairn-dev` router that loads at most one just-in-time reference per task, and path containment for the pack lifecycle, the campaign lock, and `cairn init` scaffolding.
+**Just landed.** Typed todo relationships (schema, GitHub projection, and a roadmap derived view), brownfield decision extraction via `cairn onboard decisions`, the over-harness web console, the `cairn pending` maintainer ratification queue with receipt-bound decision tiers, and the `cairn-authoreval` blueprint authorability instrument.
 
 **Next up.**
 
-- **Typed todo relationships.** Todos carry no dependency or parent-child model, so ordering lives in prose. A schema decision comes first, then the CLI and scanner surfaces that enforce it.
 - **Wider symbol coverage.** Rust and TypeScript symbol extraction only sees explicitly public or exported items, which limits what `cairn get <node> --symbols` can report for those languages.
 - **Work selection that respects priority.** After findings, `cairn next` picks the oldest open native todo. Priority is unstructured prose today, so Cairn needs a structured priority field before selection can rank by it.
 

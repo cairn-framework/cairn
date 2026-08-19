@@ -9557,13 +9557,6 @@
     {
       "code": "CAIRN_RESEARCH_ORPHAN",
       "severity": "info",
-      "message": "research `res.authoreval-instrument-evidence` is not linked from any decision",
-      "node": null,
-      "path": "meta/research/authoreval-instrument-evidence.md"
-    },
-    {
-      "code": "CAIRN_RESEARCH_ORPHAN",
-      "severity": "info",
       "message": "research `res.brownfield-extraction-external-run` is not linked from any decision",
       "node": null,
       "path": "meta/research/brownfield-extraction-external-run.md"
@@ -9726,7 +9719,7 @@
     {
       "code": "CAIRN_DECISION_ACCUMULATION",
       "severity": "info",
-      "message": "Node `cairn.root` carries 18 accepted decisions (threshold 10).",
+      "message": "Node `cairn.root` carries 19 accepted decisions (threshold 10).",
       "node": "cairn.root",
       "path": null
     },
