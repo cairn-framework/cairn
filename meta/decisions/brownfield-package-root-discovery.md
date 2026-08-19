@@ -101,3 +101,15 @@ two-file directory under `MIN_FILES`, which is the threshold working.
   node span is the single module `cairn.brownfield`, it supersedes nothing, and
   every path in `affects:` sits outside `docs/registries/binding-surface.md`.
   It is left `proposed` because the loop holds no lens receipts for it.
+
+## Ratification rubric
+
+Deliberately parked at the v0.10.0 cut (2026-08-19), not blocking the release.
+The governed behaviour already shipped in #669 with tests, so this decision
+records live, verified code rather than gating unshipped work, and nothing waits
+on its acceptance. As a `local` ruling it is machine-acceptable only on two
+convergent agent-cross-model receipts (`dec.reviewer-panel-ratification`); the
+session cutting the release had a single distinct reviewer model available, and
+fabricating the second receipt is forbidden. Acceptance is therefore held for a
+session with a second distinct model, tracked by
+`todo.brownfield-package-root-discovery-ratification`.

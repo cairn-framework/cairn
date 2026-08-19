@@ -83,8 +83,8 @@ a spend ruling.
   gap that the target repository did not provoke
   (`todo.decision-proposed-supersession-shape`), and three confirmations. The
   Acceptance is met. The Scope's item 7 claim was falsified by the run and is
-  struck above; `dec.autodocs-arm-a-item-7-correction` withdraws it, pending
-  `todo.autodocs-arm-a-item-7-ratification`.
+  struck above; `dec.autodocs-arm-a-item-7-correction` withdraws it, accepted by
+  maintainer ratification 2026-08-19.
 
 ## Mission disposition
 

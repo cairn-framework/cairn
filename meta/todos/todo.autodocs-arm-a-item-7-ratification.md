@@ -1,14 +1,17 @@
 ---
 node: cairn.brownfield
-status: blocked
+status: done
 created: 2026-08-09
 ---
 
 # Maintainer ruling: withdraw the item 7 claim from the Arm B drop
 
-Blocked on the maintainer. Not agent-actionable: `cairn-loop-reconcile`
-section 4 forbids the loop from self-ratifying a binding decision, and this
-target was in addition signed by the maintainer personally.
+Resolved 2026-08-19: the maintainer accepted `dec.autodocs-arm-a-item-7-correction`
+in session during the v0.10.0 release cut. Applied in one landing:
+`dec.autodocs-head-to-head-arm-b` set `status: superseded`, the correction set
+`status: accepted` with `supersedes: [dec.autodocs-head-to-head-arm-b]`, and the
+parent `todo.autodocs-head-to-head` History amended to record the ruling. The
+forced choice and its acceptance edits are preserved below for the record.
 
 ## The forced choice
 

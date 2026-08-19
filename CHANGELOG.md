@@ -1,31 +1,63 @@
 # Changelog
 
-## v0.9.0
+## v0.10.0
 
-### Parked findings and loop selection
+### Brownfield onboarding and decision extraction
 
-- Todos gain an optional `defers:` frontmatter list; each entry is a finding code, one space, then the path or node the finding was raised against. While the todo is `blocked`, each matching live Info finding is classified parked: `cairn lint` and `cairn scan` still print it in full, annotated `(parked by todo.<slug>)`, and the JSON wire publishes per-finding `parked_by` naming the parking todo, or `null`. Parking never suppresses and never collapses, so the count a human sees does not change (`todo.lint-selection-folding` item 1a, ratified 2026-07-29, PR #528 sheet W2).
-- Parking applies to Info findings alone, and only through the typed reference: a `defers:` reference aimed at an Error or Warning raises `CAIRN_TODO_DEFERS_BLOCKING` (CA042) and parks nothing, a reference matching no emitted finding raises `CAIRN_TODO_DEFERS_UNMATCHED` (CA041) so a stale park cannot hide a real finding, a malformed entry raises `CAIRN_TODO_DEFERS_INVALID` (CA043) at Error, and a prose mention parks nothing. A decision-deferred finding stays under its deferral regime and is never re-classified (`dec.parked-deferral-composition`, proposed).
-- Query JSON payloads bump to `schema_version` 7, and the webui `/api/*` envelope bumps to `schema_version` 7, for the added field.
-- Loop-mode selection skips parked Info findings on the published `parked_by` field only, in default selection, both MISSION paths, and the stop evidence; a `parked_by` on an `error` or `warning` is a wire defect and never unselects it. Pack phrase assertions pin each sentence (`tools/agent-pack/tests/selection_parked_tests.rs`).
+- `cairn onboard decisions` indexes decision evidence from an existing codebase; the hybrid onboard-index plus `cairn-dev` reference mechanism was ruled by adversarial panel (`dec.brownfield-extraction-mechanism`, #670, #671, #681). `cairn init --from-code` names an explicit review step for the scaffolded blueprint after discovery (#609), and the flow is exercised end to end against an external repository (`res.autodocs-arm-a-brownfield-run`, #677, #678).
+- Discovery anchors candidate nodes on package manifests (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`) instead of file placement and depth: the depth budget restarts at each package root, the innermost root wins, and one package maps to one node (`dec.brownfield-package-root-discovery`, proposed, #669). Nested packages scan clean without redundant `node_modules` ignores (#610, #682), and discovery-observed dependency cycles are classified advisory on measured evidence rather than failing the scan (`dec.brownfield-discovery-cycle-severity`, #506, #618, #642).
+- An absent candidate blueprint at hook time is classified and reported rather than refused (#668).
 
-### Strict-green folding and loop selection
+### Decision ratification and the maintainer queue
 
-- The lint/scan JSON `data` payload publishes `strict_green`: `true` exactly when `--strict` would exit zero over the emitted finding set (no Error and no Warning finding). One shared predicate feeds the published field and both strict exit paths, and under `--strict` the `lint --json` / `scan --json` exit code reads the published field itself, so the wire verdict and the gate cannot disagree; previously the shared-JSON path ignored `--strict` and exited 0 on warnings (`todo.lint-selection-folding` item 2, ratified 2026-07-29, PR #528 sheet W2).
-- Query JSON payloads bump to `schema_version` 6, and the webui `/api/*` envelope bumps to `schema_version` 6, for the added field.
-- Loop-mode selection folds Info findings while the lint wire publishes `strict_green: true`: `cairn scan --strict` is the CI gate, so a finding it tolerates cannot block an iteration. Default selection, both MISSION paths, the stop evidence, the Verify blocking bar, and the guardrail key on the published field, never a recomputed verdict; an Error or Warning finding with no published deferral stays selectable whatever any artefact says. Pack phrase assertions pin each sentence.
+- Decisions carry a ratification tier: a `local` ruling is machine-acceptable on convergent agent-cross-model review receipts bound to the decision's recomputed subject manifest, while a `binding` ruling, or one touching the binding surface, waits for the maintainer (`dec.decision-ratification-tiers`, `dec.reviewer-panel-ratification`, #544). An accepted local decision without two convergent receipts raises `CAIRN_DECISION_CONVERGENCE_UNMET`, and a receipt whose `subject_hash` matches no local decision's manifest is flagged.
+- `cairn pending` lists proposed decisions awaiting ratification oldest first, or renders one decision's full briefing by id (`todo.maintainer-pending-queue`, #536, #574).
 
-### Deferral publication and loop selection
+### Typed todo relationships
 
-- Findings on the lint/scan JSON wire carry `deferred_by`: the id of the accepted decision deferring the finding, or `null`. Publication is gated on decision status: a `Deferred-by` cell naming a decision that is not accepted (missing, proposed, deprecated, or superseded) raises `CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID` and publishes no deferral on the query findings wire (the finding stays live, its message suffix retracted alongside the field), so a published deferral names an accepted decision (`dec.loop-selection-deferred-findings`).
-- Query JSON payloads bump to `schema_version` 5, and the webui `/api/*` envelope bumps to `schema_version` 5, for the added field.
-- Loop-mode selection treats a finding with a published `deferred_by` as standing evidence, not a selectable unit: default selection skips it, a MISSION naming a node or finding code resolves per instance and takes the first live one, and a code is reported settled only when every instance carrying it has a validated deferral. Pack phrase assertions pin the sentences in both selection paths.
+- Todos carry a typed relationship schema (`dec.todo-relationship-model`, #570), projected to GitHub as full issue bodies and relationship links (#614, #619). `cairn roadmap` derives a view over the relationship edges (#571), and decisions surface reverse provenance edges, `refined_by` and `superseded_by` (`dec.reverse-provenance-wire`, #576).
+
+### Loop selection: deferral, strict-green, and parked findings
+
+- Findings on the lint/scan JSON wire carry `deferred_by`: the id of the accepted decision deferring the finding, or `null`. A `Deferred-by` cell naming a decision that is not accepted raises `CAIRN_SPEC_RULE_DEFERRED_DECISION_INVALID` and publishes no deferral, so a published deferral always names an accepted decision (`dec.loop-selection-deferred-findings`, #531).
+- The lint/scan `data` payload publishes `strict_green`: `true` exactly when `--strict` would exit zero over the emitted finding set. One shared predicate feeds the field and both strict exit paths, so the wire verdict and the gate cannot disagree; previously the shared-JSON path ignored `--strict` and exited 0 on warnings (`dec.loop-selection-strict-green-fold`, `todo.lint-selection-folding` item 2, #532).
+- Todos gain an optional `defers:` list that parks a matching live Info finding while the todo is `blocked`: `cairn lint` and `cairn scan` still print it in full, annotated `(parked by todo.<slug>)`, and the wire publishes per-finding `parked_by`. Parking applies to Info findings alone and only through the typed reference; a reference aimed at an Error or Warning raises `CAIRN_TODO_DEFERS_BLOCKING` (CA042), one matching no finding raises `CAIRN_TODO_DEFERS_UNMATCHED` (CA041), and a malformed entry raises `CAIRN_TODO_DEFERS_INVALID` (CA043) (`todo.lint-selection-folding` item 1a, `dec.parked-deferral-composition`, #533).
+- Loop-mode selection skips a finding with a published `deferred_by`, folds Info findings while the wire publishes `strict_green: true`, and skips a parked Info finding on its published `parked_by`; an Error or Warning with no published deferral stays selectable whatever any artefact says.
+
+### Authorability evaluation
+
+- A new `cairn-authoreval` binary scores how authorable a blueprint is, with a published baseline from one corpus run (`dec.authoreval-instrument-placement`, `todo.blueprint-authorability-eval`, #654, #663). It scores an unparseable blueprint instead of aborting the run (#661), and the gate grades the running binary rather than a `cairn` found on PATH (#658).
+
+### Over-harness console (web UI)
+
+- The web explorer gains a read-only over-harness console with three lanes (`dec.control-plane-programme`, `dec.orchestration-placement`, #572). Node state carries a grammar that survives greyscale, stillness, and a screen reader (#692); the console renders the evidence the browser already downloaded (#693); and the dimmed-node contrast audit is honest (#691). Web UI write authority is scoped by `dec.webui-write-authority`.
+
+### Sources, artefacts, and scanner gates
+
+- Sources gain a `verification: tracked` mode for live in-repo material (`dec.source-tracked-verification`, #537), and a source whose file cites the source itself warns (`dec.source-file-never-self`, #539). The artefact filename convention is enforced as CA038 (`dec.artefact-layout-authority`, #490). Accepted-decision accumulation on a node is flagged (#517), and a configured tag registry is validated (#626).
+
+### Contracts
+
+- Contract asserted-numeral drift is gated (`todo.contract-asserted-numeral-drift`, #705). Contract node-shape drift against the blueprint is enforced with non-generative baseline management (#515, #516), replacing the deferred stance (`dec.contract-node-shape-drift-deferred`, deprecated).
 
 ### Change lifecycle read surface
 
-- `cairn change show` and `cairn change list` report task progress: JSON carries `progress: {completed, total, remaining}` parsed from the change's `tasks.md` checkboxes, and the human `change show` prints `Tasks: n/m complete`. The checkbox parser is now shared with the scan check behind `CAIRN_CHANGE_TASKS_COMPLETE` (#508).
-- `cairn change accept --dry-run` previews the acceptance gate: it resolves the battery, lists every step as `planned` with the command it would run, spawns nothing, and reports `gate_outcome: preview`. A configured gate with a blank command still fails, as it does live. Previously `--dry-run` was parsed as the change id, so the full battery ran against a change literally named `--dry-run` (#508, gh:#241).
-- Query JSON payloads bump to `schema_version` 4 (#508).
+- `cairn change show` and `cairn change list` report task progress: JSON carries `progress: {completed, total, remaining}` parsed from the change's `tasks.md` checkboxes, and `change show` prints `Tasks: n/m complete`, sharing the checkbox parser with `CAIRN_CHANGE_TASKS_COMPLETE` (#508).
+- `cairn change accept --dry-run` previews the acceptance gate: it resolves the battery, lists every step as `planned` with the command it would run, and reports `gate_outcome: preview`. Previously `--dry-run` was parsed as the change id (#508, gh:#241).
+
+### Landing page and CLI
+
+- The public landing page is rebuilt on a dedicated marketing design lane (`dec.marketing-visual-world`, #500, #507). `cairn init` scaffolds ignore suggestions (#615), and status and todo paths render relative to the project (#616, #620).
+
+### Coordination and hooks
+
+- Fact-store writes and reads are hardened (`dec.coord-fact-write-once`, #643). Auto-PR merge pins to the gated head (#629), blocked hook output points to remediation (#624), and configured decisions pointers are honored (#622).
+
+### Wire format
+
+- Query and web UI `/api/*` JSON payloads move from `schema_version` 3 to 12: change progress (#508), `deferred_by` (#531), `strict_green` (#532), `parked_by` (#533), the todo relationship schema (#570), the pending queue (#574), reverse provenance edges (#576), and normalized artefact paths (#617).
+
+## v0.9.0
 
 ### Agent pack
 

@@ -2,11 +2,10 @@
 id: dec.autodocs-arm-a-item-7-correction
 nodes:
   - cairn.brownfield
-status: proposed
+status: accepted
 date: 2026-08-09
 informed_by: [res.autodocs-arm-a-brownfield-run]
-related:
-  - dec.autodocs-head-to-head-arm-b
+supersedes: [dec.autodocs-head-to-head-arm-b]
 revisit_triggers:
   - "If AutoDocs supports polyglot repositories AND drops the repository-root layout requirement"
 ---

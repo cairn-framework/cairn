@@ -1,6 +1,6 @@
 ---
 node: cairn.root
-status: open
+status: in_progress
 created: 2026-07-30
 ---
 
@@ -113,3 +113,36 @@ that list only if it is signed before the cut.
 cairn.root anchor justified (2026-08-07): release cut is crate-wide process (Cargo.toml, CHANGELOG).
 
 2026-08-07 audit (todo.roadmap-assumption-audit): keep; refresh the gate inventory at release time. Milestone gate 1 (convergence receipt drift) is resolved: main is strict-green as of 2026-08-07.
+
+## Gate check (2026-08-19): MET, cutting v0.10.0
+
+Checked against `main` at `23332d9c` (after merging #706) with a freshly built
+binary. 158 commits landed since `v0.9.0`.
+
+1. **Gate 1: PASS.** `cairn scan --strict` and `cairn hook all` both exit 0.
+   `cargo fmt --check`, `RUSTFLAGS=-D warnings cargo clippy --workspace
+   --all-targets --all-features`, `cargo test --workspace`, and
+   `scripts/check-file-sizes.sh` all pass.
+2. **Gate 2: MET.** Two decisions were proposed at cut time:
+   `dec.autodocs-arm-a-item-7-correction` (binding, supersedes the
+   maintainer-signed `dec.autodocs-head-to-head-arm-b`) was ratified by the
+   maintainer in session and accepted; `dec.brownfield-package-root-discovery`
+   (local) is deliberately parked with its rubric, its behaviour already shipped
+   in #669 with tests, and its acceptance tracked by
+   `todo.brownfield-package-root-discovery-ratification` (a session with a second
+   distinct reviewer model is needed for the convergence panel).
+3. **Gate 3: PASS.** The one active non-pilot change, `driver-v2-selection`,
+   touches no artefact schema and no shipped pack. The decision-ratification
+   tiers regime has landed.
+4. **Gate 4: PASS.** Maintainer confirmed a 0.10.0 minor bump in session.
+
+The changelog is derived from merged artefacts (decisions, todos, change
+archives) with PR numbers as locators, and the four post-tag subsections that
+had been misfiled under `v0.9.0` (parked findings, strict-green fold, deferral
+publication, change lifecycle read surface) were relocated to `v0.10.0`.
+
+## Outcome
+
+Pending: filled in after the release PR merges and `v0.10.0` is tagged (GitHub
+Release with assets, crates.io version, Homebrew formula, `cargo package`
+embedding every `src/ui_assets` file, and a refreshed local install).
