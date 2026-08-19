@@ -138,6 +138,67 @@ fn test_blueprint_contract_pointers_resolve() {
     );
 }
 
+/// `docs/conventions.md` once required `thiserror::Error` for all error types
+/// while nothing in the workspace used it
+/// (`todo.conventions-thiserror-divergence`). Guard both sides of the resolved
+/// state: the Error Types section states only the hand-written convention, and
+/// no workspace package declares `thiserror`.
+#[test]
+fn test_conventions_error_types_match_code() {
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let conventions =
+        fs::read_to_string(manifest_dir.join("docs/conventions.md")).expect("read conventions.md");
+    let error_types = conventions
+        .split("### Error Types")
+        .nth(1)
+        .and_then(|tail| tail.split("### ").next())
+        .expect("docs/conventions.md must contain an Error Types section");
+    assert!(
+        error_types.contains("implement `fmt::Display` and `std::error::Error` by hand"),
+        "docs/conventions.md Error Types section must state the hand-written \
+         convention (dec.conventions-error-types)"
+    );
+    assert!(
+        !error_types.contains("MUST use `thiserror::Error`"),
+        "docs/conventions.md Error Types section must not restore the superseded \
+         `thiserror` mandate (dec.conventions-error-types)"
+    );
+
+    let metadata = std::process::Command::new(env!("CARGO"))
+        .args(["metadata", "--format-version", "1", "--no-deps"])
+        .current_dir(&manifest_dir)
+        .output()
+        .expect("run cargo metadata");
+    assert!(
+        metadata.status.success(),
+        "cargo metadata failed: {}",
+        String::from_utf8_lossy(&metadata.stderr)
+    );
+    let metadata: serde_json::Value =
+        serde_json::from_slice(&metadata.stdout).expect("cargo metadata output must be JSON");
+    let thiserror_users = metadata["packages"]
+        .as_array()
+        .expect("cargo metadata packages must be an array")
+        .iter()
+        .filter_map(|package| {
+            let uses_thiserror = package["dependencies"]
+                .as_array()
+                .is_some_and(|dependencies| {
+                    dependencies
+                        .iter()
+                        .any(|dependency| dependency["name"] == "thiserror")
+                });
+            uses_thiserror.then(|| package["name"].as_str().unwrap_or("<unnamed>"))
+        })
+        .collect::<Vec<_>>();
+    assert!(
+        thiserror_users.is_empty(),
+        "workspace packages must not declare `thiserror` while the hand-written \
+         error convention stands: {}",
+        thiserror_users.join(", ")
+    );
+}
+
 #[test]
 fn cargo_package_list_stays_within_expected_roots() {
     let manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");

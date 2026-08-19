@@ -153,7 +153,7 @@ Types that are compared in tests SHOULD also derive `PartialEq` and `Eq`.
 
 ### Error Types
 
-- All Cairn error types MUST use `thiserror::Error` for derivation.
+- When an error type needs standard-error formatting, implement `fmt::Display` and `std::error::Error` by hand rather than through `thiserror::Error`; `src/error.rs` is the reference implementation. Cairn deliberately carries no `thiserror` dependency.
 - The top-level error type is `CairnError`, defined in `src/error.rs`.
 - `CairnError` MUST carry an error code from the registry (section 1) and expose it via `.code() -> &str`.
 - Subsystem error types MAY exist for internal use, but anything surfaced to users or returned from a public API MUST be convertible to `CairnError` via `From` implementations.
